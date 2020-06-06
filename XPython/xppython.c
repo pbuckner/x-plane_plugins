@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-extern const char *pythonPluginVersion;
+extern const char *pythonPluginVersion, *pythonPluginsPath, *pythonInternalPluginsPath;
 /* static PyObject *XPPythonVersionFun(PyObject *self, PyObject *args) */
 /* { */
 /*   (void) self; */
@@ -44,6 +44,8 @@ PyInit_XPPython(void)
   PyObject *mod = PyModule_Create(&XPPythonModule);
   if (mod != NULL) {
     PyModule_AddStringConstant(mod, "VERSION", pythonPluginVersion);
+    PyModule_AddStringConstant(mod, "PLUGINSPATH", pythonPluginsPath);
+    PyModule_AddStringConstant(mod, "INTERNALPLUGINSPATH", pythonInternalPluginsPath);
   }
 
   return mod;

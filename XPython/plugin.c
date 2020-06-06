@@ -29,12 +29,12 @@ static char *logFileName = "XPPython3.log";
 static char *ENV_logFileVar = "XPPYTHON3_LOG";  // set this environment to override logFileName
 static char *ENV_logPreserve = "XPPYTHON3_PRESERVE";  // DO NOT truncate XPPython log on startup. If set, we preserve, if unset, we truncate
 
-static const char *pluginsPath = "./Resources/plugins/PythonPlugins";
-static const char *internalPluginsPath = "./Resources/plugins/XPPython3";
+const char *pythonPluginsPath = "./Resources/plugins/PythonPlugins";
+const char *pythonInternalPluginsPath = "./Resources/plugins/XPPython3";
 
 static const char *pythonPluginName = "XPPython3";
-const char *pythonPluginVersion = "3.0.0";
-static const char *pythonPluginSig  = "avnwx.xppython3";
+const char *pythonPluginVersion = "3.0.0.a2";
+const char *pythonPluginSig  = "avnwx.xppython3";
 static const char *pythonPluginDesc = "X-Plane interface for Python 3";
 static const char *pythonStopCommand = "XPPython3/stopScripts";
 static const char *pythonStartCommand = "XPPython3/startScripts";
@@ -171,11 +171,11 @@ int initPython(void){
   loggerObj = PyImport_ImportModule("XPythonLogger");
   PyObject *path = PySys_GetObject("path"); //Borrowed!
 
-  PyObject *pathStrObj = PyUnicode_DecodeUTF8(strdup(pluginsPath), strlen(pluginsPath), NULL);
+  PyObject *pathStrObj = PyUnicode_DecodeUTF8(strdup(pythonPluginsPath), strlen(pythonPluginsPath), NULL);
   PyList_Append(path, pathStrObj);
   Py_DECREF(pathStrObj);
 
-  pathStrObj = PyUnicode_DecodeUTF8(strdup(internalPluginsPath), strlen(internalPluginsPath), NULL);
+  pathStrObj = PyUnicode_DecodeUTF8(strdup(pythonInternalPluginsPath), strlen(pythonInternalPluginsPath), NULL);
   PyList_Append(path, pathStrObj);
   Py_DECREF(pathStrObj);
 
@@ -315,9 +315,9 @@ static int startPython(void)
   initPython();
 
   // Load internal stuff
-  loadModules(internalPluginsPath, "^I_PI_.*\\.py$");
+  loadModules(pythonInternalPluginsPath, "^I_PI_.*\\.py$");
   // Load modules
-  loadModules(pluginsPath, "^PI_.*\\.py$");
+  loadModules(pythonPluginsPath, "^PI_.*\\.py$");
   pythonStarted = true;
   return 1;
 }

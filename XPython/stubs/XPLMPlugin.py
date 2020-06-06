@@ -153,7 +153,7 @@ def XPLMFindPluginBySignature(inSignature):
     pass
 
 
-def XPLMGetPluginInfo():
+def XPLMGetPluginInfo(inPluginID, outName, outFilePath, outSignature, outDescription):
     """
     This routine returns information about a plug-in.  Each parameter should be
     a list, or None to not receive the information.

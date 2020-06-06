@@ -304,7 +304,7 @@ def XPLMSimulateKeyPress(inKeyType, inKey):
     """
     pass
 
-def XPLMXPLMSpeakString(inString):
+def XPLMSpeakString(inString):
     """
     This function displays the string in a translucent overlay over the current
     display and also speaks the string if text-to-speech is enabled. The string
@@ -357,12 +357,14 @@ def XPLMReloadScenery():
     """
     pass
 
+
 def XPLMGetSystemPath():
     """
     This function returns the full path to the X-System folder. Note that this
     is a directory path, so it ends in a trailing : or /.
     """
-    pass
+    return str
+
 
 def XPLMGetPrefsPath():
     """
@@ -370,7 +372,8 @@ def XPLMGetPrefsPath():
     preferences directory. (You should remove the file name back to the last
     directory separator to get the preferences directory.
     """
-    pass
+    return str
+
 
 def XPLMGetDirectorySeparator():
     """
@@ -390,7 +393,8 @@ def XPLMExtractFileAndPath(inFullPath):
     the file part of the buffer is returned; the original buffer still starts
     with the path.
     """
-    pass
+    return str, str
+
 
 def XPLMGetDirectoryContents(inDirectoryPath, inFirstReturn, inFileNameBufSize, inIndexCount):
     """
@@ -555,6 +559,7 @@ def XPLMCommandOnce(inCommand):
     """
     pass
 
+
 def XPLMCreateCommand(inName, inDescription):
     """
     XPLMCreateCommand creates a new command for a given string. If the command
@@ -562,7 +567,7 @@ def XPLMCreateCommand(inName, inDescription):
     may appear in user interface contexts, such as the joystick configuration
     screen.
     """
-    pass
+    return int  # XPLMCommandRef
 
 def XPLMRegisterCommandHandler(inComand, inHandler, inBefore, inRefcon):
     """

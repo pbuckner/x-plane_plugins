@@ -322,7 +322,7 @@ def XPLMDrawNumber(inColorRGB, inXOffset, inYOffset, inValue, inDigits,
    pass
 ###############################################################################
 
-def XPLMGetFontDimmensions(inFontID, outCharWidth, outCharHeight, outDigitsOnly):
+def XPLMGetFontDimensions(inFontID, outCharWidth, outCharHeight, outDigitsOnly):
    """Retrieve a font info
 
    inFontID      - integer

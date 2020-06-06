@@ -77,8 +77,7 @@ def XPLMFindAircraftMenu():
     pass
 
 
-def XPLMCreateMenu(self,
-                   inName,
+def XPLMCreateMenu(inName,
                    inParentMenu,
                    inParentItem,
                    inHandler,
@@ -101,7 +100,7 @@ def XPLMCreateMenu(self,
     inHandler : callback or None (XPLMMenuHandler_f)
     inMenuRef : object passed to the callback
     """
-    pass
+    return int  # XPLMMenuID
 
 
 def XPLMDestroyMenu(inMenuID):
@@ -140,7 +139,7 @@ def XPLMAppendMenuItem(inMenu,
     are irrelevant to your plugin in order to deliver this consistency for each
     plugin.)
     """
-    pass
+    return int  # menu idx
 
 
 def XPLMAppendMenuItemWithCommand(inMenu, inItemName, inCommandToExecute):
@@ -185,7 +184,7 @@ def XPLMCheckMenuItem(inMenu, index, inCheck):
     pass
 
 
-def XPLMCheckMenuItemState(inMenu, index, outCheck):
+def XPLMCheckMenuItemState(inMenu, index):
     """
     This routine returns whether a menu item is checked or not. A menu item's
     check mark may be on or off, or a menu may not have an icon at all.
@@ -206,4 +205,3 @@ def XPLMRemoveMenuItem(inMenu, inIndex):
     one; your plugin must track the change in index numbers.
     """
     pass
-

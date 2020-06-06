@@ -337,7 +337,7 @@ def XPGetWidgetDescriptor(inWidget, outDescriptor, inMaxDescLength):
     descriptor exceeds your buffer length, the buffer will not be null
     terminated (this routine has 'strncpy' semantics).
     """
-    pass
+    return int  # len(descriptor)
 
 
 def XPGetWidgetUnderlyingWindow(inWidget):
@@ -407,7 +407,7 @@ def XPGetWidgetWithFocus():
     pass
 
 
-def XPAddWidgetCallback(self, inWidget, inNewCallback):
+def XPAddWidgetCallback(inWidget, inNewCallback):
     """
     This function adds a new widget callback to a widget. This widget callback
     supercedes any existing ones and will receive messages first; if it does

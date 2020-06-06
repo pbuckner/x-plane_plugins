@@ -42,7 +42,7 @@ def XPLMPlaceUserAtLocation(latitudeDegrees,
     pass
 
 
-def XPLMCountAircraft(outTotalAircraft, outActiveAircraft, outController):
+def XPLMCountAircraft():
     """
     This function returns the number of aircraft X-Plane is capable of having,
     as well as the number of aircraft that are currently active.  These numbers
@@ -54,10 +54,10 @@ def XPLMCountAircraft(outTotalAircraft, outActiveAircraft, outController):
     outActiveAircraft : list, will contain number of active planes
     outController : list, will return Id of plugin controlling the aircraft
     """
-    pass
+    return (int, int, int)  #: (total, active, controlling Plugin)
 
 
-def XPLMGetNthAircraftModel(inIndex, outFileName, outPath):
+def XPLMGetNthAircraftModel(inIndex):
     """
     This function returns the aircraft model for the Nth aircraft.  Indices are
     zero based, with zero being the user's aircraft.  The file name should be
@@ -68,7 +68,7 @@ def XPLMGetNthAircraftModel(inIndex, outFileName, outPath):
     outFileName : list, will contain model filename
     outPath     : list, will contain path to the model
     """
-    pass
+    return (str, str)  # (model filename, path to model)
 
 
 def XPLMPlanesAvailable_f(self, inRefcon):

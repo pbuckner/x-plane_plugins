@@ -58,7 +58,7 @@ def XPLMGetElapsedTime():
     This routine returns the elapsed time since the sim started up in decimal
     seconds.
     """
-    pass
+    return float  # seconds
 
 
 def XPLMGetCycleNumber():
@@ -66,7 +66,7 @@ def XPLMGetCycleNumber():
     This routine returns a counter starting at zero for each sim cycle
     computed/video frame rendered.
     """
-    pass
+    return int  # cycle number
 
 
 def XPLMRegisterFlightLoopCallback(inFlightLoop, inInterval, inRefcon):

@@ -168,10 +168,15 @@ int initPython(void){
   //get the plugin directory into the python's path
   loggerObj = PyImport_ImportModule("XPythonLogger");
   PyObject *path = PySys_GetObject("path"); //Borrowed!
-  const char pathStr[] = "./Resources/plugins/PythonPlugins";
-  PyObject *pathStrObj = PyUnicode_DecodeUTF8(pathStr, sizeof(pathStr) - 1, NULL);
+
+  PyObject *pathStrObj = PyUnicode_DecodeUTF8(strdup(pluginsPath), strlen(pluginsPath), NULL);
   PyList_Append(path, pathStrObj);
   Py_DECREF(pathStrObj);
+
+  pathStrObj = PyUnicode_DecodeUTF8(strdup(internalPluginsPath), strlen(internalPluginsPath), NULL);
+  PyList_Append(path, pathStrObj);
+  Py_DECREF(pathStrObj);
+
   moduleDict = PyDict_New();
   return 0;
 }

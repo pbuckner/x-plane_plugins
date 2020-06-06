@@ -33,7 +33,7 @@ static const char *pluginsPath = "./Resources/plugins/PythonPlugins";
 static const char *internalPluginsPath = "./Resources/plugins/XPPython3";
 
 static const char *pythonPluginName = "XPPython3";
-static const char *pythonPluginVersion = "3.0.0";
+const char *pythonPluginVersion = "3.0.0";
 static const char *pythonPluginSig  = "avnwx.xppython3";
 static const char *pythonPluginDesc = "X-Plane interface for Python 3";
 static const char *pythonStopCommand = "XPPython3/stopScripts";
@@ -61,6 +61,7 @@ PyMODINIT_FUNC PyInit_XPWidgetUtils(void);
 PyMODINIT_FUNC PyInit_XPLMInstance(void);
 PyMODINIT_FUNC PyInit_XPLMMap(void);
 PyMODINIT_FUNC PyInit_SBU(void);
+PyMODINIT_FUNC PyInit_XPPython(void);
 
 static FILE *logFile;
 static bool stopped;
@@ -158,6 +159,7 @@ int initPython(void){
   PyImport_AppendInittab("XPLMMap", PyInit_XPLMMap);
   PyImport_AppendInittab("XPythonLogger", PyInit_XPythonLogWriter);
   PyImport_AppendInittab("SandyBarbourUtilities", PyInit_SBU);
+  PyImport_AppendInittab("XPPython", PyInit_XPPython);
 
   Py_Initialize();
   if(!Py_IsInitialized()){

@@ -8,6 +8,7 @@ XP_SDK=../SDK
 CFLAGS=-Wall -Wextra -g -fpic -fPIC -fvisibility=hidden
 XPLM_CPPFLAGS = -DXPLM200 -DXPLM210 -DXPLM300 -DXPLM301 -DXPLM302 -DXPLM303 \
                 -I$(XP_SDK)/CHeaders -I$(XP_SDK)/CHeaders/XPLM -I$(XP_SDK)/CHeaders/Widgets
+ZIP=zip
 
 ##########
 # PYTHON opts
@@ -65,6 +66,13 @@ xppython3.xpl : plugin.o defs.o display.o utils.o graphics.o data_access.o utili
 	navigation.o plugins.o planes.o processing.o camera.o widget_defs.o widgets.o \
 	standard_widgets.o uigraphics.o widgetutils.o instance.o map.o plugin_dl.o sb.o utils.o xppython.o
 	$(LD) $^ $(LDFLAGS) -o $@ 
+
+install_remote :  Resources/plugins/XPPython3/win_x64/xppython3.xpl \
+	Resources/plugins/XPPython3/mac_x64/xppython3.xpl \
+	Resources/plugins/XPPython3/lin_x64/xppython3.xpl
+	cd Resources/plugins/XPPython3; $(ZIP) -R xppython.zip . "*_x64/*.xpl" "*.py"
+	scp Resources/plugins/XPPython3/xppython.zip pbuck@avnwx.com:/var/www/production/data/x-plane
+	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; ./updatemd5 xppython.zip'
 
 SUBDIRS = . mac lin win
 SUBDIRSCLEAN=$(addsuffix .clean,$(SUBDIRS))

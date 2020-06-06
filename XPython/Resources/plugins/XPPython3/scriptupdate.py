@@ -1,0 +1,115 @@
+"""
+Python Plugin updater, modelled after PI_ScriptUpdater.py by
+Joan Perez i Cauhe
+"""
+
+import XPPython
+import os
+import os.path
+from zipfile import ZipFile
+import hashlib
+import json
+try:
+    from urllib.request import urlopen, urlretrieve
+except ImportError:
+    from urllib import urlopen, urlretrieve
+
+import time
+import scriptconfig
+log = scriptconfig.log
+system_log = scriptconfig.system_log
+
+
+class Updater(object):
+    VersionCheckURL = "http://example.com/foo.json"
+    Sig = 'inherited from Config'
+    Version = 'inherited from Config'
+    config = None  # inherited from Config
+    sys_path = None  # inherited from Config
+    plugin_path = None  # inherited from Config
+
+    def __init__(self, sig, version):
+        self.new_version = None
+        log("Updater initialized")
+        self.check()
+        self.json_info = {}
+
+    def check(self, forceUpgrade=False):
+        log("Calling Check with version check url: {}".format(self.VersionCheckURL))
+        if self.VersionCheckURL:
+            try:
+                ret = urlopen(self.VersionCheckURL)
+                if ret.getcode() != 200:
+                    system_log("Failed to get {}, returned code: {}".format(self.VersionCheckURL, ret.getcode()))
+                    return
+            except Exception as e:
+                log("Failed with urllib: {}".format(e))
+                return
+            try:
+                data = ret.read()
+            except Exception as e:
+                log("Failed reading result: {}".format(e))
+                return
+            try:
+                self.json_info = json.loads(data)
+            except Exception as e:
+                log("Failed converting to json: {}".format(e))
+                return
+            try:
+                if self.json_info[self.Sig]['version'] != self.Version or forceUpgrade:
+                    self.new_version = self.json_info[self.Sig]['version']
+                    system_log(">>>>> A new version is available: v.{}.".format(self.json_info[self.Sig]['version']))
+                    if forceUpgrade or (self.json_info[self.Sig]['autoUpgrade'] and self.config and self.config.get('autoUpgrade', False)):
+                        system_log(">>>>> Automatically upgrading")
+                        self.update(self.json_info[self.Sig]['download'])
+                    else:
+                        system_log(">>>>> To upgrade: {}".format(self.json_info[self.Sig]['upgrade']))
+                else:
+                    log("Version is up to date")
+            except KeyError as e:
+                log("Failed to find key: {}".format(e))
+
+    def update(self, download_url):
+        success = None
+        download_path = os.path.join(self.sys_path, 'Resources/Downloads/', self.Sig)
+        install_path = os.path.join(self.sys_path, self.plugin_path)
+
+        # Message to self to stop
+        time.sleep(1)
+
+        if not os.path.exists(download_path):
+            log("Making download directory: {}".format(download_path))
+            os.makedirs(download_path)
+
+        zipfile = download_path + '/._UPDATE.zip'
+        urlretrieve(download_url, zipfile)
+        log("Downloaded file: {}".format(zipfile))
+        if not self.verify(zipfile):
+            system_log("Not upgraded: File does not match checksum: incomplete download?")
+            return
+        with ZipFile(zipfile, 'r') as zipfp:
+            if not zipfp.testzip():
+                zipfp.extractall(install_path)
+                success = True
+            else:
+                success = False
+                system_log("failed testzip()")
+        if success:
+            os.remove(zipfile)
+            system_log("Upgraded: restart X-Plane to load new version")
+            # log("this will reload plugins -- commented out")
+            # log("This works, but X-Plane then prompts 'Please place new plugin in directory'.. 'Understood'")
+            # log("which should not be necessary -- any way to stop it?")
+            # plugins.reloadPlugins()
+
+    def verify(self, filename):
+        try:
+            cksum = None
+            hash_md5 = hashlib.md5()
+            with open(filename, 'rb') as f:
+                for chunk in iter(lambda: f.read(4086), b''):
+                    hash_md5.update(chunk)
+                cksum = hash_md5.hexdigest()
+            return 'cksum' in self.json_info[self.Sig] and cksum == self.json_info[self.Sig]['cksum']
+        except Exception as e:
+            system_log("Failed with file checksum: {}, json has: {}. {}, ".format(self.json_info[self.Sig], cksum, e))

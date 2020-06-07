@@ -49,7 +49,7 @@ class PythonInterface(Config):
         if inPhase == xplm_CommandBegin:
             self.check(forceUpgrade=True)
             XPLMCheckMenuItem(XPLMFindPluginsMenu(), 1, xplm_Menu_Unchecked)  # '1' because the main XPPython Menu is first...?
-            XPLMSetMenuItemName(self.menu, 0, "{} is up-to-date".format(self.new_version), 0)
+            XPLMSetMenuItemName(self.menu, 0, "Will change to {} on restart.".format(self.new_version), 0)
         return 0
 
     def XPluginStop(self):

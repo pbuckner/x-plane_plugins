@@ -50,6 +50,8 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
   case xpMsg_Shown:
   case xpMsg_Hidden:
   case xpMsg_TextFieldChanged:
+  case xpMsg_PushButtonPressed:
+  case xpMsg_ButtonStateChanged:
     param1 =  getPtrRef((void *)inParam1, widgetIDCapsules, widgetRefName);
     break;
     

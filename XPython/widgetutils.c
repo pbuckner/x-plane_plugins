@@ -26,7 +26,7 @@ static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args)
     return NULL;
   }
   int i;
-  PyObject *tmpObj;
+  PyObject *tmpObjs[inCount];
   for(i = 0; i < inCount; ++i){
     PyObject *defListItem = PyList_GetItem(widgetDefs, i);
     defs[i].left = PyLong_AsLong(PyList_GetItem(defListItem, 0));
@@ -34,10 +34,9 @@ static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args)
     defs[i].right = PyLong_AsLong(PyList_GetItem(defListItem, 2));
     defs[i].bottom = PyLong_AsLong(PyList_GetItem(defListItem, 3));
     defs[i].visible = PyLong_AsLong(PyList_GetItem(defListItem, 4));
-    tmpObj = PyUnicode_AsUTF8String(PyList_GetItem(defListItem, 5));
-    char *tmp = PyBytes_AsString(tmpObj);
+    tmpObjs[i] = PyUnicode_AsUTF8String(PyList_GetItem(defListItem, 5));
+    char *tmp = PyBytes_AsString(tmpObjs[i]);
     defs[i].descriptor = tmp;
-    Py_DECREF(tmpObj);
     defs[i].isRoot = PyLong_AsLong(PyList_GetItem(defListItem, 6));
     defs[i].containerIndex = PyLong_AsLong(PyList_GetItem(defListItem, 7));
     defs[i].widgetClass = PyLong_AsLong(PyList_GetItem(defListItem, 8));
@@ -45,6 +44,7 @@ static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args)
   XPUCreateWidgets(defs, inCount, inParamParent, ioWidgets);
 
   for(i = 0; i < inCount; ++i){
+    Py_DECREF(tmpObjs[i]);
     PyObject *tmp = getPtrRef(ioWidgets[i], widgetIDCapsules, widgetRefName);
     PyList_Append(widgets, tmp);
     Py_DECREF(tmp);

@@ -1,3 +1,4 @@
+import os.path
 import XPPython
 import scriptupdate
 import scriptconfig
@@ -9,10 +10,13 @@ class Config (scriptconfig.Config, scriptupdate.Updater):
     Name = "XPPython3 Updater"
     Sig = "com.avnwx.xppython3.updater"
     Desc = "Automatic updater for XPPython3 plugin"
-    Version = XPPython.VERSION  # -- how do we get current version of the XPPython, rather than version of this I_PI_Updater?  Or, do we always update both?
+    Version = XPPython.VERSION
     VersionCheckURL = 'https://maps.avnwx.com/data/x-plane/versions.json'
     ConfigFilename = 'updater.pkl'
-    plugin_path = XPPython.INTERNALPLUGINSPATH if __file__.startswith('I_PI') else XPPython.PLUGINSPATH
+    plugin_path = (XPPython.INTERNALPLUGINSPATH
+                   if os.path.basename(__file__).startswith('I_PI')
+                   else XPPython.PLUGINSPATH)
+    print("plugin path is {}, __file__ is {}".format(plugin_path, __file__))
     defaults = {
         'autoUpgrade': False,
     }

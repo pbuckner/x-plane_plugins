@@ -3,7 +3,6 @@ Python Plugin updater, modelled after PI_ScriptUpdater.py by
 Joan Perez i Cauhe
 """
 
-import XPPython
 import os
 import os.path
 from zipfile import ZipFile
@@ -89,8 +88,19 @@ class Updater(object):
             return
         with ZipFile(zipfile, 'r') as zipfp:
             if not zipfp.testzip():
-                zipfp.extractall(install_path)
                 success = True
+                for i in zipfp.infolist():
+                    try:
+                        if os.path.exists(os.path.join(install_path, i.filename)):
+                            system_log("already exists: {}".format(i.filename))
+                            os.replace(os.path.join(install_path, i.filename),
+                                       os.path.join(install_path, i.filename + '.bak'))
+                            system_log('{} moved to {}'.format(i.filename, i.filename + '.bak'))
+                        zipfp.extract(i, path=install_path)
+                    except PermissionError as e:
+                        success = False
+                        system_log(">>>> Failed to extract {}, upgrade failed: {}".format(i.filename, e))
+                        break
             else:
                 success = False
                 system_log("failed testzip()")

@@ -31,7 +31,6 @@ class PythonInterface(Config):
         self.updatePythonCmdRef = XPLMCreateCommand('xppython3/update', 'Update XPPython3 Plugin')
         XPLMRegisterCommandHandler(self.updatePythonCmdRef, self.updatePython, 1, '')
         self.menu = XPLMCreateMenu('XPPython3 Updater', None, 0, self.menuHandler, 'updatePython')
-        print("Self.menu is {}".format(self.menu))
         XPLMAppendMenuItem(self.menu, 'Update', None, 0)
 
         XPLMCheckMenuItem(XPLMFindPluginsMenu(), 1, xplm_Menu_Checked if self.new_version else xplm_Menu_Unchecked)  # '1' because the main XPPython Menu is first...?

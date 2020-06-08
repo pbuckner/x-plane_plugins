@@ -231,16 +231,22 @@ static PyObject *XPLMCreateMapLayerFun(PyObject *self, PyObject *args)
 
   inParams.refcon = ref;
 
+  /* !!!!
+   * XPLMCreateMapLayer() will immediately call prep_cache, so
+   * make sure we set mapDict prior to call.
+   */
+  PyObject *refObj = PyLong_FromVoidPtr(ref);
+  PyDict_SetItem(mapDict, refObj, paramsTuple);
   XPLMMapLayerID res = XPLMCreateMapLayer_ptr(&inParams);
   if(!res){
+    PyDict_DelItem(mapDict, refObj);
+    Py_DECREF(refObj);
     Py_DECREF(tmpObjMap);
     Py_DECREF(tmpObjLayerName);
     Py_DECREF(paramsTuple);
     return NULL;
   }
   PyObject *resObj = getPtrRef(res, mapLayerIDCapsules, layerIDRefName);
-  PyObject *refObj = PyLong_FromVoidPtr(ref);
-  PyDict_SetItem(mapDict, refObj, paramsTuple);
   PyDict_SetItem(mapRefDict, resObj, refObj);
   Py_DECREF(tmpObjMap);
   Py_DECREF(tmpObjLayerName);

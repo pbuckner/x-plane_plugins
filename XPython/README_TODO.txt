@@ -62,6 +62,9 @@ display:
 graphics:
   XPLMGenerateTextureNumber(outTextureIDs, inCount)
   XPLMGetFontDimensions(inFontID, outCharWidth, outCharHeight, outDigitsOnly)
+map:
+  XPLMMapProject(projection, latitude, longitude, outX, outY)
+  XPLMMapUnProject(production, mapX, mapY, outLatitude, outLongitude)
 
 Support PythonScriptMessaging functions
 * number = PI_CountScripts()

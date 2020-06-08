@@ -183,7 +183,7 @@ def XPLMLoadObject(inPath):
     loaded before you load the object. For this reason it may be necessary to
     defer object loading until the sim has fully started.
     """
-    pass
+    return int  # XPLMObjectRef
 
 
 def XPLMLoadObjectAsync(self, inPath, inCallback, inRefcon):
@@ -263,8 +263,7 @@ def XPLMLibraryEnumerator_f(self, inFilePath, inRef):
     pass
 
 
-def XPLMLookupObjects(self,
-                      inPath,
+def XPLMLookupObjects(inPath,
                       inLatitude, inLongitude,
                       enumerator,
                       ref):
@@ -284,5 +283,4 @@ def XPLMLookupObjects(self,
     enumerator              : callback (XPLMLibraryEnumerator_f)
     ref                     : any object
     """
-    pass
-
+    return int  # number of objects found

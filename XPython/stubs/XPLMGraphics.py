@@ -60,62 +60,14 @@
    xplmFont_Proportional
      - Proportional UI font.
 
-   xplmFont_Menus
-     - Deprecated, do not use.
-
-   xplmFont_Metal
-     - Deprecated, do not use.
-
-   xplmFont_Led
-     - Deprecated, do not use.
-
-   xplmFont_LedWide
-     - Deprecated, do not use.
-
-   xplmFont_PanelHUD
-     - Deprecated, do not use.
-
-   xplmFont_PanelEFIS
-     - Deprecated, do not use.
-
-   xplmFont_PanelGPS
-     - Deprecated, do not use.
-
-   xplmFont_RadiosGA
-     - Deprecated, do not use.
-
-   xplmFont_RadiosBC
-     - Deprecated, do not use.
-
-   xplmFont_RadiosHM
-     - Deprecated, do not use.
-
-   xplmFont_RadiosGANarrow
-     - Deprecated, do not use.
-
-   xplmFont_RadiosBCNarrow
-     - Deprecated, do not use.
-
-   xplmFont_RadiosHMNarrow
-     - Deprecated, do not use.
-
-   xplmFont_Timer
-     - Deprecated, do not use.
-
-   xplmFont_FullRound
-     - Deprecated, do not use.
-
-   xplmFont_SmallRound
-     - Deprecated, do not use.
-
-   xplmFont_Menus_Localized
-     - Deprecated, do not use.
 """
 ###############################################################################
+
+
 def XPLMSetGraphicsState(inEnableFog, inNumberTexUnits, inEnableLighting,
                          inEnableAlphaTesting, inEnableAlphaBlending,
                          inEnableDepthTesting, inEnableDepthWriting):
-   """XPLMSetGraphicsState changes OpenGL's graphics state
+    """XPLMSetGraphicsState changes OpenGL's graphics state
 
       inEnableFog           - integer
       inNumberTexUnits      - integer
@@ -164,12 +116,12 @@ def XPLMSetGraphicsState(inEnableFog, inNumberTexUnits, inEnableLighting,
    WARNING: Any routine that performs drawing (e.g. XPLMDrawString or widget
    code) may change X-Plane's state.  Always set state before drawing after
    unknown code has executed.
-   """
-   pass
+    """
+
 
 ###############################################################################
 def XPLMBindTexture2d(inTextureNum, inTextureUnit):
-   """Changes currently bound texture
+    """Changes currently bound texture
 
       inTextureNum  - integer
       inTextureUnit - integer
@@ -188,11 +140,11 @@ def XPLMBindTexture2d(inTextureNum, inTextureUnit):
 
    Use this routine instead of glBindTexture(GL_TEXTURE_2D, ....);
    """
-   pass
+
 
 ###############################################################################
 def XPLMGenerateTextureNumbers(outTextureIDs, inCount):
-   """Generate number of textures for a plugin.
+    """Generate number of textures for a plugin.
 
       outTextureIDs - list
       inCount       - integer
@@ -206,11 +158,11 @@ def XPLMGenerateTextureNumbers(outTextureIDs, inCount):
    X-Plane will then  overwrite the plug-ins texture.  This routine returns
    texture IDs that are out of X-Plane's usage range.
    """
-   pass
+
 
 ###############################################################################
 def XPLMGetTexture(inTexture):
-   """Return OpenGL texture based on the generic identifying code.
+    """Return OpenGL texture based on the generic identifying code.
 
       inTexture - integer
 
@@ -225,35 +177,33 @@ def XPLMGetTexture(inTexture):
 
    OPEN ISSUE: We really need a way to make sure X-Plane loads this texture if
    it isn't around, or at least a way to find out whether it is loaded or not.
-   """
-   pass
+    """
+    return int  # OpenGL texture id
+
 
 ###############################################################################
 def XPLMWorldToLocal(inLatitude, inLongitude, inAltitude):
-   """Convert Lat/Lon/Alt to local scene coordinates
+    """Convert Lat/Lon/Alt to local scene coordinates
 
    inLatitude  - float
    inLongitude - float
    inAltitude  - float
 
-   returns tuple (outX, outY, outZ)
-
    This routine translates coordinates from latitude, longitude, and altitude
    to local scene coordinates. Latitude and longitude are in decimal degrees,
    and altitude is in meters MSL (mean sea level).  The XYZ coordinates are in
    meters in the local OpenGL coordinate system.
-   """
-   pass
+    """
+    return (float, float, float)  # (outX, outY, outZ)
+
 
 ###############################################################################
 def XPLMLocalToWorld(inX, inY, inZ):
-   """Convert local scene coordinates to Lat/Lon/Alt
+    """Convert local scene coordinates to Lat/Lon/Alt
 
    inX - float
    inY - float
    inZ - float
-
-   returns tuple (outLatitude, outLongitude, outAltitude)
 
    This routine translates a local coordinate triplet back into latitude,
    longitude, and altitude.  Latitude and longitude are in decimal degrees,
@@ -262,12 +212,13 @@ def XPLMLocalToWorld(inX, inY, inZ):
 
    NOTE: world coordinates are less precise than local coordinates; you should
    try to avoid round tripping from local to world and back.
-   """
-   return (float, float, float)
+    """
+    return (float, float, float)  # (outLatitude, outLongitude, outAltitude)
+
 
 ###############################################################################
 def XPLMDrawTranslucentDarkBox(inLeft, inTop, inRight, inBottom):
-   """Draw translucent dark box
+    """Draw translucent dark box
 
       inLeft   - integer
       inTop    - integer
@@ -277,13 +228,13 @@ def XPLMDrawTranslucentDarkBox(inLeft, inTop, inRight, inBottom):
    This routine draws a translucent dark box, partially obscuring parts of the
    screen but making text easy to read.  This is the same graphics primitive
    used by X-Plane to show text files and ATC info.
-   """
-   pass
+    """
+
 
 ###############################################################################
 def XPLMDrawString(inColorRGB, inXoffset, inYOffset, inChar, inWordWrapWidth,
                    inFontID):
-   """Draw a string
+    """Draw a string
 
    inColorRGB      - list of three floats
    inXOffset       - integer
@@ -296,13 +247,13 @@ def XPLMDrawString(inColorRGB, inXoffset, inYOffset, inChar, inWordWrapWidth,
    that the character is to be drawn onto. Also pass the character and font ID.
    The color to draw in is specified as a tuple of three floating point values,
    representing RGB intensities from 0.0 to 1.0.
-   """
-   pass
+    """
+
 
 ###############################################################################
 def XPLMDrawNumber(inColorRGB, inXOffset, inYOffset, inValue, inDigits,
                    inDecimals, inShowSign, inFontID):
-   """Draw a number
+    """Draw a number
 
    inColorRGB      - list of three floats
    inXOffset       - integer
@@ -318,12 +269,12 @@ def XPLMDrawNumber(inColorRGB, inXOffset, inYOffset, inValue, inDigits,
    position, a floating point value, and formatting info.  Specify how many
    integer and how many decimal digits to show and whether to show a sign, as
    well as a character set.
-   """
-   pass
-###############################################################################
+    """
 
+
+###############################################################################
 def XPLMGetFontDimensions(inFontID, outCharWidth, outCharHeight, outDigitsOnly):
-   """Retrieve a font info
+    """Retrieve a font info
 
    inFontID      - integer
    outCharWidth  - list or None
@@ -335,36 +286,34 @@ def XPLMGetFontDimensions(inFontID, outCharWidth, outCharHeight, outDigitsOnly):
    you don't need a given field.  Note that for a proportional font the width
    will be an arbitrary, hopefully average width.
    """
-   pass
+
 
 ###############################################################################
 def XPLMMeasureString(inFontID, inChar, inNumChars):
-   """Return a width of a given string in a given font
+    """Return a width of a given string in a given font
 
       inFontID   - integer
       inChar     - string
       inNumChars - integer
 
-      returns a float
-
    This routine returns the width in pixels of a string using a given font.
    The string is passed along with a length; this is used to allow for
    measuring substrings. The return value is floating point; it is
    possible that future font drawing may allow for fractional pixels.
-   """
-   pass
+    """
+    return float  # width of string in (fractional) pixels
 
 ###############################################################################
 # XPLM Texture IDs name well-known textures in the sim for you to use. This
 # allows you to recycle textures from X-Plane, saving VRAM.
 # The bitmap that contains window outlines, button outlines, fonts, etc.
-xplm_Tex_GeneralInterface                = 0
+xplm_Tex_GeneralInterface = 0
 
 # The exterior paint for the user's aircraft (daytime).
-xplm_Tex_AircraftPaint                   = 1
+xplm_Tex_AircraftPaint = 1
 
 # The exterior light map for the user's aircraft.
-xplm_Tex_AircraftLiteMap                 = 2
+xplm_Tex_AircraftLiteMap = 2
 
 
 ###############################################################################
@@ -380,59 +329,7 @@ xplm_Tex_AircraftLiteMap                 = 2
 # you want to.
 
 # Mono-spaced font for user interface.  Available in all versions of the SDK.
-xplmFont_Basic                           = 0
-
-# Deprecated, do not use.
-xplmFont_Menus                           = 1
-
-# Deprecated, do not use.
-xplmFont_Metal                           = 2
-
-# Deprecated, do not use.
-xplmFont_Led                             = 3
-
-# Deprecated, do not use.
-xplmFont_LedWide                         = 4
-
-# Deprecated, do not use.
-xplmFont_PanelHUD                        = 5
-
-# Deprecated, do not use.
-xplmFont_PanelEFIS                       = 6
-
-# Deprecated, do not use.
-xplmFont_PanelGPS                        = 7
-
-# Deprecated, do not use.
-xplmFont_RadiosGA                        = 8
-
-# Deprecated, do not use.
-xplmFont_RadiosBC                        = 9
-
-# Deprecated, do not use.
-xplmFont_RadiosHM                        = 10
-
-# Deprecated, do not use.
-xplmFont_RadiosGANarrow                  = 11
-
-# Deprecated, do not use.
-xplmFont_RadiosBCNarrow                  = 12
-
-# Deprecated, do not use.
-xplmFont_RadiosHMNarrow                  = 13
-
-# Deprecated, do not use.
-xplmFont_Timer                           = 14
-
-# Deprecated, do not use.
-xplmFont_FullRound                       = 15
-
-# Deprecated, do not use.
-xplmFont_SmallRound                      = 16
-
-# Deprecated, do not use.
-xplmFont_Menus_Localized                 = 17
+xplmFont_Basic = 0
 
 # Proportional UI font.
-xplmFont_Proportional                    = 18
-
+xplmFont_Proportional = 18

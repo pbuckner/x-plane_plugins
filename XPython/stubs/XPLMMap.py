@@ -140,15 +140,15 @@ orientation.
 
 
 # XPLMMapStyle
-xplm_MapStyle_VFR_Sectional   = 0
-xplm_MapStyle_IFR_LowEnroute  = 1
+xplm_MapStyle_VFR_Sectional = 0
+xplm_MapStyle_IFR_LowEnroute = 1
 xplm_MapStyle_IFR_HighEnroute = 2
 
 
 # XPLMMapLayerType
 # A layer that draws "fill" graphics, like weather patterns, terrain, etc.
 # Fill layers frequently cover a large portion of the visible map area.
-xplm_MapLayer_Fill     = 0
+xplm_MapLayer_Fill = 0
 # A layer that provides markings for particular map features, like NAVAIDs,
 # airports, etc. Even dense markings layers cover a small portion of the
 # total map area.
@@ -165,14 +165,13 @@ XPLM_MAP_IOS = "XPLM_MAP_IOS"
 
 
 # XPLMMapOrientation
-  # Orient such that a 0 degree rotation matches the map's north
+#   Orient such that a 0 degree rotation matches the map's north
 xplm_MapOrientation_Map = 0
-  # Orient such that a 0 degree rotation is "up" relative to the user interface
-xplm_MapOrientation_UI  = 1
+#   Orient such that a 0 degree rotation is "up" relative to the user interface
+xplm_MapOrientation_UI = 1
 
 
-def XPLMMapDrawingCallback_f(self,
-                             inLayer,
+def XPLMMapDrawingCallback_f(inLayer,
                              inMapBoundsLeftTopRightBottom,
                              zoomRatio,
                              mapUnitsPerUserInterfaceUnit,
@@ -199,10 +198,9 @@ def XPLMMapDrawingCallback_f(self,
     projection                    : projection handle
     inRefcon                      : object
     """
-    pass
 
-def XPLMMapIconDrawingCallback_f(self,
-                                 inLayer,
+
+def XPLMMapIconDrawingCallback_f(inLayer,
                                  inMapBoundsLeftTopRightBottom,
                                  zoomRatio,
                                  mapUnitsPerUserInterfaceUnit,
@@ -231,10 +229,9 @@ def XPLMMapIconDrawingCallback_f(self,
     projection                    : projection handle
     inRefcon                      : object
     """
-    pass
 
-def XPLMMapLabelDrawingCallback_f(self,
-                                  inLayer,
+
+def XPLMMapLabelDrawingCallback_f(inLayer,
                                   inMapBoundsLeftTopRightBottom,
                                   zoomRatio,
                                   mapUnitsPerUserInterfaceUnit,
@@ -263,10 +260,9 @@ def XPLMMapLabelDrawingCallback_f(self,
     projection                    : projection handle
     inRefcon                      : object
     """
-    pass
 
-def XPLMMapPrepareCacheCallback_f(self,
-                                  inLayer,
+
+def XPLMMapPrepareCacheCallback_f(inLayer,
                                   inTotalMapBoundsLeftTopRightBottom,
                                   projection,
                                   inRefcon):
@@ -294,9 +290,9 @@ def XPLMMapPrepareCacheCallback_f(self,
     projection                    : projection handle
     inRefcon                      : object
     """
-    pass
 
-def XPLMMapWillBeDeletedCallback_f(self, inLayer, inRefcon):
+
+def XPLMMapWillBeDeletedCallback_f(inLayer, inRefcon):
     """
     Called just before your map layer gets deleted. Because SDK-created map
     layers have the same lifetime as the X-Plane map that contains them, if the
@@ -305,11 +301,9 @@ def XPLMMapWillBeDeletedCallback_f(self, inLayer, inRefcon):
     inLayer  : layer handle
     inRefcon : object
     """
-    pass
 
 
-
-def XPLMCreateMapLayer(self, inParams):
+def XPLMCreateMapLayer(inParams):
     """
     This routine creates a new map layer. You pass in an XPLMCreateMapLayer_t
     structure with all of the fields set in.  You must set the structSize of
@@ -334,7 +328,8 @@ def XPLMCreateMapLayer(self, inParams):
       layerName             : string
       refcon                : any object
     """
-    pass
+    return int  # XPLMMapLayerID
+
 
 def XPLMDestroyMapLayer(inLayer):
     """
@@ -344,7 +339,8 @@ def XPLMDestroyMapLayer(inLayer):
 
     inLayer : map layer handle obtained from XPLMCreateMapLayer
     """
-    pass
+    return int  # 1 if a deletion occurs
+
 
 def XPLMMapCreatedCallback_f(mapIdentifier, refcon):
     """
@@ -357,7 +353,7 @@ def XPLMMapCreatedCallback_f(mapIdentifier, refcon):
     mapIdentifier : string
     refcon        : any object
     """
-    pass
+
 
 def XPLMRegisterMapCreationHook(callback, refcon):
     """
@@ -371,7 +367,7 @@ def XPLMRegisterMapCreationHook(callback, refcon):
     callback : XPLMMapCreatedCallback_f
     refcon   : any object
     """
-    pass
+
 
 def XPLMMapExists(mapIdentifier):
     """
@@ -381,7 +377,8 @@ def XPLMMapExists(mapIdentifier):
 
     mapIdentifier : string
     """
-    pass
+    return int  # 1 if map already exists
+
 
 def XPLMDrawMapIconFromSheet(layer,
                              inPngPath,
@@ -428,7 +425,7 @@ def XPLMDrawMapIconFromSheet(layer,
     rotationDegrees : double
     mapWidth        : double
     """
-    pass
+
 
 def XPLMDrawMapLabel(layer,
                      inText,
@@ -447,7 +444,7 @@ def XPLMDrawMapLabel(layer,
     orientation     : XPLMMapOrientation enum
     rotationDegrees : double
     """
-    pass
+
 
 def XPLMMapProject(projection,
                    latitude, longitude,
@@ -464,7 +461,7 @@ def XPLMMapProject(projection,
     latitude, longitude : doubles
     outX, outY          : lists where the projected coordinates will be stored
     """
-    pass
+
 
 def XPLMMapUnproject(projection,
                      mapX, mapY,
@@ -481,7 +478,7 @@ def XPLMMapUnproject(projection,
     mapX, mapY                : doubles
     outLatitude, outLongitude : lists where the projected coordinates will be stored
     """
-    pass
+
 
 def XPLMMapScaleMeter(projection,
                       mapX, mapY):
@@ -496,7 +493,8 @@ def XPLMMapScaleMeter(projection,
     projection                : projection handle passed to the callback
     mapX, mapY                : doubles
     """
-    pass
+    return float  # number of map units corresponding to a distance of one meter
+
 
 def XPLMMapGetNorthHeading(projection,
                            mapX, mapY):
@@ -516,6 +514,19 @@ def XPLMMapGetNorthHeading(projection,
 
     projection                : projection handle passed to the callback
     mapX, mapY                : doubles
-    """
-    pass
 
+    -------------------------------------------------------------------
+    NOTE: The above reflects current documentation which is inaccurate.
+    Documentation bug filed with Laminar 5-May-2020.
+
+    The interface is correct, but the result is unrelated to the orientation of
+    the user aircraft. Instead, this returns the "mapping angle" which is the angle
+    measured clockwise from the tangent to the projection of the meridian to the
+    northing coordinate line (grid north). This has typical values (for LR VFR
+    sectional map projection) on the order of 0.0002 or less. Essentially it says,
+    for the given map, and a given point on that map: where is true north vis a vis
+    "up" in the projection. For Northern Hemisphere meridians curve ever-so-slightly
+    inward from bottom-to-top using the Laminar map projection.
+
+    """
+    return float  # degrees clockwise from "up"

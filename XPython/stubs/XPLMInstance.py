@@ -27,6 +27,7 @@
  match the ordering of the datarefs when you created your instance.)
 """
 
+
 ###############################################################################
 def XPLMCreateInstance(obj, datarefs):
     """
@@ -36,9 +37,8 @@ def XPLMCreateInstance(obj, datarefs):
                        or XPLMLoadObjectAsync)
         datarefs - sequence of strings (dataref names)
 
-        returns instance handle
     """
-    pass
+    return int  # XPLMInstanceRef
 
 
 def XPLMDestroyInstance(instance):
@@ -47,7 +47,6 @@ def XPLMDestroyInstance(instance):
 
         instance - integer (handle from XPLMCreateInstance)
     """
-    pass
 
 
 def XPLMInstanceSetPosition(instance, new_position, data):
@@ -59,5 +58,3 @@ def XPLMInstanceSetPosition(instance, new_position, data):
         new_position - sequence of floats (x, y, z, pitch, heading, roll)
         data         - sequence of floats (values of datarefs)
     """
-    pass
-

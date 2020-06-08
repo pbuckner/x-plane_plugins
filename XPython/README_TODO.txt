@@ -59,6 +59,9 @@ display:
   XPLMGetWindowGeometryVR(inWindowID, outWidthBoxels, outHeightBoxels)
   XPLMGetScreenBoundsGlobal(outLeft, outTop, outRight, outBottom)
   XPLMGetHotKeyInfo(inHotKey, outVirtualKey, outFlags, outDescription, outPlugin)
+graphics:
+  XPLMGenerateTextureNumber(outTextureIDs, inCount)
+  XPLMGetFontDimensions(inFontID, outCharWidth, outCharHeight, outDigitsOnly)
 
 Support PythonScriptMessaging functions
 * number = PI_CountScripts()

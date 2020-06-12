@@ -37,6 +37,8 @@ These appear to be 'internal', yet available interfaces from Python2 -- I don't 
   XPLMScenery.PI_RemoveObjectLoadedCallback
   XPLMUtilities.PI_RemoveErrorCallback
 
+Support Crash Handling?
+  See https://developer.x-plane.com/code-sample/crash-handling/
 
 ## DOCUMENTATION
 
@@ -65,7 +67,26 @@ graphics:
 map:
   XPLMMapProject(projection, latitude, longitude, outX, outY)
   XPLMMapUnProject(production, mapX, mapY, outLatitude, outLongitude)
+navigation:
+  XPLMGetNavAidInfo(inRef, outType, outLatitude, outLogitude, outHeight, outFrequency, outHeading, outID, outName, outReg)
+  XPLMGetFMSEntryInfo(inIndex, outType, outID, outRef, outAltitude, outLat, outLon)
+plugin:
+  XPLMGetPluginInfo(inPluginID, outName, outFilePath, outSignature, outDescription)
+scenery:
+  XPLMProbeTerrainXYZ(inProbe, inX, inY, inZ, outInfo)
+uigraphics:
+  XPGetWindowDefaultDimensions(inStyle, outWidth, outHeight)
+  XPGetElementDefaultDimensions(inStyle, outWidth, outHeight, outCanBeLit)
+  XPGetTrackDefaultDimensions(inStyle, outWidth, outCanBeLit)
+  XPGetTrackMetrics(inX1, inY1, inX2, inY2, inMin, inMax, inValue, inTrackStyle, outIsVertical, outDownBtnSize, outDownPageSize, outThumbSize, outUpPageSize, outUpBtnSiz)
+widgets:
+  XPGetWidgetGeometry(inWidget, outLeft, outTop, outRight, outBottom)
+  XPGetWidgetExposedGeometry(inWidgetID, outLeft, outTop, outRight, outBottom):
+  XPGetWidgetDescriptor(inWidget, outDescriptor, inMaxDescLength)
 
+XPLMPlugin: USE_NATIVE_WIDGET_WINDOWS feature -- NOTE THIS CHANGES THE UI coordinate system
+while we should probably force this "ON" for all plugins, I have not tested it this way.
+  
 Support PythonScriptMessaging functions
 * number = PI_CountScripts()
 * scriptID = PI_GetNthScript(index)

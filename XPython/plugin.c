@@ -543,12 +543,7 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
   if(stopped){
     return;
   }
-  if(inParam != NULL){
-    param = PyLong_FromLong((long)inParam);
-  }else{
-    param = Py_None;
-    Py_INCREF(param);
-  }
+  param = PyLong_FromLong((long)inParam);
   /* printf("XPPython3 received message, which we'll try to send to all plugins: From: %d, Msg: %ld, inParam: %ld\n", */
   /*        inFromWho, inMessage, (long)inParam); */
   while(PyDict_Next(moduleDict, &pos, &pKey, &pVal)){

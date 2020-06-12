@@ -36,12 +36,11 @@ lit.  So there are three possible states.
 
 # XPLMMenuCheck
 # there is no symbol to the left of the menu item.
-xplm_Menu_NoCheck   = 0
+xplm_Menu_NoCheck = 0
 # the menu has a mark next to it that is unmarked (not lit).
 xplm_Menu_Unchecked = 1
 # the menu has a mark next to it that is checked (lit).
-xplm_Menu_Checked   = 2
-
+xplm_Menu_Checked = 2
 
 
 def XPLMMenuHandler_f(inMenuRef, inItemRef):
@@ -50,7 +49,6 @@ def XPLMMenuHandler_f(inMenuRef, inItemRef):
     (specified when the menu was created) and one for the item (specified when
     the item was created).
     """
-    pass
 
 
 def XPLMFindPluginsMenu():
@@ -58,7 +56,7 @@ def XPLMFindPluginsMenu():
     This function returns the ID of the plug-ins menu, which is created for you
     at startup.
     """
-    pass
+    return int  # XPLMMenuID
 
 
 def XPLMFindAircraftMenu():
@@ -74,7 +72,7 @@ def XPLMFindAircraftMenu():
     the aircraft menu. For all other plugins, this will return None, and any
     attempts to add menu items to it will fail.
     """
-    pass
+    return int  # XPLMMenuID
 
 
 def XPLMCreateMenu(inName,
@@ -108,7 +106,6 @@ def XPLMDestroyMenu(inMenuID):
     This function destroys a menu that you have created.  Use this to remove a
     submenu if necessary.  (Normally this function will not be necessary.)
     """
-    pass
 
 
 def XPLMClearAllMenuItems(inMenuID):
@@ -116,7 +113,6 @@ def XPLMClearAllMenuItems(inMenuID):
     This function removes all menu items from a menu, allowing you to rebuild
     it.  Use this function if you need to change the number of items on a menu.
     """
-    pass
 
 
 def XPLMAppendMenuItem(inMenu,
@@ -156,7 +152,7 @@ def XPLMAppendMenuItemWithCommand(inMenu, inItemName, inCommandToExecute):
     Like XPLMAppendMenuItem(), all menu indices are relative to your plugin's
     menus only.
     """
-    pass
+    return int  # menu idx
 
 
 def XPLMAppendMenuSeparator(inMenu):
@@ -166,7 +162,6 @@ def XPLMAppendMenuSeparator(inMenu):
     Returns a negative index if the append failed (due to an invalid parent
     menu argument).
     """
-    pass
 
 
 def XPLMSetMenuItemName(inMenu, inIndex, inItemName, inForceEnglish):
@@ -174,14 +169,12 @@ def XPLMSetMenuItemName(inMenu, inIndex, inItemName, inForceEnglish):
     This routine changes the name of an existing menu item.  Pass in the menu
     ID and the index of the menu item.
     """
-    pass
 
 
 def XPLMCheckMenuItem(inMenu, index, inCheck):
     """
     Set whether a menu item is checked.  Pass in the menu ID and item index.
     """
-    pass
 
 
 def XPLMCheckMenuItemState(inMenu, index):
@@ -189,14 +182,13 @@ def XPLMCheckMenuItemState(inMenu, index):
     This routine returns whether a menu item is checked or not. A menu item's
     check mark may be on or off, or a menu may not have an icon at all.
     """
-    pass
+    return int  # XPLMMenuCheck
 
 
 def XPLMEnableMenuItem(inMenu, index, enabled):
     """
     Sets whether this menu item is enabled.  Items start out enabled.
     """
-    pass
 
 
 def XPLMRemoveMenuItem(inMenu, inIndex):
@@ -204,4 +196,3 @@ def XPLMRemoveMenuItem(inMenu, inIndex):
     Removes one item from a menu.  Note that all menu items below are moved up
     one; your plugin must track the change in index numbers.
     """
-    pass

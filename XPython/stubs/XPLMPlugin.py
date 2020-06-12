@@ -52,9 +52,9 @@ should not expect a feature to be guaranteed present.
 
 # Messages
 # This message is sent to your plugin whenever the user's plane crashes.
-XPLM_MSG_PLANE_CRASHED  = 101
+XPLM_MSG_PLANE_CRASHED = 101
 
-# This message is sent to your plugin whenever a new plane is loaded.  The
+# This message is sent to your plugin whenever a new plane is loaded. The
 # parameter is the number of the plane being loaded; 0 indicates the user's
 # plane.
 XPLM_MSG_PLANE_LOADED = 102
@@ -63,33 +63,33 @@ XPLM_MSG_PLANE_LOADED = 102
 # airport.
 XPLM_MSG_AIRPORT_LOADED = 103
 
-# This message is sent whenever new scenery is loaded.  Use datarefs to
+# This message is sent whenever new scenery is loaded. Use datarefs to
 # determine the new scenery files that were loaded.
 XPLM_MSG_SCENERY_LOADED = 104
 
 # This message is sent whenever the user adjusts the number of X-Plane
-# aircraft models.  You must use XPLMCountPlanes to find out how many planes
-# are now available.  This message will only be sent in XP7 and higher
+# aircraft models. You must use XPLMCountPlanes to find out how many planes
+# are now available. This message will only be sent in XP7 and higher
 # because in XP6 the number of aircraft is not user-adjustable.
 XPLM_MSG_AIRPLANE_COUNT_CHANGED = 105
 
-# This message is sent to your plugin whenever a plane is unloaded.  The
+# This message is sent to your plugin whenever a plane is unloaded. The
 # parameter is the number of the plane being unloaded; 0 indicates the user's
-# plane.  The parameter is of type int, passed as the value of the pointer.
+# plane. The parameter is of type int, passed as the value of the pointer.
 # (That is: the parameter is an int, not a pointer to an int.)
 XPLM_MSG_PLANE_UNLOADED = 106
 
 # This message is sent to your plugin right before X-Plane writes its
-# preferences file.  You can use this for two purposes: to write your own
+# preferences file. You can use this for two purposes: to write your own
 # preferences, and to modify any datarefs to influence preferences output.
 # For example, if your plugin temporarily modifies saved preferences, you can
-# put them back to their default values here to avoid  having the tweaks be
+# put them back to their default values here to avoid having the tweaks be
 # persisted if your plugin is not loaded on the next invocation of X-Plane.
 XPLM_MSG_WILL_WRITE_PREFS = 107
 
 # This message is sent to your plugin right after a livery is loaded for an
-# airplane.  You can use this to check the new livery (via datarefs) and
-# react accordingly.  The parameter is of type int, passed as the value of a
+# airplane. You can use this to check the new livery (via datarefs) and
+# react accordingly. The parameter is of type int, passed as the value of a
 # pointer and represents the aicraft plane number - 0 is the user's plane.
 XPLM_MSG_LIVERY_LOADED = 108
 
@@ -104,15 +104,12 @@ XPLM_MSG_ENTERED_VR = 109
 XPLM_MSG_EXITING_VR = 110
 
 
-
-
-
 def XPLMGetMyID():
     """
     This routine returns the plugin ID of the calling plug-in.  Call this to
     get your own ID.
     """
-    pass
+    return int  # XPLMPluginID
 
 
 def XPLMCountPlugins():
@@ -120,7 +117,7 @@ def XPLMCountPlugins():
     This routine returns the total number of plug-ins that are loaded, both
     disabled and enabled.
     """
-    pass
+    return int  # count
 
 
 def XPLMGetNthPlugin(inIndex):
@@ -129,7 +126,7 @@ def XPLMGetNthPlugin(inIndex):
     to XPLMCountPlugins-1, inclusive. Plugins may be returned in any arbitrary
     order.
     """
-    pass
+    return int  # XPLMPluginID
 
 
 def XPLMFindPluginByPath(inPath):
@@ -138,7 +135,7 @@ def XPLMFindPluginByPath(inPath):
     passed in absolute file system path.  XPLM_NO_PLUGIN_ID is returned if the
     path does not point to a currently loaded plug-in.
     """
-    pass
+    return int  # XPLMPluginID
 
 
 def XPLMFindPluginBySignature(inSignature):
@@ -150,7 +147,7 @@ def XPLMFindPluginBySignature(inSignature):
     plug-in name, and should be unique for all plug-ins.  Use this routine to
     locate another plugin that your plugin interoperates with
     """
-    pass
+    return int  # XPLMPluginID
 
 
 def XPLMGetPluginInfo(inPluginID, outName, outFilePath, outSignature, outDescription):
@@ -163,13 +160,13 @@ def XPLMGetPluginInfo(inPluginID, outName, outFilePath, outSignature, outDescrip
     unique string that identifies this plug-in. outDescription - a
     human-readable description of this plug-in.
     """
-    pass
+
 
 def XPLMIsPluginEnabled(inPluginID):
     """
     Returns whether the specified plug-in is enabled for running.
     """
-    pass
+    return int  # 1=is enabled
 
 
 def XPLMEnablePlugin(inPluginID):
@@ -179,14 +176,13 @@ def XPLMEnablePlugin(inPluginID):
     Plugins may fail to enable (for example, if resources cannot be acquired)
     by returning 0 from their XPluginEnable callback.
     """
-    pass
+    return int  # 1=successfully enabled; 0=otherwise
 
 
 def XPLMDisablePlugin(inPluginID):
     """
     This routine disableds an enabled plug-in.
     """
-    pass
 
 
 def XPLMReloadPlugins():
@@ -196,8 +192,10 @@ def XPLMReloadPlugins():
     will receive your XPluginDisable and XPluginStop callbacks and your  DLL
     will be unloaded, then the start process happens as if the sim was starting
     up.
+
+    Caution: many (most?) plugins don't clean up after themselves, so reloading
+    may result in an unstable state.
     """
-    pass
 
 
 def XPLMSendMessageToPlugin(inPlugin, inMessage, inParam):
@@ -206,16 +204,14 @@ def XPLMSendMessageToPlugin(inPlugin, inMessage, inParam):
     XPLM_NO_PLUGIN_ID to broadcast to all plug-ins.  Only enabled plug-ins with
     a message receive function receive the message.
     """
-    pass
 
 
-def XPLMFeatureEnumerator_f(self, inFeature, inRef):
+def XPLMFeatureEnumerator_f(inFeature, inRef):
     """
     You pass an XPLMFeatureEnumerator_f to get a list of all features supported
     by a given version running version of X-Plane.  This routine is called once
     for each feature.
     """
-    pass
 
 
 def XPLMHasFeature(inFeature):
@@ -225,7 +221,7 @@ def XPLMHasFeature(inFeature):
 
     inFeature : string
     """
-    pass
+    return int  # 1=feature is supported
 
 
 def XPLMIsFeatureEnabled(inFeature):
@@ -234,7 +230,7 @@ def XPLMIsFeatureEnabled(inFeature):
     it is not enabled.  It is an error to call this routine with an unsupported
     feature.
     """
-    pass
+    return int  # 1=feature is enabled
 
 
 def XPLMEnableFeature(inFeature, inEnable):
@@ -243,10 +239,9 @@ def XPLMEnableFeature(inFeature, inEnable):
     change the running behavior of X-Plane and your plugin in some way,
     depending on the feature.
     """
-    pass
 
 
-def XPLMEnumerateFeatures(self, inEnumerator, inRef):
+def XPLMEnumerateFeatures(inEnumerator, inRef):
     """
     This routine calls your enumerator callback once for each feature that this
     running version of X-Plane supports. Use this routine to determine all of
@@ -255,5 +250,3 @@ def XPLMEnumerateFeatures(self, inEnumerator, inRef):
     inEnumerator : callback (XPLMFeatureEnumerator_f)
     inRef        : any object
     """
-    pass
-

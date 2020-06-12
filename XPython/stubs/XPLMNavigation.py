@@ -53,19 +53,19 @@ the iterator must be invalid.
 
 
 # XPLMNavType
-xplm_Nav_Unknown      = 0
-xplm_Nav_Airport      = 1
-xplm_Nav_NDB          = 2
-xplm_Nav_VOR          = 4
-xplm_Nav_ILS          = 8
-xplm_Nav_Localizer    = 16
-xplm_Nav_GlideSlope   = 32
-xplm_Nav_OuterMarker  = 64
+xplm_Nav_Unknown = 0
+xplm_Nav_Airport = 1
+xplm_Nav_NDB = 2
+xplm_Nav_VOR = 4
+xplm_Nav_ILS = 8
+xplm_Nav_Localizer = 16
+xplm_Nav_GlideSlope = 32
+xplm_Nav_OuterMarker = 64
 xplm_Nav_MiddleMarker = 128
-xplm_Nav_InnerMarker  = 256
-xplm_Nav_Fix          = 512
-xplm_Nav_DME          = 1024
-xplm_Nav_LatLon       = 2048
+xplm_Nav_InnerMarker = 256
+xplm_Nav_Fix = 512
+xplm_Nav_DME = 1024
+xplm_Nav_LatLon = 2048
 
 
 XPLM_NAV_NOT_FOUND = -1
@@ -77,7 +77,7 @@ def XPLMGetFirstNavAid():
     Use this to traverse the entire database. Returns XPLM_NAV_NOT_FOUND
     if the nav database is empty.
     """
-    pass
+    return int  # XPLMNavRef
 
 
 def XPLMGetNextNavAid(inNavAidRef):
@@ -91,7 +91,7 @@ def XPLMGetNextNavAid(inNavAidRef):
     rendering settings screen, calling this routine with the last airport
     returns a bogus nav aid.  Using this nav aid can crash X-Plane.
     """
-    pass
+    return int  # XPLMNavRef
 
 
 def XPLMFindFirstNavAidOfType(inType):
@@ -104,7 +104,7 @@ def XPLMFindFirstNavAidOfType(inType):
     rendering settings screen, calling this routine with fixes returns a bogus
     nav aid.  Using this nav aid can crash X-Plane.
     """
-    pass
+    return int  # XPLMNavRef
 
 
 def XPLMFindLastNavAidOfType(inType):
@@ -117,7 +117,7 @@ def XPLMFindLastNavAidOfType(inType):
     rendering settings screen, calling this routine with fixes returns a bogus
     nav aid.  Using this nav aid can crash X-Plane.
     """
-    pass
+    return int  # XPLMNavRef
 
 
 def XPLMFindNavAid(inNameFragment,
@@ -156,7 +156,7 @@ def XPLMFindNavAid(inNameFragment,
     inFrequency    : integer or None
     inType         : integer (XPLMNavType)
     """
-    pass
+    return int  # XPLMNavRef
 
 
 def XPLMGetNavAidInfo(inRef,
@@ -195,48 +195,39 @@ def XPLMGetNavAidInfo(inRef,
     outName : list, will contain name of the NavAid
     outReg : list, will contain registration of the NavAid
     """
-    pass
 
 
 def XPLMCountFMSEntries():
     """
     This routine returns the number of entries in the FMS.
     """
-    pass
+    return int  # count
 
 
 def XPLMGetDisplayedFMSEntry():
     """
     This routine returns the index of the entry the pilot is viewing.
     """
-    pass
+    return int  # index
 
 
 def XPLMGetDestinationFMSEntry():
     """
     This routine returns the index of the entry the FMS is flying to.
     """
-    pass
+    return int  # index
 
 
 def XPLMSetDisplayedFMSEntry(inIndex):
     """
     This routine changes which entry the FMS is showing to the index specified.
     """
-    pass
 
 
 def XPLMSetDestinationFMSEntry(inIndex):
     """
     This routine changes which entry the FMS is flying the aircraft toward.
     """
-    pass
-
-
-def XPLM():
-    """
-    """
-    pass
 
 
 def XPLMGetFMSEntryInfo(inIndex,
@@ -262,7 +253,6 @@ def XPLMGetFMSEntryInfo(inIndex,
     outAltitude : list, will contain altitude of the entry
     outLat, outLon : lists, will contain position of the entry
     """
-    pass
 
 
 def XPLMSetFMSEntryInfo(inIndex,
@@ -274,7 +264,6 @@ def XPLMSetFMSEntryInfo(inIndex,
     and radio-beacon navaids.  Currently of radio beacons, the FMS can only
     support VORs and NDBs. Use the routines below to clear or fly to a lat/lon.
     """
-    pass
 
 
 def XPLMSetFMSEntryLatLon(inIndex,
@@ -284,7 +273,6 @@ def XPLMSetFMSEntryLatLon(inIndex,
     This routine changes the entry in the FMS to a lat/lon entry with the given
     coordinates.
     """
-    pass
 
 
 def XPLMClearFMSEntry(inIndex):
@@ -292,7 +280,6 @@ def XPLMClearFMSEntry(inIndex):
     This routine clears the given entry, potentially shortening the flight
     plan.
     """
-    pass
 
 
 def XPLMGetGPSDestinationType():
@@ -300,12 +287,11 @@ def XPLMGetGPSDestinationType():
     This routine returns the type of the currently selected GPS destination,
     one of fix, airport, VOR or NDB.
     """
-    pass
+    return int  # XPLMNavType
 
 
 def XPLMGetGPSDestination():
     """
     This routine returns the current GPS destination.
     """
-    pass
-
+    return int  # XPLMNavRef

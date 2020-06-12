@@ -71,7 +71,7 @@ Probe results - possible results from a probe query.
 # XPLMProbeType
 # The Y probe gives you the location of the tallest physical scenery along
 # the Y axis going through the queried point.
-xplm_ProbeY                              = 0
+xplm_ProbeY = 0
 
 
 # XPLMProbeResult
@@ -79,25 +79,23 @@ xplm_ProbeY                              = 0
 xplm_ProbeHitTerrain = 0
 # An error in the API call.  Either the probe struct size is bad, or the
 # probe is invalid or the type is mismatched for the specific query call.
-xplm_ProbeError     = 1
+xplm_ProbeError = 1
 # The probe call succeeded but there is no terrain under this point (perhaps
 # it is off the side of the planet?)
-xplm_ProbeMissed    = 2
-
+xplm_ProbeMissed = 2
 
 
 def XPLMCreateProbe(inProbeType):
     """
     Creates a new probe object of a given type and return a handle to it.
     """
-    pass
+    return int  # XPLMCreateProbe
 
 
 def XPLMDestroyProbe(inProbe):
     """
     Deallocates an existing probe object.
     """
-    pass
 
 
 def XPLMProbeTerrainXYZ(inProbe,
@@ -121,7 +119,7 @@ def XPLMProbeTerrainXYZ(inProbe,
       is_wet      : tells if the surface we hit is watter (it is land otherwise)
                    (int)
     """
-    pass
+    return int  # XPLMProbeResult
 
 
 def XPLMGetMagneticVariation(latitude, longitude):
@@ -129,7 +127,7 @@ def XPLMGetMagneticVariation(latitude, longitude):
     Returns X-Plane's simulated magnetic variation (declination) at the
     indication latitude and longitude.
     """
-    pass
+    return float
 
 
 def XPLMDegTrueToDegMagnetic(headingDegreesTrue):
@@ -137,7 +135,7 @@ def XPLMDegTrueToDegMagnetic(headingDegreesTrue):
     Converts a heading in degrees relative to true north into a value relative
     to magnetic north at the user's current location.
     """
-    pass
+    return float
 
 
 def XPLMDegMagneticToDegTrue(headingDegreesMagnetic):
@@ -145,10 +143,10 @@ def XPLMDegMagneticToDegTrue(headingDegreesMagnetic):
     Converts a heading in degrees relative to magnetic north at the user's
     current location into a value relative to true north.
     """
-    pass
+    return float
 
 
-def XPLMObjectLoaded_f(self, inObject, inRefcon):
+def XPLMObjectLoaded_f(inObject, inRefcon):
     """
     You provide this callback when loading an object asynchronously; it will be
     called once the object is loaded. Your refcon is passed back. The object
@@ -159,7 +157,6 @@ def XPLMObjectLoaded_f(self, inObject, inRefcon):
     plugin is re-enabled. If your plugin is unloaded before this callback is
     ever called, the SDK will release the object handle for you.
     """
-    pass
 
 
 def XPLMLoadObject(inPath):
@@ -186,7 +183,7 @@ def XPLMLoadObject(inPath):
     return int  # XPLMObjectRef
 
 
-def XPLMLoadObjectAsync(self, inPath, inCallback, inRefcon):
+def XPLMLoadObjectAsync(inPath, inCallback, inRefcon):
     """
     This routine loads an object asynchronously; control is returned to you
     immediately while X-Plane loads the object. The sim will not stop flying
@@ -205,43 +202,6 @@ def XPLMLoadObjectAsync(self, inPath, inCallback, inRefcon):
     inCallback : XPLMObjectLoaded_f
     inRefcon   : any object
     """
-    pass
-
-
-def XPLMDrawObjects(inObject,
-                    inCount,
-                    inLocations,
-                    lighting,
-                    earth_relative):
-    """
-    XPLMDrawObjects draws an object from an OBJ file one or more times. You
-    pass in the object and an array of XPLMDrawInfo_t structs, one for each
-    place you would like the object to be drawn.
-
-    X-Plane will attempt to cull the objects based on LOD and visibility, and
-    will pick the appropriate LOD.
-
-    Lighting is a boolean; pass 1 to show the night version of object with
-    night-only lights lit up. Pass 0 to show the daytime version of the object.
-
-    earth_relative controls the coordinate system. If this is 1, the rotations
-    you specify are applied to the object after its coordinate system is
-    transformed from local to earth-relative coordinates -- that is, an object
-    with no rotations will point toward true north and the Y axis will be up
-    against gravity. If this is 0, the object is drawn with your rotations from
-    local coordanates -- that is, an object with no rotations is drawn pointing
-    down the -Z axis and the Y axis of the object matches the local coordinate
-    Y axis.
-
-    inObject       : object handle
-    inCount        : number of objects to draw
-    inLocations    : list/tuple of inCount lists/tuples containing this:
-        x, y, z: location of the object in the local coordinates (doubles)
-        pitch, heading, roll : in degrees (doubles)
-    lighting       : see above (int)
-    earth_relative : see above (int)
-    """
-    pass
 
 
 def XPLMUnloadObject(inObject):
@@ -251,16 +211,14 @@ def XPLMUnloadObject(inObject):
     purged from memory. Make sure to call XPLMUnloadObject once for each
     successful call to XPLMLoadObject.
     """
-    pass
 
 
-def XPLMLibraryEnumerator_f(self, inFilePath, inRef):
+def XPLMLibraryEnumerator_f(inFilePath, inRef):
     """
     An XPLMLibraryEnumerator_f is a callback you provide that is called once
     for each library element that is located. The returned paths will be
     relative to the X-System folder.
     """
-    pass
 
 
 def XPLMLookupObjects(inPath,

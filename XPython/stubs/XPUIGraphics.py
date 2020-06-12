@@ -51,97 +51,97 @@ Progress - this is a progress indicator showing how a long task is going.
 
 # XPWindowStyle
 # An LCD screen that shows help.
-xpWindow_Help                            = 0
+xpWindow_Help = 0
 # A dialog box window.
-xpWindow_MainWindow                      = 1
+xpWindow_MainWindow = 1
 # A panel or frame within a dialog box window.
-xpWindow_SubWindow                       = 2
+xpWindow_SubWindow = 2
 # An LCD screen within a panel to hold text displays.
-xpWindow_Screen                          = 4
+xpWindow_Screen = 4
 # A list view within a panel for scrolling file names, etc.
-xpWindow_ListView                        = 5
+xpWindow_ListView = 5
 
 # XPElementStyle
 # x      metal
-xpElement_TextField                      = 6
+xpElement_TextField = 6
 # none     metal
-xpElement_CheckBox                       = 9
+xpElement_CheckBox = 9
 # none     metal
-xpElement_CheckBoxLit                    = 10
+xpElement_CheckBoxLit = 10
 # none     window header
-xpElement_WindowCloseBox                 = 14
+xpElement_WindowCloseBox = 14
 # none     window header
-xpElement_WindowCloseBoxPressed          = 15
+xpElement_WindowCloseBoxPressed = 15
 # x     metal
-xpElement_PushButton                     = 16
+xpElement_PushButton = 16
 # x     metal
-xpElement_PushButtonLit                  = 17
+xpElement_PushButtonLit = 17
 # none     any
-xpElement_OilPlatform                    = 24
+xpElement_OilPlatform = 24
 # none     any
-xpElement_OilPlatformSmall               = 25
+xpElement_OilPlatformSmall = 25
 # none     any
-xpElement_Ship                           = 26
+xpElement_Ship = 26
 # none     any
-xpElement_ILSGlideScope                  = 27
+xpElement_ILSGlideScope = 27
 # none     any
-xpElement_MarkerLeft                     = 28
+xpElement_MarkerLeft = 28
 # none     any
-xpElement_Airport                        = 29
+xpElement_Airport = 29
 # none     any
-xpElement_Waypoint                       = 30
+xpElement_Waypoint = 30
 # none     any
-xpElement_NDB                            = 31
+xpElement_NDB = 31
 # none     any
-xpElement_VOR                            = 32
+xpElement_VOR = 32
 # none     any
-xpElement_RadioTower                     = 33
+xpElement_RadioTower = 33
 # none     any
-xpElement_AircraftCarrier                = 34
+xpElement_AircraftCarrier = 34
 # none     any
-xpElement_Fire                           = 35
+xpElement_Fire = 35
 # none     any
-xpElement_MarkerRight                    = 36
+xpElement_MarkerRight = 36
 # none     any
-xpElement_CustomObject                   = 37
+xpElement_CustomObject = 37
 # none     any
-xpElement_CoolingTower                   = 38
+xpElement_CoolingTower = 38
 # none     any
-xpElement_SmokeStack                     = 39
+xpElement_SmokeStack = 39
 # none     any
-xpElement_Building                       = 40
+xpElement_Building = 40
 # none     any
-xpElement_PowerLine                      = 41
+xpElement_PowerLine = 41
 # none     metal
-xpElement_CopyButtons                    = 45
+xpElement_CopyButtons = 45
 # none     metal
-xpElement_CopyButtonsWithEditingGrid     = 46
+xpElement_CopyButtonsWithEditingGrid = 46
 # x, y     metal
-xpElement_EditingGrid                    = 47
+xpElement_EditingGrid = 47
 # THIS CAN PROBABLY BE REMOVED
-xpElement_ScrollBar                      = 48
+xpElement_ScrollBar = 48
 # none     any
-xpElement_VORWithCompassRose             = 49
+xpElement_VORWithCompassRose = 49
 # none     metal
-xpElement_Zoomer                         = 51
+xpElement_Zoomer = 51
 # x, y     metal
-xpElement_TextFieldMiddle                = 52
+xpElement_TextFieldMiddle = 52
 # none     metal
-xpElement_LittleDownArrow                = 53
+xpElement_LittleDownArrow = 53
 # none     metal
-xpElement_LittleUpArrow                  = 54
+xpElement_LittleUpArrow = 54
 # none     metal
-xpElement_WindowDragBar                  = 61
+xpElement_WindowDragBar = 61
 # none     metal
-xpElement_WindowDragBarSmooth            = 62
+xpElement_WindowDragBarSmooth = 62
 
 
-#XPTrackStyle
-xpTrack_ScrollBar                        = 0
+# XPTrackStyle
+xpTrack_ScrollBar = 0
 # over metal  can be lit  can be rotated
-xpTrack_Slider                           = 1
+xpTrack_Slider = 1
 # over metal  cannot be lit cannot be rotated
-xpTrack_Progress                         = 2
+xpTrack_Progress = 2
 
 
 def XPDrawWindow(inX1, inY1, inX2, inY2, inStyle):
@@ -154,7 +154,6 @@ def XPDrawWindow(inX1, inY1, inX2, inY2, inStyle):
     inX1, inY1, inX2, inY2 : integers
     inStyle : XPWindowStyle
     """
-    pass
 
 
 def XPGetWindowDefaultDimensions(inStyle, outWidth, outHeight):
@@ -165,7 +164,6 @@ def XPGetWindowDefaultDimensions(inStyle, outWidth, outHeight):
     inStyle : XPWindowStyle
     outWidth, outHeight : lists or None, will contain width and height of the window
     """
-    pass
 
 
 def XPDrawElement(inX1, inY1, inX2, inY2, inStyle, inLit):
@@ -180,7 +178,6 @@ def XPDrawElement(inX1, inY1, inX2, inY2, inStyle, inLit):
     inStyle : XPWindowStyle
     inLit : integer
     """
-    pass
 
 
 def XPGetElementDefaultDimensions(inStyle, outWidth, outHeight, outCanBeLit):
@@ -192,7 +189,6 @@ def XPGetElementDefaultDimensions(inStyle, outWidth, outHeight, outCanBeLit):
     inStyle : XPWindowStyle
     outWidth, outHeight, outCanBeLit : lists or None, will contain returned values
     """
-    pass
 
 
 def XPDrawTrack(inX1, inY1, inX2, inY2,
@@ -213,10 +209,9 @@ def XPDrawTrack(inX1, inY1, inX2, inY2,
     inTrackStyle : XPTrackStyle
     inLit : integer
     """
-    pass
 
 
- def XPGetTrackDefaultDimensions(inStyle, outWidth, outCanBeLit):
+def XPGetTrackDefaultDimensions(inStyle, outWidth, outCanBeLit):
     """
     This routine returns a track's default smaller dimension; all tracks are
     scalable in the larger dimension. It also returns whether a track can be
@@ -225,18 +220,17 @@ def XPDrawTrack(inX1, inY1, inX2, inY2,
     inStyle : XPTrackStyle
     outWidth, outCanBeLit : lists, will contain returned values
     """
-    pass
 
 
- def XPGetTrackMetrics(inX1, inY1, inX2, inY2,
-                       inMin, inMax, inValue,
-                       inTrackStyle,
-                       outIsVertical,
-                       outDownBtnSize,
-                       outDownPageSize,
-                       outThumbSize,
-                       outUpPageSize,
-                       outUpBtnSize):
+def XPGetTrackMetrics(inX1, inY1, inX2, inY2,
+                      inMin, inMax, inValue,
+                      inTrackStyle,
+                      outIsVertical,
+                      outDownBtnSize,
+                      outDownPageSize,
+                      outThumbSize,
+                      outUpPageSize,
+                      outUpBtnSize):
     """
     This routine returns the metrics of a track. If you want to write UI code
     to manipulate a track, this routine helps you know where the mouse
@@ -257,5 +251,3 @@ def XPDrawTrack(inX1, inY1, inX2, inY2,
     outIsVertical, outDownBtnSize, outDownPageSize, outThumbSize,
       outUpPageSize, outUpBtnSize : lists, will contain returned values
     """
-    pass
-

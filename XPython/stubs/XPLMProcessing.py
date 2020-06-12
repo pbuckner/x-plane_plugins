@@ -21,9 +21,9 @@ flight model is integrated by X-Plane.
 
 # XPLMFlightLoopPhaseType
 # Your callback runs before X-Plane integrates the flight model.
-xplm_FlightLoop_Phase_BeforeFlightModel  = 0
+xplm_FlightLoop_Phase_BeforeFlightModel = 0
 # Your callback runs after X-Plane integrates the flight model.
-xplm_FlightLoop_Phase_AfterFlightModel   = 1
+xplm_FlightLoop_Phase_AfterFlightModel = 1
 
 
 def XPLMFlightLoop_f(inElapsedSinceLastCall,
@@ -50,7 +50,7 @@ def XPLMFlightLoop_f(inElapsedSinceLastCall,
 
     The reference constant you passed to your loop is passed back to you.
     """
-    pass
+    return float  # 0 to stop receiveing callbacks, +#seconds until next, -#loops until next
 
 
 def XPLMGetElapsedTime():
@@ -78,7 +78,6 @@ def XPLMRegisterFlightLoopCallback(inFlightLoop, inInterval, inRefcon):
     be called (e.g. pass -1 to be called at the next cylcle). Pass 0 to not be
     called; your callback will be inactive.
     """
-    pass
 
 
 def XPLMUnregisterFlightLoopCallback(inFlightLoop, inRefcon):
@@ -87,7 +86,6 @@ def XPLMUnregisterFlightLoopCallback(inFlightLoop, inRefcon):
     your flight loop callback. Once your flight loop callback is unregistered,
     it will not be called again.
     """
-    pass
 
 
 def XPLMSetFlightLoopCallbackInterval(inFlightLoop,
@@ -105,7 +103,6 @@ def XPLMSetFlightLoopCallbackInterval(inFlightLoop,
     otherwise they are from the time the callback was last called (or the time
     it was registered if it has never been called.
     """
-    pass
 
 
 def XPLMCreateFlightLoop(inParams):
@@ -119,14 +116,13 @@ def XPLMCreateFlightLoop(inParams):
         callback : (XPLMFlightLoop_f)
         refcon : object to pass to the callback
     """
-    pass
+    return int  # XPLMFlightLoopID
 
 
 def XPLMDestroyFlightLoop(inFlightLoopID):
     """
     This routine destroys a flight loop callback by ID.
     """
-    pass
 
 
 def XPLMScheduleFlightLoop(inFlightLoopID, inInterval, inRelativeToNow):
@@ -161,5 +157,3 @@ def XPLMScheduleFlightLoop(inFlightLoopID, inInterval, inRelativeToNow):
     4. The object must be unscheduled if this routine is to be called from a
     thread other than the main thread.
     """
-    pass
-

@@ -66,7 +66,6 @@ as XPLMDisply windows.
 """
 
 
-
 def XPCreateWidget(inLeft, inTop, inRight, inBottom,
                    inVisible,
                    inDescriptor,
@@ -107,11 +106,10 @@ def XPCreateWidget(inLeft, inTop, inRight, inBottom,
     simply not called. You can preconstruct widget trees and then place them
     into root widgets later to activate them if you wish.
     """
-    pass
+    return int  # XPWidgetID
 
 
-def XPCreateCustomWidget(self,
-                         inLeft, inTop, inRight, inBottom,
+def XPCreateCustomWidget(inLeft, inTop, inRight, inBottom,
                          inVisible,
                          inDescriptor,
                          inIsRoot,
@@ -124,7 +122,7 @@ def XPCreateCustomWidget(self,
     same as XPCreateWidget, except that the widget class has been replaced with
     the widget function.
     """
-    pass
+    return int  # XPWidgetID
 
 
 def XPDestroyWidget(inWidget, inDestroyChildren):
@@ -136,7 +134,6 @@ def XPDestroyWidget(inWidget, inDestroyChildren):
     destruction will recurse down the widget tree.) If you pass 0 for this
     flag, the child widgets will simply end up with their parent set to 0.
     """
-    pass
 
 
 def XPSendMessageToWidget(inWidget,
@@ -158,7 +155,7 @@ def XPSendMessageToWidget(inWidget,
     widget function from the most recently installed to the oldest one receives
     the message in order until it is handled.
     """
-    pass
+    return int  # 1=message handled; 0=otherwise
 
 
 def XPPlaceWidgetWithin(inSubWidget, inContainer):
@@ -177,14 +174,13 @@ def XPPlaceWidgetWithin(inSubWidget, inContainer):
     reposition the subwidget for you, otherwise you must do it with
     SetWidgetGeometry.
     """
-    pass
 
 
 def XPCountChildWidgets(inWidget):
     """
     This routine returns the number of widgets another widget contains.
     """
-    pass
+    return int  # count
 
 
 def XPGetNthChildWidget(inWidget, inIndex):
@@ -193,7 +189,7 @@ def XPGetNthChildWidget(inWidget, inIndex):
     0 based, from 0 to one minus the number of widgets in the parent,
     inclusive. If the index is invalid, 0 is returned.
     """
-    pass
+    return int  # XPWidgetID
 
 
 def XPGetParentWidget(inWidget):
@@ -201,7 +197,7 @@ def XPGetParentWidget(inWidget):
     This routine returns the parent of a widget, or 0 if the widget has no
     parent. Root widgets never have parents and therefore always return 0.
     """
-    pass
+    return int  # XPWidgetID or 0 if no parent
 
 
 def XPShowWidget(inWidget):
@@ -210,7 +206,6 @@ def XPShowWidget(inWidget):
     widget is not in a rooted widget hierarchy or one of its parents is not
     visible, it will still not be visible to the user.
     """
-    pass
 
 
 def XPHideWidget(inWidget):
@@ -218,7 +213,6 @@ def XPHideWidget(inWidget):
     Makes a widget invisible. See XPShowWidget for considerations of when a
     widget might not be visible despite its own visibility state.
     """
-    pass
 
 
 def XPIsWidgetVisible(inWidget):
@@ -227,7 +221,7 @@ def XPIsWidgetVisible(inWidget):
     routine takes into consideration whether a parent is invisible. Use this
     routine to tell if the user can see the widget.
     """
-    pass
+    return int  # 1=visible; 0=otherwise
 
 
 def XPFindRootWidget(inWidget):
@@ -236,7 +230,8 @@ def XPFindRootWidget(inWidget):
     passed in widget or None if the passed in widget is not in a rooted
     hierarchy.
     """
-    pass
+    return int  # XPWidgetID or Null if not in rooted hierarchy
+
 
 def XPBringRootWidgetToFront(inWidget):
     """
@@ -246,7 +241,6 @@ def XPBringRootWidgetToFront(inWidget):
     is not in an active widget hiearchy (e.g. there is no root widget at the
     top of the tree), this routine does nothing.
     """
-    pass
 
 
 def XPIsWidgetInFront(inWidget):
@@ -255,7 +249,7 @@ def XPIsWidgetInFront(inWidget):
     hierarchy. It returns false if the widget's hierarchy is not in front, or
     if the widget is not in a rooted hierarchy.
     """
-    pass
+    return int  # 1=True
 
 
 def XPGetWidgetGeometry(inWidget,
@@ -267,7 +261,6 @@ def XPGetWidgetGeometry(inWidget,
     Or alternatively pass just the widget ID and the bounding box will be returned
     in a tuple.
     """
-    pass
 
 
 def XPSetWidgetGeometry(inWidget,
@@ -275,7 +268,6 @@ def XPSetWidgetGeometry(inWidget,
     """
     This function changes the bounding box of a widget.
     """
-    pass
 
 
 def XPGetWidgetForLocation(inContainer,
@@ -297,7 +289,7 @@ def XPGetWidgetForLocation(inContainer,
     geometry. The parent geometry limits the child's eligibility for mouse
     location.
     """
-    pass
+    return int  # XPWidgetID or 0
 
 
 def XPGetWidgetExposedGeometry(inWidgetID,
@@ -311,7 +303,6 @@ def XPGetWidgetExposedGeometry(inWidgetID,
     into. Note that the widget library does not use OpenGL clipping to keep
     frame rates up, although you could use it internally.
     """
-    pass
 
 
 def XPSetWidgetDescriptor(inWidget, inDescriptor):
@@ -324,7 +315,6 @@ def XPSetWidgetDescriptor(inWidget, inDescriptor):
     convenient way to get at it. While not all UI widgets need their
     descriptor, many do.
     """
-    pass
 
 
 def XPGetWidgetDescriptor(inWidget, outDescriptor, inMaxDescLength):
@@ -349,7 +339,7 @@ def XPGetWidgetUnderlyingWindow(inWidget):
     allowing you to pop the widget window out into a real OS window, or move it
     into VR.
     """
-    pass
+    return int  # XPWindowID
 
 
 def XPSetWidgetProperty(inWidget, inProperty, inValue):
@@ -357,7 +347,6 @@ def XPSetWidgetProperty(inWidget, inProperty, inValue):
     This function sets a widget's property. Properties are arbitrary values
     associated by a widget by ID.
     """
-    pass
 
 
 def XPGetWidgetProperty(inWidget, inProperty, inExists):
@@ -368,7 +357,7 @@ def XPGetWidgetProperty(inWidget, inProperty, inExists):
     returned in the list. Pass None for inExists if you do not need this
     information.
     """
-    pass
+    return int  # pointer to property
 
 
 def XPSetKeyboardFocus(inWidget):
@@ -386,7 +375,7 @@ def XPSetKeyboardFocus(inWidget):
     Keyboard focus is not changed if the new widget will not accept it. For
     setting to X-Plane, keyboard focus is always accepted.
     """
-    pass
+    return int  # XPWidgetID of widget with focus or 0 for X-Plane
 
 
 def XPLoseKeyboardFocus(inWidget):
@@ -395,7 +384,6 @@ def XPLoseKeyboardFocus(inWidget):
     parent, or the next parent that will accept it. This routine does nothing
     if this widget does not have focus.
     """
-    pass
 
 
 def XPGetWidgetWithFocus():
@@ -404,7 +392,7 @@ def XPGetWidgetWithFocus():
     has keyboard focus or some other plugin window that does not have widgets
     has focus.
     """
-    pass
+    return int  # XPWidgetID or 0 if X-Plane has focus
 
 
 def XPAddWidgetCallback(inWidget, inNewCallback):
@@ -422,7 +410,6 @@ def XPAddWidgetCallback(inWidget, inNewCallback):
     hook that only handles certain widget messages, you can customize or extend
     widget behavior.
     """
-    pass
 
 
 def XPGetWidgetClassFunc(inWidgetClass):
@@ -430,5 +417,4 @@ def XPGetWidgetClassFunc(inWidgetClass):
     Given a widget class, this function returns the callbacks that power that
     widget class.
     """
-    pass
-
+    return int  # pointer to function

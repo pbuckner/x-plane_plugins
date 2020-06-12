@@ -54,59 +54,59 @@ away if the plugin that created it is unloaded.
 """
 
 # XPLMCommandKeyID
-xplm_key_pause      =  0
-xplm_key_revthrust  =  1
-xplm_key_jettison   =  2
-xplm_key_brakesreg  =  3
-xplm_key_brakesmax  =  4
-xplm_key_gear       =  5
-xplm_key_timedn     =  6
-xplm_key_timeup     =  7
-xplm_key_fadec      =  8
-xplm_key_otto_dis   =  9
-xplm_key_otto_atr   = 10
-xplm_key_otto_asi   = 11
-xplm_key_otto_hdg   = 12
-xplm_key_otto_gps   = 13
-xplm_key_otto_lev   = 14
-xplm_key_otto_hnav  = 15
-xplm_key_otto_alt   = 16
-xplm_key_otto_vvi   = 17
-xplm_key_otto_vnav  = 18
-xplm_key_otto_nav1  = 19
-xplm_key_otto_nav2  = 20
-xplm_key_targ_dn    = 21
-xplm_key_targ_up    = 22
-xplm_key_hdgdn      = 23
-xplm_key_hdgup      = 24
-xplm_key_barodn     = 25
-xplm_key_baroup     = 26
-xplm_key_obs1dn     = 27
-xplm_key_obs1up     = 28
-xplm_key_obs2dn     = 29
-xplm_key_obs2up     = 30
-xplm_key_com1_1     = 31
-xplm_key_com1_2     = 32
-xplm_key_com1_3     = 33
-xplm_key_com1_4     = 34
-xplm_key_nav1_1     = 35
-xplm_key_nav1_2     = 36
-xplm_key_nav1_3     = 37
-xplm_key_nav1_4     = 38
-xplm_key_com2_1     = 39
-xplm_key_com2_2     = 40
-xplm_key_com2_3     = 41
-xplm_key_com2_4     = 42
-xplm_key_nav2_1     = 43
-xplm_key_nav2_2     = 44
-xplm_key_nav2_3     = 45
-xplm_key_nav2_4     = 46
-xplm_key_adf_1      = 47
-xplm_key_adf_2      = 48
-xplm_key_adf_3      = 49
-xplm_key_adf_4      = 50
-xplm_key_adf_5      = 51
-xplm_key_adf_6      = 52
+xplm_key_pause = 0
+xplm_key_revthrust = 1
+xplm_key_jettison = 2
+xplm_key_brakesreg = 3
+xplm_key_brakesmax = 4
+xplm_key_gear = 5
+xplm_key_timedn = 6
+xplm_key_timeup = 7
+xplm_key_fadec = 8
+xplm_key_otto_dis = 9
+xplm_key_otto_atr = 10
+xplm_key_otto_asi = 11
+xplm_key_otto_hdg = 12
+xplm_key_otto_gps = 13
+xplm_key_otto_lev = 14
+xplm_key_otto_hnav = 15
+xplm_key_otto_alt = 16
+xplm_key_otto_vvi = 17
+xplm_key_otto_vnav = 18
+xplm_key_otto_nav1 = 19
+xplm_key_otto_nav2 = 20
+xplm_key_targ_dn = 21
+xplm_key_targ_up = 22
+xplm_key_hdgdn = 23
+xplm_key_hdgup = 24
+xplm_key_barodn = 25
+xplm_key_baroup = 26
+xplm_key_obs1dn = 27
+xplm_key_obs1up = 28
+xplm_key_obs2dn = 29
+xplm_key_obs2up = 30
+xplm_key_com1_1 = 31
+xplm_key_com1_2 = 32
+xplm_key_com1_3 = 33
+xplm_key_com1_4 = 34
+xplm_key_nav1_1 = 35
+xplm_key_nav1_2 = 36
+xplm_key_nav1_3 = 37
+xplm_key_nav1_4 = 38
+xplm_key_com2_1 = 39
+xplm_key_com2_2 = 40
+xplm_key_com2_3 = 41
+xplm_key_com2_4 = 42
+xplm_key_nav2_1 = 43
+xplm_key_nav2_2 = 44
+xplm_key_nav2_3 = 45
+xplm_key_nav2_4 = 46
+xplm_key_adf_1 = 47
+xplm_key_adf_2 = 48
+xplm_key_adf_3 = 49
+xplm_key_adf_4 = 50
+xplm_key_adf_5 = 51
+xplm_key_adf_6 = 52
 xplm_key_transpon_1 = 53
 xplm_key_transpon_2 = 54
 xplm_key_transpon_3 = 55
@@ -115,172 +115,171 @@ xplm_key_transpon_5 = 57
 xplm_key_transpon_6 = 58
 xplm_key_transpon_7 = 59
 xplm_key_transpon_8 = 60
-xplm_key_flapsup    = 61
-xplm_key_flapsdn    = 62
-xplm_key_cheatoff   = 63
-xplm_key_cheaton    = 64
-xplm_key_sbrkoff    = 65
-xplm_key_sbrkon     = 66
-xplm_key_ailtrimL   = 67
-xplm_key_ailtrimR   = 68
-xplm_key_rudtrimL   = 69
-xplm_key_rudtrimR   = 70
-xplm_key_elvtrimD   = 71
-xplm_key_elvtrimU   = 72
-xplm_key_forward    = 73
-xplm_key_down       = 74
-xplm_key_left       = 75
-xplm_key_right      = 76
-xplm_key_back       = 77
-xplm_key_tower      = 78
-xplm_key_runway     = 79
-xplm_key_chase      = 80
-xplm_key_free1      = 81
-xplm_key_free2      = 82
-xplm_key_spot       = 83
-xplm_key_fullscrn1  = 84
-xplm_key_fullscrn2  = 85
-xplm_key_tanspan    = 86
-xplm_key_smoke      = 87
-xplm_key_map        = 88
-xplm_key_zoomin     = 89
-xplm_key_zoomout    = 90
-xplm_key_cycledump  = 91
-xplm_key_replay     = 92
-xplm_key_tranID     = 93
-xplm_key_max        = 94
+xplm_key_flapsup = 61
+xplm_key_flapsdn = 62
+xplm_key_cheatoff = 63
+xplm_key_cheaton = 64
+xplm_key_sbrkoff = 65
+xplm_key_sbrkon = 66
+xplm_key_ailtrimL = 67
+xplm_key_ailtrimR = 68
+xplm_key_rudtrimL = 69
+xplm_key_rudtrimR = 70
+xplm_key_elvtrimD = 71
+xplm_key_elvtrimU = 72
+xplm_key_forward = 73
+xplm_key_down = 74
+xplm_key_left = 75
+xplm_key_right = 76
+xplm_key_back = 77
+xplm_key_tower = 78
+xplm_key_runway = 79
+xplm_key_chase = 80
+xplm_key_free1 = 81
+xplm_key_free2 = 82
+xplm_key_spot = 83
+xplm_key_fullscrn1 = 84
+xplm_key_fullscrn2 = 85
+xplm_key_tanspan = 86
+xplm_key_smoke = 87
+xplm_key_map = 88
+xplm_key_zoomin = 89
+xplm_key_zoomout = 90
+xplm_key_cycledump = 91
+xplm_key_replay = 92
+xplm_key_tranID = 93
+xplm_key_max = 94
 
 
 # XPLMCommandButtonID
-xplm_joy_nothing    = 0
-xplm_joy_start_all  = 1
-xplm_joy_start_0    = 2
-xplm_joy_start_1    = 3
-xplm_joy_start_2    = 4
-xplm_joy_start_3    = 5
-xplm_joy_start_4    = 6
-xplm_joy_start_5    = 7
-xplm_joy_start_6    = 8
-xplm_joy_start_7    = 9
-xplm_joy_throt_up   = 10
-xplm_joy_throt_dn   = 11
-xplm_joy_prop_up    = 12
-xplm_joy_prop_dn    = 13
-xplm_joy_mixt_up    = 14
-xplm_joy_mixt_dn    = 15
-xplm_joy_carb_tog   = 16
-xplm_joy_carb_on    = 17
-xplm_joy_carb_off   = 18
-xplm_joy_trev       = 19
-xplm_joy_trm_up     = 20
-xplm_joy_trm_dn     = 21
+xplm_joy_nothing = 0
+xplm_joy_start_all = 1
+xplm_joy_start_0 = 2
+xplm_joy_start_1 = 3
+xplm_joy_start_2 = 4
+xplm_joy_start_3 = 5
+xplm_joy_start_4 = 6
+xplm_joy_start_5 = 7
+xplm_joy_start_6 = 8
+xplm_joy_start_7 = 9
+xplm_joy_throt_up = 10
+xplm_joy_throt_dn = 11
+xplm_joy_prop_up = 12
+xplm_joy_prop_dn = 13
+xplm_joy_mixt_up = 14
+xplm_joy_mixt_dn = 15
+xplm_joy_carb_tog = 16
+xplm_joy_carb_on = 17
+xplm_joy_carb_off = 18
+xplm_joy_trev = 19
+xplm_joy_trm_up = 20
+xplm_joy_trm_dn = 21
 xplm_joy_rot_trm_up = 22
 xplm_joy_rot_trm_dn = 23
-xplm_joy_rud_lft    = 24
-xplm_joy_rud_cntr   = 25
-xplm_joy_rud_rgt    = 26
-xplm_joy_ail_lft    = 27
-xplm_joy_ail_cntr   = 28
-xplm_joy_ail_rgt    = 29
-xplm_joy_B_rud_lft  = 30
-xplm_joy_B_rud_rgt  = 31
-xplm_joy_look_up    = 32
-xplm_joy_look_dn    = 33
-xplm_joy_look_lft   = 34
-xplm_joy_look_rgt   = 35
-xplm_joy_glance_l   = 36
-xplm_joy_glance_r   = 37
-xplm_joy_v_fnh      = 38
-xplm_joy_v_fwh      = 39
-xplm_joy_v_tra      = 40
-xplm_joy_v_twr      = 41
-xplm_joy_v_run      = 42
-xplm_joy_v_cha      = 43
-xplm_joy_v_fr1      = 44
-xplm_joy_v_fr2      = 45
-xplm_joy_v_spo      = 46
-xplm_joy_flapsup    = 47
-xplm_joy_flapsdn    = 48
-xplm_joy_vctswpfwd  = 49
-xplm_joy_vctswpaft  = 50
-xplm_joy_gear_tog   = 51
-xplm_joy_gear_up    = 52
-xplm_joy_gear_down  = 53
-xplm_joy_lft_brake  = 54
-xplm_joy_rgt_brake  = 55
-xplm_joy_brakesREG  = 56
-xplm_joy_brakesMAX  = 57
+xplm_joy_rud_lft = 24
+xplm_joy_rud_cntr = 25
+xplm_joy_rud_rgt = 26
+xplm_joy_ail_lft = 27
+xplm_joy_ail_cntr = 28
+xplm_joy_ail_rgt = 29
+xplm_joy_B_rud_lft = 30
+xplm_joy_B_rud_rgt = 31
+xplm_joy_look_up = 32
+xplm_joy_look_dn = 33
+xplm_joy_look_lft = 34
+xplm_joy_look_rgt = 35
+xplm_joy_glance_l = 36
+xplm_joy_glance_r = 37
+xplm_joy_v_fnh = 38
+xplm_joy_v_fwh = 39
+xplm_joy_v_tra = 40
+xplm_joy_v_twr = 41
+xplm_joy_v_run = 42
+xplm_joy_v_cha = 43
+xplm_joy_v_fr1 = 44
+xplm_joy_v_fr2 = 45
+xplm_joy_v_spo = 46
+xplm_joy_flapsup = 47
+xplm_joy_flapsdn = 48
+xplm_joy_vctswpfwd = 49
+xplm_joy_vctswpaft = 50
+xplm_joy_gear_tog = 51
+xplm_joy_gear_up = 52
+xplm_joy_gear_down = 53
+xplm_joy_lft_brake = 54
+xplm_joy_rgt_brake = 55
+xplm_joy_brakesREG = 56
+xplm_joy_brakesMAX = 57
 xplm_joy_speedbrake = 58
-xplm_joy_ott_dis    = 59
-xplm_joy_ott_atr    = 60
-xplm_joy_ott_asi    = 61
-xplm_joy_ott_hdg    = 62
-xplm_joy_ott_alt    = 63
-xplm_joy_ott_vvi    = 64
-xplm_joy_tim_start  = 65
-xplm_joy_tim_reset  = 66
-xplm_joy_ecam_up    = 67
-xplm_joy_ecam_dn    = 68
-xplm_joy_fadec      = 69
-xplm_joy_yaw_damp   = 70
-xplm_joy_art_stab   = 71
-xplm_joy_chute      = 72
-xplm_joy_JATO       = 73
-xplm_joy_arrest     = 74
-xplm_joy_jettison   = 75
-xplm_joy_fuel_dump  = 76
-xplm_joy_puffsmoke  = 77
-xplm_joy_prerotate  = 78
-xplm_joy_UL_prerot  = 79
-xplm_joy_UL_collec  = 80
-xplm_joy_TOGA       = 81
-xplm_joy_shutdown   = 82
-xplm_joy_con_atc    = 83
-xplm_joy_fail_now   = 84
-xplm_joy_pause      = 85
-xplm_joy_rock_up    = 86
-xplm_joy_rock_dn    = 87
-xplm_joy_rock_lft   = 88
-xplm_joy_rock_rgt   = 89
-xplm_joy_rock_for   = 90
-xplm_joy_rock_aft   = 91
-xplm_joy_idle_hilo  = 92
-xplm_joy_lanlights  = 93
-xplm_joy_max        = 94
+xplm_joy_ott_dis = 59
+xplm_joy_ott_atr = 60
+xplm_joy_ott_asi = 61
+xplm_joy_ott_hdg = 62
+xplm_joy_ott_alt = 63
+xplm_joy_ott_vvi = 64
+xplm_joy_tim_start = 65
+xplm_joy_tim_reset = 66
+xplm_joy_ecam_up = 67
+xplm_joy_ecam_dn = 68
+xplm_joy_fadec = 69
+xplm_joy_yaw_damp = 70
+xplm_joy_art_stab = 71
+xplm_joy_chute = 72
+xplm_joy_JATO = 73
+xplm_joy_arrest = 74
+xplm_joy_jettison = 75
+xplm_joy_fuel_dump = 76
+xplm_joy_puffsmoke = 77
+xplm_joy_prerotate = 78
+xplm_joy_UL_prerot = 79
+xplm_joy_UL_collec = 80
+xplm_joy_TOGA = 81
+xplm_joy_shutdown = 82
+xplm_joy_con_atc = 83
+xplm_joy_fail_now = 84
+xplm_joy_pause = 85
+xplm_joy_rock_up = 86
+xplm_joy_rock_dn = 87
+xplm_joy_rock_lft = 88
+xplm_joy_rock_rgt = 89
+xplm_joy_rock_for = 90
+xplm_joy_rock_aft = 91
+xplm_joy_idle_hilo = 92
+xplm_joy_lanlights = 93
+xplm_joy_max = 94
 
 
 # XPLMHostApplicationID
-xplm_Host_Unknown    = 0
-xplm_Host_XPlane     = 1
+xplm_Host_Unknown = 0
+xplm_Host_XPlane = 1
 xplm_Host_PlaneMaker = 2
 xplm_Host_WorldMaker = 3
-xplm_Host_Briefer    = 4
-xplm_Host_PartMaker  = 5
-xplm_Host_YoungsMod  = 6
-xplm_Host_XAuto      = 7
+xplm_Host_Briefer = 4
+xplm_Host_PartMaker = 5
+xplm_Host_YoungsMod = 6
+xplm_Host_XAuto = 7
 
 
 # XPLMLanguageCode
-xplm_Language_Unknown  =  0
-xplm_Language_English  =  1
-xplm_Language_French   =  2
-xplm_Language_German   =  3
-xplm_Language_Italian  =  4
-xplm_Language_Spanish  =  5
-xplm_Language_Korean   =  6
-xplm_Language_Russian  =  7
-xplm_Language_Greek    =  8
-xplm_Language_Japanese =  9
-xplm_Language_Chinese  = 10
+xplm_Language_Unknown = 0
+xplm_Language_English = 1
+xplm_Language_French = 2
+xplm_Language_German = 3
+xplm_Language_Italian = 4
+xplm_Language_Spanish = 5
+xplm_Language_Korean = 6
+xplm_Language_Russian = 7
+xplm_Language_Greek = 8
+xplm_Language_Japanese = 9
+xplm_Language_Chinese = 10
 
 
 # XPLMDataFileType
-xplm_DataFile_Situation   = 1
+xplm_DataFile_Situation = 1
 xplm_DataFile_ReplayMovie = 2
 
 
-
-def XPLMError_f(self, inMessage):
+def XPLMError_f(inMessage):
     """
     An XPLM error callback is a function that you provide to receive debugging
     information from the plugin SDK. See XPLMSetErrorCallback for more
@@ -290,7 +289,7 @@ def XPLMError_f(self, inMessage):
     errors in the management code, do not call any other plugin routines from
     your error callback - it is only meant for logging!
     """
-    pass
+
 
 def XPLMSimulateKeyPress(inKeyType, inKey):
     """
@@ -304,39 +303,24 @@ def XPLMSimulateKeyPress(inKeyType, inKey):
     """
     pass
 
+
 def XPLMSpeakString(inString):
     """
     This function displays the string in a translucent overlay over the current
     display and also speaks the string if text-to-speech is enabled. The string
     is spoken asynchronously, this function returns immediately.
     """
-    pass
+
 
 def XPLMCommandKeyStroke(inKey):
     """
     This routine simulates a command-key stroke. However, the keys are done by
     function, not by actual letter, so this function works even if the user has
     remapped their keyboard. Examples of things you might do with this include
-    pausing the simulator.
+    pausingbutton the simulator.
     """
     pass
 
-def XPLMCommandButtonPress(inButton):
-    """
-    This function simulates any of the actions that might be taken by pressing
-    a joystick button. However, this lets you call the command directly rather
-    than have to know which button is mapped where. Important: you must release
-    each button you press. The APIs are separate so that you can 'hold down' a
-    button for a fixed amount of time.
-    """
-    pass
-
-def XPLMCommandButtonRelease(inButton):
-    """
-    This function simulates any of the actions that might be taken by pressing
-    a joystick button. See XPLMCommandButtonPress.
-    """
-    pass
 
 def XPLMGetVirtualKeyDescription(inVirtualKey):
     """
@@ -345,7 +329,8 @@ def XPLMGetVirtualKeyDescription(inVirtualKey):
     for showing users what keyboard mappings they have set up. The string may
     read 'unknown' or be a blank or None string if the virtual key is unknown.
     """
-    pass
+    return str
+
 
 def XPLMReloadScenery():
     """
@@ -355,7 +340,6 @@ def XPLMReloadScenery():
     lat/ref and lon/ref data refs and then call this function to shift the
     scenery environment.
     """
-    pass
 
 
 def XPLMGetSystemPath():
@@ -383,7 +367,8 @@ def XPLMGetDirectorySeparator():
 
     platform.
     """
-    pass
+    return str
+
 
 def XPLMExtractFileAndPath(inFullPath):
     """
@@ -424,7 +409,7 @@ def XPLMGetDirectoryContents(inDirectoryPath, inFirstReturn, inFileNameBufSize, 
     directories. If X-Plane 6 compatibility is needed, use your own code to
     iterate directories.
     """
-    pass
+    return (int, list, int)  # (1=all info returned, list of files, #files in directory)
 
 
 def XPLMInitialized():
@@ -438,7 +423,7 @@ def XPLMInitialized():
     WARNING: This function is generally not needed and may be deprecated in the
     future.
     """
-    pass
+    return int  # 1=X-Plane plugin system intialized
 
 
 def XPLMGetVersions():
@@ -452,14 +437,15 @@ def XPLMGetVersions():
     version-specific behavior.
 
     """
-    return tuple  # (outXPlaneVersion, outXPLMVersion, outHostID)
+    return (int, int, int)  # (outXPlaneVersion, outXPLMVersion, outHostID)
 
 
 def XPLMGetLanguage():
     """
     This routine returns the langauge the sim is running in.
     """
-    pass
+    return int  # XPLMLanguageCode
+
 
 def XPLMDebugString(inString):
     """
@@ -467,9 +453,9 @@ def XPLMDebugString(inString):
     immediately flushed so you will not lose data. (This does cause a
     performance penalty.)
     """
-    pass
 
-def XPLMSetErrorCallback(self, inCallback):
+
+def XPLMSetErrorCallback(inCallback):
     """
     XPLMSetErrorCallback installs an error-reporting callback for your plugin.
     Normally the plugin system performs minimum diagnostics to maximize
@@ -485,7 +471,7 @@ def XPLMSetErrorCallback(self, inCallback):
     not normally run, and this may adversely affect performance, so do not
     leave error callbacks installed in shipping plugins.
     """
-    pass
+
 
 def XPLMFindSymbol(inString):
     """
@@ -493,7 +479,8 @@ def XPLMFindSymbol(inString):
     parameter. If the symbol is found a pointer the function is returned,
     in the form of a integer constructed from the pointer.
     """
-    pass
+    return int  # pointer to function on success
+
 
 def XPLMLoadDataFile(inFileType, inFilePath):
     """
@@ -503,18 +490,18 @@ def XPLMLoadDataFile(inFileType, inFilePath):
     """
     pass
 
+
 def XPLMSaveDataFile(inFileType, inFilePath):
     """
     Saves the current situation or replay; paths are relative to the X-System
     folder.
     """
-    pass
 
 
 # XPLMCommandPhase
-xplm_CommandBegin    = 0 # The command is being started.
-xplm_CommandContinue = 1 # The command is continuing to execute.
-xplm_CommandEnd      = 2 # The command has ended.
+xplm_CommandBegin = 0  # The command is being started.
+xplm_CommandContinue = 1  # The command is continuing to execute.
+xplm_CommandEnd = 2  # The command has ended.
 
 
 def XPLMCommandCallback_f(inCommand, inPhase, inRefcon):
@@ -528,14 +515,16 @@ def XPLMCommandCallback_f(inCommand, inPhase, inRefcon):
     continue to other plugins and X-Plane, or 0 to halt processing, potentially
     bypassing X-Plane code.
     """
-    pass
+    return int  # 1=let processing continue to other plugsin; 0=do not forward to next plugin/x-plane
+
 
 def XPLMFindCommand(inName):
     """
     XPLMFindCommand looks up a command by name, and returns its command
     reference or None if the command does not exist.
     """
-    pass
+    return int  # XPLMCommandRef
+
 
 def XPLMCommandBegin(inCommand):
     """
@@ -543,21 +532,20 @@ def XPLMCommandBegin(inCommand):
     command reference. The command is "held down" until XPLMCommandEnd is
     called.
     """
-    pass
+
 
 def XPLMCommandEnd(inCommand):
     """
     XPLMCommandEnd ends the execution of a given command that was started with
     XPLMCommandBegin.
     """
-    pass
+
 
 def XPLMCommandOnce(inCommand):
     """
     This executes a given command momentarily, that is, the command begins and
     ends immediately.
     """
-    pass
 
 
 def XPLMCreateCommand(inName, inDescription):
@@ -568,6 +556,7 @@ def XPLMCreateCommand(inName, inDescription):
     screen.
     """
     return int  # XPLMCommandRef
+
 
 def XPLMRegisterCommandHandler(inComand, inHandler, inBefore, inRefcon):
     """
@@ -580,7 +569,6 @@ def XPLMRegisterCommandHandler(inComand, inHandler, inBefore, inRefcon):
     callback will run after X-Plane. (You can register a single callback both
     before and after a command.)
     """
-    pass
 
 
 def XPLMUnregisterCommandHandler(inComand, inHandler, inBefore, inRefcon):
@@ -588,8 +576,4 @@ def XPLMUnregisterCommandHandler(inComand, inHandler, inBefore, inRefcon):
     XPLMUnregisterCommandHandler removes a command callback registered with
     XPLMRegisterCommandHandler.
     """
-    pass
 
-
-def XPPythonGetDicts():
-    return {}

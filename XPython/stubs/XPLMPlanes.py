@@ -4,8 +4,8 @@ both the user's and the sim's.
 
 Constants and enumerations
 **************************
-XPLM_USER_AIRCRAFT = 0
 """
+XPLM_USER_AIRCRAFT = 0
 
 
 def XPLMSetUsersAircraft(inAircraftPath):
@@ -14,7 +14,6 @@ def XPLMSetUsersAircraft(inAircraftPath):
     the user to be on the nearest airport's first runway.  Pass in a full path
     (hard drive and everything including the .acf extension) to the .acf file.
     """
-    pass
 
 
 def XPLMPlaceUserAtAirport(inAirportCode):
@@ -22,7 +21,6 @@ def XPLMPlaceUserAtAirport(inAirportCode):
     This routine places the user at a given airport.  Specify the airport by
     its ICAO code (e.g. 'KBOS').
     """
-    pass
 
 
 def XPLMPlaceUserAtLocation(latitudeDegrees,
@@ -39,7 +37,6 @@ def XPLMPlaceUserAtLocation(latitudeDegrees,
     user's preferences (i.e., regardless of what the dataref
     sim/operation/prefs/startup_running says).
     """
-    pass
 
 
 def XPLMCountAircraft():
@@ -71,16 +68,15 @@ def XPLMGetNthAircraftModel(inIndex):
     return (str, str)  # (model filename, path to model)
 
 
-def XPLMPlanesAvailable_f(self, inRefcon):
+def XPLMPlanesAvailable_f(inRefcon):
     """
     Your airplanes available callback is called when another plugin gives up
     access to the multiplayer planes.  Use this to wait for access to
     multiplayer.
     """
-    pass
 
 
-def XPLMAcquirePlanes(self, inAircraft, inCallback, inRefcon):
+def XPLMAcquirePlanes(inAircraft, inCallback, inRefcon):
     """
     XPLMAcquirePlanes grants your plugin exclusive access to the aircraft.  It
     returns 1 if you gain access, 0 if you do not. inAircraft - pass in a list
@@ -95,7 +91,7 @@ def XPLMAcquirePlanes(self, inAircraft, inCallback, inRefcon):
     inCallback : XPLMPlanesAvailable_f
     inRefcon   : object passed to the callback (any object)
     """
-    pass
+    return int  # 1=you gained access; 0=otherwise
 
 
 def XPLMReleasePlanes():
@@ -103,7 +99,6 @@ def XPLMReleasePlanes():
     Call this function to release access to the planes.  Note that if you are
     disabled, access to planes is released for you and you must reacquire it.
     """
-    pass
 
 
 def XPLMSetActiveAircraftCount(inCount):
@@ -112,7 +107,6 @@ def XPLMSetActiveAircraftCount(inCount):
     higher than the total number of planes availables, only the total number of
     planes available is actually used.
     """
-    pass
 
 
 def XPLMSetAircraftModel(inIndex, inAircraftPath):
@@ -122,7 +116,6 @@ def XPLMSetAircraftModel(inIndex, inAircraftPath):
     the .acf extension.  The index is zero based, but you  may not pass in 0
     (use XPLMSetUsersAircraft to load the user's aircracft).
     """
-    pass
 
 
 def XPLMDisableAIForPlane(inPlaneIndex):
@@ -130,36 +123,3 @@ def XPLMDisableAIForPlane(inPlaneIndex):
     This routine turns off X-Plane's AI for a given plane.  The plane will
     continue to draw and be a real plane in X-Plane, but will not  move itself.
     """
-    pass
-
-
-def XPLMDrawAircraft(inPlaneIndex,
-                     inX, inY, inZ,
-                     inPitch, inRoll, inYaw,
-                     inFullDraw,
-                     inDrawStateInfo):
-    """
-    This routine draws an aircraft.  It can only be called from a 3-d drawing
-    callback.  Pass in the position of the plane in OpenGL local coordinates
-    and the orientation of the plane.  A 1 for full drawing indicates that the
-    whole plane must be drawn; a 0 indicates you only need the nav lights
-    drawn. (This saves rendering time when planes are far away.)
-    """
-    pass
-
-
-def XPLMReinitUsersPlane():
-    """
-    This function recomputes the derived flight model data from the aircraft
-    structure in memory.  If you have used the data access layer to modify the
-    aircraft structure, use this routine to resynchronize X-Plane; since
-    X-Plane works at least partly from derived values, the sim will not behave
-    properly until this is called.
-
-    WARNING: this routine does not necessarily place the airplane at the
-    airport; use XPLMSetUsersAircraft to be compatible.  This routine is
-    provided to do special experimentation with flight models without resetting
-    flight.
-    """
-    pass
-

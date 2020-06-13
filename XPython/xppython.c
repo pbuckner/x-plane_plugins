@@ -9,6 +9,14 @@
 
 extern const char *pythonPluginVersion, *pythonPluginsPath, *pythonInternalPluginsPath;
 
+typedef struct {
+  PyObject_HEAD
+  int virtualKey;
+  int flags;
+  PyObject *description;
+  int plugin;
+} HotKeyInfoObject;
+
 static PyObject *
 HotKeyInfo_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {

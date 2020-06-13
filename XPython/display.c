@@ -1001,10 +1001,8 @@ static PyObject *XPLMGetHotKeyInfoFun(PyObject *self, PyObject *args)
   XPLMKeyFlags outFlags;
   char outDescription[1024];
   XPLMPluginID outPlugin;
-  PyObject *tmp;
   XPLMGetHotKeyInfo(inHotKey, &outVirtualKey, &outFlags, outDescription, &outPlugin);
-  PyObject *obj = PyHotKeyInfo_New(outVirtualKey, outFlags, outDescription, outPlugin);
-  return obj;
+  return PyHotKeyInfo_New(outVirtualKey, outFlags, outDescription, outPlugin);
 } 
 
 static PyObject *XPLMSetHotKeyCombinationFun(PyObject *self, PyObject *args)

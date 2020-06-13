@@ -8,7 +8,7 @@
 #include <Widgets/XPWidgetDefs.h>
 #include <Widgets/XPUIGraphics.h>
 #include "utils.h"
-
+#include "xppythontypes.h"
 static PyObject *XPDrawWindowFun(PyObject *self, PyObject *args)
 {
   (void) self;
@@ -23,16 +23,12 @@ static PyObject *XPDrawWindowFun(PyObject *self, PyObject *args)
 static PyObject *XPGetWindowDefaultDimensionsFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *width, *height;
   int inStyle, outWidth, outHeight;
-  if(!PyArg_ParseTuple(args, "iOO", &inStyle, &width, &height)){
+  if(!PyArg_ParseTuple(args, "i", &inStyle)) {
     return NULL;
   }
   XPGetWindowDefaultDimensions(inStyle, &outWidth, &outHeight);
-  objToList(PyLong_FromLong(outWidth), width);
-  objToList( PyLong_FromLong(outHeight), height);
-
-  Py_RETURN_NONE;
+  return Py_BuildValue("ii", outWidth, outHeight);
 }
 
 static PyObject *XPDrawElementFun(PyObject *self, PyObject *args)
@@ -49,17 +45,12 @@ static PyObject *XPDrawElementFun(PyObject *self, PyObject *args)
 static PyObject *XPGetElementDefaultDimensionsFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *width, *height, *canBeLit;
   int inStyle, outWidth, outHeight, outCanBeLit;
-  if(!PyArg_ParseTuple(args, "iOOO", &inStyle, &width, &height, &canBeLit)){
+  if(!PyArg_ParseTuple(args, "i", &inStyle)) {
     return NULL;
   }
   XPGetElementDefaultDimensions(inStyle, &outWidth, &outHeight, &outCanBeLit);
-  objToList(PyLong_FromLong(outWidth), width);
-  objToList(PyLong_FromLong(outHeight), height);
-  objToList(PyLong_FromLong(outCanBeLit), canBeLit);
-
-  Py_RETURN_NONE;
+  return Py_BuildValue("iii", outWidth, outHeight, outCanBeLit);
 }
 
 
@@ -77,16 +68,12 @@ static PyObject *XPDrawTrackFun(PyObject *self, PyObject *args)
 static PyObject *XPGetTrackDefaultDimensionsFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *width, *canBeLit;
   int inStyle, outWidth, outCanBeLit;
-  if(!PyArg_ParseTuple(args, "iOO", &inStyle, &width, &canBeLit)){
+  if(!PyArg_ParseTuple(args, "i", &inStyle)) {
     return NULL;
   }
   XPGetTrackDefaultDimensions(inStyle, &outWidth, &outCanBeLit);
-  objToList(PyLong_FromLong(outWidth), width);
-  objToList(PyLong_FromLong(outCanBeLit), canBeLit);
-
-  Py_RETURN_NONE;
+  return Py_BuildValue("ii", outWidth, outCanBeLit);
 }
 
 
@@ -94,23 +81,13 @@ static PyObject *XPGetTrackMetricsFun(PyObject *self, PyObject *args)
 {
   (void) self;
   int inX1, inY1, inX2, inY2, inMin, inMax, inValue, inStyle;
-  PyObject *isVertical, *downBtnSize, *downPageSize, *thumbSize, *upPageSize, *upBtnSize;
   int outIsVertical, outDownBtnSize, outDownPageSize, outThumbSize, outUpPageSize, outUpBtnSize;
-  if(!PyArg_ParseTuple(args, "iiiiiiiiOOOOOO", &inX1, &inY1, &inX2, &inY2, &inMin, &inMax, &inValue, &inStyle,
-                       &isVertical, &downBtnSize, &downPageSize, &thumbSize, &upPageSize,
-                       &upBtnSize)){
+  if(!PyArg_ParseTuple(args, "iiiiiiii", &inX1, &inY1, &inX2, &inY2, &inMin, &inMax, &inValue, &inStyle)){
     return NULL;
   }
   XPGetTrackMetrics(inX1, inY1, inX2, inY2, inMin, inMax, inValue, inStyle, &outIsVertical, &outDownBtnSize,
                     &outDownPageSize, &outThumbSize, &outUpPageSize, &outUpBtnSize);
-  objToList(PyLong_FromLong(outIsVertical), isVertical);
-  objToList(PyLong_FromLong(outDownBtnSize), downBtnSize);
-  objToList(PyLong_FromLong(outDownPageSize), downPageSize);
-  objToList(PyLong_FromLong(outThumbSize), thumbSize);
-  objToList(PyLong_FromLong(outUpPageSize), upPageSize);
-  objToList(PyLong_FromLong(outUpBtnSize), upBtnSize);
-
-  Py_RETURN_NONE;
+  return PyTrackMetrics_New(outIsVertical, outDownBtnSize, outDownPageSize, outThumbSize, outUpPageSize, outUpBtnSize);
 }
 
 static PyObject *cleanup(PyObject *self, PyObject *args)

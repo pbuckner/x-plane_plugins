@@ -7,6 +7,7 @@
 #include <XPLM/XPLMDisplay.h>
 #include "utils.h"
 #include "plugin_dl.h"
+#include "xppythontypes.h"
 
 static PyObject *drawCallbackDict, *drawCallbackIDDict;
 static intptr_t drawCallbackCntr;
@@ -512,64 +513,17 @@ static PyObject *XPLMGetScreenSizeFun(PyObject *self, PyObject *args)
   return Py_BuildValue("(ii)", w, h);
 }
 
-/* static PyObject *XPLMGetScreenSizeFun(PyObject *self, PyObject *args) */
-/* { */
-/*   (void) self; */
-/*   PyObject *wObj, *hObj; */
-/*   if(!PyArg_ParseTuple(args, "OO", &wObj, &hObj)){ */
-/*     return NULL; */
-/*   } */
-/*   int w, h; */
-/*   PyObject *tmp; */
-/*   XPLMGetScreenSize(&w, &h); */
-/*   if(PyList_Check(wObj)){ */
-/*     tmp = PyLong_FromLong(w); */
-/*     PyList_Insert(wObj, 0, tmp); */
-/*     Py_DECREF(tmp); */
-/*   } */
-/*   if(PyList_Check(hObj)){ */
-/*     tmp = PyLong_FromLong(h); */
-/*     PyList_Insert(hObj, 0, tmp); */
-/*     Py_DECREF(tmp); */
-/*   } */
-/*   Py_RETURN_NONE; */
-/* } */
-
 static PyObject *XPLMGetScreenBoundsGlobalFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *lObj, *tObj, *rObj, *bObj;
+  (void) args;
   if(!XPLMGetScreenBoundsGlobal_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetScreenBoundsGlobal is available only in XPLM300 and up.");
     return NULL;
   }
-  if(!PyArg_ParseTuple(args, "OOOO", &lObj, &tObj, &rObj, &bObj)){
-    return NULL;
-  }
   int outLeft, outTop, outRight, outBottom;
   XPLMGetScreenBoundsGlobal_ptr(&outLeft, &outTop, &outRight, &outBottom);
-  PyObject *tmp;
-  if(PyList_Check(lObj)){
-    tmp = PyLong_FromLong(outLeft);
-    PyList_Insert(lObj, 0, tmp);
-    Py_DECREF(tmp);
-  }
-  if(PyList_Check(tObj)){
-    tmp = PyLong_FromLong(outTop);
-    PyList_Insert(tObj, 0, tmp);
-    Py_DECREF(tmp);
-  }
-  if(PyList_Check(rObj)){
-    tmp = PyLong_FromLong(outRight);
-    PyList_Insert(rObj, 0, tmp);
-    Py_DECREF(tmp);
-  }
-  if(PyList_Check(bObj)){
-    tmp = PyLong_FromLong(outBottom);
-    PyList_Insert(bObj, 0, tmp);
-    Py_DECREF(tmp);
-  }
-  Py_RETURN_NONE;
+  return Py_BuildValue("(iiii)", outLeft, outTop, outRight, outBottom);
 }
 
 static PyObject *XPLMGetAllMonitorBoundsGlobalFun(PyObject *self, PyObject *args)
@@ -611,86 +565,37 @@ static PyObject *XPLMGetAllMonitorBoundsOSFun(PyObject *self, PyObject *args)
 static PyObject *XPLMGetMouseLocationFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *xObj, *yObj;
-  if(!PyArg_ParseTuple(args, "OO", &xObj, &yObj)){
-    return NULL;
-  }
+  (void) args;
   int x, y;
   XPLMGetMouseLocation(&x, &y);
-  PyObject *tmp;
-  if(PyList_Check(xObj)){
-    tmp = PyLong_FromLong(x);
-    PyList_Insert(xObj, 0, tmp);
-    Py_DECREF(tmp);
-  }
-  if(PyList_Check(yObj)){
-    tmp = PyLong_FromLong(y);
-    PyList_Insert(yObj, 0, tmp);
-    Py_DECREF(tmp);
-  }
-  Py_RETURN_NONE;
+  return Py_BuildValue("(ii)", x, y);
 }
 
 static PyObject *XPLMGetMouseLocationGlobalFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *xObj, *yObj;
+  (void) args;
+  int x, y;
   if(!XPLMGetMouseLocationGlobal_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetMouseLocationGlobal is available only in XPLM300 and up.");
     return NULL;
   }
-  if(!PyArg_ParseTuple(args, "OO", &xObj, &yObj)){
-    return NULL;
-  }
-  int x, y;
   XPLMGetMouseLocationGlobal_ptr(&x, &y);
-  PyObject *tmp;
-  if(PyList_Check(xObj)){
-    tmp = PyLong_FromLong(x);
-    PyList_Insert(xObj, 0, tmp);
-    Py_DECREF(tmp);
-  }
-  if(PyList_Check(yObj)){
-    tmp = PyLong_FromLong(y);
-    PyList_Insert(yObj, 0, tmp);
-    Py_DECREF(tmp);
-  }
-  Py_RETURN_NONE;
+  return Py_BuildValue("(ii)", x, y);
 }
 
 static PyObject *XPLMGetWindowGeometryFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *win, *leftObj, *topObj, *rightObj, *bottomObj;
-  if(!PyArg_ParseTuple(args, "OOOOO", &win, &leftObj, &topObj, &rightObj, &bottomObj)){
+  PyObject *win;
+  if (!PyArg_ParseTuple(args, "O", &win)) {
     return NULL;
   }
   int left, top, right, bottom;
   XPLMGetWindowGeometry(refToPtr(win, windowIDRef), &left, &top, &right, &bottom);
-  PyObject *tmp;
-  if(PyList_Check(leftObj)){
-    tmp = PyLong_FromLong(left);
-    PyList_Insert(leftObj, 0, tmp);
-    Py_DECREF(tmp);
-  }
-  if(PyList_Check(topObj)){
-    tmp = PyLong_FromLong(top);
-    PyList_Insert(topObj, 0, tmp);
-    Py_DECREF(tmp);
-  }
-  if(PyList_Check(rightObj)){
-    tmp = PyLong_FromLong(right);
-    PyList_Insert(rightObj, 0, tmp);
-    Py_DECREF(tmp);
-  }
-  if(PyList_Check(bottomObj)){
-    tmp = PyLong_FromLong(bottom);
-    PyList_Insert(bottomObj, 0, tmp);
-    Py_DECREF(tmp);
-  }
-  Py_RETURN_NONE;
+  return Py_BuildValue("(iiii)", left, top, right, bottom);
 }
-
+  
 static PyObject *XPLMSetWindowGeometryFun(PyObject *self, PyObject *args)
 {
   (void) self;
@@ -707,38 +612,17 @@ static PyObject *XPLMSetWindowGeometryFun(PyObject *self, PyObject *args)
 static PyObject *XPLMGetWindowGeometryOSFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *win, *leftObj, *topObj, *rightObj, *bottomObj;
+  PyObject *win;
   if(!XPLMGetWindowGeometryOS_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetWindowGeometryOS is available only in XPLM300 and up.");
     return NULL;
   }
-  if(!PyArg_ParseTuple(args, "OOOOO", &win, &leftObj, &topObj, &rightObj, &bottomObj)){
+  if (!PyArg_ParseTuple(args, "O", &win)) {
     return NULL;
   }
   int left, top, right, bottom;
   XPLMGetWindowGeometryOS_ptr(refToPtr(win, windowIDRef), &left, &top, &right, &bottom);
-  PyObject *tmp;
-  if(PyList_Check(leftObj)){
-    tmp = PyLong_FromLong(left);
-    PyList_Insert(leftObj, 0, tmp);
-    Py_DECREF(tmp);
-  }
-  if(PyList_Check(topObj)){
-    tmp = PyLong_FromLong(top);
-    PyList_Insert(topObj, 0, tmp);
-    Py_DECREF(tmp);
-  }
-  if(PyList_Check(rightObj)){
-    tmp = PyLong_FromLong(right);
-    PyList_Insert(rightObj, 0, tmp);
-    Py_DECREF(tmp);
-  }
-  if(PyList_Check(bottomObj)){
-    tmp = PyLong_FromLong(bottom);
-    PyList_Insert(bottomObj, 0, tmp);
-    Py_DECREF(tmp);
-  }
-  Py_RETURN_NONE;
+  return Py_BuildValue("(iiii)", left, top, right, bottom);
 }
 
 static PyObject *XPLMSetWindowGeometryOSFun(PyObject *self, PyObject *args)
@@ -761,28 +645,17 @@ static PyObject *XPLMSetWindowGeometryOSFun(PyObject *self, PyObject *args)
 static PyObject *XPLMGetWindowGeometryVRFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *win, *outWidthBoxelsObj, *outHeightBoxelsObj;
+  PyObject *win;
   if(!XPLMGetWindowGeometryVR_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetWindowGeometryVR is available only in XPLM301 and up.");
     return NULL;
   }
-  if(!PyArg_ParseTuple(args, "OOO", &win, &outWidthBoxelsObj, &outHeightBoxelsObj)){
+  if(!PyArg_ParseTuple(args, "O", &win)){
     return NULL;
   }
   int outWidthBoxels, outHeightBoxels;
   XPLMGetWindowGeometryVR_ptr(refToPtr(win, windowIDRef), &outWidthBoxels, &outHeightBoxels);
-  PyObject *tmp;
-  if(PyList_Check(outWidthBoxelsObj)){
-    tmp = PyLong_FromLong(outWidthBoxels);
-    PyList_Insert(outWidthBoxelsObj, 0, tmp);
-    Py_DECREF(tmp);
-  }
-  if(PyList_Check(outHeightBoxelsObj)){
-    tmp = PyLong_FromLong(outHeightBoxels);
-    PyList_Insert(outHeightBoxelsObj, 0, tmp);
-    Py_DECREF(tmp);
-  }
-  Py_RETURN_NONE;
+  return Py_BuildValue("(ii)", outWidthBoxels, outHeightBoxels);
 }
 
 static PyObject *XPLMSetWindowGeometryVRFun(PyObject *self, PyObject *args)
@@ -1155,8 +1028,8 @@ static PyObject *XPLMGetHotKeyInfoFun(PyObject *self, PyObject *args)
     PyList_Insert(plugin, 0, tmp);
     Py_DECREF(tmp);
   }
-
-  Py_RETURN_NONE;
+  PyObject *obj = PyHotKeyInfo_New(outVirtualKey, outFlags, outDescription, outPlugin);
+  return obj;
 } 
 
 static PyObject *XPLMSetHotKeyCombinationFun(PyObject *self, PyObject *args)
@@ -1451,6 +1324,3 @@ int XPLMKeySnifferCallback(char inChar, XPLMKeyFlags inFlags, char inVirtualKey,
   Py_XDECREF(pRes);
   return res;
 }
-
-
-

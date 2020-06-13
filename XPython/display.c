@@ -992,8 +992,8 @@ static PyObject *XPLMGetNthHotKeyFun(PyObject *self, PyObject *args)
 static PyObject *XPLMGetHotKeyInfoFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *hotKey, *virtualKey, *flags, *description, *plugin;
-  if(!PyArg_ParseTuple(args, "OOOOO", &hotKey, &virtualKey, &flags, &description, &plugin)){
+  PyObject *hotKey;
+  if(!PyArg_ParseTuple(args, "O", &hotKey)) {
     return NULL;
   }
   XPLMHotKeyID inHotKey = refToPtr(hotKey, hotkeyIDRef);
@@ -1003,31 +1003,6 @@ static PyObject *XPLMGetHotKeyInfoFun(PyObject *self, PyObject *args)
   XPLMPluginID outPlugin;
   PyObject *tmp;
   XPLMGetHotKeyInfo(inHotKey, &outVirtualKey, &outFlags, outDescription, &outPlugin);
-  if(PyList_Check(virtualKey)){
-    tmp = PyLong_FromLong((unsigned int)outVirtualKey);
-    PyList_Insert(virtualKey, 0, tmp);
-    Py_DECREF(tmp);
-  }
-
-  if(PyList_Check(flags)){
-    tmp = PyLong_FromLong(outFlags);
-    PyList_Insert(flags, 0, tmp);
-    Py_DECREF(tmp);
-  }
-
-  if(PyList_Check(description)){
-    PyObject *descStr = PyUnicode_DecodeUTF8(outDescription, strlen(outDescription), NULL);
-    if(descStr){
-      PyList_Insert(description, 0, descStr);
-      Py_DECREF(descStr);
-    }
-  }
-  
-  if(PyList_Check(plugin)){
-    tmp = PyLong_FromLong(outPlugin);
-    PyList_Insert(plugin, 0, tmp);
-    Py_DECREF(tmp);
-  }
   PyObject *obj = PyHotKeyInfo_New(outVirtualKey, outFlags, outDescription, outPlugin);
   return obj;
 } 

@@ -25,7 +25,7 @@ from XPLMNavigation import XPLMGetGPSDestinationType, XPLMGetGPSDestination
 
 class PythonInterface(RegressionBase):
     def __init__(self):
-        self.Sig = "Navigation.XPython"
+        self.Sig = "xppython3.navigation"
         self.Name = "Regression Test Nave"
         self.Desc = "Regression test Nave example"
 
@@ -47,7 +47,6 @@ class PythonInterface(RegressionBase):
 
     def XPluginDisable(self):
         super(PythonInterface, self).disable()
-        return 1
 
     def XPluginReceiveMessage(self, inFromWho, inMessage, inParam):
         super(PythonInterface, self).receive(inFromWho, inMessage, inParam)
@@ -184,14 +183,8 @@ class PythonInterface(RegressionBase):
             self.describeFMSEntry(idx)
 
     def describeFMSEntry(self, idx):
-        navType = []
-        navID = []
-        ref = []
-        altitude = []
-        lat = []
-        lon = []
-        XPLMGetFMSEntryInfo(idx, navType, navID, ref, altitude, lat, lon)
-        self.log("[{}] '{}' {}: @{} ({}, {})".format(idx, navID[0], navType[0], altitude[0], lat[0], lon[0]))
+        entryInfo = XPLMGetFMSEntryInfo(idx)
+        self.log("[{}] '{}' {}: @{} ({}, {})".format(idx, entryInfo.navAidID, entryInfo.type, entryInfo.altitude, entryInfo.lat, entryInfo.lon))
 
     def describeNavaid(self, navaid):
         navTypes = {xplm_Nav_Unknown: 'Unknown',
@@ -208,14 +201,5 @@ class PythonInterface(RegressionBase):
                     xplm_Nav_DME: 'DME',
                     xplm_Nav_LatLon: 'LatLon',
         }
-        navType = []
-        lat = []
-        lng = []
-        height = []
-        freq = []
-        heading = []
-        navID = []
-        name = []
-        reg = []
-        XPLMGetNavAidInfo(navaid, navType, lat, lng, height, freq, heading, navID, name, reg)
-        self.log("{} '{}': {} ({}, {})".format(navID[0], name[0], navTypes[navType[0]], lat[0], lng[0]))
+        info = XPLMGetNavAidInfo(navaid)
+        self.log("{} '{}': {} ({}, {})".format(info.navAidID, info.name, navTypes[info.type], info.latitude, info.longitude))

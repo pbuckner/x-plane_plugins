@@ -6,6 +6,7 @@
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMNavigation.h>
 #include "utils.h"
+#include "xppythontypes.h"
 
 static PyObject *XPLMGetFirstNavAidFun(PyObject *self, PyObject *args)
 {
@@ -76,17 +77,7 @@ static PyObject *XPLMGetNavAidInfoFun(PyObject *self, PyObject *args)
 {
   (void)self;
   XPLMNavRef inRef;
-  PyObject *type;
-  PyObject *latitude;
-  PyObject *longitude;
-  PyObject *height;
-  PyObject *frequency;
-  PyObject *heading;
-  PyObject *id;
-  PyObject *name;
-  PyObject *reg;
-  if(!PyArg_ParseTuple(args, "iOOOOOOOOO", &inRef, &type, &latitude, &longitude, &height, &frequency, &heading, &id,
-                       &name, &reg)){
+  if(!PyArg_ParseTuple(args, "i", &inRef)){
     return NULL;
   }
   XPLMNavType outType;
@@ -95,20 +86,8 @@ static PyObject *XPLMGetNavAidInfoFun(PyObject *self, PyObject *args)
   char outID[512];
   char outName[512];
   char outReg[512];
-  XPLMGetNavAidInfo(inRef, &outType, &outLatitude, &outLongitude, &outHeight, &outFrequency, &outHeading, 
-                    outID, outName, outReg);
-  objToList(PyLong_FromLong(outType), type);
-  objToList(PyFloat_FromDouble(outLatitude), latitude);
-  objToList(PyFloat_FromDouble(outLongitude), longitude);
-  objToList(PyFloat_FromDouble(outHeight), height);
-  objToList(PyLong_FromLong(outFrequency), frequency);
-  objToList(PyFloat_FromDouble(outHeading), heading);
-  objToList(PyUnicode_DecodeUTF8(outID, strlen(outID), NULL), id);
-  objToList(PyUnicode_DecodeUTF8(outName, strlen(outName), NULL), name);
-  // outReg is not a string, it's 1 for true an 0 for false
-  // objToList(PyUnicode_DecodeUTF8(outReg, strlen(outReg), NULL), reg);
-  objToList(PyLong_FromLong((int) outReg[0]), reg);
-  Py_RETURN_NONE;
+  XPLMGetNavAidInfo(inRef, &outType, &outLatitude, &outLongitude, &outHeight, &outFrequency, &outHeading, outID, outName, outReg);
+  return PyNavAidInfo_New(outType, outLatitude, outLongitude, outHeight, outFrequency, outHeading, outID, outName, (int)outReg[0]);
 }
 
 static PyObject *XPLMCountFMSEntriesFun(PyObject *self, PyObject *args)
@@ -158,13 +137,7 @@ static PyObject *XPLMGetFMSEntryInfoFun(PyObject *self, PyObject *args)
 {
   (void)self;
   int inIndex;
-  PyObject *type;
-  PyObject *id;
-  PyObject *ref;
-  PyObject *altitude;
-  PyObject *lat;
-  PyObject *lon;
-  if(!PyArg_ParseTuple(args, "iOOOOOO", &inIndex, &type, &id, &ref, &altitude, &lat, &lon)){
+  if(!PyArg_ParseTuple(args, "i", &inIndex)){
     return NULL;
   }
   XPLMNavType outType;
@@ -174,13 +147,7 @@ static PyObject *XPLMGetFMSEntryInfoFun(PyObject *self, PyObject *args)
   int outAltitude;
 
   XPLMGetFMSEntryInfo(inIndex, &outType, outID, &outRef, &outAltitude, &outLat, &outLon);
-  objToList(PyLong_FromLong(outType), type);
-  objToList(PyUnicode_DecodeUTF8(outID, strlen(outID), NULL), id);
-  objToList(PyLong_FromLong(outRef), ref);
-  objToList(PyLong_FromLong(outAltitude), altitude);
-  objToList(PyFloat_FromDouble(outLat), lat);
-  objToList(PyFloat_FromDouble(outLon), lon);
-  Py_RETURN_NONE;
+  return PyFMSEntryInfo_New(outType, outID, outRef, outAltitude, outLat, outLon);
 }
 
 static PyObject *XPLMSetFMSEntryInfoFun(PyObject *self, PyObject *args)

@@ -159,15 +159,19 @@ def XPLMFindNavAid(inNameFragment,
     return int  # XPLMNavRef
 
 
-def XPLMGetNavAidInfo(inRef,
-                      outType,
-                      outLatitude, outLongitude,
-                      outHeight,
-                      outFrequency,
-                      outHeading,
-                      outID,
-                      outName,
-                      outReg):
+class NavAidInfo(object):
+    type = 0  # XPLMNavType
+    latitude = 0
+    longitude = 0
+    height = 0
+    frequency = 0
+    heading = 0
+    navAidID = None
+    name = None
+    reg = 0
+
+
+def XPLMGetNavAidInfo(inRef):
     """
     This routine returns information about a navaid.  Any non-None field is
     filled out with information if it is available.
@@ -186,15 +190,8 @@ def XPLMGetNavAidInfo(inRef,
     string.
 
     inRef : XPLMNavRef
-    outType : list, will contain type of the NavAid
-    outLatitude, outLongitude : list, will contain position of the NavAid
-    outHeight : list, will contain height of the NavAid
-    outFrequency :  list, will contain frequency of the NavAid
-    outHeading : list, will contain heading of the NavAid
-    outID : list, will contain ID of the NavAid
-    outName : list, will contain name of the NavAid
-    outReg : list, will contain registration of the NavAid
     """
+    return NavAidInfo
 
 
 def XPLMCountFMSEntries():
@@ -230,13 +227,16 @@ def XPLMSetDestinationFMSEntry(inIndex):
     """
 
 
-def XPLMGetFMSEntryInfo(inIndex,
-                        outType,
-                        outID,
-                        outRef,
-                        outAltitude,
-                        outLat,
-                        outLon):
+class FMSEntryInfo(object):
+    type = 0  # XPLMNavType
+    navAidID = None
+    ref = 0  # XPLMNavRef
+    altitude = 0
+    lat = 0
+    lon = 0
+
+
+def XPLMGetFMSEntryInfo(inIndex):
     """
     This routine returns information about a given FMS entry.  A reference to a
     navaid can be returned allowing you to find additional information (such as
@@ -247,12 +247,8 @@ def XPLMGetFMSEntryInfo(inIndex,
     length.
 
     inIndex : index of the entry (integer)
-    outType : list, will contain type of the entry (XPLMNavType)
-    outID   : list, will contain ID of the NavAid
-    outRef  : list, will contain reference (XPLMNavRef)
-    outAltitude : list, will contain altitude of the entry
-    outLat, outLon : lists, will contain position of the entry
     """
+    return FMSEntryInfo
 
 
 def XPLMSetFMSEntryInfo(inIndex,

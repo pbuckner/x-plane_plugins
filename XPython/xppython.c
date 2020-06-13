@@ -68,13 +68,13 @@ HotKeyInfo_init(HotKeyInfoObject *self, PyObject *args, PyObject *kwds)
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iiUi", kwlist,
                                    &self->virtualKey, &self->flags, &description, &self->plugin))
     return -1;
-    if (description) {
-        tmp = self->description;
-        Py_INCREF(description);
-        self->description = description;
-        Py_XDECREF(tmp);
-    }
-    return 0;
+  if (description) {
+    tmp = self->description;
+    Py_INCREF(description);
+    self->description = description;
+    Py_XDECREF(tmp);
+  }
+  return 0;
 }
 
 static PyMemberDef HotKeyInfo_members[] = {
@@ -107,6 +107,244 @@ PyHotKeyInfo_New(int virtualKey, int flags, char *description, int plugin)
 {
   PyObject *argsList = Py_BuildValue("iisi", virtualKey, flags, description, plugin);
   PyObject *obj = PyObject_CallObject((PyObject *) &HotKeyInfoType, argsList);
+  Py_DECREF(argsList);
+  return (PyObject*)obj;
+}
+
+/* NavAidInfo TYPE */
+typedef struct {
+  PyObject_HEAD
+  int type;
+  float latitude;
+  float longitude;
+  float height;
+  int frequency;
+  float heading;
+  PyObject *navAidID;
+  PyObject *name;
+  int reg;
+} NavAidInfoObject;
+
+static PyObject *
+NavAidInfo_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+  (void) args;
+  (void) kwds;
+  NavAidInfoObject *self;
+  self = (NavAidInfoObject *) type->tp_alloc(type, 0);
+  if (self != NULL) {
+    self->type = 0;
+    self->latitude = 0;
+    self->longitude = 0;
+    self->height = 0;
+    self->frequency = 0;
+    self->heading = 0;
+    self->reg = 0;
+    self->navAidID = PyUnicode_FromString("");
+    if (self->navAidID == NULL) {
+      Py_DECREF(self);
+      return NULL;
+    }
+    self->name = PyUnicode_FromString("");
+    if (self->name == NULL) {
+      Py_DECREF(self);
+      return NULL;
+    }
+  }
+  return (PyObject *) self;
+}
+
+static int
+NavAidInfo_traverse(NavAidInfoObject *self, visitproc visit, void *arg)
+{
+  Py_VISIT(self->navAidID);
+  Py_VISIT(self->name);
+  return 0;
+}
+
+static int
+NavAidInfo_clear(NavAidInfoObject *self)
+{
+  Py_CLEAR(self->navAidID);
+  Py_CLEAR(self->name);
+  return 0;
+}
+    
+static void
+NavAidInfo_dealloc(NavAidInfoObject *self)
+{
+  PyObject_GC_UnTrack(self);
+  NavAidInfo_clear(self);
+  Py_TYPE(self)->tp_free((PyObject *) self);
+}
+
+static int
+NavAidInfo_init(NavAidInfoObject *self, PyObject *args, PyObject *kwds)
+{
+  static char *kwlist[] = {"type", "latitude", "longitude", "height", "frequency", "heading", "navaAidID", "name", "reg", NULL};
+  PyObject *navAidID = NULL, *name, *tmp;
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ifffifUUi", kwlist,
+                                   &self->type, &self->latitude, &self->longitude, &self->height, &self->frequency, &self->heading,
+                                   &navAidID, &name, &self->reg))
+    return -1;
+  if (navAidID) {
+    tmp = self->navAidID;
+    Py_INCREF(navAidID);
+    self->navAidID = navAidID;
+    Py_XDECREF(tmp);
+  }
+  if (name) {
+    tmp = self->name;
+    Py_INCREF(name);
+    self->name = name;
+    Py_XDECREF(tmp);
+  }
+  return 0;
+}
+
+static PyMemberDef NavAidInfo_members[] = {
+    {"type", T_INT, offsetof(NavAidInfoObject, type), 0, "XPLMNavType"},
+    {"latitude", T_FLOAT, offsetof(NavAidInfoObject, latitude), 0, "latitude"},
+    {"longitude", T_FLOAT, offsetof(NavAidInfoObject, longitude), 0, "longitude"},
+    {"height", T_FLOAT, offsetof(NavAidInfoObject, height), 0, "height"},
+    {"frequency", T_INT, offsetof(NavAidInfoObject, frequency), 0, "frequency"},
+    {"heading", T_FLOAT, offsetof(NavAidInfoObject, heading), 0, "heading"},
+    {"navAidID", T_OBJECT_EX, offsetof(NavAidInfoObject, navAidID), 0, "nav aid ID"},
+    {"name", T_OBJECT, offsetof(NavAidInfoObject, name), 0, "nav aid name"},
+    {"reg", T_INT, offsetof(NavAidInfoObject, reg), 0, "navaid is within local 'region'"},
+    {NULL}  /* Sentinel */
+};
+
+static PyTypeObject NavAidInfoType = {
+                                      PyVarObject_HEAD_INIT(NULL, 0)
+                                      .tp_name = "xppython3.NavAidInfo",
+                                      .tp_doc = "NavAidInfo",
+                                      .tp_basicsize = sizeof(NavAidInfoObject),
+                                      .tp_itemsize = 0,
+                                      .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+                                      .tp_new = NavAidInfo_new,
+                                      .tp_init = (initproc) NavAidInfo_init,
+                                      .tp_dealloc = (destructor) NavAidInfo_dealloc,
+                                      .tp_traverse = (traverseproc) NavAidInfo_traverse,
+                                      .tp_clear = (inquiry) NavAidInfo_clear,
+                                      .tp_members = NavAidInfo_members,
+
+};
+
+
+PyObject *
+PyNavAidInfo_New(int type, float latitude, float longitude, float height, int frequency, float heading, char* navAidID, char *name, int reg)
+{
+  PyObject *argsList = Py_BuildValue("ifffifUUi", type, latitude, longitude, height, frequency, heading, navAidID, name, reg);
+  PyObject *obj = PyObject_CallObject((PyObject *) &NavAidInfoType, argsList);
+  Py_DECREF(argsList);
+  return (PyObject*)obj;
+}
+
+/* FMSEntryInfo TYPE */
+typedef struct {
+  PyObject_HEAD
+  int type;
+  PyObject *navAidID;
+  int ref;
+  int altitude;
+  float lat;
+  float lon;
+} FMSEntryInfoObject;
+
+static PyObject *
+FMSEntryInfo_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+  (void) args;
+  (void) kwds;
+  FMSEntryInfoObject *self;
+  self = (FMSEntryInfoObject *) type->tp_alloc(type, 0);
+  if (self != NULL) {
+    self->type = 0;
+    self->lat = 0;
+    self->lon = 0;
+    self->altitude = 0;
+    self->ref = 0;
+    self->navAidID = PyUnicode_FromString("");
+    if (self->navAidID == NULL) {
+      Py_DECREF(self);
+      return NULL;
+    }
+  }
+  return (PyObject *) self;
+}
+
+static int
+FMSEntryInfo_traverse(FMSEntryInfoObject *self, visitproc visit, void *arg)
+{
+  Py_VISIT(self->navAidID);
+  return 0;
+}
+
+static int
+FMSEntryInfo_clear(FMSEntryInfoObject *self)
+{
+  Py_CLEAR(self->navAidID);
+  return 0;
+}
+    
+static void
+FMSEntryInfo_dealloc(FMSEntryInfoObject *self)
+{
+  PyObject_GC_UnTrack(self);
+  FMSEntryInfo_clear(self);
+  Py_TYPE(self)->tp_free((PyObject *) self);
+}
+
+static int
+FMSEntryInfo_init(FMSEntryInfoObject *self, PyObject *args, PyObject *kwds)
+{
+  static char *kwlist[] = {"type", "navAidID", "ref", "altitude", "lat", "lon", NULL};
+  PyObject *navAidID = NULL,  *tmp;
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iUiiff", kwlist,
+                                   &self->type, &navAidID, &self->ref, &self->altitude, &self->lat, &self->lon))
+    return -1;
+  if (navAidID) {
+    tmp = self->navAidID;
+    Py_INCREF(navAidID);
+    self->navAidID = navAidID;
+    Py_XDECREF(tmp);
+  }
+  return 0;
+}
+
+static PyMemberDef FMSEntryInfo_members[] = {
+    {"type", T_INT, offsetof(FMSEntryInfoObject, type), 0, "XPLMNavType"},
+    {"navAidID", T_OBJECT_EX, offsetof(FMSEntryInfoObject, navAidID), 0, "nav aid ID"},
+    {"ref", T_INT, offsetof(FMSEntryInfoObject, ref), 0, "XPLMNavref"},
+    {"altitude", T_INT, offsetof(FMSEntryInfoObject, altitude), 0, "altitude"},
+    {"lat", T_FLOAT, offsetof(FMSEntryInfoObject, lat), 0, "latitude"},
+    {"lon", T_FLOAT, offsetof(FMSEntryInfoObject, lon), 0, "longitude"},
+    {NULL}  /* Sentinel */
+};
+
+static PyTypeObject FMSEntryInfoType = {
+                                      PyVarObject_HEAD_INIT(NULL, 0)
+                                      .tp_name = "xppython3.FMSEntryInfo",
+                                      .tp_doc = "FMSEntryInfo",
+                                      .tp_basicsize = sizeof(FMSEntryInfoObject),
+                                      .tp_itemsize = 0,
+                                      .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+                                      .tp_new = FMSEntryInfo_new,
+                                      .tp_init = (initproc) FMSEntryInfo_init,
+                                      .tp_dealloc = (destructor) FMSEntryInfo_dealloc,
+                                      .tp_traverse = (traverseproc) FMSEntryInfo_traverse,
+                                      .tp_clear = (inquiry) FMSEntryInfo_clear,
+                                      .tp_members = FMSEntryInfo_members,
+
+};
+
+
+PyObject *
+PyFMSEntryInfo_New(int type, char *navAidID, int ref, int altitude, float lat, float lon)
+{
+  PyObject *argsList = Py_BuildValue("iUiiff", type, navAidID, ref, altitude, lat, lon);
+  PyObject *obj = PyObject_CallObject((PyObject *) &FMSEntryInfoType, argsList);
   Py_DECREF(argsList);
   return (PyObject*)obj;
 }
@@ -401,6 +639,10 @@ PyInit_XPPython(void)
     return NULL;
   if (PyType_Ready(&TrackMetricsType) < 0)
     return NULL;
+  if (PyType_Ready(&NavAidInfoType) < 0)
+    return NULL;
+  if (PyType_Ready(&FMSEntryInfoType) < 0)
+    return NULL;
 
   PyObject *mod = PyModule_Create(&XPPythonModule);
   if (mod != NULL) {
@@ -408,9 +650,13 @@ PyInit_XPPython(void)
     PyModule_AddStringConstant(mod, "PLUGINSPATH", pythonPluginsPath);
     PyModule_AddStringConstant(mod, "INTERNALPLUGINSPATH", pythonInternalPluginsPath);
     PyModule_AddObject(mod, "HotKeyInfo", (PyObject *) &HotKeyInfoType);
+    PyModule_AddObject(mod, "NavAidInfo", (PyObject *) &NavAidInfoType);
+    PyModule_AddObject(mod, "FMSEntryInfo", (PyObject *) &FMSEntryInfoType);
     PyModule_AddObject(mod, "TrackMetrics", (PyObject *) &TrackMetricsType);
   }
   Py_INCREF(&HotKeyInfoType);
+  Py_INCREF(&NavAidInfoType);
+  Py_INCREF(&FMSEntryInfoType);
   Py_INCREF(&TrackMetricsType);
   
 

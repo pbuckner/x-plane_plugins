@@ -446,9 +446,7 @@ def XPLMDrawMapLabel(layer,
     """
 
 
-def XPLMMapProject(projection,
-                   latitude, longitude,
-                   outX, outY):
+def XPLMMapProject(projection, latitude, longitude):
     """
     Projects a latitude/longitude into map coordinates. This is the inverse of
     XPLMMapUnproject().
@@ -459,13 +457,11 @@ def XPLMMapProject(projection,
 
     projection          : projection handle passed to the callback
     latitude, longitude : doubles
-    outX, outY          : lists where the projected coordinates will be stored
     """
+    return float, float  # x, y
 
 
-def XPLMMapUnproject(projection,
-                     mapX, mapY,
-                     outLatitude, outLongitude):
+def XPLMMapUnproject(projection, mapX, mapY):
     """
     Transforms map coordinates back into a latitude and longitude. This is the
     inverse of XPLMMapProject().
@@ -476,12 +472,11 @@ def XPLMMapUnproject(projection,
 
     projection                : projection handle passed to the callback
     mapX, mapY                : doubles
-    outLatitude, outLongitude : lists where the projected coordinates will be stored
     """
+    return float, float  # latitude, longitude
 
 
-def XPLMMapScaleMeter(projection,
-                      mapX, mapY):
+def XPLMMapScaleMeter(projection, mapX, mapY):
     """
     Returns the number of map units that correspond to a distance of one meter
     at a given set of map coordinates.
@@ -496,8 +491,7 @@ def XPLMMapScaleMeter(projection,
     return float  # number of map units corresponding to a distance of one meter
 
 
-def XPLMMapGetNorthHeading(projection,
-                           mapX, mapY):
+def XPLMMapGetNorthHeading(projection, mapX, mapY):
     """
     Returns the heading (in degrees clockwise from "up") that corresponds to
     north at a given point on the map. In other words, if your runway has a

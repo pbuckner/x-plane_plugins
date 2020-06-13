@@ -177,15 +177,11 @@ class PythonInterface():
         for lon in range(-180, 180):
             for lat in range(-80, 80):  # MapProject != MapUnproject as we get near the poles
                 offset = .25
-                l_x = []
-                l_y = []
                 try:
-                    XPLMMapProject(projection, lat + offset, lon + offset, l_x, l_y)
+                    x, y = XPLMMapProject(projection, lat + offset, lon + offset)
                 except:
                     self.log("Project failed for {}, {}".format(lat + offset, lon + offset))
                     return
-                x = l_x[0]
-                y = l_y[0]
                 inbounds = coord_in_rect(x, y, inTotalMapBoundsLeftTopRightBottom)
                 if inbounds:
                     self.s_cached_x_coords.append(x)
@@ -195,24 +191,18 @@ class PythonInterface():
                     self.s_num_cached_coords += 1
 
                     # While we're here, test that (x, y) -> (lat, lon) -> (x, y)
-                    new_lat = []
-                    new_lon = []
                     # MapUnproject (x,y) -> (lat, lon) is the inverse of MapProject
                     # only when (x,y) is within bounds of the current projection.
                     # Globally, a particular (x, y) will map to multiple different (lat, lon),
                     # though only one is "correct".
-                    XPLMMapUnproject(projection, x, y, new_lat, new_lon)
-                    new_x = []
-                    new_y = []
-                    XPLMMapProject(projection, new_lat[0], new_lon[0], new_x, new_y)
+                    new_lat, new_lon = XPLMMapUnproject(projection, x, y)
+                    new_x, new_y = XPLMMapProject(projection, new_lat, new_lon)
                     # (allowing for floating point fuzz)
-                    if not projection_error and (abs(x - new_x[0]) > .00001 or abs(y - new_y[0]) > .00001):
-                        self.log('Unproject error x,y: ({}, {}) vs ({}, {})'.format(x, y, new_x[0], new_y[0]))
-                        unprojected_lat = []
-                        unprojected_lon = []
-                        XPLMMapUnproject(projection, new_x[0], new_y[0], unprojected_lat, unprojected_lon)
-                        self.log('Unproject error lat,lon: ({}, {}) vs ({}, {})'.format(new_lat[0], new_lon[0],
-                                                                                        unprojected_lat[0], unprojected_lon[0]))
+                    if not projection_error and (abs(x - new_x) > .00001 or abs(y - new_y) > .00001):
+                        self.log('Unproject error x,y: ({}, {}) vs ({}, {})'.format(x, y, new_x, new_y))
+                        unprojected_lat, unprojected_lon = XPLMMapUnproject(projection, new_x, new_y)
+                        self.log('Unproject error lat,lon: ({}, {}) vs ({}, {})'.format(new_lat, new_lon,
+                                                                                        unprojected_lat, unprojected_lon))
 
         midpoint_x = (inTotalMapBoundsLeftTopRightBottom[0] + inTotalMapBoundsLeftTopRightBottom[2]) / 2
         midpoint_y = (inTotalMapBoundsLeftTopRightBottom[1] + inTotalMapBoundsLeftTopRightBottom[3]) / 2

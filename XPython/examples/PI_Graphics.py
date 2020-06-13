@@ -53,8 +53,7 @@ class PythonInterface(checkBase):
                                  self.drawBefore, self.drawRefcon)
         self.testSteps[whichFlightLoop] = 0
 
-        numbers = []
-        XPLMGenerateTextureNumbers(numbers, 3)
+        numbers = XPLMGenerateTextureNumbers(3)
         print('Texture numbers: {}'.format(numbers))
 
         return 1
@@ -76,11 +75,8 @@ class PythonInterface(checkBase):
         XPLMSetGraphicsState(0, 1, 0, 0, 0, 0, 0)
         XPLMDrawTranslucentDarkBox(100, 200, 500, 100)
         width = XPLMMeasureString(xplmFont_Basic, "Hello World", len("Hello World"))
-        w = []
-        h = []
-        d = []
-        XPLMGetFontDimensions(xplmFont_Basic, w, h, d)
-        average = w[0]
+        (w, h, d) = XPLMGetFontDimensions(xplmFont_Basic)
+        average = w
         XPLMDrawString([.9, 0, 0], 110, 175, "Hello World: {}, ave: {}".format(width, average), None, xplmFont_Basic)
         XPLMDrawNumber([.9, 5, .9], 110, 150, 3.1467, 5, 3, 1, xplmFont_Basic)  # --> 03.147
         return 1

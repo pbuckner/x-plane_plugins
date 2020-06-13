@@ -143,7 +143,7 @@ def XPLMBindTexture2d(inTextureNum, inTextureUnit):
 
 
 ###############################################################################
-def XPLMGenerateTextureNumbers(outTextureIDs, inCount):
+def XPLMGenerateTextureNumbers(inCount):
     """Generate number of textures for a plugin.
 
       outTextureIDs - list
@@ -158,6 +158,7 @@ def XPLMGenerateTextureNumbers(outTextureIDs, inCount):
    X-Plane will then  overwrite the plug-ins texture.  This routine returns
    texture IDs that are out of X-Plane's usage range.
    """
+    return list  # ints
 
 
 ###############################################################################
@@ -273,19 +274,17 @@ def XPLMDrawNumber(inColorRGB, inXOffset, inYOffset, inValue, inDigits,
 
 
 ###############################################################################
-def XPLMGetFontDimensions(inFontID, outCharWidth, outCharHeight, outDigitsOnly):
+def XPLMGetFontDimensions(inFontID):
     """Retrieve a font info
 
    inFontID      - integer
-   outCharWidth  - list or None
-   outCharHeight - list or None
-   outDigitsOnly - list or None
 
    This routine returns the width and height of a character in a given font.
    It also tells you if the font only supports numeric digits.  Pass None if
    you don't need a given field.  Note that for a proportional font the width
    will be an arbitrary, hopefully average width.
    """
+    return (int, int, int)  # (width, height, digitsOnly)
 
 
 ###############################################################################

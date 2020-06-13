@@ -51,7 +51,7 @@ static PyObject *XPLMGenerateTextureNumbersFun(PyObject *self, PyObject *args)
   PyObject *outTextureIDs;
   int inCount;
 
-  if(!PyArg_ParseTuple(args, "Oi", &outTextureIDs, &inCount)){
+  if(!PyArg_ParseTuple(args, "i", &inCount)){
     return NULL;
   }
 
@@ -63,22 +63,16 @@ static PyObject *XPLMGenerateTextureNumbersFun(PyObject *self, PyObject *args)
   
   XPLMGenerateTextureNumbers(array, inCount);
   int i;
-  Py_ssize_t len = PyList_Size(outTextureIDs);
+  outTextureIDs = PyList_New(0);
   for(i = 0; i < inCount; ++i){
-    if(i < len){
-      if(PyList_SetItem(outTextureIDs, i, PyLong_FromLong(array[i]))){
-        printf("Problem setting item!\n");
-      }
-    }else{
-      PyObject *tmp = PyLong_FromLong(array[i]);
-      if(PyList_Append(outTextureIDs, tmp)){
-        printf("Problem appending item!\n");
-      }
-      Py_DECREF(tmp);
+    PyObject *tmp = PyLong_FromLong(array[i]);
+    if(PyList_Append(outTextureIDs, tmp)){
+      printf("Problem appending item!\n");
     }
+    Py_DECREF(tmp);
   }
   free(array);
-  Py_RETURN_NONE;
+  return outTextureIDs;
 } 
 
 #if defined(XPLM_DEPRECATED)
@@ -222,19 +216,13 @@ static PyObject *XPLMGetFontDimensionsFun(PyObject *self, PyObject *args)
 {
   (void) self;
   int inFontID;
-  PyObject *charWidth, *charHeight, *digitsOnly;
-  if(!PyArg_ParseTuple(args, "iOOO", &inFontID, &charWidth, &charHeight, &digitsOnly)){
+  if(!PyArg_ParseTuple(args, "i", &inFontID)) {
     return NULL;
   }
 
   int outCharWidth, outCharHeight, outDigitsOnly;
-
   XPLMGetFontDimensions(inFontID, &outCharWidth, &outCharHeight, &outDigitsOnly);
-  objToList(PyLong_FromLong(outCharWidth), charWidth);
-  objToList(PyLong_FromLong(outCharHeight), charHeight);
-  objToList(PyLong_FromLong(outDigitsOnly), digitsOnly);
-
-  Py_RETURN_NONE;
+  return Py_BuildValue("(iii)", outCharWidth, outCharHeight, outDigitsOnly);
 }
 
 static PyObject *XPLMMeasureStringFun(PyObject *self, PyObject *args)

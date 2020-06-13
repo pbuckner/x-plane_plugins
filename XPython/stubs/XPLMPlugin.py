@@ -150,16 +150,23 @@ def XPLMFindPluginBySignature(inSignature):
     return int  # XPLMPluginID
 
 
-def XPLMGetPluginInfo(inPluginID, outName, outFilePath, outSignature, outDescription):
-    """
-    This routine returns information about a plug-in.  Each parameter should be
-    a list, or None to not receive the information.
+class PluginInfo(object):
+    name = None
+    filePath = None
+    signature = None
+    description = None
 
-    outName - the human-readable name of the plug-in.   outFilePath - the
-    absolute file path to the file that contains this plug-in. outSignature - a
-    unique string that identifies this plug-in. outDescription - a
-    human-readable description of this plug-in.
+
+def XPLMGetPluginInfo(inPluginID):
     """
+    This routine returns information about a plug-in.
+
+    name - the human-readable name of the plug-in.
+    filePath - the absolute file path to the file that contains this plug-in.
+    signature - a unique string that identifies this plug-in.
+    description - a human-readable description of this plug-in.
+    """
+    return PluginInfo
 
 
 def XPLMIsPluginEnabled(inPluginID):

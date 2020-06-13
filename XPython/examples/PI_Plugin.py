@@ -50,13 +50,9 @@ class PythonInterface(checkBase):
         # plugins will cause the index to change)
         self.checkVal('XPLMCountPlugins returned wrong value', XPLMCountPlugins(), self.plugin_id + 1)
 
-        outName = []
-        outFilePath = []
-        outSignature = []
-        outDescription = []
         for i in range(XPLMCountPlugins()):
-            XPLMGetPluginInfo(i, outName, outFilePath, outSignature, outDescription)
-            print("Plugin [{}] ID: {} - {}, {}".format(i, XPLMGetNthPlugin(i), outSignature, outDescription))
+            info = XPLMGetPluginInfo(i)
+            print("Plugin [{}] ID: {} - {}, {}".format(i, XPLMGetNthPlugin(i), info.signature, info.description))
 
         tmp = 1023
         # doesn't seem to be an error to ask for plugin which aren't there
@@ -68,13 +64,13 @@ class PythonInterface(checkBase):
         self.checkVal('XPLMFindPluginBySignature returned wrong value', XPLMFindPluginBySignature(signature), -1)
 
         # Check "My" plugin... which is the Python3 plugin (not this python script!!!!)
-        XPLMGetPluginInfo(self.plugin_id, outName, outFilePath, outSignature, outDescription)
+        info = XPLMGetPluginInfo(self.plugin_id)
         self.checkVal('XPLMGetPluginInfo didn\'t pass the inPlugin correctly', XPLMGetMyID(), self.plugin_id)
-        self.checkVal('XPLMGetPluginInfo didn\'t get the outName correctly', outName[0], "XPPython3")
-        if not outFilePath[0].endswith(".xpl"):
-            self.checkVal('XPLMGetPluginInfo didn\'t get the outFilePath correctly', outFilePath[0], 'ends with :mac.xpl')
-        self.checkVal('XPLMGetPluginInfo didn\'t get the outSignature correctly', outSignature[0], "avnwx.xppython3")
-        self.checkVal('XPLMGetPluginInfo didn\'t get the outDescription correctly', outDescription[0],
+        self.checkVal('XPLMGetPluginInfo didn\'t get the outName correctly', info.name, "XPPython3")
+        if not info.filePath.endswith(".xpl"):
+            self.checkVal('XPLMGetPluginInfo didn\'t get the outFilePath correctly', info.filePath, 'ends with :mac.xpl')
+        self.checkVal('XPLMGetPluginInfo didn\'t get the outSignature correctly', info.signature, "avnwx.xppython3")
+        self.checkVal('XPLMGetPluginInfo didn\'t get the outDescription correctly', info.description,
                       "X-Plane interface for Python 3")
 
         self.checkVal('XPLMIsPluginEnabled returned wrong value', XPLMIsPluginEnabled(self.plugin_id), 1)

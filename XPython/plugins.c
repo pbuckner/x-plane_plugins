@@ -6,6 +6,7 @@
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMPlugin.h>
 #include "utils.h"
+#include "xppythontypes.h"
 
 PyObject *XPLMGetMyIDFun(PyObject *self, PyObject *args)
 {
@@ -55,11 +56,7 @@ PyObject *XPLMGetPluginInfoFun(PyObject *self, PyObject *args)
 {
   (void) self;
   int inPlugin;
-  PyObject *outNameObj;
-  PyObject *outFilePathObj;
-  PyObject *outSignatureObj;
-  PyObject *outDescriptionObj;
-  if(!PyArg_ParseTuple(args, "iOOOO", &inPlugin, &outNameObj, &outFilePathObj, &outSignatureObj, &outDescriptionObj)){
+  if(!PyArg_ParseTuple(args, "i", &inPlugin)){
     return NULL;
   }
   char outName[512];
@@ -67,11 +64,7 @@ PyObject *XPLMGetPluginInfoFun(PyObject *self, PyObject *args)
   char outSignature[512];
   char outDescription[512];
   XPLMGetPluginInfo(inPlugin, outName, outFilePath, outSignature, outDescription);
-  objToList(PyUnicode_DecodeUTF8(outName, strlen(outName), NULL), outNameObj);
-  objToList(PyUnicode_DecodeUTF8(outFilePath, strlen(outFilePath), NULL), outFilePathObj);
-  objToList(PyUnicode_DecodeUTF8(outSignature, strlen(outSignature), NULL), outSignatureObj);
-  objToList(PyUnicode_DecodeUTF8(outDescription, strlen(outDescription), NULL), outDescriptionObj);
-  Py_RETURN_NONE;
+  return PyPluginInfo_New(outName, outFilePath, outSignature, outDescription);
 }
 
 PyObject *XPLMIsPluginEnabledFun(PyObject *self, PyObject *args)

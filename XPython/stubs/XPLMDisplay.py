@@ -561,7 +561,7 @@ def XPLMGetScreenSize():
     return (int, int)  # width, height
 
 
-def XPLMGetScreenBoundsGlobal(outLeft, outTop, outRight, outBottom):
+def XPLMGetScreenBoundsGlobal():
     """
     This routine returns the bounds of the “global” X-Plane desktop, in boxels.
     Unlike the non-global version XPLMGetScreenSize(), this is multi-monitor
@@ -591,6 +591,7 @@ def XPLMGetScreenBoundsGlobal(outLeft, outTop, outRight, outBottom):
     Note that popped-out windows (windows drawn in their own operating system
     windows, rather than “floating” within X-Plane) are not included in these bounds.
     """
+    return int, int, int, int  # left, top, right, bottom
 
 
 def XPLMGetAllMonitorBoundsGlobal(inMonitorBoundsCallback, inRefcon):
@@ -650,11 +651,8 @@ def XPLMGetAllMonitorBoundsOS(inMonitorBoundCallback, inRefcon):
 
 
 ###############################################################################
-def XPLMGetMouseLocationGlobal(outX, outY):
+def XPLMGetMouseLocationGlobal():
     """
-    outX - list
-    outY - list
-
     Returns the current mouse location in global desktop boxels. Unlike
     XPLMGetMouseLocation(), the bottom left of the main X-Plane window is not guaranteed
     to be (0, 0)—instead, the origin is the lower left of the entire global desktop space.
@@ -665,19 +663,13 @@ def XPLMGetMouseLocationGlobal(outX, outY):
     This is the mouse location function to use with modern windows (i.e., those created by
     XPLMCreateWindowEx()).
     """
+    return (int, int)  # x, y
 
 
 ###############################################################################
 ###############################################################################
-def XPLMGetWindowGeometry(inWindowID, outLeft, outTop, outRight, outBottom):
+def XPLMGetWindowGeometry(inWindowID):
     """
-
-    inWindowID - integer
-    outLeft    - list
-    outTop     - list
-    outRight   - list
-    outBottom  - list
-
     This routine returns the position and size of a window. The units and coordinate
     system vary depending on the type of window you have.
 
@@ -688,6 +680,7 @@ def XPLMGetWindowGeometry(inWindowID, outLeft, outTop, outRight, outBottom):
     If, on the other hand, this is a new X-Plane 11-style window (compiled against the
     XPLM300 SDK and created using XPLMCreateWindowEx()), the units are global desktop boxels.
    """
+    return int, int, int, int  # left, top, right, bottom
 
 
 ###############################################################################
@@ -713,18 +706,12 @@ def XPLMSetWindowGeometry(inWindowID, inLeft, inTop, inRight, inBottom):
    """
 
 
-def XPLMGetWindowGeometryOS(inWindowID, outLeft, outTop, outRight, outBottom):
+def XPLMGetWindowGeometryOS(inWindowID):
     """
-
-    inWindowID - integer
-    outLeft    - list
-    outTop     - list
-    outRight   - list
-    outBottom  - list
-
     This routine returns the position and size of a “popped out” window (i.e., a window
     whose positioning mode is xplm_WindowPopOut), in operating system pixels.
     """
+    return int, int, int, int  # left, top, right, bottm
 
 
 def XPLMSetWindowGeometryOS(inWindowID, inLeft, inTop, inRight, inBottom):
@@ -747,11 +734,12 @@ def XPLMSetWindowGeometryOS(inWindowID, inLeft, inTop, inRight, inBottom):
     """
 
 
-def XPLMGetWindowGeometryVR(inWindowID, outWidthBoxels, outHeightBoxels):
+def XPLMGetWindowGeometryVR(inWindowID):
     """
     Returns the width and height, in boxels, of a window in VR. Note that you are responsible
     for ensuring your window is in VR (using XPLMWindowIsInVR()).
     """
+    return int, int  # widthBoxels, heightBoxels
 
 
 def XPLMSetWindowGeometryVR(inWindowID, widthBoxels, heightBoxels):
@@ -1070,17 +1058,22 @@ def XPLMGetNthHotKey(inIndex):
     return int  # XPLMHotKeyID
 
 
+class HotKeyInfo(object):
+    virtualKey = None   # integer (XPLM_VK_*)
+    flags = None        # integer (xplm_*Flag)
+    description = None  # string
+    plugin = None       # integer
+
+
 ###############################################################################
-def XPLMGetHotKeyInfo(inHotKey, outVirtualKey, outFlags, outDescription, outPlugin):
+def XPLMGetHotKeyInfo(inHotKey):
     """
     Return information about the hotkey.
 
       inHotKey       - integer
-      outVirtualKey  - integer (XPLM_VK_*)
-      outFlags       - integer (xplm_*Flag)
-      outDescription - string
-      outPlugin      - integer
+
     """
+    return HotKeyInfo  # HotKeyInfo
 
 
 ###############################################################################

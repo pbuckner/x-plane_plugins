@@ -91,11 +91,9 @@ class PythonInterface(RegressionBase):
         codeStep = 0
         if codeStep == self.testSteps[whichFlightLoop]:
             self.log("Step {} Draw Window".format(codeStep))
-            x = []
-            y = []
             for style in (xpWindow_Help, xpWindow_MainWindow, xpWindow_SubWindow, xpWindow_Screen, xpWindow_ListView):
-                XPGetWindowDefaultDimensions(style, x, y)
-                self.log("style: {}, {} x {}".format(style, x[0], y[0]))
+                x, y = XPGetWindowDefaultDimensions(style)
+                self.log("style: {}, {} x {}".format(style, x, y))
 
         codeStep += 1
         if codeStep == self.testSteps[whichFlightLoop]:
@@ -121,31 +119,20 @@ class PythonInterface(RegressionBase):
         offsetx = 10
         offsety = 10
         style = self.styles[self.testSteps[0] % len(self.styles)]
-        w = []
-        h = []
-        canBeLit = []
-        XPGetElementDefaultDimensions(style, w, h, canBeLit)
-        XPDrawElement(basex + offsetx, basey + offsety, basex + offsetx + w[0], basey + offsety + h[0], style,
-                      canBeLit[0])
+        w, h, canBeLit = XPGetElementDefaultDimensions(style)
+        XPDrawElement(basex + offsetx, basey + offsety, basex + offsetx + w, basey + offsety + h, style, canBeLit)
 
         offsetx += 20
         style = xpTrack_ScrollBar
-        XPGetTrackDefaultDimensions(style, w, canBeLit)
+        w, canBeLit = XPGetTrackDefaultDimensions(style)
         XPDrawTrack(basex + offsetx, basey + offsety,
-                    basex + offsetx + w[0], basey + offsety + 100,
+                    basex + offsetx + w, basey + offsety + 100,
                     0, 100, self.testSteps[0],
-                    style, canBeLit[0])
-        isVertical = []
-        downBtnSize = []
-        downPageSize = []
-        thumbSize = []
-        upPageSize = []
-        upBtnSize = []
-        XPGetTrackMetrics(basex + offsetx, basey + offsety,
-                          basex + offsetx + w[0], basey + offsety + 100,
-                          0, 100, self.testSteps[0], style,
-                          isVertical, downBtnSize, downPageSize, thumbSize, upPageSize, upBtnSize)
-        self.log('Track is vertical: {}'.format(isVertical[0]))
+                    style, canBeLit)
+        trackMetrics = XPGetTrackMetrics(basex + offsetx, basey + offsety,
+                                         basex + offsetx + w, basey + offsety + 100,
+                                         0, 100, self.testSteps[0], style)
+        self.log('Track is vertical: {}'.format(trackMetrics.isVertical))
 
         self.checkVal('drawCallback: Unexpected inPhase', inPhase, self.drawPhase)
         self.checkVal('drawCallback: Unexpected inIsBefore', inIsBefore, self.drawBefore)

@@ -156,14 +156,14 @@ def XPDrawWindow(inX1, inY1, inX2, inY2, inStyle):
     """
 
 
-def XPGetWindowDefaultDimensions(inStyle, outWidth, outHeight):
+def XPGetWindowDefaultDimensions(inStyle):
     """
     This routine returns the default dimensions for a window. Output is either
     a minimum or fixed value depending on whether the window is scalable.
 
     inStyle : XPWindowStyle
-    outWidth, outHeight : lists or None, will contain width and height of the window
     """
+    return int, int  # width, height
 
 
 def XPDrawElement(inX1, inY1, inX2, inY2, inStyle, inLit):
@@ -180,15 +180,15 @@ def XPDrawElement(inX1, inY1, inX2, inY2, inStyle, inLit):
     """
 
 
-def XPGetElementDefaultDimensions(inStyle, outWidth, outHeight, outCanBeLit):
+def XPGetElementDefaultDimensions(inStyle):
     """
     This routine returns the recommended or minimum dimensions of a given UI
     element. outCanBeLit tells whether the element has both a lit and unlit
     state. Pass None to not receive any of these parameters.
 
     inStyle : XPWindowStyle
-    outWidth, outHeight, outCanBeLit : lists or None, will contain returned values
     """
+    return int, int, int  # width, height, canBeLit
 
 
 def XPDrawTrack(inX1, inY1, inX2, inY2,
@@ -211,26 +211,29 @@ def XPDrawTrack(inX1, inY1, inX2, inY2,
     """
 
 
-def XPGetTrackDefaultDimensions(inStyle, outWidth, outCanBeLit):
+def XPGetTrackDefaultDimensions(inStyle):
     """
     This routine returns a track's default smaller dimension; all tracks are
     scalable in the larger dimension. It also returns whether a track can be
     lit.
 
     inStyle : XPTrackStyle
-    outWidth, outCanBeLit : lists, will contain returned values
     """
+    return int, int  # width, canBeLit
+
+
+class TrackMetrics(object):
+    isVertical = 0
+    downBtnSize = 0
+    downPageSize = 0
+    thumbSize = 0
+    upPageSize = 0
+    upBtnSize = 0
 
 
 def XPGetTrackMetrics(inX1, inY1, inX2, inY2,
                       inMin, inMax, inValue,
-                      inTrackStyle,
-                      outIsVertical,
-                      outDownBtnSize,
-                      outDownPageSize,
-                      outThumbSize,
-                      outUpPageSize,
-                      outUpBtnSize):
+                      inTrackStyle):
     """
     This routine returns the metrics of a track. If you want to write UI code
     to manipulate a track, this routine helps you know where the mouse
@@ -251,3 +254,4 @@ def XPGetTrackMetrics(inX1, inY1, inX2, inY2,
     outIsVertical, outDownBtnSize, outDownPageSize, outThumbSize,
       outUpPageSize, outUpBtnSize : lists, will contain returned values
     """
+    return TrackMetrics

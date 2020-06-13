@@ -81,8 +81,8 @@ class PythonInterface(checkBase):
         # Because some of these test require a particular monitor setup,
         # or require interaction by the user, I've separated them into
         # different 'test sets'. Select a set (0-5) and re-run.
-        # TEST_TO_RUN one of [0, 1, 2, 3, 4, 5]
-        TEST_TO_RUN = 0
+        # TEST_TO_RUN one of [0, 1, 2, 3, 4, ]
+        TEST_TO_RUN = 5
         try:
             whichFlightLoop = TEST_TO_RUN
             if TEST_TO_RUN == 0:
@@ -208,13 +208,10 @@ class PythonInterface(checkBase):
             self.hotKeyID = XPLMRegisterHotKey(XPLM_VK_Z, xplm_ShiftFlag, "Z Hot Key!!!!",
                                                self.hotKeyCallbackFun, self.hotKeyRefcon)
             for i in range(XPLMCountHotKeys()):
-                outKey = []
-                outFlags = []
-                outDescription = []
-                outPlugin = []
-                XPLMGetHotKeyInfo(XPLMGetNthHotKey(i), outKey, outFlags, outDescription, outPlugin)
+                info = XPLMGetHotKeyInfo(XPLMGetNthHotKey(i))
                 self.log("Key #{} on {} with flags: {}. '{}' for plugin #{}".format(
-                    i, outKey[0], outFlags[0], outDescription[0], outPlugin[0]))
+                    i, info.virtualKey, info.flags, info.description, info.plugin))
+
             self.log("Test set '{}' complete".format(self.flightLoopReferenceConstants[whichFlightLoop]))
             self.log("Now #{} Hotkeys. Press Shift-Z to activate.".format(XPLMCountHotKeys()))
             return 0
@@ -284,18 +281,11 @@ class PythonInterface(checkBase):
 
             XPLMSetWindowResizingLimits(self.winID[which], 20, 10, 300, 600)
 
-        l = []
-        t = []
-        r = []
-        b = []
-        XPLMGetWindowGeometry(self.winID[which], l, t, r, b)
-        (l, t, r, b) = [x[0] for x in (l, t, r, b)]
+        (l, t, r, b) = XPLMGetWindowGeometry(self.winID[which])
         self.log("width: {}, height: {}".format(r - l, t - b))
 
-        x = []
-        y = []
-        XPLMGetMouseLocationGlobal(x, y)
-        self.log("Mouse: {}, {}".format(x[0], y[0]))
+        x, y = XPLMGetMouseLocationGlobal()
+        self.log("Mouse: {}, {}".format(x, y))
 
         if self.testSteps[whichFlightLoop] == 10:
             if XPLMWindowIsPoppedOut(self.winID[which]):
@@ -510,16 +500,12 @@ class PythonInterface(checkBase):
         # check screen size
         (w, h) = XPLMGetScreenSize()
         if (w < 1280 or w > 10000 or h < 720 or h > 10000):
-            self.error("XPLMGetScreenSize seems wrong: {}".format((w, l)))
+            self.error("XPLMGetScreenSize seems wrong: {}".format((w, h)))
 
-        l = []
-        t = []
-        r = []
-        b = []
-        XPLMGetScreenBoundsGlobal(l, t, r, b)
-        if l[0] >= r[0] or b[0] > t[0] or r[0] - l[0] < 500 or t[0] - b[0] < 500:
-            self.error('XPLMGetScreenBoundsGlobal seems wrong: {}'.format((l[0], t[0], r[0], b[0])))
-        return [x[0] for x in (l, t, r, b)]
+        (l, t, r, b) = XPLMGetScreenBoundsGlobal()
+        if l >= r or b > t or r - l < 500 or t - b < 500:
+            self.error('XPLMGetScreenBoundsGlobal seems wrong: {}'.format((l, t, r, b)))
+        return (l, t, r, b)
 
     def createWindow(self, which=0):
         # window position is relative global screen & (0,0) could be anywhere.

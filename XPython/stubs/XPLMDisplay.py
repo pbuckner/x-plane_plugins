@@ -549,12 +549,8 @@ def XPLMDestroyWindow(inWindowID):
     """
 
 
-def XPLMGetScreenSize(outWidth, outHeight):
+def XPLMGetScreenSize():
     """Query X-Plane screen size.
-
-    outWidth  - list
-    outHeight - list
-
     This routine returns the size of the size of the X-Plane OpenGL window in
     pixels.  Please note that this is not the size of the screen when  doing
     2-d drawing (the 2-d screen is currently always 1024x768, and  graphics are
@@ -562,6 +558,7 @@ def XPLMGetScreenSize(outWidth, outHeight):
     number can be used to get a rough idea of the amount of detail the user
     will be able to see when drawing in 3-d.
     """
+    return (int, int)  # width, height
 
 
 def XPLMGetScreenBoundsGlobal(outLeft, outTop, outRight, outBottom):

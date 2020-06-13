@@ -506,25 +506,34 @@ static PyObject *XPLMDestroyWindowFun(PyObject *self, PyObject *args)
 static PyObject *XPLMGetScreenSizeFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *wObj, *hObj;
-  if(!PyArg_ParseTuple(args, "OO", &wObj, &hObj)){
-    return NULL;
-  }
+  (void) args;
   int w, h;
-  PyObject *tmp;
   XPLMGetScreenSize(&w, &h);
-  if(PyList_Check(wObj)){
-    tmp = PyLong_FromLong(w);
-    PyList_Insert(wObj, 0, tmp);
-    Py_DECREF(tmp);
-  }
-  if(PyList_Check(hObj)){
-    tmp = PyLong_FromLong(h);
-    PyList_Insert(hObj, 0, tmp);
-    Py_DECREF(tmp);
-  }
-  Py_RETURN_NONE;
+  return Py_BuildValue("(ii)", w, h);
 }
+
+/* static PyObject *XPLMGetScreenSizeFun(PyObject *self, PyObject *args) */
+/* { */
+/*   (void) self; */
+/*   PyObject *wObj, *hObj; */
+/*   if(!PyArg_ParseTuple(args, "OO", &wObj, &hObj)){ */
+/*     return NULL; */
+/*   } */
+/*   int w, h; */
+/*   PyObject *tmp; */
+/*   XPLMGetScreenSize(&w, &h); */
+/*   if(PyList_Check(wObj)){ */
+/*     tmp = PyLong_FromLong(w); */
+/*     PyList_Insert(wObj, 0, tmp); */
+/*     Py_DECREF(tmp); */
+/*   } */
+/*   if(PyList_Check(hObj)){ */
+/*     tmp = PyLong_FromLong(h); */
+/*     PyList_Insert(hObj, 0, tmp); */
+/*     Py_DECREF(tmp); */
+/*   } */
+/*   Py_RETURN_NONE; */
+/* } */
 
 static PyObject *XPLMGetScreenBoundsGlobalFun(PyObject *self, PyObject *args)
 {

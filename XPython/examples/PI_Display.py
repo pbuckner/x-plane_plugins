@@ -4,7 +4,7 @@ from XPLMProcessing import XPLMRegisterFlightLoopCallback, XPLMUnregisterFlightL
 from XPLMDefs import xplm_DownFlag, xplm_ShiftFlag, XPLM_VK_Y, XPLM_VK_Z, xplm_UpFlag, xplm_OptionAltFlag
 from XPLMDefs import xplm_ControlFlag
 from XPLMDataAccess import XPLMFindDataRef, XPLMGetDatai
-from XPLMUtilities import XPLMGetVersions, XPPythonGetDicts
+from XPLMUtilities import XPLMGetVersions
 
 # definitions
 from XPLMDisplay import xplm_Phase_FirstCockpit, xplm_WindowDecorationRoundRectangle, xplm_WindowLayerFloatingWindows
@@ -70,7 +70,7 @@ class PythonInterface(checkBase):
         checkBase.remRef()
 
     def XPluginStart(self):
-        self.Sig = "XPython.Display"
+        self.Sig = "xppython3.display"
         self.Name = "{} regression test".format(self.Sig)
         self.Desc = "Regression test of the {}".format(self.Sig)
         self.versions = XPLMGetVersions()
@@ -82,7 +82,7 @@ class PythonInterface(checkBase):
         # or require interaction by the user, I've separated them into
         # different 'test sets'. Select a set (0-5) and re-run.
         # TEST_TO_RUN one of [0, 1, 2, 3, 4, 5]
-        TEST_TO_RUN = 5
+        TEST_TO_RUN = 0
         try:
             whichFlightLoop = TEST_TO_RUN
             if TEST_TO_RUN == 0:
@@ -114,7 +114,6 @@ class PythonInterface(checkBase):
         if self.keySnifferRegistered:
             self.checkVal("KeySniffer Registered", self.keySnifferRegistered, 1)
             self.log("sniffer is registered, looking to unregister")
-            self.log("Sniffer dict is: {}".format(XPPythonGetDicts()['keySniffCallback']))
             self.checkVal('Unregister key sniffer',
                           XPLMUnregisterKeySniffer(self.keySnifferFun,
                                                    self.keySnifferBeforeWin, self.keySnifferRefcon),
@@ -218,7 +217,6 @@ class PythonInterface(checkBase):
                     i, outKey[0], outFlags[0], outDescription[0], outPlugin[0]))
             self.log("Test set '{}' complete".format(self.flightLoopReferenceConstants[whichFlightLoop]))
             self.log("Now #{} Hotkeys. Press Shift-Z to activate.".format(XPLMCountHotKeys()))
-            self.log("Hot key dicts: {}\n{}".format(XPPythonGetDicts()['hotkey'], XPPythonGetDicts()['hotkeyID']))
             return 0
 
         self.testSteps[whichFlightLoop] += 1
@@ -510,11 +508,9 @@ class PythonInterface(checkBase):
 
     def screenSize(self):
         # check screen size
-        wl = []
-        wh = []
-        XPLMGetScreenSize(wl, wh)
-        if (wl[0] < 1280 or wl[0] > 10000 or wh[0] < 720 or wh[0] > 10000):
-            self.error("XPLMGetScreenSize seems wrong: {}".format((wl[0], wh[0])))
+        (w, h) = XPLMGetScreenSize()
+        if (w < 1280 or w > 10000 or h < 720 or h > 10000):
+            self.error("XPLMGetScreenSize seems wrong: {}".format((w, l)))
 
         l = []
         t = []

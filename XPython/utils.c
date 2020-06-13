@@ -125,7 +125,8 @@ PyObject *getPtrRef(void *ptr, PyObject *dict, const char *refName)
 
 void *refToPtr(PyObject *ref, const char *refName)
 {
-  if(ref == Py_None){
+  /* XPLMWidgetID can be 0, refering to underlying X-Plane window, need to keep that */
+  if (ref == Py_None || (!strcmp(widgetRefName, refName) && PyLong_Check(ref) && PyLong_AsLong(ref) == 0)){
     return NULL;
   }else{
     return PyCapsule_GetPointer(ref, refName);

@@ -40,8 +40,9 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
                            mouseState->button, mouseState->delta);
     break;
   case xpMsg_Reshape:
-    wChange = (XPWidgetGeometryChange_t *)inParam1;
-    param1 = Py_BuildValue("(iiii)", wChange->dx, wChange->dy,
+    param1 =  getPtrRef((void *)inParam1, widgetIDCapsules, widgetRefName);
+    wChange = (XPWidgetGeometryChange_t *)inParam2;
+    param2 = Py_BuildValue("(iiii)", wChange->dx, wChange->dy,
                            wChange->dwidth, wChange->dheight);
     break;
   case xpMsg_AcceptChild:

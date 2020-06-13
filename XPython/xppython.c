@@ -3,8 +3,107 @@
 #include <sys/time.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <structmember.h>
+#include "xppythontypes.h"
+#include "utils.h"
 
 extern const char *pythonPluginVersion, *pythonPluginsPath, *pythonInternalPluginsPath;
+
+static PyObject *
+HotKeyInfo_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+  (void) args;
+  (void) kwds;
+  HotKeyInfoObject *self;
+  self = (HotKeyInfoObject *) type->tp_alloc(type, 0);
+  if (self != NULL) {
+    self->virtualKey = 0;
+    self->flags = 0;
+    self->description = PyUnicode_FromString("");
+    if (self->description == NULL) {
+      Py_DECREF(self);
+      return NULL;
+    }
+    self->plugin = 0;PyUnicode_FromString("");
+  }
+  return (PyObject *) self;
+}
+
+static int
+HotKeyInfo_traverse(HotKeyInfoObject *self, visitproc visit, void *arg)
+{
+  Py_VISIT(self->description);
+  return 0;
+}
+
+static int
+HotKeyInfo_clear(HotKeyInfoObject *self)
+{
+  Py_CLEAR(self->description);
+  return 0;
+}
+    
+static void
+HotKeyInfo_dealloc(HotKeyInfoObject *self)
+{
+  PyObject_GC_UnTrack(self);
+  HotKeyInfo_clear(self);
+  Py_TYPE(self)->tp_free((PyObject *) self);
+}
+
+static int
+HotKeyInfo_init(HotKeyInfoObject *self, PyObject *args, PyObject *kwds)
+{
+  static char *kwlist[] = {"virtualKey", "flags", "description", "plugin", NULL};
+  PyObject *description = NULL, *tmp;
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iiUi", kwlist,
+                                   &self->virtualKey, &self->flags, &description, &self->plugin))
+        return -1;
+    if (description) {
+        tmp = self->description;
+        Py_INCREF(description);
+        self->description = description;
+        Py_XDECREF(tmp);
+    }
+    return 0;
+}
+
+static PyMemberDef HotKeyInfo_members[] = {
+    {"virtualKey", T_INT, offsetof(HotKeyInfoObject, virtualKey), 0, "virtual key code"},
+    {"flags", T_INT, offsetof(HotKeyInfoObject, flags), 0, "XPLMKeyFlags"},
+    {"description", T_OBJECT_EX, offsetof(HotKeyInfoObject, description), 0, "Description"},
+    {"plugin", T_INT, offsetof(HotKeyInfoObject, plugin), 0, "XPLMPluginID"},
+    {NULL}  /* Sentinel */
+};
+
+static PyTypeObject HotKeyInfoType = {
+                                      PyVarObject_HEAD_INIT(NULL, 0)
+                                      .tp_name = "xppython3.HotKeyInfo",
+                                      .tp_doc = "HotKeyInfo",
+                                      .tp_basicsize = sizeof(HotKeyInfoObject),
+                                      .tp_itemsize = 0,
+                                      .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+                                      .tp_new = HotKeyInfo_new,
+                                      .tp_init = (initproc) HotKeyInfo_init,
+                                      .tp_dealloc = (destructor) HotKeyInfo_dealloc,
+                                      .tp_traverse = (traverseproc) HotKeyInfo_traverse,
+                                      .tp_clear = (inquiry) HotKeyInfo_clear,
+                                      .tp_members = HotKeyInfo_members,
+
+};
+
+
+PyObject *
+PyHotKeyInfo_New(int virtualKey, int flags, char *description, int plugin)
+{
+  PyObject *argsList = Py_BuildValue("iisi", virtualKey, flags, description, plugin);
+  printf("argslist is %s\n", objToStr(argsList));
+  PyObject *obj = PyObject_CallObject((PyObject *) &HotKeyInfoType, argsList);
+  printf("obj is %s\n", objToStr(obj));
+  Py_DECREF(argsList);
+  return (PyObject*)obj;
+}
+
 
 /* extern PyObject *widgetCallbackDict; */
 
@@ -193,16 +292,18 @@ static struct PyModuleDef XPPythonModule = {
 PyMODINIT_FUNC
 PyInit_XPPython(void)
 {
+  if (PyType_Ready(&HotKeyInfoType) < 0)
+    return NULL;
+
   PyObject *mod = PyModule_Create(&XPPythonModule);
   if (mod != NULL) {
     PyModule_AddStringConstant(mod, "VERSION", pythonPluginVersion);
     PyModule_AddStringConstant(mod, "PLUGINSPATH", pythonPluginsPath);
     PyModule_AddStringConstant(mod, "INTERNALPLUGINSPATH", pythonInternalPluginsPath);
+    PyModule_AddObject(mod, "HotKeyInfo", (PyObject *) &HotKeyInfoType);
   }
+  Py_INCREF(&HotKeyInfoType);
+  
 
   return mod;
 }
-
-
-
-

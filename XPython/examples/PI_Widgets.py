@@ -173,13 +173,13 @@ class PythonInterface(RegressionBase):
         codeStep += 1
         if codeStep == self.testSteps[whichFlightLoop]:
             self.log("Step {} Move widget".format(codeStep))
-            (l, t, r, b = XPGetWidgetGeometry(self.bWidget)
+            l, t, r, b = XPGetWidgetGeometry(self.bWidget)
             left = l + 20
             top = t + 50
             right = r + 10
             bottom = b - 5
             XPSetWidgetGeometry(self.bWidget, left, top, right, bottom)
-            (l, t, r, b) = XPGetWidgetExposedGeometry(self.bWidget)
+            l, t, r, b = XPGetWidgetExposedGeometry(self.bWidget)
             self.checkVal('Exposed left', l, left)
             self.checkVal('Exposed top', t, top)
             self.checkVal('Exposed right', r, right)

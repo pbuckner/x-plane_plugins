@@ -317,17 +317,13 @@ def XPSetWidgetDescriptor(inWidget, inDescriptor):
     """
 
 
-def XPGetWidgetDescriptor(inWidget, outDescriptor, inMaxDescLength):
+def XPGetWidgetDescriptor(inWidget):
     """
-    This routine returns the widget's descriptor. Pass in the length of the
-    buffer you are going to receive the descriptor in. The descriptor will be
-    null terminated for you. This routine returns the length of the actual
-    descriptor; if you pass None for outDescriptor, you can get the
-    descriptor's length without getting its text. If the length of the
-    descriptor exceeds your buffer length, the buffer will not be null
-    terminated (this routine has 'strncpy' semantics).
+    This routine returns the widget's descriptor. If the length of the
+    descriptor exceeds the interal buffer an error will be printed to
+    Log.txt
     """
-    return int  # len(descriptor)
+    return str
 
 
 def XPGetWidgetUnderlyingWindow(inWidget):

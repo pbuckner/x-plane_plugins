@@ -26,7 +26,7 @@ from XPWidgets import XPCreateCustomWidget
 
 class PythonInterface(RegressionBase):
     def __init__(self):
-        self.Sig = "Widget"
+        self.Sig = "xppython2.widgets"
         self.Name = "Regression Test {}".format(self.Sig)
         self.Desc = "Regression test {} example".format(self.Sig)
 
@@ -86,16 +86,14 @@ class PythonInterface(RegressionBase):
         codeStep += 1
         if codeStep == self.testSteps[whichFlightLoop]:
             self.log("Step {} Change descriptor".format(codeStep))
-            out = []
-            XPGetWidgetDescriptor(self.aWidget, out, 1024)
-            self.checkVal("GetWidgetDescriptor", out[0], 'Descriptor')
+            out = XPGetWidgetDescriptor(self.aWidget)
+            self.checkVal("GetWidgetDescriptor", out, 'Descriptor')
 
         codeStep += 1
         if codeStep == self.testSteps[whichFlightLoop]:
-            out = []
             XPSetWidgetDescriptor(self.aWidget, "New Descriptor")
-            XPGetWidgetDescriptor(self.aWidget, out, 1024)
-            self.checkVal("GetWidgetDescriptor", out[0], 'New Descriptor')
+            out = XPGetWidgetDescriptor(self.aWidget)
+            self.checkVal("GetWidgetDescriptor", out, 'New Descriptor')
 
         codeStep += 1
         if codeStep == self.testSteps[whichFlightLoop]:
@@ -120,10 +118,7 @@ class PythonInterface(RegressionBase):
         if codeStep == self.testSteps[whichFlightLoop]:
             self.log("Step {} Add children".format(codeStep))
             fontID = xplmFont_Proportional
-            charWidth = []
-            charHeight = []
-            XPLMGetFontDimensions(fontID, charWidth, charHeight, None)
-            strHeight = charHeight[0]
+            _w, strHeight, _ignore = XPLMGetFontDimensions(fontID)
 
             for i in range(5):
                 s = 'item {}'.format(i)
@@ -178,18 +173,17 @@ class PythonInterface(RegressionBase):
         codeStep += 1
         if codeStep == self.testSteps[whichFlightLoop]:
             self.log("Step {} Move widget".format(codeStep))
-            l, t, r, b = [], [], [], []
-            XPGetWidgetGeometry(self.bWidget, l, t, r, b)
-            left = l[0] + 20
-            top = t[0] + 50
-            right = r[0] + 10
-            bottom = b[0] - 5
+            (l, t, r, b = XPGetWidgetGeometry(self.bWidget)
+            left = l + 20
+            top = t + 50
+            right = r + 10
+            bottom = b - 5
             XPSetWidgetGeometry(self.bWidget, left, top, right, bottom)
-            XPGetWidgetExposedGeometry(self.bWidget, l, t, r, b)
-            self.checkVal('Exposed left', l[0], left)
-            self.checkVal('Exposed top', t[0], top)
-            self.checkVal('Exposed right', r[0], right)
-            self.checkVal('Exposed bottom', b[0], bottom)
+            (l, t, r, b) = XPGetWidgetExposedGeometry(self.bWidget)
+            self.checkVal('Exposed left', l, left)
+            self.checkVal('Exposed top', t, top)
+            self.checkVal('Exposed right', r, right)
+            self.checkVal('Exposed bottom', b, bottom)
             self.log("Child id: {}".format(XPGetWidgetForLocation(self.aWidget, 100, 200, 1, 1)))
 
         codeStep += 1

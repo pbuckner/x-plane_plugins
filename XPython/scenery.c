@@ -7,6 +7,7 @@
 #include <XPLM/XPLMScenery.h>
 #include "utils.h"
 #include "plugin_dl.h"
+#include "xppythontypes.h"
 
 static const char probeName[] = "XPLMProbeRef";
 
@@ -36,9 +37,8 @@ static PyObject *XPLMProbeTerrainXYZFun(PyObject *self, PyObject *args)
   (void) self;
   PyObject *probe;
   float inX, inY, inZ;
-  PyObject *info;
 
-  if(!PyArg_ParseTuple(args, "OfffO", &probe, &inX, &inY, &inZ, &info)){
+  if(!PyArg_ParseTuple(args, "Offf", &probe, &inX, &inY, &inZ)){
     return NULL;
   }
   XPLMProbeRef inProbe = refToPtr(probe, probeName);
@@ -46,22 +46,9 @@ static PyObject *XPLMProbeTerrainXYZFun(PyObject *self, PyObject *args)
   outInfo.structSize = sizeof(outInfo);
   XPLMProbeResult res = XPLMProbeTerrainXYZ(inProbe, inX, inY, inZ, &outInfo);
 
-  if(PySequence_Size(info) > 0){
-    PySequence_DelSlice(info, 0, PySequence_Size(info));
-  }
-  PyList_Append(info, PyLong_FromLong(outInfo.structSize));
-  PyList_Append(info, PyFloat_FromDouble(outInfo.locationX));
-  PyList_Append(info, PyFloat_FromDouble(outInfo.locationY));
-  PyList_Append(info, PyFloat_FromDouble(outInfo.locationZ));
-  PyList_Append(info, PyFloat_FromDouble(outInfo.normalX));
-  PyList_Append(info, PyFloat_FromDouble(outInfo.normalY));
-  PyList_Append(info, PyFloat_FromDouble(outInfo.normalZ));
-  PyList_Append(info, PyFloat_FromDouble(outInfo.velocityX));
-  PyList_Append(info, PyFloat_FromDouble(outInfo.velocityY));
-  PyList_Append(info, PyFloat_FromDouble(outInfo.velocityZ));
-  PyList_Append(info, PyLong_FromLong(outInfo.is_wet));
-
-  return PyLong_FromLong(res);
+  return PyProbeInfo_New(res, outInfo.locationX, outInfo.locationY, outInfo.locationZ,
+                         outInfo.normalX, outInfo.normalY, outInfo.normalZ,
+                         outInfo.velocityX, outInfo.velocityY, outInfo.velocityZ, outInfo.is_wet);
 }
 
 static PyObject *XPLMGetMagneticVariationFun(PyObject *self, PyObject *args)

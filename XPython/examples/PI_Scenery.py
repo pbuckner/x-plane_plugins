@@ -79,34 +79,32 @@ class PythonInterface(RegressionBase):
         codeStep += 1
         if codeStep == self.testSteps[whichFlightLoop]:
             self.log("Step {} Terrain Probe".format(codeStep))
-            info = []
             probe = XPLMCreateProbe(xplm_ProbeY)
             lat, lng = (37.75168, -122.44767)
             (x, y, z) = XPLMWorldToLocal(37.75168, -122.44767, 0)  # Twin Peaks, San Francisco, CA
-            res = XPLMProbeTerrainXYZ(probe, x, y, z, info)
-            self.checkVal("XPLMProbleTerrainXYZ", res, 0)
-            if res == xplm_ProbeHitTerrain:
-                self.log("Terrain info is [{}] {}".format(res, info))
-                (lat, lng, alt) = XPLMLocalToWorld(info[1], info[2], info[3])  # Twin Peaks, San Francisco, CA
+            info = XPLMProbeTerrainXYZ(probe, x, y, z)
+            self.checkVal("XPLMProbleTerrainXYZ", info.result, 0)
+            if info.result == xplm_ProbeHitTerrain:
+                self.log("Terrain info is [{}] {}".format(info.result, info))
+                (lat, lng, alt) = XPLMLocalToWorld(info.locationX, info.locationY, info.locationZ)  # Twin Peaks, San Francisco, CA
                 self.log('lat, lng, alt is {} feet'.format((lat, lng, alt * 3.28)))
-            elif res == xplm_ProbeError:
+            elif info.result == xplm_ProbeError:
                 self.log("Terrain error")
-            elif res == xplm_ProbeMissed:
+            elif info.result == xplm_ProbeMissed:
                 self.log("Terrain Missed")
 
-            info = []
             lat, lng = (39.7392, -104.9903)
             (x, y, z) = XPLMWorldToLocal(lat, lng, 0)  # Denver CO
-            res = XPLMProbeTerrainXYZ(probe, x, y, z, info)
-            self.checkVal("XPLMProbleTerrainXYZ", res, 0)
+            info = XPLMProbeTerrainXYZ(probe, x, y, z)
+            self.checkVal("XPLMProbleTerrainXYZ", info.result, 0)
             #  .. this "succeeds" but returns altitude near zero because we're too far away
-            if res == xplm_ProbeHitTerrain:
-                self.log("Terrain info is [{}] {}".format(res, info))
-                (lat, lng, alt) = XPLMLocalToWorld(info[1], info[2], info[3])
+            if info.result == xplm_ProbeHitTerrain:
+                self.log("Terrain info is [{}] {}".format(info.result, info))
+                (lat, lng, alt) = XPLMLocalToWorld(info.locationX, info.locationY, info.locationZ)
                 self.log('lat, lng, alt is {} feet'.format((lat, lng, alt * 3.28)))
-            elif res == xplm_ProbeError:
+            elif info.result == xplm_ProbeError:
                 self.log("Terrain error")
-            elif res == xplm_ProbeMissed:
+            elif info.result == xplm_ProbeMissed:
                 self.log("Terrain Missed")
             XPLMDestroyProbe(probe)
 
@@ -119,17 +117,16 @@ class PythonInterface(RegressionBase):
         if codeStep == self.testSteps[whichFlightLoop]:
             self.log("Step {}, but with probe closer to Denver".format(codeStep))
             probe = XPLMCreateProbe(xplm_ProbeY)
-            info = []
             lat, lng = (39.7392, -104.9903)
             (x, y, z) = XPLMWorldToLocal(lat, lng, 0)  # Denver CO .. this return proper altitude
-            res = XPLMProbeTerrainXYZ(probe, x, y, z, info)
-            if res == xplm_ProbeHitTerrain:
-                self.log("Terrain info is [{}] {}".format(res, info))
-                (lat, lng, alt) = XPLMLocalToWorld(info[1], info[2], info[3])
+            info = XPLMProbeTerrainXYZ(probe, x, y, z)
+            if info.result == xplm_ProbeHitTerrain:
+                self.log("Terrain info is [{}] {}".format(info.result, info))
+                (lat, lng, alt) = XPLMLocalToWorld(info.locationX, info.locationY, info.locationZ)
                 self.log('lat, lng, alt is {} feet'.format((lat, lng, alt * 3.28)))
-            elif res == xplm_ProbeError:
+            elif info.result == xplm_ProbeError:
                 self.log("Terrain error")
-            elif res == xplm_ProbeMissed:
+            elif info.result == xplm_ProbeMissed:
                 self.log("Terrain Missed")
 
             XPLMDestroyProbe(probe)

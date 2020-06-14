@@ -98,9 +98,21 @@ def XPLMDestroyProbe(inProbe):
     """
 
 
-def XPLMProbeTerrainXYZ(inProbe,
-                        inX, inY, inZ,
-                        outInfo):
+class PyProbeInfo(object):
+    result = 0  # XPLMProbeResult
+    locationX = 0
+    locationY = 0
+    locationZ = 0
+    normalX = 0
+    normalY = 0
+    normalZ = 0
+    velocityX = 0
+    velocityY = 0
+    velocityZ = 0
+    is_wet = 0
+
+
+def XPLMProbeTerrainXYZ(inProbe, inX, inY, inZ):
     """
     Probes the terrain. Pass in the XYZ coordinate of the probe point, a probe
     object, and an list. Its fields are filled in if we hit terrain,
@@ -108,9 +120,9 @@ def XPLMProbeTerrainXYZ(inProbe,
 
     inProbe       : probe handle obtained from XPLMCreateProbe
     inX, inY, inZ : coordinates to probe (doubles)
-    outInfo : list, that upon successfull return will contain the following:
-      structSize  : size of the structure in bytes (could allow to cope with
-                   added members in future interface versions)
+
+    return includes:
+      result: XPLMProbeResult
       locationX, locationY, locationZ : point hit by the probe in
                    local OpenGL coordinates (doubles)
       normalX, normalY, normalZ : normal vector to the terrain found (doubles)
@@ -119,7 +131,7 @@ def XPLMProbeTerrainXYZ(inProbe,
       is_wet      : tells if the surface we hit is watter (it is land otherwise)
                    (int)
     """
-    return int  # XPLMProbeResult
+    return PyProbeInfo
 
 
 def XPLMGetMagneticVariation(latitude, longitude):

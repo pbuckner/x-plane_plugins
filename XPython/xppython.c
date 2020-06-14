@@ -111,7 +111,117 @@ PyHotKeyInfo_New(int virtualKey, int flags, char *description, int plugin)
   return (PyObject*)obj;
 }
 
-/* PluginInfo Type */
+/* ProbeInfo Type */
+typedef struct {
+  PyObject_HEAD
+  int result;
+  float locationX;
+  float locationY;
+  float locationZ;
+  float normalX;
+  float normalY;
+  float normalZ;
+  float velocityX;
+  float velocityY;
+  float velocityZ;
+  int is_wet;
+} ProbeInfoObject;
+
+static PyObject *
+ProbeInfo_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+  (void) args;
+  (void) kwds;
+  ProbeInfoObject *self;
+  self = (ProbeInfoObject *) type->tp_alloc(type, 0);
+  return (PyObject *) self;
+}
+
+static int
+ProbeInfo_traverse(ProbeInfoObject *self, visitproc visit, void *arg)
+{
+  (void) self;
+  (void) visit;
+  (void) arg;
+  return 0;
+}
+
+static int
+ProbeInfo_clear(ProbeInfoObject *self)
+{
+  (void) self;
+  return 0;
+}
+    
+static void
+ProbeInfo_dealloc(ProbeInfoObject *self)
+{
+  PyObject_GC_UnTrack(self);
+  ProbeInfo_clear(self);
+  Py_TYPE(self)->tp_free((PyObject *) self);
+}
+
+static int
+ProbeInfo_init(ProbeInfoObject *self, PyObject *args, PyObject *kwds)
+{
+  static char *kwlist[] = {"result",
+                           "locationX", "locationY", "locationZ",
+                           "normalX", "normalY", "normalZ",
+                           "velocityX", "velocityY", "velocityZ",
+                           "is_wet", NULL};
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ifffffffffi", kwlist,
+                                   &self->result,
+                                   &self->locationX, &self->locationY, &self->locationZ,
+                                   &self->normalX, &self->normalY, &self->normalZ,
+                                   &self->velocityX, &self->velocityY, &self->velocityZ,
+                                   &self->is_wet))
+    return -1;
+  return 0;
+}
+
+static PyMemberDef ProbeInfo_members[] = {
+    {"result", T_INT, offsetof(ProbeInfoObject, result), 0, "XPLMProbResult, result of query"},
+    {"locationX", T_FLOAT, offsetof(ProbeInfoObject, locationX), 0, "locationX"},
+    {"locationY", T_FLOAT, offsetof(ProbeInfoObject, locationY), 0, "locationY"},
+    {"locationZ", T_FLOAT, offsetof(ProbeInfoObject, locationZ), 0, "locationZ"},
+    {"normalX", T_FLOAT, offsetof(ProbeInfoObject, normalX), 0, "normalX"},
+    {"normalY", T_FLOAT, offsetof(ProbeInfoObject, normalY), 0, "normalY"},
+    {"normalZ", T_FLOAT, offsetof(ProbeInfoObject, normalZ), 0, "normalZ"},
+    {"velocityX", T_FLOAT, offsetof(ProbeInfoObject, velocityX), 0, "velocityX"},
+    {"velocityY", T_FLOAT, offsetof(ProbeInfoObject, velocityY), 0, "velocityY"},
+    {"velocityZ", T_FLOAT, offsetof(ProbeInfoObject, velocityZ), 0, "velocityZ"},
+    {"is_wet", T_INT, offsetof(ProbeInfoObject, is_wet), 0, "is_wet"},
+    {NULL}  /* Sentinel */
+};
+
+static PyTypeObject ProbeInfoType = {
+                                      PyVarObject_HEAD_INIT(NULL, 0)
+                                      .tp_name = "xppython3.ProbeInfo",
+                                      .tp_doc = "ProbeInfo",
+                                      .tp_basicsize = sizeof(ProbeInfoObject),
+                                      .tp_itemsize = 0,
+                                      .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+                                      .tp_new = ProbeInfo_new,
+                                      .tp_init = (initproc) ProbeInfo_init,
+                                      .tp_dealloc = (destructor) ProbeInfo_dealloc,
+                                      .tp_traverse = (traverseproc) ProbeInfo_traverse,
+                                      .tp_clear = (inquiry) ProbeInfo_clear,
+                                      .tp_members = ProbeInfo_members,
+
+};
+
+
+PyObject *
+PyProbeInfo_New(int result, float locationX, float locationY, float locationZ, float normalX, float normalY, float normalZ, float velocityX, float velocityY, float velocityZ, int is_wet)
+{
+  PyObject *argsList = Py_BuildValue("ifffffffffi", result, locationX, locationY, locationZ, normalX, normalY, normalZ,
+                                     velocityX, velocityY, velocityZ, is_wet);
+  PyObject *obj = PyObject_CallObject((PyObject *) &ProbeInfoType, argsList);
+  Py_DECREF(argsList);
+  return (PyObject*)obj;
+}
+
+/* Plugininfo Type */
 typedef struct {
   PyObject_HEAD
   PyObject *name;
@@ -775,6 +885,8 @@ PyInit_XPPython(void)
 {
   if (PyType_Ready(&HotKeyInfoType) < 0)
     return NULL;
+  if (PyType_Ready(&ProbeInfoType) < 0)
+    return NULL;
   if (PyType_Ready(&PluginInfoType) < 0)
     return NULL;
   if (PyType_Ready(&TrackMetricsType) < 0)
@@ -790,12 +902,14 @@ PyInit_XPPython(void)
     PyModule_AddStringConstant(mod, "PLUGINSPATH", pythonPluginsPath);
     PyModule_AddStringConstant(mod, "INTERNALPLUGINSPATH", pythonInternalPluginsPath);
     PyModule_AddObject(mod, "HotKeyInfo", (PyObject *) &HotKeyInfoType);
+    PyModule_AddObject(mod, "ProbeInfo", (PyObject *) &ProbeInfoType);
     PyModule_AddObject(mod, "PluginInfo", (PyObject *) &PluginInfoType);
     PyModule_AddObject(mod, "NavAidInfo", (PyObject *) &NavAidInfoType);
     PyModule_AddObject(mod, "FMSEntryInfo", (PyObject *) &FMSEntryInfoType);
     PyModule_AddObject(mod, "TrackMetrics", (PyObject *) &TrackMetricsType);
   }
   Py_INCREF(&HotKeyInfoType);
+  Py_INCREF(&ProbeInfoType);
   Py_INCREF(&PluginInfoType);
   Py_INCREF(&NavAidInfoType);
   Py_INCREF(&FMSEntryInfoType);

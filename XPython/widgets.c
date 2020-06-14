@@ -210,7 +210,6 @@ static PyObject *XPSendMessageToWidgetFun(PyObject *self, PyObject *args)
   XPWidgetID inWidget = refToPtr(widget, widgetRefName);
   intptr_t inParam1;
   if (PyCapsule_CheckExact(param1)) {
-    printf("param one is a capsule with name %s\n", PyCapsule_GetName(param1));
     inParam1 = (intptr_t) PyCapsule_GetPointer(param1, PyCapsule_GetName(param1));
   } else {
     inParam1 = PyLong_AsLong(param1);
@@ -218,7 +217,6 @@ static PyObject *XPSendMessageToWidgetFun(PyObject *self, PyObject *args)
 
   intptr_t inParam2;
   if (PyCapsule_CheckExact(param2)) {
-    printf("param one is a capsule with name %s\n", PyCapsule_GetName(param2));
     inParam2 = (intptr_t) PyCapsule_GetPointer(param1, PyCapsule_GetName(param2));
   } else {
     inParam2 = PyLong_AsLong(param2);
@@ -342,35 +340,13 @@ static PyObject *XPIsWidgetInFrontFun(PyObject *self, PyObject *args)
 static PyObject *XPGetWidgetGeometryFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *widget, *left, *top, *right, *bottom;
-  bool lists;
-  if(PyTuple_Size(args) > 1){
-    lists = true;
-    if(!PyArg_ParseTuple(args, "OOOOO", &widget, &left, &top, &right, &bottom)){
-      return NULL;
-    }
-  }else{
-    lists = false;
-    if(!PyArg_ParseTuple(args, "O", &widget)){
-      return NULL;
-    }
+  PyObject *widget;
+  if(!PyArg_ParseTuple(args, "O", &widget)){
+    return NULL;
   }
   int outLeft, outTop, outRight, outBottom;
   XPGetWidgetGeometry(refToPtr(widget, widgetRefName), &outLeft, &outTop, &outRight, &outBottom);
-  if(lists){
-      objToList(PyLong_FromLong(outLeft), left);
-      objToList(PyLong_FromLong(outTop), top);
-      objToList(PyLong_FromLong(outRight), right);
-      objToList(PyLong_FromLong(outBottom), bottom);
-      Py_RETURN_NONE;
-  }else{
-    PyObject *res = PyList_New(4);
-    PyList_SetItem(res, 0, PyLong_FromLong(outLeft));
-    PyList_SetItem(res, 1, PyLong_FromLong(outTop));
-    PyList_SetItem(res, 2, PyLong_FromLong(outRight));
-    PyList_SetItem(res, 3, PyLong_FromLong(outBottom));
-    return res;
-  }
+  return Py_BuildValue("(iiii)", outLeft, outTop, outRight, outBottom);
 }
 
 static PyObject *XPSetWidgetGeometryFun(PyObject *self, PyObject *args)
@@ -400,17 +376,13 @@ static PyObject *XPGetWidgetForLocationFun(PyObject *self, PyObject *args)
 static PyObject *XPGetWidgetExposedGeometryFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *widget, *left, *top, *right, *bottom;
-  if(!PyArg_ParseTuple(args, "OOOOO", &widget, &left, &top, &right, &bottom)){
+  PyObject *widget;
+  if(!PyArg_ParseTuple(args, "O", &widget)){
     return NULL;
   }
   int outLeft, outTop, outRight, outBottom;
   XPGetWidgetExposedGeometry(refToPtr(widget, widgetRefName), &outLeft, &outTop, &outRight, &outBottom);
-  objToList(PyLong_FromLong(outLeft), left);
-  objToList(PyLong_FromLong(outTop), top);
-  objToList(PyLong_FromLong(outRight), right);
-  objToList(PyLong_FromLong(outBottom), bottom);
-  Py_RETURN_NONE;
+  return Py_BuildValue("(iiii)", outLeft, outTop, outRight, outBottom);
 }
 
 static PyObject *XPSetWidgetDescriptorFun(PyObject *self, PyObject *args)
@@ -428,24 +400,19 @@ static PyObject *XPSetWidgetDescriptorFun(PyObject *self, PyObject *args)
 static PyObject *XPGetWidgetDescriptorFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *widget, *descriptor;
-  int inMaxDescLength;
-  if(!PyArg_ParseTuple(args, "OOi", &widget, &descriptor, &inMaxDescLength)){
+  PyObject *widget;
+  int inMaxDescLength = 2048;
+  if(!PyArg_ParseTuple(args, "O", &widget)){
     return NULL;
   }
   int res;
-  if(descriptor != Py_None){
-    char *outDescriptor = (char *)malloc(inMaxDescLength + 1);
-    res = XPGetWidgetDescriptor(refToPtr(widget, widgetRefName), outDescriptor, inMaxDescLength);
-    outDescriptor[inMaxDescLength] = '\0';
-    PyObject *str = PyUnicode_DecodeUTF8(outDescriptor, strlen(outDescriptor), NULL);
-    PyList_Append(descriptor, str);
-    Py_DECREF(str);
-    free(outDescriptor);
-  }else{
-    res = XPGetWidgetDescriptor(refToPtr(widget, widgetRefName), NULL, inMaxDescLength);
+  char buffer[inMaxDescLength + 1];
+  res = XPGetWidgetDescriptor(refToPtr(widget, widgetRefName), buffer, inMaxDescLength);
+  if (res == inMaxDescLength) {
+    printf("Warning: xppython descriptor for widget exceeds buffer size\n");
   }
-  return PyLong_FromLong(res);
+  buffer[res] = '\0';
+  return Py_BuildValue("U", buffer);
 }
 
 static PyObject *XPGetWidgetUnderlyingWindowFun(PyObject *self, PyObject *args)

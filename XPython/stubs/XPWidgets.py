@@ -252,8 +252,7 @@ def XPIsWidgetInFront(inWidget):
     return int  # 1=True
 
 
-def XPGetWidgetGeometry(inWidget,
-                        outLeft, outTop, outRight, outBottom):
+def XPGetWidgetGeometry(inWidget):
     """
     This routine returns the bounding box of a widget in global coordinates.
     You can pass lists for the out* parameters and the coordinates will be
@@ -261,6 +260,7 @@ def XPGetWidgetGeometry(inWidget,
     Or alternatively pass just the widget ID and the bounding box will be returned
     in a tuple.
     """
+    return int, int, int, int  # left, top, right, bottom
 
 
 def XPSetWidgetGeometry(inWidget,
@@ -292,8 +292,7 @@ def XPGetWidgetForLocation(inContainer,
     return int  # XPWidgetID or 0
 
 
-def XPGetWidgetExposedGeometry(inWidgetID,
-                               outLeft, outTop, outRight, outBottom):
+def XPGetWidgetExposedGeometry(inWidgetID):
     """
     This routine returns the bounds of the area of a widget that is completely
     within its parent widgets. Since a widget's bounding box can be outside its
@@ -303,6 +302,7 @@ def XPGetWidgetExposedGeometry(inWidgetID,
     into. Note that the widget library does not use OpenGL clipping to keep
     frame rates up, although you could use it internally.
     """
+    return int, int, int, int  # left, top, right, bottom
 
 
 def XPSetWidgetDescriptor(inWidget, inDescriptor):

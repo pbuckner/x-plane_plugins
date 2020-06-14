@@ -147,7 +147,11 @@ PyObject *XPLMEnableFeatureFun(PyObject *self, PyObject *args)
   if(!PyArg_ParseTuple(args, "si", &inFeature, &inEnable)){
     return NULL;
   }
-  XPLMEnableFeature(inFeature, inEnable);
+  if (!inEnable && ! (strcmp(inFeature, "XPLM_USE_NATIVE_PATHS") && strcmp(inFeature, "XPLM_USE_NATIVE_WIDGET_WINDOWS"))) {
+    PyErr_SetString(PyExc_RuntimeError, "A Python plugins is attempting to disable XPLM_USE_NATIVE_PATHS or XPLM_USE_NATIVE_WIDGET_WINDOWS feature, not allowed");
+  } else {
+    XPLMEnableFeature(inFeature, inEnable);
+  }
   Py_RETURN_NONE;
 }
 

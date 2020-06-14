@@ -422,6 +422,11 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
   } else {
     fprintf(logFile, "Warning: XPLM_USE_NATIVE_PATHS not enabled. Using Legacy paths.\n");
   }
+  if (XPLMHasFeature("XPLM_USE_NATIVE_WIDGET_WINDOWS")) {
+    XPLMEnableFeature("XPLM_USE_NATIVE_WIDGET_WINDOWS", 1);
+  } else {
+    fprintf(logFile, "Warning: XPLM_USE_NATIVE_WIDGET_WINDOWS not enabled. Using Legacy windows.\n");
+  }
   stopScripts = XPLMCreateCommand(pythonStopCommand, "Stop all running scripts");
   startScripts = XPLMCreateCommand(pythonStartCommand, "Start all scripts");
   reloadScripts = XPLMCreateCommand(pythonReloadCommand, "Reload all scripts");

@@ -776,14 +776,10 @@ static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args)
   const char *inDataName;
   int inDataType, inIsWritable;
   PyObject *ri, *wi, *rf, *wf, *rd, *wd, *rai, *wai, *raf, *waf, *rab, *wab, *rRef, *wRef;
-  if(!PyArg_ParseTuple(args, "OsiiOOOOOOOOOOOOOO", &pluginSelf, &inDataName, &inDataType, &inIsWritable,
-                       &ri, &wi, &rf, &wf, &rd, &wd, &rai, &wai, &raf, &waf, &rab, &wab, &rRef, &wRef)){
-    PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "siiOOOOOOOOOOOOOO", &inDataName, &inDataType, &inIsWritable,
-                         &ri, &wi, &rf, &wf, &rd, &wd, &rai, &wai, &raf, &waf, &rab, &wab, &rRef, &wRef))
-      return NULL;
-    pluginSelf = get_pluginSelf(/*PyThreadState_GET()*/);
-  }
+  if(!PyArg_ParseTuple(args, "siiOOOOOOOOOOOOOO", &inDataName, &inDataType, &inIsWritable,
+                       &ri, &wi, &rf, &wf, &rd, &wd, &rai, &wai, &raf, &waf, &rab, &wab, &rRef, &wRef))
+    return NULL;
+  pluginSelf = get_pluginSelf();
 
   void *refcon = (void *)accessorCntr++;
   PyObject *refconObj = PyLong_FromVoidPtr(refcon);
@@ -817,14 +813,9 @@ static PyObject *XPLMUnregisterDataAccessorFun(PyObject *self, PyObject *args)
   (void)self;
   PyObject *pluginSelf;
   PyObject *drefObj;
-  if(!PyArg_ParseTuple(args, "OO", &pluginSelf, &drefObj)){
-    PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "O", &drefObj))
-      return NULL;
-    pluginSelf = get_pluginSelf(/*PyThreadState_GET()*/);
-  } else {
-    Py_INCREF(pluginSelf);
-  }
+  if(!PyArg_ParseTuple(args, "O", &drefObj))
+    return NULL;
+  pluginSelf = get_pluginSelf();
   PyObject *refconObj = PyDict_GetItem(drefDict, drefObj);
   if(refconObj == NULL){
     Py_DECREF(pluginSelf);
@@ -884,12 +875,9 @@ static PyObject *XPLMShareDataFun(PyObject *self, PyObject *args)
   const char *inDataName;
   XPLMDataTypeID inDataType;
   PyObject *inNotificationFunc, *inNotificationRefcon;
-  if(!PyArg_ParseTuple(args, "OsiOO", &pluginSelf, &inDataName, &inDataType, &inNotificationFunc, &inNotificationRefcon)){
-    PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "siOO", &inDataName, &inDataType, &inNotificationFunc, &inNotificationRefcon))
-      return NULL;
-    pluginSelf = get_pluginSelf(/*PyThreadState_GET()*/);
-  }
+  if(!PyArg_ParseTuple(args, "siOO", &inDataName, &inDataType, &inNotificationFunc, &inNotificationRefcon))
+    return NULL;
+  pluginSelf = get_pluginSelf();
   void *refcon = (void *)sharedCntr++;
   int res = XPLMShareData(inDataName, inDataType, dataChanged, refcon);
   if(res != 1){
@@ -922,14 +910,9 @@ static PyObject *XPLMUnshareDataFun(PyObject *self, PyObject *args)
   PyObject *callbackObj = NULL;
   PyObject *refconObj = NULL;
   PyObject *pluginSelf = NULL;
-  if(!PyArg_ParseTuple(args, "OsiOO", &pluginSelf, &inDataName, &tmpInDataType, &callbackObj, &refconObj)){
-    PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "siOO", &inDataName, &tmpInDataType, &callbackObj, &refconObj))
-      return NULL;
-    pluginSelf = get_pluginSelf(/*PyThreadState_GET()*/);
-  } else {
-    Py_INCREF(pluginSelf);
-  }
+  if(!PyArg_ParseTuple(args, "siOO", &inDataName, &tmpInDataType, &callbackObj, &refconObj))
+    return NULL;
+  pluginSelf = get_pluginSelf();
   inDataType = (XPLMDataTypeID)tmpInDataType;
   PyObject *inDataNameObj, *target, *inDataNameUTF8Obj;
   char *dict_inDataName;

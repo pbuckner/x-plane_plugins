@@ -142,18 +142,13 @@ static PyObject *XPCreateWidgetFun(PyObject *self, PyObject *args)
 static PyObject *XPCreateCustomWidgetFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *pluginSelf;
   int inLeft, inTop, inRight, inBottom, inVisible, inIsRoot;
   const char *inDescriptor;
   PyObject *container;
   PyObject *inCallback;
-  if(!PyArg_ParseTuple(args, "OiiiiisiOO", &pluginSelf, &inLeft, &inTop, &inRight, &inBottom, &inVisible, &inDescriptor,
+  if(!PyArg_ParseTuple(args, "iiiiisiOO", &inLeft, &inTop, &inRight, &inBottom, &inVisible, &inDescriptor,
                        &inIsRoot, &container, &inCallback)){
-    PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "iiiiisiOO", &inLeft, &inTop, &inRight, &inBottom, &inVisible, &inDescriptor,
-                         &inIsRoot, &container, &inCallback)){
-      return NULL;
-    }
+    return NULL;
   }
   // use inContainer 0, if passed in value of 0
   XPWidgetID inContainer;
@@ -181,13 +176,10 @@ static PyObject *XPCreateCustomWidgetFun(PyObject *self, PyObject *args)
 static PyObject *XPDestroyWidgetFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *widget, *pluginSelf;
+  PyObject *widget;
   int inDestroyChildren;
-  if(!PyArg_ParseTuple(args, "OOi", &pluginSelf, &widget, &inDestroyChildren)){
-    PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "Oi", &widget, &inDestroyChildren)){
-      return NULL;
-    }
+  if(!PyArg_ParseTuple(args, "Oi", &widget, &inDestroyChildren)){
+    return NULL;
   }
   XPWidgetID wid = refToPtr(widget, widgetRefName);
   XPDestroyWidget(wid, inDestroyChildren);
@@ -501,12 +493,9 @@ static PyObject *XPGetWidgetWithFocusFun(PyObject *self, PyObject *args)
 static PyObject *XPAddWidgetCallbackFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *pluginSelf, *widget, *callback;
-  if(!PyArg_ParseTuple(args, "OOO", &pluginSelf, &widget, &callback)){
-    PyErr_Clear();
-    if (!PyArg_ParseTuple(args, "OO", &widget, &callback)){
-      return NULL;
-    }
+  PyObject *widget, *callback;
+  if (!PyArg_ParseTuple(args, "OO", &widget, &callback)){
+    return NULL;
   }
   PyObject *current = PyDict_GetItem(widgetCallbackDict, widget);
   if(current == NULL){

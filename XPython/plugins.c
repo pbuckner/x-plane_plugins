@@ -182,12 +182,9 @@ PyObject *XPLMEnumerateFeaturesFun(PyObject *self, PyObject *args)
   PyObject *fun;
   PyObject *ref;
   PyObject *pluginSelf;
-  if(!PyArg_ParseTuple(args, "OOO", &pluginSelf, &fun, &ref)){
-    PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "OO", &fun, &ref))
-      return NULL;
-    pluginSelf = get_pluginSelf(/*PyThreadState_GET()*/);
-  }
+  if(!PyArg_ParseTuple(args, "OO", &fun, &ref))
+    return NULL;
+  pluginSelf = get_pluginSelf();
 
   PyObject *argsObj = Py_BuildValue("(OOO)", pluginSelf, fun, ref);
   PyObject *key = PyLong_FromLong(feCntr++);

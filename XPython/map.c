@@ -184,18 +184,15 @@ static void mapLabelDrawingCallback(XPLMMapLayerID inLayer, const float *inMapBo
 static PyObject *XPLMCreateMapLayerFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *pluginSelf, *params;
+  PyObject *params;
   XPLMCreateMapLayer_t inParams;
 
   if(!XPLMCreateMapLayer_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMCreateMapLayer is available only in XPLM300 and up.");
     return NULL;
   }
-  if(!PyArg_ParseTuple(args, "OO", &pluginSelf, &params)){
-    PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "O", &params)){
-      return NULL;
-    }
+  if(!PyArg_ParseTuple(args, "O", &params)){
+    return NULL;
   }
 
   PyObject *paramsTuple = PySequence_Tuple(params);
@@ -258,17 +255,14 @@ static PyObject *XPLMCreateMapLayerFun(PyObject *self, PyObject *args)
 static PyObject *XPLMDestroyMapLayerFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *pluginSelf, *layer;
+  PyObject *layer;
 
   if(!XPLMDestroyMapLayer_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMDestroyMapLayer is available only in XPLM300 and up.");
     return NULL;
   }
-  if(!PyArg_ParseTuple(args, "OO", &pluginSelf, &layer)){
-    PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "O", &layer)){
-      return NULL;
-    }
+  if(!PyArg_ParseTuple(args, "O", &layer)){
+    return NULL;
   }
 
   XPLMMapLayerID inLayer = refToPtr(layer, layerIDRefName);

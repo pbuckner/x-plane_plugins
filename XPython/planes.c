@@ -98,13 +98,10 @@ PyObject *XPLMAcquirePlanesFun(PyObject *self, PyObject *args)
 {
   (void)self;
   PyObject *pluginSelf, *aircraft, *inCallback, *inRefcon;
-  if(!PyArg_ParseTuple(args, "OOOO", &pluginSelf, &aircraft, &inCallback, &inRefcon)){
-    PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "OOO", &aircraft, &inCallback, &inRefcon)){
-      return NULL;
-    }
-    pluginSelf = get_pluginSelf(/*PyThreadState_GET()*/);
+  if(!PyArg_ParseTuple(args, "OOO", &aircraft, &inCallback, &inRefcon)){
+    return NULL;
   }
+  pluginSelf = get_pluginSelf();
   int res;
   void *refcon = (void*)++availableCntr;
   PyObject *refObj = PyLong_FromVoidPtr(refcon);

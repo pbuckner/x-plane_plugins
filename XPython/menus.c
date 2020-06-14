@@ -59,13 +59,10 @@ static PyObject *XPLMCreateMenuFun(PyObject *self, PyObject *args)
   PyObject *pluginSelf;
   int inParentItem;
   const char *inName;
-  if(!PyArg_ParseTuple(args, "OsOiOO", &pluginSelf, &inName, &parentMenu, &inParentItem, &pythonHandler, &menuRef)){
-    PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "sOiOO", &inName, &parentMenu, &inParentItem, &pythonHandler, &menuRef)){
-      return NULL;
-    }
-    pluginSelf = get_pluginSelf(/*PyThreadState_GET()*/);
+  if(!PyArg_ParseTuple(args, "sOiOO", &inName, &parentMenu, &inParentItem, &pythonHandler, &menuRef)){
+    return NULL;
   }
+  pluginSelf = get_pluginSelf();
   PyObject *argsObj = Py_BuildValue( "(OsOiOO)", pluginSelf, inName, parentMenu, inParentItem, pythonHandler, menuRef);
 
   void *inMenuRef = (void *)++menuCntr;
@@ -89,12 +86,9 @@ static PyObject *XPLMCreateMenuFun(PyObject *self, PyObject *args)
 static PyObject *XPLMDestroyMenuFun(PyObject *self, PyObject *args)
 {
   (void)self;
-  PyObject *menuID, *pluginSelf;
-  if(!PyArg_ParseTuple(args, "OO", &pluginSelf, &menuID)){
-    PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "O", &menuID)){
-      return NULL;
-    }
+  PyObject *menuID;
+  if(!PyArg_ParseTuple(args, "O", &menuID)){
+    return NULL;
   }
   PyObject *menuRef = PyDict_GetItem(menuRefDict, menuID);
   if(!menuRef){

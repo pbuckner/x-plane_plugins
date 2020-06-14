@@ -91,13 +91,10 @@ static PyObject *XPLMControlCameraFun(PyObject *self, PyObject *args)
   (void) self;
   int inHowLong;
   PyObject *pluginSelf, *controlFunc, *refcon;
-  if(!PyArg_ParseTuple(args, "OiOO", &pluginSelf, &inHowLong, &controlFunc, &refcon)){
-    PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "iOO", &inHowLong, &controlFunc, &refcon)){
-      return NULL;
-    }
-    pluginSelf = get_pluginSelf(/*PyThreadState_GET()*/);
+  if(!PyArg_ParseTuple(args, "iOO", &inHowLong, &controlFunc, &refcon)){
+    return NULL;
   }
+  pluginSelf = get_pluginSelf();
   void *inRefcon = (void *)++camCntr;
   PyObject *refconObj = PyLong_FromVoidPtr(inRefcon);
   PyObject *argsObj = Py_BuildValue("(OiOO)", pluginSelf, inHowLong, controlFunc, refcon);

@@ -7,6 +7,7 @@
 #include "xppythontypes.h"
 #include "utils.h"
 
+PyObject *xppythonDicts = NULL, *xppythonCapsules = NULL;
 extern const char *pythonPluginVersion, *pythonPluginsPath, *pythonInternalPluginsPath;
 
 /* HotKeyInfo Type */
@@ -696,13 +697,20 @@ PyTrackMetrics_New(int isVertical, int downBtnSize, int downPageSize, int thumbS
 
 
 
-/* extern PyObject *widgetCallbackDict; */
-
-/* static PyObject *XPPythonGetDictsFun(PyObject *self, PyObject *args) */
-/* { */
-/*   (void) self; */
-/*   (void) args; */
-/*   /\* */
+static PyObject *XPPythonGetDictsFun(PyObject *self, PyObject *args)
+{
+  (void) self;
+  (void) args;
+  Py_INCREF(xppythonDicts);
+  return xppythonDicts;
+}
+static PyObject *XPPythonGetCapsulesFun(PyObject *self, PyObject *args)
+{
+  (void) self;
+  (void) args;
+  Py_INCREF(xppythonCapsules);
+  return xppythonCapsules;
+}
 /*      "cam":            one for each camera controller */
 /*        key:  idx, */
 /*        val: tuple(<module_filename>,       "PI_Display.py" */
@@ -859,11 +867,16 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 {
   (void) self;
   (void) args;
+  PyDict_Clear(xppythonDicts);
+  Py_DECREF(xppythonDicts);
+  PyDict_Clear(xppythonCapsules);
+  Py_DECREF(xppythonCapsules);
   Py_RETURN_NONE;
 }
 
 static PyMethodDef XPPythonMethods[] = {
-  /* {"XPPythonGetDicts", XPPythonGetDictsFun, METH_VARARGS, ""}, */
+  {"XPPythonGetDicts", XPPythonGetDictsFun, METH_VARARGS, ""},
+  {"XPPythonGetCapsules", XPPythonGetCapsulesFun, METH_VARARGS, ""},
   {"cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
@@ -896,6 +909,10 @@ PyInit_XPPython(void)
   if (PyType_Ready(&FMSEntryInfoType) < 0)
     return NULL;
 
+  xppythonDicts = PyDict_New();
+  Py_INCREF(xppythonDicts);
+  xppythonCapsules = PyDict_New();
+  Py_INCREF(xppythonCapsules);
   PyObject *mod = PyModule_Create(&XPPythonModule);
   if (mod != NULL) {
     PyModule_AddStringConstant(mod, "VERSION", pythonPluginVersion);
@@ -914,7 +931,6 @@ PyInit_XPPython(void)
   Py_INCREF(&NavAidInfoType);
   Py_INCREF(&FMSEntryInfoType);
   Py_INCREF(&TrackMetricsType);
-  
 
   return mod;
 }

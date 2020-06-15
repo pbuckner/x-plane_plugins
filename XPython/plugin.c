@@ -138,6 +138,7 @@ static PyObject *loggerObj;
 int initPython(void){
   // setbuf(stdout, NULL);  // for debugging, it removes stdout buffering
 
+  PyImport_AppendInittab("XPPython", PyInit_XPPython);
   PyImport_AppendInittab("XPLMDefs", PyInit_XPLMDefs);
   PyImport_AppendInittab("XPLMDisplay", PyInit_XPLMDisplay);
   PyImport_AppendInittab("XPLMGraphics", PyInit_XPLMGraphics);
@@ -159,7 +160,6 @@ int initPython(void){
   PyImport_AppendInittab("XPLMMap", PyInit_XPLMMap);
   PyImport_AppendInittab("XPythonLogger", PyInit_XPythonLogWriter);
   PyImport_AppendInittab("SandyBarbourUtilities", PyInit_SBU);
-  PyImport_AppendInittab("XPPython", PyInit_XPPython);
 
   Py_Initialize();
   if(!Py_IsInitialized()){
@@ -352,7 +352,7 @@ static int stopPython(void)
   char *mods[] = {"XPLMDefs", "XPLMDisplay", "XPLMGraphics", "XPLMUtilities", "XPLMScenery", "XPLMMenus",
                   "XPLMNavigation", "XPLMPlugin", "XPLMPlanes", "XPLMProcessing", "XPLMCamera", "XPWidgetDefs",
                   "XPWidgets", "XPStandardWidgets", "XPUIGraphics", "XPWidgetUtils", "XPLMInstance",
-                  "XPLMMap", "XPLMDataAccess", "SandyBarbourUtilities", NULL};
+                  "XPLMMap", "XPLMDataAccess", "SandyBarbourUtilities", "XPPython", NULL};
   char **mod_ptr = mods;
 
   while(*mod_ptr != NULL){

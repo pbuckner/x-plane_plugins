@@ -10,7 +10,8 @@ extern const char *widgetRefName;
 extern const char *windowIDRef;
 extern PyObject *widgetIDCapsules;
 extern PyObject *windowIDCapsules;
-
+extern PyObject *xppythonDicts;
+extern PyObject *xppythonCapsules;
 
 void dbg(const char *msg);
 bool objToList(PyObject *item, PyObject *list);

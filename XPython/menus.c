@@ -284,12 +284,15 @@ PyInit_XPLMMenus(void)
   if(!(menuDict = PyDict_New())){
     return NULL;
   }
+  PyDict_SetItemString(xppythonDicts, "menus", menuDict);
   if(!(menuRefDict = PyDict_New())){
     return NULL;
   }
+  PyDict_SetItemString(xppythonDicts, "menuRefs", menuRefDict);
   if(!(menuIDCapsules = PyDict_New())){
     return NULL;
   }
+  PyDict_SetItemString(xppythonCapsules, menuIDRef, menuIDCapsules);
 
   PyObject *mod = PyModule_Create(&XPLMMenusModule);
   if(mod){

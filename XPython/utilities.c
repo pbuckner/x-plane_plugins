@@ -13,10 +13,6 @@ PyObject *commandRefcons;
 PyObject *commandCapsules;
 intptr_t commandCallbackCntr;
 
-extern PyObject *moduleDict, *feDict, *windowDict, *hotkeyDict, *hotkeyIDDict, *drawCallbackDict, *drawCallbackIDDict, *keySniffCallbackDict,
-  *menuDict, *menuRefDict, *camDict, *accessorDict, *drefDict, *sharedDict, *availableDict, *flDict, *flRevDict, *flIDDict,
-  *loaderDict, *libEnumDict;
-
 static void error_callback(const char *inMessage)
 {
   //TODO: send the error only to the active plugin?
@@ -509,15 +505,18 @@ PyInit_XPLMUtilities(void)
   if(!(errCallbacks = PyDict_New())){
     return NULL;
   }
+  PyDict_SetItemString(xppythonDicts, "errCallbacks", errCallbacks);
   if(!(commandCallbacks = PyDict_New())){
     return NULL;
   }
+  PyDict_SetItemString(xppythonDicts, "commandCallbacks", commandCallbacks);
   if(!(commandRefcons = PyDict_New())){
     return NULL;
   }
   if(!(commandCapsules = PyDict_New())){
     return NULL;
   }
+  PyDict_SetItemString(xppythonCapsules, commandRefName, commandCapsules);
 
   PyObject *mod = PyModule_Create(&XPLMUtilitiesModule);
   if(mod){

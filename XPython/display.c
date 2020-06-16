@@ -1067,27 +1067,35 @@ PyInit_XPLMDisplay(void)
   if(!(drawCallbackDict = PyDict_New())){
     return NULL;
   }
+  PyDict_SetItemString(xppythonDicts, "drawCallbacks", drawCallbackDict);
   if(!(drawCallbackIDDict = PyDict_New())){
     return NULL;
   }
+  PyDict_SetItemString(xppythonDicts, "drawCallbackIDs", drawCallbackIDDict);
   if(!(keySniffCallbackDict = PyDict_New())){
     return NULL;
   }
+  PyDict_SetItemString(xppythonDicts, "keySniffCallbacks", keySniffCallbackDict);
   if(!(windowDict = PyDict_New())){
     return NULL;
   }
+  PyDict_SetItemString(xppythonDicts, "windows", windowDict);
   if(!(hotkeyDict = PyDict_New())){
     return NULL;
   }
+  PyDict_SetItemString(xppythonDicts, "hotkeys", hotkeyDict);
   if(!(hotkeyIDDict = PyDict_New())){
     return NULL;
   }
+  PyDict_SetItemString(xppythonDicts, "hotkeyIDs", hotkeyIDDict);
   if(!(windowIDCapsules = PyDict_New())){
     return NULL;
   }
+  PyDict_SetItemString(xppythonCapsules, windowIDRef, windowIDCapsules);
   if(!(hotkeyIDCapsules = PyDict_New())){
     return NULL;
   }
+  PyDict_SetItemString(xppythonCapsules, hotkeyIDRef, hotkeyIDCapsules);
   PyObject *mod = PyModule_Create(&XPLMDisplayModule);
   if(mod){
 #if defined(XPLM_DEPRECATED)

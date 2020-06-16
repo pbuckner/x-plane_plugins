@@ -583,9 +583,11 @@ PyInit_XPWidgets(void)
   if(!(widgetCallbackDict = PyDict_New())){
     return NULL;
   }
+  PyDict_SetItemString(xppythonDicts, "widgetCallbacks", widgetCallbackDict);
   if(!(widgetIDCapsules = PyDict_New())){
     return NULL;
   }
+  PyDict_SetItemString(xppythonCapsules, widgetRefName, widgetIDCapsules);
   PyObject *mod = PyModule_Create(&XPWidgetsModule);
   if(mod){
     //PyModule_AddIntConstant(mod, "", );

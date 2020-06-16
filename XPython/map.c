@@ -474,15 +474,19 @@ PyInit_XPLMMap(void)
   if(!(mapCreateDict = PyDict_New())){
     return NULL;
   }
+  PyDict_SetItemString(xppythonDicts, "mapCreates", mapCreateDict);
   if(!(mapRefDict = PyDict_New())){
     return NULL;
   }
+  PyDict_SetItemString(xppythonDicts, "mapRefs", mapRefDict);
   if(!(mapDict = PyDict_New())){
     return NULL;
   }
+  PyDict_SetItemString(xppythonDicts, "maps", mapDict);
   if(!(mapLayerIDCapsules = PyDict_New())){
     return NULL;
   }
+  PyDict_SetItemString(xppythonCapsules, layerIDRefName, mapLayerIDCapsules);
 
   PyObject *mod = PyModule_Create(&XPLMMapModule);
   if(mod){
@@ -498,7 +502,3 @@ PyInit_XPLMMap(void)
   }
   return mod;
 }
-
-
-
-

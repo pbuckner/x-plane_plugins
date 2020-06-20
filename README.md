@@ -28,7 +28,7 @@ Ultimately, we'll be providing a set of pre-built binaries for distribution. (Se
 See [README_INSTALL](XPython/README_INSTALL.md) for user installation instructions. This will be part of the user-facing website.
 
 ## Development of Plugins
-See [README_SDK](XPython/README_SDK.txt) for additional information on building your own plugins using Python. We'll include differences between the older Python2 plugin interface and this Python3 version.
+See [README_SDK](XPython/README_SDK.md) for additional information on building your own plugins using Python. We'll include differences between the older Python2 plugin interface and this Python3 version.
 
 ### Python Stubs
 Because the XPLM* modules are contained within a shared library, they are not useful for support tools such as pylint. For this reason, we've included a set of stubs. Include the stub directory as part of your python path (during development) and pylint will be useful. For example, include this in `~/.pylintrc`:

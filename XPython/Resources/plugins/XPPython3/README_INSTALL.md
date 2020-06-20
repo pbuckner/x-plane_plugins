@@ -1,5 +1,9 @@
 # XPPython3 Installation Notes
 
+1. Dowload this zipfile [xppython.zip](https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython.zip)
+2. Extract it into your X-Plane/Resources/plugins folder, such that you have folder there called XPPython3
+3. Install 64-bit Python3 (version 3.5 or greater) from https://python.org
+
 ## Requirements
 * requires 64-bit
 * requires python3, tested with

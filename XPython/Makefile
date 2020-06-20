@@ -1,4 +1,4 @@
-.PHONY : clean darwin lin windows
+.PHONY : clean darwin lin windows sdk
 
 PLUGIN_PATH=Resources/plugins/XPPython3
 XP_SDK=../SDK
@@ -74,6 +74,10 @@ install_remote :  Resources/plugins/XPPython3/win_x64/xppython3.xpl \
 	cd Resources/plugins; rm xppython.zip ; $(ZIP) xppython.zip -R XPPython3  XPPython3/\*_x64/\*.xpl XPPython3/\*.py \*.md
 	scp Resources/plugins/xppython.zip pbuck@avnwx.com:/var/www/production/data/x-plane
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; ./updatemd5 xppython.zip'
+
+install_sdk : sdk
+	$(ZIP) -R examples examples/\*.py
+	$(ZIP) -R stubs stubs/\*.py
 
 SUBDIRS = . mac lin win
 SUBDIRSCLEAN=$(addsuffix .clean,$(SUBDIRS))

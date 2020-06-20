@@ -69,9 +69,10 @@ xppython3.xpl : plugin.o defs.o display.o utils.o graphics.o data_access.o utili
 
 install_remote :  Resources/plugins/XPPython3/win_x64/xppython3.xpl \
 	Resources/plugins/XPPython3/mac_x64/xppython3.xpl \
-	Resources/plugins/XPPython3/lin_x64/xppython3.xpl
-	cd Resources/plugins/XPPython3; $(ZIP) -R xppython.zip . "*_x64/*.xpl" "*.py"
-	scp Resources/plugins/XPPython3/xppython.zip pbuck@avnwx.com:/var/www/production/data/x-plane
+	Resources/plugins/XPPython3/lin_x64/xppython3.xpl \
+	Resources/plugins/XPPython3/README_INSTALL.md
+	cd Resources/plugins; rm xppython.zip ; $(ZIP) xppython.zip -R XPPython3  XPPython3/\*_x64/\*.xpl XPPython3/\*.py \*.md
+	scp Resources/plugins/xppython.zip pbuck@avnwx.com:/var/www/production/data/x-plane
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; ./updatemd5 xppython.zip'
 
 SUBDIRS = . mac lin win

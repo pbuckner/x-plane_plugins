@@ -12,24 +12,19 @@
      >>> a == b
      True
   
-## BUILD
-Separate out "sample.c" build info -- move to different directory with
-(equivalent) makefiles
-
 ## CODE
-Consider receipt of message XPLM_MSG_AIRPORT_LOADED, it's from XPLM_PLUGIN_XPLANE, which is
-  defined as 0, but we're really returning None -- what should we do?
-
-Clean out unnecessary comments
-Consider Log.txt vs XPPython3.txt messages
-  Keep Log.txt to a minimum
-  Regularize output messages: include particular PI plugin, where useful
-
-Provide better samples for testing
-
 Support (some?) of the Sandy Barbour convenience functions
 
 Better debug reporting rather than crashing on bad input.
+
+Update do.csh to strip out _f() and _t() functions for xp.py
+Update do.csh to strip out methods which contain 'DEPRECATED' as their docstring (graphics.XPLMGetTexture for example)
+       (Note do.csh works off of stubs, not *.c files)
+.... I think I've removed all deprecated constants from stubs, so they'll no longer be included in next xp.py
+
+Move xp.py to under plugins/XPPython3 directory
+
+
 
 These appear to be 'internal', yet available interfaces from Python2 -- I don't see usefulness of these
   XPLMPlugin.PI_RemoveEnumerateFeatures
@@ -37,56 +32,16 @@ These appear to be 'internal', yet available interfaces from Python2 -- I don't 
   XPLMScenery.PI_RemoveObjectLoadedCallback
   XPLMUtilities.PI_RemoveErrorCallback
 
-Support Crash Handling?
-  See https://developer.x-plane.com/code-sample/crash-handling/
-
 ## DOCUMENTATION
 
 ### BUILD:
 More details on windows build
-Describe how to build user-facing package (gzip)
 
 ### SDK:
 Include updated docs on SDK, pointers to Laminar resources, etc.
 
 ### API
-Test or remove old version of pluginSelf
 
-Change from "out" params to real returns. This is a partial set:
-display:
-  XPLMGetScreenSize(outWidth, outHeight)
-  XPLMGetMouseLocationGlobal(outX, outY)
-  XPLMGetWindowGeometry(inWindowID, outLeft, outTop, outRight, outBottom)
-  XPLMGetWindowGeometryOS(inWindowID, outLeft, outTop, outRight, outBottom)
-  XPLMGetWindowGeometryVR(inWindowID, outWidthBoxels, outHeightBoxels)
-  XPLMGetScreenBoundsGlobal(outLeft, outTop, outRight, outBottom)
-  XPLMGetHotKeyInfo(inHotKey, outVirtualKey, outFlags, outDescription, outPlugin)
-graphics:
-  XPLMGenerateTextureNumber(outTextureIDs, inCount)
-  XPLMGetFontDimensions(inFontID, outCharWidth, outCharHeight, outDigitsOnly)
-map:
-  XPLMMapProject(projection, latitude, longitude, outX, outY)
-  XPLMMapUnProject(production, mapX, mapY, outLatitude, outLongitude)
-navigation:
-  XPLMGetNavAidInfo(inRef, outType, outLatitude, outLogitude, outHeight, outFrequency, outHeading, outID, outName, outReg)
-  XPLMGetFMSEntryInfo(inIndex, outType, outID, outRef, outAltitude, outLat, outLon)
-plugin:
-  XPLMGetPluginInfo(inPluginID, outName, outFilePath, outSignature, outDescription)
-scenery:
-  XPLMProbeTerrainXYZ(inProbe, inX, inY, inZ, outInfo)
-uigraphics:
-  XPGetWindowDefaultDimensions(inStyle, outWidth, outHeight)
-  XPGetElementDefaultDimensions(inStyle, outWidth, outHeight, outCanBeLit)
-  XPGetTrackDefaultDimensions(inStyle, outWidth, outCanBeLit)
-  XPGetTrackMetrics(inX1, inY1, inX2, inY2, inMin, inMax, inValue, inTrackStyle, outIsVertical, outDownBtnSize, outDownPageSize, outThumbSize, outUpPageSize, outUpBtnSiz)
-widgets:
-  XPGetWidgetGeometry(inWidget, outLeft, outTop, outRight, outBottom)
-  XPGetWidgetExposedGeometry(inWidgetID, outLeft, outTop, outRight, outBottom):
-  XPGetWidgetDescriptor(inWidget, outDescriptor, inMaxDescLength)
-
-XPLMPlugin: USE_NATIVE_WIDGET_WINDOWS feature -- NOTE THIS CHANGES THE UI coordinate system
-while we should probably force this "ON" for all plugins, I have not tested it this way.
-  
 Support PythonScriptMessaging functions
 * number = PI_CountScripts()
 * scriptID = PI_GetNthScript(index)

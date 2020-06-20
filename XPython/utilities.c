@@ -451,13 +451,13 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 
 static PyMethodDef XPLMUtilitiesMethods[] = {
 #if defined(XPLM_DEPRECATED)
-  {"XPLMSimulateKeyPress", XPLMSimulateKeyPressFun, METH_VARARGS, ""},
+  {"XPLMSimulateKeyPress", XPLMSimulateKeyPressFun, METH_VARARGS, "DEPRECATED"},
 #endif
   {"XPLMSpeakString", XPLMSpeakStringFun, METH_VARARGS, ""},
 #if defined(XPLM_DEPRECATED)
-  {"XPLMCommandKeyStroke", XPLMCommandKeyStrokeFun, METH_VARARGS, ""},
-  {"XPLMCommandButtonPress", XPLMCommandButtonPressFun, METH_VARARGS, ""},
-  {"XPLMCommandButtonRelease", XPLMCommandButtonReleaseFun, METH_VARARGS, ""},
+  {"XPLMCommandKeyStroke", XPLMCommandKeyStrokeFun, METH_VARARGS, "DEPRECATED"},
+  {"XPLMCommandButtonPress", XPLMCommandButtonPressFun, METH_VARARGS, "DEPRECATED"},
+  {"XPLMCommandButtonRelease", XPLMCommandButtonReleaseFun, METH_VARARGS, "DEPRECATED"},
 #endif
   {"XPLMGetVirtualKeyDescription", XPLMGetVirtualKeyDescriptionFun, METH_VARARGS, ""},
   {"XPLMReloadScenery", XPLMReloadSceneryFun, METH_VARARGS, ""},
@@ -467,7 +467,7 @@ static PyMethodDef XPLMUtilitiesMethods[] = {
   {"XPLMExtractFileAndPath", XPLMExtractFileAndPathFun, METH_VARARGS, ""},
   {"XPLMGetDirectoryContents", XPLMGetDirectoryContentsFun, METH_VARARGS, ""},
 #if defined(XPLM_DEPRECATED)
-  {"XPLMInitialized", XPLMInitializedFun, METH_VARARGS, ""},
+  {"XPLMInitialized", XPLMInitializedFun, METH_VARARGS, "DEPRECATED"},
 #endif
   {"XPLMGetVersions", XPLMGetVersionsFun, METH_VARARGS, ""},
   {"XPLMGetLanguage", XPLMGetLanguageFun, METH_VARARGS, ""},
@@ -520,216 +520,6 @@ PyInit_XPLMUtilities(void)
 
   PyObject *mod = PyModule_Create(&XPLMUtilitiesModule);
   if(mod){
-#if defined(XPLM_DEPRECATED)
-    /*
-     * XPLMCommandKeyID
-     * 
-     * These enums represent all the keystrokes available within x-plane.  They 
-     * can be sent to x-plane directly.  For example, you can reverse thrust using 
-     * these  enumerations.                                                        
-     *
-     */
-    PyModule_AddIntConstant(mod, "xplm_key_pause", xplm_key_pause);
-    PyModule_AddIntConstant(mod, "xplm_key_revthrust", xplm_key_revthrust);
-    PyModule_AddIntConstant(mod, "xplm_key_jettison", xplm_key_jettison);
-    PyModule_AddIntConstant(mod, "xplm_key_brakesreg", xplm_key_brakesreg);
-    PyModule_AddIntConstant(mod, "xplm_key_brakesmax", xplm_key_brakesmax);
-    PyModule_AddIntConstant(mod, "xplm_key_gear", xplm_key_gear);
-    PyModule_AddIntConstant(mod, "xplm_key_timedn", xplm_key_timedn);
-    PyModule_AddIntConstant(mod, "xplm_key_timeup", xplm_key_timeup);
-    PyModule_AddIntConstant(mod, "xplm_key_fadec", xplm_key_fadec);
-    PyModule_AddIntConstant(mod, "xplm_key_otto_dis", xplm_key_otto_dis);
-    PyModule_AddIntConstant(mod, "xplm_key_otto_atr", xplm_key_otto_atr);
-    PyModule_AddIntConstant(mod, "xplm_key_otto_asi", xplm_key_otto_asi);
-    PyModule_AddIntConstant(mod, "xplm_key_otto_hdg", xplm_key_otto_hdg);
-    PyModule_AddIntConstant(mod, "xplm_key_otto_gps", xplm_key_otto_gps);
-    PyModule_AddIntConstant(mod, "xplm_key_otto_lev", xplm_key_otto_lev);
-    PyModule_AddIntConstant(mod, "xplm_key_otto_hnav", xplm_key_otto_hnav);
-    PyModule_AddIntConstant(mod, "xplm_key_otto_alt", xplm_key_otto_alt);
-    PyModule_AddIntConstant(mod, "xplm_key_otto_vvi", xplm_key_otto_vvi);
-    PyModule_AddIntConstant(mod, "xplm_key_otto_vnav", xplm_key_otto_vnav);
-    PyModule_AddIntConstant(mod, "xplm_key_otto_nav1", xplm_key_otto_nav1);
-    PyModule_AddIntConstant(mod, "xplm_key_otto_nav2", xplm_key_otto_nav2);
-    PyModule_AddIntConstant(mod, "xplm_key_targ_dn", xplm_key_targ_dn);
-    PyModule_AddIntConstant(mod, "xplm_key_targ_up", xplm_key_targ_up);
-    PyModule_AddIntConstant(mod, "xplm_key_hdgdn", xplm_key_hdgdn);
-    PyModule_AddIntConstant(mod, "xplm_key_hdgup", xplm_key_hdgup);
-    PyModule_AddIntConstant(mod, "xplm_key_barodn", xplm_key_barodn);
-    PyModule_AddIntConstant(mod, "xplm_key_baroup", xplm_key_baroup);
-    PyModule_AddIntConstant(mod, "xplm_key_obs1dn", xplm_key_obs1dn);
-    PyModule_AddIntConstant(mod, "xplm_key_obs1up", xplm_key_obs1up);
-    PyModule_AddIntConstant(mod, "xplm_key_obs2dn", xplm_key_obs2dn);
-    PyModule_AddIntConstant(mod, "xplm_key_obs2up", xplm_key_obs2up);
-    PyModule_AddIntConstant(mod, "xplm_key_com1_1", xplm_key_com1_1);
-    PyModule_AddIntConstant(mod, "xplm_key_com1_2", xplm_key_com1_2);
-    PyModule_AddIntConstant(mod, "xplm_key_com1_3", xplm_key_com1_3);
-    PyModule_AddIntConstant(mod, "xplm_key_com1_4", xplm_key_com1_4);
-    PyModule_AddIntConstant(mod, "xplm_key_nav1_1", xplm_key_nav1_1);
-    PyModule_AddIntConstant(mod, "xplm_key_nav1_2", xplm_key_nav1_2);
-    PyModule_AddIntConstant(mod, "xplm_key_nav1_3", xplm_key_nav1_3);
-    PyModule_AddIntConstant(mod, "xplm_key_nav1_4", xplm_key_nav1_4);
-    PyModule_AddIntConstant(mod, "xplm_key_com2_1", xplm_key_com2_1);
-    PyModule_AddIntConstant(mod, "xplm_key_com2_2", xplm_key_com2_2);
-    PyModule_AddIntConstant(mod, "xplm_key_com2_3", xplm_key_com2_3);
-    PyModule_AddIntConstant(mod, "xplm_key_com2_4", xplm_key_com2_4);
-    PyModule_AddIntConstant(mod, "xplm_key_nav2_1", xplm_key_nav2_1);
-    PyModule_AddIntConstant(mod, "xplm_key_nav2_2", xplm_key_nav2_2);
-    PyModule_AddIntConstant(mod, "xplm_key_nav2_3", xplm_key_nav2_3);
-    PyModule_AddIntConstant(mod, "xplm_key_nav2_4", xplm_key_nav2_4);
-    PyModule_AddIntConstant(mod, "xplm_key_adf_1", xplm_key_adf_1);
-    PyModule_AddIntConstant(mod, "xplm_key_adf_2", xplm_key_adf_2);
-    PyModule_AddIntConstant(mod, "xplm_key_adf_3", xplm_key_adf_3);
-    PyModule_AddIntConstant(mod, "xplm_key_adf_4", xplm_key_adf_4);
-    PyModule_AddIntConstant(mod, "xplm_key_adf_5", xplm_key_adf_5);
-    PyModule_AddIntConstant(mod, "xplm_key_adf_6", xplm_key_adf_6);
-    PyModule_AddIntConstant(mod, "xplm_key_transpon_1", xplm_key_transpon_1);
-    PyModule_AddIntConstant(mod, "xplm_key_transpon_2", xplm_key_transpon_2);
-    PyModule_AddIntConstant(mod, "xplm_key_transpon_3", xplm_key_transpon_3);
-    PyModule_AddIntConstant(mod, "xplm_key_transpon_4", xplm_key_transpon_4);
-    PyModule_AddIntConstant(mod, "xplm_key_transpon_5", xplm_key_transpon_5);
-    PyModule_AddIntConstant(mod, "xplm_key_transpon_6", xplm_key_transpon_6);
-    PyModule_AddIntConstant(mod, "xplm_key_transpon_7", xplm_key_transpon_7);
-    PyModule_AddIntConstant(mod, "xplm_key_transpon_8", xplm_key_transpon_8);
-    PyModule_AddIntConstant(mod, "xplm_key_flapsup", xplm_key_flapsup);
-    PyModule_AddIntConstant(mod, "xplm_key_flapsdn", xplm_key_flapsdn);
-    PyModule_AddIntConstant(mod, "xplm_key_cheatoff", xplm_key_cheatoff);
-    PyModule_AddIntConstant(mod, "xplm_key_cheaton", xplm_key_cheaton);
-    PyModule_AddIntConstant(mod, "xplm_key_sbrkoff", xplm_key_sbrkoff);
-    PyModule_AddIntConstant(mod, "xplm_key_sbrkon", xplm_key_sbrkon);
-    PyModule_AddIntConstant(mod, "xplm_key_ailtrimL", xplm_key_ailtrimL);
-    PyModule_AddIntConstant(mod, "xplm_key_ailtrimR", xplm_key_ailtrimR);
-    PyModule_AddIntConstant(mod, "xplm_key_rudtrimL", xplm_key_rudtrimL);
-    PyModule_AddIntConstant(mod, "xplm_key_rudtrimR", xplm_key_rudtrimR);
-    PyModule_AddIntConstant(mod, "xplm_key_elvtrimD", xplm_key_elvtrimD);
-    PyModule_AddIntConstant(mod, "xplm_key_elvtrimU", xplm_key_elvtrimU);
-    PyModule_AddIntConstant(mod, "xplm_key_forward", xplm_key_forward);
-    PyModule_AddIntConstant(mod, "xplm_key_down", xplm_key_down);
-    PyModule_AddIntConstant(mod, "xplm_key_left", xplm_key_left);
-    PyModule_AddIntConstant(mod, "xplm_key_right", xplm_key_right);
-    PyModule_AddIntConstant(mod, "xplm_key_back", xplm_key_back);
-    PyModule_AddIntConstant(mod, "xplm_key_tower", xplm_key_tower);
-    PyModule_AddIntConstant(mod, "xplm_key_runway", xplm_key_runway);
-    PyModule_AddIntConstant(mod, "xplm_key_chase", xplm_key_chase);
-    PyModule_AddIntConstant(mod, "xplm_key_free1", xplm_key_free1);
-    PyModule_AddIntConstant(mod, "xplm_key_free2", xplm_key_free2);
-    PyModule_AddIntConstant(mod, "xplm_key_spot", xplm_key_spot);
-    PyModule_AddIntConstant(mod, "xplm_key_fullscrn1", xplm_key_fullscrn1);
-    PyModule_AddIntConstant(mod, "xplm_key_fullscrn2", xplm_key_fullscrn2);
-    PyModule_AddIntConstant(mod, "xplm_key_tanspan", xplm_key_tanspan);
-    PyModule_AddIntConstant(mod, "xplm_key_smoke", xplm_key_smoke);
-    PyModule_AddIntConstant(mod, "xplm_key_map", xplm_key_map);
-    PyModule_AddIntConstant(mod, "xplm_key_zoomin", xplm_key_zoomin);
-    PyModule_AddIntConstant(mod, "xplm_key_zoomout", xplm_key_zoomout);
-    PyModule_AddIntConstant(mod, "xplm_key_cycledump", xplm_key_cycledump);
-    PyModule_AddIntConstant(mod, "xplm_key_replay", xplm_key_replay);
-    PyModule_AddIntConstant(mod, "xplm_key_tranID", xplm_key_tranID);
-    PyModule_AddIntConstant(mod, "xplm_key_max", xplm_key_max);
-    
-    /*
-     * XPLMCommandButtonID
-     * 
-     * These are enumerations for all of the things you can do with a joystick 
-     * button in X-Plane.  They currently match the buttons menu in the equipment 
-     * setup dialog, but these enums will be stable even if they change in 
-     * X-Plane.                                                                    
-     *
-     */
-    PyModule_AddIntConstant(mod, "xplm_joy_nothing", xplm_joy_nothing);
-    PyModule_AddIntConstant(mod, "xplm_joy_start_all", xplm_joy_start_all);
-    PyModule_AddIntConstant(mod, "xplm_joy_start_0", xplm_joy_start_0);
-    PyModule_AddIntConstant(mod, "xplm_joy_start_1", xplm_joy_start_1);
-    PyModule_AddIntConstant(mod, "xplm_joy_start_2", xplm_joy_start_2);
-    PyModule_AddIntConstant(mod, "xplm_joy_start_3", xplm_joy_start_3);
-    PyModule_AddIntConstant(mod, "xplm_joy_start_4", xplm_joy_start_4);
-    PyModule_AddIntConstant(mod, "xplm_joy_start_5", xplm_joy_start_5);
-    PyModule_AddIntConstant(mod, "xplm_joy_start_6", xplm_joy_start_6);
-    PyModule_AddIntConstant(mod, "xplm_joy_start_7", xplm_joy_start_7);
-    PyModule_AddIntConstant(mod, "xplm_joy_throt_up", xplm_joy_throt_up);
-    PyModule_AddIntConstant(mod, "xplm_joy_throt_dn", xplm_joy_throt_dn);
-    PyModule_AddIntConstant(mod, "xplm_joy_prop_up", xplm_joy_prop_up);
-    PyModule_AddIntConstant(mod, "xplm_joy_prop_dn", xplm_joy_prop_dn);
-    PyModule_AddIntConstant(mod, "xplm_joy_mixt_up", xplm_joy_mixt_up);
-    PyModule_AddIntConstant(mod, "xplm_joy_mixt_dn", xplm_joy_mixt_dn);
-    PyModule_AddIntConstant(mod, "xplm_joy_carb_tog", xplm_joy_carb_tog);
-    PyModule_AddIntConstant(mod, "xplm_joy_carb_on", xplm_joy_carb_on);
-    PyModule_AddIntConstant(mod, "xplm_joy_carb_off", xplm_joy_carb_off);
-    PyModule_AddIntConstant(mod, "xplm_joy_trev", xplm_joy_trev);
-    PyModule_AddIntConstant(mod, "xplm_joy_trm_up", xplm_joy_trm_up);
-    PyModule_AddIntConstant(mod, "xplm_joy_trm_dn", xplm_joy_trm_dn);
-    PyModule_AddIntConstant(mod, "xplm_joy_rot_trm_up", xplm_joy_rot_trm_up);
-    PyModule_AddIntConstant(mod, "xplm_joy_rot_trm_dn", xplm_joy_rot_trm_dn);
-    PyModule_AddIntConstant(mod, "xplm_joy_rud_lft", xplm_joy_rud_lft);
-    PyModule_AddIntConstant(mod, "xplm_joy_rud_cntr", xplm_joy_rud_cntr);
-    PyModule_AddIntConstant(mod, "xplm_joy_rud_rgt", xplm_joy_rud_rgt);
-    PyModule_AddIntConstant(mod, "xplm_joy_ail_lft", xplm_joy_ail_lft);
-    PyModule_AddIntConstant(mod, "xplm_joy_ail_cntr", xplm_joy_ail_cntr);
-    PyModule_AddIntConstant(mod, "xplm_joy_ail_rgt", xplm_joy_ail_rgt);
-    PyModule_AddIntConstant(mod, "xplm_joy_B_rud_lft", xplm_joy_B_rud_lft);
-    PyModule_AddIntConstant(mod, "xplm_joy_B_rud_rgt", xplm_joy_B_rud_rgt);
-    PyModule_AddIntConstant(mod, "xplm_joy_look_up", xplm_joy_look_up);
-    PyModule_AddIntConstant(mod, "xplm_joy_look_dn", xplm_joy_look_dn);
-    PyModule_AddIntConstant(mod, "xplm_joy_look_lft", xplm_joy_look_lft);
-    PyModule_AddIntConstant(mod, "xplm_joy_look_rgt", xplm_joy_look_rgt);
-    PyModule_AddIntConstant(mod, "xplm_joy_glance_l", xplm_joy_glance_l);
-    PyModule_AddIntConstant(mod, "xplm_joy_glance_r", xplm_joy_glance_r);
-    PyModule_AddIntConstant(mod, "xplm_joy_v_fnh", xplm_joy_v_fnh);
-    PyModule_AddIntConstant(mod, "xplm_joy_v_fwh", xplm_joy_v_fwh);
-    PyModule_AddIntConstant(mod, "xplm_joy_v_tra", xplm_joy_v_tra);
-    PyModule_AddIntConstant(mod, "xplm_joy_v_twr", xplm_joy_v_twr);
-    PyModule_AddIntConstant(mod, "xplm_joy_v_run", xplm_joy_v_run);
-    PyModule_AddIntConstant(mod, "xplm_joy_v_cha", xplm_joy_v_cha);
-    PyModule_AddIntConstant(mod, "xplm_joy_v_fr1", xplm_joy_v_fr1);
-    PyModule_AddIntConstant(mod, "xplm_joy_v_fr2", xplm_joy_v_fr2);
-    PyModule_AddIntConstant(mod, "xplm_joy_v_spo", xplm_joy_v_spo);
-    PyModule_AddIntConstant(mod, "xplm_joy_flapsup", xplm_joy_flapsup);
-    PyModule_AddIntConstant(mod, "xplm_joy_flapsdn", xplm_joy_flapsdn);
-    PyModule_AddIntConstant(mod, "xplm_joy_vctswpfwd", xplm_joy_vctswpfwd);
-    PyModule_AddIntConstant(mod, "xplm_joy_vctswpaft", xplm_joy_vctswpaft);
-    PyModule_AddIntConstant(mod, "xplm_joy_gear_tog", xplm_joy_gear_tog);
-    PyModule_AddIntConstant(mod, "xplm_joy_gear_up", xplm_joy_gear_up);
-    PyModule_AddIntConstant(mod, "xplm_joy_gear_down", xplm_joy_gear_down);
-    PyModule_AddIntConstant(mod, "xplm_joy_lft_brake", xplm_joy_lft_brake);
-    PyModule_AddIntConstant(mod, "xplm_joy_rgt_brake", xplm_joy_rgt_brake);
-    PyModule_AddIntConstant(mod, "xplm_joy_brakesREG", xplm_joy_brakesREG);
-    PyModule_AddIntConstant(mod, "xplm_joy_brakesMAX", xplm_joy_brakesMAX);
-    PyModule_AddIntConstant(mod, "xplm_joy_speedbrake", xplm_joy_speedbrake);
-    PyModule_AddIntConstant(mod, "xplm_joy_ott_dis", xplm_joy_ott_dis);
-    PyModule_AddIntConstant(mod, "xplm_joy_ott_atr", xplm_joy_ott_atr);
-    PyModule_AddIntConstant(mod, "xplm_joy_ott_asi", xplm_joy_ott_asi);
-    PyModule_AddIntConstant(mod, "xplm_joy_ott_hdg", xplm_joy_ott_hdg);
-    PyModule_AddIntConstant(mod, "xplm_joy_ott_alt", xplm_joy_ott_alt);
-    PyModule_AddIntConstant(mod, "xplm_joy_ott_vvi", xplm_joy_ott_vvi);
-    PyModule_AddIntConstant(mod, "xplm_joy_tim_start", xplm_joy_tim_start);
-    PyModule_AddIntConstant(mod, "xplm_joy_tim_reset", xplm_joy_tim_reset);
-    PyModule_AddIntConstant(mod, "xplm_joy_ecam_up", xplm_joy_ecam_up);
-    PyModule_AddIntConstant(mod, "xplm_joy_ecam_dn", xplm_joy_ecam_dn);
-    PyModule_AddIntConstant(mod, "xplm_joy_fadec", xplm_joy_fadec);
-    PyModule_AddIntConstant(mod, "xplm_joy_yaw_damp", xplm_joy_yaw_damp);
-    PyModule_AddIntConstant(mod, "xplm_joy_art_stab", xplm_joy_art_stab);
-    PyModule_AddIntConstant(mod, "xplm_joy_chute", xplm_joy_chute);
-    PyModule_AddIntConstant(mod, "xplm_joy_JATO", xplm_joy_JATO);
-    PyModule_AddIntConstant(mod, "xplm_joy_arrest", xplm_joy_arrest);
-    PyModule_AddIntConstant(mod, "xplm_joy_jettison", xplm_joy_jettison);
-    PyModule_AddIntConstant(mod, "xplm_joy_fuel_dump", xplm_joy_fuel_dump);
-    PyModule_AddIntConstant(mod, "xplm_joy_puffsmoke", xplm_joy_puffsmoke);
-    PyModule_AddIntConstant(mod, "xplm_joy_prerotate", xplm_joy_prerotate);
-    PyModule_AddIntConstant(mod, "xplm_joy_UL_prerot", xplm_joy_UL_prerot);
-    PyModule_AddIntConstant(mod, "xplm_joy_UL_collec", xplm_joy_UL_collec);
-    PyModule_AddIntConstant(mod, "xplm_joy_TOGA", xplm_joy_TOGA);
-    PyModule_AddIntConstant(mod, "xplm_joy_shutdown", xplm_joy_shutdown);
-    PyModule_AddIntConstant(mod, "xplm_joy_con_atc", xplm_joy_con_atc);
-    PyModule_AddIntConstant(mod, "xplm_joy_fail_now", xplm_joy_fail_now);
-    PyModule_AddIntConstant(mod, "xplm_joy_pause", xplm_joy_pause);
-    PyModule_AddIntConstant(mod, "xplm_joy_rock_up", xplm_joy_rock_up);
-    PyModule_AddIntConstant(mod, "xplm_joy_rock_dn", xplm_joy_rock_dn);
-    PyModule_AddIntConstant(mod, "xplm_joy_rock_lft", xplm_joy_rock_lft);
-    PyModule_AddIntConstant(mod, "xplm_joy_rock_rgt", xplm_joy_rock_rgt);
-    PyModule_AddIntConstant(mod, "xplm_joy_rock_for", xplm_joy_rock_for);
-    PyModule_AddIntConstant(mod, "xplm_joy_rock_aft", xplm_joy_rock_aft);
-    PyModule_AddIntConstant(mod, "xplm_joy_idle_hilo", xplm_joy_idle_hilo);
-    PyModule_AddIntConstant(mod, "xplm_joy_lanlights", xplm_joy_lanlights);
-    PyModule_AddIntConstant(mod, "xplm_joy_max", xplm_joy_max);
-#endif
     /*
      * XPLMHostApplicationID
      * 
@@ -743,14 +533,6 @@ PyInit_XPLMUtilities(void)
      */
     PyModule_AddIntConstant(mod, "xplm_Host_Unknown", xplm_Host_Unknown);
     PyModule_AddIntConstant(mod, "xplm_Host_XPlane", xplm_Host_XPlane);
-#if defined(XPLM_DEPRECATED)    
-    PyModule_AddIntConstant(mod, "xplm_Host_PlaneMaker", xplm_Host_PlaneMaker);
-    PyModule_AddIntConstant(mod, "xplm_Host_WorldMaker", xplm_Host_WorldMaker);
-    PyModule_AddIntConstant(mod, "xplm_Host_Briefer", xplm_Host_Briefer);
-    PyModule_AddIntConstant(mod, "xplm_Host_PartMaker", xplm_Host_PartMaker);
-    PyModule_AddIntConstant(mod, "xplm_Host_YoungsMod", xplm_Host_YoungsMod);
-    PyModule_AddIntConstant(mod, "xplm_Host_XAuto", xplm_Host_XAuto);
-#endif
     /*
      * XPLMLanguageCode
      * 
@@ -770,7 +552,7 @@ PyInit_XPLMUtilities(void)
     PyModule_AddIntConstant(mod, "xplm_Language_Russian", xplm_Language_Russian);
     PyModule_AddIntConstant(mod, "xplm_Language_Greek", xplm_Language_Greek);
     PyModule_AddIntConstant(mod, "xplm_Language_Japanese", xplm_Language_Japanese);
-#if defined(XPML300)
+#if defined(XPLM300)
     PyModule_AddIntConstant(mod, "xplm_Language_Chinese", xplm_Language_Chinese);
 #endif
 

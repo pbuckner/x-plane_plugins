@@ -251,8 +251,8 @@ static PyMethodDef XPLMGraphicsMethods[] = {
   {"XPLMSetGraphicsState", XPLMSetGraphicsStateFun, METH_VARARGS, "Sets state of the graphics pipeline."},
   {"XPLMBindTexture2d", XPLMBindTexture2dFun, METH_VARARGS, "Bind a 2D texture."},
   {"XPLMGenerateTextureNumbers", XPLMGenerateTextureNumbersFun, METH_VARARGS, "Generates number of texture IDs."},
-#if defined(XPML_DEPRECATED)
-  {"XPLMGetTexture", XPLMGetTextureFun, METH_VARARGS, "Get texture."},
+#if defined(XPLM_DEPRECATED)
+  {"XPLMGetTexture", XPLMGetTextureFun, METH_VARARGS, "DEPRECATED"},
 #endif
   {"XPLMWorldToLocal", XPLMWorldToLocalFun, METH_VARARGS, "Transform world coordinates to local."},
   {"XPLMLocalToWorld", XPLMLocalToWorldFun, METH_VARARGS, "Transform local coordinates to world."},
@@ -284,57 +284,10 @@ PyInit_XPLMGraphics(void)
   if(mod){
      /* The bitmap that contains window outlines, button outlines, fonts, etc.      */
     PyModule_AddIntConstant(mod, "xplm_Tex_GeneralInterface", xplm_Tex_GeneralInterface);
-#if defined(XPLM_DEPRECATED)
-     /* The exterior paint for the user's aircraft (daytime).                       */
-    PyModule_AddIntConstant(mod, "xplm_Tex_AircraftPaint", xplm_Tex_AircraftPaint);
-#endif
-#if defined(XPLM_DEPRECATED)
-     /* The exterior light map for the user's aircraft.                             */
-    PyModule_AddIntConstant(mod, "xplm_Tex_AircraftLiteMap", xplm_Tex_AircraftLiteMap);
-
-#endif
      /* Mono-spaced font for user interface.  Available in all versions of the SDK. */
     PyModule_AddIntConstant(mod, "xplmFont_Basic", xplmFont_Basic);
-     /* Deprecated, do not use.                                                     */
-#if defined(XPLM_DEPRECATED)
-    PyModule_AddIntConstant(mod, "xplmFont_Menus", xplmFont_Menus);
-     /* Deprecated, do not use.                                                     */
-    PyModule_AddIntConstant(mod, "xplmFont_Metal", xplmFont_Metal);
-     /* Deprecated, do not use.                                                     */
-    PyModule_AddIntConstant(mod, "xplmFont_Led", xplmFont_Led);
-     /* Deprecated, do not use.                                                     */
-    PyModule_AddIntConstant(mod, "xplmFont_LedWide", xplmFont_LedWide);
-     /* Deprecated, do not use.                                                     */
-    PyModule_AddIntConstant(mod, "xplmFont_PanelHUD", xplmFont_PanelHUD);
-     /* Deprecated, do not use.                                                     */
-    PyModule_AddIntConstant(mod, "xplmFont_PanelEFIS", xplmFont_PanelEFIS);
-     /* Deprecated, do not use.                                                     */
-    PyModule_AddIntConstant(mod, "xplmFont_PanelGPS", xplmFont_PanelGPS);
-     /* Deprecated, do not use.                                                     */
-    PyModule_AddIntConstant(mod, "xplmFont_RadiosGA", xplmFont_RadiosGA);
-     /* Deprecated, do not use.                                                     */
-    PyModule_AddIntConstant(mod, "xplmFont_RadiosBC", xplmFont_RadiosBC);
-     /* Deprecated, do not use.                                                     */
-    PyModule_AddIntConstant(mod, "xplmFont_RadiosHM", xplmFont_RadiosHM);
-     /* Deprecated, do not use.                                                     */
-    PyModule_AddIntConstant(mod, "xplmFont_RadiosGANarrow", xplmFont_RadiosGANarrow);
-     /* Deprecated, do not use.                                                     */
-    PyModule_AddIntConstant(mod, "xplmFont_RadiosBCNarrow", xplmFont_RadiosBCNarrow);
-     /* Deprecated, do not use.                                                     */
-    PyModule_AddIntConstant(mod, "xplmFont_RadiosHMNarrow", xplmFont_RadiosHMNarrow);
-     /* Deprecated, do not use.                                                     */
-    PyModule_AddIntConstant(mod, "xplmFont_Timer", xplmFont_Timer);
-     /* Deprecated, do not use.                                                     */
-    PyModule_AddIntConstant(mod, "xplmFont_FullRound", xplmFont_FullRound);
-     /* Deprecated, do not use.                                                     */
-    PyModule_AddIntConstant(mod, "xplmFont_SmallRound", xplmFont_SmallRound);
-     /* Deprecated, do not use.                                                     */
-    PyModule_AddIntConstant(mod, "xplmFont_Menus_Localized", xplmFont_Menus_Localized);
-#endif
-#if defined(XPLM200)
      /* Proportional UI font.                                                       */
     PyModule_AddIntConstant(mod, "xplmFont_Proportional", xplmFont_Proportional);
-#endif
   }
 
   return mod;

@@ -77,6 +77,8 @@ def XPLMControlCamera(inHowLong, inControlFunc, inRefcon):
     This function repositions the camera on the next drawing cycle. You must
     pass a non-null control function. Specify in inHowLong how long you'd like
     control (indefinitely or until a key is pressed).
+
+    inRefcon can be any python object
     """
 
 

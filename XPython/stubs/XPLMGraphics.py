@@ -162,27 +162,6 @@ def XPLMGenerateTextureNumbers(inCount):
 
 
 ###############################################################################
-def XPLMGetTexture(inTexture):
-    """Return OpenGL texture based on the generic identifying code.
-
-      inTexture - integer
-
-      returns integer
-
-   XPLMGetTexture returns the OpenGL texture enumeration of an X-Plane texture
-   based on a  generic identifying code.  For example, you can get the texture
-   for X-Plane's UI bitmaps.  This allows you to build new gauges that take
-   advantage of x-plane's textures, for smooth artwork integration and also
-   saving texture  memory.  Note that the texture might not be loaded yet,
-   depending on what the  plane's panel contains.
-
-   OPEN ISSUE: We really need a way to make sure X-Plane loads this texture if
-   it isn't around, or at least a way to find out whether it is loaded or not.
-    """
-    return int  # OpenGL texture id
-
-
-###############################################################################
 def XPLMWorldToLocal(inLatitude, inLongitude, inAltitude):
     """Convert Lat/Lon/Alt to local scene coordinates
 

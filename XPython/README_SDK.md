@@ -1,5 +1,22 @@
 # XPPython3 Plugin Development
-See also README_INSTALL.txt.
+See also [XPPython3 Plugin README INSTALL](Resources/plugins/XPPython3/README_INSTALL.md).
+
+To develop python3 plugins, you'll need to have the XPPython3 plugin installed first (and python3, of course).
+
+Additionally, you may find these resources helpful (though not required):
+
+### Python Stubs [Stubs.zip](https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/stubs.zip)
+Because the XPLM* modules are contained within a shared library, they are not useful for support tools such as pylint. For this reason, we've included a set of stubs. Include the stub directory as part of your python path (during development) and pylint will be useful.  
+
+For example, include this in `~/.pylintrc`:
+
+    [MASTER]                                                                                    
+    init-hook="import sys;sys.path.extend(['.', '/path_to_stubs/PythonStubs'])"
+
+### Examples [Examples.zip](https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/examples.zip) 
+Python code exercising each interface is in [XPython/examples](XPython/examples) directory, organized primarily one example file per module. You can copy them into your Resources/plugins/PythonPlugins directory to have them executed by X-Plane.
+
+
 
 Plugin Development
 ------------------

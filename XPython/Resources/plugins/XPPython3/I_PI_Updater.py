@@ -13,7 +13,7 @@ class Config (scriptconfig.Config, scriptupdate.Updater):
     Version = XPPython.VERSION
     VersionCheckURL = 'https://maps.avnwx.com/data/x-plane/versions.json'
     ConfigFilename = 'updater.pkl'
-    plugin_path = (XPPython.INTERNALPLUGINSPATH
+    plugin_path = (os.path.join(XPPython.INTERNALPLUGINSPATH, '..')  # because we package XPPython3 with XPPython3/ in the zip file
                    if os.path.basename(__file__).startswith('I_PI')
                    else XPPython.PLUGINSPATH)
     print("plugin path is {}, __file__ is {}".format(plugin_path, __file__))

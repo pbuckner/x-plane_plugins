@@ -196,10 +196,51 @@ the object stay in scope
 ```
 
 ## NEW
-  XPLMUtilities.XPLMPythonGetDicts()
-    returns dictionary of internal plugin python dictionaries. The Plugin already stores lists of
-    items registered by each (XPython3) plugin. You may be able to use these, read-only,
-    rather than maintaining your own list of things you've registered.
-    Documentation of these dicts are TBD.
+### Constants
+XPPython.VERSION -- version number of XPPython3
+XPPython.PLUGINSPATH -- full path to where XPPython3 Plugins are installed: <XP>/Resources/plugins/PythonPlugins
+XPPython.INTERNALPLUGINSPATH -- full path to where XPPython3 Internal Plugins are installed: <XP>/Resources/XPPython3
 
+### XPPython.XPPythonGetDicts()
+Returns dictionary of internal plugin python dictionaries. The Plugin already stores lists of
+items registered by each (XPython3) plugin. You may be able to use these, read-only,
+rather than maintaining your own list of things you've registered.
+    
+#### commandCallbacks and commandRefcons
+Key: integer index  
+Value: tuple, ("<PluginFile.py>", <XPLMCommandRef capsule>, <command handler python method>, inBefore=0/1, <refCon object>)  
+Purpose:  
+Rather than providing X-Plane your command handler directly, we provide X-Plane information to call
+XPPython3, and then WE form the python call to your command handler. To do this
+we store information about your callback in `commandCallback` and `commandRefcons`, and substitute
+and internal callback function and a serial integer as the refCon X-Plane will see.
+
+So your python:  
+       `XPLMRegisterCommandHandler(inCommand, inHandler, inBefore, inRefcon)`  
+becomes  
+ ```
+      ++idx
+      commandCallback[<idx>] = (<plugin>, inCommand, inHandler, inBefore, inRefcon)
+      commandRefcons[<idx>] =  inCommand
+      XPLMRegisterCommandHandler(inCommand, internalCommandCallback, inBefore, <idx>)
+ ```
+
+On command execution, X-Plane calls our callback:  
+     `internalCommandCallback(inCommand, inPhase, <idx>)`  
+We lookup <idx> in commandCallbacks and call your:  
+     `inHandler(inCommand, inPhase, inRefcon)`
+
+On XPLMUnregisterCommandHandler(inCommand, inHandler, inBefore, inRefcon)
+We need to convert back to what we registered as the command handler, so we need
+to get the <idx>, which is from commandRefcons[inCommand]  
+    `XPLMUnregisterCommandHandler(inCommand, internalCommandCallback, inBefore, <idx>)`
+
+#### commandRefcons
+Key: inCommand  
+Value: <index> into commandCallbacks  
+Purpose: Used with commandCallbacks (see above)  
+
+### XPPython.XPPythonGetCapsules()
+returns a dictionary of internal plugin capsules (essentially these are registered WidgetIDs and)
+Not sure they'll be of any real value to SDK users.
 

@@ -111,11 +111,21 @@ PyObject *XPLMSendMessageToPluginFun(PyObject *self, PyObject *args)
   (void) self;
   long inPluginID;
   long inMessage;
-  long inParam;
-  if(!PyArg_ParseTuple(args, "lll", &inPluginID, &inMessage, &inParam)){
+  PyObject* inParam;
+  if(!PyArg_ParseTuple(args, "llO", &inPluginID, &inMessage, &inParam)){
     return NULL;
   }
-  XPLMSendMessageToPlugin(inPluginID, inMessage, (void *)inParam);
+  void *msgParam;
+  if(PyLong_Check(inParam)) {
+    msgParam = (void*)PyLong_AsLong(inParam);
+    XPLMSendMessageToPlugin(inPluginID, inMessage, msgParam);
+  } else if (PyUnicode_Check(inParam)) {
+    msgParam = objToStr(inParam);
+    XPLMSendMessageToPlugin(inPluginID, inMessage, msgParam);
+    free(msgParam);
+  } else {
+    printf("Unknown data type for XPLMSendMessageToPlugin(... inParam). Cannot convert\n");
+  }
   Py_RETURN_NONE;
 }
 

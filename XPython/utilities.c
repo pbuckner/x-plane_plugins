@@ -399,8 +399,9 @@ static PyObject *XPLMRegisterCommandHandlerFun(PyObject *self, PyObject *args)
   pluginSelf = get_pluginSelf();
   intptr_t refcon = commandCallbackCntr++;
   XPLMRegisterCommandHandler(refToPtr(inCommand, commandRefName), commandCallback, inBefore, (void *)refcon);
+
   PyObject *rc = PyLong_FromVoidPtr((void *)refcon);
-  PyObject *irc = PyLong_FromVoidPtr((void *)inRefcon);
+  PyObject *irc = PyLong_FromVoidPtr((void *)inCommand);
   PyDict_SetItem(commandRefcons, irc, rc);
 
   PyObject *argsObj = Py_BuildValue( "(OOOiO)", pluginSelf, inCommand, inHandler, inBefore, inRefcon);
@@ -420,7 +421,7 @@ static PyObject *XPLMUnregisterCommandHandlerFun(PyObject *self, PyObject *args)
   PyObject *inRefcon;
   if(!PyArg_ParseTuple(args, "OOiO", &inCommand, &inHandler, &inBefore, &inRefcon))
     return NULL;
-  PyObject *key = PyLong_FromVoidPtr((void *)inRefcon);
+  PyObject *key = PyLong_FromVoidPtr((void *)inCommand);
   PyObject *refcon = PyDict_GetItem(commandRefcons, key);
   XPLMUnregisterCommandHandler(refToPtr(inCommand, commandRefName), commandCallback,
                                inBefore, PyLong_AsVoidPtr(refcon));
@@ -513,6 +514,7 @@ PyInit_XPLMUtilities(void)
   if(!(commandRefcons = PyDict_New())){
     return NULL;
   }
+  PyDict_SetItemString(xppythonDicts, "commandRefcons", commandRefcons);
   if(!(commandCapsules = PyDict_New())){
     return NULL;
   }

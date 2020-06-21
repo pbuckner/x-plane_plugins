@@ -7,7 +7,7 @@ from XPLMDataAccess import XPLMFindDataRef, XPLMGetDatai
 from XPLMUtilities import XPLMGetVersions
 
 # definitions
-from XPLMDisplay import xplm_Phase_FirstCockpit, xplm_WindowDecorationRoundRectangle, xplm_WindowLayerFloatingWindows
+from XPLMDisplay import xplm_Phase_Window, xplm_WindowDecorationRoundRectangle, xplm_WindowLayerFloatingWindows
 from XPLMDisplay import xplm_WindowPopOut, xplm_WindowCenterOnMonitor, xplm_WindowFullScreenOnMonitor
 from XPLMDisplay import xplm_MouseDrag, xplm_MouseUp, xplm_MouseDown
 from XPLMDisplay import xplm_CursorDefault, xplm_CursorHidden, xplm_CursorArrow, xplm_CursorCustom
@@ -51,7 +51,7 @@ class PythonInterface(checkBase):
         self.winRefConByWhich = {}  # indexed by "which"
         self.winID = {}  # indexed by "which"
         self.drawBefore = 0
-        self.drawPhase = xplm_Phase_FirstCockpit
+        self.drawPhase = xplm_Phase_Window
         self.drawRefcon = ['foobar', ]
         self.isModern = False
         self.hotKeyCallbackFun = self.hotKeyCallback
@@ -120,13 +120,12 @@ class PythonInterface(checkBase):
                           1)
             self.log("sniffer unregistered")
 
-        if not self.is_modern:
-            self.checkVal("Draw callback called (will fail if running Vulkan/Metal)", self.drawCallbackCalled, 1)
-            if self.drawCallbackCalled:
-                self.checkVal('UnregisterDrawCallback',
-                              XPLMUnregisterDrawCallback(self.drawCallbackFun, self.drawPhase,
-                                                         self.drawBefore, self.drawRefcon),
-                              1)
+        self.checkVal("Draw callback called", self.drawCallbackCalled, 1)
+        if self.drawCallbackCalled:
+            self.checkVal('UnregisterDrawCallback',
+                          XPLMUnregisterDrawCallback(self.drawCallbackFun, self.drawPhase,
+                                                     self.drawBefore, self.drawRefcon),
+                          1)
         for which in self.winID:
             self.log("Looking to destroy window [{}] with id: {}".format(which, self.winID[which]))
             XPLMDestroyWindow(self.winID[which])

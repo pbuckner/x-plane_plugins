@@ -210,6 +210,7 @@ def XPLMSendMessageToPlugin(inPlugin, inMessage, inParam):
     This function sends a message to another plug-in or X-Plane.  Pass
     XPLM_NO_PLUGIN_ID to broadcast to all plug-ins.  Only enabled plug-ins with
     a message receive function receive the message.
+    inParam should be a string or an integer
     """
 
 

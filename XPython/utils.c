@@ -24,7 +24,7 @@ char * objToStr(PyObject *item) {
   // returns char * pointer to something in heap
   PyObject *pyAsStr = PyObject_Str(item); // new object
   PyObject *pyBytes = PyUnicode_AsEncodedString(pyAsStr, "utf-8", "replace"); // new object
-  char *res = PyBytes_AS_STRING(pyBytes);  //borrowed (from pyBytes)
+  char *res = PyBytes_AsString(pyBytes);  //borrowed (from pyBytes)
   res = strdup(res); // allocated on heap
   Py_DECREF(pyAsStr);
   Py_DECREF(pyBytes);
@@ -58,13 +58,10 @@ long getLongFromTuple(PyObject *seq, Py_ssize_t i)
   return PyLong_AsLong(PyTuple_GetItem(seq, i));
 }
 
-// To avoid Python code messing with raw pointers (when passed
-//   in using PyLong_FromVoidPtr), these are hidden in the capsules.
-
 PyObject *get_pluginSelf() {
   // returns heap-allocated PyObject (or Py_RETURN_NONE)
   PyGILState_STATE gilState = PyGILState_Ensure();
-  PyThreadState *tstate = PyThreadState_GET();
+  PyThreadState *tstate = PyThreadState_Get();
   PyObject *last_filenameObj = Py_None;
   if (NULL != tstate && NULL != tstate->frame) {
     PyFrameObject *frame = tstate->frame;
@@ -143,44 +140,44 @@ void removePtrRef(void *ptr, PyObject *dict)
   Py_DECREF(key);
 }
 
-char *get_module(PyThreadState *tstate) {
-  /* returns filename of top most frame -- this will be the Plugin's file */
-  char *last_filename = "[unknown]";
-  if (NULL != tstate && NULL != tstate->frame) {
-    PyFrameObject *frame = tstate->frame;
+/* char *get_module(PyThreadState *tstate) { */
+/*   /\* returns filename of top most frame -- this will be the Plugin's file *\/ */
+/*   char *last_filename = "[unknown]"; */
+/*   if (NULL != tstate && NULL != tstate->frame) { */
+/*     PyFrameObject *frame = tstate->frame; */
     
-    while (NULL != frame) {
-      // int line = frame->f_lineno;
-      /*
-        frame->f_lineno will not always return the correct line number
-        you need to call PyCode_Addr2Line().
-      */
-      // int line = PyCode_Addr2Line(frame->f_code, frame->f_lasti);
-      PyObject *temp_bytes = PyUnicode_AsEncodedString(frame->f_code->co_filename, "utf-8", "replace");
-      const char *filename = PyBytes_AsString(temp_bytes);
-      filename = strdup(filename);
-      last_filename = strdup(filename);
-      Py_DECREF(temp_bytes);
+/*     while (NULL != frame) { */
+/*       // int line = frame->f_lineno; */
+/*       /\* */
+/*         frame->f_lineno will not always return the correct line number */
+/*         you need to call PyCode_Addr2Line(). */
+/*       *\/ */
+/*       // int line = PyCode_Addr2Line(frame->f_code, frame->f_lasti); */
+/*       PyObject *temp_bytes = PyUnicode_AsEncodedString(frame->f_code->co_filename, "utf-8", "replace"); */
+/*       const char *filename = PyBytes_AsString(temp_bytes); */
+/*       filename = strdup(filename); */
+/*       last_filename = strdup(filename); */
+/*       Py_DECREF(temp_bytes); */
 
-      temp_bytes = PyUnicode_AsEncodedString(frame->f_code->co_name, "utf-8", "replace");
-      const char *funcname = PyBytes_AsString(temp_bytes);
-      funcname = strdup(funcname);
-      Py_DECREF(temp_bytes);
-      frame = frame->f_back;
-    }
-  }
+/*       temp_bytes = PyUnicode_AsEncodedString(frame->f_code->co_name, "utf-8", "replace"); */
+/*       const char *funcname = PyBytes_AsString(temp_bytes); */
+/*       funcname = strdup(funcname); */
+/*       Py_DECREF(temp_bytes); */
+/*       frame = frame->f_back; */
+/*     } */
+/*   } */
 
-  char *token = strrchr(last_filename, '/');
-  if (token == NULL) {
-    token = strrchr(last_filename, '\\');
-    if (token == NULL) {
-      token = strrchr(last_filename, ':');
-    }
-  }
-  if (token) {
-    return (++token);
-  }
-  return "Unknown";
-}
+/*   char *token = strrchr(last_filename, '/'); */
+/*   if (token == NULL) { */
+/*     token = strrchr(last_filename, '\\'); */
+/*     if (token == NULL) { */
+/*       token = strrchr(last_filename, ':'); */
+/*     } */
+/*   } */
+/*   if (token) { */
+/*     return (++token); */
+/*   } */
+/*   return "Unknown"; */
+/* } */
 
 

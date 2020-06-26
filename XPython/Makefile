@@ -12,7 +12,6 @@ ZIP=zip
 
 ##########
 # PYTHON opts
-# with python 3.8, new python-config option --embed.. I've not tried it yet
 
 ifeq ($(TARGET), Windows)
   # perhaps
@@ -26,21 +25,34 @@ ifeq ($(TARGET), Windows)
 endif
 
 ifeq ($(TARGET), Linux)
-  PY_CFLAGS = $(shell python3-config --cflags)
-  PY_LDFLAGS = $(shell python3-config --ldflags)
-  CFLAGS+= ${PY_CFLAGS} ${XPLM_CPPFLAGS} -DIBM=0 -DAPL=0 -DLIN=1
-  LDFLAGS += ${PY_LDFLAGS} -shared -fPIC -fpic -ldl -g -fvisibility=hidden -Wl,--export-dynamic
+  # apt-get install python3.6 python3.6-dev python3.7 python3.7-dev python3.8 python3.8-dev
+  CFLAGS +=  ${XPLM_CPPFLAGS} -DIBM=0 -DAPL=0 -DLIN=1
+  CFLAGS36= $(CFLAGS) $(shell python3.6-config --cflags) -DPYTHONVERSION=\"3.6\"
+  CFLAGS37= $(CFLAGS) $(shell python3.7-config --cflags) -DPYTHONVERSION=\"3.7\"
+  CFLAGS38= $(CFLAGS) $(shell python3.8-config --cflags) -DPYTHONVERSION=\"3.8\"
+  LDFLAGS +=  -shared -fPIC -fpic -ldl -g -fvisibility=hidden -Wl,--export-dynamic
+  LDFLAGS36 = $(LDFLAGS) $(shell python3.6-config --ldflags)
+  LDFLAGS37 = $(LDFLAGS) $(shell python3.7-config --ldflags)
+  LDFLAGS38 = $(LDFLAGS) $(shell python3.8-config --ldflags) -lpython3.8
   PLUGIN_DIR=lin_x64
   LD=cc
 endif
 
 ifeq ($(TARGET), Darwin)
+  # brew install pyenv pyenv-virtualenv pyenv-virtualenvwrapper
+  # pyenv install 3.6-dev
+  # pyenv install 3.7-dev
+  # pyenv install 3.8-dev
   # PY_CFLAGS = $(shell /Users/pbuck/bin/python3-config --cflags)
   # PY_LDFLAGS = $(shell /Users/pbuck/bin/python3-config --ldflags)
-  PY_CFLAGS = $(shell python-config --cflags)
-  PY_LDFLAGS = $(shell python-config --ldflags)
-  CFLAGS += ${PY_CFLAGS} ${XPLM_CPPFLAGS} -DIBM=0 -DAPL=1 -DLIN=0 -arch x86_64
-  LDFLAGS += ${PY_LDFLAGS} -shared -fPIC -fpic -ldl -g -fvisibility=hidden -undefined dynamic_lookup
+  CFLAGS += ${XPLM_CPPFLAGS} -DIBM=0 -DAPL=1 -DLIN=0 -arch x86_64
+  CFLAGS36=$(CFLAGS) $(shell `pyenv local 3.6-dev; pyenv which python-config` --cflags) -DPYTHONVERSION=\"3.6\"
+  CFLAGS37=$(CFLAGS) $(shell `pyenv local 3.7-dev; pyenv which python-config` --cflags) -DPYTHONVERSION=\"3.7\"
+  CFLAGS38=$(CFLAGS) $(shell `pyenv local 3.8-dev; pyenv which python-config` --cflags) -DPYTHONVERSION=\"3.8\"
+  LDFLAGS += -shared -fPIC -fpic -ldl -g -fvisibility=hidden -undefined dynamic_lookup
+  LDFLAGS36 = $(LDFLAGS) # $(shell `pyenv local 3.6-dev; pyenv which python-config` --ldflags)
+  LDFLAGS37 = $(LDFLAGS) # $(shell `pyenv local 3.7-dev; pyenv which python-config` --ldflags)
+  LDFLAGS38 = $(LDFLAGS) # $(shell `pyenv local 3.8-dev; pyenv which python-config` --ldflags)
   PLUGIN_DIR=mac_x64
   LD=cc
 endif
@@ -62,10 +74,28 @@ linux:
 %.o  : %.cpp
 	$(CXX) -c $(CFLAGS) $< -o $@
 
-xppython3.xpl : plugin.o defs.o display.o utils.o graphics.o data_access.o utilities.o scenery.o menus.o \
-	navigation.o plugins.o planes.o processing.o camera.o widget_defs.o widgets.o \
-	standard_widgets.o uigraphics.o widgetutils.o instance.o map.o plugin_dl.o sb.o utils.o xppython.o
-	$(LD) $^ $(LDFLAGS) -o $@ 
+PLUGIN_OBJ = pluginXXX.o defsXXX.o displayXXX.o utilsXXX.o graphicsXXX.o data_accessXXX.o utilitiesXXX.o sceneryXXX.o menusXXX.o \
+	navigationXXX.o pluginsXXX.o planesXXX.o processingXXX.o cameraXXX.o widget_defsXXX.o widgetsXXX.o \
+	standard_widgetsXXX.o uigraphicsXXX.o widgetutilsXXX.o instanceXXX.o mapXXX.o plugin_dlXXX.o sbXXX.o utilsXXX.o xppythonXXX.o
+
+%36.o	: %.c
+	$(CC) -c $(CFLAGS36) $< -o $@
+
+%37.o	: %.c
+	$(CC) -c $(CFLAGS37) $< -o $@
+
+%38.o	: %.c
+	$(CC) -c $(CFLAGS38) $< -o $@
+
+XPPython36.xpl: $(subst XXX,36,$(PLUGIN_OBJ))
+	$(LD) $^ $(LDFLAGS36) -o $@ 
+
+XPPython37.xpl: $(subst XXX,37,$(PLUGIN_OBJ))
+	$(LD) $^ $(LDFLAGS37) -o $@ 
+
+XPPython38.xpl: $(subst XXX,38,$(PLUGIN_OBJ))
+	$(LD) $^ $(LDFLAGS38) -o $@ 
+
 
 install_remote :  Resources/plugins/XPPython3/win_x64/xppython3.xpl \
 	Resources/plugins/XPPython3/mac_x64/xppython3.xpl \

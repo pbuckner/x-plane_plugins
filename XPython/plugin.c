@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <dirent.h>
+#include <dlfcn.h>
 #include <XPLM/XPLMDefs.h>
 
 #include <XPLM/XPLMPlugin.h>
@@ -33,13 +34,14 @@ const char *pythonPluginsPath = "./Resources/plugins/PythonPlugins";
 const char *pythonInternalPluginsPath = "./Resources/plugins/XPPython3";
 
 static const char *pythonPluginName = "XPPython3";
-const char *pythonPluginVersion = "3.0.0.a6";
+const char *pythonPluginVersion = "3.0.0.a6 - for Python " PYTHONVERSION;
 const char *pythonPluginSig  = "avnwx.xppython3";
 static const char *pythonPluginDesc = "X-Plane interface for Python 3";
 static const char *pythonStopCommand = "XPPython3/stopScripts";
 static const char *pythonStartCommand = "XPPython3/startScripts";
 static const char *pythonReloadCommand = "XPPython3/reloadScripts";
 /**********************/
+static int loadPythonLibrary();
 
 PyMODINIT_FUNC PyInit_XPLMDefs(void);
 PyMODINIT_FUNC PyInit_XPLMDisplay(void);
@@ -134,6 +136,7 @@ PyInit_XPythonLogWriter(void)
 
 static PyObject *moduleDict;
 static PyObject *loggerObj;
+static void *pythonHandle = NULL;
 
 int initPython(void){
   // setbuf(stdout, NULL);  // for debugging, it removes stdout buffering
@@ -164,6 +167,7 @@ int initPython(void){
   Py_Initialize();
   if(!Py_IsInitialized()){
     fprintf(logFile, "Failed to initialize Python.\n");
+    fflush(logFile);
     return -1;
   }
 
@@ -294,8 +298,8 @@ void loadModules(const char *path, const char *pattern)
         char *modName = strdup(de->d_name);
         if(modName){
           modName[strlen(de->d_name) - 3] = '\0';
+          loadPIClass(modName);
         }
-        loadPIClass(modName);
         free(modName);
       }
     }
@@ -312,7 +316,11 @@ static int startPython(void)
     return 0;
   }
   loadAllFunctions();
-  initPython();
+  if(initPython()) {
+    fprintf(logFile, "Failed to start python\n");
+    fflush(logFile);
+    return -1;
+  }
 
   // Load internal stuff
   loadModules(pythonInternalPluginsPath, "^I_PI_.*\\.py$");
@@ -379,6 +387,9 @@ static int stopPython(void)
   }
   Py_DECREF(loggerObj);
   Py_Finalize();
+  if (pythonHandle) {
+    dlclose(pythonHandle);
+  }
   pythonStarted = false;
   return 0;
 }
@@ -410,6 +421,14 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
   }
   if(logFile == NULL){
     logFile = stdout;
+  }
+  if(loadPythonLibrary() == -1) {
+    fprintf(logFile, "Failed to open python shared library.\n");
+    fflush(logFile);
+    return -1;
+  } else {
+    fprintf(logFile, "Python shared library loaded\n");
+    fflush(logFile);
   }
 
   fprintf(logFile, "%s version %s Started.\n", pythonPluginName, pythonPluginVersion);
@@ -449,7 +468,11 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
     XPLMAppendMenuItem(setupMenu, "Reload scripts", (void *)reloadScripts, 0);
   }
 
-  startPython();
+  if(startPython() == -1) {
+    fprintf(logFile, "Failed to start python, exiting.\n");
+    fflush(logFile);
+    return 0;
+  }
 
   return 1;
 }
@@ -567,3 +590,42 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
   }
   Py_DECREF(param);
 }
+
+int loadPythonLibrary()
+{
+#if LIN
+  /* Prefered library is simple .so:
+      libpython3.8.so
+     But, that's usually a link to a versioned .so and sometimes, that
+     link hasn't been created, so we'll also look for that:
+      libpython3.8.so.1
+     (there could be more versions, but that seems unlikely for most consumers)
+
+     Now, prior to 3.8, the library name included 'm' to indicate it includes pymalloc, which
+     which is prefered, so we look for those FIRST, and if not found, look for
+     libraries without the 'm'.
+  */
+  char library[100];
+  sprintf(library, "libpython%sm.so", PYTHONVERSION);
+  pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
+  if (!pythonHandle) {
+    sprintf(library, "libpython%sm.so.1", PYTHONVERSION);
+    pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
+  }
+  if (!pythonHandle) {
+    sprintf(library, "libpython%s.so", PYTHONVERSION);
+    pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
+  }
+  if (!pythonHandle) {
+    sprintf(library, "libpython%s.so.1", PYTHONVERSION);
+    pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
+  }
+  if (!pythonHandle) {
+      fprintf(logFile, "Unable to find python shared library 'libpython%s.so'\n", PYTHONVERSION);
+      fflush(logFile);
+      return -1;
+  }
+#endif
+  return 0;
+}
+

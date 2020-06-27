@@ -34,7 +34,7 @@ const char *pythonPluginsPath = "./Resources/plugins/PythonPlugins";
 const char *pythonInternalPluginsPath = "./Resources/plugins/XPPython3";
 
 static const char *pythonPluginName = "XPPython3";
-const char *pythonPluginVersion = "3.0.0.a6 - for Python " PYTHONVERSION;
+const char *pythonPluginVersion = "3.0.0.a7 - for Python " PYTHONVERSION;
 const char *pythonPluginSig  = "avnwx.xppython3";
 static const char *pythonPluginDesc = "X-Plane interface for Python 3";
 static const char *pythonStopCommand = "XPPython3/stopScripts";

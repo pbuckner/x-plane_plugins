@@ -14,12 +14,19 @@ ZIP=zip
 # PYTHON opts
 
 ifeq ($(TARGET), Windows)
-  # perhaps
+  # Do to the way we build for windows against 'python3.dll', the resulting binaries (3.6, 3.7, 3.8) are identical
+  # except for the embedded 'version' value
   PYDEV=/c/Program\ Files/Python38
   PY_CFLAGS = -I${PYDEV}/include -Wno-unused-result -Wsign-compare -Wunreachable-code -fno-common -DNDEBUG -fwrapv -O3
   PY_LDFLAGS = -L. -lpython3.dll
   CFLAGS+= ${PY_CFLAGS} ${XPLM_CPPFLAGS} -DIBM=1 -DAPL=0 -DLIN=0 -I/c/msys64/mingw64/include -I/usr/include
+  CFLAGS36=$(CFLAGS) -DPYTHONVERSION=\"3.6\"
+  CFLAGS37=$(CFLAGS) -DPYTHONVERSION=\"3.7\"
+  CFLAGS38=$(CFLAGS) -DPYTHONVERSION=\"3.8\"
   LDFLAGS+= -shared -static-libgcc -static-libstdc++ -static -lpthread  ${PY_LDFLAGS} -L/c/msys64/mingw64/lib -ldl -lregex -ltre -lintl -liconv $(XP_SDK)/Libraries/Win/XPLM_64.lib $(XP_SDK)/Libraries/Win/XPWidgets_64.lib
+  LDFLAGS36=$(LDFLAGS)
+  LDFLAGS37=$(LDFLAGS)
+  LDFLAGS38=$(LDFLAGS)
   PLUGIN_DIR=win_x64
   LD=g++
 endif
@@ -31,6 +38,7 @@ ifeq ($(TARGET), Linux)
   CFLAGS37= $(CFLAGS) $(shell python3.7-config --cflags) -DPYTHONVERSION=\"3.7\"
   CFLAGS38= $(CFLAGS) $(shell python3.8-config --cflags) -DPYTHONVERSION=\"3.8\"
   LDFLAGS +=  -shared -fPIC -fpic -ldl -g -fvisibility=hidden -Wl,--export-dynamic
+  # For python3.6, python3.7, --ldflags includes the python library, for 3.8 it does not (why?)
   LDFLAGS36 = $(LDFLAGS) $(shell python3.6-config --ldflags)
   LDFLAGS37 = $(LDFLAGS) $(shell python3.7-config --ldflags)
   LDFLAGS38 = $(LDFLAGS) $(shell python3.8-config --ldflags) -lpython3.8
@@ -97,13 +105,34 @@ XPPython38.xpl: $(subst XXX,38,$(PLUGIN_OBJ))
 	$(LD) $^ $(LDFLAGS38) -o $@ 
 
 
-install_remote :  Resources/plugins/XPPython3/win_x64/xppython3.xpl \
-	Resources/plugins/XPPython3/mac_x64/xppython3.xpl \
-	Resources/plugins/XPPython3/lin_x64/xppython3.xpl \
-	Resources/plugins/XPPython3/README_INSTALL.md
-	cd Resources/plugins; rm xppython.zip ; $(ZIP) xppython.zip -R XPPython3  XPPython3/\*_x64/\*.xpl XPPython3/\*.py \*.md
-	scp Resources/plugins/xppython.zip pbuck@avnwx.com:/var/www/production/data/x-plane
-	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; ./updatemd5 xppython.zip'
+Resources/plugins/xppython36.zip : win/XPPython36.xpl lin/XPPython36.xpl mac/XPPython36.xpl
+	rm -f $@
+	rm -f Resources/plugins/XPPython3/*/*.xpl
+	cp win/XPPython36.xpl Resources/plugins/XPPython3/win_x64/XPPython3.xpl
+	cp mac/XPPython36.xpl Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
+	cp lin/XPPython36.xpl Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
+	cd Resources/plugins; $(ZIP) xppython36.zip -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md
+
+Resources/plugins/xppython37.zip : win/XPPython37.xpl lin/XPPython37.xpl mac/XPPython37.xpl
+	rm -f $@
+	rm -f Resources/plugins/XPPython3/*/*.xpl
+	cp win/XPPython37.xpl Resources/plugins/XPPython3/win_x64/XPPython3.xpl
+	cp mac/XPPython37.xpl Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
+	cp lin/XPPython37.xpl Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
+	cd Resources/plugins; $(ZIP) xppython37.zip -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md
+
+Resources/plugins/xppython38.zip : win/XPPython38.xpl lin/XPPython38.xpl mac/XPPython38.xpl
+	rm -f $@
+	rm -f Resources/plugins/XPPython3/*/*.xpl
+	cp win/XPPython38.xpl Resources/plugins/XPPython3/win_x64/XPPython3.xpl
+	cp mac/XPPython38.xpl Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
+	cp lin/XPPython38.xpl Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
+	cd Resources/plugins; $(ZIP) xppython38.zip -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md
+
+
+install_remote :  Resources/plugins/xppython36.zip Resources/plugins/xppython37.zip Resources/plugins/xppython38.zip
+	scp Resources/plugins/xppython3*.zip pbuck@avnwx.com:/var/www/production/data/x-plane
+	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; ./updatemd5 xppython36.zip; ./updatemd5 xppython37.zip; ./updatemd5 xppython38.zip'
 
 install_sdk : sdk
 	$(ZIP) -R examples examples/\*.py
@@ -115,7 +144,7 @@ SUBDIRSCLEAN=$(addsuffix .clean,$(SUBDIRS))
 clean : $(SUBDIRSCLEAN)
 
 clean_current_directory:
-	rm -f *.so *.o main_??? xppython3.xpl default.prof* coverage.txt *.log *~ a.out
+	rm -f *.so *.o main_??? xppython3?.xpl default.prof* coverage.txt *.log *~ a.out xppython3?.zip
 
 %.clean: %
 	$(MAKE) -C $< clean_current_directory

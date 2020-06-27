@@ -74,7 +74,7 @@ class PythonInterface(checkBase):
     def drawCallback(self, inPhase, inIsBefore, inRefcon):
         XPLMSetGraphicsState(0, 1, 0, 0, 0, 0, 0)
         XPLMDrawTranslucentDarkBox(100, 200, 500, 100)
-        width = XPLMMeasureString(xplmFont_Basic, "Hello World", len("Hello World"))
+        width = XPLMMeasureString(xplmFont_Basic, "Hello World")
         (w, h, d) = XPLMGetFontDimensions(xplmFont_Basic)
         average = w
         XPLMDrawString([.9, 0, 0], 110, 175, "Hello World: {}, ave: {}".format(width, average), None, xplmFont_Basic)

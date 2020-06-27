@@ -122,7 +122,7 @@ class PythonInterface(RegressionBase):
 
             for i in range(5):
                 s = 'item {}'.format(i)
-                strWidth = XPLMMeasureString(fontID, s, len(s))
+                strWidth = XPLMMeasureString(fontID, s)
                 left = 100 + 10
                 top = int(150 - ((strHeight + 4) * i))
                 right = int(left + strWidth)

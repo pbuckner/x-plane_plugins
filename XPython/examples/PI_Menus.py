@@ -108,8 +108,7 @@ class PythonInterface(RegressionBase):
 
             self.menus['top-sub']['menuIDX'] = XPLMAppendMenuItem(self.menus['top-sub']['parent'],
                                                                   self.menus['top-sub']['title'],
-                                                                  self.menus['top-sub']['refCon'],
-                                                                  0)
+                                                                  self.menus['top-sub']['refCon'])
             self.log("Appended")
 
             m = {'name': 'top2', 'title': "Menu2 w/sub", 'refCon': ['top2', ], 'parent': None}
@@ -125,21 +124,21 @@ class PythonInterface(RegressionBase):
                  'title': "Appended to top2 bar",
                  'refCon': ['top-sub2', ],
                  'parent': self.menus['top2']['menuID']}
-            m['menuIDX'] = XPLMAppendMenuItem(m['parent'], m['title'], m['refCon'], 0)
+            m['menuIDX'] = XPLMAppendMenuItem(m['parent'], m['title'], m['refCon'])
             self.menus[m['name']] = m
             XPLMAppendMenuSeparator(m['parent'])
             m = {'name': 'top2-sub2',
                  'title': "Also Appended to top2 bar",
                  'refCon': ['top-sub2-second', ],
                  'parent': self.menus['top2']['menuID']}
-            m['menuIDX'] = XPLMAppendMenuItem(m['parent'], m['title'], m['refCon'], 0)
+            m['menuIDX'] = XPLMAppendMenuItem(m['parent'], m['title'], m['refCon'])
             self.menus[m['name']] = m
 
             XPLMAppendMenuSeparator(XPLMFindPluginsMenu())
             #####
             # Simply append menu item to bottom of Plugins menu -- no handler or command
             m = {'name': 'time', 'title': 'ElapsedTime', 'refCon': ['time', ], 'parent': XPLMFindPluginsMenu()}
-            m['menuIDX'] = XPLMAppendMenuItem(m['parent'], m['title'], m['refCon'], 0)
+            m['menuIDX'] = XPLMAppendMenuItem(m['parent'], m['title'], m['refCon'])
             self.menus[m['name']] = m
 
             #####
@@ -151,7 +150,7 @@ class PythonInterface(RegressionBase):
 
             # if not firstMenuID:
             #     self.error("firstMenuID should not be null: {}".format(firstMenuID))
-            # subMenuID = XPLMAppendMenuItem(XPLMFindPluginsMenu(), 'Appneded to plugins', ['appended', ], 0)
+            # subMenuID = XPLMAppendMenuItem(XPLMFindPluginsMenu(), 'Appneded to plugins', ['appended', ])
             # secondMenuID = XPLMCreateMenu('PluginBar', XPLMFindPluginsMenu(), 1, self.menuHandler, ['pluginsbar', ])
             # if not secondMenuID:
             #     self.error("secondMenuID should not be null: {}".format(secondMenuID))
@@ -159,7 +158,7 @@ class PythonInterface(RegressionBase):
             self.log("Menus are: {}".format(self.menus))
 
         if 'time' in self.menus:
-            XPLMSetMenuItemName(self.menus['time']['parent'], self.menus['time']['menuIDX'], '{}'.format(counter), 0)
+            XPLMSetMenuItemName(self.menus['time']['parent'], self.menus['time']['menuIDX'], '{}'.format(counter))
             # depending on the counter, check/uncheck the menu item, and enable/disable the 'Pause' menuitem
             if (counter % 10) < 5:
                 XPLMCheckMenuItem(self.menus['time']['parent'], self.menus['time']['menuIDX'], xplm_Menu_Unchecked)

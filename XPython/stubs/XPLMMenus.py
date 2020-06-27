@@ -117,8 +117,7 @@ def XPLMClearAllMenuItems(inMenuID):
 
 def XPLMAppendMenuItem(inMenu,
                        inItemName,
-                       inItemRef,
-                       inDeprecatedAndIgnored):
+                       inItemRef):
     """
     This routine appends a new menu item to the bottom of a menu and returns
     its index. Pass in the menu to add the item to, the items name, and a
@@ -164,7 +163,7 @@ def XPLMAppendMenuSeparator(inMenu):
     """
 
 
-def XPLMSetMenuItemName(inMenu, inIndex, inItemName, inForceEnglish):
+def XPLMSetMenuItemName(inMenu, inIndex, inItemName):
     """
     This routine changes the name of an existing menu item.  Pass in the menu
     ID and the index of the menu item.

@@ -1,27 +1,32 @@
 # XPPython3 Installation Notes
 
-1. Dowload this zipfile [xppython.zip](https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython.zip)
+1. Install 64-bit Python3 (version 3.6 or greater) from https://python.org
+2. Download ONE zipfile:
+  + For Python3.6: [xppython.zip](https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython36.zip)
+  + For Python3.7: [xppython.zip](https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython37.zip)
+  + For Python3.8: [xppython.zip](https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython38.zip)
 2. Extract it into your X-Plane/Resources/plugins folder, such that you have folder there called XPPython3
-3. Install 64-bit Python3 (version 3.5 or greater) from https://python.org
 
 ## Requirements
 * requires 64-bit
 * requires python3, tested with
   + python37 and python38 on windows,
   + python37 on Mac,
-  + ubuntu (python38)
+  + ubuntu 18 (python36, python37, python38), ubuntu 20 (python38)
 * XP 11.50+. Plugin is built with SDK 303 and is NOT backward compatible to 11.41 or earlier.
 
-Single plugin should work with any (post 3.3?) version of python3,
-unlike the python2-based plugin which required minor version match.
+The plugin version must match the version of python (3.6, 3.7, 3.8) you computer is
+running: the plugin will not load if python is not correctly installed, or if the
+version does not match. If you change python versions on you computer, you must change plugin version
+to match. Any micro-release may be used for a particular major.minor release: For example, python 3.7.0 and 3.7.3 are both "3.7"
 
 It's called XPPython3:
 * "xpython" already exists (it's an all python version of python)
 * "3" to emphasize it is python 3, which is not fully backward compatible with python2
 
 ## Installation
-This plugin XPPython3 folder should be placed in <XP>/Resources/plugins.
-On startup, it will create the PythonPlugins folder, if you don't have
+This plugin XPPython3 folder should be placed in `<XP>/Resources/plugins`.
+On startup, this plugin will create the PythonPlugins folder, if you don't have
 one.
 ```
   <X-Plane>/
@@ -29,11 +34,11 @@ one.
        └─── plugins/
             ├─── XPPython3/
             │    ├─── mac_x64/
-            │    |    └─── xppython3.xpl
+            │    |    └─── XPPython3.xpl
             │    ├─── lin_x64/
-            │    |    └─── xppython3.xpl
+            │    |    └─── XPPython3.xpl
             │    └─── win_x64/
-            │         └─── xppython3.xpl
+            │         └─── XPPython3.xpl
             └─── PythonPlugins/
                  │
                  ├─── PI_<plugin1>.py
@@ -42,17 +47,19 @@ one.
 ```
     
 Python plugins themselves go to:
-* Resources/plugins/PythonPlugins/ folder
+* `Resources/plugins/PythonPlugins/` folder
   + Single file named PI_<i>anything</i>.py for each separate python plugin. This is the starting point for each python plugin
     (For Python2, we used "PythonScripts" folder -- same idea, but we need a different folder to allow
     python2 and python3 to coexist.)
   + Plugins are loaded in order as returned by the OS: that is, do not assume
     alphabetically!
   + Python files can then import other python files
-* Resources/plugins/XPPython3/ folder
+* `Resources/plugins/XPPython3/` folder
   + "internal" plugins. This is intended for internal use, and are additional python plugins loaded
     prior to the user directory "PythonPlugins". Note this is (usually) the same folder as holding
     the binary *.xpl plugin files. To be read, files need to be named I_PI_<i>anything</i>.py.
+  + python files in this directory will be in you PYTHONPATH and therefore accessible to your
+    scripts.
 
 ## Plugin Menus
 XPPython3 installs a single menu item, "XPPython3", on the plugin menu. From there, you can:

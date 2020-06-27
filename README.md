@@ -12,8 +12,8 @@ Key features:
 * **X-Plane 11.50** _minimum_: There is no attempt to make this work on older versions of X-Plane. This plugin can co-exist with the older plugin, so if Python2 is still available it can be used with the older plugin. (Python2 is end-of-life.)
 * **64-bit only**: X-Plane is now 64-bit only.
 * **X-Plane SDK 303** _minimum_: This is base SDK version for 11.50. Vulkan/Metal and OpenGL are supported.
-* **Python3 only**: This will not work with python2 programs which are not compatible with Python3. Note that this will 
-support _any_ Python3 minor version (greater than 3.3). Unlike previous python plugins, you won't need one plugin version for Python37 and a different one for Python38, etc.
+* **Python3 only**: This will not work with python2 programs which are not compatible with Python3. Note that you will have
+to use the correct version of this plugin to match the version of python installed on your system. We currently support python3.6, python3.7 and python3.8
 
 ## Building
 See [README_BUILD](XPython/README_BUILD.md) for build instructions. 

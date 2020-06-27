@@ -58,9 +58,9 @@ and disallow plugins disabling it.
 ### REMOVAL of passing 'self' as first parameter in callback registrations (required with Python2, not with Python3)
   We're using stack manipulation to do that for you instead.
 
-    ```XPLMLoadObjectAsync(path, callback, refcon)```
+    XPLMLoadObjectAsync(path, callback, refcon)
     not  
-    ```XPLMLoadObjectAsync(self, path, callback, refcon)```
+    XPLMLoadObjectAsync(self, path, callback, refcon)
 
 ### REMOVAL of extraneous parameters
 Python make string handling and memory management vastly simpler than C / C++, so we've dropped some
@@ -78,7 +78,8 @@ menus:
 ```
 widgets:
 ```
-  XPLMGetWidgetDescriptor(widgetID) We've dropped the `inMaxDescLength` and will return the full descriptor (up to 2048 characters)
+  XPLMGetWidgetDescriptor(widgetID)
+    We've dropped the `inMaxDescLength` and will return the full descriptor (up to 2048 characters)
 ```  
   
 ### Change "out" parameters. Instead, return values directly:
@@ -215,17 +216,18 @@ the object stay in scope
       XPLMScenery: XPLMLoadObjectAsync
 ```
 
-## NEW
+## NEW APIs
 ### Constants
-XPPython.VERSION -- version number of XPPython3
-XPPython.PLUGINSPATH -- full path to where XPPython3 Plugins are installed: <XP>/Resources/plugins/PythonPlugins
-XPPython.INTERNALPLUGINSPATH -- full path to where XPPython3 Internal Plugins are installed: <XP>/Resources/XPPython3
+`XPPython.VERSION` -- version number of XPPython3  
+`XPPython.PLUGINSPATH` -- full path to where XPPython3 Plugins are installed: <XP>/Resources/plugins/PythonPlugins  
+`XPPython.INTERNALPLUGINSPATH` -- full path to where XPPython3 Internal Plugins are installed: <XP>/Resources/XPPython3  
 
 ### XPPython.XPPythonGetDicts()
 Returns dictionary of internal plugin python dictionaries. The Plugin already stores lists of
 items registered by each (XPython3) plugin. You may be able to use these, read-only,
 rather than maintaining your own list of things you've registered.
     
+(For now, this internal dictionaries are not fully documented, though you can probably divine their use:
 #### commandCallbacks and commandRefcons
 Key: integer index  
 Value: tuple, ("<PluginFile.py>", <XPLMCommandRef capsule>, <command handler python method>, inBefore=0/1, <refCon object>)  
@@ -261,6 +263,5 @@ Value: <index> into commandCallbacks
 Purpose: Used with commandCallbacks (see above)  
 
 ### XPPython.XPPythonGetCapsules()
-returns a dictionary of internal plugin capsules (essentially these are registered WidgetIDs and)
+returns a dictionary of internal plugin capsules (essentially these are registered WidgetIDs)
 Not sure they'll be of any real value to SDK users.
-

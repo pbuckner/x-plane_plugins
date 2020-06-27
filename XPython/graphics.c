@@ -232,10 +232,10 @@ static PyObject *XPLMMeasureStringFun(PyObject *self, PyObject *args)
   char *inChar;
   int inNumChars;
 
-  if(!PyArg_ParseTuple(args, "isi", &inFontID, &inChar, &inNumChars)){
+  if(!PyArg_ParseTuple(args, "is", &inFontID, &inChar)) {
     return NULL;
   }
-  
+  inNumChars = strlen(inChar);
   return PyFloat_FromDouble(XPLMMeasureString(inFontID, inChar, inNumChars));
 }
 

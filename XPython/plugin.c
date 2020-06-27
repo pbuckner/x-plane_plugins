@@ -425,7 +425,7 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
   if(loadPythonLibrary() == -1) {
     fprintf(logFile, "Failed to open python shared library.\n");
     fflush(logFile);
-    return -1;
+    return 0;
   } else {
     fprintf(logFile, "Python shared library loaded\n");
     fflush(logFile);
@@ -593,7 +593,7 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
 
 int loadPythonLibrary()
 {
-#if LIN
+#if LIN || APL
   /* Prefered library is simple .so:
       libpython3.8.so
      But, that's usually a link to a versioned .so and sometimes, that
@@ -605,25 +605,33 @@ int loadPythonLibrary()
      which is prefered, so we look for those FIRST, and if not found, look for
      libraries without the 'm'.
   */
+#if LIN
+  char *suffix = "so";
+  char *path = "";
+#endif
+#if APL
+  char *suffix = "dylib";
+  char *path = "/Library/Frameworks/Python.framework/Versions/" PYTHONVERSION "/lib/";
+#endif
   char library[100];
-  sprintf(library, "libpython%sm.so", PYTHONVERSION);
+  sprintf(library, "%slibpython%sm.%s", path, PYTHONVERSION, suffix);
   pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
   if (!pythonHandle) {
-    sprintf(library, "libpython%sm.so.1", PYTHONVERSION);
+    sprintf(library, "%slibpython%sm.%s.1", path, PYTHONVERSION, suffix);
     pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
   }
   if (!pythonHandle) {
-    sprintf(library, "libpython%s.so", PYTHONVERSION);
+    sprintf(library, "%slibpython%s.%s", path, PYTHONVERSION, suffix);
     pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
   }
   if (!pythonHandle) {
-    sprintf(library, "libpython%s.so.1", PYTHONVERSION);
+    sprintf(library, "%slibpython%s.%s.1", path, PYTHONVERSION, suffix);
     pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
   }
   if (!pythonHandle) {
-      fprintf(logFile, "Unable to find python shared library 'libpython%s.so'\n", PYTHONVERSION);
-      fflush(logFile);
-      return -1;
+    fprintf(logFile, "Unable to find python shared library '%slibpython%s.%s'\n", path, PYTHONVERSION, suffix);
+    fflush(logFile);
+    return -1;
   }
 #endif
   return 0;

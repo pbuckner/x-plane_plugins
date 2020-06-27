@@ -27,9 +27,8 @@ TARGET=Windows
 TARGET=Windows
 PYDEV=/c/Program\ Files/Python38
 
-all : xppython3.xpl libpython3.dll.a
-	mkdir -p ../$(PLUGIN_PATH)/$(PLUGIN_DIR)
-	cp xppython3.xpl ../$(PLUGIN_PATH)/$(PLUGIN_DIR)
+all : XPPython36.xpl XPPython37.xpl XPPython38.xpl libpython3.dll.a
+	@echo $^
 
 libpython3.dll.a : $(PYDEV)/python3.dll
 	gendef - "$^" > python3.def

@@ -2,9 +2,9 @@
 
 1. Install 64-bit Python3 (version 3.6 or greater) from https://python.org
 2. Download ONE zipfile:
-  + For Python3.6: [xppython.zip](https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython36.zip)
-  + For Python3.7: [xppython.zip](https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython37.zip)
-  + For Python3.8: [xppython.zip](https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython38.zip)
+  + For Python3.6: [xppython36.zip](https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython36.zip)
+  + For Python3.7: [xppython37.zip](https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython37.zip)
+  + For Python3.8: [xppython38.zip](https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython38.zip)
 2. Extract it into your X-Plane/Resources/plugins folder, such that you have folder there called XPPython3
 
 ## Requirements
@@ -42,7 +42,7 @@ one.
             └─── PythonPlugins/
                  │
                  ├─── PI_<plugin1>.py
-                 ├─── PI_<plugin2>.py
+                 ├─── PI_<plugin2>.pyp
                  └─── ....
 ```
     
@@ -57,7 +57,7 @@ Python plugins themselves go to:
 * `Resources/plugins/XPPython3/` folder
   + "internal" plugins. This is intended for internal use, and are additional python plugins loaded
     prior to the user directory "PythonPlugins". Note this is (usually) the same folder as holding
-    the binary *.xpl plugin files. To be read, files need to be named I_PI_<i>anything</i>.py.
+    the binary *.xpl plugin files. To be loaded on startup, files need to be named I_PI_<i>anything</i>.py.
   + python files in this directory will be in you PYTHONPATH and therefore accessible to your
     scripts.
 
@@ -83,20 +83,20 @@ XPPython3 installs a single menu item, "XPPython3", on the plugin menu. From the
 
 * Common error on windows:
 
-        <XP>/Resources/plugins/XPpython3/win.xpl: Error Code = 126 : The specified module could not be found.
+        <XP>/Resources/plugins/XPPython3/win_x64/XPPython3.xpl: Error Code = 126 : The specified module could not be found.
      
    __Cause__: X-Plane cannot load all DLLs required by plugin. In this case, the python plugin is looking for python itself.
    Usually, python is installed in `C:\Program Files\Python3X folder`, where you'll find a file `python3.dll`.
    
    __Solution__:
    1. Python needs to be installed "for all users" -- that places the folder under \Program Files, if not for all
-      users, it's stored somewhere else & X-Plane may not be able to find it.
+      users, it's stored somewhere else & X-Plane may not be able to find it. Or,
    2. Python needs to be installed with "Set Environment Path" (*** need correct wording)
       This helps X-Plane find it -- perhaps, it could be stored "for single user" but PATH needs to set?
 
-### `XPPython3.txt`
+### `XPPython3.log`
 
-Python messages go to `<XP>/XPPython3.txt` (for python2 it was a couple files in the
+Python messages go to `<XP>/XPPython3.log` (for python2 it was a couple files in the
 <XP>/Resources/plugins/PythonScripts folder.) You can change location of this logfile
 by setting environment variable `XPPYTHON3_LOG`. Log is re-written each time (Python2,
 we appended to the file rather than clearing it out.) If you want to preserve
@@ -128,7 +128,7 @@ If you have errors running python plugins,
 1. Check `Log.txt`. Make sure python and the python plugin are installed correctly. If not,
    there will be a message in Log.txt, and XPPython3.txt will not be created. Verify it's Python3, not Python2
    getting loaded.
-2. Check XPPython3.txt. Most python coding errors / exceptions will be reported in this
+2. Check `XPPython3.log`. Most python coding errors / exceptions will be reported in this
    log.
 
-You should provide both Log.txt and XPPythonLog.txt when looking for assistance with a python plugin.
+You should provide both Log.txt and XPPython3.log when looking for assistance with a python plugin.

@@ -122,12 +122,11 @@ static PyObject *XPLMAppendMenuItemFun(PyObject *self, PyObject *args)
   PyObject *menuID;
   const char *inItemName;
   PyObject *inItemRef;
-  int inForceEnglish;
-  if(!PyArg_ParseTuple(args, "OsOi", &menuID, &inItemName, &inItemRef, &inForceEnglish)){
+  if(!PyArg_ParseTuple(args, "OsO", &menuID, &inItemName, &inItemRef)) {
     return NULL;
   }
   XPLMMenuID inMenu = refToPtr(menuID, menuIDRef);
-  int res = XPLMAppendMenuItem(inMenu, inItemName, inItemRef, inForceEnglish);
+  int res = XPLMAppendMenuItem(inMenu, inItemName, inItemRef, 0);
   return PyLong_FromLong(res);
 }
 
@@ -167,12 +166,11 @@ static PyObject *XPLMSetMenuItemNameFun(PyObject *self, PyObject *args)
   PyObject *menuID;
   const char *inItemName;
   int inIndex;
-  int inForceEnglish;
-  if(!PyArg_ParseTuple(args, "Oisi", &menuID, &inIndex, &inItemName, &inForceEnglish)){
+  if(!PyArg_ParseTuple(args, "Ois", &menuID, &inIndex, &inItemName)){
     return NULL;
   }
   XPLMMenuID inMenu = refToPtr(menuID, menuIDRef);
-  XPLMSetMenuItemName(inMenu, inIndex, inItemName, inForceEnglish);
+  XPLMSetMenuItemName(inMenu, inIndex, inItemName, 0);
   Py_RETURN_NONE;
 }
 

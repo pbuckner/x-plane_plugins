@@ -57,7 +57,7 @@ class Updater(object):
             try:
                 if self.json_info[self.Sig]['version'] != self.Version or forceUpgrade:
                     self.new_version = self.json_info[self.Sig]['version']
-                    system_log(">>>>> A new version is available: v.{}.".format(self.json_info[self.Sig]['version']))
+                    system_log(">>>>> A new version is available: v.{} -> v.{}.".format(self.Version, self.new_version))
                     if forceUpgrade or (self.json_info[self.Sig]['autoUpgrade'] and self.config and self.config.get('autoUpgrade', False)):
                         system_log(">>>>> Automatically upgrading")
                         self.update(self.json_info[self.Sig]['download'])

@@ -43,13 +43,6 @@ and disallow plugins disabling it.
   use python within your plugin to convert.
 * XPLM_USE_NATIVE_WIDGET_WINDOWS is automatically set on startup.
 * It is a FATAL ERROR to attempt to disable either NATIVE_PATHS or NATIVE_WIDGET_WINDOWS features
-* REMOVAL of passing 'self' as first parameter in callback registrations
-  We're using stack manipulation to do that for you instead.
-
-    ```XPLMLoadObjectAsync(path, callback, refcon)```
-    not  
-    ```XPLMLoadObjectAsync(self, path, callback, refcon)```
-
 * XPGetWidgetWithFocus() returns None, instead of 0, if no widgets have focus
 
 * All routines return "PyCapsules" rather than ints for XPLMWindowIDRef, XPLMHotkeyIDRef, XPLMMenuIDRef, XPLMWidgetID
@@ -61,8 +54,17 @@ and disallow plugins disabling it.
 * PI_GetWidgetGeometry() no longer supported: you'll now get tuple (dx, dy, dwidth, dheight) as param1 in widget callbacks
   (for xpMsg_Reshape)
 
-* Simplify interfaces: Python make string handling and memory management vastly simpler than C / C++, so we've dropped some
-  API parameters which are no longer critical:  
+## Simplify interfaces
+### REMOVAL of passing 'self' as first parameter in callback registrations (required with Python2, not with Python3)
+  We're using stack manipulation to do that for you instead.
+
+    ```XPLMLoadObjectAsync(path, callback, refcon)```
+    not  
+    ```XPLMLoadObjectAsync(self, path, callback, refcon)```
+
+### REMOVAL of extraneous parameters
+Python make string handling and memory management vastly simpler than C / C++, so we've dropped some
+API parameters which are no longer critical:  
 
 graphics:
 ```
@@ -79,7 +81,7 @@ widgets:
   XPLMGetWidgetDescriptor(widgetID) We've dropped the `inMaxDescLength` and will return the full descriptor (up to 2048 characters)
 ```  
   
-## Changedescriptor "out" parameters. Instead, return values directly:
+### Change "out" parameters. Instead, return values directly:
 display:  
 ```
   XPLMGetScreenSize(outWidth, outHeight) ->  

@@ -267,16 +267,16 @@ def XPLMGetFontDimensions(inFontID):
 
 
 ###############################################################################
-def XPLMMeasureString(inFontID, inChar, inNumChars):
+def XPLMMeasureString(inFontID, inChar):
     """Return a width of a given string in a given font
 
       inFontID   - integer
       inChar     - string
-      inNumChars - integer
 
    This routine returns the width in pixels of a string using a given font.
-   The string is passed along with a length; this is used to allow for
-   measuring substrings. The return value is floating point; it is
+   The full length of the string is measured: if you need to measure
+   a substring, pass only that substring to this function.
+   The return value is floating point; it is
    possible that future font drawing may allow for fractional pixels.
     """
     return float  # width of string in (fractional) pixels

@@ -61,7 +61,25 @@ and disallow plugins disabling it.
 * PI_GetWidgetGeometry() no longer supported: you'll now get tuple (dx, dy, dwidth, dheight) as param1 in widget callbacks
   (for xpMsg_Reshape)
 
-## Change "out" parameters. Instead, return values directly:
+* Simplify interfaces: Python make string handling and memory management vastly simpler than C / C++, so we've dropped some
+  API parameters which are no longer critical:  
+
+graphics:
+```
+  XPLMMeasureString(fontId, string)... we no longer support a third parameter "inNumChars" 
+```
+
+menus:
+```
+  XPLMSetMenuItemName(...) We've dropped the final parameter which was called "deprecatedAndIgnored"  
+  XPLMAppednMenuItem(...) We've dropped the final parameter which was called "deprecatedAndIgnored"  
+```
+widgets:
+```
+  XPLMGetWidgetDescriptor(widgetID) We've dropped the `inMaxDescLength` and will return the full descriptor (up to 2048 characters)
+```  
+  
+## Changedescriptor "out" parameters. Instead, return values directly:
 display:  
 ```
   XPLMGetScreenSize(outWidth, outHeight) ->  

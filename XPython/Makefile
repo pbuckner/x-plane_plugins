@@ -54,13 +54,13 @@ ifeq ($(TARGET), Darwin)
   # PY_CFLAGS = $(shell /Users/pbuck/bin/python3-config --cflags)
   # PY_LDFLAGS = $(shell /Users/pbuck/bin/python3-config --ldflags)
   CFLAGS += ${XPLM_CPPFLAGS} -DIBM=0 -DAPL=1 -DLIN=0 -arch x86_64
-  CFLAGS36=$(CFLAGS) $(shell `pyenv local 3.6-dev; pyenv which python-config` --cflags) -DPYTHONVERSION=\"3.6\"
-  CFLAGS37=$(CFLAGS) $(shell `pyenv local 3.7-dev; pyenv which python-config` --cflags) -DPYTHONVERSION=\"3.7\"
-  CFLAGS38=$(CFLAGS) $(shell `pyenv local 3.8-dev; pyenv which python-config` --cflags) -DPYTHONVERSION=\"3.8\"
+  CFLAGS36=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.6/bin/python3-config --cflags) -DPYTHONVERSION=\"3.6\"
+  CFLAGS37=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.7/bin/python3-config --cflags) -DPYTHONVERSION=\"3.7\"
+  CFLAGS38=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.8/bin/python3-config --cflags) -DPYTHONVERSION=\"3.8\"
   LDFLAGS += -shared -fPIC -fpic -ldl -g -fvisibility=hidden -undefined dynamic_lookup
-  LDFLAGS36 = $(LDFLAGS) # $(shell `pyenv local 3.6-dev; pyenv which python-config` --ldflags)
-  LDFLAGS37 = $(LDFLAGS) # $(shell `pyenv local 3.7-dev; pyenv which python-config` --ldflags)
-  LDFLAGS38 = $(LDFLAGS) # $(shell `pyenv local 3.8-dev; pyenv which python-config` --ldflags)
+  LDFLAGS36 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.6/bin/python3-config --ldflags)
+  LDFLAGS37 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.7/bin/python3-config --ldflags)
+  LDFLAGS38 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.8/bin/python3-config --ldflags) -lpython3.8
   PLUGIN_DIR=mac_x64
   LD=cc
 endif
@@ -108,6 +108,9 @@ XPPython38.xpl: $(subst XXX,38,$(PLUGIN_OBJ))
 Resources/plugins/xppython36.zip : win/XPPython36.xpl lin/XPPython36.xpl mac/XPPython36.xpl
 	rm -f $@
 	rm -f Resources/plugins/XPPython3/*/*.xpl
+	mkdir -p Resources/plugins/XPPython3/win_x64
+	mkdir -p Resources/plugins/XPPython3/lin_x64
+	mkdir -p Resources/plugins/XPPython3/mac_x64
 	cp win/XPPython36.xpl Resources/plugins/XPPython3/win_x64/XPPython3.xpl
 	cp mac/XPPython36.xpl Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
 	cp lin/XPPython36.xpl Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
@@ -116,6 +119,9 @@ Resources/plugins/xppython36.zip : win/XPPython36.xpl lin/XPPython36.xpl mac/XPP
 Resources/plugins/xppython37.zip : win/XPPython37.xpl lin/XPPython37.xpl mac/XPPython37.xpl
 	rm -f $@
 	rm -f Resources/plugins/XPPython3/*/*.xpl
+	mkdir -p Resources/plugins/XPPython3/win_x64
+	mkdir -p Resources/plugins/XPPython3/lin_x64
+	mkdir -p Resources/plugins/XPPython3/mac_x64
 	cp win/XPPython37.xpl Resources/plugins/XPPython3/win_x64/XPPython3.xpl
 	cp mac/XPPython37.xpl Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
 	cp lin/XPPython37.xpl Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
@@ -124,6 +130,9 @@ Resources/plugins/xppython37.zip : win/XPPython37.xpl lin/XPPython37.xpl mac/XPP
 Resources/plugins/xppython38.zip : win/XPPython38.xpl lin/XPPython38.xpl mac/XPPython38.xpl
 	rm -f $@
 	rm -f Resources/plugins/XPPython3/*/*.xpl
+	mkdir -p Resources/plugins/XPPython3/win_x64
+	mkdir -p Resources/plugins/XPPython3/lin_x64
+	mkdir -p Resources/plugins/XPPython3/mac_x64
 	cp win/XPPython38.xpl Resources/plugins/XPPython3/win_x64/XPPython3.xpl
 	cp mac/XPPython38.xpl Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
 	cp lin/XPPython38.xpl Resources/plugins/XPPython3/lin_x64/XPPython3.xpl

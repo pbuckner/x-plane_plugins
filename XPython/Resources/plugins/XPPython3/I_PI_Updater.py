@@ -1,32 +1,25 @@
 import sys
-import os.path
 import XPPython
 import scriptupdate
-import scriptconfig
 from XPLMMenus import XPLMCreateMenu, XPLMFindPluginsMenu, XPLMDestroyMenu, XPLMAppendMenuItem, XPLMCheckMenuItem, xplm_Menu_Checked, xplm_Menu_Unchecked, XPLMSetMenuItemName
 from XPLMUtilities import XPLMRegisterCommandHandler, XPLMCreateCommand, xplm_CommandBegin, XPLMUnregisterCommandHandler, XPLMCommandOnce
 
 
-class Config (scriptconfig.Config, scriptupdate.Updater):
+class Config (scriptupdate.Updater):
     Name = "XPPython3 Updater"
     Sig = "com.avnwx.xppython3.updater.{}.{}".format(sys.version_info.major, sys.version_info.minor)
     Desc = "Automatic updater for XPPython3 plugin"
     Version = XPPython.VERSION
     VersionCheckURL = 'https://maps.avnwx.com/data/x-plane/versions.json'
     ConfigFilename = 'updater.pkl'
-    plugin_path = (os.path.join(XPPython.INTERNALPLUGINSPATH, '..')  # because we package XPPython3 with XPPython3/ in the zip file
-                   if os.path.basename(__file__).startswith('I_PI')
-                   else XPPython.PLUGINSPATH)
-    print("plugin path is {}, __file__ is {}".format(plugin_path, __file__))
     defaults = {
         'autoUpgrade': False,
     }
-
-    def __init__(self):
-        super(Config, self).__init__(self.Sig, self.Version)
+    internal = True
 
 
 class PythonInterface(Config):
+
     def __init__(self):
         self.menu = None
         self.updatePythonCmdRef = None

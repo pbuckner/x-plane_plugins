@@ -1,10 +1,11 @@
-from __future__ import print_function
+import os
 import ssl
 import sys
 import pickle
 
 import XPLMUtilities
 import XPLMProcessing
+import XPPython
 
 Name = ''
 
@@ -26,9 +27,6 @@ def system_log(s):
     log(s)
 
 
-RELPATH = 'Resources/plugins/PythonScripts/' if sys.version_info.major == 2 else 'Resources/plugins/PythonPlugins/'
-
-
 class Config(object):
     ConfigFilename = 'example.pkl'
     defaults = {}
@@ -36,11 +34,16 @@ class Config(object):
     Sig = "Unique Plugin Signature"
     Desc = "Short description"
     Version = "0.00"
+    internal = False  # Set to True, if your plugin is an internal plugin
 
     def __init__(self, *args, **kwargs):
         global Name
         Name = self.Name
         self.new_version = None
+
+        self.plugin_path = (os.path.join(XPPython.INTERNALPLUGINSPATH, '..')  # because we package XPPython3 with XPPython3/ in the zip file
+                            if self.internal
+                            else XPPython.PLUGINSPATH)
 
         system_log('+++++ {} v{} +++++'.format(self.Name, self.Version))
         system_log("Python version is {}.{}.{} / OpenSSL is {}".format(sys.version_info.major,
@@ -52,8 +55,9 @@ class Config(object):
 
         self.sys_path = ""
         self.sys_path = XPLMUtilities.XPLMGetSystemPath()
+
         if self.ConfigFilename and self.ConfigFilename != 'example.pkl':
-            self.filename = self.sys_path + RELPATH + self.ConfigFilename
+            self.filename = os.path.join(self.plugin_path, self.ConfigFilename)
             try:
                 with open(self.filename, 'rb') as fp:
                     self.config.update(pickle.load(fp))

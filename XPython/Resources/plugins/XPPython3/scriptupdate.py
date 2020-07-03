@@ -2,16 +2,15 @@
 Python Plugin updater, modelled after PI_ScriptUpdater.py by
 Joan Perez i Cauhe
 """
-
 import os
 import os.path
 from zipfile import ZipFile
 import hashlib
 import json
 try:
-    from urllib.request import urlopen, urlretrieve
+    from urllib.request import urlopen, urlretrieve  # py3
 except ImportError:
-    from urllib import urlopen, urlretrieve
+    from urllib import urlopen, urlretrieve  # py2
 
 import time
 import scriptconfig
@@ -19,17 +18,12 @@ log = scriptconfig.log
 system_log = scriptconfig.system_log
 
 
-class Updater(object):
+class Updater(scriptconfig.Config):
     VersionCheckURL = "http://example.com/foo.json"
-    Sig = 'inherited from Config'
-    Version = 'inherited from Config'
-    config = None  # inherited from Config
-    sys_path = None  # inherited from Config
-    plugin_path = None  # inherited from Config
 
-    def __init__(self, sig, version):
+    def __init__(self):
+        super(Updater, self).__init__()
         self.new_version = None
-        log("Updater initialized")
         self.check()
         self.json_info = {}
 

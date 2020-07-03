@@ -260,7 +260,17 @@ to get the <idx>, which is from commandRefcons[inCommand]
 #### commandRefcons
 Key: inCommand  
 Value: <index> into commandCallbacks  
-Purpose: Used with commandCallbacks (see above)  
+Purpose: Used with commandCallbacks (see above)
+
+#### menus
+Key: integer index  
+Value: tuple, (<plugin>, Display String, <XPLMMenuIDRef>parent, menuItemNumber, <menu handler python method>, <refCon>)  
+Purpose:  
+Similar to commandCallbacks (described above), XPPython interecepts calls to menus.
+
+#### menuRefs
+Key: <XPLMMenuIDRef> 
+Value: integer index into menus[] dict
 
 ### XPPython.XPPythonGetCapsules()
 returns a dictionary of internal plugin capsules (essentially these are registered WidgetIDs)

@@ -34,7 +34,7 @@ const char *pythonPluginsPath = "./Resources/plugins/PythonPlugins";
 const char *pythonInternalPluginsPath = "./Resources/plugins/XPPython3";
 
 static const char *pythonPluginName = "XPPython3";
-const char *pythonPluginVersion = "3.0.0.a7 - for Python " PYTHONVERSION;
+const char *pythonPluginVersion = "3.0.0.a8 - for Python " PYTHONVERSION;
 const char *pythonPluginSig  = "avnwx.xppython3";
 static const char *pythonPluginDesc = "X-Plane interface for Python 3";
 static const char *pythonStopCommand = "XPPython3/stopScripts";
@@ -353,6 +353,8 @@ static int stopPython(void)
     }
   }
 
+  // Remove all menus (except index #0, as that's the main XPPython menu
+  
   PyDict_Clear(moduleDict);
   Py_DECREF(moduleDict);
   
@@ -426,9 +428,6 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
     fprintf(logFile, "Failed to open python shared library.\n");
     fflush(logFile);
     return 0;
-  } else {
-    fprintf(logFile, "Python shared library loaded\n");
-    fflush(logFile);
   }
 
   fprintf(logFile, "%s version %s Started.\n", pythonPluginName, pythonPluginVersion);
@@ -633,6 +632,8 @@ int loadPythonLibrary()
     fflush(logFile);
     return -1;
   }
+  fprintf(logFile, "Python shared library loaded: %s\n", library);
+  fflush(logFile);
 #endif
   return 0;
 }

@@ -41,6 +41,14 @@ static const char *pythonStopCommand = "XPPython3/stopScripts";
 static const char *pythonStartCommand = "XPPython3/startScripts";
 static const char *pythonReloadCommand = "XPPython3/reloadScripts";
 /**********************/
+static XPLMCommandRef stopScripts;
+static XPLMCommandRef startScripts;
+static XPLMCommandRef reloadScripts;
+static XPLMMenuID setupMenu; 
+
+static int commandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void *inRefcon);
+static void setXPMenu(void);
+
 static int loadPythonLibrary();
 
 PyMODINIT_FUNC PyInit_XPLMDefs(void);
@@ -322,6 +330,8 @@ static int startPython(void)
     return -1;
   }
 
+  setXPMenu();
+
   // Load internal stuff
   loadModules(pythonInternalPluginsPath, "^I_PI_.*\\.py$");
   // Load modules
@@ -353,8 +363,14 @@ static int stopPython(void)
     }
   }
 
-  // Remove all menus (except index #0, as that's the main XPPython menu
-  
+  // Remove all menus
+  if (setupMenu) {
+    XPLMClearAllMenuItems(setupMenu);
+    XPLMDestroyMenu(setupMenu);
+    setupMenu = NULL;
+    XPLMClearAllMenuItems(XPLMFindPluginsMenu());
+  }
+
   PyDict_Clear(moduleDict);
   Py_DECREF(moduleDict);
   
@@ -396,16 +412,26 @@ static int stopPython(void)
   return 0;
 }
 
-static XPLMCommandRef stopScripts;
-static XPLMCommandRef startScripts;
-static XPLMCommandRef reloadScripts;
-static XPLMMenuID setupMenu; 
-
-static int commandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void *inRefcon);
 static void menuHandler(void *inMenuRef, void *inItemRef)
 {
   (void) inMenuRef;
   (void) commandHandler(inItemRef, xplm_CommandBegin, NULL);
+}
+
+static void setXPMenu(void) {
+  int menuIndex = XPLMAppendMenuItem(XPLMFindPluginsMenu(), pythonPluginName, NULL, 1);
+
+  setupMenu = XPLMCreateMenu(pythonPluginName, XPLMFindPluginsMenu(), menuIndex, 
+                             menuHandler, NULL);
+  if(XPLMAppendMenuItemWithCommand_ptr){
+    XPLMAppendMenuItemWithCommand_ptr(setupMenu, "Stop scripts", stopScripts);
+    XPLMAppendMenuItemWithCommand_ptr(setupMenu, "Start scripts", startScripts);
+    XPLMAppendMenuItemWithCommand_ptr(setupMenu, "Reload scripts", reloadScripts);
+  }else{
+    XPLMAppendMenuItem(setupMenu, "Stop scripts", (void *)stopScripts, 0);
+    XPLMAppendMenuItem(setupMenu, "Start scripts", (void *)startScripts, 0);
+    XPLMAppendMenuItem(setupMenu, "Reload scripts", (void *)reloadScripts, 0);
+  }
 }
 
 PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
@@ -453,26 +479,11 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
   XPLMRegisterCommandHandler(startScripts, commandHandler, 1, (void *)1);
   XPLMRegisterCommandHandler(reloadScripts, commandHandler, 1, (void *)2);
 
-  int menuIndex = XPLMAppendMenuItem(XPLMFindPluginsMenu(), pythonPluginName, NULL, 1);
-
-  XPLMMenuID setupMenu = XPLMCreateMenu(pythonPluginName, XPLMFindPluginsMenu(), menuIndex, 
-                         menuHandler, NULL);
-  if(XPLMAppendMenuItemWithCommand_ptr){
-    XPLMAppendMenuItemWithCommand_ptr(setupMenu, "Stop scripts", stopScripts);
-    XPLMAppendMenuItemWithCommand_ptr(setupMenu, "Start scripts", startScripts);
-    XPLMAppendMenuItemWithCommand_ptr(setupMenu, "Reload scripts", reloadScripts);
-  }else{
-    XPLMAppendMenuItem(setupMenu, "Stop scripts", (void *)stopScripts, 0);
-    XPLMAppendMenuItem(setupMenu, "Start scripts", (void *)startScripts, 0);
-    XPLMAppendMenuItem(setupMenu, "Reload scripts", (void *)reloadScripts, 0);
-  }
-
   if(startPython() == -1) {
     fprintf(logFile, "Failed to start python, exiting.\n");
     fflush(logFile);
     return 0;
   }
-
   return 1;
 }
 

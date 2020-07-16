@@ -272,6 +272,16 @@ Similar to commandCallbacks (described above), XPPython interecepts calls to men
 Key: <XPLMMenuIDRef> 
 Value: integer index into menus[] dict
 
+#### fl (flightloop)
+Key: integer index
+Value: tuple, (<plugin>, <callback python method> <interval>, <refcon>)
+Purpose:
+Similar to commandCallbacks (described above), XPPython intercepts flightLoopCallbacks)
+
+#### flRev
+key: tuple: (<plugin>, <callback>, <refconAddr>)
+Value: integer index into fl[] dict
+
 ### XPPython.XPPythonGetCapsules()
 returns a dictionary of internal plugin capsules (essentially these are registered WidgetIDs)
 Not sure they'll be of any real value to SDK users.

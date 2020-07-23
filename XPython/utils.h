@@ -3,7 +3,6 @@
 
 #include <Python.h>
 #include <stdbool.h>
-
 extern const char *objRefName;
 extern const char *commandRefName;
 extern const char *widgetRefName;
@@ -12,6 +11,7 @@ extern PyObject *widgetIDCapsules;
 extern PyObject *windowIDCapsules;
 extern PyObject *xppythonDicts;
 extern PyObject *xppythonCapsules;
+extern FILE *pythonLogFile;
 
 void dbg(const char *msg);
 bool objToList(PyObject *item, PyObject *list);

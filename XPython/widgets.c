@@ -13,6 +13,7 @@
 #include "utils.h"
 
 static PyObject *widgetCallbackDict;
+static PyObject *widgetPropertyDict;
 PyObject *widgetIDCapsules;
 
 int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inParam1, intptr_t inParam2)
@@ -56,6 +57,12 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
     param1 =  getPtrRef((void *)inParam1, widgetIDCapsules, widgetRefName);
     break;
     
+  case xpMsg_PropertyChanged:
+    if (inParam1 >= xpProperty_UserStart) {
+      // use inParam2 -- it's already python
+      param2 = (PyObject*)inParam2;
+    }
+    break;
   default: // intentionally empty
     break;
   }
@@ -67,7 +74,7 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
        If not xpMsg_Create, write error.
      */
     if (inMessage != xpMsg_Create) {
-      printf("Couldn't find the callback list for widget ID %p. for message %d\n", inWidget, inMessage);
+      fprintf(pythonLogFile, "Couldn't find the callback list for widget ID %p. for message %d\n", inWidget, inMessage);
     }
     Py_DECREF(widget);
     Py_DECREF(param1);
@@ -110,7 +117,9 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
 
   Py_DECREF(widget);
   Py_DECREF(param1);
-  Py_DECREF(param2);
+  if (inMessage != xpMsg_PropertyChanged || inParam1 < xpProperty_UserStart) {
+    Py_DECREF(param2);
+  }
   return res;
 }
 
@@ -431,7 +440,24 @@ static PyObject *XPSetWidgetPropertyFun(PyObject *self, PyObject *args)
     return NULL;
   }
   XPWidgetPropertyID inProperty = property;
-  XPSetWidgetProperty(refToPtr(widget, widgetRefName), inProperty, PyLong_AsLong(value));
+  if (property >= xpProperty_UserStart) {
+    PyObject *key = Py_BuildValue("(Oi)", widget, property);
+
+    PyObject *prevValueObj = PyDict_GetItem(widgetPropertyDict, key);
+    PyDict_SetItem(widgetPropertyDict, key, value);
+
+    int comparison = 0; /* false */
+    if (prevValueObj != NULL) {
+      /* value value, do comparison */
+      comparison = PyObject_RichCompareBool(value, prevValueObj, Py_EQ);
+    }
+    if (comparison == 0) {
+      /* not found, or they're different */
+      XPSendMessageToWidget(refToPtr(widget, widgetRefName), xpMsg_PropertyChanged, xpMode_Direct, property, (intptr_t) value);
+    }
+  } else {
+    XPSetWidgetProperty(refToPtr(widget, widgetRefName), inProperty, PyLong_AsLong(value));
+  }
   Py_RETURN_NONE;
 }
 
@@ -445,13 +471,30 @@ static PyObject *XPGetWidgetPropertyFun(PyObject *self, PyObject *args)
   }
   XPWidgetPropertyID inProperty = property;
   int inExists;
-  intptr_t res = XPGetWidgetProperty(refToPtr(widget, widgetRefName), inProperty, &inExists);
-  if(exists != Py_None){
+
+  PyObject *resObj;
+  if (property >= xpProperty_UserStart) {
+    PyObject *key = Py_BuildValue("(Oi)", widget, property);
+    resObj = PyDict_GetItem(widgetPropertyDict, key);
+    if (resObj == NULL) {
+      /* not found, return 0 */
+      resObj = PyLong_FromLong(0);
+      inExists = 0;
+    } else {
+      Py_INCREF(resObj);
+      inExists = 1;
+    }
+    Py_DECREF(key);
+  } else {
+    intptr_t res = XPGetWidgetProperty(refToPtr(widget, widgetRefName), inProperty, &inExists);
+    resObj = PyLong_FromLong(res);
+  }
+    
+  if(exists != Py_None) {
     PyObject *e = PyLong_FromLong(inExists);
-    PyList_Append(exists, e);
+    PyList_Insert(exists, 0, e);
     Py_DECREF(e);
   }
-  PyObject *resObj = PyLong_FromLong(res);
   return resObj;
 }
 
@@ -527,6 +570,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   (void) args;
   PyDict_Clear(widgetCallbackDict);
   Py_DECREF(widgetCallbackDict);
+  PyDict_Clear(widgetPropertyDict);
+  Py_DECREF(widgetPropertyDict);
   PyDict_Clear(widgetIDCapsules);
   Py_DECREF(widgetIDCapsules);
   Py_RETURN_NONE;
@@ -584,6 +629,10 @@ PyInit_XPWidgets(void)
     return NULL;
   }
   PyDict_SetItemString(xppythonDicts, "widgetCallbacks", widgetCallbackDict);
+  if(!(widgetPropertyDict = PyDict_New())){
+    return NULL;
+  }
+  PyDict_SetItemString(xppythonDicts, "widgetProperties", widgetPropertyDict);
   if(!(widgetIDCapsules = PyDict_New())){
     return NULL;
   }

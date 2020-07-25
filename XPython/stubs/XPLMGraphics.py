@@ -281,18 +281,6 @@ def XPLMMeasureString(inFontID, inChar):
     """
     return float  # width of string in (fractional) pixels
 
-###############################################################################
-# XPLM Texture IDs name well-known textures in the sim for you to use. This
-# allows you to recycle textures from X-Plane, saving VRAM.
-# The bitmap that contains window outlines, button outlines, fonts, etc.
-xplm_Tex_GeneralInterface = 0
-
-# The exterior paint for the user's aircraft (daytime).
-xplm_Tex_AircraftPaint = 1
-
-# The exterior light map for the user's aircraft.
-xplm_Tex_AircraftLiteMap = 2
-
 
 ###############################################################################
 # X-Plane features some fixed-character fonts.  Each font may have its own

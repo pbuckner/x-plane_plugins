@@ -6,7 +6,9 @@
 
 #include <XPLM/XPLMDefs.h>
 #include <Widgets/XPWidgetDefs.h>
+#include <Widgets/XPWidgets.h>
 #include <Widgets/XPWidgetUtils.h>
+#include <Widgets/XPStandardWidgets.h>
 #include "utils.h"
 
 static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args)
@@ -95,13 +97,95 @@ static PyObject *XPUSelectIfNeededFun(PyObject *self, PyObject *args)
   int inEatClick;
   PyObject *widget = NULL, *param1 = NULL, *param2 = NULL;
   if(!PyArg_ParseTuple(args, "iOOOi", &inMessage, &widget, &param1, &param2, &inEatClick)){
+    fprintf(pythonLogFile, "Failed to parse tuple in XPUSelectIfNeeded()\n");
+    if(PyErr_Occurred()) {
+      PyErr_Print();
+    }
     return NULL;
   }
+
+  /* Incoming are messages to widgets.
+     XPUSelectIfNeeded() [appears to] raise the widget if required AND THEN RESENDS the
+     original message to the widget.
+
+     For the params, we're reading a python object & we'll need to convert them (back)
+     to their int form. This is the reverse of widgetCallback() in widgets.c
+   */
   inWidget = refToPtr(widget, widgetRefName);
-  inParam1 = PyLong_AsLong(param1);
-  inParam2 = PyLong_AsLong(param2);
  
-  int res = XPUSelectIfNeeded(inMessage, inWidget, inParam1, inParam2, inEatClick);
+  XPKeyState_t keyState;
+  XPMouseState_t mouseState;
+  XPWidgetGeometryChange_t wChange;
+  int res;
+  switch (inMessage) {
+  case xpMsg_KeyPress:
+    keyState.key = PyLong_AsLong(PyList_GetItem(param1, 0));
+    keyState.flags = PyLong_AsLong(PyList_GetItem(param1, 1));
+    keyState.vkey = PyLong_AsLong(PyList_GetItem(param1, 2));
+    inParam1 = (intptr_t) &keyState;
+    inParam2 = PyLong_AsLong(param2);
+    break;
+  case xpMsg_MouseDown:
+  case xpMsg_MouseDrag:
+  case xpMsg_MouseUp:
+  case xpMsg_CursorAdjust:
+    if (PyTuple_Check(param1)) {
+      mouseState.x = PyLong_AsLong(PyTuple_GetItem(param1, 0));
+      mouseState.y = PyLong_AsLong(PyTuple_GetItem(param1, 1));
+      mouseState.button = PyLong_AsLong(PyTuple_GetItem(param1, 2));
+      mouseState.delta = PyLong_AsLong(PyTuple_GetItem(param1, 3));
+    } else if (PyList_Check(param1)) {
+      mouseState.x = PyLong_AsLong(PyList_GetItem(param1, 0));
+      mouseState.y = PyLong_AsLong(PyList_GetItem(param1, 1));
+      mouseState.button = PyLong_AsLong(PyList_GetItem(param1, 2));
+      mouseState.delta = PyLong_AsLong(PyList_GetItem(param1, 3));
+    } else {
+      fprintf(pythonLogFile, "Don't know what param1 is for message %d: %s ", inMessage, Py_TYPE(param1)->tp_name);
+    }
+    inParam1 = (intptr_t) &mouseState;
+    inParam2 = PyLong_AsLong(param2);
+    break;
+  case xpMsg_Reshape:
+    inParam1 = (intptr_t) refToPtr(param1, widgetRefName);
+    if (PyTuple_Check(param2)) {
+        wChange.dx = PyLong_AsLong(PyTuple_GetItem(param2, 0));
+        wChange.dy = PyLong_AsLong(PyTuple_GetItem(param2, 1));
+        wChange.dwidth = PyLong_AsLong(PyTuple_GetItem(param2, 2));
+        wChange.dheight = PyLong_AsLong(PyTuple_GetItem(param2, 3));
+    } else if (PyList_Check(param2)) {
+        wChange.dx = PyLong_AsLong(PyList_GetItem(param2, 0));
+        wChange.dy = PyLong_AsLong(PyList_GetItem(param2, 1));
+        wChange.dwidth = PyLong_AsLong(PyList_GetItem(param2, 2));
+        wChange.dheight = PyLong_AsLong(PyList_GetItem(param2, 3));
+    }
+    inParam2 = (intptr_t) &wChange;
+    break;
+  case xpMsg_AcceptChild:
+  case xpMsg_LoseChild:
+  case xpMsg_AcceptParent:
+  case xpMsg_Shown:
+  case xpMsg_Hidden:
+  case xpMsg_TextFieldChanged:
+  case xpMsg_PushButtonPressed:
+  case xpMsg_ButtonStateChanged:
+    inParam1 = (intptr_t) refToPtr(param1, widgetRefName);
+    inParam2 = PyLong_AsLong(param2);
+    break;
+  case xpMsg_PropertyChanged:
+    inParam1 = PyLong_AsLong(param1);
+    if (inParam1 >= xpProperty_UserStart) {
+      inParam2 = (intptr_t)param2;
+    } else {
+      inParam2 = PyLong_AsLong(param2);
+    }
+    break;
+  default:
+    inParam1 = PyLong_AsLong(param1);
+    inParam2 = PyLong_AsLong(param2);
+    break;
+  }
+  
+  res = XPUSelectIfNeeded(inMessage, inWidget, inParam1, inParam2, inEatClick);
   return PyLong_FromLong(res);
 }
 

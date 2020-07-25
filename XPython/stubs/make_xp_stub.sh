@@ -1,4 +1,9 @@
 #!/bin/bash
+if [ `uname -s` != "Linux" ]; then
+    echo "Error: due to regex support, execute this on Linux"
+    exit 1
+fi
+
 for file in XP*.py;
 do
     file=`echo $file | sed s/\.py//`

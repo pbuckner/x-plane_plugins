@@ -37,12 +37,12 @@ static const char *pythonPluginName = "XPPython3";
 const char *pythonPluginVersion = "3.0.0.a8 - for Python " PYTHONVERSION;
 const char *pythonPluginSig  = "avnwx.xppython3";
 static const char *pythonPluginDesc = "X-Plane interface for Python 3";
-static const char *pythonStopCommand = "XPPython3/stopScripts";
-static const char *pythonStartCommand = "XPPython3/startScripts";
+static const char *pythonDisableCommand = "XPPython3/disableScripts";
+static const char *pythonEnableCommand = "XPPython3/enableScripts";
 static const char *pythonReloadCommand = "XPPython3/reloadScripts";
 /**********************/
-static XPLMCommandRef stopScripts;
-static XPLMCommandRef startScripts;
+static XPLMCommandRef disableScripts;
+static XPLMCommandRef enableScripts;
 static XPLMCommandRef reloadScripts;
 static XPLMMenuID setupMenu; 
 
@@ -50,6 +50,8 @@ static int commandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, vo
 static void setXPMenu(void);
 
 static int loadPythonLibrary();
+PLUGIN_API int XPluginEnable(void);
+PLUGIN_API void XPluginDisable(void);
 
 PyMODINIT_FUNC PyInit_XPLMDefs(void);
 PyMODINIT_FUNC PyInit_XPLMDisplay(void);
@@ -74,7 +76,7 @@ PyMODINIT_FUNC PyInit_SBU(void);
 PyMODINIT_FUNC PyInit_XPPython(void);
 
 FILE *pythonLogFile;
-static bool stopped;
+static bool disabled;
 static int allErrorsEncountered;
 
 static PyObject *logWriterWrite(PyObject *self, PyObject *args)
@@ -424,12 +426,12 @@ static void setXPMenu(void) {
   setupMenu = XPLMCreateMenu(pythonPluginName, XPLMFindPluginsMenu(), menuIndex, 
                              menuHandler, NULL);
   if(XPLMAppendMenuItemWithCommand_ptr){
-    XPLMAppendMenuItemWithCommand_ptr(setupMenu, "Stop scripts", stopScripts);
-    XPLMAppendMenuItemWithCommand_ptr(setupMenu, "Start scripts", startScripts);
+    XPLMAppendMenuItemWithCommand_ptr(setupMenu, "Disable scripts", disableScripts);
+    XPLMAppendMenuItemWithCommand_ptr(setupMenu, "Enable scripts", enableScripts);
     XPLMAppendMenuItemWithCommand_ptr(setupMenu, "Reload scripts", reloadScripts);
   }else{
-    XPLMAppendMenuItem(setupMenu, "Stop scripts", (void *)stopScripts, 0);
-    XPLMAppendMenuItem(setupMenu, "Start scripts", (void *)startScripts, 0);
+    XPLMAppendMenuItem(setupMenu, "Disable scripts", (void *)disableScripts, 0);
+    XPLMAppendMenuItem(setupMenu, "Enable scripts", (void *)enableScripts, 0);
     XPLMAppendMenuItem(setupMenu, "Reload scripts", (void *)reloadScripts, 0);
   }
 }
@@ -471,12 +473,12 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
   } else {
     fprintf(pythonLogFile, "Warning: XPLM_USE_NATIVE_WIDGET_WINDOWS not enabled. Using Legacy windows.\n");
   }
-  stopScripts = XPLMCreateCommand(pythonStopCommand, "Stop all running scripts");
-  startScripts = XPLMCreateCommand(pythonStartCommand, "Start all scripts");
+  disableScripts = XPLMCreateCommand(pythonDisableCommand, "Disable all running scripts");
+  enableScripts = XPLMCreateCommand(pythonEnableCommand, "Enable all scripts");
   reloadScripts = XPLMCreateCommand(pythonReloadCommand, "Reload all scripts");
 
-  XPLMRegisterCommandHandler(stopScripts, commandHandler, 1, (void *)0);
-  XPLMRegisterCommandHandler(startScripts, commandHandler, 1, (void *)1);
+  XPLMRegisterCommandHandler(disableScripts, commandHandler, 1, (void *)0);
+  XPLMRegisterCommandHandler(enableScripts, commandHandler, 1, (void *)1);
   XPLMRegisterCommandHandler(reloadScripts, commandHandler, 1, (void *)2);
 
   if(startPython() == -1) {
@@ -492,8 +494,8 @@ PLUGIN_API void XPluginStop(void)
 {
   stopPython();
   XPLMDestroyMenu(setupMenu);
-  XPLMUnregisterCommandHandler(stopScripts, commandHandler, 1, (void *)0);
-  XPLMUnregisterCommandHandler(startScripts, commandHandler, 1, (void *)1);
+  XPLMUnregisterCommandHandler(disableScripts, commandHandler, 1, (void *)0);
+  XPLMUnregisterCommandHandler(enableScripts, commandHandler, 1, (void *)1);
   XPLMUnregisterCommandHandler(reloadScripts, commandHandler, 1, (void *)2);
   if(allErrorsEncountered){
     fprintf(pythonLogFile, "Total errors encountered: %d\n", allErrorsEncountered);
@@ -508,15 +510,33 @@ static int commandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, vo
   if(inPhase != xplm_CommandBegin){
     return 0;
   }
-  if(inCommand == stopScripts){
-    stopped = true;
-  }else if(inCommand == startScripts){
-    stopped = false;
+  if(inCommand == disableScripts){
+    if (! disabled) {
+      XPluginDisable();
+      disabled = true;
+      fprintf(pythonLogFile, "XPPython: Disabled scripts.\n");
+    } else {
+      fprintf(pythonLogFile, "XPPython already disabled.\n");
+    }
+  }else if(inCommand == enableScripts){
+    if (disabled) {
+      disabled = false;
+      XPluginEnable();
+      fprintf(pythonLogFile, "XPPython: Enabled scripts.\n");
+    } else {
+      fprintf(pythonLogFile, "XPPython already enabled.\n");
+    }
   }else if(inCommand == reloadScripts){
+    if (! disabled) {
+      XPluginDisable();
+    }
     stopPython();
-    fprintf(pythonLogFile, "Reloading XPPython Scripts\n");
+    fprintf(pythonLogFile, "XPPython: Reloading scripts.\n");
+    disabled = 0;
     startPython();
+    XPluginEnable();
   }
+  fflush(pythonLogFile);
   return 0;
 }
 
@@ -525,7 +545,7 @@ PLUGIN_API int XPluginEnable(void)
 {
   PyObject *pKey, *pVal, *pRes;
   Py_ssize_t pos = 0;
-  if(stopped){
+  if(disabled){
     return 1;
   }
 
@@ -553,7 +573,7 @@ PLUGIN_API void XPluginDisable(void)
 {
   PyObject *pKey, *pVal, *pRes;
   Py_ssize_t pos = 0;
-  if(stopped){
+  if(disabled){
     return;
   }
 
@@ -579,7 +599,7 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
   PyObject *pKey, *pVal, *pRes;
   Py_ssize_t pos = 0;
   PyObject *param;
-  if(stopped){
+  if(disabled){
     return;
   }
   param = PyLong_FromLong((long)inParam);

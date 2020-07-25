@@ -5,7 +5,7 @@
   + For Python3.6: [xppython36.zip](https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython36.zip)
   + For Python3.7: [xppython37.zip](https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython37.zip)
   + For Python3.8: [xppython38.zip](https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython38.zip)
-2. Extract it into your X-Plane/Resources/plugins folder, such that you have folder there called XPPython3
+3. Extract it into your X-Plane/Resources/plugins folder, such that you have folder there called XPPython3
 
 ## Requirements
 * requires 64-bit
@@ -42,7 +42,7 @@ one.
             └─── PythonPlugins/
                  │
                  ├─── PI_<plugin1>.py
-                 ├─── PI_<plugin2>.pyp
+                 ├─── PI_<plugin2>.py
                  └─── ....
 ```
     
@@ -63,14 +63,10 @@ Python plugins themselves go to:
 
 ## Plugin Menus
 XPPython3 installs a single menu item, "XPPython3", on the plugin menu. From there, you can:
-  * Start - only useful if you've stopped the scripts
-  * Stop - Stop all scripts (kindof -- actually, we just stop sending messages to scripts,
-           but they are still "running" as far as I can tell).  XPluginReceiveMessage() is disabled.
+  * Enable - only useful if you've disabled the scripts
+  * Disable - disables all scripts
   * Reload - Stops and restarts python, reloading all scripts. While this works, note that some
     plugins do not clean up after themselves, so loading all python plugins may result in duplications.
-    Best example is where a plugin doesn't remove it's menu on stop. On Reload, it will add _another_ menu
-    of the same name: The best fix is to have the plugin author fix their code, otherwise restart X-Plane or
-    just don't use Reload.
 
 ## Logging
 ### `Log.txt`

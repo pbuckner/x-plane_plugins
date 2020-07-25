@@ -105,7 +105,9 @@ XPPython38.xpl: $(subst XXX,38,$(PLUGIN_OBJ))
 	$(LD) $^ $(LDFLAGS38) -o $@ 
 
 
-Resources/plugins/xppython36.zip : win/XPPython36.xpl lin/XPPython36.xpl mac/XPPython36.xpl
+StandardPythonUtils = Resources/plugins/XPPython3/xp.py Resources/plugins/XPPython3/I_PI_Updater.py Resources/plugins/XPPython3/scriptupdate.py Resources/plugins/XPPython3/scriptconfig.py
+
+Resources/plugins/xppython36.zip : win/XPPython36.xpl lin/XPPython36.xpl mac/XPPython36.xpl $(StandardPythonUtils)
 	rm -f $@
 	rm -f Resources/plugins/XPPython3/*/*.xpl
 	mkdir -p Resources/plugins/XPPython3/win_x64
@@ -116,7 +118,7 @@ Resources/plugins/xppython36.zip : win/XPPython36.xpl lin/XPPython36.xpl mac/XPP
 	cp lin/XPPython36.xpl Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
 	cd Resources/plugins; $(ZIP) xppython36.zip -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md
 
-Resources/plugins/xppython37.zip : win/XPPython37.xpl lin/XPPython37.xpl mac/XPPython37.xpl
+Resources/plugins/xppython37.zip : win/XPPython37.xpl lin/XPPython37.xpl mac/XPPython37.xpl $(StandardPythonUtils)
 	rm -f $@
 	rm -f Resources/plugins/XPPython3/*/*.xpl
 	mkdir -p Resources/plugins/XPPython3/win_x64
@@ -127,7 +129,7 @@ Resources/plugins/xppython37.zip : win/XPPython37.xpl lin/XPPython37.xpl mac/XPP
 	cp lin/XPPython37.xpl Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
 	cd Resources/plugins; $(ZIP) xppython37.zip -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md
 
-Resources/plugins/xppython38.zip : win/XPPython38.xpl lin/XPPython38.xpl mac/XPPython38.xpl
+Resources/plugins/xppython38.zip : win/XPPython38.xpl lin/XPPython38.xpl mac/XPPython38.xpl $(StandardPythonUtils)
 	rm -f $@
 	rm -f Resources/plugins/XPPython3/*/*.xpl
 	mkdir -p Resources/plugins/XPPython3/win_x64

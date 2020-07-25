@@ -98,16 +98,6 @@ def XPLMSpeakString(inString):
     """
 
 
-def XPLMCommandKeyStroke(inKey):
-    """
-    This routine simulates a command-key stroke. However, the keys are done by
-    function, not by actual letter, so this function works even if the user has
-    remapped their keyboard. Examples of things you might do with this include
-    pausingbutton the simulator.
-    """
-    pass
-
-
 def XPLMGetVirtualKeyDescription(inVirtualKey):
     """
     Given a virtual key code (as defined in XPLMDefs.h) this routine returns a

@@ -60,7 +60,7 @@ html_theme_options = {
     'root_name': '',
     'root_icon': 'xppython3.png',
     'root_url': '',
-    'issues_url': 'https:www.google.com'
+    'issues_url': 'https://github.com/pbuckner/x-plane_plugins/issues'
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

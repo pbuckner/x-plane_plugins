@@ -53,7 +53,7 @@ exclude_patterns = []
 # a list of builtin themes.
 #
 html_theme = 'python_docs_theme'
-html_theme_path = ['docs/_theme', ]
+html_theme_path = ['_theme', ]
 html_theme_options = {
     'root_name': '',
     'root_icon': 'xppython3.png',

@@ -7,24 +7,24 @@ cannot access the widget's guts directly. Every Widget has the following
 intrinsic data:
 
 - A bounding box defined in global screen coordinates with 0,0 in the
-bottom left and +y = up, +x = right.
+  bottom left and +y = up, +x = right.
 
 - A visible box, which is the intersection of the bounding box with the
-widget's parents visible box.
+  widget's parents visible box.
 
 - Zero or one parent widgets. (Always zero if the widget is a root widget.
 
 - Zero or more child widgets.
 
 - Whether the widget is a root. Root widgets are the top level plugin
-windows.
+  windows.
 
 - Whether the widget is visible.
 
 - A text string descriptor, whose meaning varies from widget to widget.
 
 - An arbitrary set of 32 bit integral properties defined by 32-bit integral
-keys. This is how specific widgets
+  keys. This is how specific widgets
 
 store specific data.
 
@@ -47,22 +47,23 @@ Widgets are different than other view hierarchies (most notably Win32,
 which they bear a striking resemblance to) in the following ways:
 
 - Not all behavior can be patched. State that is managed by the XPWidgets
-DLL and not by individual widgets cannot be customized.
+  DLL and not by individual widgets cannot be customized.
 
 - All coordinates are in global screen coordinates. Coordinates are not
-relative to an enclosing widget, nor are they relative to a display window.
+  relative to an enclosing widget, nor are they relative to a display window.
 
 
 - Widget messages are always dispatched synchronously, and there is no
-concept of scheduling an update or a dirty region. Messages originate from
-X-Plane as the sim cycle goes by. Since X-Plane is constantly redrawing, so
-are widgets; there is no need to mark a part of a widget as 'needing
-redrawing' because redrawing happens frequently whether the widget needs it
-or not.
+  concept of scheduling an update or a dirty region. Messages originate from
+  X-Plane as the sim cycle goes by. Since X-Plane is constantly redrawing, so
+  are widgets; there is no need to mark a part of a widget as 'needing
+  redrawing' because redrawing happens frequently whether the widget needs it
+  or not.
 
 - Any widget may be a 'root' widget, causing it to be drawn; there is no
-relationship between widget class and rootness. Root widgets are imlemented
-as XPLMDisply windows.
+  relationship between widget class and rootness. Root widgets are imlemented
+  as XPLMDisply windows.
+
 """
 
 
@@ -81,24 +82,24 @@ def XPCreateWidget(inLeft, inTop, inRight, inBottom,
     Input Parameters:
 
     - Top, left, bottom, and right in global screen coordinates defining the
-    widget's location on the screen.
+      widget's location on the screen.
 
     - inVisible is 1 if the widget should be drawn, 0 to start the widget as
-    hidden.
+      hidden.
 
     - inDescriptor is a null terminated string that will become the widget's
-    descriptor.
+      descriptor.
 
     - inIsRoot is 1 if this is going to be a root widget, 0 if it will not be.
 
     - inContainer is the ID of this widget's container. It must be 0 for a root
-    widget. for a non-root widget, pass the widget ID of the widget to place
-    this widget within. If this widget is not going to start inside another
-    widget, pass 0; this new widget will then just be floating off in space
-    (and will not be drawn until it is placed in a widget.
+      widget. for a non-root widget, pass the widget ID of the widget to place
+      this widget within. If this widget is not going to start inside another
+      widget, pass 0; this new widget will then just be floating off in space
+      (and will not be drawn until it is placed in a widget.
 
     - inClass is the class of the widget to draw. Use one of the predefined
-    class-IDs to create a standard widget.
+      class-IDs to create a standard widget.
 
     A note on widget embedding: a widget is only called (and will be drawn,
     etc.) if it is placed within a widget that will be called. Root widgets are

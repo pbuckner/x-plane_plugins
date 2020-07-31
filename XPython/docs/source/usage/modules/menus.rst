@@ -1,0 +1,5 @@
+XPLMMenus
+=========
+
+.. automodule:: XPLMMenus
+   :members:             

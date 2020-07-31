@@ -23,6 +23,8 @@ project = 'XPPython3'
 copyright = '2020, Peter Buckner'
 author = 'Peter Buckner'
 
+master_doc = 'index'
+
 # The full version, including alpha/beta/rc tags
 release = '3.0.0'
 

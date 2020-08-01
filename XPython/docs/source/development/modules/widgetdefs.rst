@@ -1,0 +1,5 @@
+XPWidgetDefs
+============
+
+.. automodule:: XPWidgetDefs
+   :members:             

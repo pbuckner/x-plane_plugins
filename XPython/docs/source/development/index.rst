@@ -5,17 +5,17 @@ To develop python3 plugins, you'll need to have the XPPython3 plugin installed f
 
 Additionally, you may find these resources helpful (though not required):
 
-* X-Plane developer documentation: `developer.x-plane.com <https://developer.x-plane.com/sdk/plugin-sdk-documents/>`_
+* **X-Plane developer documentation**: `developer.x-plane.com <https://developer.x-plane.com/sdk/plugin-sdk-documents/>`_
 
   X-Plane's documentation is for C-language, and most of that has been translated to python and documented
   with XPPython3. However, when in doubt, check the Laminar docs.
   
-* XPPython3 Module Documentation: :doc:`modules/index`.
+* **XPPython3 Module Documentation**: :doc:`modules/index`.
 
   We've attempted to fully document the API here, noting changes from the official C-Language SDK. (Don't forget to use the `Search`
   field in the header of each page to find what you're looking for!)
   
-* Python Stubs: `stubs.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/stubs.zip>`_.
+* **Python Stubs**: `stubs.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/stubs.zip>`_.
 
   Because the XPLM* modules are contained within a shared library, they are not useful for support tools such as
   pylint. For this reason, we've included a set of stubs.
@@ -32,11 +32,11 @@ Additionally, you may find these resources helpful (though not required):
   .. Note:: Do not place stubs in XPPython3 or PythonPlugins folder where they will be found by
             X-Plane! The stubs do not actually execute code.
             
-* Demos:  `XPython/demos/ <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/demos/>`_.
+* **Demos**:  `XPython/demos/ <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/demos/>`_.
 
   Ported versions of C++ and Python2 demos.
 
-* Examples: `XPython/examples/ <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/examples/>`_
+* **Examples**: `XPython/examples/ <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/examples/>`_
 
   Python code exercising each interface is in this directory, organized primarily one example file per module.
   You can copy them into your :code:`Resources/plugins/PythonPlugins` directory to have them executed by X-Plane.

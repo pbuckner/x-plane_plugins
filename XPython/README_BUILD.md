@@ -4,6 +4,10 @@
 This directory XPPython3 contains code for python plugin, as modified to support
 Python3 and _only_ SDK 303+ (X-Plane 11.50+)
 
+- Linux, tested on Ubuntu18 with gnu compiler,
+- Mac, developed and tested on Catalina 10.15 with Xcode compiler (command line only), 
+- Windows, tested on Windows 10 with mingw-w64 tools. Might be compilable with VisualStudio, but I don't care.
+
     XPPython3/
        *.[ch]
        lin/

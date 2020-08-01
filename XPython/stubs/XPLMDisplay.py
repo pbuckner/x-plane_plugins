@@ -258,16 +258,16 @@ xplm_MouseUp = 3
 # XPLMCursorStatus describes how you would like X-Plane to manage the cursor.
 # See XPLMHandleCursor_f for more info.
 
-# X-Plane manages the cursor normally, plugin does not affect the cusrsor.
+#: X-Plane manages the cursor normally, plugin does not affect the cusrsor.
 xplm_CursorDefault = 0
 
-# X-Plane hides the cursor.
+#: X-Plane hides the cursor.
 xplm_CursorHidden = 1
 
-# X-Plane shows the cursor as the default arrow.
+#: X-Plane shows the cursor as the default arrow.
 xplm_CursorArrow = 2
 
-# X-Plane shows the cursor but lets you select an OS cursor.
+#: X-Plane shows the cursor but lets you select an OS cursor.
 xplm_CursorCustom = 3
 
 

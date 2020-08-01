@@ -26,15 +26,15 @@ Key features
   to use the correct version of this plugin to match the version of python installed on your system. We currently support
   python3.6, python3.7 and python3.8
 
-Installing XPPython3 Plugin
----------------------------
+Installing the Plugin
+---------------------
 
 To install the XPPython3 plugin (not develop new python plugsin) go to :doc:`usage/installation_plugin`.
 
-Using XPPython3 SDK
--------------------
+Using the SDK
+-------------
 
-To use the XPPython3 plugin for developing new python-based XP Plugins, go to :doc:`usage/installation_sdk`.
+To use the XPPython3 plugin for developing new python-based XP Plugins, go to :doc:`development/index`.
 
 Building XPPython3
 ------------------
@@ -43,17 +43,16 @@ Building XPPython3
    You do not need to build XPPython3 to use python plugins, or to develop new python plugins.
    However, you may find it useful if you're trying to track down a crash bug in during your plugin development.
 
-Build instructions are provided in :doc:`usage/building`.   
+Build instructions are provided in :doc:`building/index`.   
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
    usage/installation_plugin
-   usage/installation_sdk
-   usage/building
-   usage/quickstart
-   usage/modules/index
+   development/index
+   building/index
+   development/modules/index
 
 
 

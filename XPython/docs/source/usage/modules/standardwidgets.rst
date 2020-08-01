@@ -1,5 +1,0 @@
-XPStandardWidgets
-=================
-
-.. automodule:: XPStandardWidgets
-   :members:             

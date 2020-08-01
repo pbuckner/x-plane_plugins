@@ -1,5 +1,0 @@
-XPPython
-============
-
-.. automodule:: XPPython
-   :members:             

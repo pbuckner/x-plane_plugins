@@ -1,5 +1,0 @@
-XPLMNavigation
-==============
-
-.. automodule:: XPLMNavigation
-   :members:             

@@ -1,5 +1,0 @@
-XPUIGraphics
-============
-
-.. automodule:: XPUIGraphics
-   :members:             

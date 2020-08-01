@@ -1,5 +1,0 @@
-XPLMMap
-===========
-
-.. automodule:: XPLMMap
-   :members:             

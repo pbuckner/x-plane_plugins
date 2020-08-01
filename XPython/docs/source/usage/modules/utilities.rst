@@ -1,5 +1,0 @@
-XPLMUtilities
-=============
-
-.. automodule:: XPLMUtilities
-   :members:             

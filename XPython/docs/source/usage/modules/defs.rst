@@ -1,5 +1,0 @@
-XPLMDefs
-========
-
-.. automodule:: XPLMDefs
-   :members:             

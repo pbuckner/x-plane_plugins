@@ -1,5 +1,0 @@
-XPLMDisplay
-===========
-
-.. automodule:: XPLMDisplay
-   :members:             

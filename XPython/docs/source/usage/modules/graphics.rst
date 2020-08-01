@@ -1,5 +1,0 @@
-XPLMGraphics
-============
-
-.. automodule:: XPLMGraphics
-   :members:             

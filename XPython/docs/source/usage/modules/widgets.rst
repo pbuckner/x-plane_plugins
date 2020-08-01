@@ -1,5 +1,0 @@
-XPLMWidgets
-===========
-
-.. automodule:: XPWidgets
-   :members:             

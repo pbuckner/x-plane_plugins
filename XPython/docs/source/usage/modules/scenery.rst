@@ -1,5 +1,0 @@
-XPLMScenery
-===========
-
-.. automodule:: XPLMScenery
-   :members:             

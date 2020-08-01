@@ -1,5 +1,0 @@
-XPWidgetUtils
-=============
-
-.. automodule:: XPWidgetUtils
-   :members:             

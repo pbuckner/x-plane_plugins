@@ -1,5 +1,0 @@
-XPLMPlugin
-==========
-
-.. automodule:: XPLMPlugin
-   :members:             

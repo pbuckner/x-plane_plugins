@@ -1,5 +1,0 @@
-XPLMInstance
-============
-
-.. automodule:: XPLMInstance
-   :members:             

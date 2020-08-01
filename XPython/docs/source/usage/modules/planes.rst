@@ -1,5 +1,0 @@
-XPLMPlanes
-==========
-
-.. automodule:: XPLMPlanes
-   :members:             

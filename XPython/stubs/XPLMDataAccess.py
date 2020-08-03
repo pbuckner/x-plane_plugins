@@ -336,12 +336,16 @@ def XPLMRegisterDataAccessor(inDataName, inDataType, inIsWritable,
     this data ref to unregister your data later or read or write from it.
 
     Data access callbacks:
-    inReadInt_f,        inWriteInt_f:        XPLMGetDatai_f/XPLMSetDatai_f
-    inReadFloat_f,      inWriteFloat_f:      XPLMGetDataf_f/XPLMSetDataf_f
-    inReadDouble_f,     inWriteDouble_f:     XPLMGetDatad_f/XPLMSetDatad_f
-    inReadIntArray_f,   inWriteIntArray_f:   XPLMGetDatavi_f/XPLMSetDatavi_f
-    inReadFloatArray_f, inWriteFloatArray_f: XPLMGetDatavf_f/XPLMSetDatavf_f
-    inReadData_f,       inWriteData_f:       XPLMGetDatab_f/XPLMSetDatab_f
+
+    ===================== ==================== ==============================
+    | inReadInt_f         inWriteInt_f         XPLMGetDatai_f/XPLMSetDatai_f
+    | inReadFloat_f       inWriteFloat_f       XPLMGetDataf_f/XPLMSetDataf_f
+    | inReadDouble_f      inWriteDouble_f      XPLMGetDatad_f/XPLMSetDatad_f
+    | inReadIntArray_f    inWriteIntArray_f    XPLMGetDatavi_f/XPLMSetDatavi_f
+    | inReadFloatArray_f  inWriteFloatArray_f  XPLMGetDatavf_f/XPLMSetDatavf_f
+    | inReadData_f        inWriteData_f        XPLMGetDatab_f/XPLMSetDatab_f
+    ===================== ==================== ==============================
+
     """
     return int  # XPLMDataRef
 

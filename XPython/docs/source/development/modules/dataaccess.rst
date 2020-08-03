@@ -180,10 +180,9 @@ Get/Set Bytes
       above description is how these datarefs are intended to work, but a rogue
       plugin may have different behavior.
 
-&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
-Publishing Your Plugins Data
-****************************
+Callbacks: Publishing Your Plugin's Data
+****************************************
 These functions allow you to create data references that other plug-ins can
 access via the above data access APIs. Data references published by other
 plugins operate the same as ones published by X-Plane in all manners except
@@ -200,7 +199,29 @@ this prefix is reserved for X-Plane. The X-Plane SDK website contains a
 registry where authors can select a unique first word for dataref names, to
 prevent dataref collisions between plugins.
 
-SHARING DATA BETWEEN MULTIPLE PLUGINS
+Registration
+++++++++++++
+.. autofunction:: XPLMRegisterDataAccessor
+.. autofunction:: XPLMUnregisterDataAccessor
+
+Callbacks
++++++++++
+.. autofunction:: XPLMDataChanged_f
+.. autofunction:: XPLMGetDatab_f
+.. autofunction:: XPLMSetDatab_f
+.. autofunction:: XPLMGetDatad_f
+.. autofunction:: XPLMSetDatad_f
+.. autofunction:: XPLMGetDataf_f
+.. autofunction:: XPLMSetDataf_f
+.. autofunction:: XPLMGetDatai_f
+.. autofunction:: XPLMSetDatai_f
+.. autofunction:: XPLMGetDatavf_f
+.. autofunction:: XPLMSetDatavf_f
+.. autofunction:: XPLMGetDatavi_f
+.. autofunction:: XPLMSetDatavi_f
+
+
+Sharing Data Between Multiple Plugins
 *************************************
 
 The data reference registration APIs from the previous section allow a
@@ -236,26 +257,8 @@ reference used by several plugins but do not know which plugins will be
 installed, or if all plugins sharing data need to be notified when that
 data is changed, use shared data references.
 
-.. autofunction:: XPLMRegisterDataAccessor
-.. autofunction:: XPLMUnregisterDataAccessor
 .. autofunction:: XPLMShareData
 .. autofunction:: XPLMUnshareData
-
-Callbacks
----------
-.. autofunction:: XPLMDataChanged_f
-.. autofunction:: XPLMGetDatab_f
-.. autofunction:: XPLMSetDatab_f
-.. autofunction:: XPLMGetDatad_f
-.. autofunction:: XPLMSetDatad_f
-.. autofunction:: XPLMGetDataf_f
-.. autofunction:: XPLMSetDataf_f
-.. autofunction:: XPLMGetDatai_f
-.. autofunction:: XPLMSetDatai_f
-.. autofunction:: XPLMGetDatavf_f
-.. autofunction:: XPLMSetDatavf_f
-.. autofunction:: XPLMGetDatavi_f
-.. autofunction:: XPLMSetDatavi_f
 
 Types
 --------------------
@@ -263,5 +266,10 @@ Types
 .. data:: XPLMDataTypeID
    :annotation: bitfield used to identify the type of data
 
-   .. data:: xplmType_Unknown
-   .. data:: xplmType_Int
+   .. data:: xplmType_Unknown = 0
+   .. data:: xplmType_Int = 1
+   .. data:: xpmlType_Float = 2
+   .. data:: xpmlType_Double = 4         
+   .. data:: xpmlType_FloatArray = 8          
+   .. data:: xpmlType_IntArray = 16          
+   .. data:: xpmlType_Data = 32          

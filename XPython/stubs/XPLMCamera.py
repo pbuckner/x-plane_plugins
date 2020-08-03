@@ -1,42 +1,3 @@
-"""
-Theory Of Operation
--------------------
-
-The XPLMCamera APIs allow plug-ins to
-control the camera angle in X-Plane. This has a number of applications,
-including but not limited to:
-
- - Creating new views (including dynamic/user-controllable views) for the user.
-
- - Creating applications that use X-Plane as a renderer of scenery, aircrafts, or both.
-
-The camera is controlled via six parameters: a location in OpenGL
-coordinates and pitch, roll and yaw, similar to an airplane's position.
-OpenGL coordinate info is described in detail in the :py:mod:`XPLMGraphics`
-documentation; generally you should use the XPLMGraphics routines to
-convert from world to local coordinates. The camera's orientation starts
-facing level with the ground directly up the negative-Z axis (approximately
-north) with the horizon horizontal. It is then rotated clockwise for yaw,
-pitched up for positive pitch, and rolled clockwise around the vector it is
-looking along for roll.
-
-You control the camera either either until the user selects a new view or
-permanently (the later being similar to how UDP camera control works). You
-control the camera by registering a callback per frame from which you
-calculate the new camera positions. This guarantees smooth camera motion.
-
-Use the :py:mod:`XPLMDataAccess` APIs to get information like the position of the
-aircraft, etc. for complex camera positioning.
-
-.. Note:: if your goal is to move the virtual pilot in the cockpit, this API is
-          not needed; simply update the datarefs for the pilot's head position.
-
-For custom exterior cameras, set the camera's mode to an external view first
-to get correct sound and 2-d panel bahavior.
-
-Functions
----------
-"""
 from typing import Tuple, TypeVar
 
 
@@ -112,12 +73,10 @@ def XPLMIsCameraBeingControlled() -> Tuple[int, int]:
     return Tuple[int, int]
 
 
-#: XPLMCameraPosition_t type
-#: *************************
-#: Camera position is described using a llist of seven floats:
+#: Camera position is described using a list of seven floats:
 #: `[x, y, z, pitch, heading, roll, roll, zoom]`
 #:
-#: X, Y, and Z are the camera's position in OpenGL coordianates; pitch, roll, and yaw are
+#: X, Y, and Z are the camera's position in OpenGL coordinates; pitch, roll, and yaw are
 #: rotations from a camera facing flat north in degrees. Positive pitch means
 #: nose up, positive roll means roll right, and positive yaw means yaw right,
 #: all in degrees. Zoom is a zoom factor, with 1.0 meaning normal zoom and 2.0

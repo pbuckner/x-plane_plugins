@@ -90,7 +90,7 @@ In ``XPluginStart`` we use :func:`xp.createWindowEx`  (i.e., :func:`XPLMDisplay.
 a tuple as input. The first four items are the corners (left, top, right, bottom). X-Plane 2-D coordinates increase going left-to-right,
 and from bottom-to-top. So ``(50, 600, 300, 400)`` is a box with upper left corner a (50, 600) and bottom right corner at (300, 400):
 
-::
+.. code-block:: text
 
    ^        (50, 600) -----------------+
    |            |                      |

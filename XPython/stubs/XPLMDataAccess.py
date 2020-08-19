@@ -1,3 +1,4 @@
+from typing import Callable, NewType
 # XPLMDataTypeID bitfield is used to identify the type of data:
 xplmType_Unknown = 0  #: Data of a type the current XPLM doesn't do.
 xplmType_Int = 1  #: A single 4-byte integer, native endian.
@@ -73,7 +74,7 @@ def XPLMGetDataRefTypes(inDataRef: int) -> int:
     return int
 
 
-def XPLMGetDatai(inDataRef):
+def XPLMGetDatai(inDataRef: int) -> int:
     """
     Read an integer data ref and return its value. The return value is the
     dataref value or 0 if the dataref is NULL or the plugin is
@@ -82,7 +83,7 @@ def XPLMGetDatai(inDataRef):
     return int
 
 
-def XPLMSetDatai(inDataRef, inValue):
+def XPLMSetDatai(inDataRef: int, inValue: int) -> None:
     """
     Write a new value to an integer data ref. This routine is a no-op if the
     plugin publishing the dataref is disabled, the dataref is invalid, or the
@@ -90,7 +91,7 @@ def XPLMSetDatai(inDataRef, inValue):
     """
 
 
-def XPLMGetDataf(inDataRef):
+def XPLMGetDataf(inDataRef: int) -> float:
     """
     Read a single precision floating point dataref and return its value. The
     return value is the dataref value or 0.0 if the dataref is invalid/NULL or
@@ -99,7 +100,7 @@ def XPLMGetDataf(inDataRef):
     return float
 
 
-def XPLMSetDataf(inDataRef, inValue):
+def XPLMSetDataf(inDataRef: int, inValue: float) -> None:
     """
     Write a new value to a single precision floating point data ref. This
     routine is a no-op if the plugin publishing the dataref is disabled, the
@@ -107,7 +108,7 @@ def XPLMSetDataf(inDataRef, inValue):
     """
 
 
-def XPLMGetDatad(inDataRef):
+def XPLMGetDatad(inDataRef: int) -> float:
     """
     Read a double precision floating point dataref and return its value. The
     return value is the dataref value or 0.0 if the dataref is invalid/NULL or
@@ -116,7 +117,7 @@ def XPLMGetDatad(inDataRef):
     return float
 
 
-def XPLMSetDatad(inDataRef, inValue):
+def XPLMSetDatad(inDataRef: int, inValue: float) -> None:
     """
     Write a new value to a double precision floating point data ref. This
     routine is a no-op if the plugin publishing the dataref is disabled, the
@@ -124,7 +125,7 @@ def XPLMSetDatad(inDataRef, inValue):
     """
 
 
-def XPLMGetDatavi(inDataRef, outValues, inOffset, inMax):
+def XPLMGetDatavi(inDataRef: int, outValues: list, inOffset: int, inMax: int) -> int:
     """
     Read a part of an integer array dataref. If you pass None for outVaules,
     the routine will return the size of the array, ignoring inOffset and inMax.
@@ -142,7 +143,7 @@ def XPLMGetDatavi(inDataRef, outValues, inOffset, inMax):
     return int  # of items
 
 
-def XPLMSetDatavi(inDataRef, inValues, inoffset, inCount):
+def XPLMSetDatavi(inDataRef: int, inValues: list, inoffset: int, inCount: int) -> None:
     """
     Write part or all of an integer array dataref. The values passed by
     inValues are written into the dataref starting at inOffset. Up to inCount
@@ -156,7 +157,7 @@ def XPLMSetDatavi(inDataRef, inValues, inoffset, inCount):
     """
 
 
-def XPLMGetDatavf(inDataRef, outValues, inOffset, inMax):
+def XPLMGetDatavf(inDataRef: int, outValues: list, inOffset: int, inMax: int) -> int:
     """
     Read a part of a single precision floating point array dataref. If you pass
     None for outVaules, the routine will return the size of the array, ignoring
@@ -175,7 +176,7 @@ def XPLMGetDatavf(inDataRef, outValues, inOffset, inMax):
     return int  # of items
 
 
-def XPLMSetDatavf(inDataRef, inValues, inoffset, inCount):
+def XPLMSetDatavf(inDataRef: int, inValues: list, inoffset: int, inCount: int) -> None:
     """
     Write part or all of a single precision floating point array dataref. The
     values passed by inValues are written into the dataref starting at
@@ -189,7 +190,7 @@ def XPLMSetDatavf(inDataRef, inValues, inoffset, inCount):
     """
 
 
-def XPLMGetDatab(inDataRef, outValue, inOffset, inMaxBytes):
+def XPLMGetDatab(inDataRef: int, outValue: list, inOffset: int, inMaxBytes: int) -> int:
     """
     Read a part of a byte array dataref. If you pass None for outVaules, the
     routine will return the size of the array, ignoring inOffset and inMax.
@@ -207,7 +208,7 @@ def XPLMGetDatab(inDataRef, outValue, inOffset, inMaxBytes):
     return int  # of items
 
 
-def XPLMSetDatab(inDataRef, inValue, inOffset, inLength):
+def XPLMSetDatab(inDataRef: int, inValue: list, inOffset: int, inLength: int) -> None:
     """
     Write part or all of a byte array dataref. The values passed by inValues
     are written into the dataref starting at inOffset. Up to inCount values are
@@ -221,7 +222,7 @@ def XPLMSetDatab(inDataRef, inValue, inOffset, inLength):
     """
 
 
-def XPLMGetDatai_f(inRefcon):
+def XPLMGetDatai_f(inRefcon: int) -> int:
     """
     Data accessor callback you provide to allow others to read the dataref.
     Return dataref value.
@@ -229,13 +230,13 @@ def XPLMGetDatai_f(inRefcon):
     return int
 
 
-def XPLMSetDatai_f(inRefcon, inValue):
+def XPLMSetDatai_f(inRefcon: int, inValue: int) -> None:
     """
     Data accessor callback you provide to allow others to write the dataref.
     """
 
 
-def XPLMGetDataf_f(inRefcon):
+def XPLMGetDataf_f(inRefcon: int) -> float:
     """
     Data accessor callback you provide to allow others to read the dataref.
     Return dataref value.
@@ -243,13 +244,13 @@ def XPLMGetDataf_f(inRefcon):
     return float
 
 
-def XPLMSetDataf_f(inRefcon, inValue):
+def XPLMSetDataf_f(inRefcon: int, inValue: float) -> None:
     """
     Data accessor callback you provide to allow others to write the dataref.
     """
 
 
-def XPLMGetDatad_f(inRefcon):
+def XPLMGetDatad_f(inRefcon: int) -> float:
     """
     Data accessor callback you provide to allow others to read the dataref.
     Return dataref value.
@@ -257,13 +258,13 @@ def XPLMGetDatad_f(inRefcon):
     pass
 
 
-def XPLMSetDatad_f(inRefcon, inValue):
+def XPLMSetDatad_f(inRefcon: int, inValue) -> None:
     """
     Data accessor callback you provide to allow others to write the dataref.
     """
 
 
-def XPLMGetDatavi_f(inRefcon, outValues, inOffset, inMax):
+def XPLMGetDatavi_f(inRefcon: int, outValues: list, inOffset: int, inMax: int) -> int:
     """
     Data accessor callback you provide to allow others to read the dataref.
     The callback semantics is the same as the XPLMGetDatavi (that routine just
@@ -272,7 +273,8 @@ def XPLMGetDatavi_f(inRefcon, outValues, inOffset, inMax):
     """
     return int  # of items
 
-def XPLMSetDatavi_f(inRefcon, inValues, inOffset, inCount):
+
+def XPLMSetDatavi_f(inRefcon: int, inValues: list, inOffset: int, inCount: int) -> None:
     """
     Data accessor callback you provide to allow others to write the dataref.
     The callback semantics is the same as the XPLMSetDatavi (that routine just
@@ -280,7 +282,7 @@ def XPLMSetDatavi_f(inRefcon, inValues, inOffset, inCount):
     """
 
 
-def XPLMGetDatavf_f(inRefcon, outValues, inOffset, inMax):
+def XPLMGetDatavf_f(inRefcon: int, outValues: list, inOffset: int, inMax: int) -> int:
     """
     Data accessor callback you provide to allow others to read the dataref.
     The callback semantics is the same as the XPLMGetDatavf (that routine just
@@ -290,7 +292,7 @@ def XPLMGetDatavf_f(inRefcon, outValues, inOffset, inMax):
     return int  # of items
 
 
-def XPLMSetDatavf_f(inRefcon, inValues, inOffset, inCount):
+def XPLMSetDatavf_f(inRefcon: int, inValues: list, inOffset: int, inCount: int) -> None:
     """
     Data accessor callback you provide to allow others to write the dataref.
     The callback semantics is the same as the XPLMSetDatavf (that routine just
@@ -298,7 +300,7 @@ def XPLMSetDatavf_f(inRefcon, inValues, inOffset, inCount):
     """
 
 
-def XPLMGetDatab_f(inRefcon, outValues, inOffset, inMaxLength):
+def XPLMGetDatab_f(inRefcon: int, outValues: list, inOffset: int, inMaxLength: int) -> int:
     """
     Data accessor callback you provide to allow others to read the dataref.
     The callback semantics is the same as the XPLMGetDatab (that routine just
@@ -308,22 +310,40 @@ def XPLMGetDatab_f(inRefcon, outValues, inOffset, inMaxLength):
     return int  # of items
 
 
-def XPLMSetDatab_f(inRefcon, inValue, inOffset, inLength):
+def XPLMSetDatab_f(inRefcon: int, inValue: list, inOffset: int, inLength: int) -> None:
     """
     Data accessor callback you provide to allow others to write the dataref.
     The callback semantics is the same as the XPLMSetDatab (that routine just
     forwards the request to your callback).
     """
 
+GetDataRefi_f = NewType('GetDataRefi_f', Callable[[int], int])
+SetDataRefi_f = NewType('SetDataRefi_f', Callable[[int, int], None])
 
-def XPLMRegisterDataAccessor(inDataName, inDataType, inIsWritable,
-                             inReadInt_f, inWriteInt_f,
-                             inReadFloat_f, inWriteFloat_f,
-                             inReadDouble_f, inWriteDouble_f,
-                             inReadIntArray_f, inWriteIntArray_f,
-                             inReadFloatArray_f, inWriteFloatArray_f,
-                             inReadData_f, inWriteData_f,
-                             inReadRefcon, inWriteRefcon):
+GetDataReff_f = NewType('GetDataReff_f', Callable[[int], float])
+SetDataReff_f = NewType('SetDataReff_f', Callable[[int, float], None])
+
+GetDataRefd_f = NewType('GetDataRefd_f', Callable[[int], float])
+SetDataRefd_f = NewType('SetDataRefd_f', Callable[[int, float], None])
+
+GetDataRefvi_f = NewType('GetDataRefvi_f', Callable[[int, list, int, int], int])
+SetDataRefvi_f = NewType('SetDataRefvi_f', Callable[[int, list, int, int], None])
+
+GetDataRefvf_f = NewType('GetDataRefvf_f', Callable[[int, list, int, int], int])
+SetDataRefvf_f = NewType('SetDataRefvf_f', Callable[[int, list, int, int], None])
+
+GetDataRefb_f = NewType('GetDataRefb_f', Callable[[int, list, int, int], int])
+SetDataRefb_f = NewType('SetDataRefb_f', Callable[[int, list, int, int], None])
+
+
+def XPLMRegisterDataAccessor(inDataName: str, inDataType: int, inIsWritable: int,
+                             inReadInt_f: GetDataRefi_f, inWriteInt_f: SetDataRefi_f,
+                             inReadFloat_f: GetDataReff_f, inWriteFloat_f: SetDataReff_f,
+                             inReadDouble_f: GetDataRefd_f, inWriteDouble_f: SetDataRefd_f,
+                             inReadIntArray_f: GetDataRefvi_f, inWriteIntArray_f: SetDataRefvi_f,
+                             inReadFloatArray_f: GetDataRefvf_f, inWriteFloatArray_f: SetDataRefvf_f,
+                             inReadData_f: GetDataRefb_f, inWriteData_f: SetDataRefb_f,
+                             inReadRefcon: object, inWriteRefcon: object):
     """
     This routine creates a new item of data that can be read and written. Pass
     in the data's full name for searching, the type(s) of the data for
@@ -350,7 +370,7 @@ def XPLMRegisterDataAccessor(inDataName, inDataType, inIsWritable,
     return int  # XPLMDataRef
 
 
-def XPLMUnregisterDataAccessor(inDataRef):
+def XPLMUnregisterDataAccessor(inDataRef: int):
     """
     Use this routine to unregister any data accessors you may have registered.
     You unregister a data ref by the XPLMDataRef you get back from
@@ -364,7 +384,7 @@ def XPLMUnregisterDataAccessor(inDataRef):
     """
 
 
-def XPLMDataChanged_f(inRefcon):
+def XPLMDataChanged_f(inRefcon: int):
     """
     An XPLMDataChanged_f is a callback that the XPLM calls whenever any other
     plug-in modifies shared data. A refcon you provide is passed back to help
@@ -373,7 +393,7 @@ def XPLMDataChanged_f(inRefcon):
     """
 
 
-def XPLMShareData(inDataName, inDataType,
+def XPLMShareData(inDataName, inDataType: int,
                   inNotificationFunc_f, inNotificationRefcon):
     """
     This routine connects a plug-in to shared data, creating the shared data if
@@ -397,7 +417,7 @@ def XPLMShareData(inDataName, inDataType,
     return int  # 1 on success, 0 if data already exists but is of the wrong type
 
 
-def XPLMUnshareData(inDataName, inDataType,
+def XPLMUnshareData(inDataName, inDataType: int,
                     inNotificationFunc_f, inNotificationRefcon):
     """
     This routine removes your notification function for shared data. Call it

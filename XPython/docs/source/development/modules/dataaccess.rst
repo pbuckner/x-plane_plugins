@@ -202,6 +202,22 @@ prevent dataref collisions between plugins.
 Registration
 ++++++++++++
 .. autofunction:: XPLMRegisterDataAccessor
+
+   For example, to define a dataref ``myPlugin/dataItem``, which can be
+   accessed as either an Integer or Float, use something like the following. Note
+   we provide callbacks for `reading` as an integer or float, but the user can
+   only read (not write) as a float (no idea if this might ever make sense in the real world.)
+   ::
+      
+      XPLMRegisterDataAccessor('myPlugin/dataItem1', xplmType_Int | xplmType_Float,
+                               MyReadIntCallback, MyWriteIntCallback,
+                               MyReadFloatCallback, None,
+                               None, None,
+                               None, None,
+                               None, None,
+                               None, None,
+                               0, 0)
+
 .. autofunction:: XPLMUnregisterDataAccessor
 
 Callbacks

@@ -98,3 +98,5 @@ Example
         return 1
     
     xp.controlCamera(xp.ControlCameraUntilViewChanges, myControlFunc, 0)
+
+See also `PI_Camera1.py <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/demos/PI_Camera1.py>`_ demo.

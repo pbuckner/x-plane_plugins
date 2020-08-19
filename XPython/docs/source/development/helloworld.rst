@@ -3,6 +3,8 @@ Hello World
 
 Simple `Hello World` program which creates and displays a message in a window.
 
+.. image:: /images/hello_world_demo.png
+
 ::
 
  import xp

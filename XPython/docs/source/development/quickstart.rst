@@ -20,9 +20,12 @@ Once you have a running system, we'll cover some basic code:
 
 * **Hello World**: a simple plugin with a popup window.
   
+* **Hello Widget**: a simple plugin with a popup window using widgets.
+  
 .. toctree::
    :caption: Code Examples
 
    skeleton
    helloworld
+   hellowidget
 

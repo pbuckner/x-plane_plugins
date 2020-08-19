@@ -8,7 +8,7 @@ Simple `Hello World` program which creates and displays a message in a window.
  import xp
  
  class PythonInterface:
-     def __init(self):
+     def __init__(self):
          self.Name = "HelloWorld1"
          self.Sig = "helloWorld1.demos.xppython3"
          self.Desc = "A test plugin for the Python Interface."

@@ -55,9 +55,11 @@ Building XPPython3
 
 Build instructions are provided in :doc:`building/index`.   
 
+Contents
+--------
+
 .. toctree::
-   :maxdepth: 1
-   :caption: Contents:
+   :maxdepth: 2
 
    usage/installation_plugin
    development/index

@@ -58,7 +58,7 @@ Quickstart
 
   :doc:`quickstart`.
 
-  Bare-bones skeleton and Hello World to get you start.
+  Bare-bones skeleton and Hello World to get you started.
 
 Demos
 -----
@@ -67,15 +67,16 @@ Demos
 
   Ported versions of C++ and Python2 demos.
 
-Examples
---------
+Test Examples
+-------------
 
   `XPython/examples/ <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/examples/>`_
 
-  Python code exercising each interface is in this directory, organized primarily one example file per module.
+  Python test code exercising each interface is in this directory, organized primarily one example file per module.
   You can copy them into your :code:`Resources/plugins/PythonPlugins` directory to have them executed by X-Plane.
 
   Most of these examples where used to exercise specific aspects of the API rather than provide useful, instructive examples.
+  See Demos, if you're looking for something more helpful.
 
 .. toctree::
    :maxdepth: 1

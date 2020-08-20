@@ -130,7 +130,13 @@ Within the callback, we look at the widget messages being passed and act upon th
 Details
 -------
 
-First, note we create within `XPluginEnable()` and destroy within `XPluginDisable()`. This balance
+First, notice we import from ``widgetMsgHelper``. This module is found under
+`XPython/demos/ <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/demos/>`_.
+You'll need to make sure you copy that file (also) to your ``Resources/plugins/PythonPlugins``
+folder.
+While required for this example, it simply decodes widget messages for human consumption.
+
+Note we create within `XPluginEnable()` and destroy within `XPluginDisable()`. This balance
 make it easier to reload the plugin during testing & know that it's cleaning up properly.
 
 self.createWindowWidget()

@@ -222,7 +222,7 @@ def XPLMSetDatab(inDataRef: int, inValue: list, inOffset: int, inLength: int) ->
     """
 
 
-def XPLMGetDatai_f(inRefcon: int) -> int:
+def XPLMGetDatai_f(inRefcon: object) -> int:
     """
     Data accessor callback you provide to allow others to read the dataref.
     Return dataref value.
@@ -230,13 +230,13 @@ def XPLMGetDatai_f(inRefcon: int) -> int:
     return int
 
 
-def XPLMSetDatai_f(inRefcon: int, inValue: int) -> None:
+def XPLMSetDatai_f(inRefcon: object, inValue: int) -> None:
     """
     Data accessor callback you provide to allow others to write the dataref.
     """
 
 
-def XPLMGetDataf_f(inRefcon: int) -> float:
+def XPLMGetDataf_f(inRefcon: object) -> float:
     """
     Data accessor callback you provide to allow others to read the dataref.
     Return dataref value.
@@ -244,27 +244,27 @@ def XPLMGetDataf_f(inRefcon: int) -> float:
     return float
 
 
-def XPLMSetDataf_f(inRefcon: int, inValue: float) -> None:
+def XPLMSetDataf_f(inRefcon: object, inValue: float) -> None:
     """
     Data accessor callback you provide to allow others to write the dataref.
     """
 
 
-def XPLMGetDatad_f(inRefcon: int) -> float:
+def XPLMGetDatad_f(inRefcon: object) -> float:
     """
     Data accessor callback you provide to allow others to read the dataref.
     Return dataref value.
     """
-    pass
+    return float
 
 
-def XPLMSetDatad_f(inRefcon: int, inValue) -> None:
+def XPLMSetDatad_f(inRefcon: object, inValue) -> None:
     """
     Data accessor callback you provide to allow others to write the dataref.
     """
 
 
-def XPLMGetDatavi_f(inRefcon: int, outValues: list, inOffset: int, inMax: int) -> int:
+def XPLMGetDatavi_f(inRefcon: object, outValues: list, inOffset: int, inMax: int) -> int:
     """
     Data accessor callback you provide to allow others to read the dataref.
     The callback semantics is the same as the XPLMGetDatavi (that routine just
@@ -274,7 +274,7 @@ def XPLMGetDatavi_f(inRefcon: int, outValues: list, inOffset: int, inMax: int) -
     return int  # of items
 
 
-def XPLMSetDatavi_f(inRefcon: int, inValues: list, inOffset: int, inCount: int) -> None:
+def XPLMSetDatavi_f(inRefcon: object, inValues: list, inOffset: int, inCount: int) -> None:
     """
     Data accessor callback you provide to allow others to write the dataref.
     The callback semantics is the same as the XPLMSetDatavi (that routine just
@@ -282,7 +282,7 @@ def XPLMSetDatavi_f(inRefcon: int, inValues: list, inOffset: int, inCount: int) 
     """
 
 
-def XPLMGetDatavf_f(inRefcon: int, outValues: list, inOffset: int, inMax: int) -> int:
+def XPLMGetDatavf_f(inRefcon: object, outValues: list, inOffset: int, inMax: int) -> int:
     """
     Data accessor callback you provide to allow others to read the dataref.
     The callback semantics is the same as the XPLMGetDatavf (that routine just
@@ -292,7 +292,7 @@ def XPLMGetDatavf_f(inRefcon: int, outValues: list, inOffset: int, inMax: int) -
     return int  # of items
 
 
-def XPLMSetDatavf_f(inRefcon: int, inValues: list, inOffset: int, inCount: int) -> None:
+def XPLMSetDatavf_f(inRefcon: object, inValues: list, inOffset: int, inCount: int) -> None:
     """
     Data accessor callback you provide to allow others to write the dataref.
     The callback semantics is the same as the XPLMSetDatavf (that routine just
@@ -300,7 +300,7 @@ def XPLMSetDatavf_f(inRefcon: int, inValues: list, inOffset: int, inCount: int) 
     """
 
 
-def XPLMGetDatab_f(inRefcon: int, outValues: list, inOffset: int, inMaxLength: int) -> int:
+def XPLMGetDatab_f(inRefcon: object, outValues: list, inOffset: int, inMaxLength: int) -> int:
     """
     Data accessor callback you provide to allow others to read the dataref.
     The callback semantics is the same as the XPLMGetDatab (that routine just
@@ -310,30 +310,33 @@ def XPLMGetDatab_f(inRefcon: int, outValues: list, inOffset: int, inMaxLength: i
     return int  # of items
 
 
-def XPLMSetDatab_f(inRefcon: int, inValue: list, inOffset: int, inLength: int) -> None:
+def XPLMSetDatab_f(inRefcon: object, inValue: list, inOffset: int, inLength: int) -> None:
     """
     Data accessor callback you provide to allow others to write the dataref.
     The callback semantics is the same as the XPLMSetDatab (that routine just
     forwards the request to your callback).
     """
 
-GetDataRefi_f = NewType('GetDataRefi_f', Callable[[int], int])
-SetDataRefi_f = NewType('SetDataRefi_f', Callable[[int, int], None])
 
-GetDataReff_f = NewType('GetDataReff_f', Callable[[int], float])
-SetDataReff_f = NewType('SetDataReff_f', Callable[[int, float], None])
+GetDataRefi_f = NewType('GetDataRefi_f', Callable[[object], int])
+SetDataRefi_f = NewType('SetDataRefi_f', Callable[[object, int], None])
 
-GetDataRefd_f = NewType('GetDataRefd_f', Callable[[int], float])
-SetDataRefd_f = NewType('SetDataRefd_f', Callable[[int, float], None])
+GetDataReff_f = NewType('GetDataReff_f', Callable[[object], float])
+SetDataReff_f = NewType('SetDataReff_f', Callable[[object, float], None])
 
-GetDataRefvi_f = NewType('GetDataRefvi_f', Callable[[int, list, int, int], int])
-SetDataRefvi_f = NewType('SetDataRefvi_f', Callable[[int, list, int, int], None])
+GetDataRefd_f = NewType('GetDataRefd_f', Callable[[object], float])
+SetDataRefd_f = NewType('SetDataRefd_f', Callable[[object, float], None])
 
-GetDataRefvf_f = NewType('GetDataRefvf_f', Callable[[int, list, int, int], int])
-SetDataRefvf_f = NewType('SetDataRefvf_f', Callable[[int, list, int, int], None])
+GetDataRefvi_f = NewType('GetDataRefvi_f', Callable[[object, list, int, int], int])
+SetDataRefvi_f = NewType('SetDataRefvi_f', Callable[[object, list, int, int], None])
 
-GetDataRefb_f = NewType('GetDataRefb_f', Callable[[int, list, int, int], int])
-SetDataRefb_f = NewType('SetDataRefb_f', Callable[[int, list, int, int], None])
+GetDataRefvf_f = NewType('GetDataRefvf_f', Callable[[object, list, int, int], int])
+SetDataRefvf_f = NewType('SetDataRefvf_f', Callable[[object, list, int, int], None])
+
+GetDataRefb_f = NewType('GetDataRefb_f', Callable[[object, list, int, int], int])
+SetDataRefb_f = NewType('SetDataRefb_f', Callable[[object, list, int, int], None])
+
+DataChanged_f = NewType('DataChanged_f', Callable[[object], None])
 
 
 def XPLMRegisterDataAccessor(inDataName: str, inDataType: int, inIsWritable: int,
@@ -384,7 +387,7 @@ def XPLMUnregisterDataAccessor(inDataRef: int):
     """
 
 
-def XPLMDataChanged_f(inRefcon: int):
+def XPLMDataChanged_f(inRefcon: object) -> None:
     """
     An XPLMDataChanged_f is a callback that the XPLM calls whenever any other
     plug-in modifies shared data. A refcon you provide is passed back to help
@@ -393,8 +396,8 @@ def XPLMDataChanged_f(inRefcon: int):
     """
 
 
-def XPLMShareData(inDataName, inDataType: int,
-                  inNotificationFunc_f, inNotificationRefcon):
+def XPLMShareData(inDataName: str, inDataType: int,
+                  inNotificationFunc_f: DataChanged_f, inNotificationRefcon: object) -> int:
     """
     This routine connects a plug-in to shared data, creating the shared data if
     necessary. inDataName is a standard path for the data ref, and inDataType
@@ -417,8 +420,8 @@ def XPLMShareData(inDataName, inDataType: int,
     return int  # 1 on success, 0 if data already exists but is of the wrong type
 
 
-def XPLMUnshareData(inDataName, inDataType: int,
-                    inNotificationFunc_f, inNotificationRefcon):
+def XPLMUnshareData(inDataName: str, inDataType: int,
+                    inNotificationFunc_f: DataChanged_f, inNotificationRefcon: object) -> int:
     """
     This routine removes your notification function for shared data. Call it
     when done with the data to stop receiving change notifications. Arguments

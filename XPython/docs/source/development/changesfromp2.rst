@@ -28,6 +28,9 @@ Changes from Python2 SDK
 
 * XPGetWidgetWithFocus() returns None, instead of 0, if no widgets have focus
 
+
+See also :doc:`portingNotes`.
+
 Simplified Interfaces
 ---------------------
 

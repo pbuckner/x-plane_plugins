@@ -85,5 +85,6 @@ Test Examples
    callbacks
    quickstart
    changesfromp2
+   portingNotes
    modules/index
    xppythondicts

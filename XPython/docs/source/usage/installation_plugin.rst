@@ -84,13 +84,34 @@ Plugin Menus
 
 XPPython3 installs a single menu item, "XPPython3", on the plugin menu. From there, you can:
 
-  * **Enable** - only useful if you've disabled the scripts.
-  * **Disable** - disables all scripts.
-  * **Reload** - Stops and restarts python, reloading all scripts. While this works, note that some
-    plugins do not clean up after themselves, so loading all python plugins may result in duplications.
+* **Disable** - disables all scripts.
+* **Enable** - only useful if you've disabled the scripts.
+* **Reload** - Stops and restarts python, reloading all scripts. While this works, note that some
+  plugins do not clean up after themselves, so loading all python plugins may result in duplications.
+
+There is also an **About** menu item which further describes this plugin, including links to documentation
+and current version number.
+
+The XPPython3 menu includes two final items:
+
+* **Version** -- with an indication if you're using the most current version. If you're not using the
+  most current version, selecting this item will attempt to update your XPPython3 version to the latest.
+  (It will not change Python versions, just XPPython3 plugin versions.) If successful, the new version
+  is downloaded, but you'll need to restart X-Plane to have the new plugin take effect.
+* **Pip Package Installer** -- *pip* is a python-based installer that is common used to install
+  python packages (i.e., modules or script libraries). While Python comes with lots of built-in libraries,
+  you may need to install some 3rd party libraries. Using this installer will make sure the
+  libraries are installed into the proper version of python on your computer. This is *not* to be used
+  to install X-Plane plugins. If your python plugin requires additional Python packages, your plugin should
+  tell you which packages you'll need to install.
 
 Logging
 =======
+
+There are two main log files. (Any particular plugin may also create their own log file.)
+
+* **Log.txt**: The standard X-Plane Log file
+* **XPPython3.log**: Standard output for python plugins
 
 `Log.txt`
 *********
@@ -126,25 +147,25 @@ the contents of the logfile, set environment variable :code:`XPPYTHON3_PRESERVE`
 
 Log always contains:
 
-::
+.. parsed-literal::
 
-   XPPython3 Version x.x.x Started.
+   XPPython3 Version *<x.x.x>* Started.
 
 Then the script folder(s) are scanned. If the folder cannot be found (not an error really, but just to
 let you know):
 
-::
+.. parsed-literal::
 
-   Can't open <folder> to scan for plugins.
+   Can\'t open *<folder>* to scan for plugins.
 
 On *each* python plugin startup, we print:
 
-::
+.. parsed-literal::
 
-   PI_<plugin> initialized.
-        Name: <plugin name>
-        Sig:  <plugin signature>
-        Desc: <plugin description>
+   PI\_\ *<plugin>* initialized.
+        Name: *<plugin name>*
+        Sig:  *<plugin signature>*
+        Desc: *<plugin description>*
 
 Successful shutdown will included:
 
@@ -157,11 +178,11 @@ Errors
 
 If you have errors running python plugins,
 
-1. Check `Log.txt`. Make sure python and the python plugin are installed correctly. If not,
+1. Check ``Log.txt``. Make sure python and the python plugin are installed correctly. If not,
    there will be a message in Log.txt, and XPPython3.txt will not be created. Verify it's Python3, not Python2
    getting loaded.
 
-2. Check `XPPython3.log`. Most python coding errors / exceptions will be reported in this
+2. Check ``XPPython3.log``. Most python coding errors / exceptions will be reported in this
    log.
 
 You should provide both Log.txt and XPPython3.log when looking for assistance with a python plugin.
@@ -172,3 +193,14 @@ You should provide both Log.txt and XPPython3.log when looking for assistance wi
 
              If you have questions about a particular python plugin, please contact the plugin's creator!
              
+Getting Support
+===============
+
+Include:
+
+#. Name of the plugin you're trying to use
+#. Copy of ``Log.txt`` (which tells us most everything about your X-Plane installation)
+#. Copy of ``XPPython3.log`` (which tells us most everything about your Python installation)
+
+Provide that information to x-plane.org/forums or email support: Information is available from the
+*About* XPPython3 menu.

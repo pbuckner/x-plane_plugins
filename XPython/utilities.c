@@ -317,13 +317,18 @@ static int commandCallback(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, v
   Py_DECREF(arg1);
   Py_DECREF(arg2);
   PyObject *err = PyErr_Occurred();
+  char msg[1024];
   if(err){
+    sprintf(msg, "Error in CommandCallback %s", objToStr(PyTuple_GetItem(pCbk, 2)));
+    PyErr_SetString(err, msg);
     PyErr_Print();
   }
   Py_DECREF(pID);
   int res = PyLong_AsLong(oRes);
   err = PyErr_Occurred();
   if(err){
+    sprintf(msg, "Expected integer for return from CommandCallback %s", objToStr(PyTuple_GetItem(pCbk, 2)));
+    PyErr_SetString(err, msg);
     PyErr_Print();
   }
   Py_DECREF(oRes);

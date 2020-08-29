@@ -1,5 +1,7 @@
 # XPPython3 Installation Notes
 
+See https://xppython3.rtfd.io/ for full documentation.
+
 1. Install 64-bit Python3 (version 3.6 or greater) from https://python.org
 2. Download ONE zipfile:
   + For Python3.6: [xppython36.zip](https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython36.zip)

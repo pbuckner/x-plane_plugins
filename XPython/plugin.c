@@ -44,10 +44,8 @@ static const char *pythonReloadCommand = "XPPython3/reloadScripts";
 static XPLMCommandRef disableScripts;
 static XPLMCommandRef enableScripts;
 static XPLMCommandRef reloadScripts;
-static XPLMMenuID setupMenu; 
 
 static int commandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void *inRefcon);
-static void setXPMenu(void);
 
 static int loadPythonLibrary();
 PLUGIN_API int XPluginEnable(void);
@@ -332,8 +330,6 @@ static int startPython(void)
     return -1;
   }
 
-  setXPMenu();
-
   // Load internal stuff
   loadModules(pythonInternalPluginsPath, "^I_PI_.*\\.py$");
   // Load modules
@@ -365,13 +361,7 @@ static int stopPython(void)
     }
   }
 
-  // Remove all menus
-  if (setupMenu) {
-    XPLMClearAllMenuItems(setupMenu);
-    XPLMDestroyMenu(setupMenu);
-    setupMenu = NULL;
-    XPLMClearAllMenuItems(XPLMFindPluginsMenu());
-  }
+  XPLMClearAllMenuItems(XPLMFindPluginsMenu());
 
   PyDict_Clear(moduleDict);
   Py_DECREF(moduleDict);
@@ -412,28 +402,6 @@ static int stopPython(void)
   }
   pythonStarted = false;
   return 0;
-}
-
-static void menuHandler(void *inMenuRef, void *inItemRef)
-{
-  (void) inMenuRef;
-  (void) commandHandler(inItemRef, xplm_CommandBegin, NULL);
-}
-
-static void setXPMenu(void) {
-  int menuIndex = XPLMAppendMenuItem(XPLMFindPluginsMenu(), pythonPluginName, NULL, 1);
-
-  setupMenu = XPLMCreateMenu(pythonPluginName, XPLMFindPluginsMenu(), menuIndex, 
-                             menuHandler, NULL);
-  if(XPLMAppendMenuItemWithCommand_ptr){
-    XPLMAppendMenuItemWithCommand_ptr(setupMenu, "Disable scripts", disableScripts);
-    XPLMAppendMenuItemWithCommand_ptr(setupMenu, "Enable scripts", enableScripts);
-    XPLMAppendMenuItemWithCommand_ptr(setupMenu, "Reload scripts", reloadScripts);
-  }else{
-    XPLMAppendMenuItem(setupMenu, "Disable scripts", (void *)disableScripts, 0);
-    XPLMAppendMenuItem(setupMenu, "Enable scripts", (void *)enableScripts, 0);
-    XPLMAppendMenuItem(setupMenu, "Reload scripts", (void *)reloadScripts, 0);
-  }
 }
 
 PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
@@ -493,7 +461,6 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
 PLUGIN_API void XPluginStop(void)
 {
   stopPython();
-  XPLMDestroyMenu(setupMenu);
   XPLMUnregisterCommandHandler(disableScripts, commandHandler, 1, (void *)0);
   XPLMUnregisterCommandHandler(enableScripts, commandHandler, 1, (void *)1);
   XPLMUnregisterCommandHandler(reloadScripts, commandHandler, 1, (void *)2);

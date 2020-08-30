@@ -313,12 +313,13 @@ class PythonInterface(Config):
                 packages = list(filter(lambda x: x != '', re.split('[, ]+', s)))
                 print("Looking to install packages: {}".format(packages))
                 if packages:
+                    xp.setWidgetDescriptor(self.pipWindow['widgets']['error'], "Looking to install packages: {}".format(' '.join(packages)))
                     found = False
                     for i in ('pip', 'pip3', 'pip.exe', 'pip3.exe'):
                         pip = os.path.join(sysconfig.get_paths()['scripts'], i)
                         if os.path.isfile(pip) and os.access(pip, os.X_OK):
                             found = True
-                            cmd = [pip, 'install'] + packages
+                            cmd = [pip, 'install', '--user'] + packages
                             print("Calling pip as: {}".format(' '.join(cmd)))
                             try:
                                 xp.setWidgetDescriptor(self.pipWindow['widgets']['error'], "Running pip... please wait.")

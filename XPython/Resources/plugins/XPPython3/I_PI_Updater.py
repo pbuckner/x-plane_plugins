@@ -224,7 +224,7 @@ class PythonInterface(Config):
                 return 1
 
             if inParam1 == self.aboutWindow['widgets']['support']:
-                webbrowser.open('https://forums.x-plane.org/index.php?/forums/topic/126603-python-interface-plugin-revival/')
+                webbrowser.open('https://forums.x-plane.org/index.php?/forums/topic/225976-xppython3-now-available/')
                 return 1
 
             if inParam1 == self.aboutWindow['widgets']['plugin']:

@@ -81,8 +81,8 @@ static PyObject *XPLMGetNavAidInfoFun(PyObject *self, PyObject *args)
     return NULL;
   }
   XPLMNavType outType;
-  float outLatitude, outLongitude, outHeight, outHeading;
-  int outFrequency;
+  float outLatitude = 0, outLongitude = 0, outHeight = 0, outHeading = 0;
+  int outFrequency = 0;
   char outID[512];
   char outName[512];
   char outReg[512];

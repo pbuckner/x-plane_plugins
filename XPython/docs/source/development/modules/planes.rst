@@ -2,6 +2,10 @@ XPLMPlanes
 ==========
 .. module:: XPLMPlanes
 
+To use::
+
+  import XPLMPlanes  
+
 The XPLMPlanes APIs allow you to control the various aircraft in X-Plane,
 both the user's and the sim's.
 
@@ -65,7 +69,7 @@ Functions
  zero based, with zero being the user's aircraft.
 
 
-.. py:function:: XPLMPlanesAvailable_f(object: inRefcon):
+.. py:function:: XPLMPlanesAvailable_f(object: inRefcon) -> None:
 
  Callback you provide, to be called when another plugin gives up
  access to the multiplayer planes.  Use this to wait for access to

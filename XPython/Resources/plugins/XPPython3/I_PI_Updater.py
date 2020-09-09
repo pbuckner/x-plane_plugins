@@ -55,7 +55,7 @@ class PythonInterface(Config):
         self.updateMenuIdx = 6
         xp.appendMenuItem(self.menu, 'Pip Package Installer', 'pip')
 
-        xp.checkMenuItem(xp.findPluginsMenu(), 0, self.menu if self.new_version else xp.Menu_Unchecked)
+        xp.checkMenuItem(xp.findPluginsMenu(), 0, xp.Menu_Checked if self.new_version else xp.Menu_Unchecked)
         xp.setMenuItemName(self.menu, self.updateMenuIdx,
                            "Update to {}".format(self.new_version) if self.new_version else "{} is up-to-date".format(self.Version))
 

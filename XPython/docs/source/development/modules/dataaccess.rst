@@ -180,6 +180,23 @@ Get/Set Bytes
       above description is how these datarefs are intended to work, but a rogue
       plugin may have different behavior.
 
+    A Python2 versus Python3 difference is where the dataref refers to a string. Recall
+    that strings in python2 are bytes and in python3 are unicode. Take, for example,
+    dataref ``sim/aircraft/view/acf_descip``. While it certainly appears to be a string
+    description of the user's aircraft, it is actually a sequence of bytes. You should
+    convert it to a bytearray, stripping off trailing ``\x00``, and then decode it from UTF-8
+    into unicode.
+
+      >>> description = []
+      >>> XPMGetDatab(XPLMFindDataRef("sim/aircraft/view/acf_descrip"), description, 0, 40)
+      >>> print(description)
+      [67, 101, 115, 115, 110, 97, 32, 49, 55, 50, 32, 83, 80, 32, 83, 107, 121, 104, 97, 119,\
+      107, 32, 45, 32, 49, 56, 48, 72, 80, 32, 45, 32, 71, 49, 48, 48, 48, 0, 0, 0]
+      >>> print(bytearray(description))
+      bytearray(b'Cessna 172 SP Skyhawk - 180HP - G1000\x00\x00\x00')
+      >>> print(bytearray([x for x in description if x]).decode('utf-8'))
+      'Cessna 172 SP Skyhawk - 180HP - G1000'
+
 
 Callbacks: Publishing Your Plugin's Data
 ****************************************

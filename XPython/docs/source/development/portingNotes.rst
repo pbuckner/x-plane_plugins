@@ -30,6 +30,9 @@ If you are sending or receiving data externally, you'll need to decode / encode 
 
 Similarly, you might need to open files in binary ('wb' or 'rb') mode.
 
+Note that :py:func:`XPLMDataAccess.XPLMGetDatab` returns a bytearray, *not* a string, so if you're expecting a string, you should
+convert the result. See note with XPLMGetDatab.
+
 Dictionary Iterators
 ++++++++++++++++++++
 

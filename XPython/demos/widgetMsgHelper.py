@@ -90,6 +90,9 @@ class WidgetMessage:
         xp.Msg_ScrollBarSliderPositionChanged: {'name': 'ScrollBarSliderPositionChanged',
                                                 'param1': lambda x: 'Widget: {}'.format(x),
                                                 'param2': lambda x: '<>', },
+        xp.Message_CloseButtonPushed: {'name': 'CloseButtonPushed',
+                                       'param1': lambda x: '<>',
+                                       'param2': lambda x: '<>', },
     }
     prop_values = {
         xp.Property_MainWindowType: 'MainWindowType',

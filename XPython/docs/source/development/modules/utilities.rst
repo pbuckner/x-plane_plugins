@@ -234,19 +234,24 @@ An X-Plane command consists of three phases: a beginning, continuous
 repetition, and an ending. The command may be repeated zero times in the
 event that the user presses a button only momentarily.
 
+Note that a command is not "owned" by a particular plugin. Since many
+plugins may participate in a command's execution, the command does not go
+away if the plugin that created it is unloaded.
+
+.. _XPLMCommandRef:
+
+XPLMCommandRef
+**************
+
 A command ref is an opaque identifier for an X-Plane command. Command
 references stay the same for the life of your plugin but not between
 executions of X-Plane. Command refs are used to execute commands, create
 commands, and create callbacks for particular commands. A command ref
 is returned by :py:func:`XPLMFindCommand` or created by :py:func:`XPLMCreateCommand`.
 
-Note that a command is not "owned" by a particular plugin. Since many
-plugins may participate in a command's execution, the command does not go
-away if the plugin that created it is unloaded.
-
 .. py:function:: XPLMCommandCallback_f(commandRef, phase, refCon) -> int:
 
-    :param commandRef: Command references from :py:func:`XPLMCreateCommand` or :py:func:`XPLMFindCommand`
+    :param commandRef: :ref:`XPLMCommandRef`
     :param phase: integer indicating which phase of the command is executing (see below)
     :param refCon: Reference constant you provided upon registering your callback with :py:func:`XPLMRegisterCommandHandler`
 
@@ -275,7 +280,7 @@ away if the plugin that created it is unloaded.
 
 .. py:function:: XPLMFindCommand(name: str) -> commandRef:
 
-    :return: Command reference
+    :return: :ref:`XPLMCommandRef`
 
     XPLMFindCommand looks up a command by name, and returns its command
     reference or None if the command does not exist.
@@ -283,7 +288,7 @@ away if the plugin that created it is unloaded.
 
 .. py:function:: XPLMCommandBegin(commandRef) -> None:
 
-    :param commandRef: Command reference from :py:func:`XPLMCreateCommand` or :py:func:`XPLMFindCommand`
+    :param commandRef: :ref:`XPLMCommandRef`
 
     XPLMCommandBegin starts the execution of a command, specified by its
     command reference.
@@ -292,7 +297,7 @@ away if the plugin that created it is unloaded.
 
 .. py:function:: XPLMCommandEnd(commandRef) -> None:
 
-    :param commandRef: Command reference from :py:func:`XPLMCreateCommand` or :py:func:`XPLMFindCommand`
+    :param commandRef: :ref:`XPLMCommandRef`
 
     XPLMCommandEnd ends the execution of a given command that was started with
     :py:func:`XPLMCommandBegin`.
@@ -300,7 +305,7 @@ away if the plugin that created it is unloaded.
 
 .. py:function:: XPLMCommandOnce(commandRef) -> None:
 
-    :param commandRef: Command reference from :py:func:`XPLMCreateCommand` or :py:func:`XPLMFindCommand`
+    :param commandRef: :ref:`XPLMCommandRef`
 
     This executes a given commandRef, that is, the command begins and
     ends immediately.
@@ -308,7 +313,7 @@ away if the plugin that created it is unloaded.
 
 .. py:function:: XPLMCreateCommand(inName:str, inDescription:str) -> commandRef:
 
-    :return: Command reference
+    :return: :ref:`XPLMCommandRef`
 
     XPLMCreateCommand creates a new command for a given string. If the command
     already exists, the existing command reference is returned. The description
@@ -317,7 +322,7 @@ away if the plugin that created it is unloaded.
 
 .. py:function:: XPLMRegisterCommandHandler(commandRef, callback, before, refCon) -> int:
 
-    :param commandRef: Command reference from :py:func:`XPLMCreateCommand` or :py:func:`XPLMFindCommand`
+    :param commandRef: :ref:`XPLMCommandRef`
     :param callback: :py:func:`XPLMRegisterCommandHandler`
     :param int before: 1= your command handler callback will be executed before X-Plane executes the command.                 
     :param object refCon: Reference constant to be passed to you callback.

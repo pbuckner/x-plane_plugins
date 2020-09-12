@@ -28,6 +28,9 @@ know which widget is messaging no matter who it is sent to.
  * :py:data:`xpWidgetClass_GeneralGraphics`
  * :py:data:`xpWidgetClass_Progress`
 
+Widgets have properties which can be accessed using :py:func:`XPWidgets.XPGetWidgetProperty` and
+:py:func:`XPWidgets.XPSetWidgetProperty`.
+
 
 Main Window
 -----------

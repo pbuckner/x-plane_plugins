@@ -102,10 +102,10 @@ Metaphases provide access to the beginning and end of the 3d (scene) and 2d
 (cockpit) drawing in a manner that is independent of new phases added via
 x-plane implementation.
 
-.. warning:: As X-Plane's scenery evolves, some drawing phases may cease to
-  exist and new ones may be invented. If you need a particularly specific
-  use of these codes, consult Austin and/or be prepared to revise your code
-  as X-Plane evolves.
+ .. warning:: As X-Plane's scenery evolves, some drawing phases may cease to
+   exist and new ones may be invented. If you need a particularly specific
+   use of these codes, consult Austin and/or be prepared to revise your code
+   as X-Plane evolves.
 
  .. data:: xplm_Phase_Modern3D
  
@@ -234,12 +234,12 @@ create a window (:func:`XPLMCreateWindowEx`) you will specify callbacks to handl
 mouse interaction, etc. XPLMCreateWindowEx requires you to provide five callback, with an optional
 sixth callback:
 
- * :func:`XPLMDrawWindow_f`
- * :func:`XPLMHandleMouseClick_f` for left-clicks within your window
- * :func:`XPLMHandleKey_f`
- * :func:`XPLMHandleCursor_f`: to indicate how to display the cursor while over your window
- * :func:`XPLMHandleMouseWheel_f`
- * XPLMHandleRightClick_f: (Same as :func:`XPLMHandleMouseClick_f`) for right-clicks within your window
+* :func:`XPLMDrawWindow_f`
+* :func:`XPLMHandleMouseClick_f` for left-clicks within your window
+* :func:`XPLMHandleKey_f`
+* :func:`XPLMHandleCursor_f`: to indicate how to display the cursor while over your window
+* :func:`XPLMHandleMouseWheel_f`
+* XPLMHandleRightClick_f: (Same as :func:`XPLMHandleMouseClick_f`) for right-clicks within your window
 
 Window Drawing Callbacks
 ************************

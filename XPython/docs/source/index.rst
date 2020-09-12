@@ -4,15 +4,16 @@ XPPython3
 
 .. Note:: **Status**
 
-   * The plugin appears to be complete and working
-   * The documentation, especially in the stub files, is complete and accurate.
+   * The plugin is complete and working. We've ported a few existing Python2 based
+     plugins to verify functionality.
+   * The documentation is complete and accurate. We provide both stub files (python, which allows
+     your linter to check you code in real time) and this web-based documenation.
 
-   Current effort is porting documentation to this web format, adding demos
+   Please contact me directly with questions ``xppython3 [at] avwnx.com``.
 
-   While I invite curious plugin developers to experiment with this plugin, please realize
-   there is a non-zero chance we'll still see a minor API change.
-
-   Please contact me directly with questions ``pbuck [at] avwnx.com``.
+   Also, please me
+   me know about confusing documentation: There's no point in building a plugin if no one can
+   figure out how to use it.
              
 XPPython3 is a plugin for Laminar Research `X-Plane <https://www.x-plane.com>`_. It supports writing
 of additional plugins using python3. This is an upgrade of Sandy Barbour's excellent

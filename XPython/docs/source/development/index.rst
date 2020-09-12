@@ -33,6 +33,22 @@ XPPython3 Module Documentation
   We've attempted to fully document the API here, noting changes from the official C-Language SDK. (Don't forget to use the `Search`
   field in the header of each page to find what you're looking for!)
   
+  Also:
+
+  * :doc:`quickstart`.  Bare-bones skeleton and Hello World to get you started.
+
+  * `XPython/demos/ <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/demos/>`_.   Ported versions of C++ and Python2 demos.
+
+  .. note:: I strongly suggest the  simplified interface described by :py:mod:`xp`. You'll find it much faster and easier to write new
+    code using this interace and won't wear out your XPLM keys.
+
+  If you're familiar with Python2 API:
+
+  * :doc:`changesfromp2`
+
+  * :doc:`portingNotes`
+
+
 Python Stubs
 ------------
 
@@ -53,30 +69,18 @@ Python Stubs
   .. Note:: Do not place stubs in XPPython3 or PythonPlugins folder where they will be found by
             X-Plane! The stubs do not actually execute code.
             
-Quickstart
-----------
-
-  :doc:`quickstart`.
-
-  Bare-bones skeleton and Hello World to get you started.
-
-Demos
------
-
-  `XPython/demos/ <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/demos/>`_.
-
-  Ported versions of C++ and Python2 demos.
-
 Test Examples
 -------------
 
   `XPython/examples/ <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/examples/>`_
 
   Python test code exercising each interface is in this directory, organized primarily one example file per module.
-  You can copy them into your :code:`Resources/plugins/PythonPlugins` directory to have them executed by X-Plane.
+  You can copy them into your :code:`Resources/plugins/PythonPlugins` directory to have them executed by X-Plane with
+  few modifications.
 
   Most of these examples where used to exercise specific aspects of the API rather than provide useful, instructive examples.
-  See Demos, if you're looking for something more helpful.
+  See `XPython/demos/ <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/demos/>`_
+  if you're looking for something more helpful.
 
 .. toctree::
    :maxdepth: 1

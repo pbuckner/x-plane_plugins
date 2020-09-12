@@ -114,6 +114,7 @@ class PythonInterface(Config):
         if self.aboutWindow:
             xp.destroyWidget(self.aboutWindow['widgetID'], 1)
             self.aboutWindow = None
+        self.save()
         return
 
     def XPluginEnable(self):

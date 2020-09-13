@@ -43,7 +43,7 @@ handled. Messages may also be sent to parents or children; see the
 functions. By adding a callback function to a window you can 'subclass' its
 behavior.
 
-A set of standard widgets are provided that serve common UI purposes. You
+A set of standard widgets are provided (See :py:mod:`XPStandardWidgets`) that serve common UI purposes. You
 can also customize or implement entirely custom widgets.
 
 Widgets are different than other view hierarchies (most notably Win32,
@@ -165,8 +165,8 @@ which they bear a striking resemblance to) in the following ways:
 
 .. py:function:: XPGetParentWidget(widgetID) -> widgetID:
 
-    This routine returns the parent of a widget, or 0 if the widget has no
-    parent. Root widgets never have parents and therefore always return 0.
+    This routine returns the parent of a widget, or None if the widget has no
+    parent. Root widgets never have parents and therefore always return None.
 
 
 .. py:function:: XPShowWidget(widgetID) -> None:

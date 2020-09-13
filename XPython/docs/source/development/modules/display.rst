@@ -319,7 +319,7 @@ the window, using the :ref:`XPLMCreateWindow_t` structure.
   :type losingFocus: int
  
   This function is called when a key is pressed or keyboard focus is taken
-  away from your window.  If losingFocus is 1, you are losign the keyboard
+  away from your window.  If losingFocus is 1, you are losing the keyboard
   focus, otherwise a key was pressed and inKey contains its character.  You
   are also passed your window and a refcon.
   
@@ -607,13 +607,14 @@ The structure is tuple:
 Window Drawing Functions
 ************************
 
-.. py:function:: XPLMCreateWindowEx(inParams: :ref:`XPLMCreateWindow_t`) -> int:
+.. py:function:: XPLMCreateWindowEx(createWindowTuple) -> int:
 
  This routine creates a new “modern” window. You pass in an :ref:`XPLMCreateWindow_t` tuple
  with all of the fields set in. Also, you must provide functions for every
  callback—you may not leave them null! (If you do not support the cursor or mouse wheel,
  use functions that return the default values.)
 
+ :param createWindowTuple: :ref:`XPLMCreateWindow_t`
  :return: Created :ref:`XPLMWindowID`
  :rtype: int
 

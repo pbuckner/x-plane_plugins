@@ -59,8 +59,13 @@ static PyObject *XPLMCreateMenuFun(PyObject *self, PyObject *args)
   PyObject *pluginSelf;
   int inParentItem;
   const char *inName;
-  if(!PyArg_ParseTuple(args, "sOiOO", &inName, &parentMenu, &inParentItem, &pythonHandler, &menuRef)){
-    return NULL;
+  if(!PyArg_ParseTuple(args, "OsOiOO", &pluginSelf, &inName, &parentMenu, &inParentItem, &pythonHandler, &menuRef)){
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "sOiOO", &inName, &parentMenu, &inParentItem, &pythonHandler, &menuRef)){
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPLMCreateMenu");
   }
   pluginSelf = get_pluginSelf();
   PyObject *argsObj = Py_BuildValue( "(OsOiOO)", pluginSelf, inName, parentMenu, inParentItem, pythonHandler, menuRef);
@@ -86,9 +91,14 @@ static PyObject *XPLMCreateMenuFun(PyObject *self, PyObject *args)
 static PyObject *XPLMDestroyMenuFun(PyObject *self, PyObject *args)
 {
   (void)self;
-  PyObject *menuID;
-  if(!PyArg_ParseTuple(args, "O", &menuID)){
-    return NULL;
+  PyObject *menuID, *pluginSelf;
+  if(!PyArg_ParseTuple(args, "OO", &pluginSelf, &menuID)){
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "O", &menuID)){
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPLMDestroyMenu");
   }
   PyObject *menuRef = PyDict_GetItem(menuRefDict, menuID);
   if(!menuRef){

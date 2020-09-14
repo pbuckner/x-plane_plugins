@@ -123,7 +123,7 @@ static void objectLoaded(XPLMObjectRef inObject, void *inRefcon)
                                            object, PyTuple_GetItem(loaderCallbackInfo, 2), NULL);
   PyObject *err = PyErr_Occurred();
   if(err){
-    printf("Error occured during the flightLoop callback(inRefcon = %p):\n", inRefcon);
+    printf("Error occured during the objectLoaded callback(inRefcon = %p):\n", inRefcon);
     PyErr_Print();
   }else{
     Py_DECREF(res);
@@ -141,15 +141,26 @@ static PyObject *XPLMLoadObjectAsyncFun(PyObject *self, PyObject *args)
     PyErr_SetString(PyExc_RuntimeError , "XPLMLoadObjectAsync is available only in XPLM210 and up.");
     return NULL;
   }
-  PyObject *tmpObj = PyUnicode_AsUTF8String(PyTuple_GetItem(args, 0)); // because we shifted args
-  const char *inPath = PyBytes_AsString(tmpObj);
+  const char *inPath;
+  PyObject *callback, *inRefcon, *pluginSelf;
+
+  if(!PyArg_ParseTuple(args, "OsOO", &pluginSelf, &inPath, &callback, &inRefcon)) {
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "sOO", &inPath, &callback, &inRefcon)) {
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPLMLoadObjectAsync");
+  }
+
+  PyObject *argsObj = Py_BuildValue("(sOO)", inPath, callback, inRefcon);
 
   void *refcon = (void *)++loaderCntr;
   PyObject *key = PyLong_FromVoidPtr(refcon);
-  PyDict_SetItem(loaderDict, key, args);
+  PyDict_SetItem(loaderDict, key, argsObj);
   Py_DECREF(key);
-  XPLMLoadObjectAsync_ptr(inPath, objectLoaded, refcon);
-  Py_DECREF(tmpObj);
+  XPLMLoadObjectAsync_ptr(inPath, objectLoaded, refcon); /* path, callback, refcon */
+  Py_DECREF(argsObj);
   Py_RETURN_NONE;
 }
 
@@ -221,8 +232,14 @@ static PyObject *XPLMLookupObjectsFun(PyObject *self, PyObject *args)
   PyObject *enumerator;
   PyObject *ref;
   PyObject *pluginSelf;
-  if(!PyArg_ParseTuple(args, "sffOO", &inPath, &inLatitude, &inLongitude, &enumerator, &ref))
-    return NULL;
+  if(!PyArg_ParseTuple(args, "OsffOO", &pluginSelf, &inPath, &inLatitude, &inLongitude, &enumerator, &ref)) {
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "sffOO", &inPath, &inLatitude, &inLongitude, &enumerator, &ref)) {
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPLMLookupObjects");
+  }
   pluginSelf = get_pluginSelf();
   void *myRef = (void *)++libEnumCntr;
   PyObject *refObj = PyLong_FromVoidPtr(myRef);

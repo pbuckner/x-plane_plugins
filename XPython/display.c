@@ -56,9 +56,14 @@ static PyObject *XPLMRegisterDrawCallbackFun(PyObject *self, PyObject *args)
   int inPhase;
   int inWantsBefore;
   PyObject *refcon;
-  if(!PyArg_ParseTuple(args, "OiiO", &callback, &inPhase, &inWantsBefore, &refcon)){
-    return NULL;
-  } 
+  if(!PyArg_ParseTuple(args, "OOiiO", &pluginSelf, &callback, &inPhase, &inWantsBefore, &refcon)){
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "OiiO", &callback, &inPhase, &inWantsBefore, &refcon)){
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPLMRegisterDrawCallback");
+  }
   pluginSelf = get_pluginSelf();
   PyObject *idx = PyLong_FromLong(++drawCallbackCntr);
   if(!idx){
@@ -88,8 +93,15 @@ static PyObject *XPLMRegisterKeySnifferFun(PyObject *self, PyObject *args)
   (void) self;
   PyObject *pluginSelf, *callback, *refcon;
   int inBeforeWindows;
-  if(!PyArg_ParseTuple(args, "OiO", &callback, &inBeforeWindows, &refcon))
-    return NULL;
+  if(!PyArg_ParseTuple(args, "OOiO", &pluginSelf, &callback, &inBeforeWindows, &refcon)) {
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "OiO", &callback, &inBeforeWindows, &refcon)) {
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPLMRegisterKeySniffer");
+  }
+    
   pluginSelf = get_pluginSelf();
 
   PyObject *idx = PyLong_FromLong(++keySniffCallbackCntr);
@@ -114,10 +126,15 @@ static PyObject *XPLMRegisterKeySnifferFun(PyObject *self, PyObject *args)
 static PyObject *XPLMUnregisterDrawCallbackFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *callback, *refcon;
+  PyObject *callback, *refcon, *pluginSelf;
   int inPhase, inWantsBefore;
-  if(!PyArg_ParseTuple(args, "OiiO", &callback, &inPhase, &inWantsBefore, &refcon)){
-    return NULL;
+  if(!PyArg_ParseTuple(args, "OOiiO", &pluginSelf, &callback, &inPhase, &inWantsBefore, &refcon)){
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "OiiO", &callback, &inPhase, &inWantsBefore, &refcon)){
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPLMUnregisterDrawCallback");
   }
   PyObject *pyRefcon = PyLong_FromVoidPtr(refcon);
   PyObject *pID = PyDict_GetItem(drawCallbackIDDict, pyRefcon);
@@ -145,8 +162,15 @@ static PyObject *XPLMUnregisterKeySnifferFun(PyObject *self, PyObject *args)
   (void) self;
   PyObject *pluginSelf, *callback, *refcon;
   int inBeforeWindows;
-  if(!PyArg_ParseTuple(args, "OiO", &callback, &inBeforeWindows, &refcon))
-    return NULL;
+  if(!PyArg_ParseTuple(args, "OOiO", &pluginSelf, &callback, &inBeforeWindows, &refcon)) {
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "OiO", &callback, &inBeforeWindows, &refcon)) {
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPLMUnregisterKeySniffer");
+  }
+
   pluginSelf = get_pluginSelf();
   PyObject *pKey = NULL, *pVal = NULL;
   PyObject *toDelete = NULL;
@@ -376,9 +400,14 @@ static int handleMouseWheel(XPLMWindowID  inWindowID,
 static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *paramsObj;
-  if(!PyArg_ParseTuple(args, "O", &paramsObj)){
-    return NULL;
+  PyObject *paramsObj, *pluginSelf;
+  if(!PyArg_ParseTuple(args, "OO", &pluginSelf, &paramsObj)){
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "O", &paramsObj)){
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPLMCreateWindowEx");
   }
   
   XPLMCreateWindow_t params;
@@ -439,11 +468,17 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args)
 static PyObject *XPLMCreateWindowFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *drawCallback, *keyCallback, *mouseCallback, *refcon;
+  PyObject *drawCallback, *keyCallback, *mouseCallback, *refcon, *pluginSelf;
   int left, top, right, bottom, visible;
-  if(!PyArg_ParseTuple(args, "iiiiiOOOO", &left, &top, &right, &bottom, &visible, 
+  if(!PyArg_ParseTuple(args, "OiiiiiOOOO", &pluginSelf, &left, &top, &right, &bottom, &visible, 
                        &drawCallback, &keyCallback, &mouseCallback, &refcon)){
-    return NULL;
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "iiiiiOOOO", &left, &top, &right, &bottom, &visible, 
+                         &drawCallback, &keyCallback, &mouseCallback, &refcon)){
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPLMCreateWindow");
   }
   PyObject *cbkTuple = Py_BuildValue("(OOOOOO)", drawCallback, mouseCallback, keyCallback, Py_None, Py_None, Py_None);
   if(!cbkTuple){
@@ -463,9 +498,14 @@ static PyObject *XPLMCreateWindowFun(PyObject *self, PyObject *args)
 static PyObject *XPLMDestroyWindowFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *pID;
-  if(!PyArg_ParseTuple(args, "O", &pID)){
-    return NULL;
+  PyObject *pID, *pluginSelf;
+  if(!PyArg_ParseTuple(args, "OO", &pluginSelf, &pID)){
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "O", &pID)){
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPLMDestroyWindow");
   }
   if(PyDict_Contains(windowDict, pID)){
     XPLMWindowID winID = refToPtr(pID, windowIDRef);
@@ -883,14 +923,20 @@ void hotkeyCallback(void *inRefcon)
 static PyObject *XPLMRegisterHotKeyFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *inCallback, *refcon;
+  PyObject *inCallback, *refcon, *pluginSelf;
   int inVirtualKey, inFlags;
   PyObject *hkTuple;
   const char *inDescription;
-  if(!PyArg_ParseTuple(args, "iisOO", &inVirtualKey, &inFlags, &inDescription, &inCallback, &refcon)){
-    return NULL;
+  if(!PyArg_ParseTuple(args, "OiisOO", &pluginSelf, &inVirtualKey, &inFlags, &inDescription, &inCallback, &refcon)){
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "iisOO", &inVirtualKey, &inFlags, &inDescription, &inCallback, &refcon)){
+      return NULL;
+    }
+    hkTuple = PyTuple_GetSlice(args, 3, 5);
+  } else {
+    hkTuple = PyTuple_GetSlice(args, 4, 6);
+    pythonLogWarning("'self' deprecated as first parameter of XPLMRegisterHotKey");
   }
-  hkTuple = PyTuple_GetSlice(args, 3, 5);
   if(!hkTuple){
     PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterHotKey couldn't create a sequence slice.\n");
     return NULL;
@@ -912,9 +958,14 @@ static PyObject *XPLMRegisterHotKeyFun(PyObject *self, PyObject *args)
 static PyObject *XPLMUnregisterHotKeyFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *hotKey;
-  if (!PyArg_ParseTuple(args, "O", &hotKey)){
-    return NULL;
+  PyObject *hotKey, *pluginSelf;
+  if (!PyArg_ParseTuple(args, "OO", &pluginSelf, &hotKey)){
+    PyErr_Clear();
+    if (!PyArg_ParseTuple(args, "O", &hotKey)){
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPLMUnregisterHotKey");
   }
   PyObject *pRefcon = PyDict_GetItem(hotkeyIDDict, hotKey);
   if(pRefcon == NULL){

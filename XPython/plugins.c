@@ -152,10 +152,16 @@ PyObject *XPLMIsFeatureEnabledFun(PyObject *self, PyObject *args)
 PyObject *XPLMEnableFeatureFun(PyObject *self, PyObject *args)
 {
   (void) self;
+  PyObject *pluginSelf;
   const char *inFeature;
   int inEnable;
-  if(!PyArg_ParseTuple(args, "si", &inFeature, &inEnable)){
-    return NULL;
+  if(!PyArg_ParseTuple(args, "Osi", &pluginSelf, &inFeature, &inEnable)){
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "si", &inFeature, &inEnable)){
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPLMEnableFeature");
   }
   if (!inEnable && ! (strcmp(inFeature, "XPLM_USE_NATIVE_PATHS") && strcmp(inFeature, "XPLM_USE_NATIVE_WIDGET_WINDOWS"))) {
     PyErr_SetString(PyExc_RuntimeError, "A Python plugins is attempting to disable XPLM_USE_NATIVE_PATHS or XPLM_USE_NATIVE_WIDGET_WINDOWS feature, not allowed");
@@ -196,8 +202,14 @@ PyObject *XPLMEnumerateFeaturesFun(PyObject *self, PyObject *args)
   PyObject *fun;
   PyObject *ref;
   PyObject *pluginSelf;
-  if(!PyArg_ParseTuple(args, "OO", &fun, &ref))
-    return NULL;
+  if(!PyArg_ParseTuple(args, "OOO", &pluginSelf, &fun, &ref)) {
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "OO", &fun, &ref)) {
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPLMEnumerateFeatures");
+  }
   pluginSelf = get_pluginSelf();
 
   PyObject *argsObj = Py_BuildValue("(OOO)", pluginSelf, fun, ref);

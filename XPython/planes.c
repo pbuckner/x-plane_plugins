@@ -98,8 +98,13 @@ PyObject *XPLMAcquirePlanesFun(PyObject *self, PyObject *args)
 {
   (void)self;
   PyObject *pluginSelf, *aircraft, *inCallback, *inRefcon;
-  if(!PyArg_ParseTuple(args, "OOO", &aircraft, &inCallback, &inRefcon)){
-    return NULL;
+  if(!PyArg_ParseTuple(args, "OOOO", &pluginSelf, &aircraft, &inCallback, &inRefcon)){
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "OOO", &aircraft, &inCallback, &inRefcon)){
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPLMAcquirePlanes");
   }
   pluginSelf = get_pluginSelf();
   int res;

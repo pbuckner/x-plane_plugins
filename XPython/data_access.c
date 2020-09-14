@@ -776,9 +776,16 @@ static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args)
   const char *inDataName;
   int inDataType, inIsWritable;
   PyObject *ri, *wi, *rf, *wf, *rd, *wd, *rai, *wai, *raf, *waf, *rab, *wab, *rRef, *wRef;
-  if(!PyArg_ParseTuple(args, "siiOOOOOOOOOOOOOO", &inDataName, &inDataType, &inIsWritable,
-                       &ri, &wi, &rf, &wf, &rd, &wd, &rai, &wai, &raf, &waf, &rab, &wab, &rRef, &wRef))
-    return NULL;
+  if (!PyArg_ParseTuple(args, "osiiOOOOOOOOOOOOOO", &pluginSelf, &inDataName, &inDataType, &inIsWritable,
+                        &ri, &wi, &rf, &wf, &rd, &wd, &rai, &wai, &raf, &waf, &rab, &wab, &rRef, &wRef)) {
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "siiOOOOOOOOOOOOOO", &inDataName, &inDataType, &inIsWritable,
+                         &ri, &wi, &rf, &wf, &rd, &wd, &rai, &wai, &raf, &waf, &rab, &wab, &rRef, &wRef)) {
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPLMRegisterDataAccessor");
+  }
   pluginSelf = get_pluginSelf();
 
   void *refcon = (void *)accessorCntr++;
@@ -813,8 +820,14 @@ static PyObject *XPLMUnregisterDataAccessorFun(PyObject *self, PyObject *args)
   (void)self;
   PyObject *pluginSelf;
   PyObject *drefObj;
-  if(!PyArg_ParseTuple(args, "O", &drefObj))
-    return NULL;
+  if(!PyArg_ParseTuple(args, "OO", &pluginSelf, &drefObj)) {
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "O", &drefObj)) {
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPLMUnRegisterDataAccessor");
+  }
   pluginSelf = get_pluginSelf();
   PyObject *refconObj = PyDict_GetItem(drefDict, drefObj);
   if(refconObj == NULL){
@@ -875,8 +888,14 @@ static PyObject *XPLMShareDataFun(PyObject *self, PyObject *args)
   const char *inDataName;
   XPLMDataTypeID inDataType;
   PyObject *inNotificationFunc, *inNotificationRefcon;
-  if(!PyArg_ParseTuple(args, "siOO", &inDataName, &inDataType, &inNotificationFunc, &inNotificationRefcon))
-    return NULL;
+  if(!PyArg_ParseTuple(args, "OsiOO", &pluginSelf, &inDataName, &inDataType, &inNotificationFunc, &inNotificationRefcon)) {
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "siOO", &inDataName, &inDataType, &inNotificationFunc, &inNotificationRefcon)) {
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPLMShareData");
+  }
   pluginSelf = get_pluginSelf();
   void *refcon = (void *)sharedCntr++;
   int res = XPLMShareData(inDataName, inDataType, dataChanged, refcon);
@@ -910,8 +929,15 @@ static PyObject *XPLMUnshareDataFun(PyObject *self, PyObject *args)
   PyObject *callbackObj = NULL;
   PyObject *refconObj = NULL;
   PyObject *pluginSelf = NULL;
-  if(!PyArg_ParseTuple(args, "siOO", &inDataName, &tmpInDataType, &callbackObj, &refconObj))
-    return NULL;
+  if(!PyArg_ParseTuple(args, "OsiOO", &pluginSelf, &inDataName, &tmpInDataType, &callbackObj, &refconObj)) {
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "siOO", &inDataName, &tmpInDataType, &callbackObj, &refconObj)) {
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPLMUnshareData");
+  }
+    
   pluginSelf = get_pluginSelf();
   inDataType = (XPLMDataTypeID)tmpInDataType;
   PyObject *inDataNameObj, *target, *inDataNameUTF8Obj;

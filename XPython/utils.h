@@ -25,5 +25,5 @@ void removePtrRef(void *ptr, PyObject *dict);
 char *get_module(PyThreadState *tstate);
 PyObject *get_pluginSelf(/*PyThreadState *tstate*/);
 char *objToStr(PyObject *item);
-
+void pythonLogWarning(const char *msg);
 #endif

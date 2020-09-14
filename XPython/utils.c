@@ -11,6 +11,18 @@ const char *objRefName = "XPLMObjectRef";
 const char *commandRefName = "XPLMCommandRef";
 const char *widgetRefName = "XPLMWidgetID";
 
+int pythonWarnings = 1;  /* 1= issue warnings, 0= do not */
+
+PyObject *get_pythonline();
+
+void pythonLogWarning(const char *msg) {
+  if (pythonWarnings) {
+    PyObject *python_line = get_pythonline();
+    fprintf(pythonLogFile, "WARNING>> %s: %s\n", objToStr(python_line), msg);
+    fflush(pythonLogFile);
+  }
+}
+
 void dbg(const char *msg){
   printf("Going to check %s\n", msg);
   PyObject *err = PyErr_Occurred();
@@ -83,6 +95,43 @@ PyObject *get_pluginSelf() {
   PyGILState_Release(gilState);
   if (token) {
     PyObject *ret = PyUnicode_FromString(++token); // return new item, we then free the char*
+    free(last_filename);
+    return ret;
+  }
+  free(last_filename);
+  Py_RETURN_NONE;
+}
+
+PyObject *get_pythonline() {
+  // returns heap-allocated PyObject (or Py_RETURN_NONE)
+  PyGILState_STATE gilState = PyGILState_Ensure();
+  PyThreadState *tstate = PyThreadState_Get();
+  PyObject *last_filenameObj = Py_None;
+  int line = 0;
+  if (NULL != tstate && NULL != tstate->frame) {
+    PyFrameObject *frame = tstate->frame;
+    while (NULL != frame) {
+      // creates new PyObject
+      last_filenameObj = frame->f_code->co_filename;
+      line = frame->f_lineno;
+      frame = frame->f_back;
+      /* line = PyCode_Addr2Line(frame->f_code, frame->f_lasti);*/
+    }
+  }
+
+  char *last_filename = objToStr(last_filenameObj); // allocates new string on heap
+  char *token = strrchr(last_filename, '/');
+  if (token == NULL) {
+    token = strrchr(last_filename, '\\');
+    if (token == NULL) {
+      token = strrchr(last_filename, ':');
+    }
+  }
+  PyGILState_Release(gilState);
+  if (token) {
+    char msg[1024];
+    sprintf(msg, "%s:%d", ++token, line);
+    PyObject *ret = PyUnicode_FromString(msg); // return new item, we then free the char*
     free(last_filename);
     return ret;
   }

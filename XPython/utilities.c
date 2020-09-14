@@ -258,8 +258,14 @@ static PyObject *XPLMSetErrorCallbackFun(PyObject *self, PyObject *args)
 
   PyObject *pluginSelf;
   PyObject *callback;
-  if(!PyArg_ParseTuple(args, "O", &callback))
-    return NULL;
+  if(!PyArg_ParseTuple(args, "OO", &pluginSelf, &callback)) {
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "O", &callback)) {
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPLMSetErrorCallback");
+  }
   pluginSelf = get_pluginSelf();
   PyDict_SetItem(errCallbacks, pluginSelf, callback);
   Py_DECREF(pluginSelf);
@@ -399,8 +405,14 @@ static PyObject *XPLMRegisterCommandHandlerFun(PyObject *self, PyObject *args)
   int inBefore;
   PyObject *inRefcon;
   PyObject *pluginSelf;
-  if(!PyArg_ParseTuple(args, "OOiO", &inCommand, &inHandler, &inBefore, &inRefcon))
-    return NULL;
+  if(!PyArg_ParseTuple(args, "OOOiO", &pluginSelf, &inCommand, &inHandler, &inBefore, &inRefcon)) {
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "OOiO", &inCommand, &inHandler, &inBefore, &inRefcon)) {
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPLMRegisterCommandHandler");
+  }
   pluginSelf = get_pluginSelf();
   intptr_t refcon = commandCallbackCntr++;
   XPLMRegisterCommandHandler(refToPtr(inCommand, commandRefName), commandCallback, inBefore, (void *)refcon);
@@ -424,8 +436,15 @@ static PyObject *XPLMUnregisterCommandHandlerFun(PyObject *self, PyObject *args)
   PyObject *inHandler;
   int inBefore;
   PyObject *inRefcon;
-  if(!PyArg_ParseTuple(args, "OOiO", &inCommand, &inHandler, &inBefore, &inRefcon))
-    return NULL;
+  PyObject *pluginSelf;
+  if(!PyArg_ParseTuple(args, "OOOiO", &pluginSelf, &inCommand, &inHandler, &inBefore, &inRefcon)) {
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "OOiO", &inCommand, &inHandler, &inBefore, &inRefcon)) {
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPLMUnregisterCommandHandler");
+  }
   PyObject *key = PyLong_FromVoidPtr((void *)inCommand);
   PyObject *refcon = PyDict_GetItem(commandRefcons, key);
   XPLMUnregisterCommandHandler(refToPtr(inCommand, commandRefName), commandCallback,

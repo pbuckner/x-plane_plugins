@@ -131,9 +131,15 @@ static PyObject *XPLMAppendMenuItemFun(PyObject *self, PyObject *args)
   (void)self;
   PyObject *menuID;
   const char *inItemName;
+  int ignored;
   PyObject *inItemRef;
-  if(!PyArg_ParseTuple(args, "OsO", &menuID, &inItemName, &inItemRef)) {
-    return NULL;
+  if(!PyArg_ParseTuple(args, "OsOi", &menuID, &inItemName, &inItemRef, &ignored)) {
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "OsO", &menuID, &inItemName, &inItemRef)) {
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("final parameter after itemRef is ignored for XPLMAppnedMenuItemd");
   }
   XPLMMenuID inMenu = refToPtr(menuID, menuIDRef);
   int res = XPLMAppendMenuItem(inMenu, inItemName, inItemRef, 0);
@@ -176,8 +182,14 @@ static PyObject *XPLMSetMenuItemNameFun(PyObject *self, PyObject *args)
   PyObject *menuID;
   const char *inItemName;
   int inIndex;
-  if(!PyArg_ParseTuple(args, "Ois", &menuID, &inIndex, &inItemName)){
-    return NULL;
+  int ignored;
+  if(!PyArg_ParseTuple(args, "Oisi", &menuID, &inIndex, &inItemName, &ignored)){
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "Ois", &menuID, &inIndex, &inItemName)){
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("final parameter after name is ignored for XPLMSetMenuItemName");
   }
   XPLMMenuID inMenu = refToPtr(menuID, menuIDRef);
   XPLMSetMenuItemName(inMenu, inIndex, inItemName, 0);

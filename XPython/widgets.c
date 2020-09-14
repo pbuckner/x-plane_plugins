@@ -403,8 +403,14 @@ static PyObject *XPGetWidgetDescriptorFun(PyObject *self, PyObject *args)
   (void) self;
   PyObject *widget;
   int inMaxDescLength = 2048;
-  if(!PyArg_ParseTuple(args, "O", &widget)){
-    return NULL;
+  int ignored;
+  if(!PyArg_ParseTuple(args, "Oi", &widget, &ignored)){
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "O", &widget)){
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("maxDescLength parameter is ignored for XPLMGetWidgetDescriptor");
   }
   int res;
   char buffer[inMaxDescLength + 1];

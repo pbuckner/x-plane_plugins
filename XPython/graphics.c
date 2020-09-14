@@ -232,10 +232,15 @@ static PyObject *XPLMMeasureStringFun(PyObject *self, PyObject *args)
   char *inChar;
   int inNumChars;
 
-  if(!PyArg_ParseTuple(args, "is", &inFontID, &inChar)) {
-    return NULL;
+  if(!PyArg_ParseTuple(args, "isi", &inFontID, &inChar, &inNumChars)) {
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "is", &inFontID, &inChar)) {
+      return NULL;
+    }
+    inNumChars = strlen(inChar);
+  } else {
+    pythonLogWarning("'numChar' unnecessary as final parameter of XPLMMeasureString");
   }
-  inNumChars = strlen(inChar);
   return PyFloat_FromDouble(XPLMMeasureString(inFontID, inChar, inNumChars));
 }
 

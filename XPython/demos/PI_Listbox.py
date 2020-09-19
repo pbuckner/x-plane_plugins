@@ -1,5 +1,5 @@
 try:
-    from XPListBox import Prop, XPCreateListBox
+    from XPListBox import XPCreateListBox
 except ImportError:
     print("XPListBox is a custom python file provided with XPPython3, and required by this example you could copy it into PythonPlugins folder")
     raise
@@ -12,19 +12,14 @@ class PythonInterface:
         self.Sig = "listbox.demos.xppython3"
         self.Desc = "Demonstrate ListBox"
         self.windowWidgetID = None
-        self.listboxWidgetID = None
+        self.listboxWidget = None
         self.listboxData = None
 
     def clearDisplay(self):
-        if self.listboxWidgetID is None:
-            return
-        xp.setWidgetProperty(self.listboxWidgetID, Prop.ListBoxClear, 1)
+        self.listboxWidget.clear()
 
     def display(self, s):
-        if self.listboxWidgetID is None:
-            return
-        xp.setWidgetDescriptor(self.listboxWidgetID, s)
-        xp.setWidgetProperty(self.listboxWidgetID, Prop.ListBoxAddItem, 1)
+        self.listboxWidget.add(s)
 
     def XPluginStart(self):
         return self.Name, self.Sig, self.Desc
@@ -59,4 +54,4 @@ class PythonInterface:
         right = left + int(num_characters * FontWidth)
 
         self.windowWidgetID = xp.createWidget(left - 5, top + 20, right + 5, bottom - 5, 1, "XPPython3", 1, 0, xp.WidgetClass_MainWindow)
-        self.listboxWidgetID = XPCreateListBox(left, top, right, bottom, 1, "Logging Messages", self.windowWidgetID)
+        self.listboxWidget = XPCreateListBox(left, top, right, bottom, 1, self.windowWidgetID)

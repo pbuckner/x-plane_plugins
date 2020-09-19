@@ -283,12 +283,24 @@ which they bear a striking resemblance to) in the following ways:
 
 .. py:function:: XPGetWidgetProperty(widgetID, propertyID, exists) -> value:
 
+    :param widgetID: :py:data:`XPLMWidgetID`
+    :param propertyID: PropertyID, as listed in :py:mod:`XPStandardWidgets`, or custom property ID.
+    :param exists: Optional:
+
+      * Pass python list object: if property exists on widget, ``exists = [1,]`` otherwise ``exists = [0,]``
+      * Pass ``None`` to indicate you don't care if property exists.
+      * Do not provide parameter and we'll raise ``ValueError`` exception if property does not exist.
+    :return: Property Value, or 0 if property does not exist and the ``exists`` parameter is provided.
+
     This routine returns the value of a widget's property, or 0 if the property
     is not defined. If you need to know whether the property is defined, pass a
     list for inExists; the existence of that property will be
-    returned in the list. Pass None for inExists if you do not need this
+    returned in the list. Pass None for ``exists`` if you do not need this
     information. (This allows you to distinguish between ``value = 0`` property does not exist
     and ``value = 0`` property exists.)
+
+    If the final parameter is not passed and the property does not exist, a ``ValueError`` exception
+    is raised.
 
 
 .. py:function:: XPSetKeyboardFocus(widgetID) -> widgetID:

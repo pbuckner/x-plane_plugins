@@ -17,11 +17,14 @@ Changes from Python2 SDK
 * All routines return "PyCapsules" rather than ints for XPLMWindowIDRef, XPLMHotkeyIDRef, XPLMMenuIDRef, XPLMWidgetID. For
   the most part, you should not care.
 
-* PI_GetMouseState() no longer supported: you'll now get tuple (x, y, button, delta) as param1 in widget callbacks
-  (for xpMsg_MouseDown, xpMsg_MouseDrag, xpMsg_MouseUp, xpMsp_CursorAdjust)
+* PI_GetMouseState() no longer required: you'll now get tuple (x, y, button, delta) as param1 in widget callbacks
+  (for xpMsg_MouseDown, xpMsg_MouseDrag, xpMsg_MouseUp, xpMsp_CursorAdjust) and you can use that directly rather than
+  passing it through PI_GetKeyState(). However, for backward compatibility, PI_GetMouseState() has been implemented
+  as a no-op, so you can still use it.
 
-* PI_GetKeyState() no longer supported: you'll now get tuple (key, flags, vkey) as param1 in widget callbacks
-  (for xpMsg_KeyPress)
+* PI_GetKeyState() no longer required: you'll now get tuple (key, flags, vkey) as param1 in widget callbacks
+  (for xpMsg_KeyPress) and you can use that directly rather than passing it through PI_GetKeyState(). However,
+  for backward compatibility, PI_GetKeyState() has been implemented as a no-op, so you can still use it.
 
 * PI_GetWidgetGeometry() no longer supported: you'll now get tuple (dx, dy, dwidth, dheight) as param1 in widget callbacks
   (for xpMsg_Reshape)
@@ -31,10 +34,33 @@ Changes from Python2 SDK
 
 See also :doc:`portingNotes`.
 
+.. note::
+   For the most part, the old interface (from Sandy's python2 PythonInterface plugin) will still work, as
+   we've implemented backward-compatible hooks. You **may** use the simplified interface described next,
+   and/or continue to use the older API (they're compatible with each other).
+
+   For example, these all work::
+
+     # PythonInterface style:
+     outWidth = []
+     outHeight = []
+     XPLMDisplay.XPLMGetScreenSize(outWidth, outHeight)
+     print("Screen is {}x{}".format(outWidth[0], outHeight[0])
+
+     # XPPython3 style:
+     width, height = XPLMDisplay.XPLMGetScreenSize()
+     print("Screen is {}x{}".format(width, height)
+
+     # XPPython3 'xp' style:
+     widgth, height = xp.getScreenSize()
+     print("Screen is {}x{}".format(width, height)
+     
+     
+
 Simplified Interfaces
 ---------------------
 
-* **REMOVAL** of passing 'self' as first parameter in callback registrations (required with Python2, not with Python3)
+* **DEPRECATED** passing 'self' as first parameter in callback registrations (required with Python2, not with Python3)
 
   We're using stack manipulation to do that for you instead.
 
@@ -44,7 +70,7 @@ Simplified Interfaces
     - not -
     XPLMLoadObjectAsync(self, path, callback, refcon)
 
-* **REMOVAL** of extraneous parameters
+* **DEPRECATED** extraneous parameters
 
   Python make string handling and memory management vastly simpler than C / C++, so we've dropped some
   API parameters which are no longer critical:  
@@ -64,7 +90,7 @@ Simplified Interfaces
       We've dropped the `inMaxDescLength` and will return the full descriptor (up to 2048 characters)
 
   
-* **Change** "out" parameters. Instead, return values directly where we can. Often
+* **DEPRECATED** use of "out" parameters. Instead, return values directly where we can. Often
   this means you don't need to pass in a list as a parameter to retrieve the results.
 
   Old::
@@ -114,7 +140,7 @@ Simplified Interfaces
     XPLMGetFontDimensions(inFontID, outCharWidth, outCharHeight, outDigitsOnly) ->  
     width, height, digitsOnly = XPLMGetFontDimensions(inFontID)  
 
-  XMPLMap::
+  XPLMMap::
 
     XPLMMapProject(projection, latitude, longitude, outX, outY) ->  
     x, y = XPLMMapProject(projection, latitude, longitude)  

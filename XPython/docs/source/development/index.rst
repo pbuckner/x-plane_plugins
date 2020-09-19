@@ -39,14 +39,25 @@ XPPython3 Module Documentation
 
   * `XPython/demos/ <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/demos/>`_.   Ported versions of C++ and Python2 demos.
 
+  * Mini Python Debugger:   Check out the ``PI_MiniPython.py`` plugin, available under ``demos``. It allows you to
+    type in python expressions in a running application and see the results.
+
   .. note:: I strongly suggest the  simplified interface described by :py:mod:`xp`. You'll find it much faster and easier to write new
     code using this interace and won't wear out your XPLM keys.
 
   If you're familiar with Python2 API:
 
+  First, note that XPPython3 is backward compatible to the API, but you will need
+  to make changes to support python3 vs. python2. That being said XPPython3 has a new simplified API which (though not
+  backward compatible) will make new code easier to write:
+
   * :doc:`changesfromp2`
 
   * :doc:`portingNotes`
+
+  * `NOAA Weather Plugin <https://github.com/pbuckner/XplaneNoaaWeather/>`_.   **Unofficial** port of Joan's NOAWeather plugin.
+    Use git-compare to see what types of things change from python2 to python3. (Joan is familiar with the changes
+    and will be responsible for official support in the future -- this is merely a porting example.)
 
 
 Python Stubs

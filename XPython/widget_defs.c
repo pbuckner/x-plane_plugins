@@ -14,7 +14,27 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+static PyObject *PI_GetMouseStateFun(PyObject *self, PyObject *args) {
+  (void) self;
+  PyObject *param1;
+  if(!PyArg_ParseTuple(args, "O", &param1)) {
+    return NULL;
+  }
+  return param1;
+}
+
+static PyObject *PI_GetKeyStateFun(PyObject *self, PyObject *args) {
+  (void) self;
+  PyObject *param1;
+  if(!PyArg_ParseTuple(args, "O", &param1)) {
+    return NULL;
+  }
+  return param1;
+}
+
 static PyMethodDef XPWidgetDefsMethods[] = {
+  {"PI_GetMouseState", PI_GetMouseStateFun, METH_VARARGS, ""},
+  {"PI_GetKeyState", PI_GetKeyStateFun, METH_VARARGS, ""},
   {"cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };

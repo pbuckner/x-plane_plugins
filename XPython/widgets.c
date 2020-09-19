@@ -185,10 +185,15 @@ static PyObject *XPCreateCustomWidgetFun(PyObject *self, PyObject *args)
 static PyObject *XPDestroyWidgetFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *widget;
+  PyObject *widget, *pluginSelf;
   int inDestroyChildren;
-  if(!PyArg_ParseTuple(args, "Oi", &widget, &inDestroyChildren)){
-    return NULL;
+  if(!PyArg_ParseTuple(args, "OOi", &pluginSelf, &widget, &inDestroyChildren)){
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "Oi", &widget, &inDestroyChildren)){
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPDestroyWidget");
   }
   XPWidgetID wid = refToPtr(widget, widgetRefName);
   XPDestroyWidget(wid, inDestroyChildren);
@@ -341,13 +346,29 @@ static PyObject *XPIsWidgetInFrontFun(PyObject *self, PyObject *args)
 static PyObject *XPGetWidgetGeometryFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *widget;
-  if(!PyArg_ParseTuple(args, "O", &widget)){
-    return NULL;
+  PyObject *widget, *outLeft, *outTop, *outRight, *outBottom;;
+  int returnValues = 0;
+  if(!PyArg_ParseTuple(args, "OOOOO", &widget, &outLeft, &outTop, &outRight, &outBottom)){
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "O", &widget)){
+      return NULL;
+    }
+    returnValues = 1;
   }
-  int outLeft, outTop, outRight, outBottom;
-  XPGetWidgetGeometry(refToPtr(widget, widgetRefName), &outLeft, &outTop, &outRight, &outBottom);
-  return Py_BuildValue("(iiii)", outLeft, outTop, outRight, outBottom);
+  int left, top, right, bottom;
+  XPGetWidgetGeometry(refToPtr(widget, widgetRefName), &left, &top, &right, &bottom);
+  if (returnValues) 
+    return Py_BuildValue("(iiii)", left, top, right, bottom);
+  pythonLogWarning("XPGetWidgetGeomtry only requires initial widgetID parameter");
+  if (outLeft != Py_None)
+    PyList_Append(outLeft, PyLong_FromLong(left));
+  if (outTop != Py_None)
+    PyList_Append(outTop, PyLong_FromLong(top));
+  if (outRight != Py_None)
+    PyList_Append(outRight, PyLong_FromLong(right));
+  if (outBottom != Py_None)
+    PyList_Append(outBottom, PyLong_FromLong(bottom));
+  Py_RETURN_NONE;
 }
 
 static PyObject *XPSetWidgetGeometryFun(PyObject *self, PyObject *args)
@@ -377,13 +398,29 @@ static PyObject *XPGetWidgetForLocationFun(PyObject *self, PyObject *args)
 static PyObject *XPGetWidgetExposedGeometryFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *widget;
-  if(!PyArg_ParseTuple(args, "O", &widget)){
-    return NULL;
+  PyObject *widget, *outLeft, *outTop, *outRight, *outBottom;
+  int returnValues = 0;
+  if(!PyArg_ParseTuple(args, "OOOOO", &widget, &outLeft, &outTop, &outRight, &outBottom)){
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "O", &widget)){
+      return NULL;
+    }
+    returnValues = 1;
   }
-  int outLeft, outTop, outRight, outBottom;
-  XPGetWidgetExposedGeometry(refToPtr(widget, widgetRefName), &outLeft, &outTop, &outRight, &outBottom);
-  return Py_BuildValue("(iiii)", outLeft, outTop, outRight, outBottom);
+  int left, top, right, bottom;
+  XPGetWidgetExposedGeometry(refToPtr(widget, widgetRefName), &left, &top, &right, &bottom);
+  if (returnValues)
+    return Py_BuildValue("(iiii)", left, top, right, bottom);
+  pythonLogWarning("XPGetWidgetExposedGeomtry only requires initial widgetID parameter");
+  if (outLeft != Py_None)
+    PyList_Append(outLeft, PyLong_FromLong(left));
+  if (outTop != Py_None)
+    PyList_Append(outTop, PyLong_FromLong(top));
+  if (outRight != Py_None)
+    PyList_Append(outRight, PyLong_FromLong(right));
+  if (outBottom != Py_None)
+    PyList_Append(outBottom, PyLong_FromLong(bottom));
+  Py_RETURN_NONE;
 }
 
 static PyObject *XPSetWidgetDescriptorFun(PyObject *self, PyObject *args)
@@ -401,16 +438,21 @@ static PyObject *XPSetWidgetDescriptorFun(PyObject *self, PyObject *args)
 static PyObject *XPGetWidgetDescriptorFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *widget;
+  PyObject *widget, *outDescriptor;
   int inMaxDescLength = 2048;
+  int returnValues = 0;
   int ignored;
-  if(!PyArg_ParseTuple(args, "Oi", &widget, &ignored)){
+  if(!PyArg_ParseTuple(args, "OOi", &widget, &outDescriptor, &ignored)){
     PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "O", &widget)){
-      return NULL;
+    returnValues = 1;
+    if(!PyArg_ParseTuple(args, "Oi", &widget, &ignored)){
+      PyErr_Clear();
+      if(!PyArg_ParseTuple(args, "O", &widget)){
+        return NULL;
+      }
+    } else {
+      pythonLogWarning("maxDescLength parameter is ignored for XPLMGetWidgetDescriptor");
     }
-  } else {
-    pythonLogWarning("maxDescLength parameter is ignored for XPLMGetWidgetDescriptor");
   }
   int res;
   char buffer[inMaxDescLength + 1];
@@ -419,7 +461,12 @@ static PyObject *XPGetWidgetDescriptorFun(PyObject *self, PyObject *args)
     printf("Warning: xppython descriptor for widget exceeds buffer size\n");
   }
   buffer[res] = '\0';
-  return Py_BuildValue("U", buffer);
+  if (returnValues)
+    return PyUnicode_FromString(buffer);
+  pythonLogWarning("XPGetWidgetDescriptor only requires initial widgetID");
+  if (outDescriptor != Py_None)
+    PyList_Append(outDescriptor, PyUnicode_FromString(buffer));
+  Py_RETURN_NONE;
 }
 
 static PyObject *XPGetWidgetUnderlyingWindowFun(PyObject *self, PyObject *args)
@@ -472,8 +519,13 @@ static PyObject *XPGetWidgetPropertyFun(PyObject *self, PyObject *args)
   (void)self;
   PyObject *widget, *exists;
   int property;
+  int exception_on_error = 0;
   if(!PyArg_ParseTuple(args, "OiO", &widget, &property, &exists)){
-    return NULL;
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "Oi", &widget, &property)){
+      return NULL;
+    }
+    exception_on_error = 1;
   }
   XPWidgetPropertyID inProperty = property;
   int inExists;
@@ -496,11 +548,16 @@ static PyObject *XPGetWidgetPropertyFun(PyObject *self, PyObject *args)
     resObj = PyLong_FromLong(res);
   }
     
-  if(exists != Py_None) {
+  if (exception_on_error && !inExists) {
+    PyErr_SetString(PyExc_ValueError, "Widget does not have this property");
+    return NULL;
+  }
+  if(exists != Py_None && !exception_on_error) {
     PyObject *e = PyLong_FromLong(inExists);
     PyList_Insert(exists, 0, e);
     Py_DECREF(e);
   }
+  
   return resObj;
 }
 
@@ -542,9 +599,14 @@ static PyObject *XPGetWidgetWithFocusFun(PyObject *self, PyObject *args)
 static PyObject *XPAddWidgetCallbackFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *widget, *callback;
-  if (!PyArg_ParseTuple(args, "OO", &widget, &callback)){
-    return NULL;
+  PyObject *widget, *callback, *pluginSelf;
+  if (!PyArg_ParseTuple(args, "OOO", &pluginSelf, &widget, &callback)){
+    PyErr_Clear();
+    if (!PyArg_ParseTuple(args, "OO", &widget, &callback)){
+      return NULL;
+    }
+  } else {
+    pythonLogWarning("'self' deprecated as first parameter of XPAddWidgetCallback");
   }
   PyObject *current = PyDict_GetItem(widgetCallbackDict, widget);
   if(current == NULL){

@@ -139,7 +139,7 @@ static PyObject *XPLMAppendMenuItemFun(PyObject *self, PyObject *args)
       return NULL;
     }
   } else {
-    pythonLogWarning("final parameter after itemRef is ignored for XPLMAppnedMenuItemd");
+    pythonLogWarning("final parameter after itemRef is ignored for XPLMAppendMenuItem");
   }
   XPLMMenuID inMenu = refToPtr(menuID, menuIDRef);
   int res = XPLMAppendMenuItem(inMenu, inItemName, inItemRef, 0);

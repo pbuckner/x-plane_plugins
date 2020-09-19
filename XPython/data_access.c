@@ -776,7 +776,7 @@ static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args)
   const char *inDataName;
   int inDataType, inIsWritable;
   PyObject *ri, *wi, *rf, *wf, *rd, *wd, *rai, *wai, *raf, *waf, *rab, *wab, *rRef, *wRef;
-  if (!PyArg_ParseTuple(args, "osiiOOOOOOOOOOOOOO", &pluginSelf, &inDataName, &inDataType, &inIsWritable,
+  if (!PyArg_ParseTuple(args, "OsiiOOOOOOOOOOOOOO", &pluginSelf, &inDataName, &inDataType, &inIsWritable,
                         &ri, &wi, &rf, &wf, &rd, &wd, &rai, &wai, &raf, &waf, &rab, &wab, &rRef, &wRef)) {
     PyErr_Clear();
     if(!PyArg_ParseTuple(args, "siiOOOOOOOOOOOOOO", &inDataName, &inDataType, &inIsWritable,

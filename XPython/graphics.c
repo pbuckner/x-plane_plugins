@@ -48,11 +48,16 @@ static PyObject *XPLMBindTexture2dFun(PyObject *self, PyObject *args)
 static PyObject *XPLMGenerateTextureNumbersFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *outTextureIDs;
+  PyObject *outTextureIds;
   int inCount;
+  int returnValues = 0;
 
-  if(!PyArg_ParseTuple(args, "i", &inCount)){
-    return NULL;
+  if(!PyArg_ParseTuple(args, "Oi", &outTextureIds, &inCount)){
+    PyErr_Clear();
+    returnValues = 1;
+    if(!PyArg_ParseTuple(args, "i", &inCount)){
+      return NULL;
+    }
   }
 
   int *array = (int *)malloc(sizeof(int) * inCount);
@@ -63,16 +68,21 @@ static PyObject *XPLMGenerateTextureNumbersFun(PyObject *self, PyObject *args)
   
   XPLMGenerateTextureNumbers(array, inCount);
   int i;
-  outTextureIDs = PyList_New(0);
+  if (returnValues) {
+    outTextureIds = PyList_New(0);
+  }
   for(i = 0; i < inCount; ++i){
     PyObject *tmp = PyLong_FromLong(array[i]);
-    if(PyList_Append(outTextureIDs, tmp)){
+    if(PyList_Append(outTextureIds, tmp)){
       printf("Problem appending item!\n");
     }
     Py_DECREF(tmp);
   }
   free(array);
-  return outTextureIDs;
+  if (returnValues) {
+    return outTextureIds;
+  }
+  Py_RETURN_NONE;
 } 
 
 #if defined(XPLM_DEPRECATED)
@@ -216,13 +226,29 @@ static PyObject *XPLMGetFontDimensionsFun(PyObject *self, PyObject *args)
 {
   (void) self;
   int inFontID;
-  if(!PyArg_ParseTuple(args, "i", &inFontID)) {
-    return NULL;
+  PyObject *outCharWidth, *outCharHeight, *outDigitsOnly;
+  int returnValues = 0;
+  if(!PyArg_ParseTuple(args, "iOOO", &inFontID, &outCharWidth, &outCharHeight, &outDigitsOnly)) {
+    PyErr_Clear();
+    returnValues = 1;
+    if(!PyArg_ParseTuple(args, "i", &inFontID)) {
+      return NULL;
+    }
   }
 
-  int outCharWidth, outCharHeight, outDigitsOnly;
-  XPLMGetFontDimensions(inFontID, &outCharWidth, &outCharHeight, &outDigitsOnly);
-  return Py_BuildValue("(iii)", outCharWidth, outCharHeight, outDigitsOnly);
+  int charWidth, charHeight, digitsOnly;
+  XPLMGetFontDimensions(inFontID, &charWidth, &charHeight, &digitsOnly);
+  if (returnValues) {
+    return Py_BuildValue("(iii)", charWidth, charHeight, digitsOnly);
+  }
+  pythonLogWarning("XPLMGetFontDimentions only requires initial fontID parameter");
+  if (outCharWidth != Py_None)
+    PyList_Append(outCharWidth, PyLong_FromLong(charWidth));
+  if (outCharHeight != Py_None)
+    PyList_Append(outCharHeight, PyLong_FromLong(charHeight));
+  if (outDigitsOnly != Py_None)
+    PyList_Append(outDigitsOnly, PyLong_FromLong(digitsOnly));
+  Py_RETURN_NONE;
 }
 
 static PyObject *XPLMMeasureStringFun(PyObject *self, PyObject *args)

@@ -35,20 +35,35 @@ static PyObject *XPLMDestroyProbeFun(PyObject *self, PyObject *args)
 static PyObject *XPLMProbeTerrainXYZFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *probe;
+  PyObject *probe, *outInfo;
   float inX, inY, inZ;
+  int returnValues = 0;
 
-  if(!PyArg_ParseTuple(args, "Offf", &probe, &inX, &inY, &inZ)){
-    return NULL;
+  if(!PyArg_ParseTuple(args, "OfffO", &probe, &inX, &inY, &inZ, &outInfo)){
+    PyErr_Clear();
+    returnValues = 1;
+    if(!PyArg_ParseTuple(args, "Offf", &probe, &inX, &inY, &inZ)){
+      return NULL;
+    }
   }
   XPLMProbeRef inProbe = refToPtr(probe, probeName);
-  XPLMProbeInfo_t outInfo;
-  outInfo.structSize = sizeof(outInfo);
-  XPLMProbeResult res = XPLMProbeTerrainXYZ(inProbe, inX, inY, inZ, &outInfo);
+  XPLMProbeInfo_t info;
+  info.structSize = sizeof(info);
+  XPLMProbeResult res = XPLMProbeTerrainXYZ(inProbe, inX, inY, inZ, &info);
 
-  return PyProbeInfo_New(res, outInfo.locationX, outInfo.locationY, outInfo.locationZ,
-                         outInfo.normalX, outInfo.normalY, outInfo.normalZ,
-                         outInfo.velocityX, outInfo.velocityY, outInfo.velocityZ, outInfo.is_wet);
+  PyObject *ret;
+  ret = PyProbeInfo_New(res, info.locationX, info.locationY, info.locationZ,
+                           info.normalX, info.normalY, info.normalZ,
+                           info.velocityX, info.velocityY, info.velocityZ, info.is_wet);
+  if (returnValues) 
+    return ret;
+
+  pythonLogWarning("XPLMProbeTerrainXYZ does not require final info parameter");
+
+  if (outInfo != Py_None)
+    PyList_Append(outInfo, ret);
+  
+  return PyLong_FromLong(res);
 }
 
 static PyObject *XPLMGetMagneticVariationFun(PyObject *self, PyObject *args)

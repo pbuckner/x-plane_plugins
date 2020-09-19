@@ -56,15 +56,32 @@ PyObject *XPLMGetPluginInfoFun(PyObject *self, PyObject *args)
 {
   (void) self;
   int inPlugin;
-  if(!PyArg_ParseTuple(args, "i", &inPlugin)){
-    return NULL;
+  int returnValues = 0;
+  PyObject *outName, *outFilePath, *outSignature, *outDescription;
+  if(!PyArg_ParseTuple(args, "iOOOO", &inPlugin, &outName, &outFilePath, &outSignature, &outDescription)){
+    PyErr_Clear();
+    returnValues = 1;
+    if(!PyArg_ParseTuple(args, "i", &inPlugin)){
+      return NULL;
+    }
   }
-  char outName[512];
-  char outFilePath[512];
-  char outSignature[512];
-  char outDescription[512];
-  XPLMGetPluginInfo(inPlugin, outName, outFilePath, outSignature, outDescription);
-  return PyPluginInfo_New(outName, outFilePath, outSignature, outDescription);
+  char name[512];
+  char filePath[512];
+  char signature[512];
+  char description[512];
+  XPLMGetPluginInfo(inPlugin, name, filePath, signature, description);
+  if (returnValues)
+    return PyPluginInfo_New(name, filePath, signature, description);
+  pythonLogWarning("XPLMGetPluginInfo only requires pluginID parameter");
+  if (outName != Py_None)
+    PyList_Append(outName, PyUnicode_FromString(name));
+  if (outFilePath != Py_None)
+    PyList_Append(outFilePath, PyUnicode_FromString(filePath));
+  if (outSignature != Py_None)
+    PyList_Append(outSignature, PyUnicode_FromString(signature));
+  if (outDescription != Py_None)
+    PyList_Append(outDescription, PyUnicode_FromString(description));
+  Py_RETURN_NONE;
 }
 
 PyObject *XPLMIsPluginEnabledFun(PyObject *self, PyObject *args)

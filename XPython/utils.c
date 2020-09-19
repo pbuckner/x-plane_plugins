@@ -110,12 +110,10 @@ PyObject *get_pythonline() {
   int line = 0;
   if (NULL != tstate && NULL != tstate->frame) {
     PyFrameObject *frame = tstate->frame;
-    while (NULL != frame) {
-      // creates new PyObject
+    if (frame) {
       last_filenameObj = frame->f_code->co_filename;
+      // line = PyCode_Addr2Line(frame->f_code, frame->f_lasti);  /* This is not available on window version */
       line = frame->f_lineno;
-      frame = frame->f_back;
-      /* line = PyCode_Addr2Line(frame->f_code, frame->f_lasti);*/
     }
   }
 

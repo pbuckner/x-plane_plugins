@@ -6,6 +6,7 @@
 #include <structmember.h>
 #include "xppythontypes.h"
 #include "utils.h"
+#include "trackMetrics.h"
 
 PyObject *xppythonDicts = NULL, *xppythonCapsules = NULL;
 extern const char *pythonPluginVersion, *pythonPluginsPath, *pythonInternalPluginsPath;
@@ -597,104 +598,6 @@ PyFMSEntryInfo_New(int type, char *navAidID, int ref, int altitude, float lat, f
   Py_DECREF(argsList);
   return (PyObject*)obj;
 }
-
-/* TrackMetrics TYPE */
-typedef struct {
-  PyObject_HEAD
-  int isVertical;
-  int downBtnSize;
-  int downPageSize;
-  int thumbSize;
-  int upPageSize;
-  int upBtnSize;
-} TrackMetricsObject;
-
-static PyObject *
-TrackMetrics_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-  (void) args;
-  (void) kwds;
-  TrackMetricsObject *self;
-  self = (TrackMetricsObject *) type->tp_alloc(type, 0);
-  if (self != NULL) {
-    self->isVertical = 0;
-    self->downBtnSize = 0;
-    self->downPageSize = 0;
-    self->thumbSize = 0;
-    self->upPageSize = 0;
-    self->upBtnSize = 0;
-  }
-  return (PyObject *) self;
-}
-
-static int
-TrackMetrics_traverse(TrackMetricsObject *self, visitproc visit, void *arg)
-{
-  (void) self;
-  (void) visit;
-  (void) arg;
-  return 0;
-}
-
-static int
-TrackMetrics_clear(TrackMetricsObject *self)
-{
-  (void)self;
-  return 0;
-}
-
-static void
-TrackMetrics_dealloc(TrackMetricsObject *self)
-{
-  Py_TYPE(self)->tp_free((PyObject *) self);
-}
-
-static int
-TrackMetrics_init(TrackMetricsObject *self, PyObject *args, PyObject *kwds)
-{
-  static char *kwlist[] = {"isVertical", "downBtnSize", "downPageSize", "thumbSize", "upPageSize", "upBtnSize", NULL};
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iiiiii", kwlist,
-                                   &self->isVertical, &self->downBtnSize, &self->downPageSize, &self->thumbSize,
-                                   &self->upPageSize, &self->upBtnSize))
-    return -1;
-  return 0;
-}
-
-static PyMemberDef TrackMetrics_members[] = {
-    {"isVertical", T_INT, offsetof(TrackMetricsObject, isVertical), 0, "isVertical"},
-    {"downBtnSize", T_INT, offsetof(TrackMetricsObject, downBtnSize), 0, "downButtonSize"},
-    {"downPageSize", T_INT, offsetof(TrackMetricsObject, downPageSize), 0, "downPageSize"},
-    {"thumbSize", T_INT, offsetof(TrackMetricsObject, thumbSize), 0, "thumbSize"},
-    {"upPageSize", T_INT, offsetof(TrackMetricsObject, upPageSize), 0, "upPageSize"},
-    {"upBtnSize", T_INT, offsetof(TrackMetricsObject, upBtnSize), 0, "upButtonSize"},
-    {NULL}  /* Sentinel */
-};
-
-static PyTypeObject TrackMetricsType = {
-                                      PyVarObject_HEAD_INIT(NULL, 0)
-                                      .tp_name = "xppython3.TrackMetrics",
-                                      .tp_doc = "TrackMetrics",
-                                      .tp_basicsize = sizeof(TrackMetricsObject),
-                                      .tp_itemsize = 0,
-                                      .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
-                                      .tp_new = TrackMetrics_new,
-                                      .tp_init = (initproc) TrackMetrics_init,
-                                      .tp_dealloc = (destructor) TrackMetrics_dealloc,
-                                      .tp_traverse = (traverseproc) TrackMetrics_traverse,
-                                      .tp_clear = (inquiry) TrackMetrics_clear,
-                                      .tp_members = TrackMetrics_members,
-};
-
-
-PyObject *
-PyTrackMetrics_New(int isVertical, int downBtnSize, int downPageSize, int thumbSize, int upPageSize, int upBtnSize)
-{
-  PyObject *argsList = Py_BuildValue("iiiiii", isVertical, downBtnSize, downPageSize, thumbSize, upPageSize, upBtnSize);
-  PyObject *obj = PyObject_CallObject((PyObject *) &TrackMetricsType, argsList);
-  Py_DECREF(argsList);
-  return (PyObject*)obj;
-}
-
 
 static PyObject *XPPythonGetDictsFun(PyObject *self, PyObject *args)
 {

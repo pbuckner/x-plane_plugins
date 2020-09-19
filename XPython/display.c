@@ -526,7 +526,17 @@ static PyObject *XPLMGetScreenSizeFun(PyObject *self, PyObject *args)
   (void) args;
   int w, h;
   XPLMGetScreenSize(&w, &h);
-  return Py_BuildValue("(ii)", w, h);
+  PyObject *outWidth, *outHeight;
+  if(!PyArg_ParseTuple(args, "OO", &outWidth, &outHeight)) {
+    PyErr_Clear();
+    return Py_BuildValue("(ii)", w, h);
+  }
+  pythonLogWarning("XPLMGetScreenSize no longer requires parameters");
+  if (outWidth != Py_None)
+    PyList_Append(outWidth, PyLong_FromLong(w));
+  if (outHeight != Py_None)
+    PyList_Append(outHeight, PyLong_FromLong(h));
+  Py_RETURN_NONE;
 }
 
 static PyObject *XPLMGetScreenBoundsGlobalFun(PyObject *self, PyObject *args)
@@ -537,9 +547,23 @@ static PyObject *XPLMGetScreenBoundsGlobalFun(PyObject *self, PyObject *args)
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetScreenBoundsGlobal is available only in XPLM300 and up.");
     return NULL;
   }
-  int outLeft, outTop, outRight, outBottom;
-  XPLMGetScreenBoundsGlobal_ptr(&outLeft, &outTop, &outRight, &outBottom);
-  return Py_BuildValue("(iiii)", outLeft, outTop, outRight, outBottom);
+  PyObject *outLeft, *outTop, *outRight, *outBottom;
+  int left, top, right, bottom;
+  XPLMGetScreenBoundsGlobal_ptr(&left, &top, &right, &bottom);
+  if (!PyArg_ParseTuple(args, "OOOO", &outLeft, &outTop, &outRight, &outBottom)) {
+    PyErr_Clear();
+    return Py_BuildValue("(iiii)", left, top, right, bottom);
+  }
+  pythonLogWarning("XPLMGetScreenBoundsGlobal no longer requires parameters");
+  if (outLeft != Py_None)
+    PyList_Append(outLeft, PyLong_FromLong(left));
+  if (outTop != Py_None)
+    PyList_Append(outTop, PyLong_FromLong(top));
+  if (outRight != Py_None)
+    PyList_Append(outRight, PyLong_FromLong(right));
+  if (outBottom != Py_None)
+    PyList_Append(outBottom, PyLong_FromLong(left));
+  Py_RETURN_NONE;
 }
 
 static PyObject *XPLMGetAllMonitorBoundsGlobalFun(PyObject *self, PyObject *args)
@@ -576,9 +600,19 @@ static PyObject *XPLMGetMouseLocationFun(PyObject *self, PyObject *args)
 {
   (void) self;
   (void) args;
+  pythonLogWarning("XPLMGetMouseLocation is deprecated, use XPLMGetMouseLocationGlobal.");
   int x, y;
   XPLMGetMouseLocation(&x, &y);
-  return Py_BuildValue("(ii)", x, y);
+  PyObject *outX, *outY;
+  if(!PyArg_ParseTuple(args, "OO", &outX, &outY)) {
+    PyErr_Clear();
+    return Py_BuildValue("(ii)", x, y);
+  }
+  if (outX != Py_None)
+    PyList_Append(outX, PyLong_FromLong(x));
+  if (outY != Py_None)
+    PyList_Append(outY, PyLong_FromLong(y));
+  Py_RETURN_NONE;
 }
 
 static PyObject *XPLMGetMouseLocationGlobalFun(PyObject *self, PyObject *args)
@@ -591,19 +625,46 @@ static PyObject *XPLMGetMouseLocationGlobalFun(PyObject *self, PyObject *args)
     return NULL;
   }
   XPLMGetMouseLocationGlobal_ptr(&x, &y);
-  return Py_BuildValue("(ii)", x, y);
+  PyObject *outX, *outY;
+  if(!PyArg_ParseTuple(args, "OO", &outX, &outY)) {
+    PyErr_Clear();
+    return Py_BuildValue("(ii)", x, y);
+  }
+  if (outX != Py_None)
+    PyList_Append(outX, PyLong_FromLong(x));
+  if (outY != Py_None)
+    PyList_Append(outY, PyLong_FromLong(y));
+  Py_RETURN_NONE;
 }
 
 static PyObject *XPLMGetWindowGeometryFun(PyObject *self, PyObject *args)
 {
   (void) self;
   PyObject *win;
-  if (!PyArg_ParseTuple(args, "O", &win)) {
-    return NULL;
+  PyObject *outLeft, *outTop, *outRight, *outBottom;
+  int returnValues = 0;
+  if (!PyArg_ParseTuple(args, "OOOOO", &win, &outLeft, &outTop, &outRight, &outBottom)) {
+    returnValues = 1;
+    PyErr_Clear();
+    if (!PyArg_ParseTuple(args, "O", &win)) {
+      return NULL;
+    }
   }
   int left, top, right, bottom;
   XPLMGetWindowGeometry(refToPtr(win, windowIDRef), &left, &top, &right, &bottom);
-  return Py_BuildValue("(iiii)", left, top, right, bottom);
+  if (returnValues) {
+    return Py_BuildValue("(iiii)", left, top, right, bottom);
+  }
+  pythonLogWarning("XPLMGetWindowGeometry only requires initial windowID parameter");
+  if (outLeft != Py_None)
+    PyList_Append(outLeft, PyLong_FromLong(left));
+  if (outTop != Py_None)
+    PyList_Append(outTop, PyLong_FromLong(top));
+  if (outRight != Py_None)
+    PyList_Append(outRight, PyLong_FromLong(right));
+  if (outBottom != Py_None)
+    PyList_Append(outBottom, PyLong_FromLong(bottom));
+  Py_RETURN_NONE;
 }
   
 static PyObject *XPLMSetWindowGeometryFun(PyObject *self, PyObject *args)
@@ -623,16 +684,34 @@ static PyObject *XPLMGetWindowGeometryOSFun(PyObject *self, PyObject *args)
 {
   (void) self;
   PyObject *win;
+  PyObject *outLeft, *outTop, *outRight, *outBottom;
+  int returnValues = 0;
   if(!XPLMGetWindowGeometryOS_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetWindowGeometryOS is available only in XPLM300 and up.");
     return NULL;
   }
-  if (!PyArg_ParseTuple(args, "O", &win)) {
-    return NULL;
+  if (!PyArg_ParseTuple(args, "OOOOO", &win, &outLeft, &outTop, &outRight, &outBottom)) {
+    returnValues = 1;
+    PyErr_Clear();
+    if (!PyArg_ParseTuple(args, "O", &win)) {
+      return NULL;
+    }
   }
   int left, top, right, bottom;
   XPLMGetWindowGeometryOS_ptr(refToPtr(win, windowIDRef), &left, &top, &right, &bottom);
-  return Py_BuildValue("(iiii)", left, top, right, bottom);
+  if (returnValues) {
+    return Py_BuildValue("(iiii)", left, top, right, bottom);
+  }
+  pythonLogWarning("XPLMGetWindowGeometryOS only requires initial windowID parameter");
+  if (outLeft != Py_None)
+    PyList_Append(outLeft, PyLong_FromLong(left));
+  if (outTop != Py_None)
+    PyList_Append(outTop, PyLong_FromLong(top));
+  if (outRight != Py_None)
+    PyList_Append(outRight, PyLong_FromLong(right));
+  if (outBottom != Py_None)
+    PyList_Append(outBottom, PyLong_FromLong(bottom));
+  Py_RETURN_NONE;
 }
 
 static PyObject *XPLMSetWindowGeometryOSFun(PyObject *self, PyObject *args)
@@ -656,16 +735,30 @@ static PyObject *XPLMGetWindowGeometryVRFun(PyObject *self, PyObject *args)
 {
   (void) self;
   PyObject *win;
+  int returnValues = 0;
+  PyObject *outWidthBoxels, *outHeightBoxels;
   if(!XPLMGetWindowGeometryVR_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetWindowGeometryVR is available only in XPLM301 and up.");
     return NULL;
   }
-  if(!PyArg_ParseTuple(args, "O", &win)){
-    return NULL;
+  if (!PyArg_ParseTuple(args, "OOO", &win, &outWidthBoxels, &outHeightBoxels)) {
+    returnValues = 1;
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "O", &win)){
+      return NULL;
+    }
   }
-  int outWidthBoxels, outHeightBoxels;
-  XPLMGetWindowGeometryVR_ptr(refToPtr(win, windowIDRef), &outWidthBoxels, &outHeightBoxels);
-  return Py_BuildValue("(ii)", outWidthBoxels, outHeightBoxels);
+  int widthBoxels, heightBoxels;
+  XPLMGetWindowGeometryVR_ptr(refToPtr(win, windowIDRef), &widthBoxels, &heightBoxels);
+  if (returnValues) {
+    return Py_BuildValue("(ii)", widthBoxels, heightBoxels);
+  }
+  pythonLogWarning("XPLMGetWindowGeometryVR only requires initial windowID parameter");
+  if (outWidthBoxels != Py_None)
+    PyList_Append(outWidthBoxels, PyLong_FromLong(widthBoxels));
+  if (outHeightBoxels != Py_None)
+    PyList_Append(outHeightBoxels, PyLong_FromLong(heightBoxels));
+  Py_RETURN_NONE;
 }
 
 static PyObject *XPLMSetWindowGeometryVRFun(PyObject *self, PyObject *args)
@@ -1005,17 +1098,34 @@ static PyObject *XPLMGetNthHotKeyFun(PyObject *self, PyObject *args)
 static PyObject *XPLMGetHotKeyInfoFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *hotKey;
-  if(!PyArg_ParseTuple(args, "O", &hotKey)) {
-    return NULL;
+  PyObject *hotKey, *outVirtualKey, *outFlags, *outDescription, *outPlugin;
+  int returnValues = 0;
+  if(!PyArg_ParseTuple(args, "OOOOO", &hotKey, &outVirtualKey, &outFlags, &outDescription, &outPlugin)) {
+    PyErr_Clear();
+    returnValues = 1;
+    if(!PyArg_ParseTuple(args, "O", &hotKey)) {
+      return NULL;
+    }
   }
   XPLMHotKeyID inHotKey = refToPtr(hotKey, hotkeyIDRef);
-  char outVirtualKey;
-  XPLMKeyFlags outFlags;
-  char outDescription[1024];
-  XPLMPluginID outPlugin;
-  XPLMGetHotKeyInfo(inHotKey, &outVirtualKey, &outFlags, outDescription, &outPlugin);
-  return PyHotKeyInfo_New(outVirtualKey, outFlags, outDescription, outPlugin);
+  char virtualKey;
+  XPLMKeyFlags flags;
+  char description[1024];
+  XPLMPluginID plugin;
+  XPLMGetHotKeyInfo(inHotKey, &virtualKey, &flags, description, &plugin);
+  if (returnValues) {
+    return PyHotKeyInfo_New(virtualKey, flags, description, plugin);
+  }
+  pythonLogWarning("XPLMGetHotKeyInfo only required intial hotKey parameter");
+  if (outVirtualKey != Py_None)
+    PyList_Append(outVirtualKey, PyLong_FromLong((unsigned int)virtualKey));
+  if (outFlags != Py_None)
+    PyList_Append(outFlags, PyLong_FromLong((unsigned int)flags));
+  if (outDescription != Py_None)
+    PyList_Append(outDescription, PyUnicode_FromString(description));
+  if (outPlugin != Py_None)
+    PyList_Append(outPlugin, PyLong_FromLong((unsigned int)plugin));
+  Py_RETURN_NONE;
 } 
 
 static PyObject *XPLMSetHotKeyCombinationFun(PyObject *self, PyObject *args)

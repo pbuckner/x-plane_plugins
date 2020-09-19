@@ -355,39 +355,66 @@ static PyObject *XPLMDrawMapLabelFun(PyObject *self, PyObject *args)
 static PyObject *XPLMMapProjectFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *projectionObj;
+  PyObject *projectionObj, *outX, *outY;
   double latitude, longitude;
-
+  int returnValues = 0;
   if(!XPLMMapProject_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMMapProject is available only in XPLM300 and up.");
     return NULL;
   }
-  if(!PyArg_ParseTuple(args, "Odd", &projectionObj, &latitude, &longitude)) {
-    return NULL;
+  if(!PyArg_ParseTuple(args, "OddOO", &projectionObj, &latitude, &longitude, &outX, &outY)) {
+    PyErr_Clear();
+    returnValues = 1;
+    if(!PyArg_ParseTuple(args, "Odd", &projectionObj, &latitude, &longitude)) {
+      return NULL;
+    }
   }
   XPLMMapProjectionID projection = refToPtr(projectionObj, projectionRefName);
-  float outX, outY;
-  XPLMMapProject_ptr(projection, latitude, longitude, &outX, &outY);
-  return Py_BuildValue("ff", outX, outY);
+  float x, y;
+  XPLMMapProject_ptr(projection, latitude, longitude, &x, &y);
+  if (returnValues) {
+    return Py_BuildValue("ff", x, y);
+  }
+  pythonLogWarning("XPLMMapProject no longer require final (x, y) parameters");
+
+  if (outX != Py_None)
+    PyList_Append(outX, PyFloat_FromDouble((double) x));
+  if (outY != Py_None)
+    PyList_Append(outY, PyFloat_FromDouble((double) y));
+    
+  Py_RETURN_NONE;
 }
 
 static PyObject *XPLMMapUnprojectFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  PyObject *projectionObj;
+  PyObject *projectionObj, *outLatitude, *outLongitude;
   float mapX, mapY;
+  int returnValues = 0;
 
   if(!XPLMMapUnproject_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMMapUnproject is available only in XPLM300 and up.");
     return NULL;
   }
-  if(!PyArg_ParseTuple(args, "Off", &projectionObj, &mapX, &mapY)){
-    return NULL;
+  if(!PyArg_ParseTuple(args, "OffOO", &projectionObj, &mapX, &mapY, &outLatitude, &outLongitude)){
+    PyErr_Clear();
+    returnValues = 1;
+    if(!PyArg_ParseTuple(args, "Off", &projectionObj, &mapX, &mapY)){
+      return NULL;
+    }
   }
   XPLMMapProjectionID projection = refToPtr(projectionObj, projectionRefName);
-  double outLongitude, outLatitude;
-  XPLMMapUnproject_ptr(projection, mapX, mapY, &outLatitude, &outLongitude);
-  return Py_BuildValue("dd", outLatitude, outLongitude);
+  double longitude, latitude;
+  XPLMMapUnproject_ptr(projection, mapX, mapY, &latitude, &longitude);
+  if (returnValues) 
+    return Py_BuildValue("dd", latitude, longitude);
+  pythonLogWarning("XPLMMapUnproject no longer requires final latitude, longitude parameters.");
+  if (outLatitude != Py_None)
+    PyList_Append(outLatitude, PyFloat_FromDouble(latitude));
+  if (outLongitude != Py_None)
+    PyList_Append(outLongitude, PyFloat_FromDouble(longitude));
+    
+  Py_RETURN_NONE;
 }
 
 static PyObject *XPLMMapScaleMeterFun(PyObject *self, PyObject *args)

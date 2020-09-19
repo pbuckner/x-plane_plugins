@@ -77,17 +77,45 @@ static PyObject *XPLMGetNavAidInfoFun(PyObject *self, PyObject *args)
 {
   (void)self;
   XPLMNavRef inRef;
-  if(!PyArg_ParseTuple(args, "i", &inRef)){
-    return NULL;
+  PyObject *outType, *outLatitude, *outLongitude, *outHeight, *outFrequency, *outHeading, *outID, *outName, *outReg;
+  int returnValues = 0;
+  if(!PyArg_ParseTuple(args, "iOOOOOOOOO", &inRef, &outType, &outLatitude, &outLongitude, &outHeight, &outFrequency, &outHeading, &outID, &outName, &outReg)){
+    PyErr_Clear();
+    returnValues = 1;
+    if(!PyArg_ParseTuple(args, "i", &inRef)){
+      return NULL;
+    }
   }
-  XPLMNavType outType;
-  float outLatitude = 0, outLongitude = 0, outHeight = 0, outHeading = 0;
-  int outFrequency = 0;
-  char outID[512];
-  char outName[512];
-  char outReg[512];
-  XPLMGetNavAidInfo(inRef, &outType, &outLatitude, &outLongitude, &outHeight, &outFrequency, &outHeading, outID, outName, outReg);
-  return PyNavAidInfo_New(outType, outLatitude, outLongitude, outHeight, outFrequency, outHeading, outID, outName, (int)outReg[0]);
+  XPLMNavType type;
+  float latitude = 0, longitude = 0, height = 0, heading = 0;
+  int frequency = 0;
+  char ID[512];
+  char name[512];
+  char reg[512];
+  XPLMGetNavAidInfo(inRef, &type, &latitude, &longitude, &height, &frequency, &heading, ID, name, reg);
+  if (returnValues) {
+    return PyNavAidInfo_New(type, latitude, longitude, height, frequency, heading, ID, name, (int)reg[0]);
+  }
+  pythonLogWarning("XPLMGetNavAidInfo only requires navRef parameter");
+  if (outType != Py_None)
+    PyList_Append(outType, PyLong_FromLong(type));
+  if (outLatitude != Py_None)
+    PyList_Append(outLatitude, PyFloat_FromDouble((double)latitude));
+  if (outLongitude != Py_None)
+    PyList_Append(outLongitude, PyFloat_FromDouble((double)longitude));
+  if (outHeight != Py_None)
+    PyList_Append(outHeight, PyFloat_FromDouble((double)height));
+  if (outHeading != Py_None)
+    PyList_Append(outHeading, PyFloat_FromDouble((double)heading));
+  if (outFrequency != Py_None)
+    PyList_Append(outFrequency, PyLong_FromLong(frequency));
+  if (outID != Py_None)
+    PyList_Append(outID, PyUnicode_FromString(ID));
+  if (outName != Py_None)
+    PyList_Append(outName, PyUnicode_FromString(name));
+  if (outReg != Py_None)
+    PyList_Append(outReg, PyLong_FromLong((long)reg[0]));
+  Py_RETURN_NONE;
 }
 
 static PyObject *XPLMCountFMSEntriesFun(PyObject *self, PyObject *args)
@@ -137,17 +165,39 @@ static PyObject *XPLMGetFMSEntryInfoFun(PyObject *self, PyObject *args)
 {
   (void)self;
   int inIndex;
-  if(!PyArg_ParseTuple(args, "i", &inIndex)){
-    return NULL;
+  PyObject *outType, *outID, *outRef, *outAltitude, *outLat, *outLon;
+  int returnValues = 0;
+  if(!PyArg_ParseTuple(args, "iOOOOOO", &inIndex, &outType, &outID, &outRef, &outAltitude, &outLat, &outLon)){
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "i", &inIndex)){
+      return NULL;
+    }
+    returnValues = 1;
   }
-  XPLMNavType outType;
-  float outLat, outLon;
-  char outID[512];
-  XPLMNavRef outRef;
-  int outAltitude;
 
-  XPLMGetFMSEntryInfo(inIndex, &outType, outID, &outRef, &outAltitude, &outLat, &outLon);
-  return PyFMSEntryInfo_New(outType, outID, outRef, outAltitude, outLat, outLon);
+  XPLMNavType type;
+  float lat, lon;
+  char ID[512];
+  XPLMNavRef ref;
+  int altitude;
+
+  XPLMGetFMSEntryInfo(inIndex, &type, ID, &ref, &altitude, &lat, &lon);
+  if (returnValues)
+    return PyFMSEntryInfo_New(type, ID, ref, altitude, lat, lon);
+  pythonLogWarning("XPLMGetFMSEntryInfo only requires initial index parameter");
+  if (outType != Py_None)
+    PyList_Append(outType, PyLong_FromLong(type));
+  if (outID != Py_None)
+    PyList_Append(outID, PyUnicode_FromString(ID));
+  if (outRef != Py_None)
+    PyList_Append(outRef, PyLong_FromLong(ref));
+  if (outAltitude != Py_None)
+    PyList_Append(outAltitude, PyLong_FromLong(altitude));
+  if (outLat != Py_None)
+    PyList_Append(outLat, PyFloat_FromDouble((double) lat));
+  if (outLon != Py_None)
+    PyList_Append(outLon, PyFloat_FromDouble((double) lon));
+  Py_RETURN_NONE;
 }
 
 static PyObject *XPLMSetFMSEntryInfoFun(PyObject *self, PyObject *args)

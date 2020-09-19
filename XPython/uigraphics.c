@@ -23,12 +23,25 @@ static PyObject *XPDrawWindowFun(PyObject *self, PyObject *args)
 static PyObject *XPGetWindowDefaultDimensionsFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  int inStyle, outWidth, outHeight;
-  if(!PyArg_ParseTuple(args, "i", &inStyle)) {
-    return NULL;
+  PyObject *outWidth, *outHeight;
+  int inStyle, width, height;
+  int returnValues = 0;
+  if(!PyArg_ParseTuple(args, "iOO", &inStyle, &outWidth, &outHeight)) {
+    PyErr_Clear();
+    returnValues = 1;
+    if(!PyArg_ParseTuple(args, "i", &inStyle)) {
+      return NULL;
+    }
   }
-  XPGetWindowDefaultDimensions(inStyle, &outWidth, &outHeight);
-  return Py_BuildValue("ii", outWidth, outHeight);
+  XPGetWindowDefaultDimensions(inStyle, &width, &height);
+  if (returnValues)
+    return Py_BuildValue("ii", width, height);
+  pythonLogWarning("XPGetWindowDefaultDimensions only requires initial style parameter");
+  if (outWidth != Py_None)
+    PyList_Append(outWidth, PyLong_FromLong(width));
+  if (outHeight != Py_None)
+    PyList_Append(outHeight, PyLong_FromLong(height));
+  Py_RETURN_NONE;
 }
 
 static PyObject *XPDrawElementFun(PyObject *self, PyObject *args)
@@ -45,12 +58,28 @@ static PyObject *XPDrawElementFun(PyObject *self, PyObject *args)
 static PyObject *XPGetElementDefaultDimensionsFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  int inStyle, outWidth, outHeight, outCanBeLit;
-  if(!PyArg_ParseTuple(args, "i", &inStyle)) {
-    return NULL;
+  int inStyle, width, height, canBeLit;
+  PyObject *outWidth, *outHeight, *outCanBeLit;
+  int returnValues = 0;
+  if(!PyArg_ParseTuple(args, "iOOO", &inStyle, &outWidth, &outHeight, &outCanBeLit)) {
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "i", &inStyle)) {
+      return NULL;
+    }
+    returnValues = 1;
   }
-  XPGetElementDefaultDimensions(inStyle, &outWidth, &outHeight, &outCanBeLit);
-  return Py_BuildValue("iii", outWidth, outHeight, outCanBeLit);
+  XPGetElementDefaultDimensions(inStyle, &width, &height, &canBeLit);
+  if (returnValues) {
+    return Py_BuildValue("iii", width, height, canBeLit);
+  }
+  pythonLogWarning("XPGetElementDefaultDimensions only requires initial style parameter");
+  if (outWidth != Py_None)
+    PyList_Append(outWidth, PyLong_FromLong(width));
+  if (outHeight != Py_None)
+    PyList_Append(outHeight, PyLong_FromLong(height));
+  if (outCanBeLit != Py_None)
+    PyList_Append(outCanBeLit, PyLong_FromLong(canBeLit));
+  Py_RETURN_NONE;
 }
 
 
@@ -68,12 +97,26 @@ static PyObject *XPDrawTrackFun(PyObject *self, PyObject *args)
 static PyObject *XPGetTrackDefaultDimensionsFun(PyObject *self, PyObject *args)
 {
   (void) self;
-  int inStyle, outWidth, outCanBeLit;
-  if(!PyArg_ParseTuple(args, "i", &inStyle)) {
-    return NULL;
+  int inStyle, width, canBeLit;
+  PyObject *outWidth, *outCanBeLit;
+  int returnValues = 0;
+  if(!PyArg_ParseTuple(args, "iOO", &inStyle, &outWidth, &outCanBeLit)) {
+    PyErr_Clear();
+    if(!PyArg_ParseTuple(args, "i", &inStyle)) {
+      return NULL;
+    }
+    returnValues=1;
   }
-  XPGetTrackDefaultDimensions(inStyle, &outWidth, &outCanBeLit);
-  return Py_BuildValue("ii", outWidth, outCanBeLit);
+  XPGetTrackDefaultDimensions(inStyle, &width, &canBeLit);
+  if (returnValues) {
+    return Py_BuildValue("ii", width, canBeLit);
+  }
+  pythonLogWarning("XPGetTrackDefaultDimensions only requires initial style parameter");
+  if (outWidth != Py_None)
+    PyList_Append(outWidth, PyLong_FromLong(width));
+  if (outCanBeLit != Py_None)
+    PyList_Append(outCanBeLit, PyLong_FromLong(canBeLit));
+  Py_RETURN_NONE;
 }
 
 

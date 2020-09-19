@@ -318,13 +318,13 @@ def XPSetWidgetDescriptor(inWidget, inDescriptor):
     """
 
 
-def XPGetWidgetDescriptor(inWidget):
+def XPGetWidgetDescriptor(inWidget) -> str:
     """
     This routine returns the widget's descriptor. If the length of the
     descriptor exceeds the interal buffer an error will be printed to
     Log.txt
     """
-    return str
+    return "widget Descriptor"
 
 
 def XPGetWidgetUnderlyingWindow(inWidget):

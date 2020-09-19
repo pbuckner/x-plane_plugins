@@ -105,7 +105,7 @@ def XPLMGetVirtualKeyDescription(inVirtualKey):
     for showing users what keyboard mappings they have set up. The string may
     read 'unknown' or be a blank or None string if the virtual key is unknown.
     """
-    return str
+    return "human readable string"
 
 
 def XPLMReloadScenery():
@@ -123,7 +123,7 @@ def XPLMGetSystemPath():
     This function returns the full path to the X-System folder. Note that this
     is a directory path, so it ends in a trailing : or /.
     """
-    return str
+    return "system path/"
 
 
 def XPLMGetPrefsPath():
@@ -132,7 +132,7 @@ def XPLMGetPrefsPath():
     preferences directory. (You should remove the file name back to the last
     directory separator to get the preferences directory.
     """
-    return str
+    return "preferences path/"
 
 
 def XPLMGetDirectorySeparator():
@@ -143,18 +143,18 @@ def XPLMGetDirectorySeparator():
 
     platform.
     """
-    return str
+    return "/"
 
 
 def XPLMExtractFileAndPath(inFullPath):
     """
     Given a full path to a file, this routine separates the path from the file.
-    If the path is a partial directory (e.g. ends in : or \) the trailing
+    If the path is a partial directory (e.g. ends in : or / ) the trailing
     directory separator is removed. This routine works in-place; a pointer to
     the file part of the buffer is returned; the original buffer still starts
     with the path.
     """
-    return str, str
+    return "file", "path"
 
 
 def XPLMGetDirectoryContents(inDirectoryPath, inFirstReturn, inFileNameBufSize, inIndexCount):

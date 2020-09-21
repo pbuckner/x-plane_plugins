@@ -39,7 +39,7 @@ XPPython3 Module Documentation
 
   * `XPython/demos/ <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/demos/>`_.   Ported versions of C++ and Python2 demos.
 
-  * Mini Python Debugger:   Check out the ``PI_MiniPython.py`` plugin, available under ``demos``. It allows you to
+  * :doc:`debugger`:   Check out the ``PI_MiniPython.py`` plugin, available under ``demos``. It allows you to
     type in python expressions in a running application and see the results.
 
   .. note:: I strongly suggest the  simplified interface described by :py:mod:`xp`. You'll find it much faster and easier to write new
@@ -100,6 +100,7 @@ Test Examples
    callbacks
    quickstart
    changesfromp2
+   debugger
    portingNotes
    modules/index
    xppythondicts

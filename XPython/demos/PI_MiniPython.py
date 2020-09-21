@@ -1,6 +1,7 @@
 import traceback
 import sys
 import io
+import webbrowser
 import contextlib
 import xp
 from XPListBox import XPCreateListBox
@@ -25,6 +26,7 @@ class PythonInterface:
         self.widget1 = xp.createWidget(100, 500, 700, 110, 0, "Mini Python Interpreter", 1, 0, xp.WidgetClass_MainWindow)
         self.textWidget = xp.createWidget(110, 480, 680, 460, 1, self.prevCommands[-1], 0, self.widget1, xp.WidgetClass_TextField)
         self.button = xp.createWidget(110, 450, 150, 430, 1, "Do", 0, self.widget1, xp.WidgetClass_Button)
+        self.docButton = xp.createWidget(610, 450, 650, 430, 1, "Help", 0, self.widget1, xp.WidgetClass_Button)
         col1 = 160
         col2 = 350
         row = 463
@@ -51,6 +53,9 @@ class PythonInterface:
 
         xp.setWidgetProperty(self.button, xp.Property_ButtonType, xp.PushButton)
         xp.setWidgetProperty(self.button, xp.Property_ButtonBehavior, xp.ButtonBehaviorPushButton)
+        xp.setWidgetProperty(self.docButton, xp.Property_ButtonType, xp.PushButton)
+        xp.setWidgetProperty(self.docButton, xp.Property_ButtonBehavior, xp.ButtonBehaviorPushButton)
+
         xp.setWidgetProperty(self.widget1, xp.Property_MainWindowHasCloseBoxes, 1)
         xp.addWidgetCallback(self.widget1, self.widgetMsgs)
         xp.addWidgetCallback(self.textWidget, self.textEdit)
@@ -113,7 +118,11 @@ class PythonInterface:
     def widgetMsgs(self, message, widgetID, param1, param2):
         if message == xp.Message_CloseButtonPushed:
             xp.hideWidget(self.widget1)
-            return 0
+            return 1
+
+        if message == xp.Msg_PushButtonPressed and param1 == self.docButton:
+            webbrowser.open('https://xppython3.rtfd.io/en/latest/development/index.html')
+            return 1
 
         execute = False
         if message == xp.Msg_PushButtonPressed and param1 == self.button:

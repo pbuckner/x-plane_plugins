@@ -1,6 +1,5 @@
 # X-Plane Python3 Plugin "XPPython3"
 
-:warning:_CAUTION_: Work-in-progress:warning:
 
 This is an updated version of Sandy Barbour's excellent Python Interface plugin, allowing you to create plugins for X-Plane using Python. Sandy's was restricted to Python2, this is the update to support python3.
 

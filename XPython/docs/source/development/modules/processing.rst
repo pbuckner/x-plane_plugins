@@ -19,7 +19,7 @@ and performing I/O.
 Functions
 ---------
 
-.. py:function:: XPLMFlightLoop_f(sinceLastCall, sinceLastFLightLoope, counter, refCon) -> interval:
+.. py:function:: XPLMFlightLoop_f(sinceLastCall, sinceLastFlightLoop, counter, refCon) -> interval:
 
     :param float sinceLastCall: Wall time (seconds) since your last callback
     :param float sinceLastFlightLoop: Wall time (seconds) since *any* flight loop was dispatched
@@ -58,7 +58,7 @@ Functions
     This routine returns the elapsed time since the sim started up in floating point
     seconds. This is continues to count upward even if the sim is paused.
 
-    .. warning:: XPLMGetElapsedTime is not a very good timer! It lacks precisiion in both its data type and its source.
+    .. warning:: XPLMGetElapsedTime is not a very good timer! It lacks precision in both its data type and its source.
                  Do not attempt to use it for time critical applications like network multiplayer.
 
 

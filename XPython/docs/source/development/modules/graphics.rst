@@ -253,10 +253,12 @@ X-Plane features some fixed-character fonts.  Each font may have its own
 metrics.
 
 .. data:: xplmFont_Basic
+ :value: 0
 
  Mono-spaced font for user interface.  Available in all versions of the SDK.
 
 .. data:: xplmFont_Proportional
+ :value: 18
 
  Proportional UI font.
 

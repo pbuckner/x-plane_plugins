@@ -108,29 +108,35 @@ x-plane implementation.
    as X-Plane evolves.
 
  .. data:: xplm_Phase_Modern3D
- 
+    :value: 31
+
     A chance to do modern 3D drawing. This is supported under OpenGL and Vulkan. It **is not supported under Metal**.
     It comes with potentially a substantial performance overhead. Please **do not** opt into this
     phase if you don't do any actual drawing that request the depth buffer in some way!
  
  .. data:: xplm_Phase_FirstCockpit
+    :value: 35
  
     This is the first phase where you can draw in 2-d.
  
  .. data::  xplm_Phase_Panel
- 
+    :value: 40
+
     The non-moving parts of the aircraft panel.
  
  .. data:: xplm_Phase_Gauges
+    :value: 45
  
     The moving parts of the aircraft panel.
  
  .. data:: xplm_Phase_Window
+    :value: 50
  
     Floating windows from plugins.
  
  .. data::  xplm_Phase_LastCockpit
- 
+    :value: 55
+
     The last chance to draw in 2d.
  
 Draw Callbacks
@@ -403,8 +409,11 @@ the mouse up message.  All of these messages will be directed to the same
 window.
 
  .. data:: xplm_MouseDown
-           xplm_MouseDrag
-           xplm_MouseUp
+  :value: 1
+ .. data:: xplm_MouseDrag
+  :value: 2
+ .. data:: xplm_MouseUp
+  :value: 3
 
 
 .. _XPLMCursorStatus:
@@ -416,18 +425,22 @@ Describes how you would like X-Plane to manage the cursor.
 See :func:`XPLMHandleCursor_f` for more info.
 
  .. data:: xplm_CursorDefault
+   :value: 0
      
    X-Plane manages the cursor normally, plugin does not affect the cursor.
      
  .. data:: xplm_CursorHidden
+   :value: 1
   
    X-Plane hides the cursor.          
      
  .. data:: xplm_CursorArrow
+   :value: 2
      
    X-Plane shows the cursor as the default arrow.
      
  .. data:: xplm_CursorCustom
+   :value: 3
      
    X-Plane shows the cursor but lets you select an OS cursor.
  
@@ -447,22 +460,26 @@ Your window’s layer can only be specified when you create the window (in the
 only applies to windows created with new X-Plane 11 GUI features.
 
  .. data::  xplm_WindowLayerFlightOverlay
+   :value: 0
  
    The lowest layer, used for HUD-like displays while flying.
  
  .. data:: xplm_WindowLayerFloatingWindows
+   :value: 1
  
     Windows that "float" over the sim, like the X-Plane
     11 map does. If you are not sure which layer to
     create your window in, choose floating
  
  .. data:: xplm_WindowLayerModel
- 
+    :value: 2
+
      An interruptive modal that covers the sim with a
      transparent black overaly to draw the user's focus to the alert.
  
  .. data::  xplm_WindowLayerGrowlNotifications
- 
+    :value: 3
+
      "Growl"-style notifications that are visible in a corner of the screen, even over modals.
  
 .. _XPLMWindowDecoration:
@@ -477,6 +494,7 @@ Your window’s decoration can only be specified when you create the window
 (in the :ref:`XPLMCreateWindow_t` you pass to :func:`XPLMCreateWindowEx`).
 
  .. data:: xplm_WindowDecorationNone
+  :value: 0
  
   X-Plane will draw no decoration for
   your window, and apply no automatic
@@ -488,6 +506,7 @@ Your window’s decoration can only be specified when you create the window
   portion of the available area.
  
  .. data:: xplm_WindowDecorationRoundRectangle
+    :value: 1
  
     The default decoration for
     "native" windows, like the map.
@@ -496,6 +515,7 @@ Your window’s decoration can only be specified when you create the window
     and dragging the window.
  
  .. data::   xplm_WindowDecorationSelfDecorated
+    :value: 2
  
      X-Plane will draw no decoration
      for your window, nor will it
@@ -505,7 +525,8 @@ Your window’s decoration can only be specified when you create the window
      windows bounds.
  
  .. data::   xplm_WindowDecorationSelfDecoratedResizable
- 
+     :value: 3
+
      Like self-decorated, but with
      resizing; X-Plane will draw no
      decoration for your window, but
@@ -527,20 +548,24 @@ and compiled against the XPLM300 SDK). Windows created using the deprecated XPLM
 compiled against a pre-XPLM300 version of the SDK will simply get the “free” positioning mode.
 
  .. data:: xplm_WindowPositionFree
+  :value: 0
  
   The default positioning mode. Set the window geometry and its
   future position will be determined by its window gravity, resizing
   limits, and user interactions.
  
  .. data:: xplm_WindowCenterOnMonitor
+  :value: 1
  
   Keep the window centered on the monitor you specify
  
  .. data:: xplm_WindowFullScreenOnMonitor
- 
+  :value: 2
+
   Keep the window full screen on the monitor you specify
  
  .. data:: xplm_WindowFullScreenOnAllMonitors
+  :value: 3
  
   Like gui_window_full_screen_on_monitor, but stretches
   over *all* monitors and popout windows.
@@ -548,11 +573,13 @@ compiled against a pre-XPLM300 version of the SDK will simply get the “free”
   reason to need it, you probably don't!
  
  .. data:: xplm_WindowPopOut
- 
+  :value: 4
+
   A first-class window in the operating system, completely
   separate from the X-Plane window(s)
  
  .. data:: xplm_WindowVR
+  :value: 5
  
   A floating window visible on the VR headset
  

@@ -224,14 +224,17 @@ lit.  So there are three possible states.
 
 
  .. py:data:: xplm_Menu_NoCheck
+  :value: 0
 
   there is no symbol to the left of the menu item.
 
  .. py:data:: xplm_Menu_Unchecked
+  :value: 1
 
   the menu has a mark next to it that is unmarked (not lit).
 
  .. py:data:: xplm_Menu_Checked
+  :value: 2
 
   the menu has a mark next to it that is checked (lit).
               

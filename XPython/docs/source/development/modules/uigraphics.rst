@@ -142,22 +142,27 @@ element. All other elements can be rescaled.
 
 
  .. py:data:: xpWindow_Help
+  :value: 0
 
   An LCD screen that shows help.
 
  .. py:data:: xpWindow_MainWindow
+  :value: 1
 
   A dialog box window.
 
  .. py:data:: xpWindow_SubWindow
+  :value: 2
 
   A panel or frame within a dialog box window.
 
  .. py:data:: xpWindow_Screen
+  :value: 4
 
   An LCD screen within a panel to hold text displays.
 
  .. py:data:: xpWindow_ListView
+  :value: 5
 
   A list view within a panel for scrolling file names, etc.
 
@@ -178,46 +183,46 @@ some are not. Any element can be drawn anywhere in X-Plane 7.
  .. table::
     :align: left
 
-    ================================================== ============= ===================    
-    Element                                            Scalable Axes Required background
-    ================================================== ============= ===================    
-    .. py:data:: xpElement_TextField                   x             metal
-    .. py:data:: xpElement_CheckBox                    none          metal
-    .. py:data:: xpElement_CheckBoxLit                 none          metal
-    .. py:data:: xpElement_WindowCloseBox              none          window header
-    .. py:data:: xpElement_WindowCloseBoxPressed       none          window header
-    .. py:data:: xpElement_PushButton                  x             metal
-    .. py:data:: xpElement_PushButtonLit               x             metal
-    .. py:data:: xpElement_OilPlatform                 none          any
-    .. py:data:: xpElement_OilPlatformSmall            none          any
-    .. py:data:: xpElement_Ship                        none          any
-    .. py:data:: xpElement_ILSGlideScope               none          any
-    .. py:data:: xpElement_MarkerLeft                  none          any
-    .. py:data:: xpElement_Airport                     none          any
-    .. py:data:: xpElement_Waypoint                    none          any
-    .. py:data:: xpElement_NDB                         none          any
-    .. py:data:: xpElement_VOR                         none          any
-    .. py:data:: xpElement_RadioTower                  none          any
-    .. py:data:: xpElement_AircraftCarrier             none          any
-    .. py:data:: xpElement_Fire                        none          any
-    .. py:data:: xpElement_MarkerRight                 none          any
-    .. py:data:: xpElement_CustomObject                none          any
-    .. py:data:: xpElement_CoolingTower                none          any
-    .. py:data:: xpElement_SmokeStack                  none          any
-    .. py:data:: xpElement_Building                    none          any
-    .. py:data:: xpElement_PowerLine                   none          any
-    .. py:data:: xpElement_CopyButtons                 none          metal
-    .. py:data:: xpElement_CopyButtonsWithEditingGrid  none          metal
-    .. py:data:: xpElement_EditingGrid                 x, y          metal 
-    .. py:data:: xpElement_ScrollBar                                 THIS CAN PROBABLY BE REMOVED
-    .. py:data:: xpElement_VORWithCompassRose          none          any
-    .. py:data:: xpElement_Zoomer                      none          metal
-    .. py:data:: xpElement_TextFieldMiddle             x, y          metal
-    .. py:data:: xpElement_LittleDownArrow             none          metal
-    .. py:data:: xpElement_LittleUpArrow               none          metal
-    .. py:data:: xpElement_WindowDragBar               none          metal
-    .. py:data:: xpElement_WindowDragBarSmooth         none          metal
-    ================================================== ============= ===================    
+    ================================================== ==== ============= ===================    
+    Element                                                 Scalable Axes Required background
+    ================================================== ==== ============= ===================    
+    .. py:data:: xpElement_TextField                   =6   x             metal
+    .. py:data:: xpElement_CheckBox                    =9   none          metal
+    .. py:data:: xpElement_CheckBoxLit                 =10  none          metal
+    .. py:data:: xpElement_WindowCloseBox              =14  none          window header
+    .. py:data:: xpElement_WindowCloseBoxPressed       =15  none          window header
+    .. py:data:: xpElement_PushButton                  =16  x             metal
+    .. py:data:: xpElement_PushButtonLit               =17  x             metal
+    .. py:data:: xpElement_OilPlatform                 =24  none          any
+    .. py:data:: xpElement_OilPlatformSmall            =25  none          any
+    .. py:data:: xpElement_Ship                        =26  none          any
+    .. py:data:: xpElement_ILSGlideScope               =27  none          any
+    .. py:data:: xpElement_MarkerLeft                  =28  none          any
+    .. py:data:: xpElement_Airport                     =29  none          any
+    .. py:data:: xpElement_Waypoint                    =30  none          any
+    .. py:data:: xpElement_NDB                         =31  none          any
+    .. py:data:: xpElement_VOR                         =32  none          any
+    .. py:data:: xpElement_RadioTower                  =33  none          any
+    .. py:data:: xpElement_AircraftCarrier             =34  none          any
+    .. py:data:: xpElement_Fire                        =35  none          any
+    .. py:data:: xpElement_MarkerRight                 =36  none          any
+    .. py:data:: xpElement_CustomObject                =37  none          any
+    .. py:data:: xpElement_CoolingTower                =38  none          any
+    .. py:data:: xpElement_SmokeStack                  =39  none          any
+    .. py:data:: xpElement_Building                    =40  none          any
+    .. py:data:: xpElement_PowerLine                   =41  none          any
+    .. py:data:: xpElement_CopyButtons                 =45  none          metal
+    .. py:data:: xpElement_CopyButtonsWithEditingGrid  =46  none          metal
+    .. py:data:: xpElement_EditingGrid                 =47  x, y          metal 
+    .. py:data:: xpElement_ScrollBar                   =48                THIS CAN PROBABLY BE REMOVED
+    .. py:data:: xpElement_VORWithCompassRose          =49  none          any
+    .. py:data:: xpElement_Zoomer                      =51  none          metal
+    .. py:data:: xpElement_TextFieldMiddle             =52  x, y          metal
+    .. py:data:: xpElement_LittleDownArrow             =53  none          metal
+    .. py:data:: xpElement_LittleUpArrow               =54  none          metal
+    .. py:data:: xpElement_WindowDragBar               =61  none          metal
+    .. py:data:: xpElement_WindowDragBarSmooth         =62  none          metal
+    ================================================== ==== ============= ===================    
 
 
 .. _XPTrackStyle:
@@ -234,15 +239,18 @@ choose their own layout based on the larger dimension of their dimensions
 
 
  .. py:data:: xpTrack_ScrollBar
+  :value: 0
 
   ScrollBar - this is a standard scroll bar with arrows and a thumb to drag.
 
  .. py:data:: xpTrack_Slider
+  :value: 1
 
   Slider - this is a simple track with a ball in the middle that can be slid.
   Can be lit, can be rotated.
 
  .. py:data:: xpTrack_Progress
+  :value: 2
 
   Progress - this is a progress indicator showing how a long task is going.
   Cannot be lit, cannot be rotated.

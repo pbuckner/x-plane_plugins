@@ -128,6 +128,7 @@ Constants
 ---------
 
 .. py:data:: XPLM_USER_AIRCRAFT
+ :value: 0
 
  User's Aircraft             
 

@@ -118,7 +118,9 @@ Functions
 
     HostID:
       .. py:data:: xplm_Host_Unknown
-                   xplm_Host_XPlane
+           :value: 0        
+      .. py:data:: xplm_Host_XPlane
+           :value: 1        
      
     The plug-in system is based on Austin's cross-platform OpenGL framework and
     could theoretically be adapted to run in other apps like WorldMaker. The
@@ -131,17 +133,24 @@ Functions
 .. py:function::  XPLMGetLanguage(None) -> languageCode:
 
  This routine returns the langauge the sim is running in:
-  .. py:data:: xplm_Language_Unknown
-               xplm_Language_English
-               xplm_Language_French
-               xplm_Language_German
-               xplm_Language_Italian
-               xplm_Language_Spanish
-               xplm_Language_Korean
-               xplm_Language_Russian
-               xplm_Language_Greek
-               xplm_Language_Japanese
-               xplm_Language_Chinese
+
+  .. table::
+   :align: left
+   
+   ==================================== ===
+   .. py:data:: xplm_Language_Unknown   =0
+   .. py:data:: xplm_Language_English   =1
+   .. py:data:: xplm_Language_French    =2
+   .. py:data:: xplm_Language_German    =3
+   .. py:data:: xplm_Language_Italian   =4
+   .. py:data:: xplm_Language_Spanish   =5
+   .. py:data:: xplm_Language_Korean    =6
+   .. py:data:: xplm_Language_Russian   =7
+   .. py:data:: xplm_Language_Greek     =8
+   .. py:data:: xplm_Language_Japanese  =9
+   .. py:data:: xplm_Language_Chinese   =10
+   ==================================== ===
+
 
  xplm_Language_* enums define what language the sim is running in. These enumerations
  do not imply that the sim can or does run in all of these languages; they
@@ -208,7 +217,9 @@ Functions
 
    File Types:
     .. py:data:: xplm_DataFile_Situation
-                 xplm_DataFile_ReplayMovie
+          :value: 1        
+    .. py:data:: xplm_DataFile_ReplayMovie
+          :value: 2        
 
     xplm_DataFile_* enums define types of data files you can load or unload using the SDK.
 
@@ -266,16 +277,19 @@ is returned by :py:func:`XPLMFindCommand` or created by :py:func:`XPLMCreateComm
 
     phase is:
      .. py:data:: xplm_CommandBegin
+       :value: 0                  
 
-                  The command is being started.
+       The command is being started.
 
      .. py:data:: xplm_CommandContinue
+        :value: 1
 
-                  The command is continuing to execute.
+        The command is continuing to execute.
 
      .. py:data:: xplm_CommandEnd
+        :value: 2
 
-                  The command has ended.
+        The command has ended.
 
 
 .. py:function:: XPLMFindCommand(name: str) -> commandRef:

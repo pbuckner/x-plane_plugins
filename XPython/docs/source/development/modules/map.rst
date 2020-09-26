@@ -496,8 +496,11 @@ IFR layers), or certain layers may be disabled entirely in some map types
 (e.g., localizers are only visible in the IFR low-enroute style).
 
  .. data:: xplm_MapStyle_VFR_Sectional
+   :value: 0        
  .. data:: xplm_MapStyle_IFR_LowEnroute
+   :value: 1        
  .. data:: xplm_MapStyle_IFR_HighEnroute
+   :value: 2        
 
 .. _XPLMMapLayerType:
 
@@ -508,11 +511,13 @@ Indicates the type of map layer you are creating. Fill layers will always
 be drawn beneath markings layers.
 
  .. data:: xplm_MapLayer_Fill
+    :value: 0        
 
     A layer that draws "fill" graphics, like weather patterns, terrain, etc.
     Fill layers frequently cover a large portion of the visible map area.
 
  .. data:: xplm_MapLayer_Markings
+    :value: 1        
 
     A layer that provides markings for particular map features, like NAVAIDs,
     airports, etc. Even dense markings layers cover a small portion of the
@@ -531,10 +536,12 @@ the user's perspective. In that case, you would have it draw with UI
 orientation.
 
  .. data:: xplm_MapOrientation_Map
+   :value: 0        
 
    Orient such that a 0 degree rotation matches the map's north
 
  .. data:: xplm_MapOrientation_UI
+   :value: 1        
 
    Orient such that a 0 degree rotation is "up" relative to the user interface
 
@@ -547,10 +554,12 @@ Globally unique identifiers, used as the
 mapToCreateLayerIn parameter in :ref:`XPLMCreateMapLayer_t`
 
  .. data:: XPLM_MAP_USER_INTERFACE
+  :value: "XPLM_MAP_USER_INTERFACE"        
 
   X-Plane's Map window
 
  .. data:: XPLM_MAP_IOS
+  :value: "XPLM_MAP_IOS"        
 
   X-Plane's Instructor Operator Station
 

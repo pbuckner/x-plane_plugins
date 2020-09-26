@@ -45,6 +45,7 @@ different algorithm. (Only one type of probe is provided right now, but
 future APIs will expose more flexible or poewrful or useful probes.
 
  .. py:data:: xplm_ProbeY
+   :value: 0
 
    The Y probe gives you the location of the tallest physical scenery along
    the Y axis going through the queried point.
@@ -59,15 +60,18 @@ Probe results - possible results from a probe query.
 
 
  .. py:data:: xplm_ProbeHitTerrain
+  :value: 0
 
   The probe hit terrain and returned valid values.
 
  .. py:data:: xplm_ProbeError
+  :value: 1
 
   An error in the API call.  Either the probe struct size is bad, or the
   probe is invalid or the type is mismatched for the specific query call.
 
  .. py:data:: xplm_ProbeMissed
+  :value: 2
 
   The probe call succeeded but there is no terrain under this point (perhaps
   it is off the side of the planet?)

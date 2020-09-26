@@ -30,7 +30,9 @@ Constants
 ---------
 
  .. py:data:: NO_PARENT
-              PARAM_PARENT
+  :value: -1
+ .. py:data:: PARAM_PARENT
+  :value: -2            
 
 Tuples
 ------

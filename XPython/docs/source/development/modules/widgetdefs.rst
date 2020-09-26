@@ -32,34 +32,43 @@ Some property IDs are predefined by the widget package; you can make up
 your own property IDs as well.
 
  .. py:data:: xpProperty_Refcon
+  :value: 0
 
   A window's refcon is an opaque value used by client code to find other data
   based on it.
 
  .. py:data:: xpProperty_Dragging
-    xpProperty_DragXOff
-    xpProperty_DragYOff
+  :value: 1
+ .. py:data:: xpProperty_DragXOff
+  :value: 2
+ .. py:data:: xpProperty_DragYOff
+  :value: 3
 
-   These properties are used by the utlities to implement dragging.
+  These properties are used by the utilities to implement dragging.
 
  .. py:data:: xpProperty_Hilited
+  :value: 4
 
   Is the widget hilited?  (For widgets that support this kind of thing.)
 
  .. py:data:: xpProperty_Object
+  :value: 5
 
    Is there a C++ object attached to this widget?
 
  .. py:data:: xpProperty_Clip
+  :value: 6
 
   If this property is 1, the widget package will use OpenGL to restrict
   drawing to the Wiget's exposed rectangle.
 
  .. py:data:: xpProperty_Enabled
+  :value: 7
 
   Is this widget enabled (for those that have a disabled state too)?
 
  .. py:data:: xpProperty_UserStart
+  :value: 10000
 
   Minimum value for a user-defined property
 
@@ -81,25 +90,30 @@ XPDispatchMode
 The dispatching modes describe how the widgets library sends out messages.
 
  .. py:data:: xpMode_Direct
+  :value: 0
 
   The message will only be sent to the target widget.
 
  .. py:data:: xpMode_UpChain
+  :value: 1
 
   The message is sent to the target widget, then up the chain of parents
   until the message is handled or a parentless widget is reached.
 
  .. py:data:: xpMode_Recursive
+  :value: 2
 
   The message is sent to the target widget and then all of its children
   recursively depth-first.
 
  .. py:data:: xpMode_DirectAllCallbacks
+  :value: 3
 
-   The message is sent just to the target, but goes to every callback, even if
-   it is handled.
+  The message is sent just to the target, but goes to every callback, even if
+  it is handled.
 
  .. py:data:: xpMode_Once
+  :value: 4
 
   The message is only sent to the very first handler even if it is not
   accepted. (This is really only useful for some internal Widget Lib
@@ -116,6 +130,7 @@ specifies from a library the widget function to be used for the widget.
 Most widgets can be made right from classes.
 
  .. py:data:: xpWidgetClass_None
+  :value: 0
 
 .. note:: Additional widget classes are defined in :py:mod:`XPStandardWidgets`.
 
@@ -130,10 +145,12 @@ notifications of events. The list of messages may be expanded.
  .. note:: Additional widget messages are defined in :py:mod:`XPStandardWidgets`.
 
  .. py:data:: xpMsg_None
+  :value: 0
 
   No message, should not be sent.
 
  .. py:data:: xpMsg_Create
+  :value: 1
 
   The create message is sent once per widget that is created with your widget
   function and once for any widget that has your widget function attached.   
@@ -150,6 +167,7 @@ notifications of events. The list of messages may be expanded.
      =========== =========================== ===============
 
  .. py:data:: xpMsg_Destroy
+  :value: 2
 
   The destroy message is sent once for each message that is destroyed that   
   has your widget function.                                                  
@@ -167,6 +185,7 @@ notifications of events. The list of messages may be expanded.
      =========== =========================== ===============
 
  .. py:data:: xpMsg_Paint
+  :value: 3
 
   The paint message is sent to your widget to draw itself. The paint message 
   is the bare-bones message; in response you must draw yourself, draw your   
@@ -184,6 +203,7 @@ notifications of events. The list of messages may be expanded.
      =========== =========================== ===============
 
  .. py:data:: xpMsg_Draw
+  :value: 4
 
   The draw message is sent to your widget when it is time to draw yourself.  
   OpenGL will be set up to draw in 2-d global screen coordinates, but you    
@@ -199,6 +219,7 @@ notifications of events. The list of messages may be expanded.
      =========== =========================== ===============
 
  .. py:data:: xpMsg_KeyPress
+  :value: 5
 
   The key press message is sent once per key that is pressed. The first      
   parameter is the type of key code (integer or char) and the second is the  
@@ -217,6 +238,7 @@ notifications of events. The list of messages may be expanded.
      =========== =========================== ===============
 
  .. py:data:: xpMsg_KeyTakeFocus
+  :value: 6
 
   Keyboard focus is being given to you.
                                                                               
@@ -235,6 +257,7 @@ notifications of events. The list of messages may be expanded.
      =========== =========================== ===============
 
  .. py:data:: xpMsg_KeyLoseFocus
+  :value: 7
 
   Keyboard focus is being taken away from you. The first parameter will be   
   one if you are losing focus because another widget is taking it, or 0 if   
@@ -253,6 +276,7 @@ notifications of events. The list of messages may be expanded.
      =========== =========================== ===============
 
  .. py:data:: xpMsg_MouseDown
+  :value: 8
 
   You receive one mousedown event per click with a mouse-state structure     
   pointed to by parameter 1, by accepting this you eat the click, otherwise  
@@ -279,6 +303,7 @@ notifications of events. The list of messages may be expanded.
      =========== =========================== ===============
 
  .. py:data:: xpMsg_MouseDrag
+  :value: 9
 
   You receive a series of mouse drag messages (typically one per frame in the
   sim) as the mouse is moved once you have accepted a mouse down message.    
@@ -299,6 +324,7 @@ notifications of events. The list of messages may be expanded.
      =========== =========================== ===============
 
  .. py:data:: xpMsg_MouseUp
+  :value: 10
 
   The mouseup event is sent once when the mouse button is released after a   
   drag or click. You only receive this message if you accept the mouseDown   
@@ -315,6 +341,7 @@ notifications of events. The list of messages may be expanded.
      =========== =========================== ===============
 
  .. py:data:: xpMsg_Reshape
+  :value: 11
 
   Your geometry or a child's geometry is being changed.                      
 
@@ -329,6 +356,7 @@ notifications of events. The list of messages may be expanded.
      =========== =========================== ===============================
 
  .. py:data:: xpMsg_ExposedChanged
+  :value: 12
 
   Your exposed area has changed.                                             
                                                                               
@@ -342,6 +370,7 @@ notifications of events. The list of messages may be expanded.
      =========== =========================== ===============
 
  .. py:data:: xpMsg_AcceptChild
+  :value: 13
 
   A child has been added to you. The child's ID is passed in parameter one.  
 
@@ -356,6 +385,7 @@ notifications of events. The list of messages may be expanded.
      =========== =========================== ===============
 
  .. py:data:: xpMsg_LoseChild
+  :value: 14
 
   A child has been removed from to you. The child's ID is passed in parameter
   one.                                                                       
@@ -371,6 +401,7 @@ notifications of events. The list of messages may be expanded.
      =========== =========================== ===============
 
  .. py:data:: xpMsg_AcceptParent
+  :value: 15
 
   You now have a new parent, or have no parent. The parent's ID is passed in,
   or 0 for no parent.                                                        
@@ -386,6 +417,7 @@ notifications of events. The list of messages may be expanded.
      =========== =========================== ===============
 
  .. py:data:: xpMsg_Shown
+  :value: 16
 
   You or a child has been shown. Note that this does not include you being   
   shown because your parent was shown, you were put in a new parent, your    
@@ -405,6 +437,7 @@ notifications of events. The list of messages may be expanded.
      =========== =========================== ===============
 
  .. py:data:: xpMsg_Hidden
+  :value: 17
 
   You have been hidden. See limitations as with :py:data:`xpMsg_Shown` above.                               
 
@@ -418,6 +451,7 @@ notifications of events. The list of messages may be expanded.
      =========== =========================== ===============
 
  .. py:data:: xpMsg_DescriptorChanged
+  :value: 18
 
   Your descriptor has changed.                                               
 
@@ -431,6 +465,7 @@ notifications of events. The list of messages may be expanded.
      =========== =========================== ===============
 
  .. py:data:: xpMsg_PropertyChanged
+  :value: 19
 
   A property has changed. Param 1 contains the property ID.                  
 
@@ -445,6 +480,7 @@ notifications of events. The list of messages may be expanded.
      =========== =========================== ===============
 
  .. py:data:: xpMsg_MouseWheel
+  :value: 20
 
   The mouse wheel has moved.                                                 
                                                                               
@@ -462,6 +498,7 @@ notifications of events. The list of messages may be expanded.
      =========== =========================== ===============
 
  .. py:data:: xpMsg_CursorAdjust
+  :value: 21
 
   The cursor is over your widget. If you consume this message, change the    
   XPLMCursorStatus value to indicate the desired result, with the same rules 
@@ -481,6 +518,7 @@ notifications of events. The list of messages may be expanded.
      =========== =========================== =======================
 
  .. py:data:: xpMsg_UserStart
+  :value: 1000
 
   .. table::
      :align: left

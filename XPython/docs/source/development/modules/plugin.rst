@@ -19,6 +19,7 @@ plugin.
    Integer plugin ID.
 
 .. py:data:: XPLM_NO_PLUGIN_ID
+   :value: -1
 
    Value of :py:data:`XPLMPluginID` when refering to no plugin.             
 
@@ -143,26 +144,31 @@ this bit be cleared.
 The following messages are sent to your plugin by X-Plane.
 
 .. py:data:: XPLM_MSG_PLANE_CRASHED
+ :value: 101
 
  This message is sent to your plugin whenever the user's plane crashes.
 
 .. py:data:: XPLM_MSG_PLANE_LOADED
+ :value: 102
 
  This message is sent to your plugin whenever a new plane is loaded. The
  parameter is the number of the plane being loaded; 0 indicates the user's
  plane.
 
 .. py:data:: XPLM_MSG_AIRPORT_LOADED
+ :value: 103
 
  This messages is called whenever the user's plane is positioned at a new
  airport.
   
 .. py:data:: XPLM_MSG_SCENERY_LOADED
+ :value: 104
 
  This message is sent whenever new scenery is loaded. Use datarefs to
  determine the new scenery files that were loaded.
 
 .. py:data:: XPLM_MSG_AIRPLANE_COUNT_CHANGED
+ :value: 105
 
  This message is sent whenever the user adjusts the number of X-Plane
  aircraft models. You must use XPLMCountPlanes to find out how many planes
@@ -170,6 +176,7 @@ The following messages are sent to your plugin by X-Plane.
  because in XP6 the number of aircraft is not user-adjustable.
 
 .. py:data:: XPLM_MSG_PLANE_UNLOADED
+ :value: 106
 
  This message is sent to your plugin whenever a plane is unloaded. The
  parameter is the number of the plane being unloaded; 0 indicates the user's
@@ -177,6 +184,7 @@ The following messages are sent to your plugin by X-Plane.
  (That is: the parameter is an int, not a pointer to an int.)
 
 .. py:data:: XPLM_MSG_WILL_WRITE_PREFS
+ :value: 107
 
  This message is sent to your plugin right before X-Plane writes its
  preferences file. You can use this for two purposes: to write your own
@@ -186,6 +194,7 @@ The following messages are sent to your plugin by X-Plane.
  persisted if your plugin is not loaded on the next invocation of X-Plane.
 
 .. py:data:: XPLM_MSG_LIVERY_LOADED
+ :value: 108
 
  This message is sent to your plugin right after a livery is loaded for an
  airplane. You can use this to check the new livery (via datarefs) and
@@ -193,16 +202,32 @@ The following messages are sent to your plugin by X-Plane.
  pointer and represents the aicraft plane number - 0 is the user's plane.
 
 .. py:data:: XPLM_MSG_ENTERED_VR
+ :value: 109
 
  Sent to your plugin right before X-Plane enters virtual reality mode (at
  which time any windows that are not positioned in VR mode will no longer be
  visible to the user).
 
-.. py:data:: XPLM_MSG_EXITING_VR = 110
+.. py:data:: XPLM_MSG_EXITING_VR
+ :value: 110
 
  Sent to your plugin right before X-Plane leaves virtual reality mode (at
  which time you may want to clean up windows that are positioned in VR
  mode).
+
+.. py:data:: XPLM_MSG_RELEASE_PLANES
+ :value: 111
+
+ Sent to your plugin if another plugin wants to take over AI planes. If you
+ are a synthetic traffic provider,  that probably means a plugin for an
+ online network has connected and wants to supply aircraft flown by real
+ humans and you should cease to provide synthetic traffic. If however you
+ are providing online traffic from real humans,  you probably don't want to
+ disconnect, in which case you just ignore this message. The sender is the
+ plugin ID of the plugin asking for control of the planes now. You can use
+ it to find out who is requesting and whether you should yield to them.
+ Synthetic traffic providers should always yield to online networks. The
+ parameter is unused and should be ignored.                            
 
 .. py:function:: XPLMSendMessageToPlugin(pluginID: int, message: int, param: object) -> None:
 

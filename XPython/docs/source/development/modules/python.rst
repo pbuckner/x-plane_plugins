@@ -65,12 +65,14 @@ Constants
   Version number of XPPython3 plugin, e.g., '3.0.0'             
 
 .. py:data:: PLUGINSPATH
+  :value: "./Resources/plugins/PythonPlugins"
 
-  Relative path the where plugins are located, e.g., 'Resources/plugins/PythonPlugins'
+  Relative path the where plugins are located.
 
 .. py:data:: INTERNALPLUGINSPATH
+  :value: "./Resources/plugins/XPPython3"
 
-  Relative path to where internal plugins are located, e.g., 'Resources/plugsin/XPPython3'
+  Relative path to where internal plugins are located.
   
 Note that both PLUGINSPATH and INTERNALPLUGINSPATH will be in your plugin's
 python path.

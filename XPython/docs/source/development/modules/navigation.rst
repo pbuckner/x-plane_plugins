@@ -274,20 +274,24 @@ These enumerations define the different types of navaids.  They are each
 defined with a separate bit so that they may be bit-wise added together to
 form sets of nav-aid types.
 
- .. py:data::
-    xplm_Nav_Unknown
-    xplm_Nav_Airport
-    xplm_Nav_NDB
-    xplm_Nav_VOR
-    xplm_Nav_ILS
-    xplm_Nav_Localizer
-    xplm_Nav_GlideSlope
-    xplm_Nav_OuterMarker
-    xplm_Nav_MiddleMarker
-    xplm_Nav_InnerMarker
-    xplm_Nav_Fix
-    xplm_Nav_DME
-    xplm_Nav_LatLon
+ .. table::
+   :align: left
+
+   ================================== =====
+   .. py:data:: xplm_Nav_Unknown      =0
+   .. py:data:: xplm_Nav_Airport      =1
+   .. py:data:: xplm_Nav_NDB          =2
+   .. py:data:: xplm_Nav_VOR          =4
+   .. py:data:: xplm_Nav_ILS          =8
+   .. py:data:: xplm_Nav_Localizer    =16
+   .. py:data:: xplm_Nav_GlideSlope   =32
+   .. py:data:: xplm_Nav_OuterMarker  =64
+   .. py:data:: xplm_Nav_MiddleMarker =128
+   .. py:data:: xplm_Nav_InnerMarker  =256
+   .. py:data:: xplm_Nav_Fix          =512
+   .. py:data:: xplm_Nav_DME          =1024
+   .. py:data:: xplm_Nav_LatLon       =2048
+   ================================== =====
 
 .. note: xplm_Nav_LatLon is a specific lat-lon coordinate entered into the
  FMS. It will not exist in the database, and cannot be programmed into the
@@ -307,6 +311,7 @@ nav-aids are  grouped together.
 Use XPLMNavRef to refer to a nav-aid.
 
  .. py:data:: XPLM_NAV_NOT_FOUND
+  :value: -1
 
  XPLM_NAV_NOT_FOUND is returned by functions that return an :ref:`XPLMNavRef` when
  the iterator must be invalid.

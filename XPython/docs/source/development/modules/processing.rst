@@ -193,10 +193,12 @@ You can register a flight loop callback to run either before or after the
 flight model is integrated by X-Plane.
 
  .. py:data:: xplm_FlightLoop_Phase_BeforeFlightModel
+   :value: 0
 
    Your callback runs before X-Plane integrates the flight model.
 
  .. py:data:: xplm_FlightLoop_Phase_AfterFlightModel
+   :value: 1
 
    Your callback runs after X-Plane integrates the flight model.
 

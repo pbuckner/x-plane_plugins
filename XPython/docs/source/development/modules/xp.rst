@@ -4,11 +4,15 @@
 xp
 ============
 
+To use::
+
+  from XPPython3 import xp
+
 This module provides simplified mappings to the original C / C++ named functions and constants.
 The resulting API is the same -- same parameters, same return values, but
 you won't be typing XPLM over-and-over.
 
-To use, :code:`import xp` at the top of you file, and all of the SDK API, from all modules
+To use, add :code:`from XPPython3 import xp` at the top of you file, and all of the SDK API, from all modules
 will be available to you. To further reduce typing, function names and constants have been
 renamed (shortened) in a consistent manner:
 
@@ -22,8 +26,8 @@ Rules:
  ================================== =======================
  Laminar SDK                        import xp
  ================================== =======================
- XPLMCamera.XPLMReadCameraPostion() readCameraPosition()
- XPUIGraphics.XPDrawWindow()        drawWindow()
+ XPLMCamera.XPLMReadCameraPostion() xp.readCameraPosition()
+ XPUIGraphics.XPDrawWindow()        xp.drawWindow()
  ================================== =======================
 
 * Constants start with Capital letter. Leading xp\_, xplm\_, etc. are dropped
@@ -33,11 +37,11 @@ Rules:
  ======================================== =======================
  Laminar SDK                              import xp
  ======================================== =======================
- XPLMCamera.xplm_ControlCameraForever     ControlCameraForever
- XPLMDisplay.xplm_MouseUp                 MouseUp
- XPStandardWidgets.xpProperty_ButtonState Property_ButtonState
- XPWidgetDefs.xpMsg_Paint                 Msg_Paint
- XPStandardWidgets.xpMsg_TextFieldChanged Msg_TextFieldChanged
+ XPLMCamera.xplm_ControlCameraForever     xp.ControlCameraForever
+ XPLMDisplay.xplm_MouseUp                 xp.MouseUp
+ XPStandardWidgets.xpProperty_ButtonState xp.Property_ButtonState
+ XPWidgetDefs.xpMsg_Paint                 xp.Msg_Paint
+ XPStandardWidgets.xpMsg_TextFieldChanged xp.Msg_TextFieldChanged
  ======================================== =======================
 
 Compare:
@@ -60,7 +64,7 @@ with:
 
 ::
 
- import xp
+ from XPPython3 import xp
  x = xp.getDatad(xp.findDataRef('sim/flightmodel/position/local_x'))
  y = xp.getDatad(xp.findDataRef('sim/flightmodel/position/local_y'))
  z = xp.getDatad(xp.findDataRef('sim/flightmodel/position/local_z'))

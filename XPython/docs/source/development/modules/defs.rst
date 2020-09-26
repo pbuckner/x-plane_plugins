@@ -23,14 +23,17 @@ XPLMPluginID
  XPLMUtiltiies.h
 
  .. py:data:: XPLM_NO_PLUGIN_ID
+    :value: -1
 
     No plugin (xp.NO_PLUGIN_ID)
 
  .. py:data:: XPLM_PLUGIN_XPLANE
+    :value: 0
 
     X-Plane itself (xp.PLUGIN_XPLANE)
  
  .. py:data:: kXPLM_Version
+    :value: 303
 
     The current XPLM revision is 303
 
@@ -58,22 +61,27 @@ yet a way for plugins to access the Macintosh control keys without using
 For ``xp.py``, these are defined without the leading ``xplm_`` e.g., ``xp.ShiftFlag``
 
  .. py:data:: xplm_ShiftFlag
+   :value: 1
 
    The shift key is down
 
  .. py:data:: xplm_OptionAltFlag
+   :value: 2
 
    The option or alt key is down
 
  .. py:data:: xplm_ControlFlag
+   :value: 4
 
    The control key is down
 
  .. py:data:: xplm_DownFlag
+   :value: 8
 
    The key is being pressed down
 
  .. py:data:: xplm_UpFlag
+   :value: 16
 
    The key is being released
 

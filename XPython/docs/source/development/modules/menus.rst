@@ -71,7 +71,7 @@ Functions
 
  :param str name: Menu's name, only used if the menu is in the menubar.                 
  :param int parentMenu: :ref:`XPLMMenuID` Parent's menu ID or None
- :param int parentItem: integer index of parent menu.
+ :param int parentItem: integer index of parent menu (ignored if parentMenu is None)
  :param callback: :py:func:`XPLMMenuHandler_f` callback you provide to handle interaction. May be None if you do not need callbacks.
  :param object menuRefCon: Reference constant to be returned to you inside your callback.                 
 
@@ -82,6 +82,33 @@ Functions
  pass a handler function and a menu reference value. Pass None for the
  handler if you do not need callbacks from the menu (for example, if it only
  contains submenus).
+
+ On startup, each plugin as a (hidden) slot in the X-Plane Plugins menu.
+ When you ``XPLMCreateMenu(..., parentMenu=None, ...)`` you add an item.
+ Nothing is visible until your first create (or append).
+
+ * Creating a Menu causes an item with a caret ('>') to be displayed,
+   allowing you to attach items to *that* menu.
+
+ * Creating with parentMenu=None *always* creates a new menu at the end
+   of the X-Plane Plugins menu.
+
+ * Creating with parentMenu=<otherMenu>, parentItem must be set, and must
+   exist: You cannot simple set parentItem=1000 in the hope to attach it to the
+   of the the parentMenu.
+
+ * Creating with parentMenu=<otherMenu>, parentItem exists **changes**
+   the existing item to make it become a (possible) parent menu. That is,
+   it will remove any existing items from slot *parentItem* and change
+   that slot by adding a caret ('>'). In a similar fashion, Deleting the
+   newly created menuID results in the removal of children and the caret.
+   The item will still exist (without the '>') on the parent. You
+   would need to call XPLMRemoveMenuItem(parentMenu, <my slot>) to remove
+   finally remove the (empty) menu.
+ * To get rid of **all** your plugin's menus and menuitems, you can call
+   :py:func:`XPLMClearAllMenuItems` and pass in :py:func:`XPLMFindPluginsMenu` for
+   the menu.
+ 
 
  .. note:: You must pass a valid, non-empty menu title even if the menu is
    a submenu where the title is not visible.
@@ -95,7 +122,7 @@ Functions
  submenu if necessary.  (Normally this function will not be necessary.)
 
 
-.. py:function:: XPLMClearAllMenuItems(menuID):
+.. py:function:: XPLMClearAllMenuItems(menuID) -> None:
 
  :param menuID: :ref:`XPLMMenuID`
 
@@ -126,7 +153,7 @@ Functions
  plugin.)
 
 
-.. py:function:: XPLMAppendMenuItemWithCommand(menuID, itemName, commandRef):
+.. py:function:: XPLMAppendMenuItemWithCommand(menuID, itemName, commandRef) -> int:
 
  :param int menuID: :ref:`XPLMMenuID`
  :param str itemName: Name to be displayed in the menu                    
@@ -146,14 +173,11 @@ Functions
  menus only.
 
 
-.. py:function:: XPLMAppendMenuSeparator(menuID) -> int:
+.. py:function:: XPLMAppendMenuSeparator(menuID) -> None:
 
  This routine adds a separator to the end of a menu.
 
  :param int menuID: :ref:`XPLMMenuId`
-
- Returns a negative index if the append failed (due to an invalid parent
- menu argument).
 
 
 .. py:function:: XPLMSetMenuItemName(menuID, index, itemName) -> None:
@@ -166,11 +190,11 @@ Functions
  ID and the index of the menu item.
 
 
-.. py:function:: XPLMCheckMenuItem(menuID, index, check):
+.. py:function:: XPLMCheckMenuItem(menuID, index, check) -> None:
 
  :param int menuID: :ref:`XPLMMenuId`
  :param int index: index of menu item to be changed
- :param int check: 1= set checkmark
+ :param int check: one of :ref:`XPLMMenuCheck`
 
  Set whether a menu item is checked.  Pass in the menu ID and item index.
 
@@ -189,12 +213,12 @@ Functions
 
  :param int menuID: :ref:`XPLMMenuId`
  :param int index: index of menu item to be changed
- :param int enabel: 1= enable this item
+ :param int enable: 1= enable this item
 
  Sets whether this menu item is enabled.  Items start out enabled.
 
 
-.. py:function:: XPLMRemoveMenuItem(menuID, index):
+.. py:function:: XPLMRemoveMenuItem(menuID, index) -> None:
 
  :param int menuID: :ref:`XPLMMenuId`
  :param int index: index of menu item to be removed
@@ -247,13 +271,24 @@ About Window (code not provided)::
 
     class PythonInterface:
       def XPluginStart(self):
-         self.menuID = XPLMCreateMenu("My Menu", None, self.callback, 'main')
-         XPLMAppendMenuItem(XPLMFindPluginsMenu(), 'My Menu', 'main')  # attach to plugin menu
+         # By creating a menu with 'None' parent, it will appear as an on the plugins menu
+         # as "My Menu >", but with nothing under the '>'
+         self.menuID = XPLMCreateMenu("My Menu", None, 0, self.callback, 'main')
     
-         # add my items to my menu
+         # add my items to my menu.. that is, fill in the '>' of "My Menu"
          XPLMAppendMenuItemWithCommand(self.menuID, 'Reset', XPLMFindCommand('sim/reset'))
          XPLMAppendMenuItem(self.menuID, 'About', 'about')
          return 'PluginName', 'PluginSig', 'PluginDesc'
+      
+      def XPluginStop(self):
+         if self.menuID:
+             XPLMDestroyMenu(self.menuID)
+             # Note: this removes the items from this menu, but it will
+             # leave the initial named menu "My Menu" without the '>'
+             # To completely remove this, you'd need to know which menuitem off of the
+             # PluginsMenu is "My Menu" and then essentially do:
+             #  XPLMRemoveMenuItem(XPLMFindPluginsMenu(), <this item>)
+             # but, sadly, there's no way to know the menu item index is of your "My Menu"
     
       ...
 

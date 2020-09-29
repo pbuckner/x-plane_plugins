@@ -322,7 +322,10 @@ is returned by :py:func:`XPLMFindCommand` or created by :py:func:`XPLMCreateComm
     :param commandRef: :ref:`XPLMCommandRef`
 
     This executes a given commandRef, that is, the command begins and
-    ends immediately.
+    ends immediately. You can use this as a replacement for the deprecated
+    ``XPLMCommandKeyStroke``::
+
+      xp.commandOnce(xp.findCommand('sim/operation/toggle_pause'))
 
 
 .. py:function:: XPLMCreateCommand(inName:str, inDescription:str) -> commandRef:

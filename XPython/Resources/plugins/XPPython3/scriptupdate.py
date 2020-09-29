@@ -13,7 +13,7 @@ except ImportError:
     from urllib import urlopen, urlretrieve  # py2
 
 import time
-import scriptconfig
+from XPPython3 import scriptconfig
 log = scriptconfig.log
 system_log = scriptconfig.system_log
 

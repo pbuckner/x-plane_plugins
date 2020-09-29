@@ -41,9 +41,7 @@ class Config(object):
         Name = self.Name
         self.new_version = None
 
-        self.plugin_path = (os.path.join(XPPython.INTERNALPLUGINSPATH, '..')  # because we package XPPython3 with XPPython3/ in the zip file
-                            if self.internal
-                            else XPPython.PLUGINSPATH)
+        self.plugin_path = XPPython.INTERNALPLUGINSPATH if self.internal else XPPython.PLUGINSPATH
 
         system_log('+++++ {} v{} +++++'.format(self.Name, self.Version))
         system_log("Python version is {}.{}.{} / OpenSSL is {}".format(sys.version_info.major,

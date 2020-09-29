@@ -254,7 +254,6 @@ static PyObject *XPLMAppendMenuSeparatorFun(PyObject *self, PyObject *args)
     PyList_Append(idxList, PyLong_FromLong(nextXPLMMenuIdx));
     PyDict_SetItem(menuPluginIdxDict, pluginSelf, idxList);
     Py_DECREF(pluginSelf);
-    int pluginIdx = PyList_GET_SIZE(idxList) - 1;
     nextXPLMMenuIdx++;
   }
   Py_RETURN_NONE;

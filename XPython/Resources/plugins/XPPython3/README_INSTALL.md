@@ -1,6 +1,6 @@
 # XPPython3 Installation Notes
 
-See https://xppython3.rtfd.io/ for full documentation.
+See https://xppython3.rtfd.io Documentation. Seriously, it's all there.
 
 1. Install 64-bit Python3 (version 3.6 or greater) from https://python.org
 2. Download ONE zipfile:
@@ -62,13 +62,6 @@ Python plugins themselves go to:
     the binary *.xpl plugin files. To be loaded on startup, files need to be named I_PI_<i>anything</i>.py.
   + python files in this directory will be in you PYTHONPATH and therefore accessible to your
     scripts.
-
-## Plugin Menus
-XPPython3 installs a single menu item, "XPPython3", on the plugin menu. From there, you can:
-  * Enable - only useful if you've disabled the scripts
-  * Disable - disables all scripts
-  * Reload - Stops and restarts python, reloading all scripts. While this works, note that some
-    plugins do not clean up after themselves, so loading all python plugins may result in duplications.
 
 ## Logging
 ### `Log.txt`

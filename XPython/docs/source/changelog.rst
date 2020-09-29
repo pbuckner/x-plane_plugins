@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+Known Bugs
+----------
+
+ * On startup, log may includes ``Couldn't find the callback list for widget ID <> for message 15``. This appears
+   to be harmless.
+ 
 Planned for 3.0.3
 -----------------
    * Support for Aircraft plugins: place your plugins under ``Aircraft/.../plugins/PythonPlugins``
@@ -15,7 +21,7 @@ Planned for 3.0.3
 :New Features:
 
    * Loading by "packages". Global plugins are now loaded as part of either XPPython3 or PythonPlugins
-     package. This allows the use of relative package imports by plugins.
+     package. This allows the use of relative package imports by plugins. See :doc:`development/import`.
    * Improved documentation: added :doc:`changelog`, added values for enumeration / constants, fixed minor bugs
    * Initial support for xpyce: enabled loading of encrypted pyc modules. (Documentation to be updated)
 
@@ -25,7 +31,6 @@ Planned for 3.0.3
      what X-Plane does. This means one python plugin cannot remove another python plugin's menu
      items, and additions / deletions by one plugin do not change the number of items as seen
      by another python plugin.
-   * 
 
 
 3.0.1 (19-9-2020)
@@ -42,5 +47,8 @@ Planned for 3.0.3
 
 3.0.0
 -----
+:New Features:
+
    * Support for Python 3.6, 3.7, and 3.8 on Mac, Windows 10 and Linux
    * Support for X-Plane SDK303.
+   * Documentation online at https://xppython3.rtfd.io

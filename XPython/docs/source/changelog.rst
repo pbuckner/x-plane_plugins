@@ -15,8 +15,8 @@ Planned for 3.0.3
      and it will load on startup. Additional documentation to follow.
 
 
-3.0.2 (in progress)
--------------------
+3.0.2 (29-9-2020)
+-----------------
 
 :New Features:
 

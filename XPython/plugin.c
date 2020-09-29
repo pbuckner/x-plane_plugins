@@ -186,21 +186,21 @@ int initPython(void){
   PyObject *pathStrObj = NULL;
   char *parent = NULL;
 
-  pathStrObj = PyUnicode_DecodeUTF8(strdup(pythonPluginsPath), strlen(pythonPluginsPath), NULL);
+  pathStrObj = PyUnicode_DecodeUTF8(pythonPluginsPath, strlen(pythonPluginsPath), NULL);
   PyList_Append(path, pathStrObj);
   Py_DECREF(pathStrObj);
 
-  parent = strndup(pythonPluginsPath, (strrchr(pythonPluginsPath, '/') - pythonPluginsPath));
-  pathStrObj = PyUnicode_DecodeUTF8(parent, strlen(parent), NULL);
+  //parent = strndup(pythonPluginsPath, (strrchr(pythonPluginsPath, '/') - pythonPluginsPath));
+  pathStrObj = PyUnicode_DecodeUTF8(pythonPluginsPath, (strrchr(pythonPluginsPath, '/') - pythonPluginsPath), NULL);
   PyList_Append(path, pathStrObj);
   Py_DECREF(pathStrObj);
 
-  pathStrObj = PyUnicode_DecodeUTF8(strdup(pythonInternalPluginsPath), strlen(pythonInternalPluginsPath), NULL);
+  pathStrObj = PyUnicode_DecodeUTF8(pythonInternalPluginsPath, strlen(pythonInternalPluginsPath), NULL);
   PyList_Append(path, pathStrObj);
   Py_DECREF(pathStrObj);
 
-  parent = strndup(pythonInternalPluginsPath, (strrchr(pythonInternalPluginsPath, '/') - pythonInternalPluginsPath));
-  pathStrObj = PyUnicode_DecodeUTF8(parent, strlen(parent), NULL);
+  // parent = strndup(pythonInternalPluginsPath, (strrchr(pythonInternalPluginsPath, '/') - pythonInternalPluginsPath));
+  pathStrObj = PyUnicode_DecodeUTF8(pythonInternalPluginsPath, (strrchr(pythonInternalPluginsPath, '/') - pythonInternalPluginsPath), NULL);
   PyList_Append(path, pathStrObj);
   Py_DECREF(pathStrObj);
 

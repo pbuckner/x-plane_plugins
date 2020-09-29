@@ -5,7 +5,7 @@ try:
 except ImportError:
     print("OpenGL not found. Do 'python -m pip install PyOpenGL' ... on windows, install as administrator.")
     raise
-import xp
+from XPPython3 import xp
 
 # To use:
 # Where you want a list box widget, call

@@ -86,6 +86,7 @@ PyObject *get_pluginSelf() {
 
   char *last_filename = objToStr(last_filenameObj); // allocates new string on heap
   char *token = strrchr(last_filename, '/');
+  token = last_filename;
   if (token == NULL) {
     token = strrchr(last_filename, '\\');
     if (token == NULL) {

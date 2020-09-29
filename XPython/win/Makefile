@@ -26,13 +26,28 @@ TARGET=Windows
 
 TARGET=Windows
 PYDEV=/c/Program\ Files/Python38
+PYDEV36=/c/Program\ Files/Python36
+PYDEV37=/c/Program\ Files/Python37
+PYDEV38=/c/Program\ Files/Python38
 
-all : XPPython36.xpl XPPython37.xpl XPPython38.xpl libpython3.dll.a
+all : XPPython36.xpl XPPython37.xpl XPPython38.xpl libpython3.dll.a libpython36.dll.a libpython37.dll.a libpython38.dll.a
 	@echo $^
+
+libpython36.dll.a : $(PYDEV36)/python36.dll
+	gendef - "$^" > python36.def
+	dlltool -D "$^" -d python36.def -l $@
+
+libpython37.dll.a : $(PYDEV37)/python37.dll
+	gendef - "$^" > python37.def
+	dlltool -D "$^" -d python37.def -l $@
 
 libpython3.dll.a : $(PYDEV)/python3.dll
 	gendef - "$^" > python3.def
 	dlltool -D "$^" -d python3.def -l $@
+
+libpython38.dll.a : $(PYDEV38)/python38.dll
+	gendef - "$^" > python38.def
+	dlltool -D "$^" -d python38.def -l $@
 
 include ../Makefile
 

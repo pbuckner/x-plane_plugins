@@ -18,15 +18,15 @@ ifeq ($(TARGET), Windows)
   # except for the embedded 'version' value
   PYDEV=/c/Program\ Files/Python38
   PY_CFLAGS = -I${PYDEV}/include -Wno-unused-result -Wsign-compare -Wunreachable-code -fno-common -DNDEBUG -fwrapv -O3
-  PY_LDFLAGS = -L. -lpython3.dll
+  PY_LDFLAGS = 
   CFLAGS+= ${PY_CFLAGS} ${XPLM_CPPFLAGS} -DIBM=1 -DAPL=0 -DLIN=0 -I/c/msys64/mingw64/include -I/usr/include
   CFLAGS36=$(CFLAGS) -DPYTHONVERSION=\"3.6\"
   CFLAGS37=$(CFLAGS) -DPYTHONVERSION=\"3.7\"
   CFLAGS38=$(CFLAGS) -DPYTHONVERSION=\"3.8\"
   LDFLAGS+= -shared -static-libgcc -static-libstdc++ -static -lpthread  ${PY_LDFLAGS} -L/c/msys64/mingw64/lib -ldl -lregex -ltre -lintl -liconv $(XP_SDK)/Libraries/Win/XPLM_64.lib $(XP_SDK)/Libraries/Win/XPWidgets_64.lib
-  LDFLAGS36=$(LDFLAGS)
-  LDFLAGS37=$(LDFLAGS)
-  LDFLAGS38=$(LDFLAGS)
+  LDFLAGS36=$(LDFLAGS) -L. -lpython36.dll
+  LDFLAGS37=$(LDFLAGS) -L. -lpython37.dll
+  LDFLAGS38=$(LDFLAGS) -L. -lpython38.dll
   PLUGIN_DIR=win_x64
   LD=g++
 endif
@@ -117,7 +117,7 @@ Resources/plugins/xppython36.zip : win/XPPython36.xpl lin/XPPython36.xpl mac/XPP
 	cp win/XPPython36.xpl Resources/plugins/XPPython3/win_x64/XPPython3.xpl
 	cp mac/XPPython36.xpl Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
 	cp lin/XPPython36.xpl Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
-	cd Resources/plugins; $(ZIP) xppython36.zip -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md
+	cd Resources/plugins; $(ZIP) xppython36.zip -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md  XPPython3/xpyce/\*.py
 
 Resources/plugins/xppython37.zip : win/XPPython37.xpl lin/XPPython37.xpl mac/XPPython37.xpl $(StandardPythonUtils)
 	rm -f $@
@@ -128,7 +128,7 @@ Resources/plugins/xppython37.zip : win/XPPython37.xpl lin/XPPython37.xpl mac/XPP
 	cp win/XPPython37.xpl Resources/plugins/XPPython3/win_x64/XPPython3.xpl
 	cp mac/XPPython37.xpl Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
 	cp lin/XPPython37.xpl Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
-	cd Resources/plugins; $(ZIP) xppython37.zip -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md
+	cd Resources/plugins; $(ZIP) xppython37.zip -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md  XPPython3/xpyce/\*.py
 
 Resources/plugins/xppython38.zip : win/XPPython38.xpl lin/XPPython38.xpl mac/XPPython38.xpl $(StandardPythonUtils)
 	rm -f $@
@@ -139,7 +139,7 @@ Resources/plugins/xppython38.zip : win/XPPython38.xpl lin/XPPython38.xpl mac/XPP
 	cp win/XPPython38.xpl Resources/plugins/XPPython3/win_x64/XPPython3.xpl
 	cp mac/XPPython38.xpl Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
 	cp lin/XPPython38.xpl Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
-	cd Resources/plugins; $(ZIP) xppython38.zip -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md
+	cd Resources/plugins; $(ZIP) xppython38.zip -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md XPPython3/xpyce/\*.py
 
 
 install_remote :  Resources/plugins/xppython36.zip Resources/plugins/xppython37.zip Resources/plugins/xppython38.zip

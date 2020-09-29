@@ -183,12 +183,43 @@ int initPython(void){
   loggerObj = PyImport_ImportModule("XPythonLogger");
   PyObject *path = PySys_GetObject("path"); //Borrowed!
 
-  PyObject *pathStrObj = PyUnicode_DecodeUTF8(strdup(pythonPluginsPath), strlen(pythonPluginsPath), NULL);
+  PyObject *pathStrObj = NULL;
+  char *parent = NULL;
+
+  pathStrObj = PyUnicode_DecodeUTF8(strdup(pythonPluginsPath), strlen(pythonPluginsPath), NULL);
+  PyList_Append(path, pathStrObj);
+  Py_DECREF(pathStrObj);
+
+  parent = strndup(pythonPluginsPath, (strrchr(pythonPluginsPath, '/') - pythonPluginsPath));
+  pathStrObj = PyUnicode_DecodeUTF8(parent, strlen(parent), NULL);
   PyList_Append(path, pathStrObj);
   Py_DECREF(pathStrObj);
 
   pathStrObj = PyUnicode_DecodeUTF8(strdup(pythonInternalPluginsPath), strlen(pythonInternalPluginsPath), NULL);
   PyList_Append(path, pathStrObj);
+  Py_DECREF(pathStrObj);
+
+  parent = strndup(pythonInternalPluginsPath, (strrchr(pythonInternalPluginsPath, '/') - pythonInternalPluginsPath));
+  pathStrObj = PyUnicode_DecodeUTF8(parent, strlen(parent), NULL);
+  PyList_Append(path, pathStrObj);
+  Py_DECREF(pathStrObj);
+
+  parent = "XPPython3.xpyce";
+  pathStrObj = PyUnicode_DecodeUTF8(parent, strlen(parent), NULL);
+  PyObject *pModule = PyImport_Import(pathStrObj);
+  if (pModule) {
+    PyObject *pFunction = PyObject_GetAttrString(pModule, "XPYCEPathFinder");
+    if (pFunction) {
+      PyObject *meta_path = PySys_GetObject("meta_path");
+      PyList_Append(meta_path, pFunction);
+      PySys_SetObject("meta_path", meta_path);
+      fprintf(pythonLogFile, "%s loader initialized.\n", parent);
+    } else {
+      fprintf(pythonLogFile, "Failed to intialize %s PathFinder.\n", parent);
+    }
+  } else {
+    fprintf(pythonLogFile, "Failed to load %s.\n", parent);
+  }
   Py_DECREF(pathStrObj);
 
   moduleDict = PyDict_New();
@@ -290,7 +321,7 @@ bool loadPIClass(const char *fname)
   return pObj;
 }
 
-void loadModules(const char *path, const char *pattern)
+void loadModules(const char *path, const char *package, const char *pattern)
 {
   //Scan current directory for the plugin modules
   DIR *dir = opendir(path);
@@ -306,7 +337,15 @@ void loadModules(const char *path, const char *pattern)
         char *modName = strdup(de->d_name);
         if(modName){
           modName[strlen(de->d_name) - 3] = '\0';
-          loadPIClass(modName);
+          char *pkgModName = malloc(strlen(modName) + strlen(package) + 2);
+          strcpy(pkgModName, package);
+          strcat(pkgModName, ".");
+          strcat(pkgModName, modName);
+          /* We want to load as part of packages
+             "XPPython3.I_PI_<plugin>.py" and "PythonPlugins.PI_<plugin>py"
+          */
+          loadPIClass(pkgModName);
+          free(pkgModName);
         }
         free(modName);
       }
@@ -330,10 +369,11 @@ static int startPython(void)
     return -1;
   }
 
+
   // Load internal stuff
-  loadModules(pythonInternalPluginsPath, "^I_PI_.*\\.py$");
+  loadModules(pythonInternalPluginsPath, "XPPython3", "^I_PI_.*\\.py$");
   // Load modules
-  loadModules(pythonPluginsPath, "^PI_.*\\.py$");
+  loadModules(pythonPluginsPath, "PythonPlugins", "^PI_.*\\.py$");
   pythonStarted = true;
   return 1;
 }

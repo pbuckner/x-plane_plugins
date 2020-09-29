@@ -1,12 +1,12 @@
 import sys
 import re
 import os
-import XPPython
-import scriptupdate
-import sysconfig
 import subprocess
 import webbrowser
-import xp
+import sysconfig
+import XPPython
+from XPPython3 import scriptupdate
+from XPPython3 import xp
 
 
 class Config (scriptupdate.Updater):
@@ -233,7 +233,7 @@ class PythonInterface(Config):
                 return 1
 
             if inParam1 == self.aboutWindow['widgets']['donate']:
-                webbrowser.open('mailto:xppython3@avnwx.com')
+                webbrowser.open('https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TA3EJ9VWFCH3N&source=url')
                 return 1
         return 0
 

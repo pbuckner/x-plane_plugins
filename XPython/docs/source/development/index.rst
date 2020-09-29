@@ -37,6 +37,8 @@ XPPython3 Module Documentation
 
   * :doc:`quickstart`.  Bare-bones skeleton and Hello World to get you started.
 
+  * :doc:`import`. Information about python packages and proper way to import.
+    
   * `XPython/demos/ <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/demos/>`_.   Ported versions of C++ and Python2 demos.
 
   * :doc:`debugger`:   Check out the ``PI_MiniPython.py`` plugin, available under ``demos``. It allows you to
@@ -97,6 +99,7 @@ Test Examples
    :maxdepth: 1
    :caption: Contents:
 
+   import
    callbacks
    quickstart
    changesfromp2

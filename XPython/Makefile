@@ -16,13 +16,15 @@ ZIP=zip
 ifeq ($(TARGET), Windows)
   # Do to the way we build for windows against 'python3.dll', the resulting binaries (3.6, 3.7, 3.8) are identical
   # except for the embedded 'version' value
-  PYDEV=/c/Program\ Files/Python38
-  PY_CFLAGS = -I${PYDEV}/include -Wno-unused-result -Wsign-compare -Wunreachable-code -fno-common -DNDEBUG -fwrapv -O3
+  PYDEV36=/c/Program\ Files/Python36
+  PYDEV37=/c/Program\ Files/Python37
+  PYDEV38=/c/Program\ Files/Python38
+  PY_CFLAGS = -Wno-unused-result -Wsign-compare -Wunreachable-code -fno-common -DNDEBUG -fwrapv -O3
   PY_LDFLAGS = 
   CFLAGS+= ${PY_CFLAGS} ${XPLM_CPPFLAGS} -DIBM=1 -DAPL=0 -DLIN=0 -I/c/msys64/mingw64/include -I/usr/include
-  CFLAGS36=$(CFLAGS) -DPYTHONVERSION=\"3.6\"
-  CFLAGS37=$(CFLAGS) -DPYTHONVERSION=\"3.7\"
-  CFLAGS38=$(CFLAGS) -DPYTHONVERSION=\"3.8\"
+  CFLAGS36=-I${PYDEV36}/include $(CFLAGS) -DPYTHONVERSION=\"3.6\"
+  CFLAGS37=-I${PYDEV37}/include $(CFLAGS) -DPYTHONVERSION=\"3.7\"
+  CFLAGS38=-I${PYDEV38}/include $(CFLAGS) -DPYTHONVERSION=\"3.8\"
   LDFLAGS+= -shared -static-libgcc -static-libstdc++ -static -lpthread  ${PY_LDFLAGS} -L/c/msys64/mingw64/lib -ldl -lregex -ltre -lintl -liconv $(XP_SDK)/Libraries/Win/XPLM_64.lib $(XP_SDK)/Libraries/Win/XPWidgets_64.lib
   LDFLAGS36=$(LDFLAGS) -L. -lpython36.dll
   LDFLAGS37=$(LDFLAGS) -L. -lpython37.dll
@@ -141,6 +143,13 @@ Resources/plugins/xppython38.zip : win/XPPython38.xpl lin/XPPython38.xpl mac/XPP
 	cp lin/XPPython38.xpl Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
 	cd Resources/plugins; $(ZIP) xppython38.zip -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md XPPython3/xpyce/\*.py
 
+
+install_beta :  Resources/plugins/xppython36.zip Resources/plugins/xppython37.zip Resources/plugins/xppython38.zip
+	cp Resources/plugins/xppython36.zip Resources/plugins/xppython36b.zip
+	cp Resources/plugins/xppython37.zip Resources/plugins/xppython37b.zip
+	cp Resources/plugins/xppython38.zip Resources/plugins/xppython38b.zip
+	scp Resources/plugins/xppython3*b.zip pbuck@avnwx.com:/var/www/production/data/x-plane
+	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; ./updatemd5 xppython36b.zip; ./updatemd5 xppython37b.zip; ./updatemd5 xppython38b.zip'
 
 install_remote :  Resources/plugins/xppython36.zip Resources/plugins/xppython37.zip Resources/plugins/xppython38.zip
 	scp Resources/plugins/xppython3*.zip pbuck@avnwx.com:/var/www/production/data/x-plane

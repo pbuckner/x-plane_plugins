@@ -65,6 +65,13 @@ Some useful things to do:
     102.1
 
     
+* **Create Callback**: You can't easily create multiline programs using MiniPython, but you can
+  create a one-line lambda function which you can use to test the execution of callbacks::
+
+    >>> cb = lambda a, b: print("in callback")
+    >>> xp.createMenu('New Menu, None, 0, cb, [])
+    <capsule object "XPLMMenuIDRef" at 0x75334211d>
+
 * **Debug your Plugin**: Note that you'll need access to *your* plugin from the interpreter, so do this:
 
   * In your plugin, add a global to hold your plugin's instance (and/or other useful parameters)::

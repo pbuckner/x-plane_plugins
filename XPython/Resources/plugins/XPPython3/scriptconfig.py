@@ -55,7 +55,7 @@ class Config(object):
         self.sys_path = XPLMUtilities.XPLMGetSystemPath()
 
         if self.ConfigFilename and self.ConfigFilename != 'example.pkl':
-            self.filename = os.path.join(self.plugin_path, self.ConfigFilename)
+            self.filename = os.path.join(XPPython.INTERNALPLUGINSPATH if self.internal else XPPython.PLUGINSPATH, self.ConfigFilename)
             try:
                 with open(self.filename, 'rb') as fp:
                     self.config.update(pickle.load(fp))

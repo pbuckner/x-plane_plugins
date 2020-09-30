@@ -69,25 +69,32 @@ Functions
 
 .. py:function:: XPLMCreateMenu(name, parentMenu, parentItem, callback, menuRefCon) -> menuID
 
- :param str name: Menu's name, only used if the menu is in the menubar.                 
- :param int parentMenu: :ref:`XPLMMenuID` Parent's menu ID or None
- :param int parentItem: integer index of parent menu (ignored if parentMenu is None)
+ :param str name: Menu's name, only used if parentMenu is None.
+ :param int parentMenu: :ref:`XPLMMenuID` Parent's menu ID or None (to append to top-level Plugins Menu)
+ :param int parentItem: integer index of existing parent menu item (ignored if parentMenu is None)
  :param callback: :py:func:`XPLMMenuHandler_f` callback you provide to handle interaction. May be None if you do not need callbacks.
  :param object menuRefCon: Reference constant to be returned to you inside your callback.                 
 
  This function creates a new menu and returns its ID.  It returns None if
- the menu cannot be created.  Pass in a parent menu ID and an item index to
- create a submenu, or None for the parent menu to put the menu in the menu
- bar.  The menu's name is only used if the menu is in the menubar.  You also
- pass a handler function and a menu reference value. Pass None for the
+ the menu cannot be created.
+
+ For parentMenu, pass in:
+
+ * An existing parent menu ID and an existing item index to create a submenu, or
+ * ``None`` for the parent menu ID to append the menu in the top-level Plugins menu bar.
+
+ The menu's name is only used if parentMenu is None, otherwise the provided
+ name is ignored, and the item maintains the name set with :py:func:`XPLMAppendMenuItem`.
+
+ You also pass a handler function and a menu reference value. Pass None for the
  handler if you do not need callbacks from the menu (for example, if it only
  contains submenus).
 
  On startup, each plugin as a (hidden) slot in the X-Plane Plugins menu.
- When you ``XPLMCreateMenu(..., parentMenu=None, ...)`` you add an item.
- Nothing is visible until your first create (or append).
+ When you ``XPLMCreateMenu(..., parentMenu=None, ...)`` you append an item, *and* make that
+ item a menu.  Nothing is visible until your first create (or append).
 
- * Creating a Menu causes an item with a caret ('>') to be displayed,
+ * Creating a Menu causes an item with a right-arrow ('>') to be displayed,
    allowing you to attach items to *that* menu.
 
  * Creating with parentMenu=None *always* creates a new menu at the end
@@ -100,18 +107,27 @@ Functions
  * Creating with parentMenu=<otherMenu>, parentItem exists **changes**
    the existing item to make it become a (possible) parent menu. That is,
    it will remove any existing items from slot *parentItem* and change
-   that slot by adding a caret ('>'). In a similar fashion, Deleting the
-   newly created menuID results in the removal of children and the caret.
+   that slot by adding a right-arrow ('>'). In a similar fashion, Deleting the
+   newly created menuID results in the removal of children and the right-arrow.
    The item will still exist (without the '>') on the parent. You
    would need to call XPLMRemoveMenuItem(parentMenu, <my slot>) to remove
    finally remove the (empty) menu.
+
  * To get rid of **all** your plugin's menus and menuitems, you can call
    :py:func:`XPLMClearAllMenuItems` and pass in :py:func:`XPLMFindPluginsMenu` for
    the menu.
- 
+
+ These are equivalent, as both will add "New Menu" to the end of the top-level Plugins Menu::
+
+   menuID = xp.createMenu("New Menu", None, 0, callback, [])
+
+ and::
+
+   itemID = xp.appendMenuItem(xp.findPluginsMenu(), "New Menu", 0)
+   menuID = xp.createMenu("<ignored>", xp.findPluginsMenu(), itemID, callback, [])
 
  .. note:: You must pass a valid, non-empty menu title even if the menu is
-   a submenu where the title is not visible.
+   a submenu where the title is not visible (any string will do, as it is ignored).
 
 
 .. py:function:: XPLMDestroyMenu(menuID) -> None:

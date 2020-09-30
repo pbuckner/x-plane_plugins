@@ -148,11 +148,11 @@ install_beta :  Resources/plugins/xppython36.zip Resources/plugins/xppython37.zi
 	cp Resources/plugins/xppython36.zip Resources/plugins/xppython36b.zip
 	cp Resources/plugins/xppython37.zip Resources/plugins/xppython37b.zip
 	cp Resources/plugins/xppython38.zip Resources/plugins/xppython38b.zip
-	scp Resources/plugins/xppython3*b.zip pbuck@avnwx.com:/var/www/production/data/x-plane
+	scp Resources/plugins/xppython3?b.zip pbuck@avnwx.com:/var/www/production/data/x-plane
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; ./updatemd5 xppython36b.zip; ./updatemd5 xppython37b.zip; ./updatemd5 xppython38b.zip'
 
 install_remote :  Resources/plugins/xppython36.zip Resources/plugins/xppython37.zip Resources/plugins/xppython38.zip
-	scp Resources/plugins/xppython3*.zip pbuck@avnwx.com:/var/www/production/data/x-plane
+	scp Resources/plugins/xppython3?.zip pbuck@avnwx.com:/var/www/production/data/x-plane
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; ./updatemd5 xppython36.zip; ./updatemd5 xppython37.zip; ./updatemd5 xppython38.zip'
 
 install_sdk : sdk

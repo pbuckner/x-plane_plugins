@@ -18,6 +18,7 @@ class Config (scriptupdate.Updater):
     ConfigFilename = 'updater.pkl'
     defaults = {
         'autoUpgrade': False,
+        'beta': False,
     }
     internal = True
 

@@ -24,6 +24,8 @@ class Updater(scriptconfig.Config):
     def __init__(self):
         super(Updater, self).__init__()
         self.new_version = None
+        if self.config.get('beta', False):
+            self.Sig = self.Sig + 'b'
         self.check()
         self.json_info = {}
 

@@ -55,12 +55,14 @@ class PythonInterface(Config):
         xp.appendMenuItem(self.menu, 'Update', 'update')
         self.updateMenuIdx = 6
         xp.appendMenuItem(self.menu, 'Pip Package Installer', 'pip')
-
-        xp.checkMenuItem(xp.findPluginsMenu(), 0, xp.Menu_Checked if self.new_version else xp.Menu_Unchecked)
-        xp.setMenuItemName(self.menu, self.updateMenuIdx,
-                           "Update to {}".format(self.new_version) if self.new_version else "{} is up-to-date".format(self.Version))
+        self.setUpdateMenu()
 
         return self.Name, self.Sig, self.Desc
+
+    def setUpdateMenu(self):
+        checkMark = (self.config['beta'] and self.beta_version != self.Version) or (not self.config['beta'] and self.new_version != self.Version)
+        xp.checkMenuItem(xp.findPluginsMenu(), 0, xp.Menu_Checked if checkMark else xp.Menu_Unchecked)
+        xp.setMenuItemName(self.menu, self.updateMenuIdx, self.menu_update_text())
 
     def menuHandler(self, menuRef, itemRef):
         if itemRef == 'update':
@@ -75,7 +77,8 @@ class PythonInterface(Config):
             self.check(forceUpgrade=True)
             xp.checkMenuItem(xp.findPluginsMenu(), 0, xp.Menu_Unchecked)  # '1' because the main XPPython Menu is first...?
             xp.setMenuItemName(self.menu, self.updateMenuIdx,
-                               "Will change to {} on restart.".format(self.new_version))
+                               "Will change to {} on restart.".format(
+                                   self.beta_version if self.config['beta'] else self.new_version))
         return 0
 
     def toggleAbout(self, inCommand, inPhase, inRefcon):
@@ -132,8 +135,10 @@ class PythonInterface(Config):
                         'widgets': {}}
         left = 100
         top = 300
+        width = 525
+        height = 170
 
-        widgetWindow['widgetID'] = xp.createWidget(left, top, 625, 150, 1, "About XPPython3",
+        widgetWindow['widgetID'] = xp.createWidget(left, top, left + width, top - height, 1, "About XPPython3",
                                                    1, 0, xp.WidgetClass_MainWindow)
         xp.setWidgetProperty(widgetWindow['widgetID'], xp.Property_MainWindowHasCloseBoxes, 1)
         fontID = xp.Font_Proportional
@@ -157,6 +162,29 @@ class PythonInterface(Config):
         right = int(left + strWidth)
         xp.createWidget(left, top, right, bottom, 1, s, 0, widgetWindow['widgetID'],
                         xp.WidgetClass_Caption)
+
+        beta_left = left + width - 150
+        right = int(beta_left + 10)
+        widgetWindow['widgets']['beta'] = xp.createWidget(beta_left, top, right, bottom,
+                                                          1, '', 0, widgetWindow['widgetID'],
+                                                          xp.WidgetClass_Button)
+        xp.setWidgetProperty(widgetWindow['widgets']['beta'], xp.Property_ButtonType, xp.RadioButton)
+        xp.setWidgetProperty(widgetWindow['widgets']['beta'], xp.Property_ButtonBehavior, xp.ButtonBehaviorCheckBox)
+        xp.setWidgetProperty(widgetWindow['widgets']['beta'], xp.Property_ButtonState, 1 if self.config['beta'] else 0)
+
+        beta_left = right + 5
+        s = "Include Betas "
+        strWidth = xp.measureString(fontID, s)
+        right = int(beta_left + strWidth)
+        xp.createWidget(beta_left, top, right, bottom, 1, s, 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+
+        top = bottom - 10
+        bottom = int(top - strHeight)
+        s = self.get_currency()
+        strWidth = xp.measureString(fontID, s)
+        right = int(left + 20 + strWidth)
+        widgetWindow['widgets']['currency'] = xp.createWidget(left + 20, top, right, bottom, 1, s, 0,
+                                                              widgetWindow['widgetID'], xp.WidgetClass_Caption)
 
         top = bottom - 10
         bottom = int(top - strHeight)
@@ -215,10 +243,34 @@ class PythonInterface(Config):
                                                             xp.WidgetClass_Button)
         return widgetWindow
 
+    def menu_update_text(self):
+        if not self.config['beta']:
+            if self.Version == self.new_version:
+                return "{} is up-to-date".format(self.Version)
+            return "Update to {}".format(self.new_version)
+        if self.Version == self.beta_version:
+            return "Beta {} is up-to-date".format(self.beta_version)
+        return "Update to Beta {}".format(self.beta_version)
+
+    def get_currency(self):
+        if not self.config['beta']:
+            if self.Version == self.new_version:
+                return "You have the current version."
+            return "Version {} is available".format(self.new_version)
+        if self.Version == self.beta_version:
+            return "You have the current beta version."
+        return "Beta version {} is available".format(self.beta_version)
+
     def aboutWidgetCallback(self, inMessage, inWidget, inParam1, inParam2):
         if inMessage == xp.Message_CloseButtonPushed:
             xp.hideWidget(self.aboutWindow['widgetID'])
             return 1
+
+        if inMessage == xp.Msg_ButtonStateChanged:
+            if inParam1 == self.aboutWindow['widgets']['beta']:
+                self.config['beta'] = xp.getWidgetProperty(inParam1, xp.Property_ButtonState, None) == 1
+                xp.setWidgetDescriptor(self.aboutWindow['widgets']['currency'], self.get_currency())
+                self.setUpdateMenu()
 
         if inMessage == xp.Msg_PushButtonPressed:
             if inParam1 == self.aboutWindow['widgets']['documentation']:
@@ -274,7 +326,7 @@ class PythonInterface(Config):
         bottom = int(top - strHeight)
 
         # Hints....
-        s = "Common packages: requests, pyopengl, urllib3, six"
+        s = "Common packages: requests, pyopengl, cryptography, urllib3, six"
         strWidth = xp.measureString(fontID, s)
         right = int(left + strWidth)
         xp.createWidget(left, top, right, bottom, 1, s, 0, widgetWindow['widgetID'],

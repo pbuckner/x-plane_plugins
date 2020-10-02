@@ -24,8 +24,6 @@ class Updater(scriptconfig.Config):
     def __init__(self):
         super(Updater, self).__init__()
         self.new_version = None
-        if self.config.get('beta', False):
-            self.Sig = self.Sig + 'b'
         self.check()
         self.json_info = {}
 
@@ -51,20 +49,38 @@ class Updater(scriptconfig.Config):
                 log("Failed converting to json: {}".format(e))
                 return
             try:
-                if self.json_info[self.Sig]['version'] != self.Version or forceUpgrade:
-                    self.new_version = self.json_info[self.Sig]['version']
-                    system_log(">>>>> A new version is available: v.{} -> v.{}.".format(self.Version, self.new_version))
-                    if forceUpgrade or (self.json_info[self.Sig]['autoUpgrade'] and self.config and self.config.get('autoUpgrade', False)):
-                        system_log(">>>>> Automatically upgrading")
-                        self.update(self.json_info[self.Sig]['download'])
-                    else:
-                        system_log(">>>>> To upgrade: {}".format(self.json_info[self.Sig]['upgrade']))
-                else:
-                    log("Version is up to date")
+                info = self.json_info[self.Sig]
             except KeyError as e:
                 log("Failed to find key: {}".format(e))
+                return
 
-    def update(self, download_url):
+            self.new_version = info['version']
+            self.beta_version = info.get('beta_version', '')
+            update_which = None
+            if self.config.get('beta', False):
+                if self.beta_version and (self.beta_version != self.Version or forceUpgrade):
+                    update_which = 'beta'
+                elif self.new_version != self.Version or forceUpgrade:
+                    update_which = 'release'
+            elif self.new_version != self.Version or forceUpgrade:
+                update_which = 'release'
+
+            if update_which:
+                system_log(">>>>> A new version is available: v.{} -> v.{}.".format(
+                    self.Version,
+                    self.new_version if update_which == 'release' else self.beta_version))
+                if forceUpgrade or (info.get('autoUpgrade', False) and self.config and self.config.get('autoUpgrade', False)):
+                    system_log(">>>>> Automatically upgrading")
+                    if update_which == 'release':
+                        self.update(info['download'], info.get('cksum', None))
+                    else:
+                        self.update(info['beta_download'], info.get('beta_cksum', None))
+                else:
+                    system_log(">>>>> To upgrade: {}".format(info.get('upgrade', 'See documentation')))
+            else:
+                log("Version is up to date")
+
+    def update(self, download_url, cksum):
         success = None
         download_path = os.path.join(self.sys_path, 'Resources/Downloads/', self.Sig)
         install_path = os.path.join(self.sys_path, self.plugin_path)
@@ -79,9 +95,13 @@ class Updater(scriptconfig.Config):
         zipfile = download_path + '/._UPDATE.zip'
         urlretrieve(download_url, zipfile)
         log("Downloaded file: {}".format(zipfile))
-        if not self.verify(zipfile):
-            system_log("Not upgraded: File does not match checksum: incomplete download?")
-            return
+        try:
+            if not self.verify(zipfile, cksum):
+                system_log("Not upgraded: File does not match checksum: incomplete download?")
+                return
+        except Exception as e:
+            system_log("Failed to verify download file checksum: {}, json has: {}. {}, ".format(self.Sig, cksum, e))
+
         with ZipFile(zipfile, 'r') as zipfp:
             if not zipfp.testzip():
                 success = True
@@ -108,14 +128,11 @@ class Updater(scriptconfig.Config):
             # log("which should not be necessary -- any way to stop it?")
             # plugins.reloadPlugins()
 
-    def verify(self, filename):
-        try:
-            cksum = None
-            hash_md5 = hashlib.md5()
-            with open(filename, 'rb') as f:
-                for chunk in iter(lambda: f.read(4086), b''):
-                    hash_md5.update(chunk)
-                cksum = hash_md5.hexdigest()
-            return 'cksum' in self.json_info[self.Sig] and cksum == self.json_info[self.Sig]['cksum']
-        except Exception as e:
-            system_log("Failed with file checksum: {}, json has: {}. {}, ".format(self.json_info[self.Sig], cksum, e))
+    def verify(self, filename, file_cksum=None):
+        cksum = None
+        hash_md5 = hashlib.md5()
+        with open(filename, 'rb') as f:
+            for chunk in iter(lambda: f.read(4086), b''):
+                hash_md5.update(chunk)
+            cksum = hash_md5.hexdigest()
+        return file_cksum == cksum

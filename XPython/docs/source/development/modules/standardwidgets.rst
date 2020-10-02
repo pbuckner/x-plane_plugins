@@ -138,30 +138,6 @@ Class
     :value: 3
 
 
-Behaviors
-*********
-
- .. py:data:: xpButtonBehaviorPushButton
-  :value: 0
-
-  Standard push button behavior. The button hilites while the mouse is
-  clicked over it and unhilites when the mouse is moved outside of it or
-  released. If the mouse is released over the button, the
-  xpMsg_PushButtonPressed message is sent.
-
- .. py:data:: xpButtonBehaviorCheckBox
-  :value: 1
-
-  Check box behavior. The button immediately toggles its value when the mouse
-  is clicked and sends out a xpMsg_ButtonStateChanged message.
-
- .. py:data:: xpButtonBehaviorRadioButton
-  :value: 2
-
-  Radio button behavior. The button immediately sets its state to one and
-  sends out a xpMsg_ButtonStateChanged message if it was not already set to
-  one. You must turn off other radio buttons in a group in your code.
-
 Properties
 **********
 
@@ -188,8 +164,30 @@ Properties
   :value: 1301
 
   This property sets the button's behavior. Use one of the button behaviors
-  above.
+  below.
 
+  .. table::
+     :align: left
+             
+     ======================================== === =================================================
+     .. py:data:: xpButtonBehaviorPushButton   =0 Standard push button behavior. The button
+                                                  hilites while the mouse is clicked over
+                                                  it and unhilites when the mouse is moved
+                                                  outside of it or released. If the mouse
+                                                  is released over the button, the
+                                                  xpMsg_PushButtonPressed message is sent.
+     .. py:data:: xpButtonBehaviorCheckBox     =1 Check box behavior. The button
+                                                  immediately toggles its value when the
+                                                  mouse is clicked and sends out a
+                                                  xpMsg_ButtonStateChanged message.
+     .. py:data:: xpButtonBehaviorRadioButton  =2 Radio button behavior. The button
+                                                  immediately sets its state to one and
+                                                  sends out a xpMsg_ButtonStateChanged
+                                                  message if it was not already set to
+                                                  one. You must turn off other radio
+                                                  buttons in a group in your code.
+     ======================================== === =================================================
+  
  .. py:data:: xpProperty_ButtonState
   :value: 1302
 

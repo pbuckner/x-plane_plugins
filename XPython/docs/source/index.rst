@@ -9,7 +9,7 @@ XPPython3
    * The documentation is complete and accurate. We provide both stub files (python, which allows
      your linter to check you code in real time) and this web-based documenation.
 
-   Please contact me directly with questions ``xppython3 [at] avwnx.com``.
+   Please contact me directly with questions ``xppython3 [at] avnwx.com``.
 
    Also, please me
    me know about confusing documentation: There's no point in building a plugin if no one can

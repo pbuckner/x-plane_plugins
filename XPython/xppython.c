@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <structmember.h>
 #include "xppythontypes.h"
+#include <XPLM/XPLMUtilities.h>
 #include "utils.h"
 #include "trackMetrics.h"
 
@@ -606,6 +607,50 @@ static PyObject *XPPythonGetDictsFun(PyObject *self, PyObject *args)
   Py_INCREF(xppythonDicts);
   return xppythonDicts;
 }
+
+static PyObject *XPPythonLogFun(PyObject *self, PyObject *args)
+{
+  (void) self;
+  const char *inString;
+  if(!PyArg_ParseTuple(args, "s", &inString)) {
+    /* don't bother sending error */
+    PyErr_Clear();
+    fflush(pythonLogFile);
+  } else {
+    if (strlen(inString)) {
+      char *moduleName = get_moduleName();
+      fprintf(pythonLogFile, "[%s] %s\n", moduleName, inString);
+      free(moduleName);
+    } else {
+      fflush(pythonLogFile);
+    }
+  }
+  Py_RETURN_NONE;
+}
+
+static PyObject *XPSystemLogFun(PyObject *self, PyObject *args)
+{
+  (void) self;
+  (void) args;
+  const char *inString;
+  if(!PyArg_ParseTuple(args, "s", &inString)) {
+    /* don't bother sending error */
+    PyErr_Clear();
+  } else {
+    if (strlen(inString)) {
+      char *moduleName = get_moduleName();
+      char *msg;
+      asprintf(&msg, "[XP3: %s] %s\n", moduleName, inString);
+      free(moduleName);
+      XPLMDebugString(msg);
+      free(msg);
+    } else {
+      /* DebugString already, always flushes, so ignore empty prints */
+    }
+  }
+  Py_RETURN_NONE;
+}
+
 static PyObject *XPPythonGetCapsulesFun(PyObject *self, PyObject *args)
 {
   (void) self;
@@ -618,8 +663,6 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 {
   (void) self;
   (void) args;
-  PyDict_Clear(xppythonDicts);
-  Py_DECREF(xppythonDicts);
   PyDict_Clear(xppythonCapsules);
   Py_DECREF(xppythonCapsules);
   Py_RETURN_NONE;
@@ -628,6 +671,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 static PyMethodDef XPPythonMethods[] = {
   {"XPPythonGetDicts", XPPythonGetDictsFun, METH_VARARGS, ""},
   {"XPPythonGetCapsules", XPPythonGetCapsulesFun, METH_VARARGS, ""},
+  {"XPPythonLog", XPPythonLogFun, METH_VARARGS, ""},
+  {"XPSystemLog", XPSystemLogFun, METH_VARARGS, ""},
   {"cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
@@ -660,8 +705,6 @@ PyInit_XPPython(void)
   if (PyType_Ready(&FMSEntryInfoType) < 0)
     return NULL;
 
-  xppythonDicts = PyDict_New();
-  Py_INCREF(xppythonDicts);
   xppythonCapsules = PyDict_New();
   Py_INCREF(xppythonCapsules);
   PyObject *mod = PyModule_Create(&XPPythonModule);

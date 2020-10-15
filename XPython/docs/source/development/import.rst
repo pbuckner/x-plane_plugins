@@ -9,11 +9,11 @@ The Problem
 -----------
 
 First, consider the problem. Assume you have a utility module called
-``gis.py`` which perhaps does some greographic calculations, say calculating
+``gis.py`` which perhaps does some geographic calculations, say calculating
 Great Circle distance between two points, and determining the bearing from
 one point to a second point.
 
-You want to use this module in your plugin, so you simply::
+You want to use your module in your plugin, so you simply::
 
   import gis
 
@@ -31,16 +31,34 @@ Our Solution
 To support this, we import global plugins as part of the ``PythonPlugins`` package, so your
 ``PI_MyPlugin.py`` is imported as the module ``PythonPlugins.PI_MyPlugin``.
 
-================= ======================================================== =====================================
-Plugin Type       Example .py                                              Imported as Module
-================= ======================================================== =====================================
-Global (user)     Resources/plugins/PythonPlugins/PI_Abc.py                PythonPlugins.PI_Abc
-Global (internal) Resources/plugsin/XPPython3/xp.py                        XPPython3.xp
-Aircraft          Aircraft/Laminar/Baron/plugins/PythonPlugins/PI_Baron.py Baron.plugins.PythonPlugins.PI_Baron
-Scenery           Custom Scenery/KSEA/plugins/PythonPlugins/PI_ground.py   KSEA.plugins.PythonPlugins.PI_ground
-================= ======================================================== =====================================
+.. |br| raw:: html
 
-Now, ``gis.py`` can be uniquely identified as PythonPlugins.gis or KSEA.plugins.PythonPlugins.gis, etc.
+   <br>
+   
+================= =========================================================================
+Plugin Type       Example .py |br|                                             
+                  Module name for importing
+================= =========================================================================
+Global (user)     Resources/plugins/PythonPlugins/PI_Abc.py |br|
+                  PythonPlugins.PI_Abc
+Global (internal) Resources/plugsin/XPPython3/xp.py |br|
+                  XPPython3.xp
+Aircraft          Aircraft/Laminar Research/Baron B58/plugins/PythonPlugins/PI_Baron.py |br|
+                  Laminar Research.Baron B58.plugins.PythonPlugins.PI_Baron
+Scenery           Custom Scenery/KSEA/plugins/PythonPlugins/PI_ground.py |br|
+                  KSEA.plugins.PythonPlugins.PI_ground
+================= =========================================================================
+
+Now, ``gis.py`` can be uniquely identified as ``PythonPlugins.gis`` or ``KSEA.plugins.PythonPlugins.gis``, etc.
+
+To import modules with spaces in their name use::
+
+  import importlib
+  PI_Baron = importlib.import_module('Laminar Research.Baron B58.plugins.PythonPlugins.PI_Baron')
+
+-or-, since you probably don't need absolute imports, you can simply::
+
+  from . import PI_Baron
 
 Resulting Namespace
 -------------------
@@ -135,3 +153,7 @@ To summarize
     from .another_file import my_func
     my_func()
 
+* Use a sub-package for your utility scripts, place it (the folder) under ``Resources/plugins/PythonPlugins``
+  and import them using absolute imports from anywhere::
+
+    from PythonPlugins.abc import utils

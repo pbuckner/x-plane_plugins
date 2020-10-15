@@ -29,8 +29,9 @@ PYDEV=/c/Program\ Files/Python38
 PYDEV36=/c/Program\ Files/Python36
 PYDEV37=/c/Program\ Files/Python37
 PYDEV38=/c/Program\ Files/Python38
+PYDEV39=/c/Program\ Files/Python39
 
-all : XPPython36.xpl XPPython37.xpl XPPython38.xpl libpython3.dll.a libpython36.dll.a libpython37.dll.a libpython38.dll.a
+all : XPPython36.xpl XPPython37.xpl XPPython38.xpl XPPython39.xpl libpython3.dll.a libpython36.dll.a libpython37.dll.a libpython38.dll.a  libpython39.dll.a
 	@echo $^
 
 libpython36.dll.a : $(PYDEV36)/python36.dll
@@ -48,6 +49,10 @@ libpython3.dll.a : $(PYDEV)/python3.dll
 libpython38.dll.a : $(PYDEV38)/python38.dll
 	gendef - "$^" > python38.def
 	dlltool -D "$^" -d python38.def -l $@
+
+libpython39.dll.a : $(PYDEV39)/python39.dll
+	gendef - "$^" > python39.def
+	dlltool -D "$^" -d python39.def -l $@
 
 include ../Makefile
 

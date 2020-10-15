@@ -60,8 +60,12 @@ class PythonInterface(Config):
         return self.Name, self.Sig, self.Desc
 
     def setUpdateMenu(self):
-        checkMark = (self.config['beta'] and self.beta_version != self.Version) or (not self.config['beta'] and self.new_version != self.Version)
-        xp.checkMenuItem(xp.findPluginsMenu(), 0, xp.Menu_Checked if checkMark else xp.Menu_Unchecked)
+        try_beta = self.config['beta']
+        current = self.Version
+        beta_version = self.beta_version
+        stable_version = self.new_version
+        uptodate, version = self.calc_update(try_beta, current, stable_version, beta_version)
+        xp.checkMenuItem(xp.findPluginsMenu(), 0, xp.Menu_Checked if not uptodate else xp.Menu_Unchecked)
         xp.setMenuItemName(self.menu, self.updateMenuIdx, self.menu_update_text())
 
     def menuHandler(self, menuRef, itemRef):
@@ -75,10 +79,11 @@ class PythonInterface(Config):
     def updatePython(self, inCommand, inPhase, inRefcon):
         if inPhase == xp.CommandBegin:
             self.check(forceUpgrade=True)
-            xp.checkMenuItem(xp.findPluginsMenu(), 0, xp.Menu_Unchecked)  # '1' because the main XPPython Menu is first...?
-            xp.setMenuItemName(self.menu, self.updateMenuIdx,
-                               "Will change to {} on restart.".format(
-                                   self.beta_version if self.config['beta'] else self.new_version))
+            xp.checkMenuItem(xp.findPluginsMenu(), 0, xp.Menu_Unchecked)
+            try:
+                xp.setMenuItemName(self.menu, self.updateMenuIdx, "Will change to new version on restart.")
+            except:
+                return 0
         return 0
 
     def toggleAbout(self, inCommand, inPhase, inRefcon):
@@ -241,25 +246,36 @@ class PythonInterface(Config):
         widgetWindow['widgets']['donate'] = xp.createWidget(left, top, right, bottom,
                                                             1, s, 0, widgetWindow['widgetID'],
                                                             xp.WidgetClass_Button)
+        left = right + 30
+        s = " Changelog "
+        strWidth = xp.measureString(fontID, s)
+        right = int(left + strWidth)
+        widgetWindow['widgets']['changelog'] = xp.createWidget(left, top, right, bottom,
+                                                               1, s, 0, widgetWindow['widgetID'],
+                                                               xp.WidgetClass_Button)
         return widgetWindow
 
     def menu_update_text(self):
-        if not self.config['beta']:
-            if self.Version == self.new_version:
-                return "{} is up-to-date".format(self.Version)
-            return "Update to {}".format(self.new_version)
-        if self.Version == self.beta_version:
-            return "Beta {} is up-to-date".format(self.beta_version)
-        return "Update to Beta {}".format(self.beta_version)
+        try_beta = self.config['beta']
+        current = self.Version
+        beta_version = self.beta_version
+        stable_version = self.new_version
+        uptodate, version = self.calc_update(try_beta, current, stable_version, beta_version)
+
+        if uptodate:
+            return "{} {} is up-to-date".format('Beta' if current == beta_version else 'Stable', current)
+        return "Update to {} {}".format('Beta' if version == beta_version else 'Stable', version)
 
     def get_currency(self):
-        if not self.config['beta']:
-            if self.Version == self.new_version:
-                return "You have the current version."
-            return "Version {} is available".format(self.new_version)
-        if self.Version == self.beta_version:
-            return "You have the current beta version."
-        return "Beta version {} is available".format(self.beta_version)
+        try_beta = self.config['beta']
+        current = self.Version
+        beta_version = self.beta_version
+        stable_version = self.new_version
+
+        uptodate, version = self.calc_update(try_beta, current, stable_version, beta_version)
+        if uptodate:
+            return "{} {} is up-to-date".format('Beta' if current == beta_version else 'Stable', current)
+        return "{} {} is available".format('Beta' if version == beta_version else 'Stable', version)
 
     def aboutWidgetCallback(self, inMessage, inWidget, inParam1, inParam2):
         if inMessage == xp.Message_CloseButtonPushed:
@@ -288,6 +304,10 @@ class PythonInterface(Config):
             if inParam1 == self.aboutWindow['widgets']['donate']:
                 webbrowser.open('https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TA3EJ9VWFCH3N&source=url')
                 return 1
+
+            if inParam1 == self.aboutWindow['widgets']['changelog']:
+                webbrowser.open('https://xppython3.rtfd.io/en/latest/changelog.html')
+                return 1
         return 0
 
     def createPipWindow(self):
@@ -309,7 +329,7 @@ class PythonInterface(Config):
         bottom = int(top - strHeight)
 
         # Instructions....
-        s = "Enter one or more python packages below, then press 'Install'"
+        s = "Enter one or more python packages below, then press 'Install'."
         strWidth = xp.measureString(fontID, s)
         right = int(left + strWidth)
         xp.createWidget(left, top, right, bottom, 1, s, 0, widgetWindow['widgetID'],

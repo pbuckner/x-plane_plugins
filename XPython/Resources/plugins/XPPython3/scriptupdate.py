@@ -69,19 +69,15 @@ class Updater(scriptconfig.Config):
 
             self.new_version = info['version']
             self.beta_version = info.get('beta_version', '')
-            update_which = None
-            if self.config.get('beta', False):
-                if self.beta_version and (self.beta_version != self.Version or forceUpgrade):
-                    update_which = 'beta'
-                elif self.new_version != self.Version or forceUpgrade:
-                    update_which = 'release'
-            elif self.new_version != self.Version or forceUpgrade:
-                update_which = 'release'
+            uptodate, version = self.calc_update(try_beta=self.config.get('beta', False),
+                                                 current=self.Version,
+                                                 stable_version=self.new_version,
+                                                 beta_version=self.beta_version)
+            uptodate = uptodate or forceUpgrade
+            update_which = None if uptodate else ('beta' if version == self.beta_version else 'release')
 
             if update_which:
-                sys_log(">>>>> A new version is available: v.{} -> v.{}.".format(
-                    self.Version,
-                    self.new_version if update_which == 'release' else self.beta_version))
+                sys_log(">>>>> A new version is available: v.{} -> v.{}.".format(self.Version, version))
                 if forceUpgrade or (info.get('autoUpgrade', False) and self.config and self.config.get('autoUpgrade', False)):
                     sys_log(">>>>> Automatically upgrading")
                     if update_which == 'release':
@@ -92,6 +88,31 @@ class Updater(scriptconfig.Config):
                     sys_log(">>>>> To upgrade: {}".format(info.get('upgrade', 'See documentation')))
             else:
                 log("Version is up to date")
+
+    def calc_update(self, try_beta, current, stable_version, beta_version):
+        """
+        returns tuple (up-to-date: T/F, change to: version)
+        """
+        if try_beta:
+            if beta_version > current:
+                if stable_version > beta_version:
+                    return (False, stable_version)
+                return (False, beta_version)
+            if beta_version == current and stable_version < beta_version:
+                return (True, beta_version)
+            if stable_version > current:
+                return (False, stable_version)
+            return (True, current)
+        if stable_version > current:
+            return (False, stable_version)
+        if stable_version == current:
+            return (True, current)
+        # If i have a beta (any beta), go with stable_version
+        # otherwise, stick with what I have.
+        if len(current) > len(stable_version):
+            # you have beta
+            return (False, stable_version)
+        return (True, current)
 
     def update(self, download_url, cksum):
         success = None

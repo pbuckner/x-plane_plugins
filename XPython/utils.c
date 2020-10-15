@@ -3,6 +3,7 @@
 #include <frameobject.h>
 #include <sys/time.h>
 #include <string.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include "utils.h"
@@ -12,8 +13,30 @@ const char *commandRefName = "XPLMCommandRef";
 const char *widgetRefName = "XPLMWidgetID";
 
 int pythonWarnings = 1;  /* 1= issue warnings, 0= do not */
+int pythonDebugs = 0; /* 1= issue DEBUG messages, 0= do not */
 
 PyObject *get_pythonline();
+
+void pythonDebug(const char *fmt, ...) {
+  //PyObject *err = PyErr_Occurred();
+  bool err = 0;
+  if (err || pythonDebugs) {
+    Py_VerboseFlag = 0;/* 0= off, 1= each file as loaded, 2= each file that is checked when searching for module */
+    char *msg;
+    va_list ap;
+    va_start(ap, fmt);
+    vasprintf(&msg, fmt, ap);
+    va_end(ap);
+    if (err) {
+      fprintf(pythonLogFile, "PyErr occurred: check log\n");
+      fflush(pythonLogFile);
+      PyErr_Print();
+    }
+    fprintf(pythonLogFile, "DEBUG>> %s\n", msg);
+    fflush(pythonLogFile);
+    free(msg);
+  }
+}
 
 void pythonLogWarning(const char *msg) {
   if (pythonWarnings) {
@@ -43,23 +66,6 @@ char * objToStr(PyObject *item) {
   return res;
 }
   
-bool objToList(PyObject *item, PyObject *list)
-{
-  if(!PyList_Check(list)){
-    return false;
-  }
-  // because this is used to set return values, we're handed a python list [], we return
-  // the result as the FIRST list item. Now, if the user was careless & reused this
-  // result list and we merely Appended, then user would get ever-growing results list.
-  if(PyList_Size(list) > 0){
-    PyList_SetItem(list, 0, item);
-  }else{
-    PyList_Append(list, item);
-    Py_DECREF(item);
-  }
-  return true;
-}
-
 float getFloatFromTuple(PyObject *seq, Py_ssize_t i)
 {
   return PyFloat_AsDouble(PyTuple_GetItem(seq, i));
@@ -70,37 +76,31 @@ long getLongFromTuple(PyObject *seq, Py_ssize_t i)
   return PyLong_AsLong(PyTuple_GetItem(seq, i));
 }
 
-PyObject *get_pluginSelf() {
-  // returns heap-allocated PyObject (or Py_RETURN_NONE)
+PyObject *get_module() {
   PyGILState_STATE gilState = PyGILState_Ensure();
   PyThreadState *tstate = PyThreadState_Get();
-  PyObject *last_filenameObj = Py_None;
+  PyFrameObject *last_frame = NULL, *frame = NULL;
+  PyObject *moduleName = Py_None;
   if (NULL != tstate && NULL != tstate->frame) {
-    PyFrameObject *frame = tstate->frame;
+    frame = tstate->frame;
     while (NULL != frame) {
-      // creates new PyObject
-      last_filenameObj = frame->f_code->co_filename;
+      last_frame = frame;
       frame = frame->f_back;
     }
   }
-
-  char *last_filename = objToStr(last_filenameObj); // allocates new string on heap
-  char *token = strrchr(last_filename, '/');
-  token = last_filename;
-  if (token == NULL) {
-    token = strrchr(last_filename, '\\');
-    if (token == NULL) {
-      token = strrchr(last_filename, ':');
-    }
+  if (last_frame) {
+    moduleName = PyDict_GetItemString(last_frame->f_globals, "__name__");
   }
   PyGILState_Release(gilState);
-  if (token) {
-    PyObject *ret = PyUnicode_FromString(++token); // return new item, we then free the char*
-    free(last_filename);
-    return ret;
-  }
-  free(last_filename);
-  Py_RETURN_NONE;
+  return moduleName;
+}
+  
+char *get_moduleName() {
+  return objToStr(get_module());
+}
+  
+PyObject *get_pluginSelf() {
+  return get_module();
 }
 
 PyObject *get_pythonline() {

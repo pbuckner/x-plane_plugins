@@ -14,7 +14,6 @@ extern PyObject *xppythonCapsules;
 extern FILE *pythonLogFile;
 
 void dbg(const char *msg);
-bool objToList(PyObject *item, PyObject *list);
 float getFloatFromTuple(PyObject *seq, Py_ssize_t i);
 long getLongFromTuple(PyObject *seq, Py_ssize_t i);
 
@@ -22,8 +21,9 @@ PyObject *getPtrRef(void *ptr, PyObject *dict, const char *refName);
 PyObject *getPtrRefOneshot(void *ptr, const char *refName);
 void *refToPtr(PyObject *ref, const char *refName);
 void removePtrRef(void *ptr, PyObject *dict);
-char *get_module(PyThreadState *tstate);
-PyObject *get_pluginSelf(/*PyThreadState *tstate*/);
+char *get_moduleName();
+PyObject *get_pluginSelf();
 char *objToStr(PyObject *item);
 void pythonLogWarning(const char *msg);
+void pythonDebug(const char *fmt, ...);
 #endif

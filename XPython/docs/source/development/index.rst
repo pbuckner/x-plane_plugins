@@ -24,6 +24,8 @@ X-Plane Developer Documentation
 
   X-Plane's documentation is for C-language, and most of that has been translated to python and documented
   with XPPython3. However, when in doubt, check the Laminar docs.
+
+  :doc:`/changelog` lists recent changes to the SDK.
   
 XPPython3 Module Documentation
 ------------------------------
@@ -43,6 +45,8 @@ XPPython3 Module Documentation
 
   * :doc:`debugger`:   Check out the ``PI_MiniPython.py`` plugin, available under ``demos``. It allows you to
     type in python expressions in a running application and see the results.
+
+  * :doc:`plugins`: Though most plugins are Global Plugins, you can code Aircraft and Scenery plugins.
 
   .. note:: I strongly suggest the  simplified interface described by :py:mod:`xp`. You'll find it much faster and easier to write new
     code using this interace and won't wear out your XPLM keys.
@@ -70,14 +74,15 @@ Python Stubs
   Because the XPLM* modules are contained within a shared library, they are not useful for support tools such as
   pylint. For this reason, we've included a set of stubs.
 
-  Include the stub directory as part of your python path (during development) and pylint will be useful.  
+  Include the stub directory as part of your python path (during development) and pylint will be useful. If you
+  use ``xp.py`` be sure to include your ``Resources/plugins/XPPython3`` directory.
 
   For example, include this in :code:`~/.pylintrc`:
 
   .. code-block:: text
 
       [MASTER]                                                                                    
-      init-hook="import sys;sys.path.extend(['.', '/path_to_stubs/stubs'])"
+      init-hook="import sys;sys.path.extend(['.', '/path_to_stubs/stubs', 'XP/Resources/plugins/XPPython3'])"
 
   .. Note:: Do not place stubs in XPPython3 or PythonPlugins folder where they will be found by
             X-Plane! The stubs do not actually execute code.
@@ -104,6 +109,7 @@ Test Examples
    quickstart
    changesfromp2
    debugger
+   plugins
    portingNotes
    modules/index
    xppythondicts

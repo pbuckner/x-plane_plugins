@@ -4,16 +4,39 @@ Change Log
 Known Bugs
 ----------
 
- * On startup, log may includes ``Couldn't find the callback list for widget ID <> for message 15``. This appears
-   to be harmless.
- 
-Planned for 3.0.3
------------------
-   * Support for Aircraft plugins: place your plugins under ``Aircraft/.../plugins/PythonPlugins``
-     and it will load / unload as the user changes their aircraft. Additional documentation to follow.
+ None. Tell me otherwise!
+
+In progress
+-----------
    * Support for Scenery plugins: place your plugins under ``Custom Scenery/<..>/plugins/PythonPlugins``
      and it will load on startup. Additional documentation to follow.
+ 
+3.0.3 (15-10-2020)
+------------------
+:New Features:
+   
+   * Support for Python 3.9
+   * Support for Aircraft plugins: place your plugins under ``Aircraft/.../plugins/PythonPlugins``
+     and it will load / unload as the user changes their aircraft. Additional documentation to follow.
+   * Convenience functions:
 
+     * :py:func:`xp.log` writes to XPPython3.log, prepends your string with name of calling module.
+     * :py:func:`xp.sys_log` writes to Log.txt log, prepends your string with name of calling module.
+
+:Improvements:
+
+   * XPListBox (in demos) improved to automatically wrap long lines: this is used in PI_MiniPython plugin
+   * Better error messages when trying to initialize xpyce -- we'll tell you if you're missing ``cryptography``
+     package and you'll be instructed to use Pip Package Installer.
+
+:Fixes:
+   
+ * On startup, log may include ``Couldn't find the callback list for widget ID <> for message 15``. This appears
+   to be harmless. This was due to newly created CustomWidgets not passing the initial "Accept_Parent" message
+   correctly.
+ * :py:data:`XPWidgetDefs.xpMsg_MouseWheel` message incorrectly processed
+   during :py:func:`XPWidgetUtils.XPUSelectIfNeeded`, which would result in an
+   error message being sent to XPPython3.log. This has been corrected.
 
 3.0.2 (29-9-2020)
 -----------------

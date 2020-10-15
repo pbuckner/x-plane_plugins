@@ -7,17 +7,20 @@ See https://xppython3.rtfd.io Documentation. Seriously, it's all there.
   + For Python3.6: [xppython36.zip](https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython36.zip)
   + For Python3.7: [xppython37.zip](https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython37.zip)
   + For Python3.8: [xppython38.zip](https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython38.zip)
+  + For Python3.9: [xppython39.zip](https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython39.zip)
 3. Extract it into your X-Plane/Resources/plugins folder, such that you have folder there called XPPython3
+4. Create PythonPlugins folder also, under Resources/plugins. That's where you'll put third-party python plugins,
+   Some demos are available see https://xppython3.rtfd.io for more info.
 
 ## Requirements
 * requires 64-bit
 * requires python3, tested with
-  + python37 and python38 on windows,
-  + python37 on Mac,
+  + python37, python38, python39 on windows,
+  + python37, python38, python39 on Mac,
   + ubuntu 18 (python36, python37, python38), ubuntu 20 (python38)
 * XP 11.50+. Plugin is built with SDK 303 and is NOT backward compatible to 11.41 or earlier.
 
-The plugin version must match the version of python (3.6, 3.7, 3.8) you computer is
+The plugin version must match the version of python (3.6, 3.7, 3.8, 3.9) you computer is
 running: the plugin will not load if python is not correctly installed, or if the
 version does not match. If you change python versions on you computer, you must change plugin version
 to match. Any micro-release may be used for a particular major.minor release: For example, python 3.7.0 and 3.7.3 are both "3.7"

@@ -73,7 +73,7 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
        isn't populated yet). Ignore the message (CreateCustomWidget() below will send it again!)
        If not xpMsg_Create, write error.
      */
-    if (inMessage != xpMsg_Create) {
+    if (inMessage != xpMsg_Create && inMessage != xpMsg_AcceptParent) {
       fprintf(pythonLogFile, "Couldn't find the callback list for widget ID %p. for message %d\n", inWidget, inMessage);
     }
     Py_DECREF(widget);
@@ -179,6 +179,7 @@ static PyObject *XPCreateCustomWidgetFun(PyObject *self, PyObject *args)
   PyList_Insert(callbackList, 0, inCallback);
   PyDict_SetItem(widgetCallbackDict, resObj, callbackList);
   XPSendMessageToWidget(res, xpMsg_Create, xpMode_Direct, 0, 0);
+  XPSendMessageToWidget(res, xpMsg_AcceptParent, xpMode_Direct, (intptr_t)inContainer, 0);
   return resObj;
 }
 
@@ -439,7 +440,6 @@ static PyObject *XPGetWidgetDescriptorFun(PyObject *self, PyObject *args)
 {
   (void) self;
   PyObject *widget, *outDescriptor;
-  int inMaxDescLength = 2048;
   int returnValues = 0;
   int ignored;
   if(!PyArg_ParseTuple(args, "OOi", &widget, &outDescriptor, &ignored)){
@@ -455,9 +455,10 @@ static PyObject *XPGetWidgetDescriptorFun(PyObject *self, PyObject *args)
     }
   }
   int res;
-  char buffer[inMaxDescLength + 1];
-  res = XPGetWidgetDescriptor(refToPtr(widget, widgetRefName), buffer, inMaxDescLength);
-  if (res == inMaxDescLength) {
+  int length = XPGetWidgetDescriptor(refToPtr(widget, widgetRefName), NULL, 0);
+  char buffer[length + 1];
+  res = XPGetWidgetDescriptor(refToPtr(widget, widgetRefName), buffer, length);
+  if (res > length) {
     printf("Warning: xppython descriptor for widget exceeds buffer size\n");
   }
   buffer[res] = '\0';

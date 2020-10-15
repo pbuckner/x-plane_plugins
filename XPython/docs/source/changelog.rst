@@ -11,6 +11,12 @@ In progress
    * Support for Scenery plugins: place your plugins under ``Custom Scenery/<..>/plugins/PythonPlugins``
      and it will load on startup. Additional documentation to follow.
  
+3.0.4 (15-10-2020)
+------------------
+:Fixes:
+
+  * Script updater had incorrect logic
+
 3.0.3 (15-10-2020)
 ------------------
 :New Features:

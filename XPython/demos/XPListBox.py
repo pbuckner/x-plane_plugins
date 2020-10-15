@@ -3,7 +3,7 @@ from enum import IntEnum
 try:
     from OpenGL import GL
 except ImportError:
-    print("OpenGL not found. Do 'python -m pip install PyOpenGL' ... on windows, install as administrator.")
+    print("[XPPython3] OpenGL not found. Use XPPython3 Pip Package Installer to install 'PyOpenGL' package and restart.")
     raise
 from XPPython3 import xp
 
@@ -147,7 +147,14 @@ class XPListBox(object):
                 wasViewingBottom = maxListBoxItems - sliderPosition > 0
                 xp.setWidgetProperty(widget, Prop.ListBoxAddItem, 0)  # unset it
                 descriptor = xp.getWidgetDescriptor(widget)
-                self.listBoxAddItem(listBoxDataObj, descriptor, (right - left - 20))
+
+                if xp.measureString(xp.Font_Basic, descriptor) > (right - left - 20):
+                    charsPer = int((right - left - 20) / fontWidth)
+                    for x in range(0, len(descriptor), charsPer):
+                        self.listBoxAddItem(listBoxDataObj, descriptor[x:x + charsPer], (right - left - 20))
+                else:
+                    self.listBoxAddItem(listBoxDataObj, descriptor, (right - left - 20))
+
                 scrollbarMax = len(listBoxDataObj['Items'])
                 sliderPosition = scrollbarMax
                 xp.setWidgetProperty(widget, Prop.ListBoxScrollBarMax, scrollbarMax)

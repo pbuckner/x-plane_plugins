@@ -4,26 +4,32 @@ Joan Perez i Cauhe
 """
 import os
 import os.path
+import platform
 from zipfile import ZipFile
 import hashlib
 import json
 try:
-    from urllib.request import urlopen, urlretrieve  # py3
+    from urllib.request import urlopen, urlretrieve, URLError  # py3
 except ImportError:
     from urllib import urlopen, urlretrieve  # py2
+    from urllib2 import URLError
+try:
+    from ssl import SSLCertVerificationError  # py 3.7+
+except ImportError:
+    from ssl import CertificateError as SSLCertVerificationError  # py < 3.7, py2
 
 import time
 from XPPython3 import scriptconfig
-log = scriptconfig.log
-system_log = scriptconfig.system_log
-
+from xp import log, sys_log
+system_log = sys_log  # some older python plugins use system_log
 
 class Updater(scriptconfig.Config):
     VersionCheckURL = "http://example.com/foo.json"
 
     def __init__(self):
         super(Updater, self).__init__()
-        self.new_version = None
+        self.new_version = '<Error>'
+        self.beta_version = '<Error>'
         self.check()
         self.json_info = {}
 
@@ -33,8 +39,15 @@ class Updater(scriptconfig.Config):
             try:
                 ret = urlopen(self.VersionCheckURL)
                 if ret.getcode() != 200:
-                    system_log("Failed to get {}, returned code: {}".format(self.VersionCheckURL, ret.getcode()))
+                    sys_log("Failed to get {}, returned code: {}".format(self.VersionCheckURL, ret.getcode()))
                     return
+            except URLError as e:
+                if all([isinstance(e.reason, SSLCertVerificationError),
+                        e.reason.reason == 'CERTIFICATE_VERIFY_FAILED',
+                        platform.system() == 'Darwin']):
+                    sys_log("!!! Installation Incomplete: Run /Applications/Python<version>/Install Certificates, and restart X-Plane.")
+                    return
+                raise
             except Exception as e:
                 log("Failed with urllib: {}".format(e))
                 return
@@ -66,17 +79,17 @@ class Updater(scriptconfig.Config):
                 update_which = 'release'
 
             if update_which:
-                system_log(">>>>> A new version is available: v.{} -> v.{}.".format(
+                sys_log(">>>>> A new version is available: v.{} -> v.{}.".format(
                     self.Version,
                     self.new_version if update_which == 'release' else self.beta_version))
                 if forceUpgrade or (info.get('autoUpgrade', False) and self.config and self.config.get('autoUpgrade', False)):
-                    system_log(">>>>> Automatically upgrading")
+                    sys_log(">>>>> Automatically upgrading")
                     if update_which == 'release':
                         self.update(info['download'], info.get('cksum', None))
                     else:
                         self.update(info['beta_download'], info.get('beta_cksum', None))
                 else:
-                    system_log(">>>>> To upgrade: {}".format(info.get('upgrade', 'See documentation')))
+                    sys_log(">>>>> To upgrade: {}".format(info.get('upgrade', 'See documentation')))
             else:
                 log("Version is up to date")
 
@@ -97,10 +110,10 @@ class Updater(scriptconfig.Config):
         log("Downloaded file: {}".format(zipfile))
         try:
             if not self.verify(zipfile, cksum):
-                system_log("Not upgraded: File does not match checksum: incomplete download?")
+                sys_log("Not upgraded: File does not match checksum: incomplete download?")
                 return
         except Exception as e:
-            system_log("Failed to verify download file checksum: {}, json has: {}. {}, ".format(self.Sig, cksum, e))
+            sys_log("Failed to verify download file checksum: {}, json has: {}. {}, ".format(self.Sig, cksum, e))
 
         with ZipFile(zipfile, 'r') as zipfp:
             if not zipfp.testzip():
@@ -108,21 +121,21 @@ class Updater(scriptconfig.Config):
                 for i in zipfp.infolist():
                     try:
                         if os.path.exists(os.path.join(install_path, i.filename)):
-                            system_log("already exists: {}".format(i.filename))
+                            sys_log("already exists: {}".format(i.filename))
                             os.replace(os.path.join(install_path, i.filename),
                                        os.path.join(install_path, i.filename + '.bak'))
-                            system_log('{} moved to {}'.format(i.filename, i.filename + '.bak'))
+                            sys_log('{} moved to {}'.format(i.filename, i.filename + '.bak'))
                         zipfp.extract(i, path=install_path)
                     except PermissionError as e:
                         success = False
-                        system_log(">>>> Failed to extract {}, upgrade failed: {}".format(i.filename, e))
+                        sys_log(">>>> Failed to extract {}, upgrade failed: {}".format(i.filename, e))
                         break
             else:
                 success = False
-                system_log("failed testzip()")
+                sys_log("failed testzip()")
         if success:
             os.remove(zipfile)
-            system_log("Upgraded: restart X-Plane to load new version")
+            sys_log("Upgraded: restart X-Plane to load new version")
             # log("this will reload plugins -- commented out")
             # log("This works, but X-Plane then prompts 'Please place new plugin in directory'.. 'Understood'")
             # log("which should not be necessary -- any way to stop it?")

@@ -58,6 +58,8 @@ you may have to change imports
   ``from my_package.foo import Foo`` ``from .foo import Foo``
   ================================== ========================
 
+See also :doc:`import` for more information on XPPython3 ``sys.path`` and packages.
+  
 Callback Registrations
 ----------------------
 

@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <regex.h>
 
+#include "menus.h"
 #include "utils.h"
 #include "plugin_dl.h"
 
@@ -23,6 +24,7 @@
  *   Sandy Barbour (on x-plane.org)
  */
 
+extern void clearAllMenuItems();
 /**********************
  * Plugin configuration
  */
@@ -34,7 +36,7 @@ const char *pythonPluginsPath = "./Resources/plugins/PythonPlugins";
 const char *pythonInternalPluginsPath = "./Resources/plugins/XPPython3";
 
 static const char *pythonPluginName = "XPPython3";
-const char *pythonPluginVersion = "3.0.2 - for Python " PYTHONVERSION;
+const char *pythonPluginVersion = "3.0.3 - for Python " PYTHONVERSION;
 const char *pythonPluginSig  = "avnwx.xppython3";
 static const char *pythonPluginDesc = "X-Plane interface for Python 3";
 static const char *pythonDisableCommand = "XPPython3/disableScripts";
@@ -48,6 +50,12 @@ static XPLMCommandRef reloadScripts;
 static int commandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void *inRefcon);
 
 static int loadPythonLibrary();
+static void loadAircraftPlugins();
+static void stopAircraftPlugins();
+static void disableAircraftPlugins();
+static void loadSceneryPlugins();
+static PyObject *loadPIClass();
+
 PLUGIN_API int XPluginEnable(void);
 PLUGIN_API void XPluginDisable(void);
 
@@ -142,8 +150,15 @@ PyInit_XPythonLogWriter(void)
   return mod;
 };
 
-static PyObject *moduleDict;
-static PyObject *loggerObj;
+static PyObject *moduleDict;  /* info -> instance */
+static PyObject *pluginDict;  /* instance -> info */
+#define PLUGIN_NAME 0
+#define PLUGIN_SIGNATURE 1
+#define PLUGIN_DESCRIPTION 2
+#define PLUGIN_MODULE_NAME 3
+
+static PyObject *loggerModuleObj;
+static PyObject *aircraftPlugins; /* [instance, instance, ] */
 static void *pythonHandle = NULL;
 
 int initPython(void){
@@ -171,7 +186,7 @@ int initPython(void){
   PyImport_AppendInittab("XPLMMap", PyInit_XPLMMap);
   PyImport_AppendInittab("XPythonLogger", PyInit_XPythonLogWriter);
   PyImport_AppendInittab("SandyBarbourUtilities", PyInit_SBU);
-
+  
   Py_Initialize();
   if(!Py_IsInitialized()){
     fprintf(pythonLogFile, "Failed to initialize Python.\n");
@@ -180,17 +195,15 @@ int initPython(void){
   }
 
   //get the plugin directory into the python's path
-  loggerObj = PyImport_ImportModule("XPythonLogger");
-  PyObject *path = PySys_GetObject("path"); //Borrowed!
+  loggerModuleObj = PyImport_ImportModule("XPythonLogger");
 
+  PyObject *path = PySys_GetObject("path"); //Borrowed!
   PyObject *pathStrObj = NULL;
-  char *parent = NULL;
 
   pathStrObj = PyUnicode_DecodeUTF8(pythonPluginsPath, strlen(pythonPluginsPath), NULL);
   PyList_Append(path, pathStrObj);
   Py_DECREF(pathStrObj);
 
-  //parent = strndup(pythonPluginsPath, (strrchr(pythonPluginsPath, '/') - pythonPluginsPath));
   pathStrObj = PyUnicode_DecodeUTF8(pythonPluginsPath, (strrchr(pythonPluginsPath, '/') - pythonPluginsPath), NULL);
   PyList_Append(path, pathStrObj);
   Py_DECREF(pathStrObj);
@@ -199,38 +212,57 @@ int initPython(void){
   PyList_Append(path, pathStrObj);
   Py_DECREF(pathStrObj);
 
-  // parent = strndup(pythonInternalPluginsPath, (strrchr(pythonInternalPluginsPath, '/') - pythonInternalPluginsPath));
   pathStrObj = PyUnicode_DecodeUTF8(pythonInternalPluginsPath, (strrchr(pythonInternalPluginsPath, '/') - pythonInternalPluginsPath), NULL);
   PyList_Append(path, pathStrObj);
   Py_DECREF(pathStrObj);
 
-  parent = "XPPython3.xpyce";
-  pathStrObj = PyUnicode_DecodeUTF8(parent, strlen(parent), NULL);
-  PyObject *pModule = PyImport_Import(pathStrObj);
-  if (pModule) {
-    PyObject *pFunction = PyObject_GetAttrString(pModule, "XPYCEPathFinder");
-    if (pFunction) {
-      PyObject *meta_path = PySys_GetObject("meta_path");
-      PyList_Append(meta_path, pFunction);
-      PySys_SetObject("meta_path", meta_path);
-      fprintf(pythonLogFile, "%s loader initialized.\n", parent);
-    } else {
-      fprintf(pythonLogFile, "Failed to intialize %s PathFinder.\n", parent);
-    }
+  xppythonDicts = PyDict_New();
+  Py_INCREF(xppythonDicts);
+
+  PyObject *cryptographyModuleObj = PyImport_ImportModule("cryptography");
+  if (!cryptographyModuleObj) {
+    fprintf(pythonLogFile, "[XPPython3] Cryptography package not installed, XPPython3.xpyce will not be supported. See Documentation.\n");
   } else {
-    fprintf(pythonLogFile, "Failed to load %s.\n", parent);
+    Py_DECREF(cryptographyModuleObj);
+    char *xpyceModule = "XPPython3.xpyce";
+    PyObject *pModule = PyImport_ImportModule(xpyceModule);
+    if (pModule) {
+      PyObject *pFunction = PyObject_GetAttrString(pModule, "XPYCEPathFinder");
+      if (pFunction) {
+        PyObject *meta_path = PySys_GetObject("meta_path");
+        PyList_Append(meta_path, pFunction);
+        PySys_SetObject("meta_path", meta_path);
+        fprintf(pythonLogFile, "%s loader initialized.\n", xpyceModule);
+      } else {
+        fprintf(pythonLogFile, "Failed to intialize %s PathFinder.\n", xpyceModule);
+      }
+    } else {
+      fprintf(pythonLogFile, "Failed to load %s.\n", xpyceModule);
+    }
   }
-  Py_DECREF(pathStrObj);
 
   moduleDict = PyDict_New();
+  if (!moduleDict) {
+    pythonDebug("Failed to allocation moduleDict");
+  }
+  pluginDict = PyDict_New();
+  if (!pluginDict ) {
+    pythonDebug("Failed to allocate pluginDict");
+  }
+  aircraftPlugins = PyList_New(0);
+  if(!aircraftPlugins) {
+    pythonDebug("Failed to allocate aircraftplugins");
+  }
+  PyDict_SetItemString(xppythonDicts, "plugins", pluginDict);
+  PyDict_SetItemString(xppythonDicts, "modules", moduleDict);
   return 0;
 }
 
 
-bool loadPIClass(const char *fname)
+PyObject *loadPIClass(const char *fname)
 {
   PyObject *pName = NULL, *pModule = NULL, *pClass = NULL,
-           *pObj = NULL, *pRes = NULL, *err = NULL;
+    *pluginInstance = NULL, *pRes = NULL;
 
   pName = PyUnicode_DecodeFSDefault(fname);
   if(pName == NULL){
@@ -252,29 +284,29 @@ bool loadPIClass(const char *fname)
     goto cleanup;
   }
   //trying to get an object constructed
-  pObj = PyObject_CallObject(pClass, NULL);
+  pluginInstance = PyObject_CallObject(pClass, NULL);
 
-  if(pObj == NULL){
+  if(pluginInstance == NULL){
     goto cleanup;
   }
-  pRes = PyObject_CallMethod(pObj, "XPluginStart", NULL);
+  pRes = PyObject_CallMethod(pluginInstance, "XPluginStart", NULL);
   if(pRes == NULL){
     fprintf(pythonLogFile, "XPluginStart returned NULL\n"); // NULL is error, Py_None is void, we're looking for a tuple[3]
     goto cleanup;
   }
   if(!(PyTuple_Check(pRes) && (PyTuple_Size(pRes) == 3) &&
-      PyUnicode_Check(PyTuple_GetItem(pRes, 0)) &&
-      PyUnicode_Check(PyTuple_GetItem(pRes, 1)) &&
-      PyUnicode_Check(PyTuple_GetItem(pRes, 2)))){
+      PyUnicode_Check(PyTuple_GetItem(pRes, PLUGIN_NAME)) &&
+      PyUnicode_Check(PyTuple_GetItem(pRes, PLUGIN_SIGNATURE)) &&
+      PyUnicode_Check(PyTuple_GetItem(pRes, PLUGIN_DESCRIPTION)))){
     fprintf(pythonLogFile, "Unable to start plugin in file %s: XPluginStart did not return Name, Sig, and Desc.", fname);
     goto cleanup;
   }
   
   PyObject *u1 = NULL, *u2 = NULL, *u3 = NULL;
 
-  u1 = PyUnicode_AsUTF8String(PyTuple_GetItem(pRes, 0));
-  u2 = PyUnicode_AsUTF8String(PyTuple_GetItem(pRes, 1));
-  u3 = PyUnicode_AsUTF8String(PyTuple_GetItem(pRes, 2));
+  u1 = PyUnicode_AsUTF8String(PyTuple_GetItem(pRes, PLUGIN_NAME));
+  u2 = PyUnicode_AsUTF8String(PyTuple_GetItem(pRes, PLUGIN_SIGNATURE));
+  u3 = PyUnicode_AsUTF8String(PyTuple_GetItem(pRes, PLUGIN_DESCRIPTION));
   if(u1 && u2 && u3){
     fprintf(pythonLogFile, "%s initialized.\n", fname);
     fprintf(pythonLogFile, "  Name: %s\n", PyBytes_AsString(u1));
@@ -286,31 +318,33 @@ bool loadPIClass(const char *fname)
   Py_DECREF(u2);
   Py_DECREF(u3);
 
-  PyObject *pKey = PyTuple_New(4);  /* pKey is new reference */
+  PyObject *pluginInfo = PyTuple_New(4);  /* pluginInfo is new reference */
 
-  /* PyTuple_GetItem borrows reference, PyTuple_SetItem steals:pKey now owns pRes[0] */
-  PyObject *tmp = PyTuple_GetItem(pRes, 0);
+  /* PyTuple_GetItem borrows reference, PyTuple_SetItem steals:pluginInfo now owns pRes[0] */
+  PyObject *tmp = PyTuple_GetItem(pRes, PLUGIN_NAME);
   Py_INCREF(tmp);
-  PyTuple_SetItem(pKey, 0, tmp);
+  PyTuple_SetItem(pluginInfo, PLUGIN_NAME, tmp);
 
-  tmp = PyTuple_GetItem(pRes, 1);
+  tmp = PyTuple_GetItem(pRes, PLUGIN_SIGNATURE);
   Py_INCREF(tmp);
-  PyTuple_SetItem(pKey, 1, tmp);
+  PyTuple_SetItem(pluginInfo, PLUGIN_SIGNATURE, tmp);
 
-  tmp = PyTuple_GetItem(pRes, 2);
+  tmp = PyTuple_GetItem(pRes, PLUGIN_DESCRIPTION);
   Py_INCREF(tmp);
-  PyTuple_SetItem(pKey, 2, tmp);
+  PyTuple_SetItem(pluginInfo, PLUGIN_DESCRIPTION, tmp);
 
-  tmp = PyUnicode_FromString(fname);
+  tmp = PyUnicode_FromString(fname); /* Module.class */
   Py_INCREF(tmp);
-  PyTuple_SetItem(pKey, 3, tmp);
+  PyTuple_SetItem(pluginInfo, PLUGIN_MODULE_NAME, tmp);
 
-  PyDict_SetItem(moduleDict, pKey, pObj); // does not steal reference. We don't need pKey again, so decref
-  Py_DECREF(pKey);
+  PyDict_SetItem(moduleDict, pluginInfo, pluginInstance); // does not steal reference. We don't need pluginInfo again, so decref
+  PyDict_SetItem(pluginDict, pluginInstance, pluginInfo);
+  /* Because we put pluginInfo into pluginDict, we need to NOT DECREF
+     Py_DECREF(pluginInfo);
+  */
 
  cleanup:
-  err = PyErr_Occurred();
-  if(err){
+  if(PyErr_Occurred()) {
     PyErr_Print();
   }
 
@@ -318,22 +352,24 @@ bool loadPIClass(const char *fname)
   Py_XDECREF(pRes);
   Py_XDECREF(pModule);
   Py_XDECREF(pClass);
-  return pObj;
+  return pluginInstance;
 }
 
-void loadModules(const char *path, const char *package, const char *pattern)
+void loadModules(const char *path, const char *package, const char *pattern, int is_aircraftPlugin)
 {
   //Scan current directory for the plugin modules
   DIR *dir = opendir(path);
+  PyObject *pluginInstance;
   if(dir == NULL){
-    fprintf(pythonLogFile, "Can't open '%s' to scan for plugins.\n", path);
+    fprintf(pythonLogFile, "Looking in '%s' to scan for plugins: directory not found.\n", path);
     return;
   }
   struct dirent *de;
   regex_t rex;
   if(regcomp(&rex, pattern, REG_NOSUB) == 0){
     while((de = readdir(dir))){
-      if(regexec(&rex, de->d_name, 0, NULL, 0) == 0){
+      // fprintf(pythonLogFile, "Checking file name %s\n", de->d_name);
+      if(regexec(&rex, de->d_name, 0, NULL, 0) == 0 && strstr(de->d_name, "flymake.py") == NULL){
         char *modName = strdup(de->d_name);
         if(modName){
           modName[strlen(de->d_name) - 3] = '\0';
@@ -342,9 +378,15 @@ void loadModules(const char *path, const char *package, const char *pattern)
           strcat(pkgModName, ".");
           strcat(pkgModName, modName);
           /* We want to load as part of packages
-             "XPPython3.I_PI_<plugin>.py" and "PythonPlugins.PI_<plugin>py"
+             "XPPython3.I_PI_<plugin>.py"
+             "PythonPlugins.PI_<plugin>.py"
+             "Laminar Research.Baron B58.plugins.PythonPlugions.PI_<plugin>.py"
           */
-          loadPIClass(pkgModName);
+          // pythonDebug("attempting to load PI_Class %s", pkgModName); 
+          pluginInstance = loadPIClass(pkgModName);
+          if (pluginInstance && is_aircraftPlugin) {
+            PyList_Append(aircraftPlugins, pluginInstance);
+          }
           free(pkgModName);
         }
         free(modName);
@@ -359,23 +401,87 @@ static bool pythonStarted;
 
 static int startPython(void)
 {
+  pythonDebug("Calling startPython...");
   if(pythonStarted){
     return 0;
   }
+  pythonDebug("loadAllFunctions startPython...");
   loadAllFunctions();
+  pythonDebug("allFunctions Loaded...");
   if(initPython()) {
     fprintf(pythonLogFile, "Failed to start python\n");
     fflush(pythonLogFile);
     return -1;
   }
 
-
   // Load internal stuff
-  loadModules(pythonInternalPluginsPath, "XPPython3", "^I_PI_.*\\.py$");
+  XPLMDebugString("STARTING Internal plugins...\n");
+  pythonDebug("STARTING Internal plugins...");
+  loadModules(pythonInternalPluginsPath, "XPPython3", "^I_PI_.*\\.py$", 0);
+  pythonDebug("Modules loaded");
+  XPLMDebugString("  STARTED Internal plugins Started.\n");
+  pythonDebug("STARTED INTERNAL plugins.");
   // Load modules
-  loadModules(pythonPluginsPath, "PythonPlugins", "^PI_.*\\.py$");
+  XPLMDebugString("STARTING Global plugins...\n");
+  pythonDebug("STARTING Global plugins...");
+  loadModules(pythonPluginsPath, "PythonPlugins", "^PI_.*\\.py$", 0);
+  XPLMDebugString("  STARTED Global plugins Started.\n");
+  pythonDebug("STARTED Global plugins.");
+  // Load Scenery
+  XPLMDebugString("STARTING Scenery plugins...\n");
+  pythonDebug("STARTING Scenery plugins...");
+  loadSceneryPlugins();
+  XPLMDebugString("  STARTED Scenery plugins Started.\n");
+  pythonDebug("STARTED Scenery plugins.");
   pythonStarted = true;
   return 1;
+}
+
+static void loadSceneryPlugins()
+{
+  /* need to do this by parsing scenery_packages.ini and loading in order */
+  pythonDebug("Skipping loading of scenery plugins");
+  return;
+  PyObject *localsDict = PyDict_New();
+  PyDict_SetItemString(localsDict, "__builtins__", PyEval_GetBuiltins());
+  pythonDebug("before python exe for load scnery plugins");
+  PyRun_String("import glob\n"
+               "import os\n"
+               "import sys\n"
+               "import xp\n"
+               "packages = []\n"
+               "scenery_root = os.path.join(xp.getSystemPath(), 'Custom Scenery')\n"
+               "if scenery_root not in sys.path:\n"
+               "    sys.path.append(scenery_root)\n"
+               "for x in glob.glob(os.path.join(scenery_root, '*', 'plugins/PythonPlugins')):\n"
+               "    path_rel = os.path.relpath(x, start=scenery_root)\n"
+               "    if x not in sys.path:\n"
+               "        sys.path.append(x)\n"
+               "    package = path_rel.replace('/', '.').replace('\\\\', '.')\n"
+               "    if [x, package] not in packages:\n"
+               "        packages.append([x, package])\n",
+               Py_file_input, localsDict, localsDict);
+  pythonDebug("after loadSceneryPlugins exe.");
+  
+  PyObject *packages = PyDict_GetItemString(localsDict, "packages");
+  pythonDebug("packages: %s", objToStr(packages));
+
+  PyObject *iterator = PyObject_GetIter(packages);
+  PyObject *packageInfo;
+
+  if (iterator != NULL) {
+    while((packageInfo = PyIter_Next(iterator))) {
+      pythonDebug("package info %s", objToStr(packageInfo));
+      char *path = objToStr(PyList_GetItem(packageInfo, 0));
+      char *package = objToStr(PyList_GetItem(packageInfo, 1));
+      loadModules(path, package, "^PI_.*\\.py$", 0);
+      free(path);
+      free(package);
+      Py_DECREF(packageInfo);
+    }
+    Py_DECREF(iterator);
+  }
+  Py_DECREF(localsDict);
 }
 
 static int stopPython(void)
@@ -383,28 +489,40 @@ static int stopPython(void)
   if(!pythonStarted){
     return 0;
   }
-  PyObject *pKey, *pVal;
+  PyObject *pluginInfo, *pluginInstance;
   Py_ssize_t pos = 0;
 
-  while(PyDict_Next(moduleDict, &pos, &pKey, &pVal)){
-    char *moduleName = objToStr(PyTuple_GetItem(pKey, 3));
-    PyObject *pRes = PyObject_CallMethod(pVal, "XPluginStop", NULL); // should return void, so we should see Py_None
+  XPLMDebugString("STOPPING Global and Scenery plugins...\n");
+  pythonDebug("STOPPING Global and Scenery plugins...");
+  while(PyDict_Next(moduleDict, &pos, &pluginInfo, &pluginInstance)){
+    char *moduleName = objToStr(PyTuple_GetItem(pluginInfo, PLUGIN_MODULE_NAME));
+    PyObject *pRes = PyObject_CallMethod(pluginInstance, "XPluginStop", NULL); // should return void, so we should see Py_None
     if(pRes != Py_None) {
       fprintf(pythonLogFile, "%s XPluginStop returned '%s' rather than None.\n", moduleName, objToStr(pRes));
     }
-    PyObject *err = PyErr_Occurred();
-    if(err){
+    if(PyErr_Occurred()){
       fprintf(pythonLogFile, "Error occured during the %s XPluginStop call:\n", moduleName);
       PyErr_Print();
     }else{
       Py_DECREF(pRes);
     }
   }
+  XPLMDebugString("  STOPPED Global and Scenery plugins Stopped.\n");
+  pythonDebug("STOPPED Global and Scenery plugins.");
+  
+  stopAircraftPlugins();
 
   XPLMClearAllMenuItems(XPLMFindPluginsMenu());
 
   PyDict_Clear(moduleDict);
+  PyDict_Clear(pluginDict);
+  PyList_SetSlice(aircraftPlugins, 0, PyList_Size(aircraftPlugins), NULL);
+
+  PyDict_DelItemString(xppythonDicts, "modules");
+  PyDict_DelItemString(xppythonDicts, "plugins");
+
   Py_DECREF(moduleDict);
+  Py_DECREF(pluginDict);
   
   // Invoke cleanup method of all built-in modules
   char *mods[] = {"XPLMDefs", "XPLMDisplay", "XPLMGraphics", "XPLMUtilities", "XPLMScenery", "XPLMMenus",
@@ -435,7 +553,7 @@ static int stopPython(void)
     }
     ++mod_ptr;
   }
-  Py_DECREF(loggerObj);
+  Py_DECREF(loggerModuleObj);
   Py_Finalize();
   if (pythonHandle) {
     dlclose(pythonHandle);
@@ -467,6 +585,7 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
   }
 
   fprintf(pythonLogFile, "%s version %s Started.\n", pythonPluginName, pythonPluginVersion);
+  fflush(pythonLogFile);
   strcpy(outName, pythonPluginName);
   strcpy(outSig, pythonPluginSig);
   strcpy(outDesc, pythonPluginDesc);
@@ -489,6 +608,7 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
   XPLMRegisterCommandHandler(enableScripts, commandHandler, 1, (void *)1);
   XPLMRegisterCommandHandler(reloadScripts, commandHandler, 1, (void *)2);
 
+  pythonDebug("commands created");
   if(startPython() == -1) {
     fprintf(pythonLogFile, "Failed to start python, exiting.\n");
     fflush(pythonLogFile);
@@ -540,6 +660,7 @@ static int commandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, vo
     stopPython();
     fprintf(pythonLogFile, "XPPython: Reloading scripts.\n");
     disabled = 0;
+    resetMenus();
     startPython();
     XPluginEnable();
   }
@@ -550,60 +671,145 @@ static int commandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, vo
 
 PLUGIN_API int XPluginEnable(void)
 {
-  PyObject *pKey, *pVal, *pRes;
+  PyObject *pluginInfo, *pluginInstance, *pRes;
   Py_ssize_t pos = 0;
   if(disabled){
     return 1;
   }
 
-  while(PyDict_Next(moduleDict, &pos, &pKey, &pVal)){
-    char *moduleName = objToStr(PyTuple_GetItem(pKey, 3));
-    pRes = PyObject_CallMethod(pVal, "XPluginEnable", NULL);
+  XPLMDebugString("ENABLING Global Plugins\n");
+  pythonDebug("ENABLING Global Plugins");
+  while(PyDict_Next(moduleDict, &pos, &pluginInfo, &pluginInstance)){
+    char *moduleName = objToStr(PyTuple_GetItem(pluginInfo, PLUGIN_MODULE_NAME));
+    pRes = PyObject_CallMethod(pluginInstance, "XPluginEnable", NULL);
     if(!(pRes && PyLong_Check(pRes))){
       fprintf(pythonLogFile, "%s XPluginEnable returned '%s' rather than an integer.\n", moduleName, objToStr(pRes));
     }else{
       //printf("XPluginEnable returned %ld\n", PyLong_AsLong(pRes));
     }
-    PyObject *err = PyErr_Occurred();
-    if(err){
+    if(PyErr_Occurred()) {
       fprintf(pythonLogFile, "Error occured during the %s XPluginEnable call:\n", moduleName);
       PyErr_Print();
     }else{
       Py_DECREF(pRes);
     }
   }
+  fflush(pythonLogFile);
+  XPLMDebugString("  ENABLED Global Plugins Enabled\n");
+  pythonDebug("ENABLED Global Plugins");
+  /* IF EXISTING aircraft, enable it them also */
+  char outFileName[512];
+  char outPath[1024];
+  XPLMGetNthAircraftModel(0, outFileName, outPath);
+  if (strlen(outFileName)) {
+    pythonDebug("(Loading already existing user aircraft.)");
+    loadAircraftPlugins();
+  } else {
+    pythonDebug("(No existing user aircraft on startup.)");
+  }
+  fflush(pythonLogFile);
 
   return 1;
 }
 
+static void disableAircraftPlugins() {
+  PyObject *iterator = PyObject_GetIter(aircraftPlugins);
+  PyObject *pluginInstance, *pRes;
+  XPLMDebugString("DISABLING Aircraft Plugins\n");
+  pythonDebug("DISABLING Aircraft plugins");
+  if (iterator != NULL) {
+    while((pluginInstance = PyIter_Next(iterator))) {
+      PyObject *pluginInfo = PyDict_GetItem(pluginDict, pluginInstance);
+      char *moduleName = objToStr(PyTuple_GetItem(pluginInfo, PLUGIN_MODULE_NAME));
+      pRes = PyObject_CallMethod(pluginInstance, "XPluginDisable", NULL);
+      if(pRes != Py_None) {
+        fprintf(pythonLogFile, "%s XPluginDisable returned '%s' rather than None.\n", moduleName, objToStr(pRes));
+      }
+      if(PyErr_Occurred()) {
+        fprintf(pythonLogFile, "Error occured during the %s XPluginDisable call:\n", moduleName);
+        PyErr_Print();
+      }else{
+        Py_DECREF(pRes);
+      }
+      Py_DECREF(pluginInstance);
+    }
+    Py_DECREF(iterator);
+  }
+  XPLMDebugString("  DISABLED Aircraft plugins Disabled\n");
+  pythonDebug("DISABLED Aircraft plugins");
+}
+
+static void stopAircraftPlugins() {
+  PyObject *iterator = PyObject_GetIter(aircraftPlugins);
+  PyObject *pluginInstance, *pRes;
+  /* stop them, and remove them from moduleDict and pluginDict */
+  XPLMDebugString("STOPPING Aircraft plugins\n");
+  pythonDebug("STOPPING Aircraft plugins");
+  iterator = PyObject_GetIter(aircraftPlugins);
+  if (iterator != NULL) {
+    while((pluginInstance = PyIter_Next(iterator))) {
+      PyObject *pluginInfo = PyDict_GetItem(pluginDict, pluginInstance);
+      char *moduleName = objToStr(PyTuple_GetItem(pluginInfo, PLUGIN_MODULE_NAME));
+      pRes = PyObject_CallMethod(pluginInstance, "XPluginStop", NULL);
+      if(pRes != Py_None) {
+        fprintf(pythonLogFile, "%s XPluginStop returned '%s' rather than None.\n", moduleName, objToStr(pRes));
+      }
+      if(PyErr_Occurred()) {
+        fprintf(pythonLogFile, "Error occured during the %s XPluginStop call:\n", moduleName);
+        PyErr_Print();
+      }else{
+        Py_DECREF(pRes);
+      }
+
+      /* still need to fully remove plugin menu for this plugin -- just to be sure */
+      PyObject *mod = PyTuple_GetItem(pluginInfo, PLUGIN_MODULE_NAME);
+      clearAllMenuItems(mod);
+      Py_DECREF(mod);
+
+      PyDict_DelItem(pluginDict, pluginInstance);
+      PyDict_DelItem(moduleDict, pluginInfo);
+      Py_DECREF(pluginInfo);
+      Py_DECREF(pluginInstance);
+    }
+    Py_DECREF(iterator);
+  }
+
+  PyList_SetSlice(aircraftPlugins, 0, PyList_Size(aircraftPlugins), NULL);
+  XPLMDebugString("  STOPPED Aircraft plugins Stopped\n");
+  pythonDebug("  STOPPED Aircraft plugins Stopped");
+}
+
 PLUGIN_API void XPluginDisable(void)
 {
-  PyObject *pKey, *pVal, *pRes;
+  PyObject *pluginInfo, *pluginInstance, *pRes;
   Py_ssize_t pos = 0;
   if(disabled){
     return;
   }
 
-  while(PyDict_Next(moduleDict, &pos, &pKey, &pVal)){
-    char *moduleName = objToStr(PyTuple_GetItem(pKey, 3));
-    pRes = PyObject_CallMethod(pVal, "XPluginDisable", NULL);
+  XPLMDebugString("DISABLING  Global and Scenery plugins...\n");
+  pythonDebug("DISABLING  Global and Scenery plugins...");
+  while(PyDict_Next(moduleDict, &pos, &pluginInfo, &pluginInstance)){
+    char *moduleName = objToStr(PyTuple_GetItem(pluginInfo, PLUGIN_MODULE_NAME));
+    pRes = PyObject_CallMethod(pluginInstance, "XPluginDisable", NULL);
     if(pRes != Py_None) {
       fprintf(pythonLogFile, "%s XPluginDisable returned '%s' rather than None.\n", moduleName, objToStr(pRes));
     }
-    PyObject *err = PyErr_Occurred();
-    if(err){
+    if(PyErr_Occurred()) {
       fprintf(pythonLogFile, "Error occured during the %s XPluginDisable call:\n", moduleName);
       PyErr_Print();
     }else{
       Py_DECREF(pRes);
     }
   }
-
+  XPLMDebugString("  DISABLED Global and Scenery plugins.\n");
+  pythonDebug("  DISABLED Global and Scenery plugins.");
+  disableAircraftPlugins();
 }
 
 PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, void *inParam)
 {
-  PyObject *pKey, *pVal, *pRes;
+  PyObject *pluginInfo, *pluginInstance, *pRes;
   Py_ssize_t pos = 0;
   PyObject *param;
   if(disabled){
@@ -612,24 +818,101 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
   param = PyLong_FromLong((long)inParam);
   /* printf("XPPython3 received message, which we'll try to send to all plugins: From: %d, Msg: %ld, inParam: %ld\n", */
   /*        inFromWho, inMessage, (long)inParam); */
-  while(PyDict_Next(moduleDict, &pos, &pKey, &pVal)){
-    char *moduleName = objToStr(PyTuple_GetItem(pKey, 3));
-    pRes = PyObject_CallMethod(pVal, "XPluginReceiveMessage", "ilO", inFromWho, inMessage, param);
+  while(PyDict_Next(moduleDict, &pos, &pluginInfo, &pluginInstance)){
+    char *moduleName = objToStr(PyTuple_GetItem(pluginInfo, PLUGIN_MODULE_NAME));
+    pRes = PyObject_CallMethod(pluginInstance, "XPluginReceiveMessage", "ilO", inFromWho, inMessage, param);
     if (pRes != Py_None) {
       fprintf(pythonLogFile, "%s XPluginReceiveMessage didn't return None.\n", moduleName);
     }
-    PyObject *err = PyErr_Occurred();
-    if(err){
+    if(PyErr_Occurred()) {
       fprintf(pythonLogFile, "Error occured during the %s XPluginReceiveMessage call:\n", moduleName);
       PyErr_Print();
     }else{
       Py_DECREF(pRes);
     }
   }
+  if (inMessage == XPLM_MSG_PLANE_LOADED && inParam == XPLM_USER_AIRCRAFT) {
+    loadAircraftPlugins();
+  }
+  if (inMessage == XPLM_MSG_PLANE_UNLOADED && inParam == XPLM_USER_AIRCRAFT) {
+    disableAircraftPlugins();
+    stopAircraftPlugins();
+  }
   Py_DECREF(param);
 }
 
-int loadPythonLibrary()
+static void loadAircraftPlugins() {
+  char outFileName[512];
+  char outPath[1024];
+  XPLMGetNthAircraftModel(0, outFileName, outPath);
+  if (!strlen(outPath)) {
+    fprintf(pythonLogFile, "No user aircraft selected, skipping loadAircraftPlugins()\n");
+    return;
+  }
+  char *tmp = strrchr(outPath, '/');
+  *tmp = '\0';
+  pythonDebug("Will look for Aircraft PI files in %s/plugins/PythonPlugins\n", outPath);
+  char *plugins_path;
+  asprintf(&plugins_path, "%s/plugins/PythonPlugins", outPath);
+
+  /* 'Aircraft' has to be in syspath, and get aircraft_path_rel*/
+  PyObject *localsDict = PyDict_New();
+  PyDict_SetItemString(localsDict, "__builtins__", PyEval_GetBuiltins());
+  PyDict_SetItemString(localsDict, "aircraft_path", PyUnicode_FromString(outPath));
+  PyRun_String("import os\n"
+               "import sys\n"
+               "import xp\n"
+               "aircraft_root = os.path.join(xp.getSystemPath(), 'Aircraft')\n"
+               "if aircraft_root not in sys.path:\n"
+               "    sys.path.append(aircraft_root)\n"
+               "aircraft_path_rel = os.path.relpath(aircraft_path, start=aircraft_root)\n"
+               "if aircraft_path not in sys.path:\n"
+               "    sys.path.append(aircraft_path)\n"
+               "package = (aircraft_path_rel + '/plugins/PythonPlugins').replace('/', '.').replace('\\\\', '.')\n",
+               Py_file_input, localsDict, localsDict);
+  
+  char *package = objToStr(PyDict_GetItemString(localsDict, "package"));
+  Py_DECREF(localsDict);
+  /* ... need to know these are 'aircraft' plugins, so I can remove them later!!! */
+  XPLMDebugString("STARTING Aircraft plugins.\n");
+  pythonDebug("STARTING Aircraft plugins.");
+  loadModules(plugins_path, package, "^PI_.*\\.py$", 1);
+  XPLMDebugString("STARTED Aircraft plugins.\n");
+  pythonDebug("STARTED Aircraft plugins.");
+  free(package);
+  free(plugins_path);
+
+  XPLMDebugString("ENABLING Aircraft plugins\n");
+  pythonDebug("ENABLING Aircraft plugins");
+  /* Enable all the Aircraft plugins */
+  PyObject *iterator = PyObject_GetIter(aircraftPlugins);
+  PyObject *pluginInstance, *pRes;
+  if (iterator != NULL) {
+    while((pluginInstance = PyIter_Next(iterator))) {
+      PyObject *pluginInfo = PyDict_GetItem(pluginDict, pluginInstance);
+      char *moduleName = objToStr(PyTuple_GetItem(pluginInfo, PLUGIN_MODULE_NAME));
+      pRes = PyObject_CallMethod(pluginInstance, "XPluginEnable", NULL);
+      if(!(pRes && PyLong_Check(pRes))){
+        fprintf(pythonLogFile, "%s XPluginEnable returned '%s' rather than an integer.\n", moduleName, objToStr(pRes));
+      }else{
+        //printf("XPluginEnable returned %ld\n", PyLong_AsLong(pRes));
+      }
+      if(PyErr_Occurred()) {
+        fprintf(pythonLogFile, "Error occured during the %s XPluginEnable call:\n", moduleName);
+        PyErr_Print();
+      }else{
+        Py_DECREF(pRes);
+      }
+      Py_DECREF(pluginInstance);
+    }
+    Py_DECREF(iterator);
+  }
+  XPLMDebugString("  ENABLED Aircraft plugins Enabled\n");
+  pythonDebug("ENABLED Aircraft plugins");
+  return;
+}
+
+int loadPythonLibrary() 
 {
 #if LIN || APL
   /* Prefered library is simple .so:
@@ -651,8 +934,8 @@ int loadPythonLibrary()
   char *suffix = "dylib";
   char *path = "/Library/Frameworks/Python.framework/Versions/" PYTHONVERSION "/lib/";
 #endif
-  char library[100];
-  sprintf(library, "%slibpython%sm.%s", path, PYTHONVERSION, suffix);
+  char *library;
+  asprintf(&library, "%slibpython%sm.%s", path, PYTHONVERSION, suffix);
   pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
   if (!pythonHandle) {
     sprintf(library, "%slibpython%sm.%s.1", path, PYTHONVERSION, suffix);
@@ -673,7 +956,7 @@ int loadPythonLibrary()
   }
   fprintf(pythonLogFile, "Python shared library loaded: %s\n", library);
   fflush(pythonLogFile);
+  free(library);
 #endif
   return 0;
 }
-

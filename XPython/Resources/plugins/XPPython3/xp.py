@@ -440,6 +440,10 @@ CommandEnd = XPLMUtilities.xplm_CommandEnd
 import XPPython
 pythonGetDicts = XPPython.XPPythonGetDicts
 pythonGetCapsules = XPPython.XPPythonGetCapsules
+pythonLog = XPPython.XPPythonLog
+log = XPPython.XPPythonLog
+systemLog = XPPython.XPSystemLog
+sys_log = XPPython.XPSystemLog
 import XPStandardWidgets
 WidgetClass_MainWindow = XPStandardWidgets.xpWidgetClass_MainWindow
 WidgetClass_SubWindow = XPStandardWidgets.xpWidgetClass_SubWindow

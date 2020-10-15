@@ -2274,6 +2274,10 @@ Functions
 
   See :func:`XPLMGraphics.XPLMLocalToWorld`
   
+.. py:function:: log()
+
+  See :func:`XPPython.XPPythonLog`                 
+  
 .. py:function:: lookupObjects()
 
   See :func:`XPLMScenery.XPLMLookupObjects`
@@ -2333,6 +2337,10 @@ Functions
 .. py:function:: pythonGetDicts()
 
   See :func:`XPPython.XPPythonGetDicts`
+
+.. py:function:: pythonLog()
+
+  See :func:`XPPython.XPPythonLog`                 
   
 .. py:function:: readCameraPosition()
 
@@ -2537,6 +2545,14 @@ Functions
 .. py:function:: speakString()
 
   See :func:`XPLMUtilities.XPLMSpeakString`
+  
+.. py:function:: sys_log()
+                 
+  See :func:`XPPython.XPSystemLog`                 
+  
+.. py:function:: systemLog()
+                 
+  See :func:`XPPython.XPSystemLog`                 
   
 .. py:function:: takeKeyboardFocus()
 

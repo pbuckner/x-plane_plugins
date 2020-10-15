@@ -30,9 +30,11 @@ plugin.
  This routine returns the plugin ID of the calling plug-in.  Call this to
  get your own ID.
 
- .. note:: This is the plugin ID of the XPPython3 plugin because, from the
-           perspective of X-Plane, all python plugins are running within
-           a single plugin.
+ .. note::
+
+    This is the plugin ID of the XPPython3 plugin because, from the
+    perspective of X-Plane, all python plugins are running within
+    a single plugin.
 
 
 .. py:function::  XPLMCountPlugins(None) -> int:

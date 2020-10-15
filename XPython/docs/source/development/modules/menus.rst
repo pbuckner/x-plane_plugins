@@ -32,15 +32,14 @@ specific parameters.)
 Functions
 ---------
 
-.. py:function:: XPLMMenuHandler_f(menuRef, itemRef) -> None:
+.. py:function:: XPLMMenuHandler_f(menuRefCon, itemRefCon) -> None:
                  
- :param object menuRef: Reference constant for menu, set with :py:func:`XPLMCreateMenu`
- :param object itemRef: Reference constant for item, set with :py:func:`XPLMAppendMenuItem`
+ :param object menuRefCon: Reference constant for menu, set with :py:func:`XPLMCreateMenu`
+ :param object itemRefCon: Reference constant for item, set with :py:func:`XPLMAppendMenuItem`
 
  You provide a menu handler callback function which takes two reference pointers,
  one for the menu (specified when the menu was created) and one for the item (specified when
- the item was created).
-
+ the item was created). (Note these are reference constants, **not** MenuID or itemID.)
 
 
 .. py:function:: XPLMFindPluginsMenu(None) -> menuID:
@@ -189,11 +188,14 @@ Functions
  menus only.
 
 
-.. py:function:: XPLMAppendMenuSeparator(menuID) -> None:
+.. py:function:: XPLMAppendMenuSeparator(menuID) -> int:
 
- This routine adds a separator to the end of a menu.
+ This routine adds a separator to the end of a menu. (Note Laminar documentation, and
+ Laminar provided header file indicates this returns void, but actually, it returns
+ the integer index.)
 
  :param int menuID: :ref:`XPLMMenuId`
+ :return: int index of of added item or negative number of append failed.
 
 
 .. py:function:: XPLMSetMenuItemName(menuID, index, itemName) -> None:

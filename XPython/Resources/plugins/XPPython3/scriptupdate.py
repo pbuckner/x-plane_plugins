@@ -73,7 +73,7 @@ class Updater(scriptconfig.Config):
                                                  current=self.Version,
                                                  stable_version=self.new_version,
                                                  beta_version=self.beta_version)
-            uptodate = uptodate or forceUpgrade
+            uptodate = uptodate and not forceUpgrade
             update_which = None if uptodate else ('beta' if version == self.beta_version else 'release')
 
             if update_which:

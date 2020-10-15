@@ -8,6 +8,7 @@ XPPython3 Plugin Installation
   + For Python3.6: `xppython36.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython36.zip>`_.
   + For Python3.7: `xppython37.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython37.zip>`_.
   + For Python3.8: `xppython38.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython38.zip>`_.
+  + For Python3.9: `xppython39.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython39.zip>`_.
 
 3. Extract it into your :code:`X-Plane/Resources/plugins` folder, such that you have folder there called :code:`XPPython3`.
 
@@ -17,12 +18,12 @@ Requirements
 * requires python3, tested with
 
   + python37 and python38 on windows,
-  + python37 on Mac,
+  + python37, python38, python39 on Mac,
   + ubuntu 18 (python36, python37, python38), ubuntu 20 (python38)
 
 * XP 11.50+. Plugin is built with SDK 303 and is NOT backward compatible to X-Plane 11.41 or earlier.
 
-The plugin version **must match** the version of python (3.6, 3.7, 3.8) you computer is
+The plugin version **must match** the version of python (3.6, 3.7, 3.8, 3.9) you computer is
 running: the plugin will not load if python is not correctly installed, or if the
 version does not match. If you change python versions on you computer, you must change plugin version
 to match. Any micro-release may be used for a particular major.minor release: For example, python 3.7.0 and 3.7.3 are both "3.7"
@@ -37,8 +38,15 @@ Installation
 ============
 
 This plugin XPPython3 folder should be placed in :code:`<XP>/Resources/plugins`.
-On startup, this plugin will create the PythonPlugins folder, if you don't have
-one.
+You should **create** the PythonPlugins folder, and place any python plugins in there. (You can download
+sample demo plugins from `XPython/demos/ <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/demos/>`_.)
+
+First time running X-Plane, go to the XPPython3 Menu, select "Pip Package Installer" and install two
+useful packages: ``pyopengl, cryptography``. Type in the package names and press Install. It will take a few seconds (depends on
+your internet speed.) Though these packages are not required by XPPython3, they are commonly used by plugins, so you might
+as well install them now.
+
+.. image:: /images/pip_installer.png
 
 ::
 
@@ -122,7 +130,23 @@ There are two main log files. (Any particular plugin may also create their own l
    
   If XPPython3 cannot load, you'll see an error in this log file.
 
-* Common error on windows:
+* Common error on Mac:
+
+  :code:`Failed with urillib: <urlopen erro [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self signed certificate in certificate chain (_ssl.c:1122)>`
+
+    -or-
+
+  :code:`!!!! Installation Incomplete: Run /Applications/Python<version>/Install Certificates, and restart X-Plane.`
+
+  **Cause**: When installing python3 on Mac, there is an additional step you must do. It is
+  documented by the python installation tool, but you (and I) didn't actually read everything in the python installer.
+
+  **Solution**
+  Browse ``/Applications/Python<version>`` and read the ReadMe.rtf file you find there. This is the "Cerificate verification and OpenSSL" issue
+  mention in the ReadMe. Just double click on the ``Install Certificates`` command file and that will fix it.
+
+         
+* Common error on Windows:
 
   :code:`<XP>/Resources/plugins/XPPython3/win_x64/XPPython3.xpl: Error Code = 126 : The specified module could not be found.`
      
@@ -132,9 +156,12 @@ There are two main log files. (Any particular plugin may also create their own l
   **Solution**:
 
   1. Python needs to be installed "for all users" -- that places the folder under \Program Files, if not for all
-     users, it's stored somewhere else & X-Plane may not be able to find it. Or,
-  2. Python needs to be installed with "Set Environment Path" (**need correct wording**)
-     This helps X-Plane find it -- perhaps, it could be stored "for single user" but PATH needs to set?
+     users, it's stored somewhere else & X-Plane may not be able to find it. And,
+  2. Add Python to environment variables.
+
+  Both of these options can be set by the installer downloaded from python.org.
+
+     .. image:: /images/pythonwindows.png
 
 `XPPython3.log`
 ***************
@@ -145,34 +172,42 @@ by setting environment variable :code:`XPPYTHON3_LOG`. Log is re-written each ti
 we appended to the file rather than clearing it out.) If you want to preserve
 the contents of the logfile, set environment variable :code:`XPPYTHON3_PRESERVE`.
 
-Log always contains:
+* Log always contains:
 
-.. parsed-literal::
+  .. parsed-literal::
 
-   XPPython3 Version *<x.x.x>* Started.
+     XPPython3 Version *<x.x.x>* Started.
 
-Then the script folder(s) are scanned. If the folder cannot be found (not an error really, but just to
-let you know):
+  Then the script folder(s) are scanned. If the folder cannot be found (not an error really, but just to
+  let you know):
 
-.. parsed-literal::
+  .. parsed-literal::
 
-   Can\'t open *<folder>* to scan for plugins.
+     Can\'t open *<folder>* to scan for plugins.
 
-On *each* python plugin startup, we print:
+  On *each* python plugin startup, we print:
 
-.. parsed-literal::
+  .. parsed-literal::
 
-   PI\_\ *<plugin>* initialized.
-        Name: *<plugin name>*
-        Sig:  *<plugin signature>*
-        Desc: *<plugin description>*
+     PI\_\ *<plugin>* initialized.
+          Name: *<plugin name>*
+          Sig:  *<plugin signature>*
+          Desc: *<plugin description>*
 
-Successful shutdown will included:
+  Successful shutdown will included::
 
-::
+    XPPython Stopped.
 
-  XPPython Stopped.
+* Common message on all platforms:
 
+  :code:`[XPPython3] Cryptography package not installed, XPPython3.xpyce will not be supported. See Documentation.`
+
+  **Cause**: Cryptography is an option package. It is required by XPPython3's xpyce module, but that module is
+  only required if you are using encrypted python.
+
+  **Solution**: You can either ignore this error (if you're not using encrypted python) or you can safely install
+  this packages using XPPython3 Pip Package Installer, and install ``cryptography``.
+        
 Errors
 ======
 

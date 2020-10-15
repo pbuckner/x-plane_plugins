@@ -1,78 +1,254 @@
-:orphan:
-   
 XPPythonGetDicts()
-------------------
+==================
 
 .. Warning:: Notes in progress. This should give you an idea of what these internal dicts are & how they're used.
 
-* commandCallbacks and commandRefcons
+In order to fully support the X-Plane SDK, and provide a mapping between the Python and C-based API,
+XPPython plugin uses a number of internal (python) dictionaries.
 
-  Key: integer index  
+You can access these dictionaries using :py:func:`XPPython.XPPythonGetDicts`.
 
-  Value: tuple, ("<PluginFile.py>", <XPLMCommandRef capsule>, <command handler python method>, inBefore=0/1, <refCon object>)  
+Technically, they're internal and are subject to change, but they can be particularly useful
+during debugging.
 
-  Purpose:  
-    Rather than providing X-Plane your command handler directly, we provide X-Plane information to call
-    XPPython3, and then WE form the python call to your command handler. To do this
-    we store information about your callback in `commandCallback` and `commandRefcons`, and substitute
-    and internal callback function and a serial integer as the refCon X-Plane will see.
+The result of :py:func:`XPPython.XPPythonGetDicts` is a dictionary of these dictionaries, similar to::
 
-    So your python :code:`XPLMRegisterCommandHandler(inCommand, inHandler, inBefore, inRefcon)`
-    becomes C-code similar to::
+  {'commandCallbacks':
+       {54: ('/Resources/plugins/XPPython3/I_PI_Updater.py',
+             <capsule object "XPLMCommandRef" at 0x7ff2bf6a42a0>,
+             <bound method PythonInterface.updatePython of <XPPython3.I_PI_Updater.PythonInterface object at 0x7ff312547640>>,
+             1,
+             ''),
+        55: ('/Resources/plugins/XPPython3/I_PI_Updater.py',
+             <capsule object "XPLMCommandRef" at 0x7ff2ca63ccc0>,
+             <bound method PythonInterface.togglePip of <XPPython3.I_PI_Updater.PythonInterface object at 0x7ff312547640>>,
+             1,
+             ''),
+        59: ('/Resources/plugins/PythonPlugins/PI_SeeAndAvoid.py',
+             <capsule object "XPLMCommandRef" at 0x7ff2bff3adb0>,
+             <bound method PythonInterface.CommandHandler of <PythonPlugins.PI_SeeAndAvoid.PythonInterface object at 0x7ff2bff3ad30>>,
+             0,
+             []),
+        60: ('/Resources/plugins/PythonPlugins/PI_SeeAndAvoid.py',
+             <capsule object "XPLMCommandRef" at 0x7ff2bff3ad80>,
+             <bound method PythonInterface.CommandHandler of <PythonPlugins.PI_SeeAndAvoid.PythonInterface object at 0x7ff2bff3ad30>>,
+             0,
+             []),
+  },
+   'commandRefcons':
+       {140680570225312: 54,
+        140680579228848: 58,
+        140680579231104: 60,
+        140680579231152: 59,
+        140680758437808: 57},
+   'drawCallbackIDs': {2227346048: 3},
+   'drawCallbacks':
+       {3: ('/Resources/plugins/PythonPlugins/PI_SeeAndAvoid.py',
+            <bound method PythonInterface.drawFlightFollowing of <PythonPlugins.PI_SeeAndAvoid.PythonInterface object at 0x7ff2bff3ad30>>,
+            50,
+            0,
+            0)},
+   'errCallbacks': {},
+   'hotkeyIDs': {},
+   'hotkeys': {},
+   'keySniffCallbacks': {},
+   'mapCreates': {},
+   'mapRefs': {},
+   'maps': {},
+   'menuPluginIdx':
+        {'/Resources/plugins/PythonPlugins/PI_Aircraft.py': [],
+         '/Resources/plugins/PythonPlugins/PI_MiniPython.py': [7],
+         '/Resources/plugins/PythonPlugins/PI_SeeAndAvoid.py': [8],
+         '/Resources/plugins/XPPython3/I_PI_Updater.py': [6]},
+   'menuRefs':
+        {<capsule object "XPLMMenuIDRef" at 0x7ff2bff3e750>: 8,
+         <capsule object "XPLMMenuIDRef" at 0x7ff2ca63cb70>: 7},
+   'menus':
+        {7: ('/Resources/plugins/XPPython3/I_PI_Updater.py',
+             'XPPython3',
+             None,
+             0,
+             <bound method PythonInterface.menuHandler of <XPPython3.I_PI_Updater.PythonInterface object at 0x7ff312547640>>,
+             'updatePython'),
+          8: ('/Resources/plugins/PythonPlugins/PI_SeeAndAvoid.py',
+              'See and Avoid',
+              None,
+              0,
+              <bound method PythonInterface.menuHandler of <PythonPlugins.PI_SeeAndAvoid.PythonInterface object at 0x7ff2bff3ad30>>,
+              None)},
+   'modules':
+        {('Mini Python Interpreter', 'xppython3.minipython', 'For debugging / testing, the provides a mini python interpreter', 'PythonPlugins.PI_MiniPython'): <PythonPlugins.PI_MiniPython.PythonInterface object at 0x7ff2ca700a90>,
+         ('See and Avoid', 'com.avnwx.SeeAndAvoid.p3', 'See and Avoid traffic generator', 'PythonPlugins.PI_SeeAndAvoid'): <PythonPlugins.PI_SeeAndAvoid.PythonInterface object at 0x7ff2bff3ad30>,
+         ('XPPython Aircraft Plugin driver', 'xppython3.aircraft_plugin', 'XPPython Plugin which enables use of aircraft plugins', 'PythonPlugins.PI_Aircraft'): <PythonPlugins.PI_Aircraft.PythonInterface object at 0x7ff2ca63ce50>,
+         ('XPPython3 Updater', 'com.avnwx.xppython3.updater.3.8', 'Automatic updater for XPPython3 plugin', 'XPPython3.I_PI_Updater'): <XPPython3.I_PI_Updater.PythonInterface object at 0x7ff312547640>,
+         ('xpyce tester', 'xppython3.pyce_tester', 'test program for loading pyce files', 'PythonPlugins.PI_xpyce_test'): <PythonPlugins.PI_xpyce_test.PythonInterface object at 0x7ff2bff3e790>},
+   'plugins':
+         {<PythonPlugins.PI_Aircraft.PythonInterface object at 0x7ff2ca63ce50>: ('XPPython Aircraft Plugin driver',
+                                                                                 'xppython3.aircraft_plugin',
+                                                                                 'XPPython Plugin which enables use of aircraft plugins',
+                                                                                 'PythonPlugins.PI_Aircraft'),
+          <PythonPlugins.PI_MiniPython.PythonInterface object at 0x7ff2ca700a90>: ('Mini Python Interpreter',
+                                                                                   'xppython3.minipython',
+                                                                                   'For debugging / testing, the provides a mini python interpreter',
+                                                                                   'PythonPlugins.PI_MiniPython'),
+          <PythonPlugins.PI_SeeAndAvoid.PythonInterface object at 0x7ff2bff3ad30>: ('See and Avoid',
+                                                                                     'com.avnwx.SeeAndAvoid.p3',
+                                                                                     'See and Avoid traffic generator',
+                                                                                     'PythonPlugins.PI_SeeAndAvoid'),
+           <XPPython3.I_PI_Updater.PythonInterface object at 0x7ff312547640>: ('XPPython3 Updater',
+                                                                               'com.avnwx.xppython3.updater.3.8',
+                                                                               'Automatic updater for XPPython3 plugin',
+                                                                               'XPPython3.I_PI_Updater')},
+   'widgetCallbacks':
+      {<capsule object "XPLMWidgetID" at 0x7ff2ca63cc60>: [<bound method PythonInterface.widgetMsgs of <PythonPlugins.PI_MiniPython.PythonInterface object at 0x7ff2ca700a90>>],
+       <capsule object "XPLMWidgetID" at 0x7ff2ca63cf90>: [<bound method PythonInterface.textEdit of <PythonPlugins.PI_MiniPython.PythonInterface object at 0x7ff2ca700a90>>],
+       <capsule object "XPLMWidgetID" at 0x7ff2caa22750>: [<bound method XPListBox.listBoxProc of <XPListBox.XPListBox object at 0x7ff2caa22730>>]},
+   'widgetProperties':
+      {(<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002900): 0,
+       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002906): {'Items': [''],
+                                                                      'Lefts': [0],
+                                                                     'Rights': [570]},
+       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002907): 24,
+       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002908): False,
+       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002909): 0,
+       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002910): 1,
+       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002911): 1,
+       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002912): 24,
+       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002913): 0},
+   'windows': {}}
+
+
+.. _modules:
+
+modules
+-------
+
+ All loaded plugins, by module
+
+ :key:
+
+    Tuple (Name, Signature, Description, Module) for the plugin.
+
+    The Name, Signature, Description are as provided by the Python Plugin in
+    the return from ``XPluginStart()``. The Module is package + module as loaded by
+    python.
+
+ :value:
+
+    PythonInterface object (e.g., "self" for each plugins)
+
+.. _plugins:
+
+plugins
+-------
+
+ Opposite of :ref:`modules`
+
+.. _commandCallbacks:
+
+commandCallbacks
+----------------
+
+  :key:
+
+     integer index  
+
+  :value:
+
+     Tuple, ("<PluginFile.py>", <XPLMCommandRef capsule>, <command handler python method>, inBefore=0/1, <refCon object>)  
+
+  Rather than providing X-Plane your command handler directly, we provide X-Plane information to call
+  XPPython3, and then WE form the python call to your command handler. To do this
+  we store information about your callback in `commandCallback` and `commandRefcons`, and substitute
+  and internal callback function and a serial integer as the refCon X-Plane will see.
+
+  So your python :code:`XPLMRegisterCommandHandler(inCommand, inHandler, inBefore, inRefcon)`
+  becomes C-code similar to::
 
       ++idx
       commandCallback[<idx>] = (<plugin>, inCommand, inHandler, inBefore, inRefcon)
       commandRefcons[<idx>] =  inCommand
       XPLMRegisterCommandHandler(inCommand, internalCommandCallback, inBefore, <idx>)
 
-    On command execution, X-Plane calls our callback:  
+  On command execution, X-Plane calls our callback:  
       :code:`internalCommandCallback(inCommand, inPhase, <idx>)`
-    We lookup <idx> in commandCallbacks and call your:  
+  We lookup <idx> in commandCallbacks and call your:  
       :code:`inHandler(inCommand, inPhase, inRefcon)`
 
-    On XPLMUnregisterCommandHandler(inCommand, inHandler, inBefore, inRefcon)
-    We need to convert back to what we registered as the command handler, so we need
-    to get the <idx>, which is from commandRefcons[inCommand]  
+  On XPLMUnregisterCommandHandler(inCommand, inHandler, inBefore, inRefcon)
+  We need to convert back to what we registered as the command handler, so we need
+  to get the <idx>, which is from commandRefcons[inCommand]  
 
-       :code:`XPLMUnregisterCommandHandler(inCommand, internalCommandCallback, inBefore, <idx>)`
+      :code:`XPLMUnregisterCommandHandler(inCommand, internalCommandCallback, inBefore, <idx>)`
 
-* commandRefcons
+.. _commandRefcons:
 
-  Key: inCommand  
+commandRefcons
+--------------
 
-  Value: <index> into commandCallbacks  
+ :key:
 
-  Purpose: Used with commandCallbacks (see above)
+    inCommand  
 
-* menus
+ :value:
 
-  Key: integer index  
+     <index> into commandCallbacks  
 
-  Value: tuple, (<plugin>, Display String, <XPLMMenuIDRef>parent, menuItemNumber, <menu handler python method>, <refCon>)  
+ Purpose: Used with :ref:`commandCallbacks` (see above)
 
-  Purpose:  
+.. _menus:
 
-    Similar to commandCallbacks (described above), XPPython interecepts calls to menus.
+menus
+-----
 
-* menuRefs
+ :key:
 
-  Key: <XPLMMenuIDRef> 
+    integer index  
 
-  Value: integer index into menus[] dict
+ :value:
 
-* fl (flightloop)
+    tuple, (<plugin>, Display String, <XPLMMenuIDRef>parent, menuItemNumber, <menu handler python method>, <refCon>)  
 
-  Key: integer index
+ Similar to :ref:`commandCallbacks` (described above), XPPython intercepts calls to menus.
 
-  Value: tuple, (<plugin>, <callback python method> <interval>, <refcon>)
+.. _menuRefs:
 
-  Purpose:
+menuRefs
+--------
 
-    Similar to commandCallbacks (described above), XPPython intercepts flightLoopCallbacks)
+ :key:
 
-* flRev
+    <XPLMMenuIDRef> 
 
-  key: tuple: (<plugin>, <callback>, <refconAddr>)
+ :value:
 
-  Value: integer index into fl[] dict
+    integer index into menus[] dict
+
+.. _fl:
+
+fl
+--
+
+ :key:
+
+    integer index
+
+ :value:
+
+     tuple, (<plugin>, <callback python method> <interval>, <refcon>)
+
+ Similar to :ref:`commandCallbacks` (described above), XPPython intercepts flightLoopCallbacks
+
+.. _flRev:
+
+flRev
+-----
+
+  :key:
+
+     tuple: (<plugin>, <callback>, <refconAddr>)
+
+  :value:
+
+     integer index into fl[] dict
 

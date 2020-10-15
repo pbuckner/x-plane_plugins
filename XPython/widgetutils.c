@@ -128,6 +128,7 @@ static PyObject *XPUSelectIfNeededFun(PyObject *self, PyObject *args)
   case xpMsg_MouseDown:
   case xpMsg_MouseDrag:
   case xpMsg_MouseUp:
+  case xpMsg_MouseWheel:
   case xpMsg_CursorAdjust:
     if (PyTuple_Check(param1)) {
       mouseState.x = PyLong_AsLong(PyTuple_GetItem(param1, 0));

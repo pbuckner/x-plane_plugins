@@ -133,7 +133,7 @@ Resources/plugins/xppython36.zip : win/XPPython36.xpl lin/XPPython36.xpl mac/XPP
 	cp mac/XPPython36.xpl Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
 	cp lin/XPPython36.xpl Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
 	cd Resources/plugins; $(ZIP) xppython36.zip -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md  XPPython3/xpyce/\*.py
-	rm -r Resources/plugins/*_x64
+	rm -r Resources/plugsin/XPPython3/*_x64
 
 Resources/plugins/xppython37.zip : win/XPPython37.xpl lin/XPPython37.xpl mac/XPPython37.xpl $(StandardPythonUtils)
 	rm -f $@
@@ -145,7 +145,7 @@ Resources/plugins/xppython37.zip : win/XPPython37.xpl lin/XPPython37.xpl mac/XPP
 	cp mac/XPPython37.xpl Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
 	cp lin/XPPython37.xpl Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
 	cd Resources/plugins; $(ZIP) xppython37.zip -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md  XPPython3/xpyce/\*.py
-	rm -r Resources/plugins/*_x64
+	rm -r Resources/plugsin/XPPython3/*_x64
 
 Resources/plugins/xppython38.zip : win/XPPython38.xpl lin/XPPython38.xpl mac/XPPython38.xpl $(StandardPythonUtils)
 	rm -f $@
@@ -157,7 +157,7 @@ Resources/plugins/xppython38.zip : win/XPPython38.xpl lin/XPPython38.xpl mac/XPP
 	cp mac/XPPython38.xpl Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
 	cp lin/XPPython38.xpl Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
 	cd Resources/plugins; $(ZIP) xppython38.zip -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md XPPython3/xpyce/\*.py
-	rm -r Resources/plugins/*_x64
+	rm -r Resources/plugsin/XPPython3/*_x64
 
 Resources/plugins/xppython39.zip : win/XPPython39.xpl lin/XPPython39.xpl mac/XPPython39.xpl $(StandardPythonUtils)
 	rm -f $@
@@ -169,7 +169,7 @@ Resources/plugins/xppython39.zip : win/XPPython39.xpl lin/XPPython39.xpl mac/XPP
 	cp mac/XPPython39.xpl Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
 	cp lin/XPPython39.xpl Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
 	cd Resources/plugins; $(ZIP) xppython39.zip -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md XPPython3/xpyce/\*.py
-	rm -r Resources/plugins/*_x64
+	rm -r Resources/plugsin/XPPython3/*_x64
 
 
 install_beta :  Resources/plugins/xppython36.zip Resources/plugins/xppython37.zip Resources/plugins/xppython38.zip Resources/plugins/xppython39.zip

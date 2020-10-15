@@ -42,7 +42,8 @@ This is all required:
 
    * The filename doesn't have to match the name of the plugin, we don't care. (Rename ``PI_HelloWorld.py`` to ``PI_avDD3.py`` and
      it works precisely the same.)
-   * The filename (as with all python) because the module name. That's different (can be different...) from the Plugin Name.
+   * The filename (as with all python) becomes the module name. That's different (can be different...) from the Plugin Name (the
+     string you return via ``XPluginStart()``.
 
 #. You must have a ``class PythonInterface``.
 

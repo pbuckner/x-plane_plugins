@@ -19,16 +19,19 @@ ifeq ($(TARGET), Windows)
   PYDEV36=/c/Program\ Files/Python36
   PYDEV37=/c/Program\ Files/Python37
   PYDEV38=/c/Program\ Files/Python38
+  PYDEV39=/c/Program\ Files/Python39
   PY_CFLAGS = -Wno-unused-result -Wsign-compare -Wunreachable-code -fno-common -DNDEBUG -fwrapv -O3
   PY_LDFLAGS = 
   CFLAGS+= ${PY_CFLAGS} ${XPLM_CPPFLAGS} -DIBM=1 -DAPL=0 -DLIN=0 -I/c/msys64/mingw64/include -I/usr/include
   CFLAGS36=-I${PYDEV36}/include $(CFLAGS) -DPYTHONVERSION=\"3.6\"
   CFLAGS37=-I${PYDEV37}/include $(CFLAGS) -DPYTHONVERSION=\"3.7\"
   CFLAGS38=-I${PYDEV38}/include $(CFLAGS) -DPYTHONVERSION=\"3.8\"
+  CFLAGS39=-I${PYDEV39}/include $(CFLAGS) -DPYTHONVERSION=\"3.9\"
   LDFLAGS+= -shared -static-libgcc -static-libstdc++ -static -lpthread  ${PY_LDFLAGS} -L/c/msys64/mingw64/lib -ldl -lregex -ltre -lintl -liconv $(XP_SDK)/Libraries/Win/XPLM_64.lib $(XP_SDK)/Libraries/Win/XPWidgets_64.lib
   LDFLAGS36=$(LDFLAGS) -L. -lpython36.dll
   LDFLAGS37=$(LDFLAGS) -L. -lpython37.dll
   LDFLAGS38=$(LDFLAGS) -L. -lpython38.dll
+  LDFLAGS39=$(LDFLAGS) -L. -lpython39.dll
   PLUGIN_DIR=win_x64
   LD=g++
 endif
@@ -39,11 +42,13 @@ ifeq ($(TARGET), Linux)
   CFLAGS36= $(CFLAGS) $(shell python3.6-config --cflags) -DPYTHONVERSION=\"3.6\"
   CFLAGS37= $(CFLAGS) $(shell python3.7-config --cflags) -DPYTHONVERSION=\"3.7\"
   CFLAGS38= $(CFLAGS) $(shell python3.8-config --cflags) -DPYTHONVERSION=\"3.8\"
+  CFLAGS39= $(CFLAGS) $(shell python3.9-config --cflags) -DPYTHONVERSION=\"3.9\"
   LDFLAGS +=  -shared -fPIC -fpic -ldl -g -fvisibility=hidden -Wl,--export-dynamic
   # For python3.6, python3.7, --ldflags includes the python library, for 3.8 it does not (why?)
   LDFLAGS36 = $(LDFLAGS) $(shell python3.6-config --ldflags)
   LDFLAGS37 = $(LDFLAGS) $(shell python3.7-config --ldflags)
   LDFLAGS38 = $(LDFLAGS) $(shell python3.8-config --ldflags) -lpython3.8
+  LDFLAGS39 = $(LDFLAGS) $(shell python3.9-config --ldflags) -lpython3.9
   PLUGIN_DIR=lin_x64
   LD=cc
 endif
@@ -59,10 +64,12 @@ ifeq ($(TARGET), Darwin)
   CFLAGS36=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.6/bin/python3-config --cflags) -DPYTHONVERSION=\"3.6\"
   CFLAGS37=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.7/bin/python3-config --cflags) -DPYTHONVERSION=\"3.7\"
   CFLAGS38=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.8/bin/python3-config --cflags) -DPYTHONVERSION=\"3.8\"
+  CFLAGS39=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.9/bin/python3-config --cflags) -DPYTHONVERSION=\"3.9\"
   LDFLAGS += -shared -fPIC -fpic -ldl -g -fvisibility=hidden -undefined dynamic_lookup
   LDFLAGS36 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.6/bin/python3-config --ldflags)
   LDFLAGS37 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.7/bin/python3-config --ldflags)
   LDFLAGS38 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.8/bin/python3-config --ldflags) -lpython3.8
+  LDFLAGS39 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.9/bin/python3-config --ldflags) -lpython3.9
   PLUGIN_DIR=mac_x64
   LD=cc
 endif
@@ -98,6 +105,9 @@ PLUGIN_OBJ = pluginXXX.o defsXXX.o displayXXX.o utilsXXX.o graphicsXXX.o data_ac
 %38.o	: %.c
 	$(CC) -c $(CFLAGS38) $< -o $@
 
+%39.o	: %.c
+	$(CC) -c $(CFLAGS39) $< -o $@
+
 XPPython36.xpl: $(subst XXX,36,$(PLUGIN_OBJ))
 	$(LD) $^ $(LDFLAGS36) -o $@ 
 
@@ -106,6 +116,9 @@ XPPython37.xpl: $(subst XXX,37,$(PLUGIN_OBJ))
 
 XPPython38.xpl: $(subst XXX,38,$(PLUGIN_OBJ))
 	$(LD) $^ $(LDFLAGS38) -o $@ 
+
+XPPython39.xpl: $(subst XXX,39,$(PLUGIN_OBJ))
+	$(LD) $^ $(LDFLAGS39) -o $@ 
 
 
 StandardPythonUtils = Resources/plugins/XPPython3/xp.py Resources/plugins/XPPython3/I_PI_Updater.py Resources/plugins/XPPython3/scriptupdate.py Resources/plugins/XPPython3/scriptconfig.py
@@ -143,17 +156,29 @@ Resources/plugins/xppython38.zip : win/XPPython38.xpl lin/XPPython38.xpl mac/XPP
 	cp lin/XPPython38.xpl Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
 	cd Resources/plugins; $(ZIP) xppython38.zip -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md XPPython3/xpyce/\*.py
 
+Resources/plugins/xppython39.zip : win/XPPython39.xpl lin/XPPython39.xpl mac/XPPython39.xpl $(StandardPythonUtils)
+	rm -f $@
+	rm -f Resources/plugins/XPPython3/*/*.xpl
+	mkdir -p Resources/plugins/XPPython3/win_x64
+	mkdir -p Resources/plugins/XPPython3/lin_x64
+	mkdir -p Resources/plugins/XPPython3/mac_x64
+	cp win/XPPython39.xpl Resources/plugins/XPPython3/win_x64/XPPython3.xpl
+	cp mac/XPPython39.xpl Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
+	cp lin/XPPython39.xpl Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
+	cd Resources/plugins; $(ZIP) xppython39.zip -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md XPPython3/xpyce/\*.py
 
-install_beta :  Resources/plugins/xppython36.zip Resources/plugins/xppython37.zip Resources/plugins/xppython38.zip
+
+install_beta :  Resources/plugins/xppython36.zip Resources/plugins/xppython37.zip Resources/plugins/xppython38.zip Resources/plugins/xppython39.zip
 	cp Resources/plugins/xppython36.zip Resources/plugins/xppython36b.zip
 	cp Resources/plugins/xppython37.zip Resources/plugins/xppython37b.zip
 	cp Resources/plugins/xppython38.zip Resources/plugins/xppython38b.zip
+	cp Resources/plugins/xppython39.zip Resources/plugins/xppython39b.zip
 	scp Resources/plugins/xppython3?b.zip pbuck@avnwx.com:/var/www/production/data/x-plane
-	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; ./updatemd5 xppython36b.zip; ./updatemd5 xppython37b.zip; ./updatemd5 xppython38b.zip'
+	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; ./updatemd5 xppython36b.zip; ./updatemd5 xppython37b.zip; ./updatemd5 xppython38b.zip; ./updatemd5 xppython39b.zip'
 
-install_remote :  Resources/plugins/xppython36.zip Resources/plugins/xppython37.zip Resources/plugins/xppython38.zip
+install_remote :  Resources/plugins/xppython36.zip Resources/plugins/xppython37.zip Resources/plugins/xppython38.zip Resources/plugins/xppython39.zip
 	scp Resources/plugins/xppython3?.zip pbuck@avnwx.com:/var/www/production/data/x-plane
-	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; ./updatemd5 xppython36.zip; ./updatemd5 xppython37.zip; ./updatemd5 xppython38.zip'
+	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; ./updatemd5 xppython36.zip; ./updatemd5 xppython37.zip; ./updatemd5 xppython38.zip; ./updatemd5 xppython39.zip'
 
 install_sdk : sdk
 	$(ZIP) -R examples examples/\*.py

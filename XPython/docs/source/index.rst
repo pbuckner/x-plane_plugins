@@ -29,7 +29,7 @@ Key features
 ------------
 
 * **X-Plane 11.50** *minimum* There is no attempt to make this work on older versions of X-Plane. This plugin
-  _cannot_ co-exist with the older plugin, so you if your favorite plugin still uses Python2, ask the plugin's maintainer
+  *cannot* co-exist with the older "PythonInterface" plugin, so you if your favorite plugin still uses Python2, ask the plugin's maintainer
   to port it to Python3. (Python2 is end-of-life.)
 * **64-bit only**: X-Plane is now 64-bit only.
 * **X-Plane SDK 303** *minimum*: This is base SDK version for X-Plane 11.50. Vulkan/Metal and OpenGL are supported.

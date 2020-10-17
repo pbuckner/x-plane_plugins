@@ -47,7 +47,8 @@ class Updater(scriptconfig.Config):
                         platform.system() == 'Darwin']):
                     sys_log("!!! Installation Incomplete: Run /Applications/Python<version>/Install Certificates, and restart X-Plane.")
                     return
-                raise
+                log("Internet connection error, cannot check version. Will check next time.")
+                return
             except Exception as e:
                 log("Failed with urllib: {}".format(e))
                 return

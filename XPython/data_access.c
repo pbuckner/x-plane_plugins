@@ -18,6 +18,26 @@ static intptr_t sharedCntr;
 
 static const char dataRefName[] = "datarefRef";
 
+/* accessorDict args */
+#define PLUGINSELF 0
+#define DATANAME 1
+#define DATATYPE 2
+#define ISWRITABLE 3
+#define READINT 4
+#define WRITEINT 5
+#define READFLOAT 6
+#define WRITEFLOAT 7
+#define READDOUBLE 8
+#define WRITEDOUBLE 9
+#define READINTARRAY 10
+#define WRITEINTARRAY 11
+#define READFLOATARRAY 12
+#define WRITEFLOATARRAY 13
+#define READDATA 14
+#define WRITEDATA 15
+#define READREFCON 16
+#define WRITEREFCON 17
+
 static PyObject *XPLMFindDataRefFun(PyObject *self, PyObject *args)
 {
   (void) self;
@@ -374,22 +394,27 @@ static int getDatai(void *inRefcon)
   PyObject *pID = PyLong_FromVoidPtr(inRefcon);
   PyObject *pCbks = PyDict_GetItem(accessorDict, pID);
   if(pCbks == NULL){
-    printf("Unknown dataAccessor refCon passed to getDatai (%p).\n", inRefcon);
+    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to getDatai (%p).\n", inRefcon);
     return -1;
   }
-  PyObject *oFun = PySequence_GetItem(pCbks, 4);
-  PyObject *oArg = PySequence_GetItem(pCbks, 16);
+  PyObject *oFun = PySequence_GetItem(pCbks, READINT);
+  PyObject *oArg = PySequence_GetItem(pCbks, READREFCON);
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg, NULL);
-  PyObject *err = PyErr_Occurred();
-  if(err){
+  if(PyErr_Occurred()) {
+    fprintf(pythonLogFile, "Error in call to plugin's getDatai callback\n");
     PyErr_Print();
   }
   Py_DECREF(oFun);
   Py_DECREF(oArg);
   Py_DECREF(pID);
+
+  if (oRes == Py_None || oRes == 0) {
+    return 0;
+  }
+
   int res = PyLong_AsLong(oRes);
-  err = PyErr_Occurred();
-  if(err){
+  if(PyErr_Occurred()) {
+    fprintf(pythonLogFile, "getDatai callback failed to return a int / long\n");
     PyErr_Print();
   }
   Py_DECREF(oRes);
@@ -401,22 +426,22 @@ static void setDatai(void *inRefcon, int inValue)
   PyObject *pID = PyLong_FromVoidPtr(inRefcon);
   PyObject *pCbks = PyDict_GetItem(accessorDict, pID);
   if(pCbks == NULL){
-    printf("Unknown dataAccessor refCon passed to setDatai (%p).\n", inRefcon);
+    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to setDatai (%p).\n", inRefcon);
     return;
   }
-  PyObject *oFun = PySequence_GetItem(pCbks, 5);
-  PyObject *oArg1 = PySequence_GetItem(pCbks, 17);
+  PyObject *oFun = PySequence_GetItem(pCbks, WRITEINT);
+  PyObject *oArg1 = PySequence_GetItem(pCbks, WRITEREFCON);
   PyObject *oArg2 = PyLong_FromLong(inValue);
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, oArg2, NULL);
-  PyObject *err = PyErr_Occurred();
-  if(err){
+  if(PyErr_Occurred()){
+    fprintf(pythonLogFile, "Error in plugin's setDatai callback\n");
     PyErr_Print();
   }
   Py_DECREF(oFun);
   Py_DECREF(oArg1);
   Py_DECREF(oArg2);
   Py_DECREF(pID);
-  Py_DECREF(oRes);
+  Py_XDECREF(oRes);
   return;
 }
 
@@ -425,23 +450,27 @@ static float getDataf(void *inRefcon)
   PyObject *pID = PyLong_FromVoidPtr(inRefcon);
   PyObject *pCbks = PyDict_GetItem(accessorDict, pID);
   if(pCbks == NULL){
-    printf("Unknown dataAccessor refCon passed to getDataf (%p).\n", inRefcon);
+    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to getDataf (%p).\n", inRefcon);
     return -1;
   }
-  PyObject *oFun = PySequence_GetItem(pCbks, 6);
-  PyObject *oArg1 = PySequence_GetItem(pCbks, 16);
+  PyObject *oFun = PySequence_GetItem(pCbks, READFLOAT);
+  PyObject *oArg1 = PySequence_GetItem(pCbks, READREFCON);
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, NULL);
-  PyObject *err = PyErr_Occurred();
-  if(err){
+  if(PyErr_Occurred()) {
+    fprintf(pythonLogFile, "Error calling plugin's getDataf callback\n");
     PyErr_Print();
   }
   Py_DECREF(oFun);
   Py_DECREF(oArg1);
   Py_DECREF(pID);
 
+  if (oRes == Py_None || oRes == 0) {
+    return 0.0;
+  }
+
   float res = PyFloat_AsDouble(oRes);
-  err = PyErr_Occurred();
-  if(err){
+  if(PyErr_Occurred()) {
+    fprintf(pythonLogFile, "Error getDataf did not return a float\n");
     PyErr_Print();
   }
   Py_DECREF(oRes);
@@ -453,22 +482,22 @@ static void setDataf(void *inRefcon, float inValue)
   PyObject *pID = PyLong_FromVoidPtr(inRefcon);
   PyObject *pCbks = PyDict_GetItem(accessorDict, pID);
   if(pCbks == NULL){
-    printf("Unknown dataAccessor refCon passed to setDataf (%p).\n", inRefcon);
+    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to setDataf (%p).\n", inRefcon);
     return;
   }
-  PyObject *oFun = PySequence_GetItem(pCbks, 7);
-  PyObject *oArg1 = PySequence_GetItem(pCbks, 17);
+  PyObject *oFun = PySequence_GetItem(pCbks, WRITEFLOAT);
+  PyObject *oArg1 = PySequence_GetItem(pCbks, WRITEREFCON);
   PyObject *oArg2 = PyFloat_FromDouble((double)inValue);
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, oArg2, NULL);
-  PyObject *err = PyErr_Occurred();
-  if(err){
+  if(PyErr_Occurred()){
+    fprintf(pythonLogFile, "Error in plugin's setDataf callback\n");
     PyErr_Print();
   }
   Py_DECREF(oFun);
   Py_DECREF(oArg1);
   Py_DECREF(oArg2);
   Py_DECREF(pID);
-  Py_DECREF(oRes);
+  Py_XDECREF(oRes);
   return;
 }
 
@@ -477,22 +506,27 @@ static double getDatad(void *inRefcon)
   PyObject *pID = PyLong_FromVoidPtr(inRefcon);
   PyObject *pCbks = PyDict_GetItem(accessorDict, pID);
   if(pCbks == NULL){
-    printf("Unknown dataAccessor refCon passed to getDatad (%p).\n", inRefcon);
+    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to getDatad (%p).\n", inRefcon);
     return -1;
   }
-  PyObject *oFun = PySequence_GetItem(pCbks, 8);
-  PyObject *oArg = PySequence_GetItem(pCbks, 16);
+  PyObject *oFun = PySequence_GetItem(pCbks, READDOUBLE);
+  PyObject *oArg = PySequence_GetItem(pCbks, READREFCON);
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg, NULL);
-  PyObject *err = PyErr_Occurred();
-  if(err){
+  if(PyErr_Occurred()) {
+    fprintf(pythonLogFile, "Error in call to plugin's getDatad callback\n");
     PyErr_Print();
   }
   Py_DECREF(oFun);
   Py_DECREF(oArg);
   Py_DECREF(pID);
+
+  if (oRes == Py_None || oRes == 0) {
+    return 0.0;
+  }
+
   double res = PyFloat_AsDouble(oRes);
-  err = PyErr_Occurred();
-  if(err){
+  if(PyErr_Occurred()){
+    fprintf(pythonLogFile, "getDatad callback failed to return a float\n");
     PyErr_Print();
   }
   Py_DECREF(oRes);
@@ -504,22 +538,22 @@ static void setDatad(void *inRefcon, double inValue)
   PyObject *pID = PyLong_FromVoidPtr(inRefcon);
   PyObject *pCbks = PyDict_GetItem(accessorDict, pID);
   if(pCbks == NULL){
-    printf("Unknown dataAccessor refCon passed to setDatad (%p).\n", inRefcon);
+    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to setDatad (%p).\n", inRefcon);
     return;
   }
-  PyObject *oFun = PySequence_GetItem(pCbks, 9);
-  PyObject *oArg1 = PySequence_GetItem(pCbks, 17);
+  PyObject *oFun = PySequence_GetItem(pCbks, WRITEDOUBLE);
+  PyObject *oArg1 = PySequence_GetItem(pCbks, WRITEREFCON);
   PyObject *oArg2 = PyFloat_FromDouble(inValue);
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, oArg2, NULL);
-  PyObject *err = PyErr_Occurred();
-  if(err){
+  if(PyErr_Occurred()){
+    fprintf(pythonLogFile, "Error in plugin's setDatad callback\n");
     PyErr_Print();
   }
   Py_DECREF(oFun);
   Py_DECREF(oArg1);
   Py_DECREF(oArg2);
   Py_DECREF(pID);
-  Py_DECREF(oRes);
+  Py_XDECREF(oRes);
   return;
 }
 
@@ -528,45 +562,55 @@ static int getDatavi(void *inRefcon, int *outValues, int inOffset, int inMax)
   PyObject *pID = PyLong_FromVoidPtr(inRefcon);
   PyObject *pCbks = PyDict_GetItem(accessorDict, pID);
   if(pCbks == NULL){
-    printf("Unknown dataAccessor refCon passed to getDatavi (%p).\n", inRefcon);
+    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to getDatavi (%p).\n", inRefcon);
     return -1;
   }
+  PyObject *oFun = PySequence_GetItem(pCbks, READINTARRAY);
+  PyObject *oArg1 = PySequence_GetItem(pCbks, READREFCON);
+  PyObject *oArg2 = PyLong_FromLong(inOffset);
+  PyObject *oArg3 = PyLong_FromLong(inMax);
   PyObject *outValuesObj;
   if(outValues != NULL){
-    outValuesObj = PyList_New(inMax);
+    outValuesObj = PyList_New(0);
   }else{
     outValuesObj = Py_None;
     Py_INCREF(outValuesObj);
   }
 
-  PyObject *oFun = PySequence_GetItem(pCbks, 10);
-  PyObject *oArg1 = PySequence_GetItem(pCbks, 16);
-  PyObject *oArg2 = PyLong_FromLong(inOffset);
-  PyObject *oArg3 = PyLong_FromLong(inMax);
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, outValuesObj, oArg2, oArg3, NULL);
-  PyObject *err = PyErr_Occurred();
-  if(err){
+  if(PyErr_Occurred()){
+    fprintf(pythonLogFile, "Error in plugin's getdatavi callback\n");
     PyErr_Print();
   }
-  Py_DECREF(pID);
   Py_DECREF(oFun);
   Py_DECREF(oArg1);
   Py_DECREF(oArg2);
   Py_DECREF(oArg3);
+  Py_DECREF(pID);
+
+  if (oRes == Py_None || oRes == 0) {
+    return 0;
+  }
+
   int res = PyLong_AsLong(oRes);
-  err = PyErr_Occurred();
-  if(err){
+  if(PyErr_Occurred()) {
+    fprintf(pythonLogFile, "Error: getdatavi did not return length of data\n");
     PyErr_Print();
     res = 0;
-  }else{
-    if(outValues){
+  } else {
+    if(outValuesObj != Py_None){
       for(int i = 0; i < res; ++i){
-        outValues[i] = PyLong_AsLong(PyList_GetItem(outValuesObj, i));
+        PyObject *item = PyList_GetItem(outValuesObj, i); /* GetItem borrows */
+        if (item == 0 || item == NULL || item == Py_None) {
+          outValues[i] = 0;
+        } else {
+          outValues[i] = PyLong_AsLong(item);
+        }
       }
     }
   }
   Py_DECREF(outValuesObj);
-  Py_XDECREF(oRes);
+  Py_DECREF(oRes);
   return res;
 }
 
@@ -575,7 +619,7 @@ static void setDatavi(void *inRefcon, int *inValues, int inOffset, int inCount)
   PyObject *pID = PyLong_FromVoidPtr(inRefcon);
   PyObject *pCbks = PyDict_GetItem(accessorDict, pID);
   if(pCbks == NULL){
-    printf("Unknown dataAccessor refCon passed to setDatavi (%p).\n", inRefcon);
+    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to setDatavi (%p).\n", inRefcon);
     return;
   }
   PyObject *inValuesObj = PyList_New(0);
@@ -584,22 +628,35 @@ static void setDatavi(void *inRefcon, int *inValues, int inOffset, int inCount)
     PyList_Append(inValuesObj, tmp);
     Py_DECREF(tmp);
   }
+  if(PyErr_Occurred()){
+    fprintf(pythonLogFile, "setDatavi error getting input longs\n");
+    PyErr_Print();
+    return;
+  }
 
-  PyObject *oFun = PySequence_GetItem(pCbks, 11);
-  PyObject *oArg1 = PySequence_GetItem(pCbks, 17);
+  PyObject *oFun = PySequence_GetItem(pCbks, WRITEINTARRAY);
+  PyObject *oArg1 = PySequence_GetItem(pCbks, WRITEREFCON);
   PyObject *oArg2 = PyLong_FromLong(inOffset);
   PyObject *oArg3 = PyLong_FromLong(inCount);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, inValuesObj, oArg2, oArg3, NULL);
-  PyObject *err = PyErr_Occurred();
-  if(err){
+  if(PyErr_Occurred()){
+    fprintf(pythonLogFile, "setDatavi error getting inputs\n");
     PyErr_Print();
+    return;
   }
+  PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, inValuesObj, oArg2, oArg3, NULL);
   Py_DECREF(oFun);
   Py_DECREF(oArg1);
   Py_DECREF(oArg2);
   Py_DECREF(oArg3);
   Py_DECREF(pID);
   Py_DECREF(inValuesObj);
+
+  if(PyErr_Occurred()){
+    fprintf(pythonLogFile, "Error in plugin's setDatavi callback\n");
+    PyErr_Print();
+    return;
+  }
+
   Py_DECREF(oRes);
   return;
 }
@@ -609,45 +666,55 @@ static int getDatavf(void *inRefcon, float *outValues, int inOffset, int inMax)
   PyObject *pID = PyLong_FromVoidPtr(inRefcon);
   PyObject *pCbks = PyDict_GetItem(accessorDict, pID);
   if(pCbks == NULL){
-    printf("Unknown dataAccessor refCon passed to getDatavf (%p).\n", inRefcon);
+    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to getDatavf (%p).\n", inRefcon);
     return -1;
   }
+  PyObject *oFun = PySequence_GetItem(pCbks, READFLOATARRAY);
+  PyObject *oArg1 = PySequence_GetItem(pCbks, READREFCON);
+  PyObject *oArg2 = PyLong_FromLong(inOffset);
+  PyObject *oArg3 = PyLong_FromLong(inMax);
   PyObject *outValuesObj;
   if(outValues != NULL){
-    outValuesObj = PyList_New(inMax);
+    outValuesObj = PyList_New(0);
   }else{
     outValuesObj = Py_None;
     Py_INCREF(outValuesObj);
   }
 
-  PyObject *oFun = PySequence_GetItem(pCbks, 12);
-  PyObject *oArg1 = PySequence_GetItem(pCbks, 16);
-  PyObject *oArg2 = PyLong_FromLong(inOffset);
-  PyObject *oArg3 = PyLong_FromLong(inMax);
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, outValuesObj, oArg2, oArg3, NULL);
-  PyObject *err = PyErr_Occurred();
-  if(err){
+  if(PyErr_Occurred()) {
+    fprintf(pythonLogFile, "Error in plugins' getDatavf callback\n");
     PyErr_Print();
   }
   Py_DECREF(pID);
-    Py_DECREF(oFun);
+  Py_DECREF(oFun);
   Py_DECREF(oArg1);
   Py_DECREF(oArg2);
   Py_DECREF(oArg3);
+
+  if (oRes == Py_None || oRes == 0) {
+    return 0;
+  }
+
   int res = PyLong_AsLong(oRes);
-  err = PyErr_Occurred();
-  if(err){
+  if(PyErr_Occurred()) {
+    fprintf(pythonLogFile, "getdatavf failed to return length of data\n");
     PyErr_Print();
     res = 0;
-  }else{
-    if(outValues){
+  } else {
+    if(outValuesObj != Py_None){
       for(int i = 0; i < res; ++i){
-        outValues[i] = PyFloat_AsDouble(PyList_GetItem(outValuesObj, i));
+        PyObject *item = PyList_GetItem(outValuesObj, i);  /* GetItem borrows */
+        if (item == 0 || item == NULL || item == Py_None) {
+          outValues[i] = 0.0;
+        } else {
+          outValues[i] = PyFloat_AsDouble(item);
+        }
       }
     }
   }
   Py_DECREF(outValuesObj);
-  Py_XDECREF(oRes);
+  Py_DECREF(oRes);
   return res;
 }
 
@@ -656,7 +723,7 @@ static void setDatavf(void *inRefcon, float *inValues, int inOffset, int inCount
   PyObject *pID = PyLong_FromVoidPtr(inRefcon);
   PyObject *pCbks = PyDict_GetItem(accessorDict, pID);
   if(pCbks == NULL){
-    printf("Unknown dataAccessor refCon passed to setDatavf (%p).\n", inRefcon);
+    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to setDatavf (%p).\n", inRefcon);
     return;
   }
   PyObject *inValuesObj = PyList_New(0);
@@ -665,22 +732,35 @@ static void setDatavf(void *inRefcon, float *inValues, int inOffset, int inCount
     PyList_Append(inValuesObj, tmp);
     Py_DECREF(tmp);
   }
+  if(PyErr_Occurred()){
+    fprintf(pythonLogFile, "setDatavf error getting input floats\n");
+    PyErr_Print();
+    return;
+  }
 
-  PyObject *oFun = PySequence_GetItem(pCbks, 13);
-  PyObject *oArg1 = PySequence_GetItem(pCbks, 17);
+  PyObject *oFun = PySequence_GetItem(pCbks, WRITEFLOATARRAY);
+  PyObject *oArg1 = PySequence_GetItem(pCbks, WRITEREFCON);
   PyObject *oArg2 = PyLong_FromLong(inOffset);
   PyObject *oArg3 = PyLong_FromLong(inCount);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, inValuesObj, oArg2, oArg3, NULL);
-  PyObject *err = PyErr_Occurred();
-  if(err){
+  if(PyErr_Occurred()) {
+    fprintf(pythonLogFile, "setDatavf error getting inputs\n");
     PyErr_Print();
+    return;
   }
+  PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, inValuesObj, oArg2, oArg3, NULL);
   Py_DECREF(oFun);
   Py_DECREF(oArg1);
   Py_DECREF(oArg2);
   Py_DECREF(oArg3);
   Py_DECREF(pID);
   Py_DECREF(inValuesObj);
+
+  if(PyErr_Occurred()) {
+    fprintf(pythonLogFile, "Error in plugin's setDatavf callback\n");
+    PyErr_Print();
+    return;
+  }
+
   Py_DECREF(oRes);
   return;
 }
@@ -690,24 +770,24 @@ static int getDatab(void *inRefcon, void *outValue, int inOffset, int inMax)
   PyObject *pID = PyLong_FromVoidPtr(inRefcon);
   PyObject *pCbks = PyDict_GetItem(accessorDict, pID);
   if(pCbks == NULL){
-    printf("Unknown dataAccessor refCon passed to getDatab (%p).\n", inRefcon);
+    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to getDatab (%p).\n", inRefcon);
     return -1;
   }
+
+  PyObject *oFun = PySequence_GetItem(pCbks, READDATA);
+  PyObject *oArg1 = PySequence_GetItem(pCbks, READREFCON);
+  PyObject *oArg2 = PyLong_FromLong(inOffset);
+  PyObject *oArg3 = PyLong_FromLong(inMax);
   PyObject *outValuesObj;
   if(outValue != NULL){
-    outValuesObj = PyList_New(inMax);
+    outValuesObj = PyList_New(0);
   }else{
     outValuesObj = Py_None;
     Py_INCREF(outValuesObj);
   }
-
-  PyObject *oFun = PySequence_GetItem(pCbks, 14);
-  PyObject *oArg1 = PySequence_GetItem(pCbks, 16);
-  PyObject *oArg2 = PyLong_FromLong(inOffset);
-  PyObject *oArg3 = PyLong_FromLong(inMax);
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, outValuesObj, oArg2, oArg3, NULL);
-  PyObject *err = PyErr_Occurred();
-  if(err){
+  if(PyErr_Occurred()){
+    fprintf(pythonLogFile, "Error in plugin's getDatab callback\n");
     PyErr_Print();
   }
   Py_DECREF(pID);
@@ -715,13 +795,18 @@ static int getDatab(void *inRefcon, void *outValue, int inOffset, int inMax)
   Py_DECREF(oArg1);
   Py_DECREF(oArg2);
   Py_DECREF(oArg3);
+
+  if (oRes == Py_None || oRes == 0) {
+    return 0;
+  }
+
   int res = PyLong_AsLong(oRes);
-  err = PyErr_Occurred();
-  if(err){
+  if(PyErr_Occurred()){
+    fprintf(pythonLogFile, "Error getDatab failed to return length of data\n");
     PyErr_Print();
     res = 0;
-  }else{
-    if(outValue){
+  } else {
+    if(outValuesObj != Py_None){
       uint8_t *pOutValue = (uint8_t *)outValue;
       for(int i = 0; i < res; ++i){
         pOutValue[i] = PyLong_AsLong(PyList_GetItem(outValuesObj, i));
@@ -738,7 +823,7 @@ static void setDatab(void *inRefcon, void *inValue, int inOffset, int inCount)
   PyObject *pID = PyLong_FromVoidPtr(inRefcon);
   PyObject *pCbks = PyDict_GetItem(accessorDict, pID);
   if(pCbks == NULL){
-    printf("Unknown dataAccessor refCon passed to setDatab (%p).\n", inRefcon);
+    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to setDatab (%p).\n", inRefcon);
     return;
   }
   PyObject *inValuesObj = PyList_New(0);
@@ -748,22 +833,34 @@ static void setDatab(void *inRefcon, void *inValue, int inOffset, int inCount)
     PyList_Append(inValuesObj, tmp);
     Py_DECREF(tmp);
   }
+  if(PyErr_Occurred()){
+    fprintf(pythonLogFile, "setDatab error getting input data\n");
+    PyErr_Print();
+    return;
+  }
 
-  PyObject *oFun = PySequence_GetItem(pCbks, 15);
-  PyObject *oArg1 = PySequence_GetItem(pCbks, 17);
+  PyObject *oFun = PySequence_GetItem(pCbks, WRITEDATA);
+  PyObject *oArg1 = PySequence_GetItem(pCbks, WRITEREFCON);
   PyObject *oArg2 = PyLong_FromLong(inOffset);
   PyObject *oArg3 = PyLong_FromLong(inCount);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, inValuesObj, oArg2, oArg3, NULL);
-  PyObject *err = PyErr_Occurred();
-  if(err){
+  if(PyErr_Occurred()){
+    fprintf(pythonLogFile, "setDatab error getting inputs\n");
     PyErr_Print();
+    return;
   }
+  PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, inValuesObj, oArg2, oArg3, NULL);
   Py_DECREF(oFun);
   Py_DECREF(oArg1);
   Py_DECREF(oArg2);
   Py_DECREF(oArg3);
   Py_DECREF(pID);
   Py_DECREF(inValuesObj);
+  if(PyErr_Occurred()){
+    fprintf(pythonLogFile, "Error in plugin's setDatabcallback\n");
+    PyErr_Print();
+    return;
+  }
+
   Py_DECREF(oRes);
   return;
 }
@@ -1053,12 +1150,15 @@ PyInit_XPLMDataAccess(void)
     if(!(accessorDict = PyDict_New())){
       return NULL;
     }
+    PyDict_SetItemString(xppythonDicts, "accessors", accessorDict);
     if(!(drefDict = PyDict_New())){
       return NULL;
     }
+    PyDict_SetItemString(xppythonDicts, "drefs", drefDict);
     if(!(sharedDict = PyDict_New())){
       return NULL;
     }
+    PyDict_SetItemString(xppythonDicts, "sharedDrefs", sharedDict);
 
     /* Data of a type the current XPLM doesn't do.                                 */
     PyModule_AddIntConstant(mod, "xplmType_Unknown", xplmType_Unknown);

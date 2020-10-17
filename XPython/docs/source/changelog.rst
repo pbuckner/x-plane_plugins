@@ -11,6 +11,22 @@ In progress
    * Support for Scenery plugins: place your plugins under ``Custom Scenery/<..>/plugins/PythonPlugins``
      and it will load on startup. Additional documentation to follow.
  
+3.0.5 (17-10-2020)
+------------------
+:New Features:
+   
+   * Detects the existence of python2 PythonInterface plugin and immediately exits XPPython3 with
+     a Fatal Error written to Log.txt: These two plugins cannot run simultaneously: they almost can, but
+     will fail in miserably difficult-to-debug ways. So we don't even try.
+
+:Fixes:
+
+  * Fixed problems with :py:func:`XPLMDataAccess.XPLMRegisterDataAccessor`. When accessing a data item which
+    had not yet been defined, sim would crash. Incorrect logic caused accessing data arrays
+    to return incorrect values. Now tested with `DataRefEditor plugin <http://www.xsquawkbox.net/xpsdk/mediawiki/DataRefEditor>`_.
+    Documentation has been updated to better describe use of accessors.
+    
+
 3.0.4 (15-10-2020)
 ------------------
 :Fixes:

@@ -354,7 +354,7 @@ is returned by :py:func:`XPLMFindCommand` or created by :py:func:`XPLMCreateComm
     before and after a command.)
 
 
-.. py:function:: XPLMUnregisterCommandHandler(commandRef, callback, before, refCon):
+.. py:function:: XPLMUnregisterCommandHandler(commandRef, callback, before, refCon) -> None:
 
     XPLMUnregisterCommandHandler removes a command callback registered with
     XPLMRegisterCommandHandler. Parameters much match those used with :py:func:`XPLMRegisterCommandHandler`

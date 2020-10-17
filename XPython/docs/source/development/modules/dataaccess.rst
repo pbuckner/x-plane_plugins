@@ -1,5 +1,6 @@
 XPLMDataAccess
 ==============
+.. py:module:: XPLMDataAccess
 
 To use:
 ::
@@ -54,15 +55,53 @@ X-Plane publishes well over 1000 datarefs; a complete list may be found in
 the reference section of the SDK online documentation (from the SDK home
 page, choose Documentation https://developer.x-plane.com/datarefs/).
 
-.. automodule:: XPLMDataAccess
-
 Functions
 ---------
 
-.. autofunction:: XPLMFindDataRef
-.. autofunction:: XPLMGetDataRefTypes
-.. autofunction:: XPLMCanWriteDataRef
-.. autofunction:: XPLMIsDataRefGood
+.. py:function:: XPLMFindDataRef(inDataRefName: str) -> int
+
+    Given a string that names the data ref, this routine looks up the
+    actual opaque integer XPLMDataRef that you use to read and write the data. The
+    string names for datarefs are published on the X-Plane SDK web site. (https://developer.x-plane.com/datarefs/).
+
+    This function returns handle to the dataref, or None if the data ref
+    cannot be found.
+
+    .. NOTE:: this function is relatively expensive; save the XPLMDataRef this
+     function returns for future use. Do not look up your data ref by string
+     every time you need to read or write it.
+
+.. py:function:: XPLMCanWriteDataRef(inDataRef: int) -> bool:
+
+    Given a data ref, this routine returns True if you can successfully set the
+    data, False otherwise. Some datarefs are read-only.
+
+.. py:function:: XPLMIsDataRefGood(inDataRef: int) -> bool:
+
+    .. Warning:: This function is deprecated and should not be used. Datarefs are
+     valid until plugins are reloaded or the sim quits. Plugins sharing datarefs
+     should support these semantics by not unregistering datarefs during
+     operation. (You should however unregister datarefs when your plugin is
+     unloaded/stopped, as part of general resource cleanup.)
+
+    This function returns whether a data ref is still valid. If it returns
+    False, you should refind the data ref from its original string. Calling an
+    accessor function on a bad data ref will return a default value, typically
+    0 or 0-length data.
+
+.. py:function:: XPLMGetDataRefTypes(inDataRef: int) -> int:
+
+    This routine returns the XPLMDataTypeID of the data ref for accessor use. If a data
+    ref is available in multiple data types, they will all be returned. (bitwise OR'd together).
+
+     * :py:data:`xplmType_Unknown`
+     * :py:data:`xplmType_Int`
+     * :py:data:`xplmType_Float`
+     * :py:data:`xplmType_Double`
+     * :py:data:`xplmType_IntArray`
+     * :py:data:`xplmType_FloatArray`
+     * :py:data:`xplmType_Data`
+
 
 Data Accessors
 **************
@@ -76,7 +115,7 @@ default value or not modify the passed in memory. The plugins that write
 data will not write under these circumstances or if the data ref is
 read-only.
 
-.. NOTE:: to keep the overhead of reading datarefs low, these
+.. warning:: to keep the overhead of reading datarefs low, these
  routines do not do full validation of a dataref; passing a junk value for a
  dataref can result in crashing the sim.
 
@@ -216,7 +255,8 @@ change the value when a plugin 'writes' it.
 Important: you must pick a prefix for your datarefs other than ``sim/`` -
 this prefix is reserved for X-Plane. The X-Plane SDK website contains a
 registry where authors can select a unique first word for dataref names, to
-prevent dataref collisions between plugins.
+prevent dataref collisions between plugins. (Yea... that's what Laminar says, but
+I've never found the "registry": Pick a prefix to match your company / domainname + plugin name.)
 
 Registration
 ++++++++++++
@@ -229,7 +269,7 @@ Registration
  necessary. All parameters are required input, pass None for data types you do
  not support or write accessors if you are read-only.
 
- You are returned a data ref for the new item of data created. You can use
+ You are returned a data accessor reference for the new item of data created. You can use
  this data ref to unregister your data later or read or write from it.
 
  :param str inDataName: name of data item, e.g., 'my_plugin/data1'
@@ -249,6 +289,8 @@ Registration
  :param SetDataRefb_f inWriteData_f: ^ to write data
  :param object inReadRefcon: reference constant included with read functions
  :param object inWriteRefcon: referenc constant included with write functions
+ :return: Data Accessor Reference (int). This is not the same as a dataRef (as returned by :py:func:`XPLMFindDataRef`.)
+          It should only be used with :py:func:`XPLMUnregisterDataAccessor`.
 
  Data access callbacks:
 
@@ -277,7 +319,19 @@ Registration
                                None, None,
                                0, 0)
 
-.. autofunction:: XPLMUnregisterDataAccessor
+.. py:function:: XPLMUnregisterDataAccessor(inDataRef: int) -> None:
+
+    Use this routine to unregister any data accessors you may have registered.
+    You unregister a data ref by the XPLMDataRef you get back from
+    registration. Once you unregister a data ref, your function pointer will
+    not be called anymore.
+
+    For maximum compatibility, do not unregister your data accessors until
+    final shutdown (when your XPluginStop routine is called). This allows other
+    plugins to find your data reference once and use it for their entire time
+    of operation.
+
+
 
 Callbacks
 +++++++++
@@ -328,17 +382,26 @@ Callbacks
 
  ::
 
-      def MyReadIntVCallback(self, refCon, out, offset, max):
+      def MyReadIntVCallback(self, refCon, out, offset, maximum):
           if refCon == 'array1':
                if out is None:
                    return len(self.myarray1)
-               out = self.myarray1[offset:offset + max]
-          elif refCon == 'array1':
+               out.extend(self.myarray1[offset:offset + maximum])
+               return len(out)
+          if refCon == 'array1':
                if out is None:
                    return len(self.myarray2)
-               out = self.myarray2[offset:offset + max]
-          return len(out)
-   
+               out.extend(self.myarray2[offset:offset + maximum])
+               return len(out)
+          raise ValueError("Unknown refCon: {}".format(refCon))
+
+ .. note:: the use of ``extend()`` rather than simple assigment (e.g., ``out = self.myArray[offset: offset + maximum]``).
+    The ``out`` parameter should be either a list (``[]``) or None. If it's a list, we use it
+    to return the actual values (rather than merely returning the length of the data.) Because the calling
+    function needs the value, we cannot change the python ``id()`` of the object. Simple assignment changes
+    the id, so the calling function never gets the updated value. Using ``extend()`` (or ``append()``) will
+    maintain the id of the ``out`` parameter, allowing the calling function to retrieve the values.
+    
 
 .. py:function:: XPLMSetDatavi_f(inRefCon: object, inValues: list, inOffset: int, inCount: int) -> None
                  XPLMSetDatavf_f(inRefCon: object, inValues: list, inOffset: int, inCount: int) -> None
@@ -377,6 +440,22 @@ Callbacks
  Callback you provide to read/write arbitrary data.
  The callback semantics are the same as :func:`XPLMGetDatab` and :func:`XPLMSetDatab`
  
+Interfacing with DataRefEditor
+******************************
+
+The third-party `DataRefEditor plugin <http://www.xsquawkbox.net/xpsdk/mediawiki/DataRefEditor>`_
+allows you to test your datarefs.
+
+1. Create you datarefs in your XPluginStart function. (This is the recommended practice).
+   
+2. Register them in your XPluginEnable function::
+
+     dre = xp.findPluginBySignature('xplanesdk.examples.DataRefEditor')
+     xp.sendMessageToPlugin(dre, 0x01000000, 'myplugin/dataRef1')
+     xp.sendMessageToPlugin(dre, 0x01000000, 'myplugin/dataRef2')
+
+This way your datarefs will appear in the DataRefEditor.
+     
 
 Sharing Data Between Multiple Plugins
 *************************************
@@ -464,10 +543,17 @@ Types
 .. data:: XPLMDataTypeID
    :annotation: bitfield used to identify the type of data
 
-   .. data:: xplmType_Unknown = 0
-   .. data:: xplmType_Int = 1
-   .. data:: xpmlType_Float = 2
-   .. data:: xpmlType_Double = 4         
-   .. data:: xpmlType_FloatArray = 8          
-   .. data:: xpmlType_IntArray = 16          
-   .. data:: xpmlType_Data = 32          
+   .. py:data:: xplmType_Unknown
+                :value: 0
+   .. py:data:: xplmType_Int
+             :value: 1
+   .. py:data:: xpmlType_Float
+                :value: 2
+   .. py:data:: xpmlType_Double
+                :value: 4
+   .. py:data:: xpmlType_FloatArray
+                :value: 8
+   .. py:data:: xpmlType_IntArray
+                :value: 16
+   .. py:data:: xpmlType_Data
+                :value: 32

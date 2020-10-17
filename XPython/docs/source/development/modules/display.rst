@@ -459,28 +459,28 @@ Your window’s layer can only be specified when you create the window (in the
 :ref:`XPLMCreateWindow_t` you pass to :func:`XPLMCreateWindowEx`). For this reason, layering
 only applies to windows created with new X-Plane 11 GUI features.
 
- .. data::  xplm_WindowLayerFlightOverlay
+ .. py:data::  xplm_WindowLayerFlightOverlay
    :value: 0
  
    The lowest layer, used for HUD-like displays while flying.
  
- .. data:: xplm_WindowLayerFloatingWindows
+ .. py:data:: xplm_WindowLayerFloatingWindows
    :value: 1
  
-    Windows that "float" over the sim, like the X-Plane
-    11 map does. If you are not sure which layer to
-    create your window in, choose floating
+   Windows that "float" over the sim, like the X-Plane
+   11 map does. If you are not sure which layer to
+   create your window in, choose floating
  
- .. data:: xplm_WindowLayerModel
+ .. py:data:: xplm_WindowLayerModal
     :value: 2
 
-     An interruptive modal that covers the sim with a
-     transparent black overaly to draw the user's focus to the alert.
+    An interruptive modal that covers the sim with a
+    transparent black overaly to draw the user's focus to the alert.
  
- .. data::  xplm_WindowLayerGrowlNotifications
+ .. py:data::  xplm_WindowLayerGrowlNotifications
     :value: 3
 
-     "Growl"-style notifications that are visible in a corner of the screen, even over modals.
+    "Growl"-style notifications that are visible in a corner of the screen, even over modals.
  
 .. _XPLMWindowDecoration:
 
@@ -515,7 +515,7 @@ Your window’s decoration can only be specified when you create the window
     and dragging the window.
  
  .. data::   xplm_WindowDecorationSelfDecorated
-    :value: 2
+     :value: 2
  
      X-Plane will draw no decoration
      for your window, nor will it
@@ -787,7 +787,7 @@ Window Drawing Functions
  :return: (left, top, right, bottom)
 
 
-.. py:function:: XPLMSetWindowGeometry(inWindowID: int, inLeft: int, inTop: int, inRight:int, inBottom: int):
+.. py:function:: XPLMSetWindowGeometry(inWindowID: int, inLeft: int, inTop: int, inRight:int, inBottom: int) -> None:
 
  Set window position and size.
 
@@ -1105,7 +1105,7 @@ Keystrokes that can be managed by others. These are lower-level than window keyb
    | description: str
    | plugin: int (:ref:`XPLMPluginID`)
 
-.. py:function:: XPLMSetHotKeyCombination(inHotKey: int, inVirtualKey: int, inFlags: int):
+.. py:function:: XPLMSetHotKeyCombination(inHotKey: int, inVirtualKey: int, inFlags: int) -> None:
 
    Remap a hot key's keystroke.
 

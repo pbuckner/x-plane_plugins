@@ -191,11 +191,11 @@ waypoints in the flight plan.
  This routine returns the index of the entry the FMS is flying to.
 
 
-.. py:function:: XPLMSetDisplayedFMSEntry(index):
+.. py:function:: XPLMSetDisplayedFMSEntry(index) -> None:
 
  This routine changes which entry the FMS is showing to the integer index specified.
 
-.. py:function:: XPLMSetDestinationFMSEntry(index):
+.. py:function:: XPLMSetDestinationFMSEntry(index) -> None:
 
  This routine changes which entry the FMS is flying the aircraft toward.
 

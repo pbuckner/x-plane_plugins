@@ -333,7 +333,7 @@ which they bear a striking resemblance to) in the following ways:
     has focus.
 
 
-.. py:function::  XPAddWidgetCallback(widgetID, callback):
+.. py:function::  XPAddWidgetCallback(widgetID, callback) -> None:
 
     This function adds a new widget callback (see :py:func:`XPWidgetDefs.XPWidgetFunc_t`)
     to a widget. This widget callback

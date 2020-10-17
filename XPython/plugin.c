@@ -36,7 +36,7 @@ const char *pythonPluginsPath = "./Resources/plugins/PythonPlugins";
 const char *pythonInternalPluginsPath = "./Resources/plugins/XPPython3";
 
 static const char *pythonPluginName = "XPPython3";
-const char *pythonPluginVersion = "{3.0.4} - for Python " PYTHONVERSION;
+const char *pythonPluginVersion = "{3.0.5} - for Python " PYTHONVERSION;
 const char *pythonPluginSig  = "avnwx.xppython3";
 static const char *pythonPluginDesc = "X-Plane interface for Python 3";
 static const char *pythonDisableCommand = "XPPython3/disableScripts";
@@ -564,6 +564,10 @@ static int stopPython(void)
 
 PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
 {
+  if (XPLMFindPluginBySignature("sandybarbour.projects.pythoninterface") != XPLM_NO_PLUGIN_ID) {
+    XPLMDebugString("FATAL ERROR: XPPython3 Detected python2 PythonInterface plugin. These plugins are incompatible\n");
+    return 0;
+  }
   char *log;
   log = getenv(ENV_logFileVar);
   if(log != NULL){

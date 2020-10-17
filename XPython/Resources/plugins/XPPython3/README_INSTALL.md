@@ -20,10 +20,11 @@ See https://xppython3.rtfd.io Documentation. Seriously, it's all there.
   + ubuntu 18 (python36, python37, python38), ubuntu 20 (python38)
 * XP 11.50+. Plugin is built with SDK 303 and is NOT backward compatible to 11.41 or earlier.
 
-The plugin version must match the version of python (3.6, 3.7, 3.8, 3.9) you computer is
+The plugin version must match the version of python (3.6, 3.7, 3.8, 3.9) your computer is
 running: the plugin will not load if python is not correctly installed, or if the
 version does not match. If you change python versions on you computer, you must change plugin version
-to match. Any micro-release may be used for a particular major.minor release: For example, python 3.7.0 and 3.7.3 are both "3.7"
+to match. (Delete the old XPPython3 folder and download xppython*.zip corresponding to the new verion.)
+Any micro-release may be used for a particular major.minor release: For example, python 3.7.0 and 3.7.3 are both "3.7"
 
 It's called XPPython3:
 * "xpython" already exists (it's an all python version of python)

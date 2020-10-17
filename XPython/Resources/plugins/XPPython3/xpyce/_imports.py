@@ -29,7 +29,7 @@ import sys
 from importlib._bootstrap_external import _compile_bytecode
 from importlib.machinery import (FileFinder, ModuleSpec, PathFinder,
                                  SourcelessFileLoader)
-from os.path import normcase, relpath
+from os.path import relpath
 from typing import Any, Dict, List, Optional, Tuple
 
 from ._crypto import decrypt
@@ -63,25 +63,22 @@ class XPYCEFileLoader(SourcelessFileLoader):
 
         # print("XPYCE FileLoader Fullname: {}, path from get_filename is {}".format(fullname, path))
         # It is important to normalize path case for platforms like Windows
-        key = None
+        decryption_key = None
         for prefix in PREFIXES:
-            try:
-                key = XPYCEPathFinder.KEYS[normcase(relpath(path, start=prefix))]
+            if decryption_key:
                 break
-            except KeyError:
-                # print("Tried key with prefix: {},\n  fullname: {}\n  path: {}\n  key: {}".format(prefix,
-                #                                                                                  fullname,
-                #                                                                                  path,
-                #                                                                                  normcase(relpath(path, start=prefix))))
-                pass
-
-        if not key:
-            raise KeyError("Cannot find key for module '{}'".format(fullname))
+            lookup_module = relpath(path, start=prefix).replace('/', '.').replace('\\', '.')
+            for module in XPYCEPathFinder.KEYS:
+                if module == lookup_module:
+                    decryption_key = XPYCEPathFinder.KEYS[module]
+                    break
+        if not decryption_key:
+            raise KeyError("Cannot find decryption_key for module '{}'".format(fullname))
 
         try:
-            data = decrypt(data, key)
+            data = decrypt(data, decryption_key)
         except Exception as e:
-            print("Could not decrypt module '{}' with provided key".format(fullname))
+            print("Could not decrypt module '{}' with provided decryption_key".format(fullname))
             raise e
 
         # .pyc changed from 3 32-bit words to 4 32-bit words with Python3.7

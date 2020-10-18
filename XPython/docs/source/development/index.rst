@@ -25,7 +25,6 @@ X-Plane Developer Documentation
   X-Plane's documentation is for C-language, and most of that has been translated to python and documented
   with XPPython3. However, when in doubt, check the Laminar docs.
 
-  :doc:`/changelog` lists recent changes to the SDK.
   
 XPPython3 Module Documentation
 ------------------------------
@@ -37,6 +36,8 @@ XPPython3 Module Documentation
   
   Also:
 
+  * :doc:`/changelog`. Lists recent changes to this SDK.
+
   * :doc:`quickstart`.  Bare-bones skeleton and Hello World to get you started.
 
   * :doc:`import`. Information about python packages and proper way to import.
@@ -47,6 +48,8 @@ XPPython3 Module Documentation
     type in python expressions in a running application and see the results.
 
   * :doc:`plugins`: Though most plugins are Global Plugins, you can code Aircraft and Scenery plugins.
+
+  * :doc:`xpyce`: For security / privacy reasons, you can now distribute Plugins which contain encrypted modules.
 
   .. note:: I strongly suggest the  simplified interface described by :py:mod:`xp`. You'll find it much faster and easier to write new
     code using this interace and won't wear out your XPLM keys.
@@ -110,6 +113,7 @@ Test Examples
    changesfromp2
    debugger
    plugins
+   xpyce
    portingNotes
    modules/index
    xppythondicts

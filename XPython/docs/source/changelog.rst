@@ -18,6 +18,7 @@ In progress
    * Detects the existence of python2 PythonInterface plugin and immediately exits XPPython3 with
      a Fatal Error written to Log.txt: These two plugins cannot run simultaneously: they almost can, but
      will fail in miserably difficult-to-debug ways. So we don't even try.
+   * Initial documentaion for :doc:`development/xpyce`, which enables loading of encrypted pyc modules.
 
 :Fixes:
 
@@ -68,7 +69,7 @@ In progress
    * Loading by "packages". Global plugins are now loaded as part of either XPPython3 or PythonPlugins
      package. This allows the use of relative package imports by plugins. See :doc:`development/import`.
    * Improved documentation: added :doc:`changelog`, added values for enumeration / constants, fixed minor bugs
-   * Initial support for xpyce: enabled loading of encrypted pyc modules. (Documentation to be updated)
+   * Initial support for xpyce: enabled loading of encrypted pyc modules. (Documentation :doc:`development/xpyce`)
 
 :Fixes:
 

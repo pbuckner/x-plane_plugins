@@ -440,21 +440,26 @@ Callbacks
  Callback you provide to read/write arbitrary data.
  The callback semantics are the same as :func:`XPLMGetDatab` and :func:`XPLMSetDatab`
  
-Interfacing with DataRefEditor
-******************************
+Interfacing with DataRefEditor and DataRefTool
+**********************************************
 
 The third-party `DataRefEditor plugin <http://www.xsquawkbox.net/xpsdk/mediawiki/DataRefEditor>`_
-allows you to test your datarefs.
+and `DataRefTool plugin <https://forums.x-plane.org/index.php?/forums/topic/82960-datareftool-is-an-improved-datarefeditor-open-source-better-search-change-detection/`_
+allow you to test your datarefs.
 
 1. Create you datarefs in your XPluginStart function. (This is the recommended practice).
    
-2. Register them in your XPluginEnable function::
+2. Register them in your XPluginEnable function (which signature you use depends on which plugin you're
+   trying to connect to.)::
 
-     dre = xp.findPluginBySignature('xplanesdk.examples.DataRefEditor')
-     xp.sendMessageToPlugin(dre, 0x01000000, 'myplugin/dataRef1')
-     xp.sendMessageToPlugin(dre, 0x01000000, 'myplugin/dataRef2')
+     for sig in ('com.leecbaker.datareftool', 'xplanesdk.examples.DataRefEditor'):
+         dre = xp.findPluginBySignature(signature)
+         if dre != xp.NO_PLUGN_ID:
+             xp.sendMessageToPlugin(dre, 0x01000000, 'myplugin/dataRef1')
+             xp.sendMessageToPlugin(dre, 0x01000000, 'myplugin/dataRef2')
+             break
 
-This way your datarefs will appear in the DataRefEditor.
+This way your datarefs will appear in the DataRef plugin.
      
 
 Sharing Data Between Multiple Plugins

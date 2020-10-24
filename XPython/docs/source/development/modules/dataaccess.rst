@@ -444,7 +444,7 @@ Interfacing with DataRefEditor and DataRefTool
 **********************************************
 
 The third-party `DataRefEditor plugin <http://www.xsquawkbox.net/xpsdk/mediawiki/DataRefEditor>`_
-and `DataRefTool plugin <https://forums.x-plane.org/index.php?/forums/topic/82960-datareftool-is-an-improved-datarefeditor-open-source-better-search-change-detection/`_
+and `DataRefTool plugin <https://forums.x-plane.org/index.php?/forums/topic/82960-datareftool-is-an-improved-datarefeditor-open-source-better-search-change-detection/>`_
 allow you to test your datarefs.
 
 1. Create you datarefs in your XPluginStart function. (This is the recommended practice).

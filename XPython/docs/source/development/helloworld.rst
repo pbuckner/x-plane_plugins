@@ -131,7 +131,7 @@ permitted to set to None.
    simplest is to return CursorDefault (:data:`XPLMDisplay.xplm_CursorDefault`) which says "we don't care".
 
 :HandleMouseWheel:
-   Similar to handling mouse clicks, we handle any mouse wheel movement by doing nothing, but returing ``1`` to
+   Similar to handling mouse clicks, we handle any mouse wheel movement by doing nothing, but returning ``1`` to
    tell X-Plane we've absorbed it.
 
 After these callbacks is the reference constant: this allows us to pass custom data (defined during create) to

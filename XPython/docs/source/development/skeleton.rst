@@ -72,7 +72,7 @@ This is all required:
 
 #. Your ``XPluginEnable`` should return ``1``.
 
-   * Returing ``1`` indicates you were successfully enabled. If you don't return ``1``, we'll assume the worse and
+   * Returning ``1`` indicates you were successfully enabled. If you don't return ``1``, we'll assume the worse and
      never speak with you again.
 
 That it!

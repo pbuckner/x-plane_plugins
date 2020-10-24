@@ -145,6 +145,17 @@ this bit be cleared.
 
 The following messages are sent to your plugin by X-Plane.
 
+On startup, you'll see::
+
+  106 PLANE_UNLOADED  (even though no plane has been loaded yet)
+  102 PLANE_LOADED (for user aircraft)
+  108 LIVERY_LOADED (for user aircraft)
+  104 SCENERY_LOADED
+  103 AIRPORT_LOADED
+  102 PLANE_LOADED (AI aircraft)
+  108 LIVERY_LOADED (AI aircraft)
+
+
 .. py:data:: XPLM_MSG_PLANE_CRASHED
  :value: 101
 
@@ -166,8 +177,9 @@ The following messages are sent to your plugin by X-Plane.
 .. py:data:: XPLM_MSG_SCENERY_LOADED
  :value: 104
 
- This message is sent whenever new scenery is loaded. Use datarefs to
- determine the new scenery files that were loaded.
+ This message is sent whenever new scenery is loaded.  (Laminar documentation
+ says, "Use datarefs to determine the new scenery files that were loaded." But I've
+ not found any datarefs to help with that.)
 
 .. py:data:: XPLM_MSG_AIRPLANE_COUNT_CHANGED
  :value: 105
@@ -229,7 +241,7 @@ The following messages are sent to your plugin by X-Plane.
  plugin ID of the plugin asking for control of the planes now. You can use
  it to find out who is requesting and whether you should yield to them.
  Synthetic traffic providers should always yield to online networks. The
- parameter is unused and should be ignored.                            
+ parameter is unused and should be ignored.
 
 .. py:function:: XPLMSendMessageToPlugin(pluginID: int, message: int, param: object) -> None:
 

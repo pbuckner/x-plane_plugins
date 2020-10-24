@@ -6,7 +6,7 @@ Global, Aircraft, and Scenery. Internally, these plugins are identical.
 They have access to the same SDK calls, receive the same messages,
 and must follow the same set of rules.
 
-They differ in where they are place in the filesystem, and when they are
+They differ in where they are placed in the filesystem, and when they are
 intialized:
 
  ========= ================================ =============================
@@ -19,7 +19,7 @@ intialized:
                                             Unloaded when User Aircraft
                                             is changed or program exit.
  Scenery   Custom Scenery/<scenery>/plugins Loaded (after Global) at
-                                            startup. Loaded (before
+                                            startup. Unloaded (after
                                             Global) at program exit.
  ========= ================================ =============================
 
@@ -50,21 +50,22 @@ as the scenery's ``Earth nav data`` and ``objects`` folder.
 
  You can have any number of XPPython3 plugins in that directory.  
 
-.. warning:: Scenery plugins are **always** loaded and enabled. This means your KSEA plugin
+.. warning:: Scenery plugins are **always** loaded and enabled (if the
+          scenery package is loaded). This means your KSEA plugin
           will be running even when you're flying in South Africa. For this reason, make
           sure your plugin does very little when the User Aircraft is no where near it.
 
 Access to Python Modules
 ------------------------
 
-Note that XPPython plugins of one type may access python modules of another
+Note that XPPython plugins of one type may access python modules (i.e, 'code') of another
 type: We load each as a package.
 
 Internal plugins are loaded using the ``XPPython3`` package, so you can always
 access them from any plugin as, for example, ``import XPPython3.xp``.
 
 Global plugins are loaded using the ``PythonPlugins`` package, so you can
-always access them from any plugin as, for example, ``import PythonPlugins.PI_<plugin>``,
+always access them from any plugin as, for example, ``import PythonPlugins.PI_MyPlugin``,
 or perhaps more likely, ``import PythonPlugins.myplugin.utils``
 
 Aircraft plugins are loaded using a long package name (it's unlikely you'll be
@@ -78,7 +79,8 @@ Similarly, Scenery plugins are loaded using a long package name, for example::
   import importlib
   importlib.import_module("utils.py", "KSEA Demo Area.plugins.PythonPlugins")
 
-A more useful technique would be to place your shared utilities under the Global directory and
+A more useful technique would be to place your shared utilities under the Global directory
+(i.e., under Resources/plugins/PythonPlugins/) and
 then import them into (each) of your Aircraft or Scenery plugins::
 
   # PI_MyAircraft.py
@@ -119,7 +121,7 @@ On program startup, the sequence is::
                Custom Scenery/.../PI_<plugin2>.py
       START Resources/plugins/ZYX.xpl
 
-    Scenery Plugins Started
+    Scenery Plugins Started (Non-python)
     -----------------------
       START Custom Scenery/.../plugins/abc.xpl
 
@@ -135,7 +137,7 @@ On program startup, the sequence is::
                 Custom Scenery/.../PI_<plugin2>.py
       ENABLE Resources/plugins/ZYX.xpl
 
-    Scenery Plugins Enabled
+    Scenery Plugins Enabled (Non-python)
     -----------------------
       ENABLE Custom Scenery/.../plugins/abc.xpl
 
@@ -147,9 +149,10 @@ This is followed by the loading of the selected User Aircraft::
     ------------------------
       START  Aircraft/.../plugins/abc.xpl
       ENABLE Aircraft/.../plugins/abc.xpl
+
       START  Aircraft/.../plugins/PythonPlugins/PI_<plugin1>.py
-      ENABLE Aircraft/.../plugins/PythonPlugins/PI_<plugin1>.py
       START  Aircraft/.../plugins/PythonPlugins/PI_<plugin2>.py
+      ENABLE Aircraft/.../plugins/PythonPlugins/PI_<plugin1>.py
       ENABLE Aircraft/.../plugins/PythonPlugins/PI_<plugin2>.py
 
 When the user changes the selected aircraft::
@@ -160,23 +163,25 @@ When the user changes the selected aircraft::
     ------------------------
       DISABLE Aircraft/.../plugins/abc.xpl
       STOP    Aircraft/.../plugins/abc.xpl
+
       DISABLE Aircraft/.../plugins/PythonPlugins/PI_<plugin1>.py
-      STOP    Aircraft/.../plugins/PythonPlugins/PI_<plugin1>.py
       DISABLE Aircraft/.../plugins/PythonPlugins/PI_<plugin2>.py
+      STOP    Aircraft/.../plugins/PythonPlugins/PI_<plugin1>.py
       STOP    Aircraft/.../plugins/PythonPlugins/PI_<plugin2>.py
 
     Aircraft2 Plugins Started & Enabled
     ------------------------
       START  Aircraft/.../plugins/abc.xpl
       ENABLE Aircraft/.../plugins/abc.xpl
+
       START  Aircraft/.../plugins/PythonPlugins/PI_<plugin1>.py
-      ENABLE Aircraft/.../plugins/PythonPlugins/PI_<plugin1>.py
       START  Aircraft/.../plugins/PythonPlugins/PI_<plugin2>.py
+      ENABLE Aircraft/.../plugins/PythonPlugins/PI_<plugin1>.py
       ENABLE Aircraft/.../plugins/PythonPlugins/PI_<plugin2>.py
 
 On program exit::
 
-  X-Plane Started
+  X-Plane Exit
 
     Global and Scenery Plugins Disabled
     -----------------------------------
@@ -212,3 +217,6 @@ On program exit::
 
 Note that XPPython3 Custom Scenery plugins are loaded with Global plugins, before the loading
 of non-python Custom Scenery plugins.
+
+If you reload X-Plane Scenery, loaded Scenery plugins are DISABLED, STOPPED, and then
+they are STARTED, ENABLED.

@@ -6,10 +6,14 @@ Known Bugs
 
  None. Tell me otherwise!
 
-In progress
------------
+3.0.6 (24-10-2020)
+------------------
+:New Features:
+
    * Support for Scenery plugins: place your plugins under ``Custom Scenery/<..>/plugins/PythonPlugins``
-     and it will load on startup. Additional documentation to follow.
+     and it will load on startup. See :doc:`development/plugins`. Scenery plugins are loaded
+     based on order of X-Plane's ``scenery_packs.ini`` file: if the scenery isn't loaded, the scenery's plugin
+     is not loaded.
  
 3.0.5 (17-10-2020)
 ------------------

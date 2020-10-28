@@ -76,6 +76,10 @@ Because we're not introducing a new API, you can intermix the two calling styles
 in :code:`Resources/plugins/XPPython3/` directory, which will be in your python path for install plugins.
 
   
+.. note:: The remainder of this page lists all of the ``xp`` values and their equivalent ``XPLM`` or ``XP`` function or constant. I don't
+          expect you to review this, but it does allow this documentation to provide an index mapping from one to the other. Use the
+          *Quick search* field at the top of this page if you're looking for something.
+
 Constants
 ---------
 .. py:data:: AircraftCarrier

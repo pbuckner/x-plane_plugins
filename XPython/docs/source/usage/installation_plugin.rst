@@ -10,7 +10,7 @@ XPPython3 Plugin Installation
   + For Python3.8: `xppython38.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython38.zip>`_.
   + For Python3.9: `xppython39.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython39.zip>`_.
 
-3. Extract it into your :code:`X-Plane/Resources/plugins` folder, such that you have folder there called :code:`XPPython3`.
+3. Extract the xppython*.zip into your :code:`X-Plane/Resources/plugins` folder, such that you have folder there called :code:`XPPython3`.
 
 Requirements
 ============
@@ -69,7 +69,7 @@ as well install them now.
     
 Third-party Python plugins themselves go to:
 
-* **Resources/plugins/PythonPlugins/** folder
+* **Resources/plugins/PythonPlugins/** folder (which you created)
 
   + Single file named :code:`PI_<anything>.py` for each separate python plugin. This is the starting point for each python plugin
     (For Python2, we used "PythonScripts" folder -- same idea, but we need a different folder.)
@@ -85,6 +85,7 @@ Internally, we also use:
     the binary :code:`*.xpl` plugin files. To be loaded on startup, files need to be named :code:`I_PI<anything>.py`.
   + python files in this directory will be in you PYTHONPATH and therefore accessible to your
     scripts.
+  + *Do Not* place your python files in this directory. They may be deleted on reload of the XPPython3 plugin.
 
 
 Plugin Menus
@@ -106,12 +107,24 @@ The XPPython3 menu includes two final items:
   most current version, selecting this item will attempt to update your XPPython3 version to the latest.
   (It will not change Python versions, just XPPython3 plugin versions.) If successful, the new version
   is downloaded, but you'll need to restart X-Plane to have the new plugin take effect.
-* **Pip Package Installer** -- *pip* is a python-based installer that is common used to install
+
+  Selecting this items will *always* attempt to update XPPython3, so even if the system thinks you have
+  the most current version, selecting this menu item will cause the Updater to download XPPython3 again.
+  This may be useful if you've messed up an installation: It *does not* change anything in your PythonPlugins
+  folder.
+
+  If all else fails, you can always re-download the zip file (mentioned at the top of this page) and replace
+  your current XPPython3 folder with the contents of the zip file.
+  
+* **Pip Package Installer** -- *pip* is a python-based installer that is commonly used to install
   python packages (i.e., modules or script libraries). While Python comes with lots of built-in libraries,
   you may need to install some 3rd party libraries. Using this installer will make sure the
   libraries are installed into the proper version of python on your computer. This is *not* to be used
   to install X-Plane plugins. If your python plugin requires additional Python packages, your plugin should
   tell you which packages you'll need to install.
+
+  You will most likely need OpenGL (which is a drawing package). For python, it is called ``pyopengl``. That's
+  why we suggest you install it at your first opportunity. It's free.
 
 Logging
 =======

@@ -1,4 +1,3 @@
-
 XPPython3
 =========
 
@@ -39,24 +38,24 @@ Key features
 * :doc:`changelog`.
   
 
-Installing the Plugin
----------------------
+Installation
+------------
 
-To install the XPPython3 plugin (not develop new python plugsin) go to :doc:`usage/installation_plugin`.
+See :doc:`usage/installation_plugin` to install the XPPython3 plugin. Everyone needs to do this.
 
-Using the SDK
--------------
+Development
+-----------
 
-To use the XPPython3 plugin for developing new python-based XP Plugins, go to :doc:`development/index`.
+See :doc:`development/index` to use the XPPython3 plugin for developing new python-based XP Plugins.
 
-Building XPPython3
-------------------
+Building
+--------
 
 .. Note::
    You do not need to build XPPython3 to use python plugins, or to develop new python plugins.
    However, you may find it useful if you're trying to track down a crash bug in during your plugin development.
 
-Build instructions are provided in :doc:`building/index`.   
+See :doc:`building/index` to learn how to build XPPython3 from source.
 
 Contents
 --------

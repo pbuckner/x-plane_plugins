@@ -28,6 +28,8 @@ display any keyboard shortcuts associated with the command. (In contrast,
 there are no keyboard shortcuts associated with menu handler callbacks with
 specific parameters.)
 
+For more about menus and menu items see :doc:`/development/menus`.
+
 
 Functions
 ---------
@@ -47,7 +49,7 @@ Functions
  This function returns the ID of the plug-ins menu, which is created for you
  at startup.
 
- :return int menuID: :ref:`XPLMMenuID`
+ :return: :ref:`XPLMMenuID`
 
 
 .. py:function::  XPLMFindAircraftMenu(None) -> menuID:
@@ -55,7 +57,7 @@ Functions
  This function returns the ID of the menu for the currently-loaded aircraft,
  used for showing aircraft-specific commands.
 
- :return int menuID: :ref:`XPLMMenuID`
+ :return: :ref:`XPLMMenuID`
 
  The aircraft menu is created by X-Plane at startup, but it remains hidden
  until it is populated via :py:func:`XPLMAppendMenuItem` or
@@ -221,7 +223,7 @@ Functions
 
  :param int menuID: :ref:`XPLMMenuId`
  :param int index: index of menu item to be changed
- :return int menuCheck: one of :ref:`XPLMMenuCheck`
+ :return: one of :ref:`XPLMMenuCheck`
 
  This routine returns whether a menu item is checked or not. A menu item's
  check mark may be on or off, or a menu may not have an icon at all.

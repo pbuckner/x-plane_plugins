@@ -27,10 +27,10 @@ Plugins can append to this "Plugins" Menu, under the "Show Plugin Admin" item.
 The order of added items is simply determined by the order of
 calls -- by any plugin -- to any of the following::
   
-  CreateMenu(..., parentMenu=None, …)
-  AppendMenuItem(menuID=xp.findPluginsMenu())
-  AppendMenuItemCommand(menuID=xp.findPluginsMenu())
-  AppendSeparator(menuID=xp.findPluginsMenu())
+  XPLMCreateMenu(..., parentMenu=None, …)
+  XPLMAppendMenuItem(menuID=xp.findPluginsMenu())
+  XPLMAppendMenuItemWithCommand(menuID=xp.findPluginsMenu())
+  XPLMAppendSeparator(menuID=xp.findPluginsMenu())
 
 We'll call these "top-level" menu items -- items directly placed under
 the "Plugins" menu.

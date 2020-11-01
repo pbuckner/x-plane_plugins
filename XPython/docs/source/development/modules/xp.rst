@@ -1026,6 +1026,10 @@ Constants
 
    See :py:data:`XPStandardWidgets.xpPushButton`
 
+.. py:data:: pythonExecutable
+                 
+  See :py:data:`XPPython.pythonExecutable`
+  
 .. py:data:: RadioButton
 
    See :py:data:`XPStandardWidgets.xpRadioButton`

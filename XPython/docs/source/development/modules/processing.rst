@@ -81,7 +81,7 @@ Functions
     This routine registers your :py:func:`XPLMFlightLoop_f` flight loop callback.
     ``interval`` defines when you will be called. Pass in a positive number to specify seconds
     from registration time to the next callback. Pass in a negative number to indicate when you will
-    be called (e.g. pass -1 to be called at the next cylcle). Pass 0 to not be
+    be called (e.g. pass -1 to be called at the next cycle). Pass 0 to not be
     called; your callback will be inactive.
 
 
@@ -126,7 +126,7 @@ Functions
   :param params: list
 
      * phase: :ref:`XPLMFlightLoopPhaseType` indicates phase when to invoke the callback
-     * callback: :py:func:`XPLMFlighLoop_f` callback function
+     * callback: :py:func:`XPLMFlightLoop_f` callback function
      * refcon: object Reference Constant
 
   :return: :py:data:`XPLMFlightLoopID`
@@ -139,7 +139,7 @@ Functions
 .. py:function::  XPLMDestroyFlightLoop(flightLoopID: int) -> None:
 
     This routine destroys a flight loop callback by :py:data:`XPLMFLightLoopID`.
-    Only call it on flight loops created with :py:func:`XPLMCreateFlighLoop`.
+    Only call it on flight loops created with :py:func:`XPLMCreateFlightLoop`.
 
 
 .. py:function::  XPLMScheduleFlightLoop(flightLoopID: int, interval: float, relativeToNow: int) -> None:

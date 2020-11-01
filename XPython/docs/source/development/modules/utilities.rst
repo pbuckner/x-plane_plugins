@@ -340,7 +340,7 @@ is returned by :py:func:`XPLMFindCommand` or created by :py:func:`XPLMCreateComm
 .. py:function:: XPLMRegisterCommandHandler(commandRef, callback, before, refCon) -> int:
 
     :param commandRef: :ref:`XPLMCommandRef`
-    :param callback: :py:func:`XPLMRegisterCommandHandler`
+    :param callback: :py:func:`XPLMCommandCallback_f`
     :param int before: 1= your command handler callback will be executed before X-Plane executes the command.                 
     :param object refCon: Reference constant to be passed to you callback.
 

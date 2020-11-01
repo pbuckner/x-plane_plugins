@@ -111,6 +111,12 @@ Functions
 Constants
 ---------
 
+.. py:data:: pythonExecutable
+
+   Full path to the python executable, for example, ``/usr/bin/python3.8`` or ``C:\Program Files\Python39\pythonw.exe``.
+   The primary use for this is with ``subprocess`` or ``multiprocessing`` python modules when you want
+   to spawn another python process.
+
 .. py:data:: VERSION
 
   Version number of XPPython3 plugin, e.g., '3.0.0'             

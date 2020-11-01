@@ -103,9 +103,9 @@ Advanced Topics
     Use git-compare to see what types of things change from python2 to python3. (Joan is familiar with the changes
     and will be responsible for official support in the future -- this is merely a porting example.)
 
-
-
 * Need encryption? See :doc:`xpyce`. For security / privacy reasons, you can now distribute Plugins which contain encrypted modules.
+
+* Using python ``multiprocessing`` or ``subprocess``? See :doc:`multiprocessing` for hints and an example.
 
 
 
@@ -120,6 +120,7 @@ Advanced Topics
    debugger
    plugins
    menus
+   multiprocessing
    xpyce
    portingNotes
    modules/index

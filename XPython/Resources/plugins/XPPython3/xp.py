@@ -438,6 +438,7 @@ CommandBegin = XPLMUtilities.xplm_CommandBegin
 CommandContinue = XPLMUtilities.xplm_CommandContinue
 CommandEnd = XPLMUtilities.xplm_CommandEnd
 import XPPython
+pythonExecutable = XPPython.pythonExecutable
 pythonGetDicts = XPPython.XPPythonGetDicts
 pythonGetCapsules = XPPython.XPPythonGetCapsules
 pythonLog = XPPython.XPPythonLog

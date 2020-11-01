@@ -2,6 +2,7 @@
 Python Plugin updater, modelled after PI_ScriptUpdater.py by
 Joan Perez i Cauhe
 """
+import threading
 import os
 import os.path
 import platform
@@ -20,16 +21,23 @@ except ImportError:
 
 import time
 from XPPython3 import scriptconfig
+from XPPython3.XPProgressWindow import XPProgressWindow
 from xp import log, sys_log
 system_log = sys_log  # some older python plugins use system_log
+
 
 class Updater(scriptconfig.Config):
     VersionCheckURL = "http://example.com/foo.json"
 
+    def __del__(self):
+        self.progressWindow.destroy()
+
     def __init__(self):
         super(Updater, self).__init__()
+        self.update_thread = None
         self.new_version = '<Error>'
         self.beta_version = '<Error>'
+        self.progressWindow = XPProgressWindow("Updating Plugin")
         self.check()
         self.json_info = {}
 
@@ -116,6 +124,23 @@ class Updater(scriptconfig.Config):
         return (True, current)
 
     def update(self, download_url, cksum):
+        if self.update_thread and self.update_thread.is_alive():
+            self.update_thread.join()
+
+        self.update_thread = threading.Thread(target=lambda: self.do_download(download_url, cksum))
+        self.progressWindow.setCaption("Starting Download...")
+        self.progressWindow.setProgress(0)
+        self.progressWindow.show()
+        self.update_thread.start()
+
+    def do_download(self, download_url, cksum):
+        def hook(chunk, maxChunk, total):
+            if total > 0:
+                p = (chunk * maxChunk) / total
+                self.progressWindow.setProgress(p)
+                self.progressWindow.setCaption("Downloading [{:2.0%}]".format(p))
+
+        self.progressWindow.setCaption("Downloading")
         success = None
         download_path = os.path.join(self.sys_path, 'Resources/Downloads/', self.Sig)
         install_path = os.path.join(self.sys_path, self.plugin_path)
@@ -128,19 +153,27 @@ class Updater(scriptconfig.Config):
             os.makedirs(download_path)
 
         zipfile = download_path + '/._UPDATE.zip'
-        urlretrieve(download_url, zipfile)
+        urlretrieve(download_url, zipfile, reporthook=hook)
+        self.progressWindow.setCaption("Download complete.")
         log("Downloaded file: {}".format(zipfile))
         try:
             if not self.verify(zipfile, cksum):
+                self.progressWindow.setCaption("Not upgraded: Field does not match checksum: incomplete download?")
                 sys_log("Not upgraded: File does not match checksum: incomplete download?")
                 return
         except Exception as e:
+            self.progressWindow.setCaption("Failed to verify download checksum.")
             sys_log("Failed to verify download file checksum: {}, json has: {}. {}, ".format(self.Sig, cksum, e))
 
         with ZipFile(zipfile, 'r') as zipfp:
+            self.progressWindow.setCaption("Testing the downloaded zip file...")
             if not zipfp.testzip():
+                self.progressWindow.setCaption("Testing complete. Preparing to extract.")
                 success = True
-                for i in zipfp.infolist():
+                files = zipfp.infolist()
+                numfiles = len(files)
+                for idx, i in enumerate(files):
+                    self.progressWindow.setCaption("Extracting [{}/{}] {}".format(idx + 1, numfiles, os.path.basename(i.filename)))
                     try:
                         if os.path.exists(os.path.join(install_path, i.filename)):
                             sys_log("already exists: {}".format(i.filename))
@@ -150,13 +183,16 @@ class Updater(scriptconfig.Config):
                         zipfp.extract(i, path=install_path)
                     except PermissionError as e:
                         success = False
+                        self.progressWindow.setCaption("Extraction failed for {}.".format(i.filename))
                         sys_log(">>>> Failed to extract {}, upgrade failed: {}".format(i.filename, e))
                         break
             else:
+                self.progressWindow.setCaption("Test failed.")
                 success = False
                 sys_log("failed testzip()")
         if success:
             os.remove(zipfile)
+            self.progressWindow.setCaption("Upgrade complete. Restart X-Plane to load new version.")
             sys_log("Upgraded: restart X-Plane to load new version")
             # log("this will reload plugins -- commented out")
             # log("This works, but X-Plane then prompts 'Please place new plugin in directory'.. 'Understood'")
@@ -166,8 +202,17 @@ class Updater(scriptconfig.Config):
     def verify(self, filename, file_cksum=None):
         cksum = None
         hash_md5 = hashlib.md5()
+        self.progressWindow.setCaption("Verifying...")
+        self.progressWindow.setProgress()
+        filesize = os.path.getsize(filename)
+        fileread = 0
         with open(filename, 'rb') as f:
             for chunk in iter(lambda: f.read(4086), b''):
+                fileread += 4086
+                p = fileread / filesize
+                self.progressWindow.setProgress(p)
+                self.progressWindow.setCaption("Verifying [{:2.0%}]".format(p))
                 hash_md5.update(chunk)
             cksum = hash_md5.hexdigest()
+        self.progressWindow.setCaption("Verification complete.")
         return file_cksum == cksum

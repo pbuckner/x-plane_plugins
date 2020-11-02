@@ -445,6 +445,9 @@ pythonLog = XPPython.XPPythonLog
 log = XPPython.XPPythonLog
 systemLog = XPPython.XPSystemLog
 sys_log = XPPython.XPSystemLog
+VERSION = XPPython.VERSION
+PLUGINSPATH = XPPython.PLUGINSPATH
+INTERNALPLUGINSPATH = XPPython.INTERNALPLUGINSPATH
 import XPStandardWidgets
 WidgetClass_MainWindow = XPStandardWidgets.xpWidgetClass_MainWindow
 WidgetClass_SubWindow = XPStandardWidgets.xpWidgetClass_SubWindow

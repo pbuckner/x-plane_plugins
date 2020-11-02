@@ -11,7 +11,7 @@ from XPPython3 import xp
 
 class Config (scriptupdate.Updater):
     Name = "XPPython3 Updater"
-    Sig = "com.avnwx.xppython3.updater.{}.{}".format(sys.version_info.major, sys.version_info.minor)
+    Sig = "xppython3.updater.{}.{}".format(sys.version_info.major, sys.version_info.minor)
     Desc = "Automatic updater for XPPython3 plugin"
     Version = XPPython.VERSION
     VersionCheckURL = 'https://maps.avnwx.com/data/x-plane/versions.json'
@@ -416,9 +416,6 @@ class PythonInterface(Config):
                 xp.setWidgetDescriptor(self.pipWindow['widgets']['packages'], '')
             return 1
 
-        if inMessage == xp.Msg_CursorAdjust:
-            inParam2 = xp.CursorDefault
-            return 1
         return 0
 
 

@@ -87,8 +87,8 @@ To make sure you get the same version use::
 
 Or, as mentioned above, just use :py:data:`xp.pythonExecutable`
 
-Example - PI_Multi.py
----------------------
+Example - PI_MultiProcess.py
+----------------------------
 
 Copy the following into your PythonPlugins directory.
 
@@ -106,7 +106,7 @@ Copy the following into your PythonPlugins directory.
    class PythonInterface:
    
        def XPluginStart(self):
-           return 'PI_Multi', 'xppython.demos.multi', 'Example plugin using multiprocessing'
+           return 'PI_MultiProcess', 'xppython.demos.multiprocess', 'Example plugin using multiprocessing'
    
        def XPluginEnable(self):
            xp.log("Calling from PID {}".format(os.getpid()))
@@ -134,6 +134,11 @@ Copy the following into your PythonPlugins directory.
    
 This is modeled after the example in python documentation for ``multiprocessing`` with Pipes. All it does is
 spawn a separate process to run function ``f()``, when this plugin is enabled.
+
+Your log should show something like::
+
+  [PythonPlugins.PI_MultiProcess] Calling from PID 38087
+  [PythonPlugins.PI_MultiProcess] [42, None, 'hello from PID: 38167']           
 
 Couple of things to note:
 

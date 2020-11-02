@@ -1,9 +1,12 @@
 import xp
 
+
 class XPProgressWindow:
     """
     Simple Progress window, with single progress bar going 0.0 -> 1.0
     and a single optional caption line immediately under the progress bar.
+    (if you provide a caption with a new line ('\n') in it, we'll split to display
+    the value on two lines.)
     Finally, a centered "Close" button.
 
     To use:
@@ -23,8 +26,10 @@ class XPProgressWindow:
     def __init__(self, title):
         top = 500
         left = 100
-        right = left + 300
-        height = 125
+        # make sure the box is wide enough for the title
+        width = max(300, 20 + int(xp.measureString(xp.Font_Proportional, title)))
+        right = left + width
+        height = 130
         self.maxValue = 1000
         self.progressWindow = xp.createWidget(left, top, right, top - height, 0, title, 1, 0, xp.WidgetClass_MainWindow)
 
@@ -38,9 +43,13 @@ class XPProgressWindow:
         _w, strHeight, _ignore = xp.getFontDimensions(xp.Font_Proportional)
         top = bottom - 10
         bottom = top - int(strHeight)
-        self.captionWidget = xp.createWidget(left + 10, top, right - 10, bottom, 1, '', 0, self.progressWindow, xp.WidgetClass_Caption)
+        self.caption1Widget = xp.createWidget(left + 10, top, right - 10, bottom, 1, '', 0, self.progressWindow, xp.WidgetClass_Caption)
 
-        top = bottom - 25
+        top = bottom - 7
+        bottom = top - int(strHeight)
+        self.caption2Widget = xp.createWidget(left + 10, top, right - 10, bottom, 1, '', 0, self.progressWindow, xp.WidgetClass_Caption)
+
+        top = bottom - 15
         bottom = top - 25
         middle = int((right + left) / 2)
         self.button = xp.createWidget(middle - 25, top, middle + 25, bottom, 1, 'Close', 0, self.progressWindow, xp.WidgetClass_Button)
@@ -65,7 +74,13 @@ class XPProgressWindow:
         xp.showWidget(self.progressWindow)
 
     def setProgress(self, value=0):
-        xp.setWidgetProperty(self.progressWidget, xp.Property_ProgressPosition, self.maxValue * value if value < 1 else 1)
+        xp.setWidgetProperty(self.progressWidget, xp.Property_ProgressPosition, self.maxValue * (value if value < 1 else 1))
 
     def setCaption(self, caption=''):
-        xp.setWidgetDescriptor(self.captionWidget, caption)
+        if '\n' in caption:
+            caption1, caption2 = caption.split('\n', 1)
+        else:
+            caption1 = caption
+            caption2 = ''
+        xp.setWidgetDescriptor(self.caption1Widget, caption1)
+        xp.setWidgetDescriptor(self.caption2Widget, caption2)

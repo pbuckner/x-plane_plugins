@@ -11,6 +11,24 @@
 
 PyObject *xppythonDicts = NULL, *xppythonCapsules = NULL;
 extern const char *pythonPluginVersion, *pythonPluginsPath, *pythonInternalPluginsPath;
+static PyObject *getExecutable(void);
+
+PyObject *getExecutable()
+/* get value for executable to be 'python' rather than 'X-Plane'.
+   This will enable subprocess and multiprocessing to work as
+   anticipated
+*/
+{
+  PyObject *exec_prefix = PySys_GetObject("exec_prefix");
+#if LIN || APL
+  PyObject *executable = PyUnicode_FromFormat("%S/bin/python" PYTHONVERSION, exec_prefix);
+#endif
+#if IBM
+  PyObject *executable = PyUnicode_FromFormat("%S\\pythonw.exe", exec_prefix);
+#endif
+  return executable;
+}
+
 
 /* HotKeyInfo Type */
 typedef struct {
@@ -713,6 +731,7 @@ PyInit_XPPython(void)
     PyModule_AddStringConstant(mod, "VERSION", pythonPluginVersion);
     PyModule_AddStringConstant(mod, "PLUGINSPATH", pythonPluginsPath);
     PyModule_AddStringConstant(mod, "INTERNALPLUGINSPATH", pythonInternalPluginsPath);
+    PyModule_AddObject(mod, "pythonExecutable", getExecutable());
     PyModule_AddObject(mod, "HotKeyInfo", (PyObject *) &HotKeyInfoType);
     PyModule_AddObject(mod, "ProbeInfo", (PyObject *) &ProbeInfoType);
     PyModule_AddObject(mod, "PluginInfo", (PyObject *) &PluginInfoType);

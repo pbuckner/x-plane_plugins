@@ -1,6 +1,6 @@
 VERSION = 'x.x.x'
 PLUGINSPATH = 'Resources/plugins/PythonPlugins'
-INTERNALPLUGINSPATH = 'Resources/plugsin/XPPython3'
+INTERNALPLUGINSPATH = 'Resources/plugins/XPPython3'
 pythonExecutable = '/path/to/python'
 
 def XPPythonGetDicts():

@@ -237,14 +237,14 @@ class Updater(Config):
 
         self.progressWindow.setCaption("Downloading")
         success = None
-        download_path = os.path.join(self.sys_path, 'Resources/Downloads/', self.Sig)
-        install_path = os.path.join(self.sys_path, self.plugin_path)
+        download_path = os.path.join(xp.getSystemPath(), 'Resources', 'Downloads', self.Sig)
+        install_path = os.path.join(xp.getSystemPath(), self.plugin_path)
 
         if not os.path.exists(download_path):
             xp.log("Making download directory: {}".format(download_path))
             os.makedirs(download_path)
 
-        zipfile = download_path + '/._UPDATE.zip'
+        zipfile = os.path.join(download_path, '._UPDATE.zip')
         urlretrieve(download_url, zipfile, reporthook=hook)
         self.progressWindow.setCaption("Download complete.")
         xp.log("Downloaded file: {}".format(zipfile))

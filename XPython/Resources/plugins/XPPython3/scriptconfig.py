@@ -51,9 +51,6 @@ class Config(object):
 
         self.config = dict(self.defaults)
 
-        self.sys_path = ""
-        self.sys_path = XPLMUtilities.XPLMGetSystemPath()
-
         if self.ConfigFilename and self.ConfigFilename != 'example.pkl':
             self.filename = os.path.join(XPPython.INTERNALPLUGINSPATH if self.internal else XPPython.PLUGINSPATH, self.ConfigFilename)
             try:

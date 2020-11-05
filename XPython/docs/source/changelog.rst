@@ -6,7 +6,20 @@ Known Bugs
 
  None. Tell me otherwise!
 
-3.0.6 (24-10-2020)
+3.0.7 (05-Nov-2020)
+------------------
+:New Features:
+
+   * Support for python ``multiprocessing`` module through the use of :py:data:`xp.pythonExecutable`.
+     Documentation has been update to describe usage, with an example. See :doc:`development/multiprocessing`.
+
+:Improvements:
+
+   * Upgrade system now includes progress bar: when you update XPPython3 (after updating to 3.0.7) upgrades
+     will display a popup window with download & verification status. You can use this this ProgressWindow
+     in your own code by importing ``XPPython3.XPProgressWindow``. (Documentation to be provided.).
+ 
+3.0.6 (24-Oct-2020)
 ------------------
 :New Features:
 
@@ -15,7 +28,7 @@ Known Bugs
      based on order of X-Plane's ``scenery_packs.ini`` file: if the scenery isn't loaded, the scenery's plugin
      is not loaded.
  
-3.0.5 (17-10-2020)
+3.0.5 (17-Oct-2020)
 ------------------
 :New Features:
    
@@ -32,13 +45,13 @@ Known Bugs
     Documentation has been updated to better describe use of accessors.
     
 
-3.0.4 (15-10-2020)
+3.0.4 (15-Oct-2020)
 ------------------
 :Fixes:
 
   * Script updater had incorrect logic
 
-3.0.3 (15-10-2020)
+3.0.3 (15-Oct-2020)
 ------------------
 :New Features:
    
@@ -65,7 +78,7 @@ Known Bugs
    during :py:func:`XPWidgetUtils.XPUSelectIfNeeded`, which would result in an
    error message being sent to XPPython3.log. This has been corrected.
 
-3.0.2 (29-9-2020)
+3.0.2 (29-Nov-2020)
 -----------------
 
 :New Features:
@@ -83,7 +96,7 @@ Known Bugs
      by another python plugin.
 
 
-3.0.1 (19-9-2020)
+3.0.1 (19-Nov-2020)
 -----------------
 
 :New Features:

@@ -7,7 +7,7 @@ Known Bugs
  None. Tell me otherwise!
 
 3.0.7 (05-Nov-2020)
-------------------
+-------------------
 :New Features:
 
    * Support for python ``multiprocessing`` module through the use of :py:data:`xp.pythonExecutable`.
@@ -20,7 +20,7 @@ Known Bugs
      in your own code by importing ``XPPython3.XPProgressWindow``. (Documentation to be provided.).
  
 3.0.6 (24-Oct-2020)
-------------------
+-------------------
 :New Features:
 
    * Support for Scenery plugins: place your plugins under ``Custom Scenery/<..>/plugins/PythonPlugins``
@@ -29,7 +29,7 @@ Known Bugs
      is not loaded.
  
 3.0.5 (17-Oct-2020)
-------------------
+-------------------
 :New Features:
    
    * Detects the existence of python2 PythonInterface plugin and immediately exits XPPython3 with
@@ -46,13 +46,13 @@ Known Bugs
     
 
 3.0.4 (15-Oct-2020)
-------------------
+-------------------
 :Fixes:
 
   * Script updater had incorrect logic
 
 3.0.3 (15-Oct-2020)
-------------------
+-------------------
 :New Features:
    
    * Support for Python 3.9
@@ -79,7 +79,7 @@ Known Bugs
    error message being sent to XPPython3.log. This has been corrected.
 
 3.0.2 (29-Nov-2020)
------------------
+-------------------
 
 :New Features:
 
@@ -97,7 +97,7 @@ Known Bugs
 
 
 3.0.1 (19-Nov-2020)
------------------
+-------------------
 
 :New Features:
 

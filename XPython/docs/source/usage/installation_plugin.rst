@@ -1,7 +1,7 @@
 XPPython3 Plugin Installation
 -----------------------------
 
-1. Install 64-bit Python3 (version 3.6 or greater) from https://python.org
+1. Install 64-bit Python3 (version 3.6 or greater) from https://python.org. Questions, see [#F1]_.
 
 2. Download ONE zipfile:
 
@@ -11,6 +11,9 @@ XPPython3 Plugin Installation
   + For Python3.9: `xppython39.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython39.zip>`_.
 
 3. Extract the xppython*.zip into your :code:`X-Plane/Resources/plugins` folder, such that you have folder there called :code:`XPPython3`.
+
+If you have problems with installation, *actually read this page*. If you still have problems with installation provide
+information described in :ref:`GettingSupport`.
 
 Requirements
 ============
@@ -172,7 +175,8 @@ There are two main log files. (Any particular plugin may also create their own l
      users, it's stored somewhere else & X-Plane may not be able to find it. And,
   2. Add Python to environment variables.
 
-  Both of these options can be set by the installer downloaded from python.org.
+  Both of these options can be set by the installer downloaded from python.org (this *Advanced Options* window is
+  the next window after *Options* in the installation wizard).
 
      .. image:: /images/pythonwindows.png
 
@@ -241,6 +245,8 @@ You should provide both Log.txt and XPPython3.log when looking for assistance wi
 
              If you have questions about a particular python plugin, please contact the plugin's creator!
              
+.. _GettingSupport:
+
 Getting Support
 ===============
 
@@ -252,3 +258,10 @@ Include:
 
 Provide that information to x-plane.org/forums or email support: Information is available from the
 *About* XPPython3 menu.
+
+.. rubric:: Footnotes
+
+.. [#f1] "*But I already have a copy of python on my computer*". Yes, you probably do. Is it the right version,
+         includes the necessary packages and scripts, and located in the correct location? Maybe, but **no one** 
+         wants to try and debug that, so *please*: you have the disk space. Download a brand new copy of python,
+         place it in the recommended location and think if it as being used exclusively for X-Plane.

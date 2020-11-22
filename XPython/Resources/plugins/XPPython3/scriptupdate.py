@@ -11,7 +11,8 @@ import platform
 import re
 import threading
 from zipfile import ZipFile
-from urllib.request import urlopen, urlretrieve, URLError
+from urllib.request import urlopen, urlretrieve
+from urllib.error import URLError
 try:
     from ssl import SSLCertVerificationError  # py 3.7+
 except ImportError:
@@ -135,11 +136,17 @@ class Updater(Config):
                     xp.sys_log("Failed to get {}, returned code: {}".format(self.VersionCheckURL, ret.getcode()))
                     return
             except URLError as e:
-                if all([isinstance(e.reason, SSLCertVerificationError),
-                        e.reason.reason == 'CERTIFICATE_VERIFY_FAILED',
-                        platform.system() == 'Darwin']):
-                    xp.sys_log("!!! Installation Incomplete: Run /Applications/Python<version>/Install Certificates, and restart X-Plane.")
-                    return
+                xp.log("URLError is {}".format(e))
+                try:
+                    if ((isinstance(e.reason, SSLCertVerificationError)
+                         and e.reason.reason == 'CERTIFICATE_VERIFY_FAILED'
+                         and platform.system() == 'Darwin')):
+                        msg = "!!! Python Installation Incomplete: Run /Applications/Python<version>/Install Certificates, and restart X-Plane."
+                        xp.sys_log(msg)
+                        xp.log(msg)
+                        return
+                except Exception:
+                    pass
                 xp.log("Internet connection error, cannot check version. Will check next time.")
                 return
             except Exception as e:

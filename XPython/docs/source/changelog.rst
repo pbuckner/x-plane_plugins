@@ -6,6 +6,13 @@ Known Bugs
 
  None. Tell me otherwise!
 
+3.0.8 (27-Dec-2020)
+-------------------
+:Fixes:
+
+   * Fixed problem with :py:data:`XPStandardWidgets.xpMsg_ScrollBarSliderPositionChanged`. The incoming
+     message should set param1 to the widget, instead it was setting param1 incorrectly.
+
 3.0.7 (05-Nov-2020)
 -------------------
 :New Features:
@@ -78,7 +85,7 @@ Known Bugs
    during :py:func:`XPWidgetUtils.XPUSelectIfNeeded`, which would result in an
    error message being sent to XPPython3.log. This has been corrected.
 
-3.0.2 (29-Nov-2020)
+3.0.2 (29-Sep-2020)
 -------------------
 
 :New Features:
@@ -96,7 +103,7 @@ Known Bugs
      by another python plugin.
 
 
-3.0.1 (19-Nov-2020)
+3.0.1 (19-Sep-2020)
 -------------------
 
 :New Features:

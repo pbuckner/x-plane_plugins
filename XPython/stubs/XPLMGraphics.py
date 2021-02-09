@@ -143,7 +143,7 @@ def XPLMBindTexture2d(inTextureNum, inTextureUnit):
 
 
 ###############################################################################
-def XPLMGenerateTextureNumbers(inCount):
+def XPLMGenerateTextureNumbers(inCount) -> list[int]:
     """Generate number of textures for a plugin.
 
       outTextureIDs - list
@@ -158,7 +158,7 @@ def XPLMGenerateTextureNumbers(inCount):
    X-Plane will then  overwrite the plug-ins texture.  This routine returns
    texture IDs that are out of X-Plane's usage range.
    """
-    return list  # ints
+    return outTextureIDs  # list of ints
 
 
 ###############################################################################

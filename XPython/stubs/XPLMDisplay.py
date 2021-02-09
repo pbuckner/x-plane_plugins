@@ -651,7 +651,7 @@ def XPLMGetAllMonitorBoundsOS(inMonitorBoundCallback, inRefcon):
 
 
 ###############################################################################
-def XPLMGetMouseLocationGlobal():
+def XPLMGetMouseLocationGlobal() -> int, int:
     """
     Returns the current mouse location in global desktop boxels. Unlike
     XPLMGetMouseLocation(), the bottom left of the main X-Plane window is not guaranteed
@@ -668,7 +668,7 @@ def XPLMGetMouseLocationGlobal():
 
 ###############################################################################
 ###############################################################################
-def XPLMGetWindowGeometry(inWindowID):
+def XPLMGetWindowGeometry(inWindowID) -> int, int, int, int:
     """
     This routine returns the position and size of a window. The units and coordinate
     system vary depending on the type of window you have.

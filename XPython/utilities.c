@@ -417,15 +417,24 @@ static PyObject *XPLMRegisterCommandHandlerFun(PyObject *self, PyObject *args)
   intptr_t refcon = commandCallbackCntr++;
   XPLMRegisterCommandHandler(refToPtr(inCommand, commandRefName), commandCallback, inBefore, (void *)refcon);
 
+  /* we need a form to use as key to Dict(): as all four input values must be used, 
+     we'll create a string representing the values, BUT for inrefcon, we want only
+     a pointer to the object (the contents of the object may have legitimately changed.)
+   */
+  PyObject *inrefcon_ptr = PyLong_FromVoidPtr((void *)inRefcon);
+  PyObject *bv = Py_BuildValue("(OOiO)", inCommand, inHandler, inBefore, inrefcon_ptr);
+  PyObject *key = PyObject_Str(bv);
+
   PyObject *rc = PyLong_FromVoidPtr((void *)refcon);
-  PyObject *irc = PyLong_FromVoidPtr((void *)inCommand);
-  PyDict_SetItem(commandRefcons, irc, rc);
+  PyDict_SetItem(commandRefcons, key, rc);
 
   PyObject *argsObj = Py_BuildValue( "(OOOiO)", pluginSelf, inCommand, inHandler, inBefore, inRefcon);
   PyDict_SetItem(commandCallbacks, rc, argsObj);
   Py_DECREF(argsObj);
   Py_DECREF(rc);
-  Py_DECREF(irc);
+  Py_DECREF(key);
+  Py_DECREF(bv);
+  Py_DECREF(inrefcon_ptr);
   Py_RETURN_NONE;
 }
 
@@ -445,13 +454,17 @@ static PyObject *XPLMUnregisterCommandHandlerFun(PyObject *self, PyObject *args)
   } else {
     pythonLogWarning("'self' deprecated as first parameter of XPLMUnregisterCommandHandler");
   }
-  PyObject *key = PyLong_FromVoidPtr((void *)inCommand);
-  PyObject *refcon = PyDict_GetItem(commandRefcons, key);
+  PyObject *inrefcon_ptr = PyLong_FromVoidPtr((void *)inRefcon);
+  PyObject *bv = Py_BuildValue("(OOiO)", inCommand, inHandler, inBefore, inrefcon_ptr);
+  PyObject *key = PyObject_Str(bv);
+  PyObject *refcon = PyDict_GetItem(commandRefcons, key);  /* borrowed ref */
   XPLMUnregisterCommandHandler(refToPtr(inCommand, commandRefName), commandCallback,
                                inBefore, PyLong_AsVoidPtr(refcon));
   if(PyDict_DelItem(commandRefcons, key)){
     printf("XPLMUnregisterCommandHandler: couldn't remove refcon.\n");
   }
+  Py_DECREF(inrefcon_ptr);
+  Py_DECREF(bv);
   Py_DECREF(key);
   if(PyDict_DelItem(commandCallbacks, refcon)){
     printf("XPLMUnregisterCommandHandler: couldn't remove command handler.\n");

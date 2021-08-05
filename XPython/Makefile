@@ -2,7 +2,7 @@
 
 PLUGIN_PATH=Resources/plugins/XPPython3
 XP_SDK=../SDK
-
+VERSIONS= 36 37 38 39
 #########
 # COMMON opts
 CFLAGS=-Wall -Wextra -g -fpic -fPIC -fvisibility=hidden
@@ -54,12 +54,6 @@ ifeq ($(TARGET), Linux)
 endif
 
 ifeq ($(TARGET), Darwin)
-  # brew install pyenv pyenv-virtualenv pyenv-virtualenvwrapper
-  # pyenv install 3.6-dev
-  # pyenv install 3.7-dev
-  # pyenv install 3.8-dev
-  # PY_CFLAGS = $(shell /Users/pbuck/bin/python3-config --cflags)
-  # PY_LDFLAGS = $(shell /Users/pbuck/bin/python3-config --ldflags)
   CFLAGS += ${XPLM_CPPFLAGS} -DIBM=0 -DAPL=1 -DLIN=0 -arch x86_64
   CFLAGS36=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.6/bin/python3-config --cflags) -DPYTHONVERSION=\"3.6\"
   CFLAGS37=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.7/bin/python3-config --cflags) -DPYTHONVERSION=\"3.7\"
@@ -76,11 +70,11 @@ endif
 
 #########
 # Build targets
-windows:
+Windows:
 	cd win && $(MAKE)
 	cd ..
 
-darwin:
+Darwin:
 	cd mac && $(MAKE)
 	cd ..
 
@@ -121,66 +115,30 @@ XPPython39.xpl: $(subst XXX,39,$(PLUGIN_OBJ))
 	$(LD) $^ $(LDFLAGS39) -o $@ 
 
 
-StandardPythonUtils = Resources/plugins/XPPython3/xp.py Resources/plugins/XPPython3/I_PI_Updater.py Resources/plugins/XPPython3/scriptupdate.py Resources/plugins/XPPython3/scriptconfig.py
+StandardPythonUtils = Resources/plugins/XPPython3/xp.py Resources/plugins/XPPython3/I_PI_Updater.py Resources/plugins/XPPython3/scriptupdate.py Resources/plugins/XPPython3/scriptconfig.py Resources/plugins/XPPython3/I_PI_FirstTime.py Resources/plugins/XPPython3/zip_download.py Resources/plugins/XPPython3/imgui/core.cp39-win_amd64.pyd
 
-Resources/plugins/xppython36.zip : win/XPPython36.xpl lin/XPPython36.xpl mac/XPPython36.xpl $(StandardPythonUtils)
+Resources/plugins/xppython3%.zip : win/XPPython3%.xpl lin/XPPython3%.xpl mac/XPPython3%.xpl $(StandardPythonUtils)
 	rm -f $@
 	rm -f Resources/plugins/XPPython3/*/*.xpl
 	mkdir -p Resources/plugins/XPPython3/win_x64
 	mkdir -p Resources/plugins/XPPython3/lin_x64
 	mkdir -p Resources/plugins/XPPython3/mac_x64
-	cp win/XPPython36.xpl Resources/plugins/XPPython3/win_x64/XPPython3.xpl
-	cp mac/XPPython36.xpl Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
-	cp lin/XPPython36.xpl Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
-	cd Resources/plugins; $(ZIP) xppython36.zip -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md  XPPython3/xpyce/\*.py
-	rm -r Resources/plugins/XPPython3/*_x64
-
-Resources/plugins/xppython37.zip : win/XPPython37.xpl lin/XPPython37.xpl mac/XPPython37.xpl $(StandardPythonUtils)
-	rm -f $@
-	rm -f Resources/plugins/XPPython3/*/*.xpl
-	mkdir -p Resources/plugins/XPPython3/win_x64
-	mkdir -p Resources/plugins/XPPython3/lin_x64
-	mkdir -p Resources/plugins/XPPython3/mac_x64
-	cp win/XPPython37.xpl Resources/plugins/XPPython3/win_x64/XPPython3.xpl
-	cp mac/XPPython37.xpl Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
-	cp lin/XPPython37.xpl Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
-	cd Resources/plugins; $(ZIP) xppython37.zip -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md  XPPython3/xpyce/\*.py
-	rm -r Resources/plugins/XPPython3/*_x64
-
-Resources/plugins/xppython38.zip : win/XPPython38.xpl lin/XPPython38.xpl mac/XPPython38.xpl $(StandardPythonUtils)
-	rm -f $@
-	rm -f Resources/plugins/XPPython3/*/*.xpl
-	mkdir -p Resources/plugins/XPPython3/win_x64
-	mkdir -p Resources/plugins/XPPython3/lin_x64
-	mkdir -p Resources/plugins/XPPython3/mac_x64
-	cp win/XPPython38.xpl Resources/plugins/XPPython3/win_x64/XPPython3.xpl
-	cp mac/XPPython38.xpl Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
-	cp lin/XPPython38.xpl Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
-	cd Resources/plugins; $(ZIP) xppython38.zip -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md XPPython3/xpyce/\*.py
-	rm -r Resources/plugins/XPPython3/*_x64
-
-Resources/plugins/xppython39.zip : win/XPPython39.xpl lin/XPPython39.xpl mac/XPPython39.xpl $(StandardPythonUtils)
-	rm -f $@
-	rm -f Resources/plugins/XPPython3/*/*.xpl
-	mkdir -p Resources/plugins/XPPython3/win_x64
-	mkdir -p Resources/plugins/XPPython3/lin_x64
-	mkdir -p Resources/plugins/XPPython3/mac_x64
-	cp win/XPPython39.xpl Resources/plugins/XPPython3/win_x64/XPPython3.xpl
-	cp mac/XPPython39.xpl Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
-	cp lin/XPPython39.xpl Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
-	cd Resources/plugins; $(ZIP) xppython39.zip -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md XPPython3/xpyce/\*.py
+	cp $(filter win/%, $^) Resources/plugins/XPPython3/win_x64/XPPython3.xpl
+	cp $(filter mac/%, $^) Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
+	cp $(filter lin/%, $^) Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
+	cd Resources/plugins; \
+		$(ZIP) $(notdir $@) -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md  XPPython3/xpyce/\*.py ; \
+		v=`echo $(notdir $@) | sed  's/xppython\([0-9]*\).zip/\1/'`; \
+		$(ZIP) $(notdir $@) -u XPPython3/imgui/*.py XPPython3/imgui/integrations/*.py XPPython3/imgui/core*$$v* ;
 	rm -r Resources/plugins/XPPython3/*_x64
 
 
-install_beta :  Resources/plugins/xppython36.zip Resources/plugins/xppython37.zip Resources/plugins/xppython38.zip Resources/plugins/xppython39.zip
-	cp Resources/plugins/xppython36.zip Resources/plugins/xppython36b.zip
-	cp Resources/plugins/xppython37.zip Resources/plugins/xppython37b.zip
-	cp Resources/plugins/xppython38.zip Resources/plugins/xppython38b.zip
-	cp Resources/plugins/xppython39.zip Resources/plugins/xppython39b.zip
+install_beta : $(foreach version,$(VERSIONS), Resources/plugins/xppython$(version).zip)
+	for f in $^; do cp $$f `echo "$$f" | sed 's/\.zip/b.zip/g'`; done
 	scp Resources/plugins/xppython3?b.zip pbuck@avnwx.com:/var/www/production/data/x-plane
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; ./updatemd5 xppython36b.zip; ./updatemd5 xppython37b.zip; ./updatemd5 xppython38b.zip; ./updatemd5 xppython39b.zip'
 
-install_remote :  Resources/plugins/xppython36.zip Resources/plugins/xppython37.zip Resources/plugins/xppython38.zip Resources/plugins/xppython39.zip
+install_remote : $(foreach version,$(VERSIONS), Resources/plugins/xppython$(version).zip)
 	scp Resources/plugins/xppython3?.zip pbuck@avnwx.com:/var/www/production/data/x-plane
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; ./updatemd5 xppython36.zip; ./updatemd5 xppython37.zip; ./updatemd5 xppython38.zip; ./updatemd5 xppython39.zip'
 
@@ -198,5 +156,3 @@ clean_current_directory:
 
 %.clean: %
 	$(MAKE) -C $< clean_current_directory
-
-

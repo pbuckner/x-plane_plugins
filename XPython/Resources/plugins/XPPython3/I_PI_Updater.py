@@ -388,30 +388,19 @@ class PythonInterface(Config):
                 print("Looking to install packages: {}".format(packages))
                 if packages:
                     xp.setWidgetDescriptor(self.pipWindow['widgets']['error'], "Looking to install packages: {}".format(' '.join(packages)))
-                    found = False
-                    for i in ('pip', 'pip3', 'pip.exe', 'pip3.exe'):
-                        pip = os.path.join(sysconfig.get_paths()['scripts'], i)
-                        if os.path.isfile(pip) and os.access(pip, os.X_OK):
-                            found = True
-                            cmd = [pip, 'install', '--user'] + packages
-                            print("Calling pip as: {}".format(' '.join(cmd)))
-                            try:
-                                xp.setWidgetDescriptor(self.pipWindow['widgets']['error'], "Running pip... please wait.")
-                                output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
-                                xp.setWidgetDescriptor(self.pipWindow['widgets']['error'], "Execution complete.")
-                                print("From pip:\n{}".format(output.decode('utf-8')))
-                                output = output.decode('utf-8').split('\n')
-                            except subprocess.CalledProcessError as e:
-                                print("Calling pip failed: [{}]: {}".format(e.returncode, e.output.decode('utf-8')))
-                                xp.setWidgetDescriptor(self.pipWindow['widgets']['error'], "Failed: Error while executing pip.")
-                                output = e.output.decode('utf-8').split('\n')
-                        if found:
-                            popupWindow('PIP output', output)
-                            break
-
-                    if not found:
-                        print("Could not find pip")
-                        xp.setWidgetDescriptor(self.pipWindow['widgets']['error'], "Failed: Could not find pip.")
+                    cmd = [xp.pythonExecutable, '-m', 'pip', 'install', '--user'] + packages
+                    print("Calling pip as: {}".format(' '.join(cmd)))
+                    try:
+                        xp.setWidgetDescriptor(self.pipWindow['widgets']['error'], "Running pip... please wait.")
+                        output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+                        xp.setWidgetDescriptor(self.pipWindow['widgets']['error'], "Execution complete.")
+                        print("From pip:\n{}".format(output.decode('utf-8')))
+                        output = output.decode('utf-8').split('\n')
+                    except subprocess.CalledProcessError as e:
+                        print("Calling pip failed: [{}]: {}".format(e.returncode, e.output.decode('utf-8')))
+                        xp.setWidgetDescriptor(self.pipWindow['widgets']['error'], "Failed: Error while executing pip.")
+                        output = e.output.decode('utf-8').split('\n')
+                    popupWindow('PIP output', output)
 
                 xp.setWidgetDescriptor(self.pipWindow['widgets']['packages'], '')
             return 1

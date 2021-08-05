@@ -23,39 +23,37 @@ class XPProgressWindow:
        self.destroy()
     """
 
-    def __init__(self, title):
-        top = 500
+    def __init__(self, title, num_captions=2):
+        windowTop = 500
         left = 100
         # make sure the box is wide enough for the title
         width = max(300, 20 + int(xp.measureString(xp.Font_Proportional, title)))
         right = left + width
-        height = 130
+        height = self.calcWindowHeight(num_captions)
+        self.captionWidgets = []
         self.maxValue = 1000
-        self.progressWindow = xp.createWidget(left, top, right, top - height, 0, title, 1, 0, xp.WidgetClass_MainWindow)
-
-        top -= 25
-        bottom = top - 20
-        self.progressWidget = xp.createWidget(left + 10, top, right - 10, bottom, 1, title, 0, self.progressWindow, xp.WidgetClass_Progress)
+        self.progressWindow = xp.createWidget(left, windowTop, right, windowTop - height, 0, title, 1, 0, xp.WidgetClass_MainWindow)
+        self.progressWidget = xp.createWidget(left + 10, windowTop - 25, right - 10, windowTop - 45, 1, title, 0,
+                                              self.progressWindow, xp.WidgetClass_Progress)
         xp.setWidgetProperty(self.progressWidget, xp.Property_ProgressPosition, 0)
         xp.setWidgetProperty(self.progressWidget, xp.Property_ProgressMin, 0)
         xp.setWidgetProperty(self.progressWidget, xp.Property_ProgressMax, self.maxValue)
 
-        _w, strHeight, _ignore = xp.getFontDimensions(xp.Font_Proportional)
-        top = bottom - 10
-        bottom = top - int(strHeight)
-        self.caption1Widget = xp.createWidget(left + 10, top, right - 10, bottom, 1, '', 0, self.progressWindow, xp.WidgetClass_Caption)
+        for i in range(num_captions):
+            top, bottom = self.calcCaptionOffset(i)
+            self.captionWidgets.append(xp.createWidget(left + 10, windowTop - top, right - 10, windowTop - bottom, 1, '', 0,
+                                                       self.progressWindow, xp.WidgetClass_Caption))
 
-        top = bottom - 7
-        bottom = top - int(strHeight)
-        self.caption2Widget = xp.createWidget(left + 10, top, right - 10, bottom, 1, '', 0, self.progressWindow, xp.WidgetClass_Caption)
-
-        top = bottom - 15
-        bottom = top - 25
         middle = int((right + left) / 2)
-        self.button = xp.createWidget(middle - 25, top, middle + 25, bottom, 1, 'Close', 0, self.progressWindow, xp.WidgetClass_Button)
+        top, bottom = self.calcButtonOffset(num_captions)
+
+        self.button = xp.createWidget(middle - 25, windowTop - top, middle + 25, windowTop - bottom, 1, 'Close', 0,
+                                      self.progressWindow, xp.WidgetClass_Button)
         xp.setWidgetProperty(self.button, xp.Property_ButtonType, xp.PushButton)
         xp.setWidgetProperty(self.button, xp.Property_ButtonBehavior, xp.ButtonBehaviorPushButton)
 
+        winID = xp.getWidgetUnderlyingWindow(self.progressWindow)
+        xp.setWindowPositioningMode(winID, xp.WindowCenterOnMonitor, -1)
         xp.addWidgetCallback(self.progressWindow, self.progressWindowCallback)
 
     def progressWindowCallback(self, inMessage, inWidget, inParam1, inParam2):
@@ -63,6 +61,24 @@ class XPProgressWindow:
             self.hide()
             return 1
         return 0
+
+    def calcWindowHeight(self, num_captions):
+        return self.calcButtonOffset(num_captions)[1] + 8
+
+    def calcButtonOffset(self, num_captions):
+        top, bottom = self.calcCaptionOffset(num_captions - 1)
+        # bottom is now bottom of last widget
+        return bottom + 15, bottom + 40
+
+    def calcCaptionOffset(self, captionNumber):
+        """
+        captionNumber goes 0..n
+        returns (top, bottom), positive offsets from the window's top
+        """
+        _w, strHeight, _ignore = xp.getFontDimensions(xp.Font_Proportional)
+        strHeight = int(strHeight)
+        top = 55 + ((7 + strHeight) * captionNumber)
+        return top, top + strHeight
 
     def destroy(self):
         xp.destroyWidget(self.progressWindow, 1)
@@ -77,10 +93,9 @@ class XPProgressWindow:
         xp.setWidgetProperty(self.progressWidget, xp.Property_ProgressPosition, self.maxValue * (value if value < 1 else 1))
 
     def setCaption(self, caption=''):
-        if '\n' in caption:
-            caption1, caption2 = caption.split('\n', 1)
-        else:
-            caption1 = caption
-            caption2 = ''
-        xp.setWidgetDescriptor(self.caption1Widget, caption1)
-        xp.setWidgetDescriptor(self.caption2Widget, caption2)
+        caption_text = caption.split('\n')
+        for i in range(len(self.captionWidgets)):
+            if i < len(caption_text):
+                xp.setWidgetDescriptor(self.captionWidgets[i], caption_text[i])
+            else:
+                xp.setWidgetDescriptor(self.captionWidgets[i], '')

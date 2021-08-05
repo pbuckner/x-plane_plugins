@@ -1,3 +1,4 @@
+from typing import Tuple
 """Graphics routines for X-Plane and OpenGL.
 
  A few notes on coordinate systems:
@@ -143,7 +144,7 @@ def XPLMBindTexture2d(inTextureNum, inTextureUnit):
 
 
 ###############################################################################
-def XPLMGenerateTextureNumbers(inCount) -> list[int]:
+def XPLMGenerateTextureNumbers(inCount) -> Tuple[int, ...]:
     """Generate number of textures for a plugin.
 
       outTextureIDs - list

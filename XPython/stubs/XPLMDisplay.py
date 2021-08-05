@@ -1,3 +1,4 @@
+from typing import Tuple
 """XPLM Display APIs (based on CHeaders/XPLM/XPLMDisplay.h)
 
  This API provides the basic hooks to draw in X-Plane and create user
@@ -651,7 +652,7 @@ def XPLMGetAllMonitorBoundsOS(inMonitorBoundCallback, inRefcon):
 
 
 ###############################################################################
-def XPLMGetMouseLocationGlobal() -> int, int:
+def XPLMGetMouseLocationGlobal() -> Tuple[int, int]:
     """
     Returns the current mouse location in global desktop boxels. Unlike
     XPLMGetMouseLocation(), the bottom left of the main X-Plane window is not guaranteed
@@ -668,7 +669,7 @@ def XPLMGetMouseLocationGlobal() -> int, int:
 
 ###############################################################################
 ###############################################################################
-def XPLMGetWindowGeometry(inWindowID) -> int, int, int, int:
+def XPLMGetWindowGeometry(inWindowID) -> Tuple[int, int, int, int]:
     """
     This routine returns the position and size of a window. The units and coordinate
     system vary depending on the type of window you have.

@@ -320,7 +320,7 @@ def XPLMCreateCommand(inName, inDescription):
     return int  # XPLMCommandRef
 
 
-def XPLMRegisterCommandHandler(inComand, inHandler, inBefore, inRefcon):
+def XPLMRegisterCommandHandler(inComand, inHandler, inBefore, inRefcon) -> int:
     """
     XPLMRegisterCommandHandler registers a callback to be called when a command
     is executed. You provide a callback with a reference pointer.

@@ -20,13 +20,13 @@ sys.path.insert(0, os.path.abspath('../../stubs'))
 # -- Project information -----------------------------------------------------
 
 project = 'XPPython3'
-copyright = '2020, Peter Buckner'
+copyright = '2021, Peter Buckner'
 author = 'Peter Buckner'
 
 master_doc = 'index'
 
 # The full version, including alpha/beta/rc tags
-release = '3.0.8'
+release = '3.0.9'
 
 
 # -- General configuration ---------------------------------------------------

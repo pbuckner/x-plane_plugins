@@ -6,6 +6,52 @@ Known Bugs
 
  None. Tell me otherwise!
 
+3.0.9x (4-Aug-2021) - BETA
+--------------------------
+:New Features:
+   * **imgui**. Seriously. We now support a custom version of the pyimgui python module (included with installation)
+     which permits plugin developers to use imgui to build user interfaces. Much simpler to use than
+     Laminar widgets. See :doc:`development/imgui`.
+
+   * **"First Time" startup script**. On a successful (initial) installation, we:
+
+       * Create the :code:`Resources/plugins/PythonPlugins` folder, if needed.
+
+       * Download a set of sample plugins into :code:`PythonPlugins/samples` so
+         you can see examples.
+
+       * Pop-up an "Installation Successful" message
+
+   * **OpenGL test plugin** :code:`Py_OpenGL.py` included (in samples).
+     OpenGL installation, especially on a Mac, is problematic. Move :code:`PI_OpenGL.py`
+     up one level from :code:`PythonPlugins/samples` to :code:`PythonPlugins` and restart X-Plane and we'll attempt to
+     automatically load OpenGL, patch Big Sur (Macs only) and provide verbose error log to help diagnose failures.
+     On success, you'll see a mesmerizing graphic.
+
+     Note, this is to use OpenGL with python plugins (with or without imgui module). You
+     can still run X-Plane using Vulkan / Metal.
+
+:Improvements:
+
+   * **Renamed log file** from XPPython3.log to XPPython3Log.txt. This will make it easier to upload the file
+     to x-plane.org which prefers \*.txt files.
+
+   * **Improved installation process and documentation**. Though there are versions of XPPython3 plugin for
+     different minor versions of Python. The documentation is streamlined for the current 3.9 version of
+     python. Also, see "First Time" startup under new features above.
+
+   * Added **more detailed documentation** on use of window positioning code, most applicable to installations
+     which include multiple-monitors.  See :doc:`development/window_position`.
+
+:Fixes:
+
+   * Changed built-in `sys.path` to initialize with absolute rather than relative paths. This
+     allows us to import shared object libraries. (Required to get imgui to work.)
+
+   * Fixed internal manipulation of reference constants associared with registering command handlers. We
+     need a stable key so we can "find" the correct handler. Previous method of calculating the key was
+     not stable for some reference constants.
+
 3.0.8 (27-Dec-2020)
 -------------------
 :Fixes:
@@ -67,7 +113,7 @@ Known Bugs
      and it will load / unload as the user changes their aircraft. Additional documentation to follow.
    * Convenience functions:
 
-     * :py:func:`xp.log` writes to XPPython3.log, prepends your string with name of calling module.
+     * :py:func:`xp.log` writes to XPPython3Log.txt, prepends your string with name of calling module.
      * :py:func:`xp.sys_log` writes to Log.txt log, prepends your string with name of calling module.
 
 :Improvements:
@@ -83,7 +129,7 @@ Known Bugs
    correctly.
  * :py:data:`XPWidgetDefs.xpMsg_MouseWheel` message incorrectly processed
    during :py:func:`XPWidgetUtils.XPUSelectIfNeeded`, which would result in an
-   error message being sent to XPPython3.log. This has been corrected.
+   error message being sent to XPPython3Log.txt. This has been corrected.
 
 3.0.2 (29-Sep-2020)
 -------------------

@@ -147,3 +147,5 @@ And finally we pass ``None`` for our MouseRightClick callback.
 We store the results of ``createWindowEx`` so it's available later when we destroy it as part of cleanup.
 
 Given we've already described the DrawWindow callback above, that's the whole plugin.
+
+See :doc:`hellowidget` for next example.

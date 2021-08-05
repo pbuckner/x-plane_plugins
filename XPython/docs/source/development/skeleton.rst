@@ -1,7 +1,7 @@
 Skeleton
 ========
 
-This does nothing, except log itself in XPPython.log -- a minimal "I Am Here".
+This does nothing, except log itself in XPPython3Log.txt -- a minimal "I Am Here".
 
 ::
 
@@ -26,7 +26,7 @@ This does nothing, except log itself in XPPython.log -- a minimal "I Am Here".
      def XPluginReceiveMessage(self, inFromWho, inMessage, inParam):
          pass
 
-Place it into the PythonPlugins folder, restart X-Plane and nothing will happen, except XPPython.log will
+Place it into the PythonPlugins folder, restart X-Plane and nothing will happen, except XPPython3Log.txt will
 include:
 
 ::
@@ -38,20 +38,22 @@ include:
 
 This is all required:
 
-#. The file must be named starting ``PI_`` and ending ``.py``.
+#. The file **must** be named starting ``PI_`` and ending ``.py``.
 
    * The filename doesn't have to match the name of the plugin, we don't care. (Rename ``PI_HelloWorld.py`` to ``PI_avDD3.py`` and
      it works precisely the same.)
+   * The filename **must** start with ``PI_``. That's how we know it contains a plugin to be loaded into X-Plane:
+     otherwise it's just a python file.
    * The filename (as with all python) becomes the module name. That's different (can be different...) from the Plugin Name (the
      string you return via ``XPluginStart()``.
 
-#. You must have a ``class PythonInterface``.
+#. You **must** have a ``class PythonInterface``.
 
    * You can have other classes also.
    * Your ``PythonInterface`` can inherit from other classes.
    * BUT, you must have exactly one ``class PythonInterface``. That's how we get the plugin's entry point.
 
-#. You must have five named methods: ``XPluginStart()``, ``XPluginStop()``, ``XPluginEnable()``, ``XPluginDisable()``, and ``XPluginReceiveMessage()``.
+#. You **must** have five named methods: ``XPluginStart()``, ``XPluginStop()``, ``XPluginEnable()``, ``XPluginDisable()``, and ``XPluginReceiveMessage()``.
 
    * You can have other methods also.
    * The required methods could be imported from another class.
@@ -59,7 +61,7 @@ This is all required:
    * BUT, they all must exist. X-Plane will invoke you methods directly, calling you ``PI_avDD3.PythonInterface().XPluginStart()`` when
      it is ready to start your plugin, so that had better exist.
 
-#. Your ``XPPluginStart`` must return three strings, in this order:
+#. Your ``XPPluginStart`` **must** return three strings, in this order:
 
    * **Name**: The name should be short, but is used just for display purposes. So whatever you like.
    * **Signature**: The signature *must be unique* across all plugins in the system. Plugsin have the
@@ -70,9 +72,11 @@ This is all required:
 
    You'll note it our example, we set these values in ``__init__()``, but strictly speaking, that's not required
 
-#. Your ``XPluginEnable`` should return ``1``.
+#. Your ``XPluginEnable`` **should** return ``1``.
 
    * Returning ``1`` indicates you were successfully enabled. If you don't return ``1``, we'll assume the worse and
      never speak with you again.
 
 That it!
+
+See :doc:`helloworld` for next example.

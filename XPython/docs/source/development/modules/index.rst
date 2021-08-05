@@ -26,3 +26,4 @@ Modules
    widgetdefs
    widgetutils
    xp
+   xp_imgui

@@ -32,7 +32,7 @@ Functions
 
 .. py:function:: XPPythonLog(s: str) -> None:
 
- Print string into XPPython3.log file, appending a newline.
+ Print string into XPPython3Log.txt file, appending a newline.
  Normally, the log is __not__ flushed after each write. To force
  a flush, call with no parameters (e.g., ``XPPythonLog()``)
 
@@ -46,7 +46,7 @@ Functions
 
  Your str is prefixed with ``[XP3: <module>]`` to help user understand the message
  context. Please, write to System Log only when you need to alert the user
- that something is mis-configured or failing. Otherwise, write to XPPython3.log using
+ that something is mis-configured or failing. Otherwise, write to XPPython3Log.txt using
  :py:func:`XPPythonLog`.
 
 .. py:function:: XPPythonGetCapsules(None) -> capsules_dict:

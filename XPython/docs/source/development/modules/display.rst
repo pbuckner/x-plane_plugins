@@ -230,6 +230,11 @@ Modern windows are not constrained to the main window, they have their origin in
 global desktop space, and the lower left of the main X-Plane window is not guaranteed to
 be (0, 0). X increases as you move left, and Y increases as you move up.
 
+For more information and examples on window positioning, and determining monitor bounds, see :doc:`/development/window_position`.
+
+Note: There is no API or callback for window close: When the user closes your window, you'll simply
+not get any more draw callbacks.
+
 .. _XPLMWindowID:
 
 XPLMWindowID

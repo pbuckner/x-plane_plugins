@@ -177,9 +177,6 @@ class Updater(Config):
                                                  stable_version=self.new_version,
                                                  beta_version=self.beta_version)
             uptodate = uptodate and not forceUpgrade
-            if not uptodate:
-                xp.log('which to update to is {}'.format('beta' if version == self.beta_version else 'release'))
-
             update_which = None if uptodate else ('beta' if version == self.beta_version else 'release')
 
             if update_which:
@@ -209,43 +206,23 @@ class Updater(Config):
         current = Version(current_version)
         stable = Version(stable_version)
         beta = Version(beta_version)
-
-        xp.log("Try beta release: {}, with current: {}, stable: {}, beta: {}".format(try_beta, current, stable, beta))
         if try_beta:
             if beta > current:
-                xp.log("beta newer than current: {} > {}".format(beta, current))
                 if stable > beta:
-                    xp.log("stable newer than beta: {} > {}".format(stable, beta))
-                    xp.log("Upgrade, use stable")
                     return (False, stable_version)
-                xp.log("Upgrade, use beta")
                 return (False, beta_version)
             if beta == current and stable < beta:
-                xp.log("Beta is current, and beta > stable: {} > {}".format(beta, stable))
-                xp.log('No upgrade, use beta')
                 return (True, beta_version)
             if stable > current:
-                xp.log('stable > current: {} > {}'.format(stable, current))
-                xp.log('Upgrade, use stable')
                 return (False, stable_version)
-            xp.log('...otherwise, beta: {}, stable: {}, current: {}'.format(beta, stable, current))
-            xp.log('No upgrade, use current')
             return (True, current_version)
         if stable > current:
-            xp.log("stable > current: {} > {}".format(stable, current))
-            xp.log("Upgrade, stable")
             return (False, stable_version)
         if stable == current:
-            xp.log("stable == current: {} == {}".format(stable, current))
-            xp.log("No upgrade, current")
             return (True, current_version)
         # If i have a beta (any beta), go with stable_version
         # otherwise, stick with what I have.
         if current.prerelease:
-            xp.log("Have prerelease")
-            xp.log("Upgrade, stable")
             # you have beta
             return (False, stable_version)
-        xp.log("final clause")
-        xp.log("No upgrade, current")
         return (True, current_version)

@@ -28,7 +28,7 @@ extern void clearAllMenuItems();
 /**********************
  * Plugin configuration
  */
-static char *logFileName = "XPPython3.log";
+static char *logFileName = "XPPython3Log.txt";
 static char *ENV_logFileVar = "XPPYTHON3_LOG";  // set this environment to override logFileName
 static char *ENV_logPreserve = "XPPYTHON3_PRESERVE";  // DO NOT truncate XPPython log on startup. If set, we preserve, if unset, we truncate
 
@@ -36,7 +36,7 @@ const char *pythonPluginsPath = "./Resources/plugins/PythonPlugins";
 const char *pythonInternalPluginsPath = "./Resources/plugins/XPPython3";
 
 static const char *pythonPluginName = "XPPython3";
-const char *pythonPluginVersion = "3.0.8 - for Python " PYTHONVERSION;
+const char *pythonPluginVersion = "3.0.9a5 - for Python " PYTHONVERSION;
 const char *pythonPluginSig  = "xppython3.main";
 static const char *pythonPluginDesc = "X-Plane interface for Python 3";
 static const char *pythonDisableCommand = "XPPython3/disableScripts";

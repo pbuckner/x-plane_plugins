@@ -77,6 +77,6 @@ This is all required:
    * Returning ``1`` indicates you were successfully enabled. If you don't return ``1``, we'll assume the worse and
      never speak with you again.
 
-That it!
+That's it!
 
 See :doc:`helloworld` for next example.

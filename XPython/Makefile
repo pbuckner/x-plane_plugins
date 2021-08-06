@@ -115,7 +115,7 @@ XPPython39.xpl: $(subst XXX,39,$(PLUGIN_OBJ))
 	$(LD) $^ $(LDFLAGS39) -o $@ 
 
 
-StandardPythonUtils = Resources/plugins/XPPython3/xp.py Resources/plugins/XPPython3/I_PI_Updater.py Resources/plugins/XPPython3/scriptupdate.py Resources/plugins/XPPython3/scriptconfig.py Resources/plugins/XPPython3/I_PI_FirstTime.py Resources/plugins/XPPython3/zip_download.py Resources/plugins/XPPython3/imgui/core.cp39-win_amd64.pyd
+StandardPythonUtils = Resources/plugins/XPPython3/xp.py Resources/plugins/XPPython3/xp_imgui/ Resources/plugins/XPPython3/I_PI_Updater.py Resources/plugins/XPPython3/scriptupdate.py Resources/plugins/XPPython3/scriptconfig.py Resources/plugins/XPPython3/I_PI_FirstTime.py Resources/plugins/XPPython3/zip_download.py Resources/plugins/XPPython3/imgui/core.cp39-win_amd64.pyd
 
 Resources/plugins/xppython3%.zip : win/XPPython3%.xpl lin/XPPython3%.xpl mac/XPPython3%.xpl $(StandardPythonUtils)
 	rm -f $@
@@ -127,7 +127,7 @@ Resources/plugins/xppython3%.zip : win/XPPython3%.xpl lin/XPPython3%.xpl mac/XPP
 	cp $(filter mac/%, $^) Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
 	cp $(filter lin/%, $^) Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
 	cd Resources/plugins; \
-		$(ZIP) $(notdir $@) -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md  XPPython3/xpyce/\*.py ; \
+		$(ZIP) $(notdir $@) -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md  XPPython3/xpyce/\*.py XPPython3/xp_imgui/\*.py; \
 		v=`echo $(notdir $@) | sed  's/xppython\([0-9]*\).zip/\1/'`; \
 		$(ZIP) $(notdir $@) -u XPPython3/imgui/*.py XPPython3/imgui/integrations/*.py XPPython3/imgui/core*$$v* ;
 	rm -r Resources/plugins/XPPython3/*_x64

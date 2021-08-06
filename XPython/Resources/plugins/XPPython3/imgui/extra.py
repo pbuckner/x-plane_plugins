@@ -3,7 +3,7 @@ This module provides extra utilities that are not part of core ImGui C++ API
 but are useful in Python application.
 
 """
-from imgui import core
+from . import core
 
 __all__ = (
     "text_ansi",

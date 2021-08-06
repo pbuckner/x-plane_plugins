@@ -58,7 +58,7 @@ class PythonInterface:
                                 " • You should install 3rd party plugins in: \n"
                                 "    <X-Plane>/Resources/plugins/PythonPlugins/\n"
                                 " • We've also copied lots of plugin examples into \n"
-                                "    <X-Plane>/Resources/plugisn/PythonPlugins/samples/\n"
+                                "    <X-Plane>/Resources/plugins/PythonPlugins/samples/\n"
                                 "       ◦ Move a file into PythonPlugins to execute, or \n"
                                 "       ◦ Look at the code examples and write your own! \n"
                                 "\n"

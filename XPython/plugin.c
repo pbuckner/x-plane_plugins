@@ -36,7 +36,7 @@ const char *pythonPluginsPath = "./Resources/plugins/PythonPlugins";
 const char *pythonInternalPluginsPath = "./Resources/plugins/XPPython3";
 
 static const char *pythonPluginName = "XPPython3";
-const char *pythonPluginVersion = "3.0.9a5 - for Python " PYTHONVERSION;
+const char *pythonPluginVersion = "3.0.9a6 - for Python " PYTHONVERSION;
 const char *pythonPluginSig  = "xppython3.main";
 static const char *pythonPluginDesc = "X-Plane interface for Python 3";
 static const char *pythonDisableCommand = "XPPython3/disableScripts";
@@ -200,23 +200,37 @@ int initPython(void){
   loggerModuleObj = PyImport_ImportModule("XPythonLogger");
 
   PyObject *path = PySys_GetObject("path"); //Borrowed!
-  PyObject *pathStrObj = NULL;
+  PyObject *pathStrObj = NULL, *absolutePathStrObj = NULL, *xPlaneDirObj = NULL;
+
+  char x_plane_dir[512];
+  XPLMGetSystemPath(x_plane_dir);
+  xPlaneDirObj = PyUnicode_DecodeUTF8(x_plane_dir, strlen(x_plane_dir), NULL);
 
   pathStrObj = PyUnicode_DecodeUTF8(pythonPluginsPath, strlen(pythonPluginsPath), NULL);
-  PyList_Append(path, pathStrObj);
+  absolutePathStrObj = PyUnicode_Concat(xPlaneDirObj, pathStrObj);
+  PyList_Append(path, absolutePathStrObj);
   Py_DECREF(pathStrObj);
+  Py_DECREF(absolutePathStrObj);
 
   pathStrObj = PyUnicode_DecodeUTF8(pythonPluginsPath, (strrchr(pythonPluginsPath, '/') - pythonPluginsPath), NULL);
-  PyList_Append(path, pathStrObj);
+  absolutePathStrObj = PyUnicode_Concat(xPlaneDirObj, pathStrObj);
+  PyList_Append(path, absolutePathStrObj);
   Py_DECREF(pathStrObj);
+  Py_DECREF(absolutePathStrObj);
 
   pathStrObj = PyUnicode_DecodeUTF8(pythonInternalPluginsPath, strlen(pythonInternalPluginsPath), NULL);
-  PyList_Append(path, pathStrObj);
+  absolutePathStrObj = PyUnicode_Concat(xPlaneDirObj, pathStrObj);
+  PyList_Append(path, absolutePathStrObj);
   Py_DECREF(pathStrObj);
+  Py_DECREF(absolutePathStrObj);
 
   pathStrObj = PyUnicode_DecodeUTF8(pythonInternalPluginsPath, (strrchr(pythonInternalPluginsPath, '/') - pythonInternalPluginsPath), NULL);
-  PyList_Append(path, pathStrObj);
+  absolutePathStrObj = PyUnicode_Concat(xPlaneDirObj, pathStrObj);
+  PyList_Append(path, absolutePathStrObj);
   Py_DECREF(pathStrObj);
+  Py_DECREF(absolutePathStrObj);
+
+  Py_DECREF(xPlaneDirObj);
 
   xppythonDicts = PyDict_New();
   Py_INCREF(xppythonDicts);

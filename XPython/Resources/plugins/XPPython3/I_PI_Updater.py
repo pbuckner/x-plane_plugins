@@ -53,6 +53,7 @@ class PythonInterface(Config):
         xp.appendMenuItemWithCommand(self.menu, 'Reload scripts', xp.findCommand('XPPython3/reloadScripts'))
         xp.appendMenuSeparator(self.menu)
         xp.appendMenuItem(self.menu, 'Update', 'update')
+        xp.appendMenuItem(self.menu, 'Download Samples', 'samples')
         self.updateMenuIdx = 6
         xp.appendMenuItem(self.menu, 'Pip Package Installer', 'pip')
         self.setUpdateMenu()
@@ -69,6 +70,10 @@ class PythonInterface(Config):
         xp.setMenuItemName(self.menu, self.updateMenuIdx, self.menu_update_text())
 
     def menuHandler(self, menuRef, itemRef):
+        if itemRef == 'samples':
+            import I_PI_FirstTime
+            p = I_PI_FirstTime.PythonInterface()
+            p.firstTime(forceCopySamples=True)
         if itemRef == 'update':
             xp.commandOnce(self.updatePythonCmdRef)
         if itemRef == 'pip':

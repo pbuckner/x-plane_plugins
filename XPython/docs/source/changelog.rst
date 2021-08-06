@@ -11,14 +11,15 @@ Known Bugs
 :New Features:
    * **imgui**. Seriously. We now support a custom version of the pyimgui python module (included with installation)
      which permits plugin developers to use imgui to build user interfaces. Much simpler to use than
-     Laminar widgets. See :doc:`development/imgui`.
+     Laminar widgets. See :doc:`development/imgui`. A demo plugin is included.
 
    * **"First Time" startup script**. On a successful (initial) installation, we:
 
        * Create the :code:`Resources/plugins/PythonPlugins` folder, if needed.
 
        * Download a set of sample plugins into :code:`PythonPlugins/samples` so
-         you can see examples.
+         you can see examples. (We've also included a new menu item **Download Samples**
+         which allows you to re-download the latest set of samples.)
 
        * Pop-up an "Installation Successful" message
 

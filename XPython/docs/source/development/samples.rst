@@ -5,6 +5,9 @@ When you first loaded XPPython3, we automatically downloaded the current set of 
 to the ``samples`` directory under ``PythonPlugins``. The full set is located on github
 `xppython3-demos/ <https://github.com/pbuckner/xppython3-demos/>`_.
 
+You can download a full set of sample plugins by selecting **Download Samples** from the XPPython3
+menu. (The files will be copied into ``PythonPlugins/samples``).
+
 To use any sample, copy or move it from ``PythonPlugins/samples`` to ``PythonPlugins/`` (because
 XPPython3 doesn't look for plugins in subdirectories!) You may have to copy one or two other
 files from ``samples`` to get the plugin working.

@@ -14,7 +14,7 @@ XPPython3 installs a single menu item, "XPPython3", on the plugin menu. From the
 There is also an **About** menu item which further describes this plugin, including links to documentation
 and current version number.
 
-The XPPython3 menu includes two final items:
+The XPPython3 menu includes three final items:
 
 * **Version** -- with an indication if you're using the most current version. If you're not using the
   most current version, selecting this item will attempt to update your XPPython3 version to the latest.
@@ -28,6 +28,10 @@ The XPPython3 menu includes two final items:
 
   If all else fails, you can always re-download the zip file (mentioned at the top of this page) and replace
   your current XPPython3 folder with the contents of the zip file.
+  
+* **Download Samples** -- Refreshes python sample plugins by downloading the latest set from github and
+  putting them in the ``PythonPlugins/samples`` subdirectory. Moving a sample plugin from there up into
+  the ``PythonPlugins`` will enable it to be loaded by X-Plane. See :doc:`/development/samples`.
   
 * **Pip Package Installer** -- *pip* is a python-based installer that is commonly used to install
   python packages (i.e., modules or script libraries). While Python comes with lots of built-in libraries,

@@ -48,7 +48,8 @@ Code Examples
 
 * :doc:`samples`.   Ported versions of C++ and Python2 demos. Many of
   these are copied to your ``PythonPlugins/samples/`` folder on installation, but there may be more, and more recent demos
-  on github.
+  on github. You can download the latest set, refreshing the ``samples`` folder, by selecting **Download Samples** from the
+  XPPython3 menu.
 
 * `XPython/examples/ (github) <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/examples/>`_ Python test code exercising each interface
   is in this directory, organized primarily one example file per module.

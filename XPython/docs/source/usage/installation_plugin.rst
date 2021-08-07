@@ -35,9 +35,9 @@ Installation
 
   This plugin XPPython3 folder must be placed in :code:`<XP>/Resources/plugins`.
   On first execution, XPPython3 **will create** the :code:`Resources/plugins/PythonPlugins` folder.
-  You should place any third-party python plugins in that PythonPlugins folder. (You can download
-  sample demo plugins from `github.com/pbuckner/xppython-demos <https://github.com/pbuckner/xppython3-demos/zipball/main>`_.
-  To execute, move a plugin into the `PythonPlugins` folder.)
+  You should place any third-party python plugins in that PythonPlugins folder. (On first run of
+  the plugin, XPPython3 will automatically download a set of sample plugins into your ``Resources/plugins/PythonPlugins/samples``
+  folder. To execute, move a plugin up into the `PythonPlugins` folder.)
 
 4. Start X-Plane.
 
@@ -66,8 +66,11 @@ If Pip fails because it cannot find pip (most commonly on linux) make sure you'v
 File System Layout
 ==================
 
-XPPython3 is a plugin, so it needs to be in a particular folder. In turn, XPPython3 loads PI\_\*.py plugin files,
-so *they* need to be in a particular folder. The structure is:
+XPPython3 is an X-Plane plugin, so it needs to be in the ``Resources/plugins`` folder.
+In turn, XPPython3 loads PI\_\*.py plugin files, so *they* need to be in ``Resources/plugins/PythonPlugins`` folder.
+Python plugins in the ``samples`` folder won't get loaded on X-Plane startup.
+
+The structure is:
 
 ::
 
@@ -82,18 +85,20 @@ so *they* need to be in a particular folder. The structure is:
             │    └─── win_x64/
             │         └─── XPPython3.xpl
             └─── PythonPlugins/
-                 │
                  ├─── PI_<plugin1>.py
                  ├─── PI_<plugin2>.py
-                 └─── ....
+                 ├─── ....
+                 └─── samples/
+                      ├─── PI_<sample1>.py
+                      ├─── PI_<sample2>.py
+                      └─── ....
 
     
 Third-party Python plugins themselves go to:
 
 * **Resources/plugins/PythonPlugins/** folder
 
-  + Single file named :code:`PI_<anything>.py` for each separate python plugin. This is the starting point for each python plugin
-    (For Python2, we used "PythonScripts" folder -- same idea, but we need a different folder.)
+  + Single file named :code:`PI_<anything>.py` for each separate python plugin. This is the starting point for each python plugin [#F2]_ 
   + Plugins are loaded in order as returned by the OS: that is, do not assume alphabetically!
   + Python files can then import other python files.
 
@@ -102,10 +107,10 @@ Internally, we also use:
 * **Resources/plugins/XPPython3/** folder
 
   + *Do Not* place your python files in this directory. They may be deleted on reload of the XPPython3 plugin.
-  + "internal" plugins. This is intended for internal use, and are additional python plugins loaded
+  + These are "internal" plugins. This is intended for internal use, and are additional python plugins loaded
     prior to the user directory "PythonPlugins". Note this is (usually) the same folder as holding
     the binary :code:`*.xpl` plugin files. To be loaded on startup, files need to be named :code:`I_PI<anything>.py`.
-  + python files in this directory will also be in your PYTHONPATH and therefore accessible to your
+  + Python files in this directory will also be in your PYTHONPATH and therefore accessible to your
     scripts. (Feel free to look at these source files for examples / inspiration).
 
 
@@ -123,7 +128,7 @@ If you have errors running python plugins,
 
 See also :doc:`common_errors`.
 
-You should provide both Log.txt and XPPython3Log.txt when looking for assistance with a python plugin.
+You should provide both **Log.txt** and **XPPython3Log.txt** when looking for assistance with a python plugin.
 
 .. Warning:: It is **very** unlikely that a python2 plugin will work without modification with python3. The
              python language itself changed between versions. Additionally, python2 plugins used older
@@ -164,3 +169,4 @@ More Installation Topics
          wants to try and debug that, so *please*: you have the disk space. Download a brand new copy of python,
          place it in the recommended location and think of it as being used exclusively for X-Plane.
 
+.. [#F2] For Python2, we used "PythonScripts" folder -- same idea, but we need a different folder.

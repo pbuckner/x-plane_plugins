@@ -269,7 +269,7 @@ To run standalone, do this
 
  #. Run sample ``imgui_piglet.py``, picking up pyimgui from ``Resources/plugins/XPPython3``::
 
-     $ cd Resources/plugins/PythonPlugins/sample
+     $ cd Resources/plugins/PythonPlugins/samples
      $ PYTHONPATH=<XP>/Resources/plugins/XPPython3
      $ export PYTHONPATH
      $ python3 imgui_piglet.py

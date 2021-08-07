@@ -6,8 +6,8 @@ Known Bugs
 
  None. Tell me otherwise!
 
-3.0.9x (4-Aug-2021) - BETA
---------------------------
+3.0.9 (7-Aug-2021)
+------------------
 :New Features:
    * **imgui**. Seriously. We now support a custom version of the pyimgui python module (included with installation)
      which permits plugin developers to use imgui to build user interfaces. Much simpler to use than

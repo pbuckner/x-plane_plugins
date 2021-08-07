@@ -222,18 +222,62 @@ life, this might point to datarefs to set or other internal data.
 Note that :code:`drawWindow` does the imgui work and everything else is nearly identical to
 a non-imgui example.
 
-More imgui
-----------
-For the actual set of imgui calls you can make (e.g., ``imgui.radio_button``, ``imgui.slider_float``)
+More pyimgui and imgui
+----------------------
+**imgui** is an open-source C++ library. As of August 2021, imgui is on version 1.83.
+
+**pyimgui** is an open source python wrapper to *some* of the features of the C++ library. It
+wraps an older version of imgui, version 1.65. Development on this python interface seems to
+have stalled. (pyimgui is version 1.3.1, which generally supports imgui 1.65).
+
+XPPython3 has taken a copy of pyimgui v1.3.1 and modified it to work with X-Plane, pyimgui (and XPPython3's copy)
+includes imgui v1.65 C++ library.
+
+So XPPython3 will support *at best* features from 1.65. This is more than adequate for implementing
+widgets to interact with the user: more complicated drawing is probably not going to work. Some of the
+features in the C++ library are not (yet) supported by pyimgui.
+
+There are two ways to see what this version of imgui can do:
+
+ #. Modify the provided sample in PI_imgui.py, and run that within X-Plane
+
+ #. Run standalone `pyglet <https://pyglet.readthedocs.io/en/latest/>`_ based GUI, where
+    you can try out the widgets without running all of X-Plane.
+
+ShowDemoWindow
+..............
+
+.. image:: /images/pyglet.png     
+           :align: right
+           :scale: 50%
+
+Either way, imgui comes with a great demonstration. In C++ it is ``ImGui::ShowDemoWindow()``.
+You can see this by calling the pyimgui method ``show_demo_window()``. Not very helpful actually,
+because that python merely calls the C++ method.
+
+However, we've also included the file ``pyimgui_demowindow.py`` under ``PythonPlugins/samples`` which
+is work-in-progress rewriting the C++ method fully in python. Look at the python file to see
+the actual set of pyimgui calls you can make (e.g., ``imgui.radio_button``, ``imgui.slider_float``).
 refer to `pyimgui's documentation <https://pyimgui.readthedocs.io/en/latest/index.html>`_, especially
-`pyimgui.core <https://pyimgui.readthedocs.io/en/latest/reference/imgui.core.html>`_. Also, see
-``XPPython3/xp_imgui/testwindow.py`` which is a python version of imgui's ``ImGui::ShowDemoWindow()``
+`pyimgui.core <https://pyimgui.readthedocs.io/en/latest/reference/imgui.core.html>`_.
 
+To run standalone, do this
+ #. Get python3 running
+ #. Install python modules ``pyopengl``, ``pyglet`` ::
 
-Advanced
---------
+     $ python3 -m pip install pyopengl pyglet
 
-All of the xp / imgui interface is implemented in python code in the provided xp_imgui module. If
+ #. Run sample ``imgui_piglet.py``, picking up pyimgui from ``Resources/plugins/XPPython3``::
+
+     $ cd Resources/plugins/PythonPlugins/sample
+     $ PYTHONPATH=<XP>/Resources/plugins/XPPython3
+     $ export PYTHONPATH
+     $ python3 imgui_piglet.py
+
+Advanced - imgui to X-Plane interface code
+------------------------------------------
+
+All of the xp / imgui interface is implemented in python code in the provided ``XPPython3/xp_imgui`` module. If
 you're curious how this works, check out files under XPPython3:
 
  * **xp_imgui/window.py**: which provides the window manipulation code, and

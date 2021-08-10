@@ -723,8 +723,6 @@ PyInit_XPPython(void)
   if (PyType_Ready(&FMSEntryInfoType) < 0)
     return NULL;
 
-  xppythonCapsules = PyDict_New();
-  Py_INCREF(xppythonCapsules);
   PyObject *mod = PyModule_Create(&XPPythonModule);
 
   if (mod != NULL) {

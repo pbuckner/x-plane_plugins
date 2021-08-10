@@ -36,7 +36,7 @@ const char *pythonPluginsPath = "./Resources/plugins/PythonPlugins";
 const char *pythonInternalPluginsPath = "./Resources/plugins/XPPython3";
 
 static const char *pythonPluginName = "XPPython3";
-const char *pythonPluginVersion = "3.0.9 - for Python " PYTHONVERSION;
+const char *pythonPluginVersion = "3.0.10 - for Python " PYTHONVERSION;
 const char *pythonPluginSig  = "xppython3.main";
 static const char *pythonPluginDesc = "X-Plane interface for Python 3";
 static const char *pythonDisableCommand = "XPPython3/disableScripts";
@@ -234,6 +234,8 @@ int initPython(void){
 
   xppythonDicts = PyDict_New();
   Py_INCREF(xppythonDicts);
+  xppythonCapsules = PyDict_New();
+  Py_INCREF(xppythonCapsules);
 
   PyObject *cryptographyModuleObj = PyImport_ImportModule("cryptography");
   if (!cryptographyModuleObj) {
@@ -382,13 +384,14 @@ void loadModules(const char *path, const char *package, const char *pattern, PyO
   PyObject *pluginInstance;
   if(dir == NULL){
     fprintf(pythonLogFile, "Looking in '%s' to scan for plugins: directory not found.\n", path);
+    fflush(pythonLogFile);
     return;
   }
   struct dirent *de;
   regex_t rex;
   if(regcomp(&rex, pattern, REG_NOSUB) == 0){
     while((de = readdir(dir))){
-      // fprintf(pythonLogFile, "Checking file name %s\n", de->d_name);
+      // pythonDebug("Checking file name %s against pattern %s", de->d_name, pattern);
       if(regexec(&rex, de->d_name, 0, NULL, 0) == 0 && strstr(de->d_name, "flymake.py") == NULL){
         char *modName = strdup(de->d_name);
         if(modName){
@@ -402,7 +405,6 @@ void loadModules(const char *path, const char *package, const char *pattern, PyO
              "PythonPlugins.PI_<plugin>.py"
              "Laminar Research.Baron B58.plugins.PythonPlugions.PI_<plugin>.py"
           */
-          // pythonDebug("attempting to load PI_Class %s", pkgModName); 
           pluginInstance = loadPIClass(pkgModName);
           if (pluginInstance && pluginList){
             PyList_Append(pluginList, pluginInstance);

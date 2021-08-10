@@ -6,6 +6,14 @@ Known Bugs
 
  None. Tell me otherwise!
 
+3.0.10 (9-Aug-2021)
+------------------
+:Fixes:
+
+   * Race condition caused XPPython3 and X-Plane to crash immediately on startup. Only occured on some
+     configurations (Known to occur on some Linux and Window 11).
+
+
 3.0.9 (7-Aug-2021)
 ------------------
 :New Features:

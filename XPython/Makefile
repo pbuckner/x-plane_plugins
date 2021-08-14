@@ -5,7 +5,7 @@ XP_SDK=../SDK
 VERSIONS= 36 37 38 39
 #########
 # COMMON opts
-CFLAGS=-Wall -Wextra -g -fpic -fPIC -fvisibility=hidden
+CFLAGS=-Wall -Wextra -g -fpic -fPIC -fvisibility=hidden -DXPPYTHON3VERSION=\"3.0.11a\"
 XPLM_CPPFLAGS = -DXPLM200 -DXPLM210 -DXPLM300 -DXPLM301 -DXPLM302 -DXPLM303 \
                 -I$(XP_SDK)/CHeaders -I$(XP_SDK)/CHeaders/XPLM -I$(XP_SDK)/CHeaders/Widgets
 ZIP=zip

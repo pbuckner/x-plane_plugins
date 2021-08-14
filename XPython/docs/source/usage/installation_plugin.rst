@@ -18,7 +18,7 @@ Installation
     install it "For All Users".  (*PLEASE*. This is the single most common error!)
 
   **For Linux**
-    use your package manager (deb, apt, etc.) install as root, and make sure you also have pip
+    use your package manager (deb, apt, etc.) install as root, and make sure you also have pip and libpython.
     (e.g., ``apt-get install python3-pip``)
     Check which version of python3 is actually installed, because you'll need to get *that* version of XPPython3 plugin: ``python3 --version``.
 

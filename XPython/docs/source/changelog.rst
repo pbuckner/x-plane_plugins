@@ -6,6 +6,17 @@ Known Bugs
 
  None. Tell me otherwise!
 
+3.0.11a (BETA)
+--------------
+:Fixes:
+
+   * Changed order of python sys.path updates: We now INSERT (rather than APPEND) X-Plane related paths. The result
+     is you'll have Airplane and Scenery plugin paths first, followed by PythonPlugins directory, followed by XPPython3
+     directory, followed by the original python path. (No known error related to this, but it seems 'proper'
+     to set path like this.
+
+   * Delete former XPPython3.log on startup, if it exists -- this to avoid confusion as to which file is the log file.
+
 3.0.10 (9-Aug-2021)
 ------------------
 :Fixes:

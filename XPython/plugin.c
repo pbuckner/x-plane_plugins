@@ -32,11 +32,12 @@ static char *logFileName = "XPPython3Log.txt";
 static char *ENV_logFileVar = "XPPYTHON3_LOG";  // set this environment to override logFileName
 static char *ENV_logPreserve = "XPPYTHON3_PRESERVE";  // DO NOT truncate XPPython log on startup. If set, we preserve, if unset, we truncate
 
-const char *pythonPluginsPath = "./Resources/plugins/PythonPlugins";
-const char *pythonInternalPluginsPath = "./Resources/plugins/XPPython3";
+const char *pythonPluginsPath = "Resources/plugins/PythonPlugins";
+const char *pythonInternalPluginsPath = "Resources/plugins/XPPython3";
 
 static const char *pythonPluginName = "XPPython3";
-const char *pythonPluginVersion = "3.0.10 - for Python " PYTHONVERSION;
+const char *pythonPluginVersion = XPPYTHON3VERSION " - for Python " PYTHONVERSION;
+/* 10a: update sys.path to INSERT rather than APPEND plugin paths */
 const char *pythonPluginSig  = "xppython3.main";
 static const char *pythonPluginDesc = "X-Plane interface for Python 3";
 static const char *pythonDisableCommand = "XPPython3/disableScripts";
@@ -206,27 +207,24 @@ int initPython(void){
   XPLMGetSystemPath(x_plane_dir);
   xPlaneDirObj = PyUnicode_DecodeUTF8(x_plane_dir, strlen(x_plane_dir), NULL);
 
-  pathStrObj = PyUnicode_DecodeUTF8(pythonPluginsPath, strlen(pythonPluginsPath), NULL);
-  absolutePathStrObj = PyUnicode_Concat(xPlaneDirObj, pathStrObj);
-  PyList_Append(path, absolutePathStrObj);
-  Py_DECREF(pathStrObj);
-  Py_DECREF(absolutePathStrObj);
-
+  /* Resources/plugins */
   pathStrObj = PyUnicode_DecodeUTF8(pythonPluginsPath, (strrchr(pythonPluginsPath, '/') - pythonPluginsPath), NULL);
   absolutePathStrObj = PyUnicode_Concat(xPlaneDirObj, pathStrObj);
-  PyList_Append(path, absolutePathStrObj);
+  PyList_Insert(path, 0, absolutePathStrObj);
   Py_DECREF(pathStrObj);
   Py_DECREF(absolutePathStrObj);
 
+  /* Resources/plugins/XPPython3 */
   pathStrObj = PyUnicode_DecodeUTF8(pythonInternalPluginsPath, strlen(pythonInternalPluginsPath), NULL);
   absolutePathStrObj = PyUnicode_Concat(xPlaneDirObj, pathStrObj);
-  PyList_Append(path, absolutePathStrObj);
+  PyList_Insert(path, 0, absolutePathStrObj);
   Py_DECREF(pathStrObj);
   Py_DECREF(absolutePathStrObj);
 
-  pathStrObj = PyUnicode_DecodeUTF8(pythonInternalPluginsPath, (strrchr(pythonInternalPluginsPath, '/') - pythonInternalPluginsPath), NULL);
+  /* Resources/plugins/PythonPlugins */
+  pathStrObj = PyUnicode_DecodeUTF8(pythonPluginsPath, strlen(pythonPluginsPath), NULL);
   absolutePathStrObj = PyUnicode_Concat(xPlaneDirObj, pathStrObj);
-  PyList_Append(path, absolutePathStrObj);
+  PyList_Insert(path, 0, absolutePathStrObj);
   Py_DECREF(pathStrObj);
   Py_DECREF(absolutePathStrObj);
 
@@ -248,7 +246,7 @@ int initPython(void){
       PyObject *pFunction = PyObject_GetAttrString(pModule, "XPYCEPathFinder");
       if (pFunction) {
         PyObject *meta_path = PySys_GetObject("meta_path");
-        PyList_Append(meta_path, pFunction);
+        PyList_Insert(meta_path, 0, pFunction);
         PySys_SetObject("meta_path", meta_path);
         fprintf(pythonLogFile, "%s loader initialized.\n", xpyceModule);
       } else {
@@ -483,7 +481,7 @@ static void loadSceneryPlugins()
                "        p = Path(os.path.normpath(x))\n"
                "        path_component = str(Path().joinpath(*p.parts[:-3]))\n"
                "        if path_component not in sys.path:\n"
-               "            sys.path.append(path_component)\n"
+               "            sys.path.insert(0, path_component)\n"
                "        package = '.'.join([os.path.split(scenery_package_directory)[-1], 'plugins', 'PythonPlugins'])\n"
                "        if glob.glob(x + '/PI_*.py'):\n"
                "            packages.append([x, package])\n",
@@ -943,10 +941,10 @@ static void loadAircraftPlugins() {
                "import xp\n"
                "aircraft_root = os.path.join(xp.getSystemPath(), 'Aircraft')\n"
                "if aircraft_root not in sys.path:\n"
-               "    sys.path.append(aircraft_root)\n"
+               "    sys.path.insert(0, aircraft_root)\n"
                "aircraft_path_rel = os.path.relpath(aircraft_path, start=aircraft_root)\n"
                "if aircraft_path not in sys.path:\n"
-               "    sys.path.append(aircraft_path)\n"
+               "    sys.path.insert(0, aircraft_path)\n"
                "package = (aircraft_path_rel + '/plugins/PythonPlugins').replace('/', '.').replace('\\\\', '.')\n",
                Py_file_input, localsDict, localsDict);
   

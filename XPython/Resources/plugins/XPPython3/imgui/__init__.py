@@ -2,7 +2,27 @@
 VERSION = (1, 3, 1)  # PEP 386
 __version__ = ".".join([str(x) for x in VERSION])
 
-from imgui.core import *  # noqa
+try:
+    from imgui.core import *  # noqa
+except TypeError as e:
+    if 'NoneType' in e.args:
+        # On reload, the "old" shared library does not clear properly
+        # which means the reloaded version does not initilize.
+        # The result is a stacktrace like:
+        #    Traceback (most recent call last):
+        #      File ".../XPPython3/imgui/__init__.py", line 6, in <module>
+        #         from imgui.core import *  # noqa
+        #      File "/Volumes/Red1/code/pyimgui/imgui/__init__.py", line 22, in <module>
+        #         VERTEX_BUFFER_POS_OFFSET = extra.vertex_buffer_vertex_pos_offset()
+        #    TypeError: 'NoneType' object is not callable
+        # Here, we try to catch that particular problem and
+        # log a more informative message.
+        print("[XPPython3.imgui] Failed to import imgui shared library. ")
+        print("[XPPython3.imgui] If you tried to Reload Plugins, this is known to fail. Restart X-Plane instead.")
+        print("[XPPython3.imgui] Error is: {}".format(e))
+        raise ImportError
+    raise
+
 from imgui import core
 from imgui.extra import *  # noqa
 from imgui import extra

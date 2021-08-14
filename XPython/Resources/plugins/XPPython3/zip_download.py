@@ -3,10 +3,16 @@ import os
 import threading
 from zipfile import ZipFile
 from urllib.request import urlretrieve
+from urllib.error import URLError
+try:
+    from ssl import SSLCertVerificationError  # py 3.7+
+except ImportError:
+    from ssl import CertificateError as SSLCertVerificationError  # py < 3.7, py2
 import XPPython3.xp as xp
 from XPPython3.XPProgressWindow import XPProgressWindow
 
 log = xp.sys_log
+
 
 class ZipDownload:
     initial_progress_msg = "Updating file"
@@ -64,6 +70,22 @@ class ZipDownload:
         zipfile = os.path.join(self.download_path, '._UPDATE.zip')
         try:
             urlretrieve(download_url, zipfile, reporthook=hook)
+        except URLError as e:
+            try:
+                if ((isinstance(e.reason, SSLCertVerificationError)
+                     and e.reason.reason == 'CERTIFICATE_VERIFY_FAILED'
+                     and platform.system() == 'Darwin')):
+                    msg = ("\nError: !!! Python Installation Incomplete:\n"
+                           "    Run /Applications/Python<version>/Install Certificates, and restart X-Plane.\n"
+                           "    See https://xppython3.readthedocs.io/en/latest/usage/common_errors.html\n")
+                    xp.sys_log(msg)
+                    xp.log(msg)
+                    self.progressWindow.setCaption("Python Installation incomplete, See XPPython3Log.txt for details")
+                    return
+            except Exception:
+                pass
+            xp.log("Internet connection error, cannot check version. Will check next time.")
+            
         except Exception as e:
             log('Error while retrieving: {} ({}): {}'.format(download_url, zipfile, e))
             return

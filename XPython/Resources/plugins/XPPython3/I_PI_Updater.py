@@ -3,10 +3,10 @@ import re
 import os
 import subprocess
 import webbrowser
-import sysconfig
 import XPPython
 from XPPython3 import scriptupdate
 from XPPython3 import xp
+from XPPython3 import samples
 
 
 class Config (scriptupdate.Updater):
@@ -36,6 +36,13 @@ class PythonInterface(Config):
         super(PythonInterface, self).__init__()
 
     def XPluginStart(self):
+        old_logfile = os.path.join(xp.getSystemPath(), "XPPython3.log")
+        if os.path.exists(old_logfile):
+            try:
+                os.remove(old_logfile)
+            except Exception as e:
+                xp.log("Old XPPython3 log file, 'XPPython3.log' still exists: you should remove it: {}".format(e))
+
         self.updatePythonCmdRef = xp.createCommand('xppython3/update', 'Update XPPython3 Plugin')
         xp.registerCommandHandler(self.updatePythonCmdRef, self.updatePython, 1, '')
 
@@ -71,9 +78,7 @@ class PythonInterface(Config):
 
     def menuHandler(self, menuRef, itemRef):
         if itemRef == 'samples':
-            import I_PI_FirstTime
-            p = I_PI_FirstTime.PythonInterface()
-            p.firstTime(forceCopySamples=True)
+            samples.download()
         if itemRef == 'update':
             xp.commandOnce(self.updatePythonCmdRef)
         if itemRef == 'pip':

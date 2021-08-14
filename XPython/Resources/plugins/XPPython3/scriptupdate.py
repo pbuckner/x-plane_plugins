@@ -137,7 +137,9 @@ class Updater(Config):
                     if ((isinstance(e.reason, SSLCertVerificationError)
                          and e.reason.reason == 'CERTIFICATE_VERIFY_FAILED'
                          and platform.system() == 'Darwin')):
-                        msg = "!!! Python Installation Incomplete: Run /Applications/Python<version>/Install Certificates, and restart X-Plane."
+                        msg = ("\nError: !!! Python Installation Incomplete:\n"
+                               "    Run /Applications/Python<version>/Install Certificates, and restart X-Plane.\n"
+                               "    See https://xppython3.readthedocs.io/en/latest/usage/common_errors.html\n")
                         xp.sys_log(msg)
                         xp.log(msg)
                         return
@@ -187,7 +189,7 @@ class Updater(Config):
                     z.install_path = self.install_path
                     z.initial_progress_msg = self.initial_progress_msg
                     z.final_progress_msg = self.final_progress_msg
-                    z.backup = True
+                    z.backup = False
                     z.remove_top_dir = False
                     if update_which == 'release':
                         z.get_zipfile(info['download'], info.get('cksum', None))

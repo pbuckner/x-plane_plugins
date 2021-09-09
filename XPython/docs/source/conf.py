@@ -35,6 +35,7 @@ release = '3.0.10'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'sphinx_comments',
     'sphinx.ext.autodoc',
     'sphinx.ext.githubpages',
     'sphinx.ext.todo'
@@ -69,3 +70,7 @@ html_theme_options = {
 html_static_path = ['_static']
 
 add_module_names = False
+
+comments_config = {
+    "hypothesis": True
+}

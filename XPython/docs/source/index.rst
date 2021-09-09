@@ -8,6 +8,12 @@ XPPython3
    Also, please let
    me know about confusing documentation: There's no point in building a plugin if no one can
    figure out how to use it.
+
+   *Or* use the built-in `hypothes.is <https://web.hypothes.is/help/>`_ commenting system. Comments
+   are stored in the cloud and are viewable by everyone. Use the icons in the upper right:
+
+     .. image:: /images/hypothesis.png
+
              
 XPPython3 [#why]_ is a plugin for Laminar Research `X-Plane <https://www.x-plane.com>`_. It supports writing
 of additional plugins using python3. This is an upgrade of Sandy Barbour's excellent

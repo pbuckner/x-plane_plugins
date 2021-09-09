@@ -13,6 +13,16 @@ XPPython3 doesn't look for plugins in subdirectories!) You may have to copy one 
 files from ``samples`` to get the plugin working.
 
    +----------------------------+--------------------------------------------------------+
+   |PI_3dLabel.py               | Demonstrates how to use a 2-d drawing callback to draw |
+   |                            | to the screen in a way that matches the 3-d            |
+   |                            | coordinate system. Add-ons that need to add 3-d labels,|
+   |                            | coach marks, or other non-3d graphics that "match" the |
+   |                            | real world can use this technique to draw on with Metal|
+   |                            | and Vulkan. Ported from C version on                   |
+   |                            | developer.x-plane.com                                  |
+   |                            | `"Drawing 2-D That Matches the 3-D world" <https://deve|
+   |                            | loper.x-plane.com/code-sample/coachmarks/>`_.          |
+   +----------------------------+--------------------------------------------------------+
    |PI_Bounds.py                | Displays monitor number, size and if you're running VR |
    |                            | using GetWindowGeometry, GetMonitorBounds and related. |
    |                            | See also :doc:`/development/window_position`.          |
@@ -23,6 +33,11 @@ files from ``samples`` to get the plugin working.
    |PI_CommandSim1.py           | Ported from python2 example. Simple sending of XP      |
    |                            | commmands using menu items. AppendMenuItemWithCommand  |
    |                            | and FindCommand.                                       |
+   +----------------------------+--------------------------------------------------------+
+   |PI_Control1.py              | Ported from python2. Demonstrates how to move aircraft |
+   |                            | control surfaces. Should be used with the Override1    |
+   |                            | plugin. Originally by Sandy Barbour includes with      |
+   |                            | PythonInterface.                                       |
    +----------------------------+--------------------------------------------------------+
    |PI_HelloWidget.py           | Displays simple widget-based window, and logs          |
    |                            | messages. Described more fully in                      |
@@ -35,6 +50,13 @@ files from ``samples`` to get the plugin working.
    +----------------------------+--------------------------------------------------------+
    |PI_HotKey1.py               | Ported from python2 example. Maps a hotkey to a        |
    |                            | command. Uses RegisterHotKey and SpeakString.          |
+   +----------------------------+--------------------------------------------------------+
+   |PI_InputOutput1.py          | Ported from python2 example. Demonstrates input /      |
+   |                            | output of data from X-Plane, (changing engine throttle |
+   |                            | and obtaining resulting N1). Should be used with the   |
+   |                            | Override1 plugin                                       |
+   |                            | Originally by Sandy Barbour included with              |
+   |                            | PythonInterface.                                       |
    +----------------------------+--------------------------------------------------------+
    |PI_KeySniffer1.py           | Ported from python2 example. Intercepts key strokes    |
    |                            | and displays result. Uses RegisterKeySniffer.          |
@@ -80,6 +102,15 @@ files from ``samples`` to get the plugin working.
    |                            | plugin developers who require clients to install OpenGL|
    |                            | (or imgui).                                            |
    +----------------------------+--------------------------------------------------------+
+   |PI_Override1.py             | Ported from python2. Demonstrates how to change        |
+   |                            | various override datarefs. Originally by Sandy Barbour |
+   |                            | included with PythonInterface.                         |
+   +----------------------------+--------------------------------------------------------+
+   |PI_Position1.py             | Ported from python2. Demonstrates how to change        |
+   |                            | aircraft attitude. Originally by Sandy Barbour included|
+   |                            | with PythonInterface. Uses LocalToWorld, WorldToLocal, |
+   |                            | GetWidgetProperty, SetWidgetPropoerty, SetDataf.       |        
+   +----------------------------+--------------------------------------------------------+
    |PI_SharedData1.py,          | Ported from python2. Demonstrates sharing data         |
    |PI_SharedData2.py           | between to different plugins. Using FindDataRef,       |
    |                            | ShareData, RegisterDataAccessor.                       |
@@ -87,6 +118,21 @@ files from ``samples`` to get the plugin working.
    |PI_SimData1.py              | Ported from python2. Demonstrates how to interact with |
    |                            | X-Plane by reading and writing data. Uses CreateMenu,  |
    |                            | AppendMenuItem, FindDataRef, GetDatai and SetDatai.    |
+   +----------------------------+--------------------------------------------------------+
+   |PI_TCASOverride.py          | This plugin creates four traffic targets that will fly |
+   |                            | circles around the users' plane. These traffic targets |
+   |                            | exist purely as TCAS targets, not as 3D objects, as    |
+   |                            | such would usually be placed by XPLMInstance.          |
+   |                            | Ported from C version on developer.x-plane.com         |
+   |                            | `"Overriding TCAS" <https://developer.x-plane.com/code-|
+   |                            | sample/overriding-tcas/>`_ and discussed in            |
+   |                            | `"Overriding TCAS and providing traffice information"  |
+   |                            | <https://developer.x-plane.com/article/overriding-tcas-|
+   |                            | and-providing-traffic-information/>`_                  |
+   |                            | Uses GetDatad, GetDataf, GetDatavi,                    |
+   |                            | SetDatavf, SetDatai,  SetDatavi, SetDatab              |
+   |                            | SetActiveAircraftCount, AcquirePlanes, ReleasePlanes,  |
+   |                            | CountAircraft, GetPluginInfo.                          |
    +----------------------------+--------------------------------------------------------+
    |PI_TimedProcessing.py       | Ported from python2. Demonstrates how to use timed     |
    |                            | processing callback to continuously record data to     |

@@ -41,6 +41,10 @@ You will find these resources helpful:
     
 * :doc:`plugins`: Though most plugins are Global Plugins, you can code Aircraft and Scenery plugins.
 
+And for something completely different:
+
+* :doc:`standalone`: *Not* XPPython3, and *not* a plugin, but this documents python access to X-Plane via UDP.
+
 Code Examples
 -------------
 
@@ -125,5 +129,6 @@ Advanced Topics
    multiprocessing
    xpyce
    portingNotes
+   standalone
    modules/index
    xppythondicts

@@ -1,3 +1,4 @@
+from typing import Any
 """
 FINDING PLUGINS
 ***************
@@ -34,6 +35,7 @@ The following messages are sent to your plugin by X-Plane.
     XPLM_MSG_LIVERY_LOADED
     XPLM_MSG_ENTERED_VR
     XPLM_MSG_EXITING_VR
+    XPLM_MSG_RELEASE_PLANES
 
 Plugin Features API
 *******************
@@ -103,8 +105,19 @@ XPLM_MSG_ENTERED_VR = 109
 # mode).
 XPLM_MSG_EXITING_VR = 110
 
+# Sent to your plugin if another plugin wants to take over AI planes. If you
+# are a synthetic traffic provider, that probably means a plugin for an online
+# network has connected and wants to supply aircraft flown by real humans and
+# you should cease to provide synthetic traffic. If however you are providing
+# online traffic from real humans, you probably don’t want to disconnect, in
+# which case you just ignore this message. The sender is the plugin ID of the
+# plugin asking for control of the planes now. You can use it to find out who
+# is requesting and whether you should yield to them. Synthetic traffic providers
+# should always yield to online networks. The parameter is unused and should be ignored.
+XPLM_MSG_RELEASE_PLANES = 111
 
-def XPLMGetMyID():
+
+def XPLMGetMyID() -> int:
     """
     This routine returns the plugin ID of the calling plug-in.  Call this to
     get your own ID.
@@ -112,7 +125,7 @@ def XPLMGetMyID():
     return int  # XPLMPluginID
 
 
-def XPLMCountPlugins():
+def XPLMCountPlugins() -> int:
     """
     This routine returns the total number of plug-ins that are loaded, both
     disabled and enabled.
@@ -120,7 +133,7 @@ def XPLMCountPlugins():
     return int  # count
 
 
-def XPLMGetNthPlugin(inIndex):
+def XPLMGetNthPlugin(inIndex: int) -> int:
     """
     This routine returns the ID of a plug-in by index.  Index is 0 based from 0
     to XPLMCountPlugins-1, inclusive. Plugins may be returned in any arbitrary
@@ -129,7 +142,7 @@ def XPLMGetNthPlugin(inIndex):
     return int  # XPLMPluginID
 
 
-def XPLMFindPluginByPath(inPath):
+def XPLMFindPluginByPath(inPath: str) -> int:
     """
     This routine returns the plug-in ID of the plug-in whose file exists at the
     passed in absolute file system path.  XPLM_NO_PLUGIN_ID is returned if the
@@ -138,7 +151,7 @@ def XPLMFindPluginByPath(inPath):
     return int  # XPLMPluginID
 
 
-def XPLMFindPluginBySignature(inSignature):
+def XPLMFindPluginBySignature(inSignature: str) -> int:
     """
     This routine returns the plug-in ID of the plug-in whose signature matches
     what is passed in or XPLM_NO_PLUGIN_ID if no running plug-in has this
@@ -157,7 +170,7 @@ class PluginInfo(object):
     description = None
 
 
-def XPLMGetPluginInfo(inPluginID):
+def XPLMGetPluginInfo(inPluginID: int) -> PluginInfo:
     """
     This routine returns information about a plug-in.
 
@@ -169,14 +182,14 @@ def XPLMGetPluginInfo(inPluginID):
     return PluginInfo
 
 
-def XPLMIsPluginEnabled(inPluginID):
+def XPLMIsPluginEnabled(inPluginID: int) -> int:
     """
     Returns whether the specified plug-in is enabled for running.
     """
     return int  # 1=is enabled
 
 
-def XPLMEnablePlugin(inPluginID):
+def XPLMEnablePlugin(inPluginID: int) -> int:
     """
     This routine enables a plug-in if it is not already enabled.  It returns 1
     if the plugin was enabled or successfully enables itself, 0 if it does not.
@@ -186,13 +199,13 @@ def XPLMEnablePlugin(inPluginID):
     return int  # 1=successfully enabled; 0=otherwise
 
 
-def XPLMDisablePlugin(inPluginID):
+def XPLMDisablePlugin(inPluginID: int) -> int:
     """
     This routine disableds an enabled plug-in.
     """
 
 
-def XPLMReloadPlugins():
+def XPLMReloadPlugins() -> None:
     """
     This routine reloads all plug-ins.  Once this routine is called and you
     return from the callback you were within (e.g. a menu select callback) you
@@ -205,7 +218,7 @@ def XPLMReloadPlugins():
     """
 
 
-def XPLMSendMessageToPlugin(inPlugin, inMessage, inParam):
+def XPLMSendMessageToPlugin(inPlugin: int, inMessage: int, inParam: int) -> None:
     """
     This function sends a message to another plug-in or X-Plane.  Pass
     XPLM_NO_PLUGIN_ID to broadcast to all plug-ins.  Only enabled plug-ins with
@@ -214,7 +227,7 @@ def XPLMSendMessageToPlugin(inPlugin, inMessage, inParam):
     """
 
 
-def XPLMFeatureEnumerator_f(inFeature, inRef):
+def XPLMFeatureEnumerator_f(inFeature: str, inRef: Any) -> None:
     """
     You pass an XPLMFeatureEnumerator_f to get a list of all features supported
     by a given version running version of X-Plane.  This routine is called once
@@ -222,7 +235,7 @@ def XPLMFeatureEnumerator_f(inFeature, inRef):
     """
 
 
-def XPLMHasFeature(inFeature):
+def XPLMHasFeature(inFeature: str) -> int:
     """
     This returns 1 if the given installation of X-Plane supports a feature, or
     0 if it does not.
@@ -232,7 +245,7 @@ def XPLMHasFeature(inFeature):
     return int  # 1=feature is supported
 
 
-def XPLMIsFeatureEnabled(inFeature):
+def XPLMIsFeatureEnabled(inFeature: str) -> int:
     """
     This returns 1 if a feature is currently enabled for your plugin, or 0 if
     it is not enabled.  It is an error to call this routine with an unsupported
@@ -241,7 +254,7 @@ def XPLMIsFeatureEnabled(inFeature):
     return int  # 1=feature is enabled
 
 
-def XPLMEnableFeature(inFeature, inEnable):
+def XPLMEnableFeature(inFeature: str, inEnable: int) -> None:
     """
     This routine enables or disables a feature for your plugin.  This will
     change the running behavior of X-Plane and your plugin in some way,
@@ -249,7 +262,7 @@ def XPLMEnableFeature(inFeature, inEnable):
     """
 
 
-def XPLMEnumerateFeatures(inEnumerator, inRef):
+def XPLMEnumerateFeatures(inEnumerator: XPLMFeatureEnumerator_f, inRef: Any) -> None:
     """
     This routine calls your enumerator callback once for each feature that this
     running version of X-Plane supports. Use this routine to determine all of

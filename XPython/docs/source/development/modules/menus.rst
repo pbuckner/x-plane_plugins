@@ -169,6 +169,9 @@ Functions
  are irrelevant to your plugin in order to deliver this consistency for each
  plugin.)
 
+ .. Note:: X-Plane's C SDK includes a fourth parameter for this function
+    which is required, yet deprecated and ignored. XPPython3 function only
+    has three parameters.
 
 .. py:function:: XPLMAppendMenuItemWithCommand(menuID, itemName, commandRef) -> int:
 

@@ -265,6 +265,11 @@ which they bear a striking resemblance to) in the following ways:
     descriptor exceeds the interal buffer an error will be printed to
     Log.txt
 
+    .. Note:: The X-Plane C SDK function has three parameters and returns
+              the length of the descriptor. This is overkill for python.
+              Instead, provided with only the widthID, we'll return the
+              string descriptor.
+
 
 .. py:function:: XPGetWidgetUnderlyingWindow(widgetID) -> windowID:
 

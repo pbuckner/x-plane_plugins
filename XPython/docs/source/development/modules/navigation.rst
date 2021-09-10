@@ -183,17 +183,18 @@ waypoints in the flight plan.
 
 .. py:function:: XPLMGetDisplayedFMSEntry(None) -> int:
 
- This routine returns the index of the entry the pilot is viewing.
+ This routine returns the index of the entry the pilot is viewing. (For XP 11.55, this appears to always return 0).
 
 
 .. py:function:: XPLMGetDestinationFMSEntry(None) -> int:
 
- This routine returns the index of the entry the FMS is flying to.
+ This routine returns the index of the entry the FMS is flying to. (The "destination" refers to the active leg.)
 
 
 .. py:function:: XPLMSetDisplayedFMSEntry(index) -> None:
 
  This routine changes which entry the FMS is showing to the integer index specified.
+ (For X-Plane 11.55, this does not appear to do anything.)
 
 .. py:function:: XPLMSetDestinationFMSEntry(index) -> None:
 
@@ -226,6 +227,11 @@ waypoints in the flight plan.
  immediately.  For a lat/lon entry, the lat/lon is returned by this routine
  but the navaid cannot be looked up (and the reference will be
  :py:data:`XPLM_NAV_NOT_FOUND`.
+
+ .. Note::
+    X-Plane C SDK function takes many parameters, where the data is returned.
+    The XPPython3 function takes a single parameter (Index) and returns all
+    the values in an FMSEntryInfo object.
 
 
 .. py:function::  XPLMSetFMSEntryInfo(index, navRef, altitude) -> None:

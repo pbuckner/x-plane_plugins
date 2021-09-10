@@ -197,7 +197,7 @@ Set Array
 
 Get/Set Bytes
 ++++++++++++++++++
-.. py:function:: XPLMGetDatab(inDataref: int, outValue: list, inOffset: int, inCount: int) -> None
+.. py:function:: XPLMGetDatab(inDataref: int, outValue: list, inOffset: int, inCount: int) -> int
                  XPLMSetDatab(inDataref: int, inValue: list, inOffset: int, inCount: int) -> None
 
     Read/Write a part of a byte array dataref.

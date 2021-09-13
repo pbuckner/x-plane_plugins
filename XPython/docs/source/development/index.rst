@@ -43,7 +43,7 @@ You will find these resources helpful:
 
 And for something completely different:
 
-* :doc:`standalone`: *Not* XPPython3, and *not* a plugin, but this documents python access to X-Plane via UDP.
+* :doc:`udp/index`: *Not* XPPython3, and *not* a plugin, but this documents python access to X-Plane via UDP.
 
 Code Examples
 -------------
@@ -129,6 +129,11 @@ Advanced Topics
    multiprocessing
    xpyce
    portingNotes
-   standalone
+   udp/index
    modules/index
    xppythondicts
+
+.. toctree::
+   :hidden:
+
+   standalone

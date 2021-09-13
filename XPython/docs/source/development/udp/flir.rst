@@ -1,5 +1,8 @@
 FLIR - Forward Looking Infrared Images
 ++++++++++++++++++++++++++++++++++++++
+
+.. deprecated:: X-Plane 11.41. No longer available.
+
 You can get image capture from X-Plane over UDP. Only black-and-white images are sent to save bandwidth and simulate
 FLIR.
 
@@ -25,6 +28,8 @@ FLIR.
      X-Plane 11.55 (at least) **does not send FLIR data**. This appears to be completely broken.
 
      A bug has been filed with Laminar Research: 2021-Sep-3.
+
+     Unconfirmed reports indicate this interface was remove after X-Plane 11.41.
 
 .. toctree::
    :maxdepth: 1

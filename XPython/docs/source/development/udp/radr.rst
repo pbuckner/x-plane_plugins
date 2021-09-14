@@ -7,10 +7,12 @@ RADR - Weather Radar
    you'd like X-Plane to send you.::
 
      msg = struct.pack('<4sx10s', b'RADR', b'10')  # requesting 10 radar points per frame
+     sock.sendto(msg, (beacon['ip'], beacon['port']))
 
    To stop, set request to b'0' times per frame.::
 
      msg = struct.pack('<4sx10s', b'RADR', b'0')  # requesting 0 radar points per frame
+     sock.sendto(msg, (beacon['ip'], beacon['port']))
 
 ----
 

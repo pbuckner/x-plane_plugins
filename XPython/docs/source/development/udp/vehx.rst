@@ -20,6 +20,7 @@ continue to drive all movement.
                        veh_psi_true,   # heading, degrees true
                        veh_the,        # pitch, degrees
                        veh_phi)        # roll, degrees
+     sock.sendto(msg, (beacon['ip'], beacon['port']))
 
    Use 0 for the main airplane that you fly to drive the visuals.
 

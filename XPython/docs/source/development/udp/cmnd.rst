@@ -9,6 +9,7 @@ aircraft.)
      dref = "sim/map/show_current"
      msg = struct.pack('<4sx500s', b'CMND',
                        dref.encode('utf-8'))
+     sock.sendto(msg, (beacon['ip'], beacon['port']))
    
 For example, there is a command ``sim/map/show_current`` which will toggle the display of the map window.
 

@@ -17,6 +17,7 @@ ACPR - Load and Init the Airplane at Location
                         ele_mtr,                 # elevation
                         psi_tru,                 # aircraft heading
                         spd_msc)                 # speed
+     sock.sendto(msg, (beacon['ip'], beacon['port']))
      
 
 .. toctree::

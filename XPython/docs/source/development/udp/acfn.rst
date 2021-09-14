@@ -11,6 +11,7 @@ Load an aircraft. Set index to 0, to load the user aircraft. Otherwise, use 1-19
                        p,                     # 0 -> User aircraft, otherwise 1-19
                        path.encode('utf-8'),  # remember to encode string as bytes
                        livery)                # livery index for aircraft
+     sock.sendto(msg, (beacon['ip'], beacon['port']))
 
 .. toctree::
    :maxdepth: 1

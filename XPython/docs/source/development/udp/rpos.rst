@@ -8,12 +8,14 @@ RPOS - Request Aircraft Position
  current aircraft position.::
  
    msg = struct.pack('<4sx10s', b'RPOS', b'60')  # requesting 60 times /second
+   sock.sendto(msg, (beacon['ip'], beacon['port']))
 
  You can use this to drive displays, moving maps, etc.
 
  To stop, set request to b'0' times per second::
 
    msg = struct.pack('<4sx10s', b'RPOS', b'0')  # requesting 0 times /second
+   sock.sendto(msg, (beacon['ip'], beacon['port']))
 
 ----
 

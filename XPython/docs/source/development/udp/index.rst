@@ -127,6 +127,10 @@ X-Plane UDP Summary
   |                             |                                            |
   |                             | USEL <index><index>...                     |
   +-----------------------------+--------------------------------------------+
+  |           :doc:`fail`       | FAIL <index>                               |
+  |                             |                                            |
+  |                             | RECO <index>                               |
+  +-----------------------------+--------------------------------------------+
   |           :doc:`flir`       | FLIR <frequency>                           |
   |                             |                                            |
   |                             | *(Deprecated since 11.41)*                 |
@@ -135,17 +139,29 @@ X-Plane UDP Summary
   |                             |                                            |
   |                             | ISE6 <cmd><ip><port><enable>               |
   +-----------------------------+--------------------------------------------+
+  |           :doc:`lsnd`       | LSND<index><freq><vol><path>               |
+  |                             |                                            |
+  |                             | SSND<index><freq><vol><path>               |
+  +-----------------------------+--------------------------------------------+
   |           :doc:`prel`       | PREL <type_start><index><apt_id>           |
   |                             |      <rwy_id><rwy_dir>                     |
   |                             |      <lat><lon><elev><psi><spd>            |
   +-----------------------------+--------------------------------------------+
   |           :doc:`radr`       | RADR <freq>                                |
   +-----------------------------+--------------------------------------------+
+  |           :doc:`rese`       | RESE                                       |
+  +-----------------------------+--------------------------------------------+
   |           :doc:`rpos`       | RPOS <freq>                                |
   +-----------------------------+--------------------------------------------+
   |           :doc:`rref`       | RREF <freq><index><dataref>                |
   +-----------------------------+--------------------------------------------+
   |           :doc:`simo`       | SIMO<type><path>                           |
+  +-----------------------------+--------------------------------------------+
+  |           :doc:`shut`       | SHUT                                       |
+  |                             |                                            |
+  |                             | QUIT                                       |
+  +-----------------------------+--------------------------------------------+
+  |           :doc:`soun`       | SOUN<freq><vol><path>                      |
   +-----------------------------+--------------------------------------------+
   |           :doc:`vehx`       | VEHX <plane><lat><log><elev>               |
   |                             |      <psi><theta><ph>                      |
@@ -174,14 +190,9 @@ X-Plane UDP Summary
 
 WORK IN PROGRESS
 
- * SOUN
- * LSND / SSND
  * OBJN
  * OBJL
- * FAIL / RECO
  * NFAL / NREC
- * RESE
- * QUIT / SHUT
  
 
 .. toctree::
@@ -194,11 +205,16 @@ WORK IN PROGRESS
    cmnd
    dref
    dsel
+   fail
    flir
    ise4
+   lsnd
    prel
    radr
+   rese
    rpos
    rref
    simo
+   shut
+   soun
    vehx

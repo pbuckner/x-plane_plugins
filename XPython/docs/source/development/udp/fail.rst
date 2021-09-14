@@ -1,5 +1,5 @@
-FAIL/RECO - Fail
-++++++++++++++++
+FAIL/RECO - Fail a System
++++++++++++++++++++++++++
 
 :Send:
 

@@ -143,6 +143,10 @@ X-Plane UDP Summary
   |                             |                                            |
   |                             | SSND<index><freq><vol><path>               |
   +-----------------------------+--------------------------------------------+
+  |           :doc:`nfal`       | NFAL <navaid_id>                           |
+  |                             |                                            |
+  |                             | NREC <navaid_id>                           |
+  +-----------------------------+--------------------------------------------+
   |           :doc:`prel`       | PREL <type_start><index><apt_id>           |
   |                             |      <rwy_id><rwy_dir>                     |
   |                             |      <lat><lon><elev><psi><spd>            |
@@ -192,7 +196,6 @@ WORK IN PROGRESS
 
  * OBJN
  * OBJL
- * NFAL / NREC
  
 
 .. toctree::
@@ -209,6 +212,7 @@ WORK IN PROGRESS
    flir
    ise4
    lsnd
+   nfal
    prel
    radr
    rese

@@ -147,6 +147,11 @@ X-Plane UDP Summary
   |                             |                                            |
   |                             | NREC <navaid_id>                           |
   +-----------------------------+--------------------------------------------+
+  |           :doc:`objn`       | OBJN <index><path>                         |
+  |                             |                                            |
+  |                             | OBJL <index><lat><lon><ele><psi><theta>    |
+  |                             |      <phi><on_ground><smoke_size>          |
+  +-----------------------------+--------------------------------------------+
   |           :doc:`prel`       | PREL <type_start><index><apt_id>           |
   |                             |      <rwy_id><rwy_dir>                     |
   |                             |      <lat><lon><elev><psi><spd>            |
@@ -188,16 +193,6 @@ X-Plane UDP Summary
   | RREF  |                :doc:`rref` | RREF <index><value><index><value>...    |
   +-------+----------------------------+-----------------------------------------+
 
-
-
-======== other UDP messages to x-plane ========
-
-WORK IN PROGRESS
-
- * OBJN
- * OBJL
- 
-
 .. toctree::
    :maxdepth: 1
    :caption: Details
@@ -213,6 +208,7 @@ WORK IN PROGRESS
    ise4
    lsnd
    nfal
+   objn
    prel
    radr
    rese

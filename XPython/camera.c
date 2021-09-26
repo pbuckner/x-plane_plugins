@@ -42,8 +42,15 @@ static int cameraControl(XPLMCameraPosition_t *outCameraPosition, int inIsLosing
   PyObject *resObj = PyObject_CallFunctionObjArgs(fun, pos, lc, refcon, NULL);
   Py_DECREF(lc);
   PyObject *err = PyErr_Occurred();
+  char msg[1024];
   if(err){
+    Py_DECREF(pos);
+    sprintf(msg, "Error in camera callback [%s] %s",
+            objToStr(PyTuple_GetItem(callbackInfo, 0)),
+            objToStr(fun));
+    PyErr_SetString(err, msg);
     PyErr_Print();
+    return 0;
   }
 
   if((outCameraPosition != NULL) && !inIsLosingControl){

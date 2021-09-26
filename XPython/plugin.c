@@ -14,6 +14,7 @@
 #include "menus.h"
 #include "utils.h"
 #include "plugin_dl.h"
+#include "xppython.h"
 
 /*************************************
  * Python plugin upgrade for Python 3
@@ -359,6 +360,7 @@ PyObject *loadPIClass(const char *fname)
 
   PyDict_SetItem(moduleDict, pluginInfo, pluginInstance); // does not steal reference. We don't need pluginInfo again, so decref
   PyDict_SetItem(pluginDict, pluginInstance, pluginInfo);
+  getPluginIndex(pluginInstance);
   /* Because we put pluginInfo into pluginDict, we need to NOT DECREF
      Py_DECREF(pluginInfo);
   */
@@ -530,13 +532,20 @@ static int stopPython(void)
       continue;
     }
     PyObject *pRes = PyObject_CallMethod(pluginInstance, "XPluginStop", NULL); // should return void, so we should see Py_None
-    if(pRes != Py_None) {
-      fprintf(pythonLogFile, "%s XPluginStop returned '%s' rather than None.\n", moduleName, objToStr(pRes));
-    }
-    if(PyErr_Occurred()){
-      fprintf(pythonLogFile, "Error occured during the %s XPluginStop call:\n", moduleName);
-      PyErr_Print();
-    }else{
+
+    PyObject *err = PyErr_Occurred();
+    if (err) {
+      if (PyObject_HasAttrString(pluginInstance, "XPluginStop")) {
+        fprintf(pythonLogFile, "[%s] Error occured during the XPluginStop call:\n", moduleName);
+        PyErr_Print();
+      } else {
+        /* ignore error, if XPluginStop is not defined in the PythonInterface class */
+        PyErr_Clear();
+      }
+    } else {
+      if (pRes != Py_None) {
+        fprintf(pythonLogFile, "[%s] XPluginStop returned '%s' rather than None. Value ignored\n", moduleName, objToStr(pRes));
+      }
       Py_DECREF(pRes);
     }
   }
@@ -774,13 +783,20 @@ static void disablePluginList(PyObject *pluginList) {
       PyObject *pluginInfo = PyDict_GetItem(pluginDict, pluginInstance);
       char *moduleName = objToStr(PyTuple_GetItem(pluginInfo, PLUGIN_MODULE_NAME));
       pRes = PyObject_CallMethod(pluginInstance, "XPluginDisable", NULL);
-      if(pRes != Py_None) {
-        fprintf(pythonLogFile, "%s XPluginDisable returned '%s' rather than None.\n", moduleName, objToStr(pRes));
-      }
-      if(PyErr_Occurred()) {
-        fprintf(pythonLogFile, "Error occured during the %s XPluginDisable call:\n", moduleName);
-        PyErr_Print();
-      }else{
+      
+      PyObject *err = PyErr_Occurred();
+      if (err) {
+        if (PyObject_HasAttrString(pluginInstance, "XPluginDisable")) {
+          fprintf(pythonLogFile, "[%s] Error occured during the XPluginDisable call:\n", moduleName);
+          PyErr_Print();
+        } else {
+          /* ignore error, if XPluginDisable is not defined in the PythonInterface class */
+          PyErr_Clear();
+        }
+      } else {
+        if (pRes != Py_None) {
+          fprintf(pythonLogFile, "[%s] XPluginDisable returned '%s' rather than None. Value ignored\n", moduleName, objToStr(pRes));
+        }
         Py_DECREF(pRes);
       }
       Py_DECREF(pluginInstance);
@@ -803,13 +819,19 @@ static void stopPluginList(PyObject *pluginList) {
       PyObject *pluginInfo = PyDict_GetItem(pluginDict, pluginInstance);
       char *moduleName = objToStr(PyTuple_GetItem(pluginInfo, PLUGIN_MODULE_NAME));
       pRes = PyObject_CallMethod(pluginInstance, "XPluginStop", NULL);
-      if(pRes != Py_None) {
-        fprintf(pythonLogFile, "%s XPluginStop returned '%s' rather than None.\n", moduleName, objToStr(pRes));
-      }
-      if(PyErr_Occurred()) {
-        fprintf(pythonLogFile, "Error occured during the %s XPluginStop call:\n", moduleName);
-        PyErr_Print();
-      }else{
+      PyObject *err = PyErr_Occurred();
+      if (err) {
+        if (PyObject_HasAttrString(pluginInstance, "XPluginStop")) {
+          fprintf(pythonLogFile, "[%s] Error occured during the XPluginStop call:\n", moduleName);
+          PyErr_Print();
+        } else {
+          /* ignore error, if XPluginStop is not defined in the PythonInterface class */
+          PyErr_Clear();
+        }
+      } else {
+        if (pRes != Py_None) {
+          fprintf(pythonLogFile, "[%s] XPluginStop returned '%s' rather than None. Value ignored\n", moduleName, objToStr(pRes));
+        }
         Py_DECREF(pRes);
       }
 
@@ -843,13 +865,20 @@ PLUGIN_API void XPluginDisable(void)
       continue;
     }
     pRes = PyObject_CallMethod(pluginInstance, "XPluginDisable", NULL);
-    if(pRes != Py_None) {
-      fprintf(pythonLogFile, "%s XPluginDisable returned '%s' rather than None.\n", moduleName, objToStr(pRes));
-    }
-    if(PyErr_Occurred()) {
-      fprintf(pythonLogFile, "Error occured during the %s XPluginDisable call:\n", moduleName);
-      PyErr_Print();
-    }else{
+    PyObject *err = PyErr_Occurred();
+    if (err) {
+      if (PyObject_HasAttrString(pluginInstance, "XPluginDisable")) {
+        fprintf(pythonLogFile, "[%s] Error occured during the XPluginDisable call:\n", moduleName);
+        PyErr_Print();
+      } else {
+        /* ignore error, if XPluginDisable is not defined in the PythonInterface class */
+        PyErr_Clear();
+      }
+
+    } else {
+      if(pRes != Py_None) {
+        fprintf(pythonLogFile, "[%s] XPluginDisable returned '%s' rather than None. Value ignored\n", moduleName, objToStr(pRes));
+      }
       Py_DECREF(pRes);
     }
   }
@@ -876,13 +905,20 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
   while(PyDict_Next(moduleDict, &pos, &pluginInfo, &pluginInstance)){
     char *moduleName = objToStr(PyTuple_GetItem(pluginInfo, PLUGIN_MODULE_NAME));
     pRes = PyObject_CallMethod(pluginInstance, "XPluginReceiveMessage", "ilO", inFromWho, inMessage, param);
-    if (pRes != Py_None) {
-      fprintf(pythonLogFile, "%s XPluginReceiveMessage didn't return None.\n", moduleName);
-    }
-    if(PyErr_Occurred()) {
-      fprintf(pythonLogFile, "Error occured during the %s XPluginReceiveMessage call:\n", moduleName);
-      PyErr_Print();
-    }else{
+
+    PyObject *err = PyErr_Occurred();
+    if (err) {
+      if (PyObject_HasAttrString(pluginInstance, "XPluginReceiveMessage")) {
+        fprintf(pythonLogFile, "[%s] Error occured during the XPluginReceiveMessage call:\n", moduleName);
+        PyErr_Print();
+      } else {
+        /* ignore error, if XPluginReceiveMessage is not defined in the PythonInterface class */
+        PyErr_Clear();
+      }
+    } else {
+      if (pRes != Py_None) {
+        fprintf(pythonLogFile, "[%s] XPluginReceiveMessage returned '%s' rather than None. Value ignored\n", moduleName, objToStr(pRes));
+      }
       Py_DECREF(pRes);
     }
   }

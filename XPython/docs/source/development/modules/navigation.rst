@@ -183,7 +183,8 @@ waypoints in the flight plan.
 
 .. py:function:: XPLMGetDisplayedFMSEntry(None) -> int:
 
- This routine returns the index of the entry the pilot is viewing. (For XP 11.55, this appears to always return 0).
+ This routine returns the index of the entry the pilot is viewing. (For XP 11.55, this appears to always return 0.
+ This has been acknowledged by Laminar Research as bug XPD-11386.)
 
 
 .. py:function:: XPLMGetDestinationFMSEntry(None) -> int:
@@ -194,7 +195,7 @@ waypoints in the flight plan.
 .. py:function:: XPLMSetDisplayedFMSEntry(index) -> None:
 
  This routine changes which entry the FMS is showing to the integer index specified.
- (For X-Plane 11.55, this does not appear to do anything.)
+ (For X-Plane 11.55, this does not appear to do anything.  This has been acknowledged by Laminar Research as bug XPD-11386.)
 
 .. py:function:: XPLMSetDestinationFMSEntry(index) -> None:
 

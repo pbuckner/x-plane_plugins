@@ -182,8 +182,8 @@ is no way to set it first. So if you want to display a window in the center of t
 
    [1]  windowID = xp.createWindowEx([0, height, width, 0,...])
    [2]  xp.setWindowPositioningMode(windowID, xp.WindowCenterOnMonitor, -1)
-   [3]  (left, right, top, bottom) = xp.getWindowGeometry(windowID)
-   [4]  xp.setWindowGeometry(windoID, left, right, top, bottom)
+   [3]  (left, top, right, bottom) = xp.getWindowGeometry(windowID)
+   [4]  xp.setWindowGeometry(windoID, left, top, right, bottom)
    [5]  xp.setWindowPositioningMode(windowID, xp.WindowPositionFree)
 
 [1]: Since you'll start with window positioning mode as CenterOnMonitor, need to specific the height and

@@ -86,7 +86,7 @@ the drawing callbacks will be called in the order implied by the
 enumerations. Also do not assume that each drawing phase ends before
 another begins; they may be nested.
 
-.. note:: Laminar says, "Note that all APIs in this second are depreacated, and
+.. note:: Laminar says, "Note that all APIs in this second are deprecated, and
           will likely be removed during the X-Plane 11 run as part of the
           transition to Vulkan/Metal/etc. See :mod:`XPLMInstance` API for
           future-proof drawing of 3-D objects.
@@ -218,13 +218,13 @@ The window API provides a high-level abstraction for drawing with UI interaction
 Windows are created via :func:`XPLMCreateWindowEx`. and have access to new X-Plane 11 windowing
 features, like support for new positioning modes (including being "popped out" into their own first-class
 window in the operating system). The can also optionally be decorated in the style of X-Plane 11 windows
-(like the map). (Pre X-Plane 11.50 function XPLMCreateWindow is deprecated.
+(like the map). (The pre X-Plane 11.50 function XPLMCreateWindow is deprecated.)
 
 Windows operate in "boxel" units. A boxel ("box of pixels") is a unit of virtual pixels which,
-depending on X-Plane's scaling, may ocrrespond to an orbitrary NxN "box" of real pixels on screen.
+depending on X-Plane's scaling, may correspond to an arbitrary NxN "box" of real pixels on screen.
 Because X-Plane handles this scaling automatically, you can effectively treat the units as though you
 where simply drawing in pixels, and know that when X-Plane is running with 150% or 200% scaling, your
-draing will be automatically scaled (and likewise all mouse coordinates, screen bounds, etc. will also be auto-scaled).
+drawing will be automatically scaled (and likewise all mouse coordinates, screen bounds, etc. will also be auto-scaled).
 
 Modern windows are not constrained to the main window, they have their origin in the lower left of the entire
 global desktop space, and the lower left of the main X-Plane window is not guaranteed to
@@ -240,7 +240,7 @@ not get any more draw callbacks.
 XPLMWindowID
 ************
 
-WindowID is an opaque indentifier for a window. You use it to control your window. When you
+WindowID is an opaque identifier for a window. You use it to control your window. When you
 create a window (:func:`XPLMCreateWindowEx`) you will specify callbacks to handle drawing,
 mouse interaction, etc. XPLMCreateWindowEx requires you to provide five callback, with an optional
 sixth callback:
@@ -379,7 +379,7 @@ the window, using the :ref:`XPLMCreateWindow_t` structure.
   :type x: int
   :param y: vertical position of mouse
   :type y: int           
-  :param wheel: 0= vertical axis, 1= horizonal axis
+  :param wheel: 0= vertical axis, 1= horizontal axis
   :type wheel: int
   :param clicks: number of "clicks" indicating how far the wheel has turned since previous callback
   :type clicks: int
@@ -480,7 +480,7 @@ only applies to windows created with new X-Plane 11 GUI features.
     :value: 2
 
     An interruptive modal that covers the sim with a
-    transparent black overaly to draw the user's focus to the alert.
+    transparent black overlay to draw the user's focus to the alert.
  
  .. py:data::  xplm_WindowLayerGrowlNotifications
     :value: 3
@@ -714,7 +714,7 @@ Window Drawing Functions
  will not be included.
 
  If X-Plane is running in full-screen and your monitors are of the same size and
- conUgured contiguously in the OS, then the combined global bounds of all full-screen
+ configured contiguously in the OS, then the combined global bounds of all full-screen
  monitors will match the total global desktop bounds, as returned by
  :func:`XPLMGetScreenBoundsGlobal`. (Of course, if X-Plane is running in windowed mode,
  this will not be the case. Likewise, if you have differently sized monitors, the
@@ -918,7 +918,7 @@ Window Drawing Functions
 
  Some positioning modes apply to a particular monitor. For those modes, you can pass a negative
  monitor index to position the window on the main X-Plane monitor (the screen with the X-Plane
- menu bar at the top). Or, if you have a speciUc monitor you want to position your window on,
+ menu bar at the top). Or, if you have a specific monitor you want to position your window on,
  you can pass a real monitor index as received from, e.g., :func:`XPLMGetAllMonitorBoundsOS`.
 
  Only applies to modern windows. (Windows created using the deprecated XPLMCreateWindow(),
@@ -947,7 +947,7 @@ Window Drawing Functions
 
  Give a specific window keyboard focus.
 
- This routine gives a speciUc window keyboard focus. Keystrokes will be sent to that window.
+ This routine gives a specific window keyboard focus. Keystrokes will be sent to that window.
  Pass a window ID of 0 to remove keyboard focus from any plugin-created windows and instead
  pass keyboard strokes directly to X-Plane.
 
@@ -1054,7 +1054,7 @@ Hot Keys
 --------
 
 Keystrokes that can be managed by others. These are lower-level than window keyboard handlers (i.e., callbacks you attach to your
-:ref:`XPLMCreateWindow_t`, but higher leven than sniffers.
+:ref:`XPLMCreateWindow_t`, but higher even than sniffers.
 
 .. py:function:: XPLMHotKey_f(inRefcon: object) -> None:
   

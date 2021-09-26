@@ -227,7 +227,7 @@ Get/Set Bytes
     into unicode.
 
       >>> description = []
-      >>> XPMGetDatab(XPLMFindDataRef("sim/aircraft/view/acf_descrip"), description, 0, 40)
+      >>> XPLMGetDatab(XPLMFindDataRef("sim/aircraft/view/acf_descrip"), description, 0, 40)
       >>> print(description)
       [67, 101, 115, 115, 110, 97, 32, 49, 55, 50, 32, 83, 80, 32, 83, 107, 121, 104, 97, 119,\
       107, 32, 45, 32, 49, 56, 48, 72, 80, 32, 45, 32, 71, 49, 48, 48, 48, 0, 0, 0]
@@ -235,6 +235,14 @@ Get/Set Bytes
       bytearray(b'Cessna 172 SP Skyhawk - 180HP - G1000\x00\x00\x00')
       >>> print(bytearray([x for x in description if x]).decode('utf-8'))
       'Cessna 172 SP Skyhawk - 180HP - G1000'
+    
+    Similarly, you need to convert from strings, if you're looking to set values
+
+      >>> description = "My New Cessna"
+      >>> XPLMSetDatab(XPLMFindDataRef("sim/aircraft/view/acf_descrip"),
+      ...              bytearray(description.encode('utf-8')),
+      ...              0,
+      ...              len(description))
 
 
 Callbacks: Publishing Your Plugin's Data
@@ -453,11 +461,11 @@ allow you to test your datarefs.
    trying to connect to.)::
 
      for sig in ('com.leecbaker.datareftool', 'xplanesdk.examples.DataRefEditor'):
-         dre = xp.findPluginBySignature(signature)
-         if dre != xp.NO_PLUGN_ID:
+         dre = xp.findPluginBySignature(sig)
+         if dre != xp.NO_PLUGIN_ID:
              xp.sendMessageToPlugin(dre, 0x01000000, 'myplugin/dataRef1')
              xp.sendMessageToPlugin(dre, 0x01000000, 'myplugin/dataRef2')
-             break
+
 
 This way your datarefs will appear in the DataRef plugin.
      

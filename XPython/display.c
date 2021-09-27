@@ -8,6 +8,7 @@
 #include "utils.h"
 #include "plugin_dl.h"
 #include "xppythontypes.h"
+#include "xppython.h"
 
 static PyObject *drawCallbackDict, *drawCallbackIDDict;
 static intptr_t drawCallbackCntr;
@@ -33,15 +34,10 @@ static void receiveMonitorBounds(int inMonitorIndex, int inLeftBx, int inTopBx,
 {
   PyObject *pRes = PyObject_CallFunction(monitorBndsCallback, "(iiiiiO)", inMonitorIndex,
                                          inLeftBx, inTopBx, inRightBx, inBottomBx, (PyObject*)refcon);
-  if(!pRes){
-    printf("ReceiveMonitorBoundsGlobal callback failed.\n");
-    PyObject *err = PyErr_Occurred();
-    if(err){
-      PyErr_Print();
-    }
-  }else{
-    Py_DECREF(pRes);
+  if (PyErr_Occurred()) {
+    return;
   }
+  Py_DECREF(pRes);
 }
 
 int XPLMDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon);
@@ -349,7 +345,6 @@ static XPLMCursorStatus handleCursor(XPLMWindowID  inWindowID,
   Py_DECREF(pID);
   if(err){
     PyErr_Print();
-    PyErr_Clear();
     return 0;
   }
   int res = (int)PyLong_AsLong(pRes);
@@ -388,7 +383,6 @@ static int handleMouseWheel(XPLMWindowID  inWindowID,
   Py_DECREF(pID);
   if(err){
     PyErr_Print();
-    PyErr_Clear();
     return 1;
   }
   int res = (int)PyLong_AsLong(pRes);
@@ -1338,6 +1332,9 @@ PyInit_XPLMDisplay(void)
 
 int XPLMDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
 {
+  struct timespec all_stop, all_start;
+  clock_gettime(CLOCK_MONOTONIC, &all_start);
+
   PyObject *pl = NULL, *fun = NULL, *refcon = NULL, *pRes = NULL, *err = NULL;
   PyObject *tup;
   int res = 1;
@@ -1358,7 +1355,13 @@ int XPLMDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
   refcon = PyTuple_GetItem(tup, 4);
   PyObject *inPhaseObj = PyLong_FromLong(inPhase);
   PyObject *inIsBeforeObj = PyLong_FromLong(inIsBefore);
+
+  struct timespec stop, start;
+  clock_gettime(CLOCK_MONOTONIC, &start);
   pRes = PyObject_CallFunctionObjArgs(fun, inPhaseObj, inIsBeforeObj, refcon, NULL);
+  clock_gettime(CLOCK_MONOTONIC, &stop);
+  pluginStats[getPluginIndex(PyTuple_GetItem(tup, 0))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+
   Py_DECREF(inPhaseObj);
   Py_DECREF(inIsBeforeObj);
   if(!pRes){
@@ -1378,6 +1381,9 @@ int XPLMDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
   }
 
   Py_XDECREF(pRes);
+  clock_gettime(CLOCK_MONOTONIC, &all_stop);
+  pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
+
   return res;
 }
 

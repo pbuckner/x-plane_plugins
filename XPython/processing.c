@@ -7,6 +7,7 @@
 #include <XPLM/XPLMProcessing.h>
 #include "plugin_dl.h"
 #include "utils.h"
+#include "xppython.h"
 
 static intptr_t flCntr;
 static PyObject *flDict;
@@ -14,20 +15,12 @@ static PyObject *flRevDict;
 static PyObject *flIDDict;
 
 static const char flIDRef[] = "FlightLoopIDRef";
-
-/*
-void dbg(const char *msg){
-  printf("Going to check %s\n", msg);
-  PyObject *err = PyErr_Occurred();
-  if(err){
-    printf("Error occured during the %s call:\n", msg);
-    PyErr_Print();
-  }
-}
-*/
 static float flightLoopCallback(float inElapsedSinceLastCall, float inElapsedTimeSinceLastFlightLoop, 
                                 int counter, void * inRefcon)
 {
+  struct timespec all_stop, all_start;
+  clock_gettime(CLOCK_MONOTONIC, &all_start);
+
   PyObject *key = PyLong_FromVoidPtr(inRefcon);
   PyObject *callbackInfo = PyDict_GetItem(flDict, key);
   Py_XDECREF(key);
@@ -38,24 +31,92 @@ static float flightLoopCallback(float inElapsedSinceLastCall, float inElapsedTim
   PyObject *inElapsedSinceLastCallObj = PyFloat_FromDouble(inElapsedSinceLastCall);
   PyObject *inElapsedTimeSinceLastFlightLoopObj = PyFloat_FromDouble(inElapsedTimeSinceLastFlightLoop);
   PyObject *counterObj = PyLong_FromLong(counter);
+
+  /* vvvvvvvvvvvvvvvvv */
+  struct timespec stop, start;
+  clock_gettime(CLOCK_MONOTONIC, &start);
   PyObject *res = PyObject_CallFunctionObjArgs(PyTuple_GetItem(callbackInfo, 1), inElapsedSinceLastCallObj,
                                                inElapsedTimeSinceLastFlightLoopObj, counterObj,
                                                PyTuple_GetItem(callbackInfo, 3), NULL);
+  clock_gettime(CLOCK_MONOTONIC, &stop);
+  pluginStats[getPluginIndex(PyTuple_GetItem(callbackInfo, 0))].fl_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+  /* ^^^^^^^^^^^^^^^^^ */
+  
   float tmp;
   PyObject *err = PyErr_Occurred();
   Py_DECREF(inElapsedSinceLastCallObj);
   Py_DECREF(inElapsedTimeSinceLastFlightLoopObj);
   Py_DECREF(counterObj);
   if(err){
-    printf("Error occured during the flightLoop callback(inRefcon = %p):\n", inRefcon);
+    fprintf(pythonLogFile, "[%s]: %s Error occured during the flightLoop callback (inRefcon = %p):\n",
+            objToStr(PyTuple_GetItem(callbackInfo, 0)),
+            objToStr(PyTuple_GetItem(callbackInfo, 1)),
+            inRefcon);
     PyErr_Print();
     tmp = -1.0f;
   }else{
     tmp = PyFloat_AsDouble(res);
   }
   Py_XDECREF(res);
+
+  clock_gettime(CLOCK_MONOTONIC, &all_stop);
+  pluginStats[0].fl_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
+
   return tmp;
 }
+
+/* static float flightLoopStats(float inElapsedSinceLastCall, float inElapsedTimeSinceLastFlightLoop, */
+/*                              int counter, void *inRefcon) */
+/* { */
+/*   (void) inElapsedSinceLastCall; */
+/*   (void) inElapsedTimeSinceLastFlightLoop; */
+/*   (void) counter; */
+/*   (void) inRefcon; */
+/*   struct foobar { */
+/*     char *name; */
+/*     long time; */
+/*   }; */
+/*   struct foobar results[512]; */
+/*   int maxY = 0; */
+/*   for (int y = 0; y < flCntr; y++) { */
+/*     results[y].name = NULL; */
+/*     results[y].time = 0; */
+/*   } */
+/*   for (long x = 1; x <= (long) flCntr; x++) { */
+/*     int y = 0; */
+/*     for (; y < maxY; y++) { */
+/*       /\* fprintf(pythonLogFile, "   results[%d]: %s, flInfo[%ld]: %s -- ", *\/ */
+/*       /\*         y, *\/ */
+/*       /\*         results[y].name, *\/ */
+/*       /\*         x, *\/ */
+/*       /\*         flInfo[x].name); *\/ */
+/*       if (0 == strcmp(results[y].name, flInfo[x].name)) { */
+/*         results[y].time += flInfo[x].time; */
+/*         break; */
+/*       } */
+/*     } */
+/*     if (y == maxY) { */
+/*       results[maxY].name = flInfo[x].name; */
+/*       results[maxY].time = flInfo[x].time; */
+/*       maxY++; */
+/*     } */
+/*     /\* fprintf(pythonLogFile, "  @ %s: %ld usec \n", *\/ */
+/*     /\*         flInfo[x].name, flInfo[x].time); *\/ */
+/*     flInfo[x].time = 0; */
+/*   } */
+  
+/*   fprintf(pythonLogFile, "-\n   all: %ld usec\n", flInfo[0].time); */
+/*   flInfo[0].time = 0; */
+/*   for (int y = 0; y < maxY; y++) { */
+/*     if (results[y].time) { */
+/*       fprintf(pythonLogFile, "   %s: %ld usec \n", */
+/*               results[y].name, */
+/*               results[y].time */
+/*               ); */
+/*     } */
+/*   } */
+/*   return -1.0; */
+/* } */
 
 static PyObject *XPLMGetElapsedTimeFun(PyObject *self, PyObject *args)
 {
@@ -90,6 +151,7 @@ static PyObject *XPLMRegisterFlightLoopCallbackFun(PyObject* self, PyObject *arg
   }
   pluginSelf = get_pluginSelf();
   void *inRefcon = (void *)++flCntr;
+
   PyObject *id = PyLong_FromVoidPtr(inRefcon);
   //I don't like this at all...
   PyObject *refconAddr = PyLong_FromVoidPtr(refcon);
@@ -310,6 +372,8 @@ PyInit_XPLMProcessing(void)
     PyModule_AddIntConstant(mod, "xplm_FlightLoop_Phase_BeforeFlightModel", xplm_FlightLoop_Phase_BeforeFlightModel);
     PyModule_AddIntConstant(mod, "xplm_FlightLoop_Phase_AfterFlightModel", xplm_FlightLoop_Phase_AfterFlightModel);
   }
+
+  /* XPLMRegisterFlightLoopCallback(flightLoopStats, -1, NULL); */
 
   return mod;
 }

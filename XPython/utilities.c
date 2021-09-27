@@ -312,6 +312,7 @@ static int commandCallback(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, v
 {
   PyObject *pID = PyLong_FromVoidPtr(inRefcon);
   PyObject *pCbk = PyDict_GetItem(commandCallbacks, pID);
+  Py_DECREF(pID);
   if(pCbk == NULL){
     printf("Received unknown commandCallback refCon (%p).\n", inRefcon);
     return -1;
@@ -325,15 +326,22 @@ static int commandCallback(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, v
   PyObject *err = PyErr_Occurred();
   char msg[1024];
   if(err){
-    sprintf(msg, "Error in CommandCallback %s", objToStr(PyTuple_GetItem(pCbk, 2)));
-    PyErr_SetString(err, msg);
-    PyErr_Print();
+    fprintf(pythonLogFile, "Error in CommandCallback [%s] %s\n",
+            objToStr(PyTuple_GetItem(pCbk, 0)),
+            objToStr(PyTuple_GetItem(pCbk, 2)));
+    /* pass error back up */
+    /* 
+       PyErr_SetString(err, msg);
+       PyErr_Print();
+    */
+    return 0;
   }
-  Py_DECREF(pID);
   int res = PyLong_AsLong(oRes);
   err = PyErr_Occurred();
   if(err){
-    sprintf(msg, "Expected integer for return from CommandCallback %s", objToStr(PyTuple_GetItem(pCbk, 2)));
+    sprintf(msg, "Expected integer for return from CommandCallback [%s] %s",
+            objToStr(PyTuple_GetItem(pCbk, 0)),
+            objToStr(PyTuple_GetItem(pCbk, 2)));
     PyErr_SetString(err, msg);
     PyErr_Print();
   }

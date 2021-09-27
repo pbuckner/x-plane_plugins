@@ -8,10 +8,33 @@
 #include <XPLM/XPLMUtilities.h>
 #include "utils.h"
 #include "trackMetrics.h"
+#include "xppython.h"
 
 PyObject *xppythonDicts = NULL, *xppythonCapsules = NULL;
 extern const char *pythonPluginVersion, *pythonPluginsPath, *pythonInternalPluginsPath;
 static PyObject *getExecutable(void);
+
+PluginStats pluginStats[512];
+static int numPlugins = 0;
+
+
+int getPluginIndex(PyObject *pluginInstance)
+{
+  /* add check for 'max plugins', so we don't die on multiple reloads with lots of python plugins? */
+  if (numPlugins == 0) {
+    pluginStats[numPlugins].pluginInstance = Py_None; /* slot zero is for 'all' */
+    pluginStats[numPlugins].fl_time = pluginStats[numPlugins].customw_time = pluginStats[numPlugins].draw_time = 0;
+    numPlugins++;
+  }
+  for (int i = 0; i < numPlugins; i++) {
+    if(pluginStats[i].pluginInstance == pluginInstance) {
+      return i;
+    }
+  }
+  pluginStats[numPlugins].pluginInstance = pluginInstance;
+  pluginStats[numPlugins].fl_time = pluginStats[numPlugins].customw_time = pluginStats[numPlugins].draw_time = 0;
+  return numPlugins++;
+}
 
 PyObject *getExecutable()
 /* get value for executable to be 'python' rather than 'X-Plane'.
@@ -618,6 +641,45 @@ PyFMSEntryInfo_New(int type, char *navAidID, int ref, int altitude, float lat, f
   return (PyObject*)obj;
 }
 
+static PyObject *XPGetPluginStats(PyObject *self, PyObject *args)
+{
+  (void) self;
+  (void) args;
+  PyObject *info = PyDict_New();
+  
+  PyObject *fl_string = PyUnicode_FromString("fl");
+  PyObject *customw_string = PyUnicode_FromString("customw");
+  PyObject *draw_string = PyUnicode_FromString("draw");
+  PyObject *py_fltime, *py_drawtime, *py_customwtime;
+
+  for(int i=0; i< numPlugins; i++) {
+    PyObject *plugin_info = PyDict_New();
+
+    py_fltime = PyLong_FromLong(pluginStats[i].fl_time);
+    py_drawtime = PyLong_FromLong(pluginStats[i].draw_time);
+    py_customwtime = PyLong_FromLong(pluginStats[i].customw_time);
+
+    PyDict_SetItem(plugin_info, fl_string, py_fltime);
+    PyDict_SetItem(plugin_info, draw_string, py_drawtime);
+    PyDict_SetItem(plugin_info, customw_string, py_customwtime);
+    Py_DECREF(py_fltime);
+    Py_DECREF(py_drawtime);
+    Py_DECREF(py_customwtime);
+
+    PyDict_SetItem(info, pluginStats[i].pluginInstance, plugin_info);
+    
+    Py_DECREF(plugin_info);
+    pluginStats[i].fl_time = pluginStats[i].customw_time = pluginStats[i].draw_time = 0;
+  }
+
+  Py_DECREF(fl_string);
+  Py_DECREF(draw_string);
+  Py_DECREF(customw_string);
+
+  Py_INCREF(info);
+  return info;
+}
+
 static PyObject *XPPythonGetDictsFun(PyObject *self, PyObject *args)
 {
   (void) self;
@@ -691,6 +753,7 @@ static PyMethodDef XPPythonMethods[] = {
   {"XPPythonGetCapsules", XPPythonGetCapsulesFun, METH_VARARGS, ""},
   {"XPPythonLog", XPPythonLogFun, METH_VARARGS, ""},
   {"XPSystemLog", XPSystemLogFun, METH_VARARGS, ""},
+  {"XPGetPluginStats", XPGetPluginStats, METH_VARARGS, ""},
   {"cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };

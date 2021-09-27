@@ -11,6 +11,7 @@
 #include <Widgets/XPStandardWidgets.h>
 #include "plugin_dl.h"
 #include "utils.h"
+#include "xppython.h"
 
 static PyObject *widgetCallbackDict;
 static PyObject *widgetPropertyDict;
@@ -18,6 +19,10 @@ PyObject *widgetIDCapsules;
 
 int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inParam1, intptr_t inParam2)
 {
+  // struct timespec stop, start;
+  struct timespec all_stop, all_start;
+  clock_gettime(CLOCK_MONOTONIC, &all_start);
+
   PyObject *widget = getPtrRef(inWidget, widgetIDCapsules, widgetRefName);
   PyObject *param1, *param2;
   XPKeyState_t *keyState;
@@ -86,16 +91,22 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
   Py_ssize_t i;
   int res;
   PyObject *callback;
+  PyObject *pluginSelf = get_pluginSelf();
   for(i = 0; i < PyList_Size(callbackList); ++i){
-    callback = PyList_GetItem(callbackList, i);
+    callback = PyTuple_GetItem(PyList_GetItem(callbackList, i), 0);
+    pluginSelf = PyTuple_GetItem(PyList_GetItem(callbackList, i), 1);
     //Have to differentiate between python callbacks and "binary" function callbacks
     // (like the ones returned by XPGetWidgetClassFunc)
     if(PyLong_Check(callback)){
       XPWidgetFunc_t cFunc = (XPWidgetFunc_t)PyLong_AsVoidPtr(callback);
+      // clock_gettime(CLOCK_MONOTONIC, &start);
       res = cFunc(inMessage, inWidget, inParam1, inParam2);
+      // clock_gettime(CLOCK_MONOTONIC, &stop);
     }else{
       PyObject *inMessageObj = PyLong_FromLong(inMessage);
+      // clock_gettime(CLOCK_MONOTONIC, &start);
       PyObject *resObj = PyObject_CallFunctionObjArgs(callback, inMessageObj, widget, param1, param2, NULL);
+      // clock_gettime(CLOCK_MONOTONIC, &stop);
       Py_DECREF(inMessageObj);
       if(!resObj){
         PyErr_Print();
@@ -110,6 +121,7 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
       }
       break;
     }
+    //pluginStats[getPluginIndex(pluginSelf)].customw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   }
 
   if(inMessage == xpMsg_Destroy){
@@ -121,6 +133,13 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
   if (inMessage != xpMsg_PropertyChanged || inParam1 < xpProperty_UserStart) {
     Py_DECREF(param2);
   }
+  clock_gettime(CLOCK_MONOTONIC, &all_stop);
+  /* ( we get better times, per plugin, when we include the full execution: just recording
+     callback execution misses much of what the custom widget actually processes. Sadly
+     it appears we cannot match what Laminar is collecting internally.
+  */
+  pluginStats[getPluginIndex(pluginSelf)].customw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
+  pluginStats[0].customw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
   return res;
 }
 
@@ -177,7 +196,12 @@ static PyObject *XPCreateCustomWidgetFun(PyObject *self, PyObject *args)
                                         inContainer, widgetCallback);
   PyObject *resObj = getPtrRef(res, widgetIDCapsules, widgetRefName);
   PyObject *callbackList = PyList_New(0);
-  PyList_Insert(callbackList, 0, inCallback);
+  PyObject *tup = PyTuple_New(2);
+  PyTuple_SetItem(tup, 0, inCallback); /* PyTuple_SetItem() steals a reference, so we don't need to Py_DECREF */
+  Py_INCREF(inCallback);
+  PyTuple_SetItem(tup, 1, get_pluginSelf());
+  PyList_Insert(callbackList, 0, tup);
+  Py_DECREF(tup);
   PyDict_SetItem(widgetCallbackDict, resObj, callbackList);
   XPSendMessageToWidget(res, xpMsg_Create, xpMode_Direct, 0, 0);
   XPSendMessageToWidget(res, xpMsg_AcceptParent, xpMode_Direct, (intptr_t)inContainer, 0);
@@ -610,15 +634,26 @@ static PyObject *XPAddWidgetCallbackFun(PyObject *self, PyObject *args)
   } else {
     pythonLogWarning("'self' deprecated as first parameter of XPAddWidgetCallback");
   }
-  PyObject *current = PyDict_GetItem(widgetCallbackDict, widget);
-  if(current == NULL){
-    current = PyList_New(0);
-    PyList_Append(current, callback);
-    PyDict_SetItem(widgetCallbackDict, widget, current);
+  PyObject *callbackList = PyDict_GetItem(widgetCallbackDict, widget);
+  pluginSelf = get_pluginSelf();
+  if(callbackList == NULL){
+    callbackList = PyList_New(0);
+    PyObject *tup = PyTuple_New(2);
+    PyTuple_SetItem(tup, 0, callback);
+    Py_INCREF(callback);
+    PyTuple_SetItem(tup, 1, pluginSelf);
+    PyList_Append(callbackList, tup);
+    Py_DECREF(tup);
+    PyDict_SetItem(widgetCallbackDict, widget, callbackList);
     //register only the first time
     XPAddWidgetCallback(refToPtr(widget, widgetRefName), widgetCallback);
   }else{
-    PyList_Insert(current, 0, callback);
+    PyObject *tup = PyTuple_New(2);
+    PyTuple_SetItem(tup, 0, callback);
+    Py_INCREF(callback);
+    PyTuple_SetItem(tup, 1, pluginSelf);
+    PyList_Insert(callbackList, 0, tup);
+    Py_DECREF(tup);
   }
   Py_RETURN_NONE;
 }

@@ -8,6 +8,23 @@ Known Bugs
 
 3.0.11a (BETA)
 --------------
+:New Features:
+
+   * **Per-plugin performance window**. Amount of time spent, per-plugin, within flight loop or drawing callbacks is recorded
+     and displayed. Now you can see *which* plugin is slowing your system down, or tune your own plugin to run faster. See :doc:`usage/performance`.
+
+:Improvements:
+   * **Delete former XPPython3.log** on startup, if it exists -- this to avoid confusion as to which file is the log file.
+     XPPython3 now logs to XPPython3Log**.txt**, as this allows the file to be seen properly as a text file.
+
+   * **Improved error handling**: If your python code misbehaves, we're better at catching the error,
+     printing out where the problem is, and avoiding crashing the whole sim.
+
+   * Methods XPluginReceiveMessage(), XPluginDisable(), and XPluginStop() **are now optional** in
+     implemented plugins. Previously, these methods were required, even if all they did
+     was ``pass``. It's always good practice to have these methods defined, but
+     no harm if they're missing.
+
 :Fixes:
 
    * Changed order of python sys.path updates: We now INSERT (rather than APPEND) X-Plane related paths. The result
@@ -15,10 +32,8 @@ Known Bugs
      directory, followed by the original python path. (No known error related to this, but it seems 'proper'
      to set path like this.
 
-   * Delete former XPPython3.log on startup, if it exists -- this to avoid confusion as to which file is the log file.
-
 3.0.10 (9-Aug-2021)
-------------------
+-------------------
 :Fixes:
 
    * Race condition caused XPPython3 and X-Plane to crash immediately on startup. Only occured on some

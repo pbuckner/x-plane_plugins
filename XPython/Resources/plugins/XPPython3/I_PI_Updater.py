@@ -30,8 +30,12 @@ class PythonInterface(Config):
         self.updatePythonCmdRef = None
         self.togglePipCmdRef = None
         self.toggleAboutCmdRef = None
+        self.togglePerformanceCmdRef = None
         self.pipWindow = None
         self.aboutWindow = None
+        self.performanceWindow = None
+        self.status_idx = 0
+        self.stats = []
         self.updateMenuIdx = None
         super(PythonInterface, self).__init__()
 
@@ -52,17 +56,23 @@ class PythonInterface(Config):
         self.toggleAboutCmdRef = xp.createCommand('xppython3/about', 'Toggle XPPython3 about window')
         xp.registerCommandHandler(self.toggleAboutCmdRef, self.toggleAbout, 1, '')
 
+        self.togglePerformanceCmdRef = xp.createCommand('xppython3/performance', 'Toggle XPPython3 performance window')
+        xp.registerCommandHandler(self.togglePerformanceCmdRef, self.togglePerformance, 1, '')
+
+        xp.registerFlightLoopCallback(self.performanceFLCallback, 0, None)
+
         self.menu = xp.createMenu('XPPython3', None, 0, self.menuHandler, 'updatePython')
         xp.appendMenuItem(self.menu, 'About', 'about')
-        xp.appendMenuSeparator(self.menu)
-        xp.appendMenuItemWithCommand(self.menu, 'Disable scripts', xp.findCommand('XPPython3/disableScripts'))
-        xp.appendMenuItemWithCommand(self.menu, 'Enable scripts', xp.findCommand('XPPython3/enableScripts'))
-        xp.appendMenuItemWithCommand(self.menu, 'Reload scripts', xp.findCommand('XPPython3/reloadScripts'))
+        xp.appendMenuItem(self.menu, 'Performance', 'performance')
+        # xp.appendMenuItemWithCommand(self.menu, 'Disable scripts', xp.findCommand('XPPython3/disableScripts'))
+        # xp.appendMenuItemWithCommand(self.menu, 'Enable scripts', xp.findCommand('XPPython3/enableScripts'))
         xp.appendMenuSeparator(self.menu)
         xp.appendMenuItem(self.menu, 'Update', 'update')
         xp.appendMenuItem(self.menu, 'Download Samples', 'samples')
-        self.updateMenuIdx = 6
+        self.updateMenuIdx = 3
         xp.appendMenuItem(self.menu, 'Pip Package Installer', 'pip')
+        xp.appendMenuSeparator(self.menu)
+        xp.appendMenuItemWithCommand(self.menu, 'Reload scripts', xp.findCommand('XPPython3/reloadScripts'))
         self.setUpdateMenu()
 
         return self.Name, self.Sig, self.Desc
@@ -79,12 +89,14 @@ class PythonInterface(Config):
     def menuHandler(self, menuRef, itemRef):
         if itemRef == 'samples':
             samples.download()
-        if itemRef == 'update':
+        elif itemRef == 'update':
             xp.commandOnce(self.updatePythonCmdRef)
-        if itemRef == 'pip':
+        elif itemRef == 'pip':
             xp.commandOnce(self.togglePipCmdRef)
-        if itemRef == 'about':
+        elif itemRef == 'about':
             xp.commandOnce(self.toggleAboutCmdRef)
+        elif itemRef == 'performance':
+            xp.commandOnce(self.togglePerformanceCmdRef)
 
     def updatePython(self, inCommand, inPhase, inRefcon):
         if inPhase == xp.CommandBegin:
@@ -92,9 +104,76 @@ class PythonInterface(Config):
             xp.checkMenuItem(xp.findPluginsMenu(), 0, xp.Menu_Unchecked)
             try:
                 xp.setMenuItemName(self.menu, self.updateMenuIdx, "Will change to new version on restart.")
-            except:
+            except Exception:
                 return 0
         return 0
+
+    def togglePerformance(self, inCommand, inPhase, inRefcon):
+        if inPhase == xp.CommandBegin:
+            if not self.performanceWindow:
+                self.performanceWindow = self.createPerformanceWindow()
+                xp.setFlightLoopCallbackInterval(self.performanceFLCallback, -1, 1, None)
+            else:
+                xp.setFlightLoopCallbackInterval(self.performanceFLCallback, 0, 1, None)
+                xp.destroyWidget(self.performanceWindow['widgetID'], 1)
+                self.performanceWindow = None
+        return 0
+
+    def performanceFLCallback(self, *args, **kwargs):
+        def sum_merge(a, b):
+            res = {}
+            for plugin in (set(a) | set(b)):
+                fields = set(a.get(plugin, {})) | set(b.get(plugin, {}))
+                res[plugin] = {x: (a.get(plugin, {}).get(x, 0) + b.get(plugin, {}).get(x, 0)) for x in fields}
+            return res
+
+        maximum = 10
+        data = xp.getPluginStats()
+
+        if self.status_idx == 0:
+            self.stats = data
+        else:
+            self.stats = sum_merge(self.stats, data)
+        self.status_idx += 1
+
+        if self.performanceWindow:
+            if self.status_idx == maximum:
+                total = self.stats[None]['fl'] + self.stats[None]['draw'] + self.stats[None]['customw']
+                fontID = xp.Font_Proportional
+                for k, v in self.stats.items():
+                    k = str(k) if k is not None else 'All'
+                    if k + 'fl' in self.performanceWindow['widgets']:
+                        (left, top, right, bottom) = xp.getWidgetGeometry(self.performanceWindow['widgets'][k + 'customw'])
+                        value = str(int(v['customw'] / maximum))
+                        newleft = int(right - xp.measureString(fontID, value))
+                        xp.setWidgetGeometry(self.performanceWindow['widgets'][k + 'customw'],
+                                             newleft, top, right, bottom)
+                        xp.setWidgetDescriptor(self.performanceWindow['widgets'][k + 'customw'], value)
+
+                        (left, top, right, bottom) = xp.getWidgetGeometry(self.performanceWindow['widgets'][k + 'draw'])
+                        value = str(int(v['draw'] / maximum))
+                        newleft = int(right - xp.measureString(fontID, value))
+                        xp.setWidgetGeometry(self.performanceWindow['widgets'][k + 'draw'],
+                                             newleft, top, right, bottom)
+                        xp.setWidgetDescriptor(self.performanceWindow['widgets'][k + 'draw'], value)
+
+                        (left, top, right, bottom) = xp.getWidgetGeometry(self.performanceWindow['widgets'][k + 'fl'])
+                        value = str(int(v['fl'] / maximum))
+                        newleft = int(right - xp.measureString(fontID, value))
+                        xp.setWidgetGeometry(self.performanceWindow['widgets'][k + 'fl'],
+                                             newleft, top, right, bottom)
+                        xp.setWidgetDescriptor(self.performanceWindow['widgets'][k + 'fl'], value)
+
+                        (left, top, right, bottom) = xp.getWidgetGeometry(self.performanceWindow['widgets'][k + 'pct'])
+                        value = '{:.1f}%'.format(100.0 * (v['customw'] + v['fl'] + v['draw']) / total)
+                        newleft = int(right - xp.measureString(fontID, value))
+                        xp.setWidgetGeometry(self.performanceWindow['widgets'][k + 'pct'],
+                                             newleft, top, right, bottom)
+                        xp.setWidgetDescriptor(self.performanceWindow['widgets'][k + 'pct'], value)
+                self.status_idx = 0
+            return -1
+        else:
+            return 0
 
     def toggleAbout(self, inCommand, inPhase, inRefcon):
         if inPhase == xp.CommandBegin:
@@ -127,12 +206,19 @@ class PythonInterface(Config):
             xp.unregisterCommandHandler(self.togglePipCmdRef, self.togglePip, 1, '')
         if self.toggleAboutCmdRef:
             xp.unregisterCommandHandler(self.toggleAboutCmdRef, self.toggleAbout, 1, '')
+        if self.togglePerformanceCmdRef:
+            xp.unregisterCommandHandler(self.togglePerformanceCmdRef, self.togglePerformance, 1, '')
+        xp.unregisterFlightLoopCallback(self.performanceFLCallback, None)
         if self.pipWindow:
             xp.destroyWidget(self.pipWindow['widgetID'], 1)
             self.pipWindow = None
         if self.aboutWindow:
             xp.destroyWidget(self.aboutWindow['widgetID'], 1)
             self.aboutWindow = None
+        if self.performanceWindow:
+            xp.unregisterFlightLoopCallback(self.performanceFLCallback, [])
+            xp.destroyWidget(self.performanceWindow['widgetID'], 1)
+            self.performanceWindow = None
         self.save()
         return
 
@@ -144,6 +230,67 @@ class PythonInterface(Config):
 
     def XPluginReceiveMessage(self, inFromWho, inMessage, inParam):
         return
+
+    def createPerformanceWindow(self):
+        widgetWindow = {'widgetID': None,
+                        'widgets': {}}
+        fontID = xp.Font_Proportional
+        _w, strHeight, _ignore = xp.getFontDimensions(fontID)
+        data = sorted([x[-1] for x in xp.pythonGetDicts()['plugins'].values()])
+        data.insert(0, 'All')
+
+        left = 100
+        top = 300
+        width = 525
+        height = int((1 + len(data)) * (strHeight + 5) + 40)
+
+        widgetWindow['widgetID'] = xp.createWidget(left, top, left + width, top - height, 1, "Python Plugins Performance",
+                                                   1, 0, xp.WidgetClass_MainWindow)
+        xp.setWidgetProperty(widgetWindow['widgetID'], xp.Property_MainWindowHasCloseBoxes, 1)
+        xp.addWidgetCallback(widgetWindow['widgetID'], self.performanceWindowCallback)
+        top -= 30
+        right = left + width
+        bottom = int(top - strHeight)
+
+        colRight = [240, 160, 80, 20]
+        widgetWindow['widgets']['title' + 'label'] = xp.createWidget(
+            left + 10, top, left + int(xp.measureString(fontID, 'Plugin')),
+            bottom, 1, 'Plugin', 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+
+        for k in (('Custom Widgets', 'customw', colRight[0]),
+                  ('Drawing Misc', 'draw', colRight[1]),
+                  ('Flight Loop', 'fl', colRight[2]),
+                  ('%', 'pct', colRight[3])):
+            label, code, col = k
+            strWidth = xp.measureString(fontID, label)
+            widgetWindow['widgets']['title' + code] = xp.createWidget(
+                right - col - int(strWidth), top, right - col, bottom, 1, label, 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+
+        top -= int(strHeight * 1.5)
+        bottom = int(top - 1.5 * strHeight)
+
+        for k in data:
+            strWidth = xp.measureString(fontID, k)
+            widgetWindow['widgets'][k + 'label'] = xp.createWidget(
+                left + 10, top, left + int(strWidth), bottom, 1, k, 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+            widgetWindow['widgets'][k + 'customw'] = xp.createWidget(
+                right - 300, top, right - colRight[0], bottom, 1, '', 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+            widgetWindow['widgets'][k + 'draw'] = xp.createWidget(
+                right - 300, top, right - colRight[1], bottom, 1, '', 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+            widgetWindow['widgets'][k + 'fl'] = xp.createWidget(
+                right - 200, top, right - colRight[2], bottom, 1, '', 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+            widgetWindow['widgets'][k + 'pct'] = xp.createWidget(
+                right - 80, top, right - colRight[3], bottom, 1, '', 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+            top -= int(strHeight) + 5
+            bottom = int(top - strHeight)
+
+        return widgetWindow
+
+    def performanceWindowCallback(self, inMessage, inWidget, inParam1, inParam2):
+        if inMessage == xp.Message_CloseButtonPushed:
+            xp.commandOnce(self.togglePerformanceCmdRef)
+            return 1
+        return 0
 
     def createAboutWindow(self):
         widgetWindow = {'widgetID': None,

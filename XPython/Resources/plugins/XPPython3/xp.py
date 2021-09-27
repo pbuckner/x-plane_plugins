@@ -444,6 +444,7 @@ pythonExecutable = XPPython.pythonExecutable
 pythonGetDicts = XPPython.XPPythonGetDicts
 pythonGetCapsules = XPPython.XPPythonGetCapsules
 pythonLog = XPPython.XPPythonLog
+getPluginStats = XPPython.XPGetPluginStats
 log = XPPython.XPPythonLog
 systemLog = XPPython.XPSystemLog
 sys_log = XPPython.XPSystemLog

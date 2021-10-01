@@ -1,4 +1,5 @@
 import sys
+import urllib
 import re
 import os
 import subprocess
@@ -14,7 +15,12 @@ class Config (scriptupdate.Updater):
     Sig = "xppython3.updater.{}.{}".format(sys.version_info.major, sys.version_info.minor)
     Desc = "Automatic updater for XPPython3 plugin"
     Version = XPPython.VERSION
-    VersionCheckURL = 'https://maps.avnwx.com/data/x-plane/versions.json'
+    VersionCheckURL = ('https://maps.avnwx.com/x-plane/versions.json?product={PRODUCT}'
+                       '&current={VERSION}&platform={PLATFORM}&xp={XP}&sdk={SDK}'
+                       ''.format(PRODUCT=urllib.parse.quote_plus(Sig),
+                                 VERSION=urllib.parse.quote_plus(Version),
+                                 PLATFORM=sys.platform, XP=xp.getVersions()[0],
+                                 SDK=xp.getVersions()[1]))
     ConfigFilename = 'updater.pkl'
     defaults = {
         'autoUpgrade': False,
@@ -37,6 +43,7 @@ class PythonInterface(Config):
         self.status_idx = 0
         self.stats = []
         self.updateMenuIdx = None
+        self.frame_rate_period_dref = xp.findDataRef('sim/time/framerate_period')
         super(PythonInterface, self).__init__()
 
     def XPluginStart(self):
@@ -140,36 +147,40 @@ class PythonInterface(Config):
             if self.status_idx == maximum:
                 total = self.stats[None]['fl'] + self.stats[None]['draw'] + self.stats[None]['customw']
                 fontID = xp.Font_Proportional
+                w = self.performanceWindow['widgets']
                 for k, v in self.stats.items():
                     k = str(k) if k is not None else 'All'
-                    if k + 'fl' in self.performanceWindow['widgets']:
-                        (left, top, right, bottom) = xp.getWidgetGeometry(self.performanceWindow['widgets'][k + 'customw'])
+                    if k + 'fl' in w:
+                        (left, top, right, bottom) = xp.getWidgetGeometry(w[k + 'customw'])
                         value = str(int(v['customw'] / maximum))
                         newleft = int(right - xp.measureString(fontID, value))
-                        xp.setWidgetGeometry(self.performanceWindow['widgets'][k + 'customw'],
-                                             newleft, top, right, bottom)
-                        xp.setWidgetDescriptor(self.performanceWindow['widgets'][k + 'customw'], value)
+                        xp.setWidgetGeometry(w[k + 'customw'], newleft, top, right, bottom)
+                        xp.setWidgetDescriptor(w[k + 'customw'], value)
 
-                        (left, top, right, bottom) = xp.getWidgetGeometry(self.performanceWindow['widgets'][k + 'draw'])
+                        (left, top, right, bottom) = xp.getWidgetGeometry(w[k + 'draw'])
                         value = str(int(v['draw'] / maximum))
                         newleft = int(right - xp.measureString(fontID, value))
-                        xp.setWidgetGeometry(self.performanceWindow['widgets'][k + 'draw'],
-                                             newleft, top, right, bottom)
-                        xp.setWidgetDescriptor(self.performanceWindow['widgets'][k + 'draw'], value)
+                        xp.setWidgetGeometry(w[k + 'draw'], newleft, top, right, bottom)
+                        xp.setWidgetDescriptor(w[k + 'draw'], value)
 
-                        (left, top, right, bottom) = xp.getWidgetGeometry(self.performanceWindow['widgets'][k + 'fl'])
+                        (left, top, right, bottom) = xp.getWidgetGeometry(w[k + 'fl'])
                         value = str(int(v['fl'] / maximum))
                         newleft = int(right - xp.measureString(fontID, value))
-                        xp.setWidgetGeometry(self.performanceWindow['widgets'][k + 'fl'],
-                                             newleft, top, right, bottom)
-                        xp.setWidgetDescriptor(self.performanceWindow['widgets'][k + 'fl'], value)
+                        xp.setWidgetGeometry(w[k + 'fl'], newleft, top, right, bottom)
+                        xp.setWidgetDescriptor(w[k + 'fl'], value)
 
-                        (left, top, right, bottom) = xp.getWidgetGeometry(self.performanceWindow['widgets'][k + 'pct'])
+                        (left, top, right, bottom) = xp.getWidgetGeometry(w[k + 'pct'])
                         value = '{:.1f}%'.format(100.0 * (v['customw'] + v['fl'] + v['draw']) / total)
                         newleft = int(right - xp.measureString(fontID, value))
-                        xp.setWidgetGeometry(self.performanceWindow['widgets'][k + 'pct'],
-                                             newleft, top, right, bottom)
-                        xp.setWidgetDescriptor(self.performanceWindow['widgets'][k + 'pct'], value)
+                        xp.setWidgetGeometry(w[k + 'pct'], newleft, top, right, bottom)
+                        xp.setWidgetDescriptor(w[k + 'pct'], value)
+                frp = xp.getDataf(self.frame_rate_period_dref)
+                xp.setWidgetDescriptor(w['frvalue'],
+                                       '{:.0f} / {:4.1f} fps'.format(frp * 1000000, 1.0 / frp))
+                if self.stats[None]['fl'] > 0:
+                    xp.setWidgetDescriptor(w['fl_fps'], 'Python Flight loop: {:5.2f} fps'.format(
+                        (self.stats[None]['fl'] / (maximum * 1000000.0)) / (frp * frp)
+                    ))
                 self.status_idx = 0
             return -1
         else:
@@ -237,12 +248,12 @@ class PythonInterface(Config):
         fontID = xp.Font_Proportional
         _w, strHeight, _ignore = xp.getFontDimensions(fontID)
         data = sorted([x[-1] for x in xp.pythonGetDicts()['plugins'].values()])
-        data.insert(0, 'All')
+        data.append('All')
 
         left = 100
         top = 300
         width = 525
-        height = int((1 + len(data)) * (strHeight + 5) + 40)
+        height = int((3 + len(data)) * (strHeight + 5) + 40)
 
         widgetWindow['widgetID'] = xp.createWidget(left, top, left + width, top - height, 1, "Python Plugins Performance",
                                                    1, 0, xp.WidgetClass_MainWindow)
@@ -252,10 +263,12 @@ class PythonInterface(Config):
         right = left + width
         bottom = int(top - strHeight)
 
+        # Top line -- header
         colRight = [240, 160, 80, 20]
+        label = 'Plugin (times in μsec)'
         widgetWindow['widgets']['title' + 'label'] = xp.createWidget(
-            left + 10, top, left + int(xp.measureString(fontID, 'Plugin')),
-            bottom, 1, 'Plugin', 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+            left + 10, top, left + int(xp.measureString(fontID, label)),
+            bottom, 1, label, 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
 
         for k in (('Custom Widgets', 'customw', colRight[0]),
                   ('Drawing Misc', 'draw', colRight[1]),
@@ -266,23 +279,43 @@ class PythonInterface(Config):
             widgetWindow['widgets']['title' + code] = xp.createWidget(
                 right - col - int(strWidth), top, right - col, bottom, 1, label, 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
 
+        # widgets for each plugin line
         top -= int(strHeight * 1.5)
         bottom = int(top - 1.5 * strHeight)
 
         for k in data:
-            strWidth = xp.measureString(fontID, k)
-            widgetWindow['widgets'][k + 'label'] = xp.createWidget(
-                left + 10, top, left + int(strWidth), bottom, 1, k, 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
-            widgetWindow['widgets'][k + 'customw'] = xp.createWidget(
-                right - 300, top, right - colRight[0], bottom, 1, '', 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
-            widgetWindow['widgets'][k + 'draw'] = xp.createWidget(
-                right - 300, top, right - colRight[1], bottom, 1, '', 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
-            widgetWindow['widgets'][k + 'fl'] = xp.createWidget(
-                right - 200, top, right - colRight[2], bottom, 1, '', 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
-            widgetWindow['widgets'][k + 'pct'] = xp.createWidget(
-                right - 80, top, right - colRight[3], bottom, 1, '', 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
-            top -= int(strHeight) + 5
-            bottom = int(top - strHeight)
+            if k == data[-1]:
+                top -= 5
+                bottom -= 5
+
+            strWidth = int(xp.measureString(fontID, k))
+            widgetWindow['widgets'][k + 'label'] = xp.createWidget(left + 10, top, left + strWidth, bottom,
+                                                                   1, k, 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+            widgetWindow['widgets'][k + 'customw'] = xp.createWidget(right - 300, top, right - colRight[0], bottom,
+                                                                     1, '', 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+            widgetWindow['widgets'][k + 'draw'] = xp.createWidget(right - 300, top, right - colRight[1], bottom,
+                                                                  1, '', 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+            widgetWindow['widgets'][k + 'fl'] = xp.createWidget(right - 200, top, right - colRight[2], bottom,
+                                                                1, '', 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+            widgetWindow['widgets'][k + 'pct'] = xp.createWidget(right - 80, top, right - colRight[3], bottom,
+                                                                 1, '', 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+            top -= strHeight + 5
+            bottom = top - strHeight
+
+        # skip a line for footer
+        top -= int(strHeight) + 5
+        bottom = int(top - strHeight)
+
+        # Footer
+        label = 'Current frame rate (in μsec):'
+        strWidth = xp.measureString(fontID, label)
+        widgetWindow['widgets']['frlabel'] = xp.createWidget(left + 10, top, left + int(strWidth), bottom,
+                                                             1, label, 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+        label = "0"
+        widgetWindow['widgets']['frvalue'] = xp.createWidget(left + 10 + int(strWidth) + 10, top, right - 300, bottom,
+                                                             1, label, 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+        widgetWindow['widgets']['fl_fps'] = xp.createWidget(right - 200, top, right - 100, bottom,
+                                                            1, 'fl_fps', 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
 
         return widgetWindow
 

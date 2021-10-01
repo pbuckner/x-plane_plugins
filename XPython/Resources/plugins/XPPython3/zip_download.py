@@ -4,6 +4,7 @@ import threading
 from zipfile import ZipFile
 from urllib.request import urlretrieve
 from urllib.error import URLError
+import platform
 try:
     from ssl import SSLCertVerificationError  # py 3.7+
 except ImportError:
@@ -118,10 +119,23 @@ class ZipDownload:
                                 continue
                             xp.sys_log("renamed to {}".format(i.filename))
                         if os.path.exists(os.path.join(self.install_path, i.filename)):
-                            if self.backup and not os.path.isdir(os.path.join(self.install_path, i.filename)):
+                            if not os.path.isdir(os.path.join(self.install_path, i.filename)):
+                                # remove old 'bak' if it exists, ignore if it doesn't
+                                try:
+                                    os.remove(os.path.join(self.install_path, i.filename + '.bak'))
+                                except FileNotFoundError:
+                                    pass
+                                # in-place rename current -> .bak
                                 os.replace(os.path.join(self.install_path, i.filename),
                                            os.path.join(self.install_path, i.filename + '.bak'))
-                                xp.sys_log('{} moved to {}'.format(i.filename, i.filename + '.bak'))
+                                if self.backup:
+                                    xp.sys_log('{} moved to {}'.format(i.filename, i.filename + '.bak'))
+                                else:
+                                    # we didn't want .bak, so attempt to remove .bak, ignore if failure
+                                    try:
+                                        os.remove(os.path.join(self.install_path, i.filename + '.bak'))
+                                    except PermissionError:
+                                        pass
                         zipfp.extract(i, path=self.install_path)
                     except PermissionError as e:
                         success = False

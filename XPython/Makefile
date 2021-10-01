@@ -3,7 +3,7 @@
 PLUGIN_PATH=Resources/plugins/XPPython3
 XP_SDK=../SDK
 VERSIONS= 36 37 38 39
-XPPYTHONVERSION=3.0.11a6
+XPPYTHONVERSION=3.0.11
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
 #########
 # COMMON opts
@@ -176,13 +176,12 @@ install_remote : $(zipfiles)
 		echo "Current version is BETA: $(XPPYTHONVERSION). Not installing"; \
 		exit 1; \
 	fi
-	echo "Otherwise"
-	# scp Resources/plugins/xppython3?{,-darwin,-linux,-win32}.zip pbuck@avnwx.com:/var/www/production/data/x-plane
-	# ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; \
-	# 	./updatemd5.py xppython36.zip "$(XPPYTHONVERSION) - for Python 3.6"; \
-	# 	./updatemd5.py xppython37.zip "$(XPPYTHONVERSION) - for Python 3.7"; \
-	# 	./updatemd5.py xppython38.zip "$(XPPYTHONVERSION) - for Python 3.8"; \
-	# 	./updatemd5.py xppython39.zip "$(XPPYTHONVERSION) - for Python 3.9"'
+	scp Resources/plugins/xppython3?{,-darwin,-linux,-win32}.zip pbuck@avnwx.com:/var/www/production/data/x-plane
+	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; \
+		./updatemd5.py xppython36.zip "$(XPPYTHONVERSION) - for Python 3.6"; \
+		./updatemd5.py xppython37.zip "$(XPPYTHONVERSION) - for Python 3.7"; \
+		./updatemd5.py xppython38.zip "$(XPPYTHONVERSION) - for Python 3.8"; \
+		./updatemd5.py xppython39.zip "$(XPPYTHONVERSION) - for Python 3.9"'
 
 install_sdk : sdk
 	$(ZIP) -R examples examples/\*.py

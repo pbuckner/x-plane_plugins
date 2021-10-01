@@ -6,8 +6,8 @@ Known Bugs
 
  None. Tell me otherwise!
 
-3.0.11a (BETA)
---------------
+3.0.11 (1-Oct-2021)
+-------------------
 :New Features:
 
    * **Per-plugin performance window**. Amount of time spent, per-plugin, within flight loop or drawing callbacks is recorded

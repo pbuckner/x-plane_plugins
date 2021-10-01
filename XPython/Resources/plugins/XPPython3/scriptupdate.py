@@ -127,7 +127,7 @@ class Updater(Config):
         xp.log("Calling Check with version check url: {}".format(self.VersionCheckURL))
         if self.VersionCheckURL:
             try:
-                ret = urlopen(self.VersionCheckURL)
+                ret = urlopen(self.VersionCheckURL + ('&beta=y' if self.config.get('beta', False) else ''))
                 if ret.getcode() != 200:
                     xp.sys_log("Failed to get {}, returned code: {}".format(self.VersionCheckURL, ret.getcode()))
                     return

@@ -25,6 +25,9 @@ Known Bugs
      was ``pass``. It's always good practice to have these methods defined, but
      no harm if they're missing.
 
+   * **Platform-sensitive updater** now loads only the XPPython3 version (mac, windows, linux) you need rather
+     than downloading all versions resulting in a much faster upgrade.
+
 :Fixes:
 
    * Changed order of python sys.path updates: We now INSERT (rather than APPEND) X-Plane related paths. The result
@@ -36,7 +39,7 @@ Known Bugs
 -------------------
 :Fixes:
 
-   * Race condition caused XPPython3 and X-Plane to crash immediately on startup. Only occured on some
+   * Race condition caused XPPython3 and X-Plane to crash immediately on startup. Only occurred on some
      configurations (Known to occur on some Linux and Window 11).
 
 
@@ -83,7 +86,7 @@ Known Bugs
    * Changed built-in `sys.path` to initialize with absolute rather than relative paths. This
      allows us to import shared object libraries. (Required to get imgui to work.)
 
-   * Fixed internal manipulation of reference constants associared with registering command handlers. We
+   * Fixed internal manipulation of reference constants associated with registering command handlers. We
      need a stable key so we can "find" the correct handler. Previous method of calculating the key was
      not stable for some reference constants.
 
@@ -123,7 +126,7 @@ Known Bugs
    * Detects the existence of python2 PythonInterface plugin and immediately exits XPPython3 with
      a Fatal Error written to Log.txt: These two plugins cannot run simultaneously: they almost can, but
      will fail in miserably difficult-to-debug ways. So we don't even try.
-   * Initial documentaion for :doc:`development/xpyce`, which enables loading of encrypted pyc modules.
+   * Initial documentation for :doc:`development/xpyce`, which enables loading of encrypted pyc modules.
 
 :Fixes:
 

@@ -126,7 +126,7 @@ static PyMemberDef HotKeyInfo_members[] = {
     {"flags", T_INT, offsetof(HotKeyInfoObject, flags), 0, "XPLMKeyFlags"},
     {"description", T_OBJECT_EX, offsetof(HotKeyInfoObject, description), 0, "Description"},
     {"plugin", T_INT, offsetof(HotKeyInfoObject, plugin), 0, "XPLMPluginID"},
-    {NULL}  /* Sentinel */
+    {NULL, T_INT, 0, 0, ""}  /* Sentinel */
 };
 
 static PyTypeObject HotKeyInfoType = {
@@ -235,7 +235,7 @@ static PyMemberDef ProbeInfo_members[] = {
     {"velocityY", T_FLOAT, offsetof(ProbeInfoObject, velocityY), 0, "velocityY"},
     {"velocityZ", T_FLOAT, offsetof(ProbeInfoObject, velocityZ), 0, "velocityZ"},
     {"is_wet", T_INT, offsetof(ProbeInfoObject, is_wet), 0, "is_wet"},
-    {NULL}  /* Sentinel */
+    {NULL, T_INT, 0, 0, ""}  /* Sentinel */
 };
 
 static PyTypeObject ProbeInfoType = {
@@ -374,7 +374,7 @@ static PyMemberDef PluginInfo_members[] = {
     {"filePath", T_OBJECT_EX, offsetof(PluginInfoObject, filePath), 0, "filePath"},
     {"signature", T_OBJECT_EX, offsetof(PluginInfoObject, signature), 0, "signature"},
     {"description", T_OBJECT_EX, offsetof(PluginInfoObject, description), 0, "Description"},
-    {NULL}  /* Sentinel */
+    {NULL, T_INT, 0, 0, ""}  /* Sentinel */
 };
 
 static PyTypeObject PluginInfoType = {
@@ -504,7 +504,7 @@ static PyMemberDef NavAidInfo_members[] = {
     {"navAidID", T_OBJECT_EX, offsetof(NavAidInfoObject, navAidID), 0, "nav aid ID"},
     {"name", T_OBJECT, offsetof(NavAidInfoObject, name), 0, "nav aid name"},
     {"reg", T_INT, offsetof(NavAidInfoObject, reg), 0, "navaid is within local 'region'"},
-    {NULL}  /* Sentinel */
+    {NULL, T_INT, 0, 0, ""}  /* Sentinel */
 };
 
 static PyTypeObject NavAidInfoType = {
@@ -612,7 +612,7 @@ static PyMemberDef FMSEntryInfo_members[] = {
     {"altitude", T_INT, offsetof(FMSEntryInfoObject, altitude), 0, "altitude"},
     {"lat", T_FLOAT, offsetof(FMSEntryInfoObject, lat), 0, "latitude"},
     {"lon", T_FLOAT, offsetof(FMSEntryInfoObject, lon), 0, "longitude"},
-    {NULL}  /* Sentinel */
+    {NULL, T_INT, 0, 0, ""}  /* Sentinel */
 };
 
 static PyTypeObject FMSEntryInfoType = {

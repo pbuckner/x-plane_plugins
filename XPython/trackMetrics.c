@@ -102,7 +102,7 @@ static PyMemberDef TrackMetrics_members[] = {
     {"thumbSize", T_INT, offsetof(TrackMetricsObject, thumbSize), 0, "thumbSize"},
     {"upPageSize", T_INT, offsetof(TrackMetricsObject, upPageSize), 0, "upPageSize"},
     {"upBtnSize", T_INT, offsetof(TrackMetricsObject, upBtnSize), 0, "upButtonSize"},
-    {NULL}  /* Sentinel */
+    {NULL, T_INT, 0, 0, ""}  /* Sentinel */
 };
 
 static PyObject* TrackMetrics_str(TrackMetricsObject *self) {

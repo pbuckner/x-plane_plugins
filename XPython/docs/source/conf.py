@@ -57,6 +57,8 @@ exclude_patterns = []
 #
 html_theme = 'python_docs_theme'
 html_theme_path = ['_theme', ]
+html_last_updated_fmt = ""
+html_title = '{} v{}'.format(project, release)
 html_theme_options = {
     'root_name': '',
     'root_icon': 'xppython3.png',

@@ -6,6 +6,16 @@ Known Bugs
 
  None. Tell me otherwise!
 
+3.0.12\ *x* (In Beta)
+----------------------
+:New Features:
+   * **Support for Python 3.10**. Because my life just isn't complicated enough.
+
+:Improvements:
+   * Upgraded **Mini Python** plugin which supports resizable windows and full language scripting
+
+    
+
 3.0.11 (1-Oct-2021)
 -------------------
 :New Features:

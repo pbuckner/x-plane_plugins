@@ -53,3 +53,17 @@ That way, starting X-Plane, will use latest built plugin
 
 For Windows.. I installed 64-bit version of mingw, updated makefiles to support
 cd /z
+
+## To Release:
+1. Build all versions (python3.x for each platform)
+2. Commit changes to master
+3. Compare staging python vs. build python code ~/xp/Resources/plugins/XPPython/compare.csh
+4. Push to github
+5. "Make Release".
+   a) github.com/pbuckner/x-plane_plugins/releases "Draft a new release"
+   b) "Choose a tag": create new tag, e.g., v3.0.12
+   c) Set Release Title to version, e.g., "3.0.12"
+   d) Target: master
+   e) Publish Release
+   ... this will cause this to be "latest" build, and will allow readthedocs to pull this release as "stable"
+

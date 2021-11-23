@@ -7,7 +7,7 @@ import webbrowser
 import XPPython
 from XPPython3 import scriptupdate
 from XPPython3 import xp
-from XPPython3 import samples
+from XPPython3.utils import samples
 
 
 class Config (scriptupdate.Updater):

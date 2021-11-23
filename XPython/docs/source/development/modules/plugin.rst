@@ -1,10 +1,11 @@
 XPLMPlugin
 ==========
 .. py:module:: XPLMPlugin
-
+.. py:currentmodule:: xp
+                      
 To use::
   
-  import XPLMPlugin
+  import xp
 
 Finding Plugins
 ---------------
@@ -14,20 +15,11 @@ all plugins.  For example, if you wrote an FMS plugin that needed to talk
 to an autopilot plugin, you could use these APIs to locate the autopilot
 plugin.
 
-.. py:data:: XPLMPluginID
+.. note:: These interfaces are used to communicate with non-XPPython3 plugins.
 
-   Integer plugin ID.
+.. py:function:: getMyID()
 
-.. py:data:: XPLM_NO_PLUGIN_ID
-   :value: -1
-
-   Value of :py:data:`XPLMPluginID` when refering to no plugin.             
-
-.. py:function:: XPLMGetMyID(None) -> int:
-
- :return: :py:data:`XPLMPluginID`                 
-
- This routine returns the plugin ID of the calling plug-in.  Call this to
+ Return the integer plugin ID of the calling plugin.  Call this to
  get your own ID.
 
  .. note::
@@ -36,86 +28,140 @@ plugin.
     perspective of X-Plane, all python plugins are running within
     a single plugin.
 
+ >>> xp.getMyID()
+ 3
 
-.. py:function::  XPLMCountPlugins(None) -> int:
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMGetMyID>`__ :index:`XPLMGetMyID`
 
- This routine returns the total number of plug-ins that are loaded, both
- disabled and enabled.
 
-.. py:function:: XPLMGetNthPlugin(index: int) -> int:
+.. py:function::  countPlugins()
 
- :return: :py:data:`XPLMPluginID`                 
+ Return the total number of (non-python) plugins that are loaded, both
+ disabled and enabled. This includes this ``XPPython3`` plugin (which is written in C)
+ but none of the python plugins.
 
- This routine returns the ID of a plug-in by index.  Index is 0 based from 0
- to :py:func:`XPLMCountPlugins`-1, inclusive. Plugins may be returned in any arbitrary
+ >>> xp.countPlugins()
+ 5
+
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMCountPlugins>`__ :index:`XPLMCountPlugins`
+ 
+.. py:function:: getNthPlugin(index)
+
+ Return the ID of a (non-python) plugin by *index*.  Index is 0 based from 0
+ to :py:func:`countPlugins`-1, inclusive. Plugins may be returned in any arbitrary
  order.
 
+ >>> xp.getNthPlugin(0)
+ 0
 
-.. py:function::  XPLMFindPluginByPath(path: str) -> int:
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMGetNthPlugin>`__ :index:`XPLMGetNthPlugin`
 
- :param str path: path of plugin to be found                  
- :return: :py:data:`XPLMPluginID`                 
+.. py:function::  findPluginByPath(path)
 
- This routine returns the plug-in ID of the plug-in whose file exists at the
- passed in absolute file system path.  XPLM_NO_PLUGIN_ID is returned if the
+ Returns the pluginID of the plugin whose file exists at the provided *path*.
+ Path **must** be an absolute path.
+
+ XPLM_NO_PLUGIN_ID (``-1``) is returned if the
  path does not point to a currently loaded plug-in.
 
+ >>> xp.findPluginByPath('XPPython3.xpl')
+ -1
+ >>> xp.findPluginByPath('Resources/plugins/XPPython3/mac_x64/XPPython3.xpl')
+ -1
+ >>> xp.findPluginByPath('/Volumes/Red1/X-Plane/Resources/plugins/XPPython3/mac_x64/XPPython3.xpl')
+ 3
 
-.. py:function:: XPLMFindPluginBySignature(signature: str) -> int:
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMFindPluginByPath>`__ :index:`XPLMFindPluginByPath`
+ 
+.. py:function:: findPluginBySignature(signature)
 
- :param str signature: Signature of plugin to be found
- :return: :py:data:`XPLMPluginID`                 
+ Return the  pluginID of the (non-python) plugin whose signature matches *signature*, or
+ :py:data:`XPLM_NO_PLUGIN_ID` if no running plug-in has this
+ signature.
 
- This routine returns the plug-in ID of the plug-in whose signature matches
- what is passed in or :py:data:`XPLM_NO_PLUGIN_ID` if no running plug-in has this
- signature.  Signatures are the best way to identify another plug-in as they
- are independent of the file system path of a plug-in or the human-readable
- plug-in name, and should be unique for all plug-ins.  Use this routine to
- locate another plugin that your plugin interoperates with
+ Signatures are the best way to identify another plug-in as they
+ are independent of the file system path of a plugin or the human-readable
+ plugin name, and should be unique for all plug-ins.  Use this routine to
+ locate another plugin that your plugin inter-operates with.
+
+ >>> xp.findPluginBySignature('com.x-plane.xlua.1.0.0r1')
+ 4
+ >>> xp.findPluginBySignature('xppython.main')
+ 3
+ >>> xp.findPluginBySignature('xplanesdk.examples.DataRefEditor')
+ -1
+
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMFindPluginBySignature>`__ :index:`XPLMFindPluginBySignature`
+ 
+.. py:function:: getPluginInfo(pluginID)
+
+ Return information about a plugin given its *pluginID* (Not its index!).
+
+     .. py:data:: PluginInfo
+    
+     Object returned by :py:func:`getPluginInfo` containing
+     information about a plugin. It has the following string attributes:
+    
+     | .name
+     | .filePath
+     | .signature
+     | .description
+    
+ Conveniently, we also provide a ``str()`` representation for the information
+ 
+ >>> info = xp.getPluginInfo(3)
+ >>> info
+ <xppython3.PluginInfo object at 0x75d67040f340>
+ >>> info.signature
+ 'xppython3.main'
+ >>> print(info)
+ XPPython3: 'xppython3.main'
+   /Volumes/Red1/X-Plane/Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
+   ---
+   X-Plane interface for Python3              
+
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMGetPluginInfo>`__ :index:`XPLMGetPluginInfo`
 
 
-.. py:data:: PluginInfo
+.. py:function::  isPluginEnabled(pluginID)
 
- Object returned by :py:func:`XPLMGetPluginInfo` containing
- information about a plugin. It has the following string attributes:
+ Return 1 if specified *pluginID* is enabled, 0 otherwise.
 
- | name
- | filePath
- | signature
- | description
+ >>> xp.isPluginEnabled(3)
+ 1
+ >>> xp.isPluginEnabled(1000)
+ 0
 
-
-.. py:function:: XPLMGetPluginInfo(pluginID: int) -> pluginInfo:
-
- :param pluginID: :py:data:`XPLMPluginID`                 
-
- This routine returns information about a plug-in as a :py:data:`PluginInfo` object.
-
-.. py:function::  XPLMIsPluginEnabled(pluginID: int) -> is_enabled:
-
- :return: int, 1= is enabled
-
- Returns whether the specified plug-in is enabled for running.
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMIsPluginEnabled>`__ :index:`XPLMIsPluginEnabled`
 
 
-.. py:function:: XPLMEnablePlugin(pluginID: int) -> success:
+.. py:function:: enablePlugin(pluginID)
 
- :return: int, 1= successfully enabled
+ Enable (non-python) *pluginID*. Return 1 if already enabled, or was able to be enabled,
+ 0 otherwise.
 
- This routine enables a plug-in if it is not already enabled.  It returns 1
- if the plugin was enabled or successfully enables itself, 0 if it does not.
  Plugins may fail to enable (for example, if resources cannot be acquired)
- by returning 0 from their XPluginEnable callback.
+ by returning 0 from their ``XPluginEnable`` callback.
 
+ >>> xp.enablePlugin(3)
+ 1
 
-.. py:function:: XPLMDisablePlugin(pluginID: int) -> None:
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMEnablePlugin>`__ :index:`XPLMEnablePlugin`
+ 
+.. py:function:: disablePlugin(pluginID)
 
- This routine disables an enabled plug-in.
+ This routine disables (non-python) *pluginID*. No error is returned.
 
+ >>> xp.disablePlugin(4)
+ >>> xp.disablePlugin(10000)
 
-.. py:function::  XPLMReloadPlugins(None) -> None:
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMDisablePlugin>`__ :index:`XPLMDisablePlugin`
+ 
+.. py:function:: reloadPlugins()
 
- This routine reloads all plug-ins.  Once this routine is called and you
+ **THIS CRASHES THE SIM. DO NOT USE (2021-11-05)**
+
+ This routine reloads **all** plugins.  Once this routine is called and you
  return from the callback you were within (e.g. a menu select callback) you
  will receive your ``XPluginDisable`` and ``XPluginStop`` callbacks,
  then the start process happens as if the sim was starting up.
@@ -124,10 +170,14 @@ plugin.
 
  .. warning:: Many (most?) plugins don't clean up after themselves, so reloading
     may result in an unstable state.
-    
 
-Interplugin Messaging
----------------------
+ >>> xp.reloadPlugins()
+ [crash]
+    
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMReloadPlugins>`__ :index:`XPLMReloadPlugins`
+ 
+Inter-plugin Messaging
+----------------------
 
 Plugin messages are defined as 32-bit integers.  Messages below 0x00FFFFFF
 are reserved for X-Plane and the plugin SDK.
@@ -156,40 +206,40 @@ On startup, you'll see::
   108 LIVERY_LOADED (AI aircraft)
 
 
-.. py:data:: XPLM_MSG_PLANE_CRASHED
+.. py:data:: MSG_PLANE_CRASHED
  :value: 101
 
  This message is sent to your plugin whenever the user's plane crashes.
 
-.. py:data:: XPLM_MSG_PLANE_LOADED
+.. py:data:: MSG_PLANE_LOADED
  :value: 102
 
  This message is sent to your plugin whenever a new plane is loaded. The
  parameter is the number of the plane being loaded; 0 indicates the user's
  plane.
 
-.. py:data:: XPLM_MSG_AIRPORT_LOADED
+.. py:data:: MSG_AIRPORT_LOADED
  :value: 103
 
  This messages is called whenever the user's plane is positioned at a new
  airport.
   
-.. py:data:: XPLM_MSG_SCENERY_LOADED
+.. py:data:: MSG_SCENERY_LOADED
  :value: 104
 
  This message is sent whenever new scenery is loaded.  (Laminar documentation
  says, "Use datarefs to determine the new scenery files that were loaded." But I've
  not found any datarefs to help with that.)
 
-.. py:data:: XPLM_MSG_AIRPLANE_COUNT_CHANGED
+.. py:data:: MSG_AIRPLANE_COUNT_CHANGED
  :value: 105
 
  This message is sent whenever the user adjusts the number of X-Plane
- aircraft models. You must use XPLMCountPlanes to find out how many planes
+ aircraft models. You must use :py:func:`countPlanes` to find out how many planes
  are now available. This message will only be sent in XP7 and higher
  because in XP6 the number of aircraft is not user-adjustable.
 
-.. py:data:: XPLM_MSG_PLANE_UNLOADED
+.. py:data:: MSG_PLANE_UNLOADED
  :value: 106
 
  This message is sent to your plugin whenever a plane is unloaded. The
@@ -197,7 +247,7 @@ On startup, you'll see::
  plane. The parameter is of type int, passed as the value of the pointer.
  (That is: the parameter is an int, not a pointer to an int.)
 
-.. py:data:: XPLM_MSG_WILL_WRITE_PREFS
+.. py:data:: MSG_WILL_WRITE_PREFS
  :value: 107
 
  This message is sent to your plugin right before X-Plane writes its
@@ -207,29 +257,29 @@ On startup, you'll see::
  put them back to their default values here to avoid having the tweaks be
  persisted if your plugin is not loaded on the next invocation of X-Plane.
 
-.. py:data:: XPLM_MSG_LIVERY_LOADED
+.. py:data:: MSG_LIVERY_LOADED
  :value: 108
 
  This message is sent to your plugin right after a livery is loaded for an
  airplane. You can use this to check the new livery (via datarefs) and
  react accordingly. The parameter is of type int, passed as the value of a
- pointer and represents the aicraft plane number - 0 is the user's plane.
+ pointer and represents the aircraft plane number - 0 is the user's plane.
 
-.. py:data:: XPLM_MSG_ENTERED_VR
+.. py:data:: MSG_ENTERED_VR
  :value: 109
 
  Sent to your plugin right before X-Plane enters virtual reality mode (at
  which time any windows that are not positioned in VR mode will no longer be
  visible to the user).
 
-.. py:data:: XPLM_MSG_EXITING_VR
+.. py:data:: MSG_EXITING_VR
  :value: 110
 
  Sent to your plugin right before X-Plane leaves virtual reality mode (at
  which time you may want to clean up windows that are positioned in VR
  mode).
 
-.. py:data:: XPLM_MSG_RELEASE_PLANES
+.. py:data:: MSG_RELEASE_PLANES
  :value: 111
 
  Sent to your plugin if another plugin wants to take over AI planes. If you
@@ -243,18 +293,24 @@ On startup, you'll see::
  Synthetic traffic providers should always yield to online networks. The
  parameter is unused and should be ignored.
 
-.. py:function:: XPLMSendMessageToPlugin(pluginID: int, message: int, param: object) -> None:
+.. py:function:: sendMessageToPlugin(pluginID, message, param=None)
 
- :param pluginID: :py:data:`XPLMPluginID`                 
- :param message: One of the above ``XPLM_MSG`` messages
- :param object param: parameter appropriate for the type of message being sent.
-
- This function sends a message to another plug-in or X-Plane.  Pass
- :py:data:`XPLM_NO_PLUGIN_ID` to broadcast to all plug-ins.  Only enabled plug-ins with
+ Send plugin *message* (as opposed to, say, a Widget message) to another *pluginID*.  Pass
+ :data:`NO_PLUGIN_ID` to broadcast to all plug-ins.  Messages sent
+ to the XPPython3 plugin will be forward to **all** python plugins. Only enabled plugins with
  a message receive function receive the message.
- param should be a string or an integer
 
+ Plugins can define their own *message* values.
 
+ *param* is message-dependent and should be None, a string, or an integer.
+
+ For example, DataRefEditor plugin supports a message `0x1000000`, with
+ a string parameter, allowing you to notify it of a dataRef your plugin creates. (See also :doc:`dataaccess`.)
+ 
+ >>> dre = xp.findPluginBySignature('xplanesdk.examples.DataRefEditor')
+ >>> xp.sendMessageToPlugin(dre, 0x01000000, 'myplugin/dataRef1')
+
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMSendMessageToPlugin>`__ :index:`XPLMSendMessageToPlugin`
 
 Plugin Features API
 -------------------
@@ -268,48 +324,78 @@ Each feature is defined by a permanent string name.  The feature string
 names will vary with the particular  installation of X-Plane, so plugins
 should not expect a feature to be guaranteed present.
 
-.. py:function:: XPLMHasFeature(feature: str) -> feature_supported:
-
- :return: int, 1= feature is supported
+.. py:function:: hasFeature(feature)
 
  This returns 1 if the given installation of X-Plane supports a feature, or
- 0 if it does not.
+ 0 if it does not. Note that *feature* is a string, not an enumeration.
 
+ See
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#Plugin%20Features%20API>`__ :index:`Plugin Features API`
+ for X-Plane features.
 
-.. py:function:: XPLMIsFeatureEnabled(inFeature) -> feature_enabled:
+ >>> xp.hasFeature('XPLM_WANTS_REFLECTIONS')
+ 1
+ 
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMHasFeature>`__ :index:`XPLMHasFeature`
+ 
+.. py:function:: isFeatureEnabled(feature)
 
- :return: int, 1= feature is enabled
+ This returns 1 if a (string) feature is currently enabled for your plugin, or 0 if
+ it is not enabled (or feature does not exist).
 
- This returns 1 if a feature is currently enabled for your plugin, or 0 if
- it is not enabled.  It is an error to call this routine with an unsupported
- feature.
+ >>> xp.isFeatureEnabled('XPLM_USE_NATIVE_PATHS')
+ 1
+ >>> xp.isFeatureEnabled('INCREASE_FPS_MAGICALLY')
+ 0
 
-.. py:function::  XPLMEnableFeature(feature: str, enable:int) -> None:
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMIsFeatureEnabled>`__ :index:`XPLMIsFeatureEnabled`
 
- This routine enables or disables a feature for your plugin.  This will
+.. py:function::  enableFeature(feature, enable=1)
+
+ This routine enables or disables a *feature* for your plugin.  This will
  change the running behavior of X-Plane and your plugin in some way,
  depending on the feature.
 
+ .. note:: Because this is per-C plugin, not per-python plugin, some
+           features have been hard-coded such that you cannot change their
+           value. Changing for *your* python plugin would change it for *all*
+           python plugins. A runtime exception will be raised.
 
-.. py:function:: XPLMFeatureEnumerator_f(feature: str, refCon: object) -> None:
+           This is a conscious limitation of the XPPython3 plugin.
 
-  Callback you provide to :py:func:`XPLMEnumerateFeatures` to get a list of features
-  supported by the running version of X-Plane.  This routine is called once
-  for each feature.
+ >>> xp.enableFeature('XPLM_USE_NATIVE_PATHS')
+ 1
+ >>> xp.enableFeature('XPLM_USE_NATIVE_PATHS', enable=0)
+ RuntimeError: An XPPython3 plugin is attempting to disable XPLM_USE_NATIVE_PATHS or XPLM_USER_NATIVE_WIDGET_WINDOWS feature, not allowed
 
-.. py:function:: XPLMEnumerateFeatures(featureEnumerator: callable, refCon object) -> None:
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMEnableFeature>`__ :index:`XPLMEnableFeature`
 
-    This routine calls your :py:func:`XPLMFeatureEnumerator_f` callback once for each feature that this
-    running version of X-Plane supports. Use this routine to determine all of
-    the features that X-Plane can support.
+.. py:function:: enumerateFeatures(enumerator, refCon)
 
-    Note the callback is synchronous, so you can use the results immediately.
+  This routine immediately calls your *enumerator* callback once for each feature that this
+  running version of X-Plane supports. Use this routine to determine all of
+  the features that X-Plane can support.
 
-Feature enumeration example::
+  Note the callback is synchronous, so you can use the results immediately.
 
- feature_names = []
- XPLMEnumerateFeatures(featureEnumerator, feature_names)
- print("Supported features: {}".format(feature_names))
+  For example:
 
- def featureEnumerator(name, ref):
-    ref.append(name)
+  >>> feature_names = []
+  >>> def enumerator(name, refCon):
+  ...    refCon.append(name)
+  ...
+  >>> xp.enumerateFeatures(enumerator, refCon=feature_names)
+  >>> print(f"Supported Features: {feature_names})
+  Supported Features: ['XPLM_WANTS_REFLECTIONS', 'XPLM_USE_NATIVE_PATHS', 'XPLM_USE_NATIVE_WIDGET_WINDOWS']
+
+  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMEnumerateFeatures>`__ :index:`XPLMEnumerateFeatures`
+
+    
+Constants
+---------
+
+.. py:data:: XPLMPluginID
+
+   Integer plugin ID.
+
+   `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMPluginID>`__ :index:`XPLMPluginID`

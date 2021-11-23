@@ -26,10 +26,9 @@ author = 'Peter Buckner'
 master_doc = 'index'
 
 # The full version, including alpha/beta/rc tags
-release = '3.0.11'
+release = '3.1.0'
 
-
-# -- General configuration ---------------------------------------------------
+# -- general configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -65,6 +64,9 @@ html_theme_options = {
     'root_url': '',
     'issues_url': 'https://github.com/pbuckner/x-plane_plugins/issues'
 }
+html_js_files = [
+    'js/versions.js'
+]    
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

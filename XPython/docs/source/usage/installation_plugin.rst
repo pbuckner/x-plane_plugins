@@ -12,7 +12,8 @@ Installation
 
 1. Install 64-bit Python 3.9
 
-  **NOT Python 3.10**, as it was just released and we'll need to test the plugins with this version of python!:
+  (*Python 3.10* is supported, but not yet recommended: it works, but as it was just released, some
+  third-party modules are not available.)
 
   + https://www.python.org/downloads/
 
@@ -37,10 +38,24 @@ Installation
 
   This plugin XPPython3 folder must be placed in :code:`<XP>/Resources/plugins`.
   On first execution, XPPython3 **will create** the :code:`Resources/plugins/PythonPlugins` folder.
-  You should place any third-party python plugins in that PythonPlugins folder. (On first run of
-  the plugin, XPPython3 will automatically download a set of sample plugins into your ``Resources/plugins/PythonPlugins/samples``
-  folder. To execute, move a plugin up into the `PythonPlugins` folder.)
 
+  You should place any third-party python plugins in that PythonPlugins folder. (On first run of
+  the plugin, XPPython3 will automatically download a set of sample plugins into
+  your ``Resources/plugins/PythonPlugins/samples``
+  folder. To execute a sample, move a plugin up into the `PythonPlugins` folder.)
+
+  **For Mac**
+     Your newly downloaded plugin is subject to Apple's quarantine on recent versions of macOS. You will **not** be
+     able to execute the plugin until you first remove the quarantine::
+
+       $ cd /users/pbuck/X-Plane/Resources/plugins/XPPython3/mac_x64
+       $ xattr -d com.apple.quarantine XPPython3.xpl 
+
+     (Or whereever you installed X-Plane: the top folder name will differ.)
+     
+     If you forget to do this, *XPPython3 will not load* and you'll get error popup indicating XPPython3.xpl cannot be opened. See
+     :doc:`common_errors`.
+  
 4. Start X-Plane.
 
   On installation success, we'll popup a window:
@@ -150,6 +165,7 @@ Include:
 #. Name of the plugin you're trying to use, (e.g., PI_foobar.py)
 #. Copy of ``Log.txt`` (which tells us most everything about your X-Plane installation)
 #. Copy of ``XPPython3Log.txt`` (which tells us most everything about your Python installation). This log is found
+   in the same folder as Log.txt.
 
 Provide that information to x-plane.org/forums or email support: Information is available from the
 *About* XPPython3 menu.

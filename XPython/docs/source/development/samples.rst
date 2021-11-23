@@ -85,9 +85,13 @@ files from ``samples`` to get the plugin working.
    |                            | `on developer.x-plane.com                              |
    |                            | <https://developer.x-plane.com/code-sample-type/       |
    |                            | xplm300-sdk/map/>`_.                                   |
-   |                            | Draws on the X-Plane map usingRegisterMapCreationHook, |
+   |                            | Draws on the X-Plane map using RegisterMapCreationHook,|
    |                            | OpenGL, drawMapLabel, mapProject, mapUnProject,        |
    |                            | mapScaleMeter.                                         |
+   |                            |                                                        |
+   |                            | To use, you'll also need to copy map-sample-image.png  |
+   |                            | from ``PythonPlugins/samples`` into                    |
+   |                            | ``Resources/plugins`` folder.                          |
    +----------------------------+--------------------------------------------------------+
    |PI_MiniPython.py            | In-game python interpreter. Allows you to execute      |
    |                            | most python within context of running X-Plane. Great   |
@@ -139,6 +143,12 @@ files from ``samples`` to get the plugin working.
    |                            | setDatavf, setDatai,  setDatavi, setDatab, getDatab    |
    |                            | setActiveAircraftCount, acquirePlanes, releasePlanes,  |
    |                            | countAircraft, getPluginInfo.                          |
+   +----------------------------+--------------------------------------------------------+
+   |PI_TextureDraw.py           | Ported from C vesion on devevlper.x-plane.com          |
+   |                            | `"TextureDraw" <https://developer.x-plane.com/code-samp|
+   |                            | le/texturedraw/>`_ Uses bindTexture2d, setGraphicsState|
+   |                            | , and generateTextureNumbers, with OpenGL              |
+   |                            | glTexSubImage2D.                                       |
    +----------------------------+--------------------------------------------------------+
    |PI_TimedProcessing.py       | Ported from python2. Demonstrates how to use timed     |
    |                            | processing callback to continuously record data to     |

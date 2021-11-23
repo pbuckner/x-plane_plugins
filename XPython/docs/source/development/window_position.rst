@@ -1,7 +1,7 @@
 More about Window Positioning
 =============================
 
-When you create a new window using :py:func:`XPLMDisplay.XPLMCreateWindowEx`, you're required
+When you create a new window using :py:func:`createWindowEx`, you're required
 to specify coordinate positions: left, top, right, and bottom. What do these coordinates represent, especially
 as they relate to multiple-monitor setups, or virtual reality?
 
@@ -11,7 +11,7 @@ as they relate to multiple-monitor setups, or virtual reality?
 In overly simplistic terms the coordinated represent points on a coordinate system where (0, 0) is the lower left of your
 screen and positive number move up and to the right, such as seen in the image on the right.
 
-With a single monitor you can use :py:func:`XPLMDisplay.XPLMGetScreenBoundsGlobal` to get the size of the monitor, with (0, 0)
+With a single monitor you can use :py:func:`getScreenBoundsGlobal` to get the size of the monitor, with (0, 0)
 being in the lower left corner.
 
 However, with multiple monitors *even if X-Plane isn't using more than one monitor*,
@@ -27,7 +27,7 @@ differently sized.
 In the above image, you can see the pixel resolution of each monitor. Note that X-Plane uses "boxels" rather than "pixels" and will
 automatically scale high-resolution displays. For other displays, boxels == pixels
 
-So, where is point (0, 0)? It's the bottom left of the main window You can determine this using :py:func:`XPLMDisplay.XPLMGetAllMonitorBoundsOS` (``getAllMonitorBoundsOS`` returns immediately, so though it uses a callback, we don't need to do any fancy programming.):
+So, where is point (0, 0)? It's the bottom left of the main window You can determine this using :py:func:`getAllMonitorBoundsOS` (this returns immediately, so though it uses a callback, we don't need to do any fancy programming.):
 
 .. code::
 
@@ -71,7 +71,7 @@ it's simply half the vertical and half the horizontal size.
 Full Screen on One Monitor
 --------------------------
 
-For Full Screen on one of the monitors, :py:func:`XPLMDisplay.XPLMGetScreenBoundsGlobal` returns the coordinates for the
+For Full Screen on one of the monitors, :py:func:`getScreenBoundsGlobal` returns the coordinates for the
 screen being used.
 
 For example, if we're full screen on the main monitor (#0), we'll get:
@@ -153,29 +153,29 @@ What's the lesson? If you're going to programmatically place a window, you need 
 Positioning Windows
 -------------------
 
-So how does one position windows? You can use a combination of :py:func:`XPLMDisplay.XPLMSetWindowPositioningMode` and the bounds information
+So how does one position windows? You can use a combination of :py:func:`setWindowPositioningMode` and the bounds information
 described above.
 
- * :data:`XPLMDisplay.xplm_WindowPositionFree`: WindowPositionFree is the default and will put the window at whatever coordinates
-   defined using CreateWindowEx (or subsequently changed using :py:func:`XPLMDisplay.XPLMSetWindowGeometry`).
+ * :data:`WindowPositionFree`: WindowPositionFree is the default and will put the window at whatever coordinates
+   defined using CreateWindowEx (or subsequently changed using :py:func:`setWindowGeometry`).
 
- * :data:`XPLMDisplay.xplm_WindowCenterOnMonitor`: WindowCenterOnMonitor will center the window on the specified monitor index, with -1
+ * :data:`WindowCenterOnMonitor`: WindowCenterOnMonitor will center the window on the specified monitor index, with -1
    setting it centered on the main X-Plane monitor, whichever that might be. (Note: the Main X-Plane Monitor is the one with the menu,
    which may not be the Main OS Monitor!)
    In this case, values passed using CreateWindowEx are ignored except
    to determine the length and width of the window.
 
- * :data:`XPLMDisplay.xplm_WindowPopOut`: WindowPopup will display the window outside of X-Plane, as an OS-hosted window. This window
+ * :data:`WindowPopOut`: WindowPopup will display the window outside of X-Plane, as an OS-hosted window. This window
    can be on any monitor, even monitors not being used by X-Plane. The coordinates of the window still match the overall coordinates.
 
- * :data:`XPLMDisplay.xplm_WindowVR`: The window is centered in the VR display. This is similar to ``WindowCenterOnMonitor`` in that
+ * :data:`WindowVR`: The window is centered in the VR display. This is similar to ``WindowCenterOnMonitor`` in that
    the length and width of the window are obtained from the window geometry. The window position is simply centered and remains centered
    in the user's view as the user moves around.
 
 (The other to positioning modes ``WindowFullScreenOnMonitor``, and ``WindowFullScreenOnAllMonitors`` are rarely used but should be
 self-explanatory.)
 
-Note that the positioning mode is set *after the window is created* using :py:func:`XPLMDisplay.XPLMSetWindowPositioningMode`. There
+Note that the positioning mode is set *after the window is created* using :py:func:`setWindowPositioningMode`. There
 is no way to set it first. So if you want to display a window in the center of the main screen *and let the user move it*, you can:
 
 .. code::

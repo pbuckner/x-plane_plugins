@@ -1,140 +1,150 @@
 XPLMNavigation
 ==============
 .. py:module:: XPLMNavigation
+.. py:currentmodule:: xp
 
 To use::
 
-  import XPLMNavigation
+  import xp
 
-The XPLM Navigation APIs give you some access to the navigation databases
+The XPLMNavigation APIs give you some access to the navigation databases
 inside X-Plane.  X-Plane stores all navigation information in RAM, so by
 using these APIs you can gain access to most information without having to
 go to disk or parse the files yourself.
 
 You can also use this API to program the FMS.  You must use the navigation
-APIs to find the nav-aids you want to program into the FMS, since the FMS
+APIs to find the navaids you want to program into the FMS, since the FMS
 is powered internally by X-Plane's navigation database.
 
 
-Nav Aid Functions
------------------
+Navaid Functions
+----------------
+
+* Iterate through the navaid database:
+
+  * :py:func:`getFirstNavAid`, :py:func:`getNextNavAid`
+
+* Search database based on location, type, partials names:
+
+  * :py:func:`findFirstNavAidOfType`, :py:func:`findLastNavAidOfType`
+
+  * :py:func:`findNavAid`
+
+* Get information about the navaid:
+
+  * :py:func:`getNavAidInfo`
 
 .. warning:: The values retrieved using these functions generally 
     match the format described in the Navigation Database document
     (e.g., `XP-NAV1150-Spec.pdf <http://developer.x-plane.com/wp-content/uploads/2020/03/XP-NAV1150-Spec.pdf>`_)
-    For example, the frequency value for Glideslopes is defined as:
+    For example, the heading value for Glideslopes is defined as:
 
       Associated localizer bearing in **true** degrees prefixed by glideslope angle times
-      100,000. E.g., Glideslope of 3.25 degrees on heading of 123.456 becomes 325123.456.
+      100,000. E.g., Glideslope of 3.00 degrees on heading of 122.53125 becomes 300122.53125.
               
     To add to the confusion, whereas the document indicate heights are in feet, it
     appears the values returned via the API are in meters.
 
-.. py:data:: NavAidInfo
-
- Object returned by :py:func:`XPLMGetNavAidInfo` containing
- information about a nav aid. It has the following attributes:
-
- ============ ===========================================================
- type         :ref:`XPLMNavType`
- latitude     float
- longitude    float
- height       float (in meters)
- frequency    int. For NDB, frequency is exact. Otherwise,
-              divide by 100 to get actual.
- heading      float
- name         str
- navAidID     str
- reg          int 1= nav aid is within the local "region" of loaded DSFs.
- ============ ===========================================================
 
   
-.. py:function:: XPLMGetFirstNavAid(None) -> navRef:
+.. py:function:: getFirstNavAid()
 
- :return:  int navRef :ref:`XPLMNavRef`                 
+ This returns integer index (navRef) of the very first navaid in the database.
+ Use this to traverse the entire database. Returns :py:data:`NAV_NOT_FOUND`
+ if the navaid database is empty.
 
- This returns integer index of the very first navaid in the database.
- Use this to traverse the entire database. Returns :py:data:`XPLM_NAV_NOT_FOUND`
- if the nav database is empty.
+ >>> navRef = xp.getFirstNavAid()
+ >>> navRef
+ 0
+ 
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMGetFirstNavAid>`__ :index:`XPLMGetFirstNavAid`
 
 
-.. py:function:: XPLMGetNextNavAid(navRef) -> navRef:
+.. py:function:: getNextNavAid(navRef)
 
- :param int navRef: :ref:`XPLMNavRef`                 
- :return:  int navRef :ref:`XPLMNavRef`                 
+ Given a navRef, this routine returns the next (navRef).  It returns
+ :py:data:`NAV_NOT_FOUND` if the navRef passed in was invalid or if
+ was the last one in the database.  Use this routine to iterate
+ across all like-typed navaids or the entire database. (Start with :py:func:`getFirstNavAid`.)
 
- Given a navRef, this routine returns the next navaid (navRef).  It returns
- :py:data:`XPLM_NAV_NOT_FOUND` if the nav aid passed in was invalid or if the navaid
- passed in was the last one in the database.  Use this routine to iterate
- across all like-typed navaids or the entire database.
-
- .. note:: This merely returns the *next* nav aid in the database. This does not return
-  the next of the same type, or same query (see :py:func:`XPLMFindFirstNavAidOfType`, or
-  :py:func:`XPLMFindNavAid`). It is very
-  fast, so one strategy is to enumerate through the full nav aid database if you're trying
-  to do anything complicated (e.g., find all nav aids with the same frequency).
+ .. note:: This merely returns the *next* navaid in the database. This does not return
+  the next of the same type, or same query (see :py:func:`findFirstNavAidOfType`, or
+  :py:func:`findNavAid`). It is very
+  fast, so one strategy is to enumerate through the full navaid database if you're trying
+  to do anything complicated (e.g., find all navaids with the same frequency).
 
  .. warning:: due to a bug in the SDK, when fix loading is disabled in the
   rendering settings screen, calling this routine with the last airport
-  returns a bogus nav aid.  Using this nav aid can crash X-Plane.
+  returns a bogus navaid.  Using this navaid can crash X-Plane.
 
+ >>> navRef = xp.getFirstNavAid()
+ >>> navRef = xp.getNextNavAid(navRef)
+ >>> navRef
+ 1
 
-.. py:function:: XPLMFindFirstNavAidOfType(navType) -> navRef:
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMGetNextNavAid>`__ :index:`XPLMGetNextNavAid`
 
- :param int navType: :ref:`XPLMNavType`                 
- :return:  int navRef :ref:`XPLMNavRef`                 
+.. py:function:: findFirstNavAidOfType(navType)
 
- This routine returns the ref of the first navaid of the given type in the
- database or :py:data:`XPLM_NAV_NOT_FOUND` if there are no navaids of that type in the
- database.  You must pass exactly one nav aid type to this routine.
-
- .. warning:: Due to a bug in the SDK, when fix loading is disabled in the
-  rendering settings screen, calling this routine with fixes returns a bogus
-  nav aid.  Using this nav aid can crash X-Plane.
-
-
-.. py:function:: XPLMFindLastNavAidOfType(navType) -> navRef:
-
- :param int navType: :ref:`XPLMNavType`                 
- :return:  int navRef :ref:`XPLMNavRef`                 
-
- This routine returns the ref of the last navaid of the given type in the
- database or :py:data:`XPLM_NAV_NOT_FOUND` if there are no navaids of that type in the
- database.  You must pass exactly one nav aid type to this routine.
+ Given a *navType* (See :ref:`XPLMNavType` below),
+ return the navRef of the first navaid of the given
+ type in the
+ database or :py:data:`NAV_NOT_FOUND` if there are no navaids of that type in the
+ database.  *You must pass exactly one navaid type to this routine.*
 
  .. warning:: Due to a bug in the SDK, when fix loading is disabled in the
   rendering settings screen, calling this routine with fixes returns a bogus
-  nav aid.  Using this nav aid can crash X-Plane.
+  navaid.  Using this navaid can crash X-Plane.
 
+ >>> xp.findFirstNavAidOfType(navType=xp.Nav_DME)
+ 18826
+ >>> xp.findFirstNavAidOfType(navType=xp.Nav_DME | xp.Nav_VOR)
+ -1
+ 
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMFindFirstNavAidOfType>`__ :index:`XPLMFindFirstNavAidOfType`
 
-.. py:function:: XPLMFindNavAid(name, ID, lat, lon, freq, navType) ->
+.. py:function:: findLastNavAidOfType(navType)
 
- :param str name: Name fragment to be used while searching (or None)
- :param str ID: ID fragment to be used while searching (or None)
- :param float lat:
- :param float lon: latitude and longitude to be used while searching (or both None)   
- :param int freq: Frequency to be used while searching. **Note this is an integer**. To search
-   for ``114.70``, use ``11470``, for ``109.00`` use ``10900``. 
- :param int navType: :ref:`XPLMNavType`                 
- :return:  int navRef :ref:`XPLMNavRef`                 
+ Give a *navType* (See :ref:`XPLMNavType` below),
+ return the navRef of the last navaid of the given type
+ database or :py:data:`NAV_NOT_FOUND` if there are no navaids of that type in the
+ database.  *You must pass exactly one navaid type to this routine.*
 
- This routine provides a number of searching capabilities for the nav
- database. :py:func:`XPLMFindNavAid` will search through every nav aid whose type is
- within inType (multiple types may be added together) and return any
- nav-aids found based  on the following rules:
+ You'll note there is no ``findNextNavAidOfType()`` function. A common work around
+ is to load all navaid information into your plugin and then search within that
+ data structure.
 
- * If ``lat`` and ``lon`` are not None, the navaid nearest to that lat/lon will be
-   returned, otherwise the last navaid found will be returned.
+ .. warning:: Due to a bug in the SDK, when fix loading is disabled in the
+  rendering settings screen, calling this routine with fixes returns a bogus
+  navaid.  Using this navaid can crash X-Plane.
 
- * If ``freq`` is not None, then any navaids considered must match this
+ >>> xp.findLastNavAidOfType(navType=xp.Nav_DME)
+ 26189
+
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMFindLastNavAidOfType>`__ :index:`XPLMFindLastNavAidOfType`
+
+.. py:function:: findNavAid(name=None, navAidID=None, lat=None, lon=None, freq=None, navType=-1)
+
+ This routine provides a number of searching capabilities for the navaid
+ database. :py:func:`findNavAid` will search through every navaid whose type is
+ within *navType* (See :ref:`XPLMNavType`.)
+ Multiple types may be OR'd together, with the default being "any" (matches imply
+ at least one of the OR'd navTypes match *not* all).
+ :py:func:`findNavAid` returns **one** navRef based on the following rules:
+
+ * If *lat* and *lon* are specified, the navaid nearest to that lat/lon will be
+   returned, otherwise the *last* navaid found will be returned.
+
+ * If *freq* is provided , then any navaids considered must match this
    frequency.  Note that this will screen out radio beacons that do not have
-   frequency data published (like inner markers) but not fixes and airports. (Note frequency
-   input is real frequency x100 to create a integer).
+   frequency data published (like inner markers) but not fixes and airports.
+   **Note this is an integer**, frequency input is real frequency time 100 to create a integer (e.g., specify
+   13775 to search for 137.75).
 
- * If ``name`` is not None, only navaids that contain the fragment in
-   their name will be returned.
+ * If *name* is provided, only navaids that contain the fragment in
+   their name will be returned. (Search is case-sensitive, so "Oakland" will find KOAK, but "OAKLAND" will not.
 
- * If ``ID`` is not None, only navaids that contain the fragment in their IDs will be returned.
+ * If *navAidID* is provided, only navaids that contain the fragment in their IDs will be returned.
 
  This routine provides a simple way to do a number of useful searches:
 
@@ -142,17 +152,22 @@ Nav Aid Functions
  the VOR whose ID is "KBOS". Find the nearest airport whose name contains
  "Chicago".
 
+ >>> xp.findNavAid(name="Chicago", navType=xp.Nav_Airport | xp.Nav_DME)
+ 16813190
+ >>> xp.findNavAid(name="OAK")
+ 16800138
+ >>> xp.findNavAid(name="OAK", lat=35, lon=-122)
+ 33705283
 
-.. py:function:: XPLMGetNavAidInfo(ref) -> navAidInfo:
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMFindNavAid>`__ :index:`XPLMFindNavAid`
  
- :param ref: :ref:`XPLMNavRef`
- :return: navAidInfo :py:data:`NavAidInfo`
+.. py:function:: getNavAidInfo(navRef)
+ 
+ See warning about Navaid values above.
 
- See warning about Nav Aid values above.
-
- This routine returns information about a navaid.  Fields are
+ This routine returns information about a navaid indicated by its *navRef*.  Fields are
  filled out with information if it is available. For example, Airports have neither
- frequency nor heading, so they will alway be zero. Fixes (:data:`xplm_Nav_Fix`) do not
+ frequency nor heading, so they will always be zero. Fixes (:data:`Nav_Fix`) do not
  have height, frequency or heading. There is no way to distinguish between true values
  of zero and missing values.
 
@@ -164,9 +179,45 @@ Nav Aid Functions
  (Unlike C API, for python, this parameter is a single byte value 1 for true
  or 0 for false, not a string.)
 
+ Returned value is a NavAidInfo object the attributes
+
+ ============ ===========================================================
+ type         :ref:`XPLMNavType`
+ latitude     float
+ longitude    float
+ height       float (in meters)
+ frequency    int. For NDB, frequency is exact. Otherwise,
+              divide by 100 to get actual.
+ heading      float
+ name         str
+ navAidID     str
+ reg          int 1= navaid is within the local "region" of loaded DSFs.
+ ============ ===========================================================
+
+ Conveniently, it also has a ``str()`` representation
+
+ >>> navRef = xp.findNavAid(name="OAK", lat=35, lon=-122, navType=xp.Nav_Airport)
+ >>> navRef
+ 16793550
+ >>> navInfo = xp.getNavAidInfo(navRef)
+ >>> navInfo
+ <xppython3.NavAidInfo object at 0x7f84a16a3220>
+ >>> navInfo.name
+ 'LIVE OAK CO'
+ >>> navInfo.navAidID
+ '8T6'
+ >>> navInfo.latitude
+ 28.36280
+ >>> print(navInfo)
+ LIVE OAK CO (8T6) (28.363, -98.116) ---
+
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMGetNavAidInfo>`__ :index:`XPLMGetNavAidInfo`
 
 Flight Management Computer
 --------------------------
+Some aircraft have a Flight Management System which responds to these
+commands. Some do not. *sigh* The Laminar G530 mostly works.
+
 Note: the FMS works based on an array of entries.  Indices into the array
 are zero-based.  Each entry is a nav-aid plus an altitude.  The FMS tracks
 the currently displayed entry and the entry that it is flying to.
@@ -175,35 +226,94 @@ The FMS must be programmed with contiguous entries, so clearing an entry at
 the end shortens the effective flight plan.  There is a max of 100
 waypoints in the flight plan.
 
+* Manipulate entry status in FMS
 
-.. py:function:: XPLMCountFMSEntries(None) -> int:
+  * :py:func:`countFMSEntries`
 
- This routine returns the number of entries in the FMS.
+  * :py:func:`getDisplayedFMSEntry`, :py:func:`setDisplayedFMSEntry`
 
+  * :py:func:`getDestinationFMSEntry`, :py:func:`setDestinationFMSEntry`
 
-.. py:function:: XPLMGetDisplayedFMSEntry(None) -> int:
+  * :py:func:`getGPSDestinationType`, :py:func:`getGPSDestination`
 
- This routine returns the index of the entry the pilot is viewing. (For XP 11.55, this appears to always return 0.
- This has been acknowledged by Laminar Research as bug XPD-11386.)
+* Manipulate a particular FMS entry
 
+  * :py:func:`getFMSEntryInfo`, :py:func:`setFMSEntryInfo`, :py:func:`setFMSEntryLatLon`
 
-.. py:function:: XPLMGetDestinationFMSEntry(None) -> int:
+  * :py:func:`clearFMSEntry`
 
- This routine returns the index of the entry the FMS is flying to. (The "destination" refers to the active leg.)
+.. py:function:: countFMSEntries()
 
+ Returns the number of entries in the FMS.
 
-.. py:function:: XPLMSetDisplayedFMSEntry(index) -> None:
+ >>> xp.countFMSEntries()
+ 6
 
- This routine changes which entry the FMS is showing to the integer index specified.
- (For X-Plane 11.55, this does not appear to do anything.  This has been acknowledged by Laminar Research as bug XPD-11386.)
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMCountFMSEntries>`__ :index:`XPLMCountFMSEntries`
 
-.. py:function:: XPLMSetDestinationFMSEntry(index) -> None:
+.. py:function:: getDisplayedFMSEntry()
 
- This routine changes which entry the FMS is flying the aircraft toward.
+ Return the index of the entry the pilot is viewing. (For XP 11.55, this appears to always return 0.
+ This has been acknowledged by Laminar Research as bug XPD-11386. The X-Plane 10 737 works correctly,
+ but the 737 which comes with X-Plane 11 does not.
 
-.. py:data:: FMSEntryInfo
+ Practically speaking, assume this does not work.
 
- Object returned by :py:func:`XPLMGetFMSEntryInfo` containing
+ >>> xp.getDisplayedFMSEntry()
+ 0
+
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMGetDisplayedFMSEntry>`__ :index:`XPLMGetDisplayedFMSEntry`
+
+.. py:function:: getDestinationFMSEntry()
+
+ Return the index of the entry the FMS is flying to. (The "destination" refers to the active leg.)
+ This is an index into the FMS, not into the navaid database.
+
+ >>> xp.getDestinationFMSEntry()
+ 0
+
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMGetDestinationFMSEntry>`__ :index:`XPLMGetDestinationFMSEntry`
+
+.. py:function:: setDisplayedFMSEntry(index)
+
+ Change which entry the FMS is showing to the integer index specified.
+ (For X-Plane 11.55, this does not appear to do anything.  This has been acknowledged by Laminar Research as bug XPD-11386. Like :py:func:`getDisplayedFMSEntry`, this appears to work in X-Plane 11 only for older X-Plane 10 version
+ of the 737 aircraft.)
+
+ >>> xp.setDestinationFMSEntry(3)
+
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMSetDisplayedFMSEntry>`__ :index:`XPLMSetDisplayedFMSEntry`
+
+.. py:function:: setDestinationFMSEntry(index)
+
+ Change which entry the FMS is flying the aircraft toward.
+
+ >>> xp.getDestinationFMSEntry()
+ 0
+ >>> xp.setDestinationFMSEntry(3)
+ >>> xp.getDestinationFMSEntry()
+ 3
+
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMSetDestinationFMSEntry>`__ :index:`XPLMSetDestinationFMSEntry`
+
+.. py:function:: getFMSEntryInfo(index)
+
+ Returns information about the zero-based *index* entry in the FMS.
+ Value returned is an object (see below).
+
+ A reference to a
+ navaid can be returned allowing you to find additional information (such as
+ a frequency, ILS heading, name, etc.).  Some information is available
+ immediately.  For a lat/lon entry, the lat/lon is returned by this routine
+ but the navaid cannot be looked up (and the reference will be
+ :py:data:`XPLM_NAV_NOT_FOUND`.
+
+ .. Note::
+    X-Plane C SDK function takes many parameters, where the data is returned.
+    The XPPython3 function takes a single parameter (Index) and returns all
+    the values in an FMSEntryInfo object.
+
+ Object returned by :py:func:`getFMSEntryInfo` containing
  information about an entry. It has the following attributes:
 
  ============ ===================================================
@@ -217,66 +327,85 @@ waypoints in the flight plan.
  ============ ===================================================
 
 
-.. py:function:: XPLMGetFMSEntryInfo(inIndex) -> fmsEntryInfo:
+ Conveniently, it also has a ``str()`` representation
+ 
+ >>> info = xp.getFMSEntryInfo(0)
+ >>> info
+ <xppython3.FMSEntryInfo object at 0x7ff38c0a5040>
+ >>> info.navAidID
+ 'LUCOS'
+ >>> info.ref
+ 337064980
+ >>> print(info)
+ Fix: [337064980] LUCOS, (41.638, -70.768) @0'
+ >>> print(xp.getNavAidInfo(info.ref))
+ LUCOS (LUCOS) Fix (41.638, -70.768) ---
 
- :param int index: zero-based index of FMS entries
- :return: fmsEntryInfo :data:`FMSEntryInfo` object                  
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMGetFMSEntryInfo>`__ :index:`XPLMGetFMSEntryInfo`
+ 
+.. py:function::  setFMSEntryInfo(index, navRef, altitude=0)
 
- This routine returns information about a given FMS entry.  A reference to a
- navaid can be returned allowing you to find additional information (such as
- a frequency, ILS heading, name, etc.).  Some information is available
- immediately.  For a lat/lon entry, the lat/lon is returned by this routine
- but the navaid cannot be looked up (and the reference will be
- :py:data:`XPLM_NAV_NOT_FOUND`.
+ This routine changes an entry at *index* in the FMS to have the
+ destination navaid specified by *navRef* (as returned by :py:func:`findNavAid`)
+ at *altitude* (in feet) specified.
+ Use this only for airports, fixes,
+ and radio-beacon navaids.  Currently for radio beacons, the FMS can only
+ support VORs and NDBs.
 
- .. Note::
-    X-Plane C SDK function takes many parameters, where the data is returned.
-    The XPPython3 function takes a single parameter (Index) and returns all
-    the values in an FMSEntryInfo object.
+ Use the :py:func:`setFMSEntryLatLon` fly to a lat/lon.
+
+ >>> navRef = xp.findNavAid(navType=xp.Nav_VOR)
+ >>> xp.setFMSEntryInfo(3, navRef, 1000)
+ >>> print(xp.getFMSEntryInfo(3))
+ VOR: [9469] ZDA, (44.095, 15.364) @1000'
+
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMSetFMSEntryInfo>`__ :index:`XPLMSetFMSEntryInfo`
+
+.. py:function:: setFMSEntryLatLon(index, lat, lon, altitude=0)
+
+ This routine changes an entry at *index* in the FMS to have the
+ destination specified by *lat*, *lon* at *altitude* (in feet) specified.
+
+ >>> xp.setFMSEntryLatLon(3, 34, -122.5, 1000)
+ >>> print(xp.getFMSEntryInfo(3))
+ LatLon: (34.000, -122.5) @1000'
+
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMSetFMSEntryLatLon>`__ :index:`XPLMSetFMSEntryLatLon`
+ 
+.. py:function::  clearFMSEntry(index)
+
+ Clears the given entry, potentially shortening the flight plan.
+
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#clearFMSEntry>`__ :index:`clearFMSEntry`
+
+.. py:function::  getGPSDestinationType()
+
+ Return the :ref:`XPLMNavType` of the current GPS destination.
+
+ >>> xp.getGPSDestinationType()
+ 512
+ 
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMGetGPSDestinationType>`__ :index:`XPLMGetGPSDestinationType`
 
 
-.. py:function::  XPLMSetFMSEntryInfo(index, navRef, altitude) -> None:
+.. py:function:: getGPSDestination()
 
- :param int index: zero-based index of FMS entries
- :param int navRef: :ref:`XPLMNavRef`
- :param int altitude: altitude (in feet)
+ Return the :ref:`XPLMNavRef` of current GPS destination.
 
- This routine changes an entry in the FMS to have the destination navaid
- passed in and the altitude specified.  Use this only for airports, fixes,
- and radio-beacon navaids.  Currently of radio beacons, the FMS can only
- support VORs and NDBs. Use the routines below to clear or fly to a lat/lon.
+ >>> xp.getGPSDestination()
+ 33706498
+ >>> print(xp.getNavAidInfo(xp.getGPSDestination()))
+ LUCOS (LUCOS) Fix (41.638, -70.768) ---
 
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMGetGPSDestination>`__ :index:`XPLMGetGPSDestination` 
 
-.. py:function:: XPLMSetFMSEntryLatLon(index, lat, lon, altitude) -> None:
-
- :param int index: zero-based index of FMS entries
- :param float lat: latitude (degrees)
- :param float lon: longitude (degrees)
- :param int altitude: altitude (in feet)
-
- This routine changes the entry in the FMS to a lat/lon entry with the given
- coordinates.
-
-.. py:function::  XPLMClearFMSEntry(index) -> None:
-
- This routine clears the given entry, potentially shortening the flight plan.
-
-.. py:function::  XPLMGetGPSDestinationType(None) -> navType:
-
- :return:  int navType :ref:`XPLMNavType` of current GPS destination, one of fix, airport, VOR or NDB.
-
-
-.. py:function:: XPLMGetGPSDestination(None) -> navRef:
-
- :return:  int navRef :ref:`XPLMNavRef` of current GPS destination                 
-  
 Constants
 ---------
 
 .. _XPLMNavType:
 
-XPLMNavType
-***********
+:index:`XPLMNavType`
+********************
 These enumerations define the different types of navaids.  They are each
 defined with a separate bit so that they may be bit-wise added together to
 form sets of nav-aid types.
@@ -284,31 +413,33 @@ form sets of nav-aid types.
  .. table::
    :align: left
 
-   ================================== =====
-   .. py:data:: xplm_Nav_Unknown      =0
-   .. py:data:: xplm_Nav_Airport      =1
-   .. py:data:: xplm_Nav_NDB          =2
-   .. py:data:: xplm_Nav_VOR          =4
-   .. py:data:: xplm_Nav_ILS          =8
-   .. py:data:: xplm_Nav_Localizer    =16
-   .. py:data:: xplm_Nav_GlideSlope   =32
-   .. py:data:: xplm_Nav_OuterMarker  =64
-   .. py:data:: xplm_Nav_MiddleMarker =128
-   .. py:data:: xplm_Nav_InnerMarker  =256
-   .. py:data:: xplm_Nav_Fix          =512
-   .. py:data:: xplm_Nav_DME          =1024
-   .. py:data:: xplm_Nav_LatLon       =2048
-   ================================== =====
+   ============================= =====
+   .. py:data:: Nav_Unknown      =0
+   .. py:data:: Nav_Airport      =1
+   .. py:data:: Nav_NDB          =2
+   .. py:data:: Nav_VOR          =4
+   .. py:data:: Nav_ILS          =8
+   .. py:data:: Nav_Localizer    =16
+   .. py:data:: Nav_GlideSlope   =32
+   .. py:data:: Nav_OuterMarker  =64
+   .. py:data:: Nav_MiddleMarker =128
+   .. py:data:: Nav_InnerMarker  =256
+   .. py:data:: Nav_Fix          =512
+   .. py:data:: Nav_DME          =1024
+   .. py:data:: Nav_LatLon       =2048
+   ============================= =====
 
-.. note: xplm_Nav_LatLon is a specific lat-lon coordinate entered into the
+.. note:: ``Nav_LatLon`` is a specific lat-lon coordinate entered into the
  FMS. It will not exist in the database, and cannot be programmed into the
  FMS. Querying the FMS for navaids will return it.  Use
- :py:func:`XPLMSetFMSEntryLatLon` to set a lat/lon waypoint.
+ :py:func:`setFMSEntryLatLon` to set a lat/lon waypoint.
+
+`Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMNavType>`__ :index:`XPLMNavType`     
 
 .. _XPLMNavRef:
 
-XPLMNavRef
-**********
+:index:`XPLMNavRef`
+*******************
 
 XPLMNavRef is an iterator into the navigation database.  The navigation
 database is essentially an array, but it is not necessarily densely
@@ -322,4 +453,6 @@ Use XPLMNavRef to refer to a nav-aid.
 
  XPLM_NAV_NOT_FOUND is returned by functions that return an :ref:`XPLMNavRef` when
  the iterator must be invalid.
+
+`Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMNavRef>`__ :index:`XPLMNavRef`
 

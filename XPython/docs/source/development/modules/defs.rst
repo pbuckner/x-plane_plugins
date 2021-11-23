@@ -1,11 +1,12 @@
 XPLMDefs
 ========
 .. py:module:: XPLMDefs
+.. py:currentmodule:: xp
 
 To use:
 ::
 
-   import XPLMDefs
+   import xp
 
 
 .. _XPLMPluginID:
@@ -19,25 +20,23 @@ XPLMPluginID
  X-Plane unless plug-ins are reloaded.  Plug-ins may receive a different
  unique ID each time they are loaded.
 
- For persistent identification of plug-ins, use XPLMFindPluginBySignature in
- XPLMUtiltiies.h
+ For persistent identification of plug-ins, use :py:func:`findPluginBySignature`.
 
- .. py:data:: XPLM_NO_PLUGIN_ID
+ .. py:data:: NO_PLUGIN_ID
     :value: -1
 
-    No plugin (xp.NO_PLUGIN_ID)
+    No plugin.
+    `Official SDK <https://developer.x-plane.com/sdk/XPLMDefs/#XPLM_NO_PLUGIN_ID>`__: :index:`XPLM_NO_PLUGIN_ID`
 
- .. py:data:: XPLM_PLUGIN_XPLANE
+ .. py:data:: PLUGIN_XPLANE
     :value: 0
 
-    X-Plane itself (xp.PLUGIN_XPLANE)
+    X-Plane itself.      `Official SDK <https://developer.x-plane.com/sdk/XPLMDefs/#XPLM_PLUGIN_XPLANE>`__: :index:`XPLM_PLUGIN_XPLANE`
  
- .. py:data:: kXPLM_Version
+ .. py:data:: kVersion
     :value: 303
 
-    The current XPLM revision is 303
-
-   
+    The current XPLM SDK revision for X-Plane 11.55 is 303. `Official SDK <https://developer.x-plane.com/sdk/XPLMDefs/#kXPLM_Version>`__: :index:`kXPLM_Version`
 
 
 .. _XPLMKeyFlags:
@@ -60,30 +59,30 @@ yet a way for plugins to access the Macintosh control keys without using
 
 For ``xp.py``, these are defined without the leading ``xplm_`` e.g., ``xp.ShiftFlag``
 
- .. py:data:: xplm_ShiftFlag
+ .. py:data:: ShiftFlag
    :value: 1
 
-   The shift key is down
+   The shift key is down.       `Official SDK <https://developer.x-plane.com/sdk/XPLMDefs/#xplm_ShiftFlag>`__: :index:`xplm_ShiftFlag`
 
- .. py:data:: xplm_OptionAltFlag
+ .. py:data:: OptionAltFlag
    :value: 2
 
-   The option or alt key is down
+   The option or alt key is down.       `Official SDK <https://developer.x-plane.com/sdk/XPLMDefs/#xplm_OptionAltFlag>`__: :index:`xplm_OptionAltFlag`
 
- .. py:data:: xplm_ControlFlag
+ .. py:data:: ControlFlag
    :value: 4
 
-   The control key is down
+   The control key is down. `Official SDK <https://developer.x-plane.com/sdk/XPLMDefs/#xplm_ControlFlag>`__: :index:`xplm_ControlFlag`
 
- .. py:data:: xplm_DownFlag
+ .. py:data:: DownFlag
    :value: 8
 
-   The key is being pressed down
+   The key is being pressed down. `Official SDK <https://developer.x-plane.com/sdk/XPLMDefs/#xplm_DownFlag>`__: :index:`xplm_DownFlag`
 
- .. py:data:: xplm_UpFlag
+ .. py:data:: UpFlag
    :value: 16
 
-   The key is being released
+   The key is being released. `Official SDK <https://developer.x-plane.com/sdk/XPLMDefs/#xplm_UpFlag>`__: :index:`xplm_UpFlag`
 
 
 
@@ -101,25 +100,32 @@ keys.
 
 For ``xp.py``, these are defined without the leading ``XPLM_`` e.g., ``xp.KEY_RETURN``
 
- .. py:data:: XPLM_KEY_RETURN
-    XPLM_KEY_ESCAPE
-    XPLM_KEY_TAB
-    XPLM_KEY_DELETE
-    XPLM_KEY_LEFT
-    XPLM_KEY_RIGHT
-    XPLM_KEY_UP
-    XPLM_KEY_DOWN
-    XPLM_KEY_0
-    XPLM_KEY_1
-    XPLM_KEY_2
-    XPLM_KEY_3
-    XPLM_KEY_4
-    XPLM_KEY_5
-    XPLM_KEY_6
-    XPLM_KEY_7
-    XPLM_KEY_8
-    XPLM_KEY_9
-    XPLM_KEY_DECIMAL
+.. table::
+ :align: left
+
+ ========================= ========================
+ Value                     SDK Value
+ ========================= ========================
+ .. py:data:: KEY_RETURN   :index:`XPLM_KEY_RETURN`
+ .. py:data:: KEY_ESCAPE   :index:`XPLM_KEY_ESCAPE`
+ .. py:data:: KEY_TAB      :index:`XPLM_KEY_TAB`
+ .. py:data:: KEY_DELETE   :index:`XPLM_KEY_DELETE`
+ .. py:data:: KEY_LEFT     :index:`XPLM_KEY_LEFT`
+ .. py:data:: KEY_RIGHT    :index:`XPLM_KEY_RIGHT`
+ .. py:data:: KEY_UP       :index:`XPLM_KEY_UP`
+ .. py:data:: KEY_DOWN     :index:`XPLM_KEY_DOWN`
+ .. py:data:: KEY_0        :index:`XPLM_KEY_0`
+ .. py:data:: KEY_1        :index:`XPLM_KEY_1`
+ .. py:data:: KEY_2        :index:`XPLM_KEY_2`
+ .. py:data:: KEY_3        :index:`XPLM_KEY_3`
+ .. py:data:: KEY_4        :index:`XPLM_KEY_4`
+ .. py:data:: KEY_5        :index:`XPLM_KEY_5`
+ .. py:data:: KEY_6        :index:`XPLM_KEY_6`
+ .. py:data:: KEY_7        :index:`XPLM_KEY_7`
+ .. py:data:: KEY_8        :index:`XPLM_KEY_8`
+ .. py:data:: KEY_9        :index:`XPLM_KEY_9`
+ .. py:data:: KEY_DECIMAL  :index:`XPLM_KEY_DECIMAL`
+ ========================= ========================
 
 
 .. _Virtual Key Codes:
@@ -155,124 +161,152 @@ additions and changes. A few differences:
 
 For ``xp.py``, these are defined without the leading ``XPLM_`` e.g., ``xp.VK_TAB``
 
- .. py:data:: XPLM_VK_BACK
-    XPLM_VK_TAB
-    XPLM_VK_CLEAR
-    XPLM_VK_RETURN
-    XPLM_VK_ESCAPE
-    XPLM_VK_SPACE
-    XPLM_VK_PRIOR
-    XPLM_VK_NEXT
-    XPLM_VK_END
-    XPLM_VK_HOME
-    XPLM_VK_LEFT
-    XPLM_VK_UP
-    XPLM_VK_RIGHT
-    XPLM_VK_DOWN
-    XPLM_VK_SELECT
-    XPLM_VK_PRINT
-    XPLM_VK_EXECUTE
-    XPLM_VK_SNAPSHOT
-    XPLM_VK_INSERT
-    XPLM_VK_DELETE
-    XPLM_VK_HELP
+.. table::
+ :align: left
+
+ ========================= =============================
+ Value                     SDK Value
+ ========================= =============================
+ .. py:data:: VK_BACK      :index:`XPLM_VK_BACK`
+ .. py:data:: VK_TAB       :index:`XPLM_VK_TAB`
+ .. py:data:: VK_CLEAR     :index:`XPLM_VK_CLEAR`
+ .. py:data:: VK_RETURN    :index:`XPLM_VK_RETURN`
+ .. py:data:: VK_ESCAPE    :index:`XPLM_VK_ESCAPE`
+ .. py:data:: VK_SPACE     :index:`XPLM_VK_SPACE`
+ .. py:data:: VK_PRIOR     :index:`XPLM_VK_PRIOR`
+ .. py:data:: VK_NEXT      :index:`XPLM_VK_NEXT`
+ .. py:data:: VK_END       :index:`XPLM_VK_END`
+ .. py:data:: VK_HOME      :index:`XPLM_VK_HOME`
+ .. py:data:: VK_LEFT      :index:`XPLM_VK_LEFT`
+ .. py:data:: VK_UP        :index:`XPLM_VK_UP`
+ .. py:data:: VK_RIGHT     :index:`XPLM_VK_RIGHT`
+ .. py:data:: VK_DOWN      :index:`XPLM_VK_DOWN`
+ .. py:data:: VK_SELECT    :index:`XPLM_VK_SELECT`
+ .. py:data:: VK_PRINT     :index:`XPLM_VK_PRINT`
+ .. py:data:: VK_EXECUTE   :index:`XPLM_VK_EXECUTE`
+ .. py:data:: VK_SNAPSHOT  :index:`XPLM_VK_SNAPSHOT`
+ .. py:data:: VK_INSERT    :index:`XPLM_VK_INSERT`
+ .. py:data:: VK_DELETE    :index:`XPLM_VK_DELETE`
+ .. py:data:: VK_HELP      :index:`XPLM_VK_HELP`
+ ========================= =============================
 
 XPLM_VK_0 thru XPLM_VK_9 are the same as ASCII '0' thru '9' (= 0x30 - 0x39)
 
- .. py:data:: XPLM_VK_0
-    XPLM_VK_1
-    XPLM_VK_2
-    XPLM_VK_3
-    XPLM_VK_4
-    XPLM_VK_5
-    XPLM_VK_6
-    XPLM_VK_7
-    XPLM_VK_8
-    XPLM_VK_9
+.. table::
+ :align: left
+
+ ================== ======================
+ Value              SDK Value
+ ================== ======================
+ .. py:data:: VK_0      :index:`XPLM_VK_0`
+ .. py:data:: VK_1      :index:`XPLM_VK_1`
+ .. py:data:: VK_2      :index:`XPLM_VK_2`
+ .. py:data:: VK_3      :index:`XPLM_VK_3`
+ .. py:data:: VK_4      :index:`XPLM_VK_4`
+ .. py:data:: VK_5      :index:`XPLM_VK_5`
+ .. py:data:: VK_6      :index:`XPLM_VK_6`
+ .. py:data:: VK_7      :index:`XPLM_VK_7`
+ .. py:data:: VK_8      :index:`XPLM_VK_8`
+ .. py:data:: VK_9      :index:`XPLM_VK_9`
+ ================== ======================
 
 XPLM_VK_A thru XPLM_VK_Z are the same as ASCII 'A' thru 'Z' (= 0x41 - 0x5A)
 
- .. py:data:: XPLM_VK_A
-    XPLM_VK_B
-    XPLM_VK_C
-    XPLM_VK_D
-    XPLM_VK_E
-    XPLM_VK_F
-    XPLM_VK_G
-    XPLM_VK_H
-    XPLM_VK_I
-    XPLM_VK_J
-    XPLM_VK_K
-    XPLM_VK_L
-    XPLM_VK_M
-    XPLM_VK_N
-    XPLM_VK_O
-    XPLM_VK_P
-    XPLM_VK_Q
-    XPLM_VK_R
-    XPLM_VK_S
-    XPLM_VK_T
-    XPLM_VK_U
-    XPLM_VK_V
-    XPLM_VK_W
-    XPLM_VK_X
-    XPLM_VK_Y
-    XPLM_VK_Z
-    XPLM_VK_NUMPAD0
-    XPLM_VK_NUMPAD1
-    XPLM_VK_NUMPAD2
-    XPLM_VK_NUMPAD3
-    XPLM_VK_NUMPAD4
-    XPLM_VK_NUMPAD5
-    XPLM_VK_NUMPAD6
-    XPLM_VK_NUMPAD7
-    XPLM_VK_NUMPAD8
-    XPLM_VK_NUMPAD9
-    XPLM_VK_MULTIPLY
-    XPLM_VK_ADD
-    XPLM_VK_SEPARATOR
-    XPLM_VK_SUBTRACT
-    XPLM_VK_DECIMAL
-    XPLM_VK_DIVIDE
-    XPLM_VK_F1
-    XPLM_VK_F2
-    XPLM_VK_F3
-    XPLM_VK_F4
-    XPLM_VK_F5
-    XPLM_VK_F6
-    XPLM_VK_F7
-    XPLM_VK_F8
-    XPLM_VK_F9
-    XPLM_VK_F10
-    XPLM_VK_F11
-    XPLM_VK_F12
-    XPLM_VK_F13
-    XPLM_VK_F14
-    XPLM_VK_F15
-    XPLM_VK_F16
-    XPLM_VK_F17
-    XPLM_VK_F18
-    XPLM_VK_F19
-    XPLM_VK_F20
-    XPLM_VK_F21
-    XPLM_VK_F22
-    XPLM_VK_F23
-    XPLM_VK_F24
+.. table::
+ :align: left
+
+ ========================= ===========================
+ Value                     SDK Value
+ ========================= ===========================
+ .. py:data:: VK_A         :index:`XPLM_VK_A`
+ .. py:data:: VK_B         :index:`XPLM_VK_B`
+ .. py:data:: VK_C         :index:`XPLM_VK_C`
+ .. py:data:: VK_D         :index:`XPLM_VK_D`
+ .. py:data:: VK_E         :index:`XPLM_VK_E`
+ .. py:data:: VK_F         :index:`XPLM_VK_F`
+ .. py:data:: VK_G         :index:`XPLM_VK_G`
+ .. py:data:: VK_H         :index:`XPLM_VK_H`
+ .. py:data:: VK_I         :index:`XPLM_VK_I`
+ .. py:data:: VK_J         :index:`XPLM_VK_J`
+ .. py:data:: VK_K         :index:`XPLM_VK_K`
+ .. py:data:: VK_L         :index:`XPLM_VK_L`
+ .. py:data:: VK_M         :index:`XPLM_VK_M`
+ .. py:data:: VK_N         :index:`XPLM_VK_N`
+ .. py:data:: VK_O         :index:`XPLM_VK_O`
+ .. py:data:: VK_P         :index:`XPLM_VK_P`
+ .. py:data:: VK_Q         :index:`XPLM_VK_Q`
+ .. py:data:: VK_R         :index:`XPLM_VK_R`
+ .. py:data:: VK_S         :index:`XPLM_VK_S`
+ .. py:data:: VK_T         :index:`XPLM_VK_T`
+ .. py:data:: VK_U         :index:`XPLM_VK_U`
+ .. py:data:: VK_V         :index:`XPLM_VK_V`
+ .. py:data:: VK_W         :index:`XPLM_VK_W`
+ .. py:data:: VK_X         :index:`XPLM_VK_X`
+ .. py:data:: VK_Y         :index:`XPLM_VK_Y`
+ .. py:data:: VK_Z         :index:`XPLM_VK_Z`
+ .. py:data:: VK_NUMPAD0   :index:`XPLM_VK_NUMPAD0`
+ .. py:data:: VK_NUMPAD1   :index:`XPLM_VK_NUMPAD1`
+ .. py:data:: VK_NUMPAD2   :index:`XPLM_VK_NUMPAD2`
+ .. py:data:: VK_NUMPAD3   :index:`XPLM_VK_NUMPAD3`
+ .. py:data:: VK_NUMPAD4   :index:`XPLM_VK_NUMPAD4`
+ .. py:data:: VK_NUMPAD5   :index:`XPLM_VK_NUMPAD5`
+ .. py:data:: VK_NUMPAD6   :index:`XPLM_VK_NUMPAD6`
+ .. py:data:: VK_NUMPAD7   :index:`XPLM_VK_NUMPAD7`
+ .. py:data:: VK_NUMPAD8   :index:`XPLM_VK_NUMPAD8`
+ .. py:data:: VK_NUMPAD9   :index:`XPLM_VK_NUMPAD9`
+ .. py:data:: VK_MULTIPLY  :index:`XPLM_VK_MULTIPLY`
+ .. py:data:: VK_ADD       :index:`XPLM_VK_ADD`
+ .. py:data:: VK_SEPARATOR :index:`XPLM_VK_SEPARATOR`
+ .. py:data:: VK_SUBTRACT  :index:`XPLM_VK_SUBTRACT`
+ .. py:data:: VK_DECIMAL   :index:`XPLM_VK_DECIMAL`
+ .. py:data:: VK_DIVIDE    :index:`XPLM_VK_DIVIDE`
+ .. py:data:: VK_F1        :index:`XPLM_VK_F1`
+ .. py:data:: VK_F2        :index:`XPLM_VK_F2`
+ .. py:data:: VK_F3        :index:`XPLM_VK_F3`
+ .. py:data:: VK_F4        :index:`XPLM_VK_F4`
+ .. py:data:: VK_F5        :index:`XPLM_VK_F5`
+ .. py:data:: VK_F6        :index:`XPLM_VK_F6`
+ .. py:data:: VK_F7        :index:`XPLM_VK_F7`
+ .. py:data:: VK_F8        :index:`XPLM_VK_F8`
+ .. py:data:: VK_F9        :index:`XPLM_VK_F9`
+ .. py:data:: VK_F10       :index:`XPLM_VK_F10`
+ .. py:data:: VK_F11       :index:`XPLM_VK_F11`
+ .. py:data:: VK_F12       :index:`XPLM_VK_F12`
+ .. py:data:: VK_F13       :index:`XPLM_VK_F13`
+ .. py:data:: VK_F14       :index:`XPLM_VK_F14`
+ .. py:data:: VK_F15       :index:`XPLM_VK_F15`
+ .. py:data:: VK_F16       :index:`XPLM_VK_F16`
+ .. py:data:: VK_F17       :index:`XPLM_VK_F17`
+ .. py:data:: VK_F18       :index:`XPLM_VK_F18`
+ .. py:data:: VK_F19       :index:`XPLM_VK_F19`
+ .. py:data:: VK_F20       :index:`XPLM_VK_F20`
+ .. py:data:: VK_F21       :index:`XPLM_VK_F21`
+ .. py:data:: VK_F22       :index:`XPLM_VK_F22`
+ .. py:data:: VK_F23       :index:`XPLM_VK_F23`
+ .. py:data:: VK_F24       :index:`XPLM_VK_F24`
+ ========================= ===========================
 
 The following definitions are extended and are not based on the Microsoft
 key set.
 
- .. py:data:: XPLM_VK_EQUAL
-    XPLM_VK_MINUS
-    XPLM_VK_RBRACE
-    XPLM_VK_LBRACE
-    XPLM_VK_QUOTE
-    XPLM_VK_SEMICOLON
-    XPLM_VK_BACKSLASH
-    XPLM_VK_COMMA
-    XPLM_VK_SLASH
-    XPLM_VK_PERIOD
-    XPLM_VK_BACKQUOTE
-    XPLM_VK_ENTER
-    XPLM_VK_NUMPAD_ENT
-    XPLM_VK_NUMPAD_EQ
+.. table::
+ :align: left
+
+ ========================== ===========================
+ Value                      SDK Value
+ ========================== ===========================
+ .. py:data:: VK_EQUAL      :index:`XPLM_VK_EQUAL`
+ .. py:data:: VK_MINUS      :index:`XPLM_VK_MINUS`
+ .. py:data:: VK_RBRACE     :index:`XPLM_VK_RBRACE`
+ .. py:data:: VK_LBRACE     :index:`XPLM_VK_LBRACE`
+ .. py:data:: VK_QUOTE      :index:`XPLM_VK_QUOTE`
+ .. py:data:: VK_SEMICOLON  :index:`XPLM_VK_SEMICOLON`
+ .. py:data:: VK_BACKSLASH  :index:`XPLM_VK_BACKSLASH`
+ .. py:data:: VK_COMMA      :index:`XPLM_VK_COMMA`
+ .. py:data:: VK_SLASH      :index:`XPLM_VK_SLASH`
+ .. py:data:: VK_PERIOD     :index:`XPLM_VK_PERIOD`
+ .. py:data:: VK_BACKQUOTE  :index:`XPLM_VK_BACKQUOTE`
+ .. py:data:: VK_ENTER      :index:`XPLM_VK_ENTER`
+ .. py:data:: VK_NUMPAD_ENT :index:`XPLM_VK_NUMPAD_ENT`
+ .. py:data:: VK_NUMPAD_EQ  :index:`XPLM_VK_NUMPAD_EQ`
+ ========================== ===========================

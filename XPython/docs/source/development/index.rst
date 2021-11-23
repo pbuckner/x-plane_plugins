@@ -22,11 +22,16 @@ You will find these resources helpful:
 
 * :doc:`modules/index` Documentation
 
-  Also, check out the `Simplified Python Interface in module xp <modules/xp.html>`_.  You'll find it much faster and easier to write new
-  code using this interface and won't wear out your XPLM keys.
+  Note we use a `Simplified Python Interface in module xp <modules/xp.html>`_.
+  You'll find it much faster and easier to write new
+  code using this interface and won't wear out your XPLM keys. You can use the older style (e.g., ``import XPLMMenus``,
+  but new code will work better with the ``xp`` style interface.)
 
-  We've attempted to fully document the API here, noting changes from the official C-Language SDK. (Don't forget to use the `Search`
-  field in the header of each page to find what you're looking for!)
+  We've attempted to fully document the API here, noting changes from the official C-Language SDK.
+  (Don't forget to use the `Search`
+  field in the header of each of these documentation web pages to find what you're looking for!)
+
+  *Most* of the APIs in this documentation include example source code which can be cut and pasted into the :doc:`debugger`.
   
   * `X-Plane Developer Documentation @ developer.x-plane.com <https://developer.x-plane.com/sdk/plugin-sdk-documents/>`_
 
@@ -69,7 +74,8 @@ Tools
 * **Mini Debugger** (See :doc:`debugger`.)
 
   The ``PI_MiniPython.py`` plugin, available under ``PythonPlugins/samples/``, allows you to
-  type in python expressions in a running application and see the results.
+  type in python expressions in a running application and see the results: You'll need to move it
+  from ``samples`` up into the ``PythonPlugins`` directory in order for it to load.
 
 * **Python Stubs** (Download from github: `stubs.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/stubs.zip>`_.)
    

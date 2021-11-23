@@ -195,26 +195,26 @@ Simplified Interfaces
 New XPPython3 Constants
 -----------------------
 
-:data:`XPPython.VERSION`
+:data:`xp.VERSION`
       Version number of XPPython3  
 
-:data:`XPPython.PLUGINSPATH`
+:data:`xp.PLUGINSPATH`
       Full path to where XPPython3 Plugins are installed: <XP>/Resources/plugins/PythonPlugins  
 
-:data:`XPPython.INTERNALPLUGINSPATH`
+:data:`xp.INTERNALPLUGINSPATH`
       Full path to where XPPython3 Internal Plugins are installed: <XP>/Resources/XPPython3  
 
 New XPPython3 Functions
 -----------------------
 
-:data:`XPPython.XPPythonGetDicts()`
+:py:func:`xp.pythonGetDicts()`
   Returns dictionary of internal plugin python dictionaries. The Plugin already stores lists of
   items registered by each (XPython3) plugin. You may be able to use these, read-only,
   rather than maintaining your own list of things you've registered.
     
   For now, this internal dictionaries are partially documented in :doc:`xppythondicts`, though you can probably divine their use.
 
-:data:`XPPython.XPPythonGetCapsules()`
+:py:func:`xp.pythonGetCapsules()`
   Returns a dictionary of internal plugin capsules (essentially these are registered WidgetIDs)
   Not sure they'll be of any real value to SDK users.
 

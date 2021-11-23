@@ -23,9 +23,51 @@ the next window after *Options* in the installation wizard).
 
      .. image:: /images/pythonwindows.png
 
+----
+
 On Mac
 ======
 
+You get popup on initial execution:
+
+ .. image:: /images/quarantine.png
+
+**Cause**
+   The XPPython3 plugin developer (me) cannot be verified, because I've not paid Apple $100 / year to get a signature [#F1]_. So
+   Apple decides that since it doesn't know who I am, it cannot check the contents of the plugin, and will therefore
+   not allow it to run without additional action on your part:
+
+**Solution**
+   1. Press **Cancel**. If you move it to the trash, you'll have to download it again...
+
+   2. On Cancel, X-Plane *will start*, but it simple ignores the plugin.
+
+   3. Quit X-Plane. You'll only need to fix this once.
+
+   4. Open Terminal app, and go to the folder <X-Plane>/Resources/plugins/XPPython3/mac_x64::
+
+        $ cd /Users/pbuck/X-Plane/Resources/plugins/XPPython3/mac_x64
+
+      (I don't know where you installed X-Plane, so the top folders may be different)
+
+   5. Verify quarantine information for XPPython3.xpl::
+
+        $ xattr -l XPPython3.xpl
+        com.apple.quarantine: 0083;619aec20;Safari;47F5FBD6-CEA4-425C-93A3-1856380C71D5
+
+      The code after "com.apple.quarantine" will be different but it's existence indicates
+      the file *is subject to quarantine*.
+
+   5. Remove the quarantine for XPPython3.xpl::
+
+        $ xattr -d com.apple.quarantine  XPPython3.xpl
+
+   That's it: restart X-Plane and you should not see the popup! (These steps will work for other plugins as well.)
+   
+----        
+
+You get an eror message in a Log file complaining about SSL CERTIFICATES:
+   
 .. code-block:: none
 
    Failed with urllib: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify
@@ -79,6 +121,8 @@ On All Platforms
 
     See also :ref:`pip-package-installer`.
         
+----
+
 .. code-block:: none
 
    Can't open <folder> to scan for plugins.
@@ -92,3 +136,13 @@ On All Platforms
     If you were expecting python plugin to be loaded, check to make sure the file(s) are place in the
     correct location. If you're not anticipating a plugin to be loaded, ignore the message.
   
+----
+
+.. [#F1] "*Apple signature costs $100/year*". I'm in favor of the quarantine system, but not
+         crazy about having to pay to get a signature as I make no money on XPPython3.
+         If you'd like to donate, I promise to
+         use the first $100 of XPPython3 donations each year to purchase a signature so
+         that others may avoid this hassle. You can donate
+         through
+         `Paypal <https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TA3EJ9VWFCH3N&source=url>`_.
+

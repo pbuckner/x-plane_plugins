@@ -1,0 +1,19 @@
+{% set versionlist = [('3.0.11', 'stable'), ('3.1.0', 'beta')] %}
+Current stable release is
+{% for x in versionlist %}
+     {% if x[1] == 'stable' %}
+        {{ x[0] }}
+     {% endif %}
+     {% if x[1] == 'stable' and x[1] != release %}
+        <br/> This is {{ release }}
+     {% endif %}
+{% endfor %}
+<br/>
+<select class="version-selector">
+{% for v, name in versionlist %}
+    <option value="{{ name|e }}"
+            {{ "selected" if v == release else "" }} >
+      {{ name.title() }}: {{ v }}
+    </option>
+{% endfor %}
+</select>

@@ -1,17 +1,18 @@
 XPPython
 ============
 .. py:module:: XPPython
-
+.. py:currentmodule:: xp
+                      
 To use::
 
-   import XPPython
+   import xp
 
 This module provides some XPPython3 specific constants and functions.
 
 Functions
 ---------
 
-.. py:function:: XPPythonGetDicts(None) -> internal_dict:
+.. py:function:: pythonGetDicts()
 
  Returns a dictionary of internal plugin dictionaries.
 
@@ -30,26 +31,33 @@ Functions
  The dictionaries are intended to be read-only and for debugging purposes
  only. They are documented in :doc:`/development/xppythondicts`.
 
-.. py:function:: XPPythonLog(s: str) -> None:
+.. py:function:: log(s)
 
  Print string into XPPython3Log.txt file, appending a newline.
- Normally, the log is __not__ flushed after each write. To force
- a flush, call with no parameters (e.g., ``XPPythonLog()``)
+ Normally, the log is *not* flushed after each write. To force
+ a flush, call with no parameters (e.g., ``xp.log()``)
 
  Your str is prefixed with ``[<module>]`` to help user understand
  the message context.
 
-.. py:function:: XPSystemLog(s: str) -> None:
+ >>> xp.log(f"This is version {xp.VERSION}")
+ [PythonPlugins.PI_MiniPython] This is version 3.0.12a1 - for Python 3.9
+
+.. py:function:: systemLog(s)
+.. py:function:: sys_log(s)
 
  Print string into X-Plane System log file, ``Log.txt``, appending a newline.
- The log __is__ flushed after each write.
+ The log *is* flushed after each write. (``sys_log`` is an aliase of ``systemLog``).
 
  Your str is prefixed with ``[XP3: <module>]`` to help user understand the message
  context. Please, write to System Log only when you need to alert the user
  that something is mis-configured or failing. Otherwise, write to XPPython3Log.txt using
- :py:func:`XPPythonLog`.
+ :py:func:`log`.
 
-.. py:function:: XPPythonGetCapsules(None) -> capsules_dict:
+ >>> xp.systemLog(f"This is version {xp.VERSION}")
+ [XP3: PythonPlugins.PI_MiniPython] This is version 3.0.12a1 - for Python 3.9
+
+.. py:function:: pythonGetCapsules()
 
  Returns an internal dictionary of Capsules.
 
@@ -57,14 +65,14 @@ Functions
  to implement opaque pointers to match the C API. For example,
  rather than simply returning a Python integer::
 
-   >>> print(XPGetWidgetWithFocus())
+   >>> print(xp.getWidgetWithFocus())
    0x78662234
 
  as a widget ID, we
  declare a capsule type called "XPLMWidgetID" and return a wrapped
  integer which will look like::
 
-   >>> print(XPGetWidgetWithFocus())
+   >>> print(xp.getWidgetWithFocus())
    <capsule object "XPLMWidgetID" at 0x78662588>
 
  The benefit is we can do some error checking (essentially type-checking).
@@ -77,7 +85,7 @@ Functions
 
  The original value (id, or C-pointer) for the capsule'd object will be
  the key to the capsule in the returned dictionary. For example, X-Plane will
- see the command reference id ``2305`` when XPPython3 works with XPLMCommandRef
+ see the command reference id ``2305`` when XPPython3 works with :py:func:`commandRef`
  capsule at ``0x7fdea8b9a3c0``. The capsule is a Python object. Similarly,
  X-Plane WidgetID 140594295845456 is represented by the Python object at ``0x7fdea95825d0``.
  (``140594295845456`` is hex ``0x7fdea90fb250``, so you can tell CommandRefs are
@@ -108,6 +116,18 @@ Functions
                       140594295515808: <capsule object "XPLMWidgetID" at 0x7fdea95d87b0>}
     }
  
+.. py:function:: getPluginStats
+
+  Return dictionary of plugin statistics. Currently includes per-plugin performance data, keyed
+  by the plugin module name. Key value ``None`` is the overall XPPython3 performance information.
+
+  .. note:: values are in microseconds and *reset to zero* each time this function is called.
+
+  >>> xp.getPluginStats()
+  {None:   {'fl'; 0, 'draw': 123, 'customw': 99},
+   'PythonPlugins.PI_MiniPython': {'fl'; 0, 'draw': 0, 'customw': 33499},
+  }
+
 Constants
 ---------
 
@@ -117,17 +137,24 @@ Constants
    The primary use for this is with ``subprocess`` or ``multiprocessing`` python modules when you want
    to spawn another python process.
 
+   >>> xp.pythonExecutable
+   '/Library/Frameworks/Python.framework/Version/3.9/bin/python3.9'
+
 .. py:data:: VERSION
 
-  Version number of XPPython3 plugin, e.g., '3.0.0'             
+  Version number of XPPython3 plugin, e.g., '3.0.0'
+
+  >>> xp.VERSION
+  '3.0.12a1 - for Python 3.9'
 
 .. py:data:: PLUGINSPATH
-  :value: "./Resources/plugins/PythonPlugins"
+  :value: "Resources/plugins/PythonPlugins"
 
-  Relative path the where plugins are located.
+  Relative path the where "regular" plugins are located. Note that scenery and aircraft plugins are stored
+  with their scenery / aircraft files.
 
 .. py:data:: INTERNALPLUGINSPATH
-  :value: "./Resources/plugins/XPPython3"
+  :value: "Resources/plugins/XPPython3"
 
   Relative path to where internal plugins are located.
   

@@ -108,8 +108,8 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
       PyObject *resObj = PyObject_CallFunctionObjArgs(callback, inMessageObj, widget, param1, param2, NULL);
       // clock_gettime(CLOCK_MONOTONIC, &stop);
       Py_DECREF(inMessageObj);
-      if(!resObj){
-        PyErr_Print();
+      if(!resObj || resObj == Py_None){
+        fprintf(pythonLogFile, "[%s] Widget Callback function %s did not return a value\n", objToStr(pluginSelf), objToStr(callback));
         break;
       }
       res = PyLong_AsLong(resObj);
@@ -145,20 +145,38 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
 
 
 
-static PyObject *XPCreateWidgetFun(PyObject *self, PyObject *args)
+My_DOCSTR(_createWidget__doc__, "createWidget", "left, top, right, bottom, visible, descriptor, isRoot, container, class",
+          "Create widget of class at location\n"
+          "\n"
+          "isRoot=1 if widget is a root widget, container is None or widgetID of parent widget\n"
+          "class is one of predefined classes:\n"
+          "  WidgetClass_MainWindow\n"
+          "  WidgetClass_SubWindow\n"
+          "  WidgetClass_Button\n"
+          "  WidgetClass_TextField\n"
+          "  WidgetClass_ScrollBar\n"
+          "  WidgetClass_Caption\n"
+          "  WidgetClass_GeneralGraphics\n"
+          "  WidgetClass_Progress\n"
+          "Returns created widgetID"
+          );
+static PyObject *XPCreateWidgetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"left", "top", "right", "bottom", "visible", "descriptor", "isRoot", "container", "class", NULL};
   (void) self;
   int inLeft, inTop, inRight, inBottom, inVisible, inIsRoot;
   const char *inDescriptor;
   PyObject *container;
   XPWidgetClass inClass;
-  if(!PyArg_ParseTuple(args, "iiiiisiOi", &inLeft, &inTop, &inRight, &inBottom, &inVisible, &inDescriptor, &inIsRoot,
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiiiisiOi", keywords, &inLeft, &inTop, &inRight, &inBottom, &inVisible, &inDescriptor, &inIsRoot,
                                          &container, &inClass)){
     return NULL;
   }
   // use inContainer 0, if passed in value of 0
   XPWidgetID inContainer;
-  if ((PyLong_Check(container) && PyLong_AsLong(container) == 0) || container == Py_None) {
+  if (inIsRoot > 0) {
+    inContainer = 0;
+  } else if ((PyLong_Check(container) && PyLong_AsLong(container) == 0) || container == Py_None) {
     inContainer = 0;
   } else {
     inContainer = refToPtr(container, widgetRefName);
@@ -168,20 +186,29 @@ static PyObject *XPCreateWidgetFun(PyObject *self, PyObject *args)
   return getPtrRef(res, widgetIDCapsules, widgetRefName);
 }
 
-static PyObject *XPCreateCustomWidgetFun(PyObject *self, PyObject *args)
+My_DOCSTR(_createCustomWidget__doc__, "createCustomWidget", "left, top, right, bottom, visible, descriptor, isRoot, container, callback",
+          "Create widget at location, with custom callback\n"
+          "\n"
+          "callback is (message, widget, param1, param2) returning 1 if you've handled\n"
+          "   the message, 0 otherwise.\n"
+          "Returns created widgetID");
+static PyObject *XPCreateCustomWidgetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"left", "top", "right", "bottom", "visible", "descriptor", "isRoot", "container", "callback", NULL};
   (void) self;
   int inLeft, inTop, inRight, inBottom, inVisible, inIsRoot;
   const char *inDescriptor;
   PyObject *container;
   PyObject *inCallback;
-  if(!PyArg_ParseTuple(args, "iiiiisiOO", &inLeft, &inTop, &inRight, &inBottom, &inVisible, &inDescriptor,
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiiiisiOO", keywords, &inLeft, &inTop, &inRight, &inBottom, &inVisible, &inDescriptor,
                        &inIsRoot, &container, &inCallback)){
     return NULL;
   }
   // use inContainer 0, if passed in value of 0
   XPWidgetID inContainer;
-  if ((PyLong_Check(container) && PyLong_AsLong(container) == 0) || container == Py_None) {
+  if (inIsRoot > 0) {
+    inContainer = 0;
+  } else if ((PyLong_Check(container) && PyLong_AsLong(container) == 0) || container == Py_None) {
     inContainer = 0;
   } else {
     inContainer = refToPtr(container, widgetRefName);
@@ -208,18 +235,16 @@ static PyObject *XPCreateCustomWidgetFun(PyObject *self, PyObject *args)
   return resObj;
 }
 
-static PyObject *XPDestroyWidgetFun(PyObject *self, PyObject *args)
+My_DOCSTR(_destroyWidget__doc__, "destroyWidget", "widgetID, destroyChildren=1",
+          "Destroys widgetID and (optionally) all children.");
+static PyObject *XPDestroyWidgetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", "destroyChildren", NULL};
   (void) self;
-  PyObject *widget, *pluginSelf;
-  int inDestroyChildren;
-  if(!PyArg_ParseTuple(args, "OOi", &pluginSelf, &widget, &inDestroyChildren)){
-    PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "Oi", &widget, &inDestroyChildren)){
-      return NULL;
-    }
-  } else {
-    pythonLogWarning("'self' deprecated as first parameter of XPDestroyWidget");
+  PyObject *widget;
+  int inDestroyChildren=1;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", keywords, &widget, &inDestroyChildren)){
+    return NULL;
   }
   XPWidgetID wid = refToPtr(widget, widgetRefName);
   XPDestroyWidget(wid, inDestroyChildren);
@@ -231,18 +256,23 @@ static PyObject *XPDestroyWidgetFun(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
-static PyObject *XPSendMessageToWidgetFun(PyObject *self, PyObject *args)
+My_DOCSTR(_sendMessageToWidget__doc__, "sendMessageToWidget", "widgetID, message, dispatchMode=1, param1=0, param2=0",
+          "dispatchMode default is Mode_UpChain");
+static PyObject *XPSendMessageToWidgetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", "message", "dispatchMode", "param1", "param2", NULL};
   (void) self;
-  PyObject *widget, *param1, *param2;
-  int inMessage, inMode;
-  if(!PyArg_ParseTuple(args, "OiiOO", &widget, &inMessage, &inMode, &param1, &param2)){
+  PyObject *widget, *param1=Py_None, *param2=Py_None;
+  int inMessage, inMode=1;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi|iOO", keywords, &widget, &inMessage, &inMode, &param1, &param2)){
     return NULL;
   }
   XPWidgetID inWidget = refToPtr(widget, widgetRefName);
   intptr_t inParam1;
   if (PyCapsule_CheckExact(param1)) {
     inParam1 = (intptr_t) PyCapsule_GetPointer(param1, PyCapsule_GetName(param1));
+  } else if (param1 == Py_None) {
+    inParam1 = 0;
   } else {
     inParam1 = PyLong_AsLong(param1);
   }
@@ -250,6 +280,8 @@ static PyObject *XPSendMessageToWidgetFun(PyObject *self, PyObject *args)
   intptr_t inParam2;
   if (PyCapsule_CheckExact(param2)) {
     inParam2 = (intptr_t) PyCapsule_GetPointer(param1, PyCapsule_GetName(param2));
+  } else if (param2 == Py_None) {
+    inParam2 = 0;
   } else {
     inParam2 = PyLong_AsLong(param2);
   }
@@ -258,226 +290,244 @@ static PyObject *XPSendMessageToWidgetFun(PyObject *self, PyObject *args)
   return PyLong_FromLong(res);
 }
 
-static PyObject *XPPlaceWidgetWithinFun(PyObject *self, PyObject *args)
+My_DOCSTR(_placeWidgetWithin__doc__, "placeWidgetWithin", "widgetID, container=0",
+          "Change container widget for widgetID to container (widgetID)");
+static PyObject *XPPlaceWidgetWithinFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", "container", NULL};
   (void) self;
-  PyObject *subWidget, *container;
-  if(!PyArg_ParseTuple(args, "OO", &subWidget, &container)){
+  PyObject *subWidget, *container=Py_None;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O", keywords, &subWidget, &container)){
     return NULL;
+  }
+  if (container == Py_None) {
+    container = PyLong_FromLong(0);
   }
   XPPlaceWidgetWithin(refToPtr(subWidget, widgetRefName), refToPtr(container, widgetRefName));
   Py_RETURN_NONE;
 }
 
-static PyObject *XPCountChildWidgetsFun(PyObject *self, PyObject *args)
+My_DOCSTR(_countChildWidgets__doc__, "countChildWidgets", "widgetID",
+          "Return number of child widgets for this widgetID");
+static PyObject *XPCountChildWidgetsFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", NULL};
   (void) self;
   PyObject *widget;
-  if(!PyArg_ParseTuple(args, "O", &widget)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     return NULL;
   }
   int res = XPCountChildWidgets(refToPtr(widget, widgetRefName));
   return PyLong_FromLong(res);
 }
 
-static PyObject *XPGetNthChildWidgetFun(PyObject *self, PyObject *args)
+My_DOCSTR(_getNthChildWidget__doc__, "getNthChildWidget", "widgetID, index",
+          "Return widgetID of 0-based nth child");
+static PyObject *XPGetNthChildWidgetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", "index", NULL};
   (void) self;
   PyObject *widget;
   int inIndex;
-  if(!PyArg_ParseTuple(args, "Oi", &widget, &inIndex)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi", keywords, &widget, &inIndex)){
     return NULL;
   }
   XPWidgetID res = XPGetNthChildWidget(refToPtr(widget, widgetRefName), inIndex);
   return getPtrRef(res, widgetIDCapsules, widgetRefName);
 }
 
-static PyObject *XPGetParentWidgetFun(PyObject *self, PyObject *args)
+My_DOCSTR(_getParentWidget__doc__, "getParentWidget", "widgetID",
+          "Return widgetID for parent (i.e., container) of this widgetID");
+static PyObject *XPGetParentWidgetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", NULL};
   (void) self;
   PyObject *widget;
-  if(!PyArg_ParseTuple(args, "O", &widget)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     return NULL;
   }
   XPWidgetID res = XPGetParentWidget(refToPtr(widget, widgetRefName));
   return getPtrRef(res, widgetIDCapsules, widgetRefName);
 }
 
-static PyObject *XPShowWidgetFun(PyObject *self, PyObject *args)
+My_DOCSTR(_showWidget__doc__, "showWidget", "widgetID",
+          "Make widget visible.");
+static PyObject *XPShowWidgetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", NULL};
   (void) self;
   PyObject *widget;
-  if(!PyArg_ParseTuple(args, "O", &widget)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     return NULL;
   }
   XPShowWidget(refToPtr(widget, widgetRefName));
   Py_RETURN_NONE;
 }
 
-static PyObject *XPHideWidgetFun(PyObject *self, PyObject *args)
+My_DOCSTR(_hideWidget__doc__, "hideWidget", "widgetID",
+          "Hide widget");
+static PyObject *XPHideWidgetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", NULL};
   (void) self;
   PyObject *widget;
-  if(!PyArg_ParseTuple(args, "O", &widget)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     return NULL;
   }
   XPHideWidget(refToPtr(widget, widgetRefName));
   Py_RETURN_NONE;
 }
 
-static PyObject *XPIsWidgetVisibleFun(PyObject *self, PyObject *args)
+My_DOCSTR(_isWidgetVisible__doc__, "isWidgetVisible", "widgetID",
+          "Return 1 if widget is visible\n"
+          "\n"
+          "Widget must be itself visible and contained in visible parent.\n"
+          "Note if widget is outside of parent's geometry it may be clipped\n"
+          "being reported 'visible' yet still not seen by user.");
+static PyObject *XPIsWidgetVisibleFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", NULL};
   (void) self;
   PyObject *widget;
-  if(!PyArg_ParseTuple(args, "O", &widget)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     return NULL;
   }
   int res = XPIsWidgetVisible(refToPtr(widget, widgetRefName));
   return(PyLong_FromLong(res));
 }
 
-static PyObject *XPFindRootWidgetFun(PyObject *self, PyObject *args)
+My_DOCSTR(_findRootWidget__doc__, "findRootWidget", "widgetID",
+          "Return top-most widget container for given widgetID\n"
+          "\n"
+          "If widget is root widget, it will return itself.");
+static PyObject *XPFindRootWidgetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", NULL};
   (void) self;
   PyObject *widget;
-  if(!PyArg_ParseTuple(args, "O", &widget)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     return NULL;
   }
   XPWidgetID res = XPFindRootWidget(refToPtr(widget, widgetRefName));
   return(getPtrRef(res, widgetIDCapsules, widgetRefName));
 }
 
-static PyObject *XPBringRootWidgetToFrontFun(PyObject *self, PyObject *args)
+My_DOCSTR(_bringRootWidgetToFront__doc__, "bringRootWidgetToFront", "widgetID",
+          "Make whole widget hierarchy containing widgetID to the front");
+static PyObject *XPBringRootWidgetToFrontFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", NULL};
   (void) self;
   PyObject *widget;
-  if(!PyArg_ParseTuple(args, "O", &widget)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     return NULL;
   }
   XPBringRootWidgetToFront(refToPtr(widget, widgetRefName));
   Py_RETURN_NONE;
 }
 
-static PyObject *XPIsWidgetInFrontFun(PyObject *self, PyObject *args)
+My_DOCSTR(_isWidgetInFront__doc__, "isWidgetInFront", "widgetID",
+          "Return 1 if widget's hierarchy is front most.");
+static PyObject *XPIsWidgetInFrontFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", NULL};
   (void) self;
   PyObject *widget;
-  if(!PyArg_ParseTuple(args, "O", &widget)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     return NULL;
   }
   int res = XPIsWidgetInFront(refToPtr(widget, widgetRefName));
   return(PyLong_FromLong(res));
 }
 
-static PyObject *XPGetWidgetGeometryFun(PyObject *self, PyObject *args)
+My_DOCSTR(_getWidgetGeometry__doc__, "getWidgetGeometry", "widgetID",
+          "Return bounding box (left, top, right, bottom) of widgetID");
+static PyObject *XPGetWidgetGeometryFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", NULL};
   (void) self;
-  PyObject *widget, *outLeft, *outTop, *outRight, *outBottom;;
-  int returnValues = 0;
-  if(!PyArg_ParseTuple(args, "OOOOO", &widget, &outLeft, &outTop, &outRight, &outBottom)){
-    PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "O", &widget)){
-      return NULL;
-    }
-    returnValues = 1;
+  PyObject *widget;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
+    return NULL;
   }
   int left, top, right, bottom;
   XPGetWidgetGeometry(refToPtr(widget, widgetRefName), &left, &top, &right, &bottom);
-  if (returnValues) 
-    return Py_BuildValue("(iiii)", left, top, right, bottom);
-  pythonLogWarning("XPGetWidgetGeomtry only requires initial widgetID parameter");
-  if (outLeft != Py_None)
-    PyList_Append(outLeft, PyLong_FromLong(left));
-  if (outTop != Py_None)
-    PyList_Append(outTop, PyLong_FromLong(top));
-  if (outRight != Py_None)
-    PyList_Append(outRight, PyLong_FromLong(right));
-  if (outBottom != Py_None)
-    PyList_Append(outBottom, PyLong_FromLong(bottom));
-  Py_RETURN_NONE;
+  return Py_BuildValue("[iiii]", left, top, right, bottom);
 }
 
-static PyObject *XPSetWidgetGeometryFun(PyObject *self, PyObject *args)
+My_DOCSTR(_setWidgetGeometry__doc__, "setWidgetGeometry", "widgetID, left, top, right, bottom",
+          "Set bounding box for widgetID");
+static PyObject *XPSetWidgetGeometryFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", "left", "top", "right", "bottom", NULL};
   (void) self;
   PyObject *widget;
   int inLeft, inTop, inRight, inBottom;
-  if(!PyArg_ParseTuple(args, "Oiiii", &widget, &inLeft, &inTop, &inRight, &inBottom)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oiiii", keywords, &widget, &inLeft, &inTop, &inRight, &inBottom)){
     return NULL;
   }
   XPSetWidgetGeometry(refToPtr(widget, widgetRefName), inLeft, inTop, inRight, inBottom);
   Py_RETURN_NONE;
 }
 
-static PyObject *XPGetWidgetForLocationFun(PyObject *self, PyObject *args)
+My_DOCSTR(_getWidgetForLocation__doc__, "getWidgetForLocation", "container, xOffset, yOffset, recursive=1, visibleOnly=1",
+          "Return widgetID of the child widget within the container widget at offset\n"
+          "\n"
+          "offsets are global coordinates, not relative bounding box of container.\n"
+          "recursive=1 indicates find 'deepest' child widget\n"
+          "visibleOnly=1 indicates only visible widgets are considered");
+static PyObject *XPGetWidgetForLocationFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"container", "xOffset", "yOffset", "recursive", "visibleOnly", NULL};
   (void) self;
-  PyObject *widget;
-  int inLeft, inTop, inRight, inBottom;
-  if(!PyArg_ParseTuple(args, "Oiiii", &widget, &inLeft, &inTop, &inRight, &inBottom)){
+  PyObject *container;
+  int xOffset, yOffset, recursive=1, visibleOnly=1;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oii|ii", keywords, &container, &xOffset, &yOffset, &recursive, &visibleOnly)){
     return NULL;
   }
-  XPWidgetID res = XPGetWidgetForLocation(refToPtr(widget, widgetRefName), inLeft, inTop, inRight, inBottom);
+  XPWidgetID res = XPGetWidgetForLocation(refToPtr(container, widgetRefName), xOffset, yOffset, recursive, visibleOnly);
   return getPtrRef(res, widgetIDCapsules, widgetRefName);
 }
 
-static PyObject *XPGetWidgetExposedGeometryFun(PyObject *self, PyObject *args)
+My_DOCSTR(_getWidgetExposedGeometry__doc__, "getWidgetExposedGeometry", "widgetID",
+          "Return (left, top, right, bottom) of widget's exposed geometry");
+static PyObject *XPGetWidgetExposedGeometryFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", NULL};
   (void) self;
-  PyObject *widget, *outLeft, *outTop, *outRight, *outBottom;
-  int returnValues = 0;
-  if(!PyArg_ParseTuple(args, "OOOOO", &widget, &outLeft, &outTop, &outRight, &outBottom)){
-    PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "O", &widget)){
-      return NULL;
-    }
-    returnValues = 1;
+  PyObject *widget;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
+    return NULL;
   }
   int left, top, right, bottom;
   XPGetWidgetExposedGeometry(refToPtr(widget, widgetRefName), &left, &top, &right, &bottom);
-  if (returnValues)
-    return Py_BuildValue("(iiii)", left, top, right, bottom);
-  pythonLogWarning("XPGetWidgetExposedGeomtry only requires initial widgetID parameter");
-  if (outLeft != Py_None)
-    PyList_Append(outLeft, PyLong_FromLong(left));
-  if (outTop != Py_None)
-    PyList_Append(outTop, PyLong_FromLong(top));
-  if (outRight != Py_None)
-    PyList_Append(outRight, PyLong_FromLong(right));
-  if (outBottom != Py_None)
-    PyList_Append(outBottom, PyLong_FromLong(bottom));
-  Py_RETURN_NONE;
+  return Py_BuildValue("(iiii)", left, top, right, bottom);
 }
 
-static PyObject *XPSetWidgetDescriptorFun(PyObject *self, PyObject *args)
+My_DOCSTR(_setWidgetDescriptor__doc__, "setWidgetDescriptor", "widgetID, descriptor",
+          "Set widget's descriptor string");
+static PyObject *XPSetWidgetDescriptorFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", "descriptor", NULL};
   (void) self;
   PyObject *widget;
   const char *inDescriptor;
-  if(!PyArg_ParseTuple(args, "Os", &widget, &inDescriptor)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Os", keywords, &widget, &inDescriptor)){
     return NULL;
   }
   XPSetWidgetDescriptor(refToPtr(widget, widgetRefName), inDescriptor);
   Py_RETURN_NONE;
 }
 
-static PyObject *XPGetWidgetDescriptorFun(PyObject *self, PyObject *args)
+My_DOCSTR(_getWidgetDescriptor__doc__, "getWidgetDescriptor", "widgetID",
+          "Returns widget's descriptor string");
+static PyObject *XPGetWidgetDescriptorFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", NULL};
   (void) self;
-  PyObject *widget, *outDescriptor;
-  int returnValues = 0;
-  int ignored;
-  if(!PyArg_ParseTuple(args, "OOi", &widget, &outDescriptor, &ignored)){
-    PyErr_Clear();
-    returnValues = 1;
-    if(!PyArg_ParseTuple(args, "Oi", &widget, &ignored)){
-      PyErr_Clear();
-      if(!PyArg_ParseTuple(args, "O", &widget)){
-        return NULL;
-      }
-    } else {
-      pythonLogWarning("maxDescLength parameter is ignored for XPLMGetWidgetDescriptor");
-    }
+  PyObject *widget;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
+    return NULL;
   }
   int res;
   int length = XPGetWidgetDescriptor(refToPtr(widget, widgetRefName), NULL, 0);
@@ -487,35 +537,36 @@ static PyObject *XPGetWidgetDescriptorFun(PyObject *self, PyObject *args)
     printf("Warning: xppython descriptor for widget exceeds buffer size\n");
   }
   buffer[res] = '\0';
-  if (returnValues)
-    return PyUnicode_FromString(buffer);
-  pythonLogWarning("XPGetWidgetDescriptor only requires initial widgetID");
-  if (outDescriptor != Py_None)
-    PyList_Append(outDescriptor, PyUnicode_FromString(buffer));
-  Py_RETURN_NONE;
+  return PyUnicode_FromString(buffer);
 }
 
-static PyObject *XPGetWidgetUnderlyingWindowFun(PyObject *self, PyObject *args)
+My_DOCSTR(_getWidgetUnderlyingWindow__doc__, "getWidgetUnderlyingWindow", "widgetID",
+          "Return windowID of window underlying widget");
+static PyObject *XPGetWidgetUnderlyingWindowFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", NULL};
   (void)self;
   PyObject *widget;
   if(!XPGetWidgetUnderlyingWindow_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPGetWidgetUnderlyingWindow is available only in XPLM301 and up.");
     return NULL;
   }
-  if(!PyArg_ParseTuple(args, "O", &widget)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     return NULL;
   }
   XPLMWindowID res = XPGetWidgetUnderlyingWindow_ptr(refToPtr(widget, widgetRefName));
   return getPtrRef(res, windowIDCapsules, windowIDRef);
 }
 
-static PyObject *XPSetWidgetPropertyFun(PyObject *self, PyObject *args)
+My_DOCSTR(_setWidgetProperty__doc__, "setWidgetProperty", "widgetID, propertyID, value=Py_None",
+          "Set widget property to value");
+static PyObject *XPSetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", "propertyID", "value", NULL};
   (void) self;
-  PyObject *widget, *value;
+  PyObject *widget, *value=Py_None;
   int property;
-  if(!PyArg_ParseTuple(args, "OiO", &widget, &property, &value)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi|O", keywords, &widget, &property, &value)){
     return NULL;
   }
   XPWidgetPropertyID inProperty = property;
@@ -540,15 +591,24 @@ static PyObject *XPSetWidgetPropertyFun(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
-static PyObject *XPGetWidgetPropertyFun(PyObject *self, PyObject *args)
+My_DOCSTR(_getWidgetProperty__doc__, "getWidgetProperty", "widgetID, propertyID, exists=-1",
+          "Returns widget's property value\n"
+          "\n"
+          "Raise ValueError if exists=-1 and property does not exist / has not been set\n"
+          "Set exists=None if you don't care if property exists (value will be 0)\n"
+          "Set exists to a list object, and we'll set it to [1,] if property exists, \n"
+          "  [0, ] otherwise");
+static PyObject *XPGetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", "propertyID", "exists", NULL};
   (void)self;
-  PyObject *widget, *exists;
+  PyObject *widget, *exists=Py_None;
   int property;
   int exception_on_error = 0;
-  if(!PyArg_ParseTuple(args, "OiO", &widget, &property, &exists)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OiO", keywords, &widget, &property, &exists)){
     PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "Oi", &widget, &property)){
+
+    if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi|O", keywords, &widget, &property, &exists)){
       return NULL;
     }
     exception_on_error = 1;
@@ -587,29 +647,40 @@ static PyObject *XPGetWidgetPropertyFun(PyObject *self, PyObject *args)
   return resObj;
 }
 
-static PyObject *XPSetKeyboardFocusFun(PyObject *self, PyObject *args)
+My_DOCSTR(_setKeyboardFocus__doc__, "setKeyboardFocus", "widgetID",
+          "Set keyboard focus to widgetID");
+static PyObject *XPSetKeyboardFocusFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", NULL};
   (void) self;
   PyObject *widget;
-  if(!PyArg_ParseTuple(args, "O", &widget)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     return NULL;
   }
   XPWidgetID res = XPSetKeyboardFocus(refToPtr(widget, widgetRefName));
   PyObject *resObj = getPtrRef(res, widgetIDCapsules, widgetRefName);
+  if (resObj == Py_None) {
+    return PyLong_FromLong(0);
+  }
   return resObj;
 }
 
-static PyObject *XPLoseKeyboardFocusFun(PyObject *self, PyObject *args)
+My_DOCSTR(_loseKeyboardFocus__doc__, "loseKeyboardFocus", "widgetID",
+          "Cause widgetID to lose keyboard focus");
+static PyObject *XPLoseKeyboardFocusFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", NULL};
   (void) self;
   PyObject *widget;
-  if(!PyArg_ParseTuple(args, "O", &widget)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     return NULL;
   }
   XPLoseKeyboardFocus(refToPtr(widget, widgetRefName));
   Py_RETURN_NONE;
 }
 
+My_DOCSTR(_getWidgetWithFocus__doc__, "getWidgetWithFocus", "",
+          "Return widgetID with current focus. 0=X-Plane has focus.");
 static PyObject *XPGetWidgetWithFocusFun(PyObject *self, PyObject *args)
 {
   (void) self;
@@ -622,17 +693,18 @@ static PyObject *XPGetWidgetWithFocusFun(PyObject *self, PyObject *args)
 //Since we have only one callback available, we'll have to handle this
 //  ourselves...
 
-static PyObject *XPAddWidgetCallbackFun(PyObject *self, PyObject *args)
+My_DOCSTR(_addWidgetCallback__doc__, "addWidgetCallback", "widgetID, callback",
+          "Add callback to widgetID\n"
+          "\n"
+          "Callback has signature (message, widgetID, param1, param2). See\n"
+          "createCustomWidget()");
+static PyObject *XPAddWidgetCallbackFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widget", "callback", NULL};
   (void) self;
   PyObject *widget, *callback, *pluginSelf;
-  if (!PyArg_ParseTuple(args, "OOO", &pluginSelf, &widget, &callback)){
-    PyErr_Clear();
-    if (!PyArg_ParseTuple(args, "OO", &widget, &callback)){
-      return NULL;
-    }
-  } else {
-    pythonLogWarning("'self' deprecated as first parameter of XPAddWidgetCallback");
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO", keywords, &widget, &callback)){
+    return NULL;
   }
   PyObject *callbackList = PyDict_GetItem(widgetCallbackDict, widget);
   pluginSelf = get_pluginSelf();
@@ -658,11 +730,16 @@ static PyObject *XPAddWidgetCallbackFun(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
-static PyObject *XPGetWidgetClassFuncFun(PyObject *self, PyObject *args)
+My_DOCSTR(_getWidgetClassFunc__doc__, "getWidgetClassFunc", "widgetID",
+          "Given widgetClass, return underlying function.\n"
+          "\n"
+          "Not useful with python. Use addWidgetCalback() instead.");
+static PyObject *XPGetWidgetClassFuncFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"widgetID", NULL};
   (void)self;
   int inWidgetClass; 
-  if(!PyArg_ParseTuple(args, "i", &inWidgetClass)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inWidgetClass)){
     return NULL;
   }
   XPWidgetFunc_t res = XPGetWidgetClassFunc(inWidgetClass);
@@ -683,42 +760,73 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef XPWidgetsMethods[] = {
-  {"XPCreateWidget", XPCreateWidgetFun, METH_VARARGS, ""},
-  {"XPCreateCustomWidget", XPCreateCustomWidgetFun, METH_VARARGS, ""},
-  {"XPDestroyWidget", XPDestroyWidgetFun, METH_VARARGS, ""},
-  {"XPSendMessageToWidget", XPSendMessageToWidgetFun, METH_VARARGS, ""},
-  {"XPPlaceWidgetWithin", XPPlaceWidgetWithinFun, METH_VARARGS, ""},
-  {"XPCountChildWidgets", XPCountChildWidgetsFun, METH_VARARGS, ""},
-  {"XPGetNthChildWidget", XPGetNthChildWidgetFun, METH_VARARGS, ""},
-  {"XPGetParentWidget", XPGetParentWidgetFun, METH_VARARGS, ""},
-  {"XPShowWidget", XPShowWidgetFun, METH_VARARGS, ""},
-  {"XPHideWidget", XPHideWidgetFun, METH_VARARGS, ""},
-  {"XPIsWidgetVisible", XPIsWidgetVisibleFun, METH_VARARGS, ""},
-  {"XPFindRootWidget", XPFindRootWidgetFun, METH_VARARGS, ""},
-  {"XPBringRootWidgetToFront", XPBringRootWidgetToFrontFun, METH_VARARGS, ""},
-  {"XPIsWidgetInFront", XPIsWidgetInFrontFun, METH_VARARGS, ""},
-  {"XPGetWidgetGeometry", XPGetWidgetGeometryFun, METH_VARARGS, ""},
-  {"XPSetWidgetGeometry", XPSetWidgetGeometryFun, METH_VARARGS, ""},
-  {"XPGetWidgetForLocation", XPGetWidgetForLocationFun, METH_VARARGS, ""},
-  {"XPGetWidgetExposedGeometry", XPGetWidgetExposedGeometryFun, METH_VARARGS, ""},
-  {"XPSetWidgetDescriptor", XPSetWidgetDescriptorFun, METH_VARARGS, ""},
-  {"XPGetWidgetDescriptor", XPGetWidgetDescriptorFun, METH_VARARGS, ""},
-  {"XPGetWidgetUnderlyingWindow", XPGetWidgetUnderlyingWindowFun, METH_VARARGS, ""},
-  {"XPSetWidgetProperty", XPSetWidgetPropertyFun, METH_VARARGS, ""},
-  {"XPGetWidgetProperty", XPGetWidgetPropertyFun, METH_VARARGS, ""},
-  {"XPSetKeyboardFocus", XPSetKeyboardFocusFun, METH_VARARGS, ""},
-  {"XPLoseKeyboardFocus", XPLoseKeyboardFocusFun, METH_VARARGS, ""},
-  {"XPGetWidgetWithFocus", XPGetWidgetWithFocusFun, METH_VARARGS, ""},
-  {"XPAddWidgetCallback", XPAddWidgetCallbackFun, METH_VARARGS, ""},
-  {"XPGetWidgetClassFunc", XPGetWidgetClassFuncFun, METH_VARARGS, ""},
-  {"cleanup", cleanup, METH_VARARGS, ""},
+  {"createWidget", (PyCFunction)XPCreateWidgetFun, METH_VARARGS | METH_KEYWORDS, _createWidget__doc__},
+  {"XPCreateWidget", (PyCFunction)XPCreateWidgetFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"createCustomWidget", (PyCFunction)XPCreateCustomWidgetFun, METH_VARARGS | METH_KEYWORDS, _createCustomWidget__doc__},
+  {"XPCreateCustomWidget", (PyCFunction)XPCreateCustomWidgetFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"destroyWidget", (PyCFunction)XPDestroyWidgetFun, METH_VARARGS | METH_KEYWORDS, _destroyWidget__doc__},
+  {"XPDestroyWidget", (PyCFunction)XPDestroyWidgetFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"sendMessageToWidget", (PyCFunction)XPSendMessageToWidgetFun, METH_VARARGS | METH_KEYWORDS, _sendMessageToWidget__doc__},
+  {"XPSendMessageToWidget", (PyCFunction)XPSendMessageToWidgetFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"placeWidgetWithin", (PyCFunction)XPPlaceWidgetWithinFun, METH_VARARGS | METH_KEYWORDS, _placeWidgetWithin__doc__},
+  {"XPPlaceWidgetWithin", (PyCFunction)XPPlaceWidgetWithinFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"countChildWidgets", (PyCFunction)XPCountChildWidgetsFun, METH_VARARGS | METH_KEYWORDS, _countChildWidgets__doc__},
+  {"XPCountChildWidgets", (PyCFunction)XPCountChildWidgetsFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getNthChildWidget", (PyCFunction)XPGetNthChildWidgetFun, METH_VARARGS | METH_KEYWORDS, _getNthChildWidget__doc__},
+  {"XPGetNthChildWidget", (PyCFunction)XPGetNthChildWidgetFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getParentWidget", (PyCFunction)XPGetParentWidgetFun, METH_VARARGS | METH_KEYWORDS, _getParentWidget__doc__},
+  {"XPGetParentWidget", (PyCFunction)XPGetParentWidgetFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"showWidget", (PyCFunction)XPShowWidgetFun, METH_VARARGS | METH_KEYWORDS, _showWidget__doc__},
+  {"XPShowWidget", (PyCFunction)XPShowWidgetFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"hideWidget", (PyCFunction)XPHideWidgetFun, METH_VARARGS | METH_KEYWORDS, _hideWidget__doc__},
+  {"XPHideWidget", (PyCFunction)XPHideWidgetFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"isWidgetVisible", (PyCFunction)XPIsWidgetVisibleFun, METH_VARARGS | METH_KEYWORDS, _isWidgetVisible__doc__},
+  {"XPIsWidgetVisible", (PyCFunction)XPIsWidgetVisibleFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"findRootWidget", (PyCFunction)XPFindRootWidgetFun, METH_VARARGS | METH_KEYWORDS, _findRootWidget__doc__},
+  {"XPFindRootWidget", (PyCFunction)XPFindRootWidgetFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"bringRootWidgetToFront", (PyCFunction)XPBringRootWidgetToFrontFun, METH_VARARGS | METH_KEYWORDS, _bringRootWidgetToFront__doc__},
+  {"XPBringRootWidgetToFront", (PyCFunction)XPBringRootWidgetToFrontFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"isWidgetInFront", (PyCFunction)XPIsWidgetInFrontFun, METH_VARARGS | METH_KEYWORDS, _isWidgetInFront__doc__},
+  {"XPIsWidgetInFront", (PyCFunction)XPIsWidgetInFrontFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getWidgetGeometry", (PyCFunction)XPGetWidgetGeometryFun, METH_VARARGS | METH_KEYWORDS, _getWidgetGeometry__doc__},
+  {"XPGetWidgetGeometry", (PyCFunction)XPGetWidgetGeometryFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"setWidgetGeometry", (PyCFunction)XPSetWidgetGeometryFun, METH_VARARGS | METH_KEYWORDS, _setWidgetGeometry__doc__},
+  {"XPSetWidgetGeometry", (PyCFunction)XPSetWidgetGeometryFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getWidgetForLocation", (PyCFunction)XPGetWidgetForLocationFun, METH_VARARGS | METH_KEYWORDS, _getWidgetForLocation__doc__},
+  {"XPGetWidgetForLocation", (PyCFunction)XPGetWidgetForLocationFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getWidgetExposedGeometry", (PyCFunction)XPGetWidgetExposedGeometryFun, METH_VARARGS | METH_KEYWORDS, _getWidgetExposedGeometry__doc__},
+  {"XPGetWidgetExposedGeometry", (PyCFunction)XPGetWidgetExposedGeometryFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"setWidgetDescriptor", (PyCFunction)XPSetWidgetDescriptorFun, METH_VARARGS | METH_KEYWORDS, _setWidgetDescriptor__doc__},
+  {"XPSetWidgetDescriptor", (PyCFunction)XPSetWidgetDescriptorFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getWidgetDescriptor", (PyCFunction)XPGetWidgetDescriptorFun, METH_VARARGS | METH_KEYWORDS, _getWidgetDescriptor__doc__},
+  {"XPGetWidgetDescriptor", (PyCFunction)XPGetWidgetDescriptorFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getWidgetUnderlyingWindow", (PyCFunction)XPGetWidgetUnderlyingWindowFun, METH_VARARGS | METH_KEYWORDS, _getWidgetUnderlyingWindow__doc__},
+  {"XPGetWidgetUnderlyingWindow", (PyCFunction)XPGetWidgetUnderlyingWindowFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"setWidgetProperty", (PyCFunction)XPSetWidgetPropertyFun, METH_VARARGS | METH_KEYWORDS, _setWidgetProperty__doc__},
+  {"XPSetWidgetProperty", (PyCFunction)XPSetWidgetPropertyFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getWidgetProperty", (PyCFunction)XPGetWidgetPropertyFun, METH_VARARGS | METH_KEYWORDS, _getWidgetProperty__doc__},
+  {"XPGetWidgetProperty", (PyCFunction)XPGetWidgetPropertyFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"setKeyboardFocus", (PyCFunction)XPSetKeyboardFocusFun, METH_VARARGS | METH_KEYWORDS, _setKeyboardFocus__doc__},
+  {"XPSetKeyboardFocus", (PyCFunction)XPSetKeyboardFocusFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"loseKeyboardFocus", (PyCFunction)XPLoseKeyboardFocusFun, METH_VARARGS | METH_KEYWORDS, _loseKeyboardFocus__doc__},
+  {"XPLoseKeyboardFocus", (PyCFunction)XPLoseKeyboardFocusFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getWidgetWithFocus", (PyCFunction)XPGetWidgetWithFocusFun, METH_VARARGS, _getWidgetWithFocus__doc__},
+  {"XPGetWidgetWithFocus", (PyCFunction)XPGetWidgetWithFocusFun, METH_VARARGS, ""},
+  {"addWidgetCallback", (PyCFunction)XPAddWidgetCallbackFun, METH_VARARGS | METH_KEYWORDS, _addWidgetCallback__doc__},
+  {"XPAddWidgetCallback", (PyCFunction)XPAddWidgetCallbackFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getWidgetClassFunc", (PyCFunction)XPGetWidgetClassFuncFun, METH_VARARGS | METH_KEYWORDS, _getWidgetClassFunc__doc__},
+  {"XPGetWidgetClassFunc", (PyCFunction)XPGetWidgetClassFuncFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
 
 static struct PyModuleDef XPWidgetsModule = {
   PyModuleDef_HEAD_INIT,
   "XPWidgets",
-  NULL,
+  "Laminar documentation: \n"
+  "   https://developer.x-plane.com/sdk/XPWidgets/\n"
+  "XPPython3 documentation: \n"
+  "   https://xppython3.rtfd.io/en/stable/development/modules/widgets.html",
   -1,
   XPWidgetsMethods,
   NULL,
@@ -744,7 +852,7 @@ PyInit_XPWidgets(void)
   PyDict_SetItemString(xppythonCapsules, widgetRefName, widgetIDCapsules);
   PyObject *mod = PyModule_Create(&XPWidgetsModule);
   if(mod){
-    //PyModule_AddIntConstant(mod, "", );
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
   }
 
   return mod;

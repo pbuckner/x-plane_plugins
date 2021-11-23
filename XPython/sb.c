@@ -58,7 +58,7 @@ static PyMethodDef SBUMethods[] = {
   {"SandyBarbourClearDisplay", SandyBarbourClearDisplayFun, METH_VARARGS, ""},
   {"SandyBarbourPrint", SandyBarbourPrintFun, METH_VARARGS, ""},
   {"SandyBarbourClear", SandyBarbourClearPrintFun, METH_VARARGS, ""},
-  {"cleanup", cleanup, METH_VARARGS, ""},
+  {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
 
@@ -78,6 +78,9 @@ PyMODINIT_FUNC
 PyInit_SBU(void)
 {
   PyObject *mod = PyModule_Create(&SBUModule);
+  if(mod) {
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
+  }
   return mod;
 }
 

@@ -93,18 +93,37 @@ static int cameraControl(XPLMCameraPosition_t *outCameraPosition, int inIsLosing
   return res;
 }
 
-static PyObject *XPLMControlCameraFun(PyObject *self, PyObject *args)
+My_DOCSTR(_controlCamera__doc__, "controlCamera", "howLong=ControlCameraUntilViewChanges, controlFunc=None, refCon=None",
+          "Reposition camera on next drawing cycle.\n"
+          "  howLong: 1 = until view changes\n"
+          "           2 = forever\n"
+          "  controlFunc(position, isLosingControl, refCon) -> int\n"
+          "      position: list of floats (or None) you'll update with new values\n"
+          "                [x, y, z, pitch, heading, roll, zoom]\n"
+          "      isLosingControl: 1 -> you are losing control\n"
+          "      refCon: reference constant provided with 'controlCamera' call\n"
+          "      Return 1 to reposition, 0 to surrender control.\n"
+          "  refCon: reference constant passed to call back func().");
+
+static PyObject *XPLMControlCameraFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void) self;
-  int inHowLong;
-  PyObject *pluginSelf, *controlFunc, *refcon;
-  if(!PyArg_ParseTuple(args, "OiOO", &pluginSelf, &inHowLong, &controlFunc, &refcon)){
+  int inHowLong = xplm_ControlCameraUntilViewChanges;
+  PyObject *pluginSelf = Py_None;
+  PyObject *controlFunc = Py_None;
+  PyObject *refcon = Py_None;
+  static char *keywords[] = {"howLong", "controlFunc", "refCon", NULL};
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|iOO", keywords, &pluginSelf, &inHowLong, &controlFunc, &refcon)){
     PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "iOO", &inHowLong, &controlFunc, &refcon)){
+    if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|iOO", keywords, &inHowLong, &controlFunc, &refcon)){
       return NULL;
     }
   } else {
     pythonLogWarning("'self' deprecated as first parameter of XPLMControlCamera");
+  }
+  if (controlFunc == Py_None) {
+    PyErr_SetString(PyExc_ValueError, "Expected non-null value for func in controlCamera()\n");
+    Py_RETURN_NONE;
   }
   pluginSelf = get_pluginSelf();
   void *inRefcon = (void *)++camCntr;
@@ -117,6 +136,7 @@ static PyObject *XPLMControlCameraFun(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+My_DOCSTR(_dontControlCamera__doc__, "dontControlCamera", "", "Release control of camera.");
 static PyObject *XPLMDontControlCameraFun(PyObject *self, PyObject *args)
 {
   (void) self;
@@ -125,6 +145,13 @@ static PyObject *XPLMDontControlCameraFun(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+My_DOCSTR(_isCameraBeingControlled__doc__, "isCameraBeingControlled", "",
+          "Returns two integer tuple. (isBeingControlled, howLong).\n\n"
+          "isBeingControlled is 1 when camera is being controlled, 0 otherwise.\n"
+          "howLong is\n"
+          "  1: Until View Changes\n"
+          "  2: Forever\n"
+          "  value is undefined when isBeingControlled is 0.");
 static PyObject *XPLMIsCameraBeingControlledFun(PyObject *self, PyObject *args)
 {
   (void) self;
@@ -134,6 +161,14 @@ static PyObject *XPLMIsCameraBeingControlledFun(PyObject *self, PyObject *args)
   return Py_BuildValue("(ii)", res, dur);
 }
 
+My_DOCSTR(_readCameraPosition__doc__, "readCameraPosition", "",
+          "Returns list of seven floats:\n"
+          " Index   Value   Meaning\n"
+          " 0,1,2  x,y,z    Camera's position in OpenGL coordinates\n"
+          " 3      pitch    In degrees, 0.0 is flat, positive for nose up.\n"
+          " 4      heading  In degrees, 0.0 is true north.\n"
+          " 5      roll     In degrees, 0.0 is flat, positive for roll right.\n"
+          " 6      zoom     1.0 is normal, 2.0 is 2x zoom (objects appear larger)\n");
 static PyObject *XPLMReadCameraPositionFun(PyObject *self, PyObject *args)
 {
   (void) self;
@@ -185,18 +220,25 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef XPLMCameraMethods[] = {
-  {"XPLMControlCamera", XPLMControlCameraFun, METH_VARARGS, ""},
-  {"XPLMDontControlCamera", XPLMDontControlCameraFun, METH_VARARGS, ""},
-  {"XPLMIsCameraBeingControlled", XPLMIsCameraBeingControlledFun, METH_VARARGS, ""},
-  {"XPLMReadCameraPosition", XPLMReadCameraPositionFun, METH_VARARGS, ""},
-  {"cleanup", cleanup, METH_VARARGS, ""},
+  {"controlCamera", (PyCFunction)XPLMControlCameraFun, METH_VARARGS | METH_KEYWORDS, _controlCamera__doc__},
+  {"XPLMControlCamera", (PyCFunction)XPLMControlCameraFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"dontControlCamera", XPLMDontControlCameraFun, METH_NOARGS, _dontControlCamera__doc__},
+  {"XPLMDontControlCamera", XPLMDontControlCameraFun, METH_NOARGS, ""},
+  {"isCameraBeingControlled", XPLMIsCameraBeingControlledFun, METH_NOARGS, _isCameraBeingControlled__doc__},
+  {"XPLMIsCameraBeingControlled", XPLMIsCameraBeingControlledFun, METH_NOARGS, ""},
+  {"readCameraPosition", XPLMReadCameraPositionFun, METH_NOARGS, _readCameraPosition__doc__},
+  {"XPLMReadCameraPosition", XPLMReadCameraPositionFun, METH_NOARGS, ""},
+  {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
 
 static struct PyModuleDef XPLMCameraModule = {
   PyModuleDef_HEAD_INIT,
   "XPLMCamera",
-  NULL,
+  "Laminar documentation: \n"
+  "   https://developer.x-plane.com/sdk/XPLMCamera/\n"
+  "XPPython3 documentation: \n"
+  "   https://xppython3.rtfd.io/en/stable/development/modules/camera.html",
   -1,
   XPLMCameraMethods,
   NULL,
@@ -213,7 +255,10 @@ PyInit_XPLMCamera(void)
   }
   PyObject *mod = PyModule_Create(&XPLMCameraModule);
   if(mod){
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
+    PyModule_AddIntConstant(mod, "ControlCameraUntilViewChanges", xplm_ControlCameraUntilViewChanges);
     PyModule_AddIntConstant(mod, "xplm_ControlCameraUntilViewChanges", xplm_ControlCameraUntilViewChanges);
+    PyModule_AddIntConstant(mod, "ControlCameraForever", xplm_ControlCameraForever);
     PyModule_AddIntConstant(mod, "xplm_ControlCameraForever", xplm_ControlCameraForever);
   }
 

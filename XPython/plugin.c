@@ -81,7 +81,7 @@ PyMODINIT_FUNC PyInit_XPUIGraphics(void);
 PyMODINIT_FUNC PyInit_XPWidgetUtils(void);
 PyMODINIT_FUNC PyInit_XPLMInstance(void);
 PyMODINIT_FUNC PyInit_XPLMMap(void);
-PyMODINIT_FUNC PyInit_SBU(void);
+/* PyMODINIT_FUNC PyInit_SBU(void); */
 PyMODINIT_FUNC PyInit_XPPython(void);
 
 FILE *pythonLogFile;
@@ -146,6 +146,7 @@ PyInit_XPythonLogWriter(void)
 {
   PyObject *mod = PyModule_Create(&XPythonLogWriterModule);
   if(mod){
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
     PySys_SetObject("stdout", mod);
     PySys_SetObject("stderr", mod);
   }
@@ -189,7 +190,7 @@ int initPython(void){
   PyImport_AppendInittab("XPLMInstance", PyInit_XPLMInstance);
   PyImport_AppendInittab("XPLMMap", PyInit_XPLMMap);
   PyImport_AppendInittab("XPythonLogger", PyInit_XPythonLogWriter);
-  PyImport_AppendInittab("SandyBarbourUtilities", PyInit_SBU);
+  /* PyImport_AppendInittab("SandyBarbourUtilities", PyInit_SBU); */
   
   Py_Initialize();
   if(!Py_IsInitialized()){
@@ -360,7 +361,7 @@ PyObject *loadPIClass(const char *fname)
 
   PyDict_SetItem(moduleDict, pluginInfo, pluginInstance); // does not steal reference. We don't need pluginInfo again, so decref
   PyDict_SetItem(pluginDict, pluginInstance, pluginInfo);
-  getPluginIndex(pluginInstance);
+
   /* Because we put pluginInfo into pluginDict, we need to NOT DECREF
      Py_DECREF(pluginInfo);
   */
@@ -576,7 +577,7 @@ static int stopPython(void)
   char *mods[] = {"XPLMDefs", "XPLMDisplay", "XPLMGraphics", "XPLMUtilities", "XPLMScenery", "XPLMMenus",
                   "XPLMNavigation", "XPLMPlugin", "XPLMPlanes", "XPLMProcessing", "XPLMCamera", "XPWidgetDefs",
                   "XPWidgets", "XPStandardWidgets", "XPUIGraphics", "XPWidgetUtils", "XPLMInstance",
-                  "XPLMMap", "XPLMDataAccess", "SandyBarbourUtilities", "XPPython", NULL};
+                  "XPLMMap", "XPLMDataAccess", /*"SandyBarbourUtilities", */ "XPPython", NULL};
   char **mod_ptr = mods;
 
   while(*mod_ptr != NULL){
@@ -589,7 +590,7 @@ static int stopPython(void)
     }
       
     if(mod){
-      PyObject *pRes = PyObject_CallMethod(mod, "cleanup", NULL);
+      PyObject *pRes = PyObject_CallMethod(mod, "_cleanup", NULL);
       if (PyErr_Occurred() ) {
         fprintf(pythonLogFile, "XPlugin Failed during cleanup of internal module %s\n", *mod_ptr);
         PyErr_Print();

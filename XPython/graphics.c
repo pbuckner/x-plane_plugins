@@ -2,26 +2,32 @@
 #include <Python.h>
 #include <sys/time.h>
 #include <stdio.h>
+#include <math.h>
 #include <stdbool.h>
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMGraphics.h>
 #include "utils.h"
 
 
-static PyObject *XPLMSetGraphicsStateFun(PyObject *self, PyObject *args)
+My_DOCSTR(_setGraphicsState__doc__, "setGraphicsState", "fog=0, numberTexUnits=0, lighting=0, alphaTesting=0, alphaBlending=0, depthTesting=0, depthWriting=0",
+          "Change OpenGL's graphics state.\n"
+          "\n"
+          "Use instead of any glEnable / glDisable calls.");
+static PyObject *XPLMSetGraphicsStateFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"fog", "numberTextUnits", "lighting", "alphaTesting", "alphaBlending", "depthTesting", "depthWriting", NULL};
   (void) self;
 
-  int inEnableFog;
-  int inNumberTexUnits;
-  int inEnableLighting;
-  int inEnableAlphaTesting;
-  int inEnableAlphaBlending;
-  int inEnableDepthTesting;
-  int inEnableDepthWriting;
+  int inEnableFog = 0;
+  int inNumberTexUnits = 0;
+  int inEnableLighting = 0;
+  int inEnableAlphaTesting = 0;
+  int inEnableAlphaBlending = 0;
+  int inEnableDepthTesting = 0;
+  int inEnableDepthWriting = 0;
 
-  if(!PyArg_ParseTuple(args, "iiiiiii", &inEnableFog, &inNumberTexUnits, &inEnableLighting, &inEnableAlphaTesting,
-                                        &inEnableAlphaBlending, &inEnableDepthTesting, &inEnableDepthWriting)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|iiiiiii", keywords, &inEnableFog, &inNumberTexUnits, &inEnableLighting, &inEnableAlphaTesting,
+                                  &inEnableAlphaBlending, &inEnableDepthTesting, &inEnableDepthWriting)){
     return NULL;
   }
 
@@ -31,13 +37,18 @@ static PyObject *XPLMSetGraphicsStateFun(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 } 
 
-static PyObject *XPLMBindTexture2dFun(PyObject *self, PyObject *args)
+My_DOCSTR(_bindTexture2d__doc__, "bindTexture2d", "textureID, textureUnit",
+          "Changes currently bound OpenGL texture.\n"
+          "\n"
+          "Use instead of glBindTexture(GL_TEXTURE_2D, ...)");
+static PyObject *XPLMBindTexture2dFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"textureID", "textureUnit", NULL};
   (void) self;
   int inTextureNum;
   int inTextureUnit;
 
-  if(!PyArg_ParseTuple(args, "ii", &inTextureNum, &inTextureUnit)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ii", keywords, &inTextureNum, &inTextureUnit)){
     return NULL;
   }
 
@@ -45,17 +56,23 @@ static PyObject *XPLMBindTexture2dFun(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 } 
 
-static PyObject *XPLMGenerateTextureNumbersFun(PyObject *self, PyObject *args)
+My_DOCSTR(_generateTextureNumbers__doc__, "generateTextureNumbers", "count",
+          "Generate number of textures for a plugin.\n"
+          "\n"
+          "Returns list of numbers.");
+static PyObject *XPLMGenerateTextureNumbersFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"idlist", "count", NULL};
   (void) self;
   PyObject *outTextureIds;
-  int inCount;
+  int inCount=1;
   int returnValues = 0;
 
-  if(!PyArg_ParseTuple(args, "Oi", &outTextureIds, &inCount)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi", keywords, &outTextureIds, &inCount)){
     PyErr_Clear();
     returnValues = 1;
-    if(!PyArg_ParseTuple(args, "i", &inCount)){
+    static char *nkeywords[] = {"count", NULL};
+    if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", nkeywords, &inCount)){
       return NULL;
     }
   }
@@ -74,7 +91,7 @@ static PyObject *XPLMGenerateTextureNumbersFun(PyObject *self, PyObject *args)
   for(i = 0; i < inCount; ++i){
     PyObject *tmp = PyLong_FromLong(array[i]);
     if(PyList_Append(outTextureIds, tmp)){
-      printf("Problem appending item!\n");
+      printf("Problem appending item to generateTextureNumbers idlist!\n");
     }
     Py_DECREF(tmp);
   }
@@ -85,28 +102,20 @@ static PyObject *XPLMGenerateTextureNumbersFun(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 } 
 
-#if defined(XPLM_DEPRECATED)
-static PyObject *XPLMGetTextureFun(PyObject *self, PyObject *args)
+My_DOCSTR(_worldToLocal__doc__, "worldToLocal", "lat, lon, alt=0",
+          "Convert Lat/Lon/Alt to local scene coordinates (x, y, z)\n"
+          "\n"
+          "Latitude and longitude are decimal degrees, altitude is meters MSL.\n"
+          "Returns (x, y, z) in meters, in local OpenGL coordinates.");
+static PyObject *XPLMWorldToLocalFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  (void) self;
-  int inTexture;
-  if(!PyArg_ParseTuple(args, "i", &inTexture)){
-    return NULL;
-  }
-
-  int tex = XPLMGetTexture(inTexture);
-  return PyLong_FromLong(tex);
-}
-#endif
-
-static PyObject *XPLMWorldToLocalFun(PyObject *self, PyObject *args)
-{
+  static char *keywords[] = {"lat", "lon", "alt", NULL};
   (void) self;
   double inLatitude;
   double inLongitude;
-  double inAltitude;
+  double inAltitude = 0.0;
   double outX, outY, outZ;
-  if(!PyArg_ParseTuple(args, "ddd", &inLatitude, &inLongitude, &inAltitude)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ddd", keywords, &inLatitude, &inLongitude, &inAltitude)){
     return NULL;
   }
   XPLMWorldToLocal(inLatitude, inLongitude, inAltitude, &outX, &outY, &outZ);
@@ -118,14 +127,19 @@ static PyObject *XPLMWorldToLocalFun(PyObject *self, PyObject *args)
   return res;
 }
 
-static PyObject *XPLMLocalToWorldFun(PyObject *self, PyObject *args)
+My_DOCSTR(_localToWorld__doc__, "localToWorld", "x, y z",
+          "Convert local scene coordinates (x, y, z) into (lat, lon, alt)\n"
+          "\n"
+          "Latitude and longitude are decimal degrees, altitude is meters MSL.");
+static PyObject *XPLMLocalToWorldFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"x", "y", "z", NULL};
   (void) self;
   double inX;
   double inY;
   double inZ;
   double outLatitude, outLongitude, outAltitude;
-  if(!PyArg_ParseTuple(args, "ddd", &inX, &inY, &inZ)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ddd", keywords, &inX, &inY, &inZ)){
     return NULL;
   }
   XPLMLocalToWorld(inX, inY, inZ, &outLatitude, &outLongitude, &outAltitude);
@@ -137,47 +151,58 @@ static PyObject *XPLMLocalToWorldFun(PyObject *self, PyObject *args)
   return res;
 }
 
-static PyObject *XPLMDrawTranslucentDarkBoxFun(PyObject *self, PyObject *args)
+My_DOCSTR(_drawTranslucentDarkBox__doc__, "drawTranslucentDarkBox", "left, top, right, bottom",
+          "Draw translucent dark box at location.");
+static PyObject *XPLMDrawTranslucentDarkBoxFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"left", "top", "right", "bottom", NULL};
   (void) self;
   int inLeft;
   int inTop;
   int inRight;
   int inBottom;
 
-  if(!PyArg_ParseTuple(args, "iiii", &inLeft, &inTop, &inRight, &inBottom)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiii", keywords, &inLeft, &inTop, &inRight, &inBottom)){
     return NULL;
   }
   XPLMDrawTranslucentDarkBox(inLeft, inTop, inRight, inBottom);
   Py_RETURN_NONE;
 }
 
-static PyObject *XPLMDrawStringFun(PyObject *self, PyObject *args)
+My_DOCSTR(_drawString__doc__, "drawString", "rgb=(1., 1., 1.), x=0, y=0, value=\"\", wordWrapWidth=None, fontID=18",
+          "Draw a string at location (x, y)\n"
+          "\n"
+          "Default color is white (1., 1., 1.)");
+static PyObject *XPLMDrawStringFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"rgb", "x", "y", "value", "wordWrapWidth", "fontID", NULL};
   (void) self;
-  PyObject *rgbList;
-  int inXOffset;
-  int inYOffset;
-  const char *inCharC;
+  PyObject *rgbList = Py_None;
+  int inXOffset = 0;
+  int inYOffset = 0;
+  const char *inCharC = NULL;
   char *inChar;
-  PyObject *wordWrapWidthObj;
+  PyObject *wordWrapWidthObj = Py_None;
   int wordWrapWidth;
   int *inWordWrapWidth = NULL;
-  int inFontID;
+  int inFontID = xplmFont_Proportional;
 
-  if(!PyArg_ParseTuple(args, "OiisOi", &rgbList, &inXOffset, &inYOffset, &inCharC, &wordWrapWidthObj, &inFontID)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OiisOi", keywords, &rgbList, &inXOffset, &inYOffset, &inCharC, &wordWrapWidthObj, &inFontID)){
     return NULL;
   }
-  if(PySequence_Size(rgbList) != 3){
+  float inColorRGB[3];
+  if (rgbList == Py_None) {
+    inColorRGB[0] = 1.0;
+    inColorRGB[1] = 1.0;
+    inColorRGB[2] = 1.0;
+  } else if(PySequence_Size(rgbList) != 3){
     PyErr_SetString(PyExc_TypeError , "inColourRGB must have 3 items");
     return NULL;
+  } else {
+    inColorRGB[0] = PyFloat_AsDouble(PySequence_GetItem(rgbList, 0));
+    inColorRGB[1] = PyFloat_AsDouble(PySequence_GetItem(rgbList, 1));
+    inColorRGB[2] = PyFloat_AsDouble(PySequence_GetItem(rgbList, 2));
   }
-  PyObject *rgbTuple = PySequence_Tuple(rgbList);
-  float inColorRGB[3];
-  inColorRGB[0] = getFloatFromTuple(rgbTuple, 0);
-  inColorRGB[1] = getFloatFromTuple(rgbTuple, 1);
-  inColorRGB[2] = getFloatFromTuple(rgbTuple, 2);
-  Py_DECREF(rgbTuple);
   if(wordWrapWidthObj != Py_None){
     wordWrapWidth = PyLong_AsLong(wordWrapWidthObj);
     if(wordWrapWidth != 0){
@@ -190,48 +215,70 @@ static PyObject *XPLMDrawStringFun(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
-static PyObject *XPLMDrawNumberFun(PyObject *self, PyObject *args)
+My_DOCSTR(_drawNumber__doc__, "drawNumber", "rgb=(1., 1., 1.), x=0, y=0, value=0.0, digits=-1, decimals=0, showSign=1, fontID=18",
+          "Draw a number at location (x, y)\n"
+          "\n"
+          "Default color is white (1., 1., 1.)");
+static PyObject *XPLMDrawNumberFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"rgb", "x", "y", "value", "digits", "decimals", "showSign", "fontID", NULL};
   (void) self;
-  PyObject *rgbList;
-  int inXOffset;
-  int inYOffset;
-  double inValue;
-  int inDigits;
-  int inDecimals;
-  int inShowSign;
-  int inFontID;
+  PyObject *rgbList = Py_None;
+  int inXOffset = 0;
+  int inYOffset = 0;
+  double inValue = 0.0;
+  int inDigits = -1;
+  int inDecimals = 0;
+  int inShowSign = 1;
+  int inFontID = xplmFont_Proportional;
 
-  if(!PyArg_ParseTuple(args, "Oiidiiii", &rgbList, &inXOffset, &inYOffset, &inValue,
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|Oiidiiii", keywords, &rgbList, &inXOffset, &inYOffset, &inValue,
                        &inDigits, &inDecimals, &inShowSign, &inFontID)){
     return NULL;
   }
-  if(PySequence_Size(rgbList) != 3){
+  float inColorRGB[3];
+  if (rgbList == Py_None) {
+    inColorRGB[0] = 1.0;
+    inColorRGB[1] = 1.0;
+    inColorRGB[2] = 1.0;
+  } else if(PySequence_Size(rgbList) != 3){
     PyErr_SetString(PyExc_TypeError , "inColourRGB must have 3 items");
     return NULL;
+  } else {
+    inColorRGB[0] = PyFloat_AsDouble(PySequence_GetItem(rgbList, 0));
+    inColorRGB[1] = PyFloat_AsDouble(PySequence_GetItem(rgbList, 1));
+    inColorRGB[2] = PyFloat_AsDouble(PySequence_GetItem(rgbList, 2));
   }
-  PyObject *rgbTuple = PySequence_Tuple(rgbList);
-  float inColorRGB[3];
-  inColorRGB[0] = getFloatFromTuple(rgbTuple, 0);
-  inColorRGB[1] = getFloatFromTuple(rgbTuple, 1);
-  inColorRGB[2] = getFloatFromTuple(rgbTuple, 2);
-  Py_DECREF(rgbTuple);
+  if (inDigits < 0) {
+    if (inValue == 0.0) {
+      inDigits = 1;
+    } else {
+      inDigits = (int)ceil(log10(inValue > 0.0 ? inValue : -inValue));
+    }
+  }
 
   XPLMDrawNumber(inColorRGB, inXOffset, inYOffset, inValue, inDigits, inDecimals, inShowSign, inFontID);
 
   Py_RETURN_NONE;
 }
 
-static PyObject *XPLMGetFontDimensionsFun(PyObject *self, PyObject *args)
+My_DOCSTR(_getFontDimensions__doc__, "getFontDimensions", "fontID",
+          "Get information about font\n"
+          "\n"
+          "Returns (width, height, digitsOnly). Proportional fonts\n"
+          "return hopefully average width.");
+static PyObject *XPLMGetFontDimensionsFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"fontID", "width", "height", "digitsOnly", NULL};
   (void) self;
   int inFontID;
   PyObject *outCharWidth, *outCharHeight, *outDigitsOnly;
   int returnValues = 0;
-  if(!PyArg_ParseTuple(args, "iOOO", &inFontID, &outCharWidth, &outCharHeight, &outDigitsOnly)) {
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iOOO", keywords, &inFontID, &outCharWidth, &outCharHeight, &outDigitsOnly)) {
     PyErr_Clear();
     returnValues = 1;
-    if(!PyArg_ParseTuple(args, "i", &inFontID)) {
+    static char *nkeywords[] = {"fontID", NULL};
+    if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", nkeywords, &inFontID)) {
       return NULL;
     }
   }
@@ -251,16 +298,20 @@ static PyObject *XPLMGetFontDimensionsFun(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
-static PyObject *XPLMMeasureStringFun(PyObject *self, PyObject *args)
+My_DOCSTR(_measureString__doc__, "measureString", "fontID, string",
+          "Returns floating point width of string, with indicated font.");
+static PyObject *XPLMMeasureStringFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"fontID", "string", "numChars", NULL};
   (void) self;
   int inFontID;
   char *inChar;
   int inNumChars;
 
-  if(!PyArg_ParseTuple(args, "isi", &inFontID, &inChar, &inNumChars)) {
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "isi", keywords, &inFontID, &inChar, &inNumChars)) {
     PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "is", &inFontID, &inChar)) {
+    static char *nkeywords[] = {"fontID", "string", NULL};
+    if(!PyArg_ParseTupleAndKeywords(args, kwargs, "is", nkeywords, &inFontID, &inChar)) {
       return NULL;
     }
     inNumChars = strlen(inChar);
@@ -279,27 +330,41 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef XPLMGraphicsMethods[] = {
-  {"XPLMSetGraphicsState", XPLMSetGraphicsStateFun, METH_VARARGS, "Sets state of the graphics pipeline."},
-  {"XPLMBindTexture2d", XPLMBindTexture2dFun, METH_VARARGS, "Bind a 2D texture."},
-  {"XPLMGenerateTextureNumbers", XPLMGenerateTextureNumbersFun, METH_VARARGS, "Generates number of texture IDs."},
+  {"setGraphicsState", (PyCFunction)XPLMSetGraphicsStateFun, METH_VARARGS | METH_KEYWORDS, _setGraphicsState__doc__},
+  {"XPLMSetGraphicsState", (PyCFunction)XPLMSetGraphicsStateFun, METH_VARARGS | METH_KEYWORDS, "Sets state of the graphics pipeline."},
+  {"bindTexture2d", (PyCFunction)XPLMBindTexture2dFun, METH_VARARGS | METH_KEYWORDS, _bindTexture2d__doc__},
+  {"XPLMBindTexture2d", (PyCFunction)XPLMBindTexture2dFun, METH_VARARGS | METH_KEYWORDS, "Bind a 2D texture."},
+  {"generateTextureNumbers", (PyCFunction)XPLMGenerateTextureNumbersFun, METH_VARARGS | METH_KEYWORDS, _generateTextureNumbers__doc__},
+  {"XPLMGenerateTextureNumbers", (PyCFunction)XPLMGenerateTextureNumbersFun, METH_VARARGS | METH_KEYWORDS, "Generates number of texture IDs."},
 #if defined(XPLM_DEPRECATED)
-  {"XPLMGetTexture", XPLMGetTextureFun, METH_VARARGS, "DEPRECATED"},
+  {"getTexture", (PyCFunction)XPLMGetTextureFun, METH_VARARGS | METH_KEYWORDS, _getTexture__doc__},
+  {"XPLMGetTexture", (PyCFunction)XPLMGetTextureFun, METH_VARARGS | METH_KEYWORDS, "DEPRECATED"},
 #endif
-  {"XPLMWorldToLocal", XPLMWorldToLocalFun, METH_VARARGS, "Transform world coordinates to local."},
-  {"XPLMLocalToWorld", XPLMLocalToWorldFun, METH_VARARGS, "Transform local coordinates to world."},
-  {"XPLMDrawTranslucentDarkBox", XPLMDrawTranslucentDarkBoxFun, METH_VARARGS, "Draw translucent window."},
-  {"XPLMDrawString", XPLMDrawStringFun, METH_VARARGS, "Draw string."},
-  {"XPLMDrawNumber", XPLMDrawNumberFun, METH_VARARGS, "Draw number."},
-  {"XPLMGetFontDimensions", XPLMGetFontDimensionsFun, METH_VARARGS, "Get fond dimmensions."},
-  {"XPLMMeasureString", XPLMMeasureStringFun, METH_VARARGS, "Measure a string."},
-  {"cleanup", cleanup, METH_VARARGS, ""},
+  {"worldToLocal", (PyCFunction)XPLMWorldToLocalFun, METH_VARARGS | METH_KEYWORDS, _worldToLocal__doc__},
+  {"XPLMWorldToLocal", (PyCFunction)XPLMWorldToLocalFun, METH_VARARGS | METH_KEYWORDS, "Transform world coordinates to local."},
+  {"localToWorld", (PyCFunction)XPLMLocalToWorldFun, METH_VARARGS | METH_KEYWORDS, _localToWorld__doc__},
+  {"XPLMLocalToWorld", (PyCFunction)XPLMLocalToWorldFun, METH_VARARGS | METH_KEYWORDS, "Transform local coordinates to world."},
+  {"drawTranslucentDarkBox", (PyCFunction)XPLMDrawTranslucentDarkBoxFun, METH_VARARGS | METH_KEYWORDS, _drawTranslucentDarkBox__doc__},
+  {"XPLMDrawTranslucentDarkBox", (PyCFunction)XPLMDrawTranslucentDarkBoxFun, METH_VARARGS | METH_KEYWORDS, "Draw translucent window."},
+  {"drawString", (PyCFunction)XPLMDrawStringFun, METH_VARARGS | METH_KEYWORDS, _drawString__doc__},
+  {"XPLMDrawString", (PyCFunction)XPLMDrawStringFun, METH_VARARGS | METH_KEYWORDS, "Draw string."},
+  {"drawNumber", (PyCFunction)XPLMDrawNumberFun, METH_VARARGS | METH_KEYWORDS, _drawNumber__doc__},
+  {"XPLMDrawNumber", (PyCFunction)XPLMDrawNumberFun, METH_VARARGS | METH_KEYWORDS, "Draw number."},
+  {"getFontDimensions", (PyCFunction)XPLMGetFontDimensionsFun, METH_VARARGS | METH_KEYWORDS, _getFontDimensions__doc__},
+  {"XPLMGetFontDimensions", (PyCFunction)XPLMGetFontDimensionsFun, METH_VARARGS | METH_KEYWORDS, "Get fond dimmensions."},
+  {"measureString", (PyCFunction)XPLMMeasureStringFun, METH_VARARGS | METH_KEYWORDS, _measureString__doc__},
+  {"XPLMMeasureString", (PyCFunction)XPLMMeasureStringFun, METH_VARARGS | METH_KEYWORDS, "Measure a string."},
+  {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
 
 static struct PyModuleDef XPLMGraphicsModule = {
   PyModuleDef_HEAD_INIT,
   "XPLMGraphics",
-  NULL,
+  "Laminar documentation: \n"
+  "   https://developer.x-plane.com/sdk/XPLMGraphics/\n"
+  "XPPython3 documentation: \n"
+  "   https://xppython3.rtfd.io/en/stable/development/modules/graphics.html",
   -1,
   XPLMGraphicsMethods,
   NULL,
@@ -313,12 +378,13 @@ PyInit_XPLMGraphics(void)
 {
   PyObject *mod = PyModule_Create(&XPLMGraphicsModule);
   if(mod){
-     /* The bitmap that contains window outlines, button outlines, fonts, etc.      */
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
     PyModule_AddIntConstant(mod, "xplm_Tex_GeneralInterface", xplm_Tex_GeneralInterface);
-     /* Mono-spaced font for user interface.  Available in all versions of the SDK. */
     PyModule_AddIntConstant(mod, "xplmFont_Basic", xplmFont_Basic);
-     /* Proportional UI font.                                                       */
     PyModule_AddIntConstant(mod, "xplmFont_Proportional", xplmFont_Proportional);
+    PyModule_AddIntConstant(mod, "Tex_GeneralInterface", xplm_Tex_GeneralInterface);
+    PyModule_AddIntConstant(mod, "Font_Basic", xplmFont_Basic);
+    PyModule_AddIntConstant(mod, "Font_Proportional", xplmFont_Proportional);
   }
 
   return mod;

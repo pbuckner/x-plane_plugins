@@ -23,34 +23,38 @@ def XPLMCameraControl_f(outCameraPosition: list, inIsLosingControl: bool, inRefc
     :param inRefcon: reference constant provided with XPLMControlCamera
     :type inRefcon: object
     :rtype: int, 1 to reposition, 0 to surrender control
-
     """
-    return int
+    ...
 
 
-XPLMCameraControlDuration = int
 #: Control the camera until the user picks a new view.
-xplm_ControlCameraUntilViewChanges = 1
+ControlCameraUntilViewChanges = 1
 #: Control the camera until your plugin is disabled or another plugin forcably
 #: takes control.
-xplm_ControlCameraForever = 2
+ControlCameraForever = 2
 
 
-def XPLMControlCamera(inHowLong: XPLMCameraControlDuration, inControlFunc: XPLMCameraControl_f, inRefcon: object) -> None:
+def controlCamera(howLong: int = ControlCameraUntilViewChanges, controlFunc: XPLMCameraControl_f = None, refCon: object = None) -> None:
     """
     This function repositions the camera on the next drawing cycle. You must
     pass a non-null control function. Specify in `XPLMCameraControlDuration` inHowLong how long you'd like
     control (indefinitely or until a key is pressed).
-
+    
     :param inHowLong: int enumuration, how long you'd like control
     :type inHowLong: XPLMCameraControlDuration
     :param inControlFunc: your callback
     :type inControlFunc: XPLMCameraControl_f
     :param inRefcon: any python object
     """
+    ...
 
 
-def XPLMDontControlCamera() -> None:
+XPLMControlCamera = controlCamera
+xplm_ControlCameraUntilViewChanges = ControlCameraUntilViewChanges
+xplm_ControlCameraForever = ControlCameraForever
+
+
+def dontControlCamera() -> None:
     """
     This function stops you from controlling the camera. If you have a camera
     control function, it will not be called with an inIsLosingControl flag.
@@ -59,9 +63,13 @@ def XPLMDontControlCamera() -> None:
     For maximum compatibility you should not use this routine unless you are in
     posession of the camera.
     """
+    ...
+    
+
+XPLMDontControlCamera = dontControlCamera
 
 
-def XPLMIsCameraBeingControlled() -> Tuple[int, int]:
+def isCameraBeingControlled() -> Tuple[int, int]:
     """
     Return a tuple
     The first tuple element is 1 if the camera is being controlled, 0 otherwise.
@@ -70,7 +78,10 @@ def XPLMIsCameraBeingControlled() -> Tuple[int, int]:
 
     :rtype: [isCameraControlled, :any:`XPLMCameraControlDuration`]
     """
-    return Tuple[int, int]
+    ...
+
+
+XPLMIsCameraBeingControlled = isCameraBeingControlled
 
 
 #: Camera position is described using a list of seven floats:
@@ -84,10 +95,12 @@ def XPLMIsCameraBeingControlled() -> Tuple[int, int]:
 XPLMCameraPosition_t = TypeVar('XPLMCameraPosition_t', float, float, float, float, float, float)
 
 
-def XPLMReadCameraPosition() -> XPLMCameraPosition_t:
+def readCameraPosition() -> XPLMCameraPosition_t:
     """Read current camera position.
     Returns XPLMCameraPosition_t list [x, y, z, pitch, heading, roll, zoom].
 
     :rtype: :data:`XPLMCameraPosition_t`
     """
-    return XPLMCameraPosition_t
+    ...
+
+XPLMReadCameraPosition = readCameraPosition

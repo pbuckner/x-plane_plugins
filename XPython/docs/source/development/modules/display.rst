@@ -480,6 +480,8 @@ Window Drawing Functions
 
  .. image:: /images/small_round_rect_window.png
 
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMCreateWindowEx>`__ :index:`XPLMCreateWindowEx`
+
 .. py:function:: destroyWindow(windowID)
 
  Destroys a window based on the handle passed in.

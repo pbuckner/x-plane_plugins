@@ -14,16 +14,6 @@ Known Bugs
 :New Features:
    * **Support for Python 3.10**. Because my life just isn't complicated enough.
 
-     | 
-
-
-:Improvements:
-   * Upgraded **Mini Python** plugin which supports resizable debugging window and *full language scripting*, see
-     :doc:`/development/debugger`.
-
-   * Hundreds of documentation improvements, providing *executable examples* of most SDK functions, and documenting
-     the dozen or so interfaces where X-Plane does not actually implement the Laminar SDK documentation correctly.
-     
    * Made interface more "pythonic":
 
      * Added keywords for all parameters (e.g., ``xp.getWindowGeometry(windowID=xxx)``)
@@ -36,6 +26,29 @@ Known Bugs
        windowIsPoppedOut(windowID)
            Returns 1 if window is popped-out, 0 otherwise
 
+     Older interface still works, but will never support keywords or optional parameters:
+
+       >>> import XPLMDisplay
+       >>> windowID = XPLMDisiplay.XPLMCreateWindowEx(100, 200, 200, 100, 1,
+       ...    None, None, None, None, None,
+       ...    XPLMDisplay.xplm_WindowDecorationRoundRectangle,
+       ...    XPLMDisplay.xplm_WindowLayerFloatingWindows, None))
+
+     vs:
+
+       >>> import xp
+       >>> windowID = xp.createWindowEx(1, 200, 200, 100)
+
+     | 
+
+
+:Improvements:
+   * Upgraded **Mini Python** plugin which supports resizable debugging window and *full language scripting*, see
+     :doc:`/development/debugger`.
+
+   * Hundreds of documentation improvements, providing *executable examples* of most SDK functions, and documenting
+     the dozen or so interfaces where X-Plane does not actually implement the Laminar SDK documentation correctly.
+     
 
 3.0.11 (1-Oct-2021)
 -------------------

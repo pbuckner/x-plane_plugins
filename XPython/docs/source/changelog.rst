@@ -4,10 +4,7 @@ Change Log
 Known Bugs
 ----------
 
- * :py:func:`reloadPlugins` causes the SIM to crash. You can reload python scripts using the
-   XPPython3 command 'XPPython3/reloadScripts', but attempting to reload **all** plugins currently
-   crashes the python interpretor which will cause the simulator to crash. Under Investigation (2021-11-05).
- 
+ None (prove me wrong!)
 
 3.1.0\ *x* (In Beta)
 ----------------------

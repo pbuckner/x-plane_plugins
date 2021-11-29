@@ -159,8 +159,9 @@ plugin.
  
 .. py:function:: reloadPlugins()
 
- **THIS CRASHES THE SIM. DO NOT USE (2021-11-05)**
-
+ .. warning:: :py:func:`reloadPlugins` triggers a python bug in Python 3.9.8, which causes the sim to crash.
+        The bug has been fixed in Python 3.9.9 and 3.10.
+    
  This routine reloads **all** plugins.  Once this routine is called and you
  return from the callback you were within (e.g. a menu select callback) you
  will receive your ``XPluginDisable`` and ``XPluginStop`` callbacks,
@@ -172,7 +173,6 @@ plugin.
     may result in an unstable state.
 
  >>> xp.reloadPlugins()
- [crash]
     
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMReloadPlugins>`__ :index:`XPLMReloadPlugins`
  

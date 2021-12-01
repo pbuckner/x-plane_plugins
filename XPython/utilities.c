@@ -477,6 +477,11 @@ static PyObject *XPLMUnregisterCommandHandlerFun(PyObject *self, PyObject *args,
   PyObject *bv = Py_BuildValue("(OOiO)", inCommand, inHandler, inBefore, inrefcon_ptr);
   PyObject *key = PyObject_Str(bv);
   PyObject *refcon = PyDict_GetItem(commandRefcons, key);  /* borrowed ref */
+
+  if (refcon == NULL) {
+    fprintf(pythonLogFile, "unregisterCommandHandler could not find command handler for %s\n", objToStr(key));
+    Py_RETURN_NONE;
+  }
   XPLMUnregisterCommandHandler(refToPtr(inCommand, commandRefName), commandCallback,
                                inBefore, PyLong_AsVoidPtr(refcon));
   if(PyDict_DelItem(commandRefcons, key)){

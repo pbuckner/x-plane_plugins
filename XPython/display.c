@@ -441,7 +441,7 @@ static int handleMouseWheel(XPLMWindowID  inWindowID,
 }
 
 
-My_DOCSTR(_createWindowEx__doc__, "createWindowEx", "left=100, top=200, right=200, bottom=100, visible=0, decoration=WindowDecorationRoundRectangle, layer=WindowLayerFloatingWindows, draw=None, click=None, key=None, cursor=None, wheel=None, rightClick=None, refCon=None",
+My_DOCSTR(_createWindowEx__doc__, "createWindowEx", "left=100, top=200, right=200, bottom=100, visible=0, draw=None, click=None, key=None, cursor=None, wheel=None, refCon=None, decoration=WindowDecorationRoundRectangle, layer=WindowLayerFloatingWindows, rightClick=None",
           "Creates modern window\n"
           "\n"
           "Callback functions are optional:\n"
@@ -457,7 +457,7 @@ My_DOCSTR(_createWindowEx__doc__, "createWindowEx", "left=100, top=200, right=20
                                                                                        
 static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"left", "top", "right", "bottom", "visible", "decoration", "layer", "draw", "click", "key", "cursor", "wheel", "rightClick", "refCon", NULL};
+  static char *keywords[] = {"left", "top", "right", "bottom", "visible", "draw", "click", "key", "cursor", "wheel", "refCon", "decoration", "layer", "rightClick", NULL};
   (void) self;
   PyObject *firstObj=Py_None;
   int left=100, right=200, top=200, bottom=100;

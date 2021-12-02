@@ -1639,7 +1639,7 @@ int XPLMDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
   int res = 1;
   pl = PyLong_FromVoidPtr(inRefcon);
   if(pl == NULL){
-    printf("Can't create PyLong.");
+    fprintf(pythonLogFile, "drawCallback, can't create PyLong.\n");
     goto cleanup;
   }else{
     tup = PyDict_GetItem(drawCallbackDict, pl);
@@ -1647,7 +1647,7 @@ int XPLMDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
   }
 
   if(!tup){
-    printf("Got unknown inRefcon (%p)!", inRefcon);
+    fprintf(pythonLogFile, "drawCallbac, got unknown inRefcon (%p)!\n", inRefcon);
     goto cleanup;
   }
   fun =    PyTuple_GetItem(tup, 1);
@@ -1664,11 +1664,11 @@ int XPLMDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
   Py_DECREF(inPhaseObj);
   Py_DECREF(inIsBeforeObj);
   if(!pRes){
-    printf("Draw callback failed.\n");
+    fprintf(pythonLogFile, "[%s] Draw callback %s failed.\n", objToStr(PyTuple_GetItem(tup, 0)), objToStr(fun));
     goto cleanup;
   }
   if(!PyLong_Check(pRes)){
-    printf("Draw callback returned a wrong type.\n");
+    fprintf(pythonLogFile, "[%s] Draw callback %s returned a wrong type.\n", objToStr(PyTuple_GetItem(tup, 0)), objToStr(fun));
     goto cleanup;
   }
   res = (int)PyLong_AsLong(pRes);
@@ -1694,7 +1694,7 @@ int XPLMKeySnifferCallback(char inChar, XPLMKeyFlags inFlags, char inVirtualKey,
 
   pl = PyLong_FromVoidPtr(inRefcon);
   if(pl == NULL){
-    printf("Can't create PyLong.");
+    fprintf(pythonLogFile, "keySnifferCallback, can't create PyLong.\n");
     goto cleanup;
   }else{
     tup = PyDict_GetItem(keySniffCallbackDict, pl);
@@ -1702,7 +1702,7 @@ int XPLMKeySnifferCallback(char inChar, XPLMKeyFlags inFlags, char inVirtualKey,
   }
 
   if(!tup){
-    printf("Got unknown inRefcon (%p)!", inRefcon);
+    fprintf(pythonLogFile, "keySninfferCallback, got unknown inRefcon (%p)!\n", inRefcon);
     goto cleanup;
   }
   fun =    PyTuple_GetItem(tup, 1);
@@ -1715,11 +1715,11 @@ int XPLMKeySnifferCallback(char inChar, XPLMKeyFlags inFlags, char inVirtualKey,
   Py_DECREF(inFlagsObj);
   Py_DECREF(inVirtualKeyObj);
   if(!pRes){
-    printf("Key sniffer callback failed.\n");
+    fprintf(pythonLogFile, "[%s] Key sniffer callback %s failed.\n", objToStr(PyTuple_GetItem(tup, 0)), objToStr(fun));
     goto cleanup;
   }
   if(!PyLong_Check(pRes)){
-    printf("Key sniffer callback returned a wrong type.\n");
+    fprintf(pythonLogFile, "[%s] Key sniffer callback %s returned a wrong type.\n", objToStr(PyTuple_GetItem(tup, 0)), objToStr(fun));
     goto cleanup;
   }
   res = (int)PyLong_AsLong(pRes);

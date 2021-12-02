@@ -172,6 +172,13 @@ plugin.
  .. warning:: Many (most?) plugins don't clean up after themselves, so reloading
     may result in an unstable state.
 
+    This includes plugins which use modules which include shared libraries
+    such as ``numpy`` and ``OpenGL``:
+    These libraries don't always reload correctly, and may cause an immediate crash.
+
+    They work great on initial import, and it's okay to have multiple plugins import
+    the same modules -- *reload* is the problem.
+
  >>> xp.reloadPlugins()
     
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMReloadPlugins>`__ :index:`XPLMReloadPlugins`

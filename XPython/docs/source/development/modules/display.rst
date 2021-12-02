@@ -321,10 +321,11 @@ Window Drawing Functions
   | **Parameters and defaults:**
   | *left=100, top=200, right=200, bottom=100,*
   | *visible=0,*
+  | *draw=None, click=None, key=None, cursor=None, wheel=None,*
+  | *refCon=None*
   | *decoration=WindowDecorationRoundRectangle,*
   | *layer=WindowLayerFloatingWindows,*
-  | *draw=None, click=None, key=None, cursor=None, wheel=None, rightClick=None,*
-  | *refCon=None*
+  | *rightClick=None,*
 
  This routine creates a new “modern” window, at location specified by *left*, *top*, *right*, *bottom*. Defaults
  are provided to simplify examples, but you'll likely need something larger.

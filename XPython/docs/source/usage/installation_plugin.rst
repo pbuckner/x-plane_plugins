@@ -55,6 +55,11 @@ Installation
      
      If you forget to do this, *XPPython3 will not load* and you'll get error popup indicating XPPython3.xpl cannot be opened. See
      :doc:`common_errors`.
+
+     You should also remove from quarantine it ``imgui`` shared library::
+
+       $ cd /users/pbuck/X-Plane/Resources/plugins/XPPython3/imgui
+       $ xattr -d com.apple.quarantine core.*
   
 4. Start X-Plane.
 

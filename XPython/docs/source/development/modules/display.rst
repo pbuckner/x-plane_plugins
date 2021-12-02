@@ -222,6 +222,13 @@ the same or different phases as long as the reference constant is unique for eac
     |                                                    |                                                                                         |
     +----------------------------------------------------+-----------------------------------------------------------------------------------------+
     
+  This may seem obvious, but it bears repeating: *Make your draw code fast*. It will be executed thousands of times
+  and every microsecond wasted will impact the user's frame rate (FPS). See, for example, demo code in plugin
+  :doc:`PI_TextureDraw.py </development/samples>`. A simple port from C to Python results in horrid execution times.
+  A benefit of writing in C/C++ is the compiler is able to optimize execution. By changing some simple python code
+  to use python's ``numpy`` module, we were able to speed up draw times by a factor of 36 (from 65 milliseconds
+  per frame to 1.8 msec!).
+
 .. py:function:: unregisterDrawCallback(draw, phase=Phase_Window, after=1, refCon=None)
  
   Unregister a low level drawing callback. Parameters must match those provided with

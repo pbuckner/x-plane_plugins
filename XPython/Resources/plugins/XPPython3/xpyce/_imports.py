@@ -37,8 +37,8 @@ from ._crypto import decrypt
 # Globals
 EXTENSIONS = ['.cpython-{}{}.xpyce'.format(sys.version_info.major, sys.version_info.minor)]
 try:
-    import XPPython
-    PREFIXES = [None, XPPython.PLUGINSPATH + '/..', XPPython.INTERNALPLUGINSPATH + '/..', 'Aircraft', 'Custom Scenery']
+    from XPPython3 import xp
+    PREFIXES = [None, xp.PLUGINSPATH + '/..', xp.INTERNALPLUGINSPATH + '/..', 'Aircraft', 'Custom Scenery']
 except ImportError:
     PREFIXES = [None, ]
 

@@ -38,8 +38,8 @@ try:
 except ImportError:
     print("[XPPython3] OpenGL not found. Use XPPython3 Pip Package Installer to install 'PyOpenGL' package and restart.")
     import platform
-    if platform.system() == 'Darwin' and platform.mac_ver()[0] == '10.16':
-        print("[XPPython3] For Mac 10.16 \"Big Sur\" you need to also edit OpenGL/platform/ctypesloader.py.")
+    if platform.system() == 'Darwin' and (platform.mac_ver()[0] == '10.16' or platform.mac.ver()[0].startswith('11.')):
+        print("[XPPython3] For Mac 10.16+ \"Big Sur\", \"Monterey\" you need to also edit OpenGL/platform/ctypesloader.py.")
     raise
 
 from XPPython3 import imgui
@@ -65,7 +65,20 @@ def loge(s):
 
 
 class Window:
-    def __init__(self, pok):
+    def __init__(self, left=100, top=200, right=200, bottom=100, visible=0, 
+                 draw=None, click=None, key=None, cursor=None, wheel=None,
+                 refCon=None, decoration=1, layer=1,
+                 rightClick=None):
+        if isinstance(left, (list, tuple)):
+            # "old" style
+            pok = left
+            if len(pok) == 13:
+                # Because handleRightClickFunc may not be specified
+                pok.append(None)
+            createWindow_t = CreateWindow_t(*pok)
+        else:
+            createWindow_t = CreateWindow_t(left, top, right, bottom, visible, draw, click, key, cursor, wheel,
+                                            refCon, decoration, layer, rightClick)
         self.stop = False
         self.imgui_context = None
         self.fontTextureId = None
@@ -77,10 +90,6 @@ class Window:
         self.projection = []
         self.viewport = []
 
-        if len(pok) == 13:
-            # Because handleRightClickFunc may not be specified
-            pok.append(None)
-        createWindow_t = CreateWindow_t(*pok)
 
         # Initialize
         self.imgui_context = imgui.create_context()

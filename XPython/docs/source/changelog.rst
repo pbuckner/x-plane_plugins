@@ -4,17 +4,48 @@ Change Log
 Known Bugs
 ----------
 
- None. Tell me otherwise!
+ None (prove me wrong!)
 
-3.0.12\ *x* (In Beta)
+3.1.0\ *x* (In Beta)
 ----------------------
 :New Features:
    * **Support for Python 3.10**. Because my life just isn't complicated enough.
 
-:Improvements:
-   * Upgraded **Mini Python** plugin which supports resizable windows and full language scripting
+   * Made interface more "pythonic":
 
-    
+     * Added keywords for all parameters (e.g., ``xp.getWindowGeometry(windowID=xxx)``)
+
+     * Made many parameters optional (e.g., ``xp.createWindowEx(visible=1, draw=MyDraw)``)
+
+     * Documented with doc strings, so when used with **Mini Python**:
+
+       >>> help(xp.windowIsPoppedOut)
+       windowIsPoppedOut(windowID)
+           Returns 1 if window is popped-out, 0 otherwise
+
+     Older interface still works, but will never support keywords or optional parameters:
+
+       >>> import XPLMDisplay
+       >>> windowID = XPLMDisiplay.XPLMCreateWindowEx(100, 200, 200, 100, 1,
+       ...    None, None, None, None, None,
+       ...    XPLMDisplay.xplm_WindowDecorationRoundRectangle,
+       ...    XPLMDisplay.xplm_WindowLayerFloatingWindows, None))
+
+     vs:
+
+       >>> import xp
+       >>> windowID = xp.createWindowEx(1, 200, 200, 100)
+
+     | 
+
+
+:Improvements:
+   * Upgraded **Mini Python** plugin which supports resizable debugging window and *full language scripting*, see
+     :doc:`/development/debugger`.
+
+   * Hundreds of documentation improvements, providing *executable examples* of most SDK functions, and documenting
+     the dozen or so interfaces where X-Plane does not actually implement the Laminar SDK documentation correctly.
+     
 
 3.0.11 (1-Oct-2021)
 -------------------
@@ -23,6 +54,8 @@ Known Bugs
    * **Per-plugin performance window**. Amount of time spent, per-plugin, within flight loop or drawing callbacks is recorded
      and displayed. Now you can see *which* plugin is slowing your system down, or tune your own plugin to run faster. See :doc:`usage/performance`.
 
+
+     | 
 :Improvements:
    * **Delete former XPPython3.log** on startup, if it exists -- this to avoid confusion as to which file is the log file.
      XPPython3 now logs to XPPython3Log**.txt**, as this allows the file to be seen properly as a text file.
@@ -38,6 +71,8 @@ Known Bugs
    * **Platform-sensitive updater** now loads only the XPPython3 version (mac, windows, linux) you need rather
      than downloading all versions resulting in a much faster upgrade.
 
+
+     | 
 :Fixes:
 
    * Changed order of python sys.path updates: We now INSERT (rather than APPEND) X-Plane related paths. The result
@@ -79,6 +114,8 @@ Known Bugs
      Note, this is to use OpenGL with python plugins (with or without imgui module). You
      can still run X-Plane using Vulkan / Metal.
 
+
+     | 
 :Improvements:
 
    * **Renamed log file** from XPPython3.log to XPPython3Log.txt. This will make it easier to upload the file
@@ -91,6 +128,8 @@ Known Bugs
    * Added **more detailed documentation** on use of window positioning code, most applicable to installations
      which include multiple-monitors.  See :doc:`development/window_position`.
 
+
+     | 
 :Fixes:
 
    * Changed built-in `sys.path` to initialize with absolute rather than relative paths. This
@@ -114,6 +153,8 @@ Known Bugs
    * Support for python ``multiprocessing`` module through the use of :py:data:`xp.pythonExecutable`.
      Documentation has been update to describe usage, with an example. See :doc:`development/multiprocessing`.
 
+
+     | 
 :Improvements:
 
    * Upgrade system now includes progress bar: when you update XPPython3 (after updating to 3.0.7) upgrades
@@ -164,12 +205,16 @@ Known Bugs
      * :py:func:`xp.log` writes to XPPython3Log.txt, prepends your string with name of calling module.
      * :py:func:`xp.sys_log` writes to Log.txt log, prepends your string with name of calling module.
 
+
+   | 
 :Improvements:
 
    * XPListBox (in demos) improved to automatically wrap long lines: this is used in PI_MiniPython plugin
    * Better error messages when trying to initialize xpyce -- we'll tell you if you're missing ``cryptography``
      package and you'll be instructed to use Pip Package Installer.
 
+
+   | 
 :Fixes:
    
  * On startup, log may include ``Couldn't find the callback list for widget ID <> for message 15``. This appears
@@ -189,6 +234,8 @@ Known Bugs
    * Improved documentation: added :doc:`changelog`, added values for enumeration / constants, fixed minor bugs
    * Initial support for xpyce: enabled loading of encrypted pyc modules. (Documentation :doc:`development/xpyce`)
 
+
+   | 
 :Fixes:
 
    * Fix for menu items: Each python plugin gets an independent set of menu items, mimicking

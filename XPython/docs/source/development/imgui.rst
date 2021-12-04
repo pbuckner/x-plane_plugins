@@ -18,7 +18,8 @@ There is nothing else you need to install.
 
 Test Plugin
 -----------
-We include a sample plugin which uses imgui: ``PI_imgui.py``, which can be found under ``PythonPlugins/samples/``. Copy that file
+We include a sample plugin which uses imgui: ``PI_imgui.py``, which can be found under ``PythonPlugins/samples/``. (:doc:`samples`)
+Copy that file
 into ``PythonPlugins/`` and restart X-Plane. You'll see a new menu item under Plugins, and each time you select it, we'll
 display another copy of the popup window.
 
@@ -34,19 +35,19 @@ imgui works within a window. To create an imgui-capable window, we provide::
 
   instance = xp_imgui.Window(...)
 
-This takes the same paramaters as :func:`XPLMDisplay.XPLMCreateWindowEx`, but returns an instance rather
+xp_imgui.Window() takes the same parameters as :py:func:`xp.createWindowEx`, but returns an instance rather
 than a simple windowID. You can call this in response to a command or menu selection in
 your plugin code.
 
-The biggest difference is that the
-:func:`XPLMDisplay.XPLMDrawWindow_f` callback you provide with window creation will contain
-imgui calls. 
+The biggest difference is that the ``draw()``
+callback you provide with window creation will contain imgui calls. 
 
 We'll setup the context prior to calling your draw callback, so you can be focussed
-on just your implementation-specific code, which could be as simple as::
+on just your implementation-specific code, which could be as simple as:
 
-  def drawWindow(self, inWindowID, inRefCon):
-      imgui.button("Click me")
+  >>> def drawWindow(windowID, refCon):
+  ...     imgui.button("Click me")
+  ...
 
 This is because xp_imgui interface code handles imgui-specific setup and rendering for you, so you
 don't have to::
@@ -61,13 +62,19 @@ don't have to::
   imgui.render()
   render.imgui.get_draw_data()
 
+The underlying windowID can be found as an attribute of the returned instance. This allows you
+to do things to the window such as :py:func:`xp.setWindowIsVisible`, :py:func:`xp.setWindowPositioningMode`
+and other operations as described in :doc:`modules/display`.
+
+>>> xp.setWindowPositioningMode(instance.windowID, 4)
+
 
 Imports
 .......
 To use imgui, you'll need to add two imports::
 
    from XPPython3 import imgui
-   import xp_imgui
+   from XPPython3 import xp_imgui
 
 The first import provides imgui drawing routines. You need to use *this* version of imgui.
 Importing it in this fashion from XPPython3 will guard against possibly loading one from the python site-libraries.
@@ -75,9 +82,26 @@ Importing it in this fashion from XPPython3 will guard against possibly loading 
 The second import provides an X-Plane compatible interface by creating a window into which you will be
 able to draw.
 
-Example (PI_imgui.py)
----------------------
+Simple Example
+--------------
 
+You can copy & paste this directly into the python debugger:
+
+>>> from XPPython3 import xp_imgui
+>>> from XPPython3 import imgui
+>>> def drawWindow(windowID, refCon):
+...     imgui.button(refCon)
+...
+>>> window = xp_imgui.Window(draw=drawWindow, refCon="Click Me!")
+>>> xp.setWindowIsVisible(window.windowID)
+
+.. image:: /images/imgui_click.png
+            
+
+Longer Example (PI_imgui.py)
+----------------------------
+
+This example is available under :doc:`samples`, and listed here simply for reference.
 ::
 
   from XPPython3 import xp
@@ -107,9 +131,6 @@ Example (PI_imgui.py)
         # unregister command and clean up menu
         xp.unregisterCommandHandler(self.cmd, self.commandHandler, 1, self.cmdRef)
         xp.clearAllMenuItems(xp.findPluginsMenu())
-
-    def XPluginReceiveMessage(self, *args, **kwargs):
-        pass
 
     def XPluginDisable(self):
         # delete any imgui_windows, clear the structure
@@ -150,22 +171,20 @@ Example (PI_imgui.py)
         left_offset = 110
         top_offset = 110
 
-        # Array of values, identical to information passed to xp.createWindowEx()
-        pok = [l + left_offset, t - top_offset, l + left_offset + width, t - (top_offset + height), 1,
-               self.drawWindow, self.handleMouseClick, self.handleKey,
-               self.handleCursor, self.handleMouseWheel,
-               self.imgui_windows[title],  # reference constant
-               xp.WindowDecorationRoundRectangle, xp.WindowLayerFloatingWindows,
-               self.handleRightClick]
-
         # Create the imgui Window, and save it.
-        self.imgui_windows[title].update({'instance': xp_imgui.Window(pok)})
+        self.imgui_windows[title].update({'instance': xp_imgui.Window(left=l + left_offset,
+                                                                      top=t - top_offset,
+                                                                      right=l + left_offset + width,
+                                                                      bottom=t - (top_offset + height),
+                                                                      visible=1,
+                                                                      draw=self.drawWindow,
+                                                                      refCon=self.imgui_windows[title])})
 
         # and (optionally) set the title of the created window using .setTitle()
         self.imgui_windows[title]['instance'].setTitle(title)
         return
 
-    def drawWindow(self, inWindowID, inRefCon):
+    def drawWindow(self, windowID, refCon):
         # LABEL
         imgui.text("Simple Label")
 
@@ -173,44 +192,29 @@ Example (PI_imgui.py)
         imgui.text_colored(text="Colored Label", r=1.0, g=0.0, b=0.0, a=1.0)
 
         # BUTTON
-        if imgui.button("Button Pressed #{} times".format(inRefCon['numButtonPressed'])):
+        if imgui.button("Button Pressed #{} times".format(refCon['numButtonPressed'])):
             # every time it's pressed, we increment it's label.
-            inRefCon['numButtonPressed'] += 1
+            refCon['numButtonPressed'] += 1
 
         # TEXT INPUT
-        changed, inRefCon['text'] = imgui.input_text("Text Input", inRefCon['text'], 50)
+        changed, refCon['text'] = imgui.input_text("Text Input", refCon['text'], 50)
 
         # CHECKBOX
-        changed, inRefCon['checkbox1'] = imgui.checkbox(label="Check 1", state=inRefCon['checkbox1'])
-        changed, inRefCon['checkbox2'] = imgui.checkbox(label="Check 2", state=inRefCon['checkbox2'])
+        changed, refCon['checkbox1'] = imgui.checkbox(label="Check 1", state=refCon['checkbox1'])
+        changed, refCon['checkbox2'] = imgui.checkbox(label="Check 2", state=refCon['checkbox2'])
 
         # RADIO
-        if imgui.radio_button("A", inRefCon['radio'] == 0):
-            inRefCon['radio'] = 0
+        if imgui.radio_button("A", refCon['radio'] == 0):
+            refCon['radio'] = 0
         imgui.same_line()
-        if imgui.radio_button("B", inRefCon['radio'] == 1):
-            inRefCon['radio'] = 1
+        if imgui.radio_button("B", refCon['radio'] == 1):
+            refCon['radio'] = 1
         imgui.same_line()
-        if imgui.radio_button("C", inRefCon['radio'] == 2):
-            inRefCon['radio'] = 2
+        if imgui.radio_button("C", refCon['radio'] == 2):
+            refCon['radio'] = 2
 
         # SLIDER
-        changed, inRefCon['slider'] = imgui.slider_float("Slider", inRefCon['slider'], 0.0, 10.0)
-        return
-
-    def handleMouseClick(self, inWindowID, x, y, inMouse, inRefCon):
-        return 1
-
-    def handleRightClick(self, inWindowID, x, y, inMouse, inRefCon):
-        return 1
-
-    def handleCursor(self, inWindowID, x, y, inRefCon):
-        return xp.CursorDefault
-
-    def handleMouseWheel(self, inWindowID, x, y, wheel, clicks, inRefCon):
-        return 1
-
-    def handleKey(self, inWindowID, inKey, inFlags, inVirtualKey, inRefCon, losingFocus):
+        changed, refCon['slider'] = imgui.slider_float("Slider", refCon['slider'], 0.0, 10.0)
         return
 
 The above is pretty basic: a menu item is created to call a command. Each time the command

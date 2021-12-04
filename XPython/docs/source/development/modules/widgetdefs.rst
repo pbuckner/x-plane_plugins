@@ -1,10 +1,12 @@
 XPWidgetDefs
 ============
+
 .. py:module:: XPWidgetDefs
+.. py:currentmodule:: xp
 
 To use::
 
-  import XPWidgetDefs
+  import xp
 
 
 A widget is a call-back driven screen entity like a push-button, window,
@@ -22,7 +24,7 @@ XPWidgetPropertyID
 ******************
 
 Properties are values attached to instances of your widgets. A property is
-identified by a 32-bit ID.
+identified by a 32-bit ID, and may be accessed using :py:func:`setWidgetProperty` and :py:func:`getWidgetProperty`.
 
 Each widget instance may have a property or not have it. When you set a
 property on a widget for the first time, the property is added to the
@@ -31,53 +33,60 @@ widget; it then stays there for the life of the widget.
 Some property IDs are predefined by the widget package; you can make up
 your own property IDs as well.
 
- .. py:data:: xpProperty_Refcon
-  :value: 0
-
-  A window's refcon is an opaque value used by client code to find other data
-  based on it.
-
- .. py:data:: xpProperty_Dragging
-  :value: 1
- .. py:data:: xpProperty_DragXOff
-  :value: 2
- .. py:data:: xpProperty_DragYOff
-  :value: 3
-
-  These properties are used by the utilities to implement dragging.
-
- .. py:data:: xpProperty_Hilited
-  :value: 4
-
-  Is the widget hilited?  (For widgets that support this kind of thing.)
-
- .. py:data:: xpProperty_Object
-  :value: 5
-
-   Is there a C++ object attached to this widget?
-
- .. py:data:: xpProperty_Clip
-  :value: 6
-
-  If this property is 1, the widget package will use OpenGL to restrict
-  drawing to the Wiget's exposed rectangle.
-
- .. py:data:: xpProperty_Enabled
-  :value: 7
-
-  Is this widget enabled (for those that have a disabled state too)?
-
- .. py:data:: xpProperty_UserStart
-  :value: 10000
-
-  Minimum value for a user-defined property
++----------------------------------------+------------------------------------------------------------------------------------------+
+| .. py:data:: Property_Refcon           |A window's refcon is an opaque value used by client code to find other data based on it.  |
+|  :value: 0                             |                                                                                          |
+|                                        |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_Refcon>`__      |
+|                                        |:index:`xpProperty_Refcon`                                                                |
++----------------------------------------+------------------------------------------------------------------------------------------+
+| .. py:data:: Property_Dragging         |These properties are used by the utilities to implement dragging.                         |
+|  :value: 1                             |                                                                                          |
+| .. py:data:: Property_DragXOff         |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_Dragging>`__    |
+|  :value: 2                             |:index:`xpProperty_Dragging`                                                              |
+| .. py:data:: Propefrty_DragYOff        |                                                                                          |
+|  :value: 3                             |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_DragXOff>`__    |
+|                                        |:index:`xpProperty_DragXOff`                                                              |
+|                                        |                                                                                          |
+|                                        |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_DragYOff>`__    |
+|                                        |:index:`xpProperty_DragYOff`                                                              |
+|                                        |                                                                                          |
++----------------------------------------+------------------------------------------------------------------------------------------+
+| .. py:data:: Property_Hilited          |Is the widget hilited?  (For widgets that support this kind of thing.)                    |
+|  :value: 4                             |                                                                                          |
+|                                        |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_Hilited>`__     |
+|                                        |:index:`xpProperty_Hilited`                                                               |
+|                                        |                                                                                          |
++----------------------------------------+------------------------------------------------------------------------------------------+
+| .. py:data:: Property_Object           |Is there a C++ object attached to this widget?                                            |
+|  :value: 5                             |                                                                                          |
+|                                        |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_Object>`__      |
+|                                        |:index:`xpProperty_Object`                                                                |
++----------------------------------------+------------------------------------------------------------------------------------------+
+| .. py:data:: Property_Clip             |If this property is 1, the widget package will use OpenGL to restrict drawing to the      |
+|  :value: 6                             |Wiget's exposed rectangle.                                                                |
+|                                        |                                                                                          |
+|                                        |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_Clip>`__        |
+|                                        |:index:`xpProperty_Clip`                                                                  |
++----------------------------------------+------------------------------------------------------------------------------------------+
+|.. py:data:: Property_Enabled           |Is this widget enabled (for those that have a disabled state too)?                        |
+|  :value: 7                             |                                                                                          |
+|                                        |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_Enabled>`__     |
+|                                        |:index:`xpProperty_Enabled`                                                               |
++----------------------------------------+------------------------------------------------------------------------------------------+
+|                                        |                                                                                          |
++----------------------------------------+------------------------------------------------------------------------------------------+
+|.. py:data:: Property_UserStart         |Minimum value for a user-defined property                                                 |
+|  :value: 10000                         |                                                                                          |
+|                                        |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_UserStart>`__   |
+|                                        |:index:`xpProperty_UserStart`                                                             |
++----------------------------------------+------------------------------------------------------------------------------------------+
 
 .. note:: Property IDs 1 - 999 are reserved for the widget's library.
 .. note:: Property IDs 1000 - 9999 are allocated to the standard widget classes
   provided with the library Properties 1000 - 1099 are for widget class 0,
   1100 - 1199 for widget class 1, etc.
 
-  If you create your own property, make sure it's value is greater than :py:data:`xpProperty_UserStart`.
+  If you create your own property, make sure it's value is greater than :py:data:`Property_UserStart`.
   Such properties will use Python object for storage rather than a simple int or float.
 
 
@@ -89,36 +98,46 @@ XPDispatchMode
 
 The dispatching modes describe how the widgets library sends out messages.
 
- .. py:data:: xpMode_Direct
-  :value: 0
-
-  The message will only be sent to the target widget.
-
- .. py:data:: xpMode_UpChain
-  :value: 1
-
-  The message is sent to the target widget, then up the chain of parents
-  until the message is handled or a parentless widget is reached.
-
- .. py:data:: xpMode_Recursive
-  :value: 2
-
-  The message is sent to the target widget and then all of its children
-  recursively depth-first.
-
- .. py:data:: xpMode_DirectAllCallbacks
-  :value: 3
-
-  The message is sent just to the target, but goes to every callback, even if
-  it is handled.
-
- .. py:data:: xpMode_Once
-  :value: 4
-
-  The message is only sent to the very first handler even if it is not
-  accepted. (This is really only useful for some internal Widget Lib
-  functions.
-
+ +----------------------------------------------------------+------------------------------------------------------------------------------+
+ |.. py:data:: Mode_Direct                                  |The message will only be sent to the target widget.                           |
+ |  :value: 0                                               |                                                                              |
+ |                                                          |`Official SDK                                                                 |
+ |                                                          |<https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMode_Direct>`__            |
+ |                                                          |:index:`xpMode_Direct`                                                        |
+ |                                                          |                                                                              |
+ +----------------------------------------------------------+------------------------------------------------------------------------------+
+ |.. py:data:: Mode_UpChain                                 |The message is sent to the target widget, then up the chain of                |
+ |  :value: 1                                               |parents until the message is handled or a parentless widget is                |
+ |                                                          |reached.                                                                      |
+ |                                                          |                                                                              |
+ |                                                          |`Official SDK                                                                 |
+ |                                                          |<https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMode_UpChain>`__           |
+ |                                                          |:index:`xpMode_UpChain`                                                       |
+ |                                                          |                                                                              |
+ +----------------------------------------------------------+------------------------------------------------------------------------------+
+ |.. py:data:: Mode_Recursive                               |The message is sent to the target widget and then all of its children         |
+ |  :value: 2                                               |recursively depth-first.                                                      |
+ |                                                          |                                                                              |
+ |                                                          |`Official SDK                                                                 |
+ |                                                          |<https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMode_Recursive>`__         |
+ |                                                          |:index:`xpMode_Recursive`                                                     |
+ +----------------------------------------------------------+------------------------------------------------------------------------------+
+ |.. py:data:: Mode_DirectAllCallbacks                      |The message is sent just to the target, but goes to every callback, even if it|
+ |  :value: 3                                               |is handled.                                                                   |
+ |                                                          |                                                                              |
+ |                                                          |`Official SDK                                                                 |
+ |                                                          |<https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMode_DirectAllCallbacks>`__|
+ |                                                          |:index:`xpMode_DirectAllCallbacks`                                            |
+ |                                                          |                                                                              |
+ +----------------------------------------------------------+------------------------------------------------------------------------------+
+ |.. py:data:: Mode_Once                                    |The message is only sent to the very first handler even if it is not          |
+ |  :value: 4                                               |accepted. (This is really only useful for some internal Widget Lib functions. |
+ |                                                          |                                                                              |
+ |                                                          |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMode_Once>`__|
+ |                                                          |:index:`xpMode_Once`                                                          |
+ |                                                          |                                                                              |
+ +----------------------------------------------------------+------------------------------------------------------------------------------+
+ 
 
 .. _XPWidgetClass:
 
@@ -129,9 +148,11 @@ Widget classes define predefined widget types. A widget class basically
 specifies from a library the widget function to be used for the widget.
 Most widgets can be made right from classes.
 
- .. py:data:: xpWidgetClass_None
+ .. py:data:: WidgetClass_None
   :value: 0
 
+ `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpWidgetClass_None>`__ :index:`xpWidgetClass_None`
+ 
 .. note:: Additional widget classes are defined in :py:mod:`XPStandardWidgets`.
 
 .. _XPWidgetMessage:
@@ -142,14 +163,19 @@ XPWidgetMessage
 Widgets receive 32-bit messages indicating what action is to be taken or
 notifications of events. The list of messages may be expanded.
 
+You can intercept widget messages by adding a callback (:py:func:`addWidgetCallback`)
+to the widget, or one of its parents.
+
  .. note:: Additional widget messages are defined in :py:mod:`XPStandardWidgets`.
 
- .. py:data:: xpMsg_None
+ .. py:data:: Msg_None
   :value: 0
 
   No message, should not be sent.
 
- .. py:data:: xpMsg_Create
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_None>`__ :index:`xpMsg_None`
+
+ .. py:data:: Msg_Create
   :value: 1
 
   The create message is sent once per widget that is created with your widget
@@ -166,7 +192,9 @@ notifications of events. The list of messages may be expanded.
                  is first being created.
      =========== =========================== ===============
 
- .. py:data:: xpMsg_Destroy
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_Create>`__ :index:`xpMsg_Create`
+
+ .. py:data:: Msg_Destroy
   :value: 2
 
   The destroy message is sent once for each message that is destroyed that   
@@ -184,13 +212,15 @@ notifications of events. The list of messages may be expanded.
                  deletion.
      =========== =========================== ===============
 
- .. py:data:: xpMsg_Paint
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_Destroy>`__ :index:`xpMsg_Destroy`
+
+ .. py:data:: Msg_Paint
   :value: 3
 
   The paint message is sent to your widget to draw itself. The paint message 
   is the bare-bones message; in response you must draw yourself, draw your   
   children, set up clipping and culling, check for visibility, etc. If you   
-  don't want to do all of this, ignore the paint message and a :py:data:`xpMsg_Paint`
+  don't want to do all of this, ignore the paint message and a :py:data:`Msg_Paint`
   (see below) will be sent to you.                                           
                                                                               
   .. table::
@@ -202,7 +232,9 @@ notifications of events. The list of messages may be expanded.
      Direct      N/A                         N/A
      =========== =========================== ===============
 
- .. py:data:: xpMsg_Draw
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_Paint>`__ :index:`xpMsg_Paint`
+
+ .. py:data:: Msg_Draw
   :value: 4
 
   The draw message is sent to your widget when it is time to draw yourself.  
@@ -218,7 +250,9 @@ notifications of events. The list of messages may be expanded.
      Direct      N/A                         N/A
      =========== =========================== ===============
 
- .. py:data:: xpMsg_KeyPress
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_Draw>`__ :index:`xpMsg_Draw`
+
+ .. py:data:: Msg_KeyPress
   :value: 5
 
   The key press message is sent once per key that is pressed. The first      
@@ -237,7 +271,9 @@ notifications of events. The list of messages may be expanded.
      Up Chain    :ref:`XPKeyState_t` tuple   key code
      =========== =========================== ===============
 
- .. py:data:: xpMsg_KeyTakeFocus
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_KeyPress>`__ :index:`xpMsg_KeyPress`
+
+ .. py:data:: Msg_KeyTakeFocus
   :value: 6
 
   Keyboard focus is being given to you.
@@ -256,7 +292,9 @@ notifications of events. The list of messages may be expanded.
                  explicitly.
      =========== =========================== ===============
 
- .. py:data:: xpMsg_KeyLoseFocus
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_KeyTakeFocus>`__ :index:`xpMsg_KeyTakeFocus`
+
+ .. py:data:: Msg_KeyLoseFocus
   :value: 7
 
   Keyboard focus is being taken away from you. The first parameter will be   
@@ -275,7 +313,9 @@ notifications of events. The list of messages may be expanded.
                  focus.
      =========== =========================== ===============
 
- .. py:data:: xpMsg_MouseDown
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_KeyLoseFocus>`__ :index:`xpMsg_KeyLoseFocus`
+
+ .. py:data:: Msg_MouseDown
   :value: 8
 
   You receive one mousedown event per click with a mouse-state structure     
@@ -302,7 +342,9 @@ notifications of events. The list of messages may be expanded.
                  tuple.
      =========== =========================== ===============
 
- .. py:data:: xpMsg_MouseDrag
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_MouseDown>`__ :index:`xpMsg_MouseDown`
+
+ .. py:data:: Msg_MouseDrag
   :value: 9
 
   You receive a series of mouse drag messages (typically one per frame in the
@@ -323,7 +365,9 @@ notifications of events. The list of messages may be expanded.
                  tuple.
      =========== =========================== ===============
 
- .. py:data:: xpMsg_MouseUp
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_MouseDrag>`__ :index:`xpMsg_MouseDrag`
+
+ .. py:data:: Msg_MouseUp
   :value: 10
 
   The mouseup event is sent once when the mouse button is released after a   
@@ -340,7 +384,9 @@ notifications of events. The list of messages may be expanded.
                  tuple.
      =========== =========================== ===============
 
- .. py:data:: xpMsg_Reshape
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_MouseUp>`__ :index:`xpMsg_MouseUp`
+
+ .. py:data:: Msg_Reshape
   :value: 11
 
   Your geometry or a child's geometry is being changed.                      
@@ -355,7 +401,9 @@ notifications of events. The list of messages may be expanded.
                  reshaped target.            tuple.
      =========== =========================== ===============================
 
- .. py:data:: xpMsg_ExposedChanged
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_Reshape>`__ :index:`xpMsg_Reshape`
+
+ .. py:data:: Msg_ExposedChanged
   :value: 12
 
   Your exposed area has changed.                                             
@@ -369,7 +417,9 @@ notifications of events. The list of messages may be expanded.
      Direct      N/A                         N/A
      =========== =========================== ===============
 
- .. py:data:: xpMsg_AcceptChild
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_ExposedChanged>`__ :index:`xpMsg_ExposedChanged`
+
+ .. py:data:: Msg_AcceptChild
   :value: 13
 
   A child has been added to you. The child's ID is passed in parameter one.  
@@ -384,7 +434,9 @@ notifications of events. The list of messages may be expanded.
                  added.
      =========== =========================== ===============
 
- .. py:data:: xpMsg_LoseChild
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_AcceptChild>`__ :index:`xpMsg_AcceptChild`
+
+ .. py:data:: Msg_LoseChild
   :value: 14
 
   A child has been removed from to you. The child's ID is passed in parameter
@@ -400,7 +452,9 @@ notifications of events. The list of messages may be expanded.
                  removed.
      =========== =========================== ===============
 
- .. py:data:: xpMsg_AcceptParent
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_LoseChild>`__ :index:`xpMsg_LoseChild`
+
+ .. py:data:: Msg_AcceptParent
   :value: 15
 
   You now have a new parent, or have no parent. The parent's ID is passed in,
@@ -416,7 +470,9 @@ notifications of events. The list of messages may be expanded.
                  0 if no parent.
      =========== =========================== ===============
 
- .. py:data:: xpMsg_Shown
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_AcceptParent>`__ :index:`xpMsg_AcceptParent`
+
+ .. py:data:: Msg_Shown
   :value: 16
 
   You or a child has been shown. Note that this does not include you being   
@@ -436,10 +492,12 @@ notifications of events. The list of messages may be expanded.
      Up-chain    WidgetID of shown widget.   N/A
      =========== =========================== ===============
 
- .. py:data:: xpMsg_Hidden
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_Shown>`__ :index:`xpMsg_Shown`
+
+ .. py:data:: Msg_Hidden
   :value: 17
 
-  You have been hidden. See limitations as with :py:data:`xpMsg_Shown` above.                               
+  You have been hidden. See limitations as with :py:data:`Msg_Shown` above.                               
 
   .. table::
      :align: left
@@ -450,7 +508,9 @@ notifications of events. The list of messages may be expanded.
      Up-chain    WidgetID of hidden widget.  N/A
      =========== =========================== ===============
 
- .. py:data:: xpMsg_DescriptorChanged
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_Hidden>`__ :index:`xpMsg_Hidden`
+
+ .. py:data:: Msg_DescriptorChanged
   :value: 18
 
   Your descriptor has changed.                                               
@@ -464,7 +524,9 @@ notifications of events. The list of messages may be expanded.
      Direct      N/A                         N/A
      =========== =========================== ===============
 
- .. py:data:: xpMsg_PropertyChanged
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_DescriptorChanged>`__ :index:`xpMsg_DescriptorChanged`
+
+ .. py:data:: Msg_PropertyChanged
   :value: 19
 
   A property has changed. Param 1 contains the property ID.                  
@@ -479,7 +541,9 @@ notifications of events. The list of messages may be expanded.
                  being changed.              value.
      =========== =========================== ===============
 
- .. py:data:: xpMsg_MouseWheel
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_PropertyChanged>`__ :index:`xpMsg_PropertyChanged`
+
+ .. py:data:: Msg_MouseWheel
   :value: 20
 
   The mouse wheel has moved.                                                 
@@ -497,7 +561,9 @@ notifications of events. The list of messages may be expanded.
                  tuple.
      =========== =========================== ===============
 
- .. py:data:: xpMsg_CursorAdjust
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_MouseWheel>`__ :index:`xpMsg_MouseWheel`
+
+ .. py:data:: Msg_CursorAdjust
   :value: 21
 
   The cursor is over your widget. If you consume this message, change the    
@@ -509,15 +575,17 @@ notifications of events. The list of messages may be expanded.
   .. table::
      :align: left
 
-     =========== =========================== =======================
+     =========== =========================== ===================================
      Dispatching Param1                      Param2
-     =========== =========================== =======================
-     Up-chain    :ref:`XPMouseState_t`       :ref:`XPLMCursorStatus`
+     =========== =========================== ===================================
+     Up-chain    :ref:`XPMouseState_t`       :ref:`CursorStatus <cursor-status>`
                  tuple.                      Set this to cursor   
                                              result you desire.
-     =========== =========================== =======================
+     =========== =========================== ===================================
 
- .. py:data:: xpMsg_UserStart
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_CursorAdjust>`__ :index:`xpMsg_CursorAdjust`
+
+ .. py:data:: Msg_UserStart
   :value: 1000
 
   .. table::
@@ -528,6 +596,8 @@ notifications of events. The list of messages may be expanded.
      ============= =========================== ===============
      User Provided User Provided               User Provided
      ============= =========================== ===============
+
+  `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_UserStart>`__ :index:`xpMsg_UserStart`
 
 Tuples
 ------
@@ -580,21 +650,3 @@ your widget's geometry when it changes::
                     dwidth, # (dwidth, dheight) change in size
                     dheight
                    )
-
-Functions
----------
-
-.. py:function:: XPWidgetFunc_t(inMessage, inWidget, inParam1, inParam2) -> int:
-
-  :param inMessage: :ref:`XPWidgetMessage` (may be custom)
-  :param inWidget: Your WidgetID
-  :param inParam1:
-  :param inParam2: param1 and param2 are dependent on the particular message sent   
-  :return: 1= you have handled the message, 0 otherwise.
-
-  This function defines your custom widget's behavior. It will be called by
-  the widgets library to send messages to your widget. The message and widget
-  ID are passed in, as well as two ptr-width signed parameters whose meaning
-  varies with the message. Return 1 to indicate that you have processed the
-  message, 0 to indicate that you have not. For any message that is not
-  understood, return 0.

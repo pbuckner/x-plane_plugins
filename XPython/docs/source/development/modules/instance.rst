@@ -1,99 +1,102 @@
 XPLMInstance
 ============
 .. py:module:: XPLMInstance
-               
+.. py:currentmodule:: xp
+   
 To use::
 
-  import XPLMInstance
+  import xp
 
 This API provides instanced drawing of X-Plane objects (.obj files). In
-contrast to old drawing APIs, which required you to draw your own objects
+contrast to old drawing APIs, (:doc:`graphics`) which required you to draw your own objects
 per-frame, the instancing API allows you to simply register an OBJ for
 drawing, then move or manipulate it later (as needed).
 
-This provides one tremendous benefit: it keeps all dataref operations for
+This provides one tremendous benefit: it keeps all dataRef operations for
 your object in one place. Because datarefs are main thread only, allowing
-dataref access anywhere is a serious performance bottleneck for the
-simulator---the whole simulator has to pause and wait for each dataref
+dataRef access anywhere is a serious performance bottleneck for the
+simulator---the whole simulator has to pause and wait for each dataRef
 access. This performance penalty will only grow worse as X-Plane moves
-toward an ever more heavily multithreaded engine.
+toward an ever more heavily multi-threaded engine.
 
-The instancing API allows X-Plane to isolate all dataref manipulations for
+The instancing API allows X-Plane to isolate all dataRef manipulations for
 all plugin object drawing to one place, potentially providing huge
 performance gains.
 
 Here's how it works:
 
-When an instance is created, it provides a list of all datarefs you want to
+When an instance is created using :py:func:`createInstance`, it provides a list of all datarefs you want to
 manipulate in for the OBJ in the future. This list of datarefs replaces the
-ad-hoc collections of dataref objects previously used by art assets. Then,
+ad-hoc collections of dataRef objects previously used by art assets. Then,
 per-frame, you can manipulate the instance by passing in a "block" of
 packed floats representing the current values of the datarefs for your
-instance. (Note that the ordering of this set of packed floats must exactly
+instance using :py:func:`instanceSetPosition`. (Note that the ordering of this set of packed floats must exactly
 match the ordering of the datarefs when you created your instance.)
 
 Functions
 ---------
 
-.. py:function:: XPLMCreateInstance(obj, datarefs) -> XPLMInstance:
+.. py:function:: createInstance(obj, dataRefs=None)
 
-    Registers an instance of an X-Plane object.
+    Registers an instance of an X-Plane object, with an optional list of *dataRefs*.
 
-    :param int obj: Handle returned by :py:func:`XPLMLoadObject` or :py:func:`XPLMLoadObjectAsync`)
-    :param datarefs: dataref names
-    :type datarefs: list of strings                     
-    :return: :ref:`XPLMInstanceRef`
+    *obj* is an object handle, as returned by :py:func:`loadObject` or :py:func:`loadObjectAsync`.
+    Returns an object instance, which you'll pass to :py:func:`instanceSetPosition` and :py:func:`destroyInstance`.
 
-    The following example loads an XP standard object using :py:func:`XPLMLookupObjects`, and creates
-    an instance of it, with two datarefs::
+    The following example loads an XP standard object using :py:func:`lookupObjects`, and creates
+    an instance of it, with two datarefs:
 
-      XPLMLookupObjects('lib/airport/vehicles/pushback/tug.obj', 0, 0, self.load_cb, self.g_object)
-      drefs = ['sim/graphics/animation/ground_traffic/tire_steer_deg', 'foo/bar/ground']
+    >>> paths = []
+    >>> xp.lookupObjects('lib/airport/vehicles/pushback/tug.obj', 0, 0, lambda path, refCon: paths.append(path), None)
+    1
+    >>> paths
+    ['Resources/default scenery/sim objects/apt_vehicles/pushback/Tug_GT110.obj']
+    >>> obj = xp.loadObject(paths[0])
+    >>> drefs = ['sim/graphics/animation/ground_traffic/tire_steer_deg', 'foo/bar/ground']
+    >>> instance = xp.createInstance(obj, drefs)
+    >>> instance
+    <capsule object "XPLMInstanceRef" at 0x7f8946a4a9f0>
 
-      self.g_instance = XPLMCreateInstance(self.g_object, drefs)
+    (With the above code, you've found, loaded and created the Instance, but you still need to :py:func:`instanceSetPosition`
+    in order to actually see it.)
+    
+    `Official SDK <https://developer.x-plane.com/sdk/XPLMInstance/#XPLMCreateInstance>`__ :index:`XPLMCreateInstance`
 
-.. py:function:: XPLMDestroyInstance(instance) -> None:
+.. py:function:: destroyInstance(instance)
 
-    Unregisters an instance.
+    Unregisters an instance (as returned from :py:func:`createInstance`.)
 
-    :param int instance: :ref:`XPLMInstanceRef` Handle returned from :py:func:`XPLMCreateInstance`
+    >>> xp.destroyInstance(instance)
 
+    `Official SDK <https://developer.x-plane.com/sdk/XPLMInstance/#XPLMDestroyInstance>`__ :index:`XPLMDestroyInstance`
 
-.. py:function:: XPLMInstanceSetPosition(instance, new_position, data) -> None:
+.. py:function:: instanceSetPosition(instance, position, data=None)
 
     Updates both the position of the instance and all datarefs you registered
     for it.
 
-    :param int instance: :ref:`XPLMInstanceRef` Handle returned from :py:func:`XPLMCreateInstance`
-    :param new_position: list of six floats (x, y, z, pitch, heading, roll)
-    :param data: list of floats (values of datarefs). Same length and order as number of datarefs provided with XPLMCreateInstance.
+    *instance* is as returned by :py:func:`createInstance`.
+    You must always provide a six-float tuple for *position*: (x, y, z, pitch, heading, roll),
+    and *data* may be None.
+    Otherwise *data* should be a list of floats in the same order as
+    the dataRefs provided during instance creation. (If you don't provide *data*, it effectively
+    sets each registered dataRef to 0.0.)
 
-    The following example builds on the example in :py:func:`XPLMCreateInstance`, and sets the position
-    of the instance, and sets values for each of the (two) datarefs. Note you have to always provide
-    all values. You'll likely call this in your flight loop callback (*not* a draw callback)::
+    The following example builds on the example in :py:func:`createInstance`, and sets the position
+    of the instance, and sets values for each of the (two) datarefs.
+    You'll likely call this in your flight loop callback (*not* a draw callback):
 
-            # get or create values for position:
-            x = XPLMGetDatad(XPLMFindDataRef('sim/flightmodel/position/local_x'))
-            y = XPLMGetDatad(XPLMFindDataRef('sim/flightmodel/position/local_y'))
-            z = XPLMGetDatad(XPLMFindDataRef('sim/flightmodel/position/local_z'))
-            pitch, heading, roll = (0, 0, 0)
-            position = (x, y, z, pitch, heading, roll)
-    
-            self.g_tire += 10.0  # rotate tire 10 degrees each time called.
-            if self.g_tire > 45.0:
-                self.g_tire -= 90.0
+    >>> # get current aircraft position
+    >>> x = xp.getDatad(xp.findDataRef('sim/flightmodel/position/local_x'))
+    >>> y = xp.getDatad(xp.findDataRef('sim/flightmodel/position/local_y'))
+    >>> z = xp.getDatad(xp.findDataRef('sim/flightmodel/position/local_z'))
+    >>> pitch, heading, roll = (0, 0, 0)
+    >>> # Place the tug in front of the aircraft (just so you can see it)
+    >>> position = (x, y-1, z+10, pitch, heading+90, roll)
+    >>> # Set wheel steer degrees to 0, then 20, 40, pausing in between.
+    >>> xp.instanceSetPosition(instance, position, [0, 0.0])
+    >>> xp.instanceSetPosition(instance, position, [20, 0.0])
+    >>> xp.instanceSetPosition(instance, position, [40, 0.0])
 
-            # The first dataref (see XPLMCreateInstance example) "tire_steer_deg" positions the tires.
-            # Passing new values for it will rotate the tires for the demo.
-            XPLMInstanceSetPosition(self.g_instance, position, [self.g_tire, 0.0])
 
-Types
------
-
-.. _XPLMInstanceRef:
-
-XPLMInstanceRef
-***************
-
-   Opaque handle to an instance.          
-
+    `Official SDK <https://developer.x-plane.com/sdk/XPLMInstance/#XPLMInstanceSetPosition>`__ :index:`XPLMInstanceSetPosition`

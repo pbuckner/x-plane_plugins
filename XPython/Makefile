@@ -3,7 +3,7 @@
 PLUGIN_PATH=Resources/plugins/XPPython3
 XP_SDK=../SDK
 VERSIONS= 36 37 38 39 310
-XPPYTHONVERSION=3.0.12a1
+XPPYTHONVERSION=3.1.0
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
 #########
 # COMMON opts
@@ -23,7 +23,7 @@ ifeq ($(TARGET), Windows)
   PYDEV38=/c/Program\ Files/Python38
   PYDEV39=/c/Program\ Files/Python39
   PYDEV310=/c/Program\ Files/Python310
-  PY_CFLAGS = -Wno-unused-result -Wsign-compare -Wunreachable-code -fno-common -DNDEBUG -fwrapv -O3
+  PY_CFLAGS = -Wno-unused-result -Wno-pointer-to-int-cast -Wno-cast-function-type -Wsign-compare -Wunreachable-code -fno-common -DNDEBUG -fwrapv -O3 -D_GNU_SOURCE
   PY_LDFLAGS = 
   CFLAGS+= ${PY_CFLAGS} ${XPLM_CPPFLAGS} -DIBM=1 -DAPL=0 -DLIN=0 -I/c/msys64/mingw64/include -I/usr/include
   CFLAGS36=-I${PYDEV36}/include $(CFLAGS) -DPYTHONVERSION=\"3.6\"
@@ -132,7 +132,7 @@ XPPython310.xpl: $(subst XXX,310,$(PLUGIN_OBJ))
 
 StandardPythonUtils = Resources/plugins/XPPython3/xp.py Resources/plugins/XPPython3/xp_imgui/ Resources/plugins/XPPython3/I_PI_Updater.py Resources/plugins/XPPython3/scriptupdate.py Resources/plugins/XPPython3/scriptconfig.py Resources/plugins/XPPython3/I_PI_FirstTime.py Resources/plugins/XPPython3/zip_download.py Resources/plugins/XPPython3/imgui/core.cp310-win_amd64.pyd
 
-Resources/plugins/xppython3%.zip : win/XPPython3%.xpl lin/XPPython3%.xpl mac/XPPython3%.xpl $(StandardPythonUtils)
+Resources/plugins/xppython3%.zip: win/XPPython3%.xpl lin/XPPython3%.xpl mac/XPPython3%.xpl $(StandardPythonUtils)
 	# remove old
 	rm -f $@
 	rm -f Resources/plugins/XPPython3/*/*.xpl
@@ -158,6 +158,8 @@ Resources/plugins/xppython3%.zip : win/XPPython3%.xpl lin/XPPython3%.xpl mac/XPP
 		$(ZIP) $(notdir $@) -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md  XPPython3/xpyce/\*.py XPPython3/xp_imgui/\*.py; \
 		v=`echo $(notdir $@) | sed  's/xppython\([0-9]*\).zip/\1/'`; \
 		$(ZIP) $(notdir $@) -u XPPython3/imgui/*.py XPPython3/imgui/integrations/*.py XPPython3/imgui/core*$$v* ; \
+		$(ZIP) $(notdir $@) -u XPPython3/utils/*.py ; \
+		$(ZIP) $(notdir $@) -u -r XPPython3/Authori*.app ; \
 		cp $(notdir $@) $(basename $(notdir $@))-win32.zip; \
 		$(ZIP) -d $(basename $(notdir $@))-win32.zip XPPython3/lin_\* XPPython3/mac_\* XPPython3/imgui/core.cpython\*; \
 		cp $(notdir $@) $(basename $(notdir $@))-darwin.zip; \
@@ -176,6 +178,7 @@ install_beta : $(zipfiles)
 	for f in $^; do cp $$f `echo "$$f" | sed 's/\.zip/b.zip/g'`; done
 	# 2) upload them to server
 	scp Resources/plugins/xppython3?{,-darwin,-linux,-win32}b.zip pbuck@avnwx.com:/var/www/production/data/x-plane
+	scp Resources/plugins/xppython310{,-darwin,-linux,-win32}b.zip pbuck@avnwx.com:/var/www/production/data/x-plane
 	# 3) On the server, execute updatemd5.py <>.zip <version>
 	#    ... the server code will manage -win32, -darwin and -linux variants
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; \
@@ -191,6 +194,7 @@ install_remote : $(zipfiles)
 		exit 1; \
 	fi
 	scp Resources/plugins/xppython3?{,-darwin,-linux,-win32}.zip pbuck@avnwx.com:/var/www/production/data/x-plane
+	scp Resources/plugins/xppython310{,-darwin,-linux,-win32}.zip pbuck@avnwx.com:/var/www/production/data/x-plane
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; \
 		./updatemd5.py xppython36.zip "$(XPPYTHONVERSION) - for Python 3.6"; \
 		./updatemd5.py xppython37.zip "$(XPPYTHONVERSION) - for Python 3.7"; \

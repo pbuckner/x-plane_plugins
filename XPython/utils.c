@@ -68,12 +68,12 @@ char * objToStr(PyObject *item) {
   
 float getFloatFromTuple(PyObject *seq, Py_ssize_t i)
 {
-  return PyFloat_AsDouble(PyTuple_GetItem(seq, i));
+  return PyFloat_AsDouble(PyTuple_GetItem(seq, i)); /* PyTuple_GetItem borrows */
 }
 
 long getLongFromTuple(PyObject *seq, Py_ssize_t i)
 {
-  return PyLong_AsLong(PyTuple_GetItem(seq, i));
+  return PyLong_AsLong(PyTuple_GetItem(seq, i)); /* PyTuple_GetItem borrows */
 }
 
 PyObject *get_module() {

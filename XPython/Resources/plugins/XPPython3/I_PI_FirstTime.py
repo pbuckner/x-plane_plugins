@@ -1,6 +1,7 @@
 import os
 from XPPython3 import xp
-from XPPython3 import samples
+from XPPython3.utils import samples
+
 
 class PythonInterface:
     def __init__(self):

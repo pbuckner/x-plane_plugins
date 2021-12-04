@@ -11,41 +11,59 @@
 
 static const char probeName[] = "XPLMProbeRef";
 
-static PyObject *XPLMCreateProbeFun(PyObject *self, PyObject *args)
+My_DOCSTR(_createProbe__doc__, "createProbe", "probeType=0",
+          "Return a probeRef");
+static PyObject *XPLMCreateProbeFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"probeType", NULL};
   (void) self;
-  int inProbeType;
-  if(!PyArg_ParseTuple(args, "i", &inProbeType)){
+  int inProbeType = 0;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", keywords, &inProbeType)){
     return NULL;
   }
   return getPtrRefOneshot(XPLMCreateProbe(inProbeType), probeName);
 }
 
-static PyObject *XPLMDestroyProbeFun(PyObject *self, PyObject *args)
+My_DOCSTR(_destroyProbe__doc__, "destroyProbe", "probe",
+          "Destroy a probeRef");
+static PyObject *XPLMDestroyProbeFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"probe", NULL};
   (void) self;
   PyObject *inProbe = NULL;
-  if(!PyArg_ParseTuple(args, "O", &inProbe)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &inProbe)){
     return NULL;
   }
   XPLMDestroyProbe(refToPtr(inProbe, probeName));
   Py_RETURN_NONE;
 }
 
-static PyObject *XPLMProbeTerrainXYZFun(PyObject *self, PyObject *args)
+My_DOCSTR(_probeTerrainXYZ__doc__, "probeTerrainXYZ", "probeRef, x, y, z",
+          "Probe terrain using probeRef at (x, y, z) location\n"
+          "\n"
+          "Object returned as attributes:\n"
+          "  .result:    0=Hit, 1=Error, 2=Missed\n"
+          "  .locationX,\n"
+          "  .locationY,\n"
+          "  .locationZ: OpenGL point hit by probe\n"
+          "  .normalX,\n"
+          "  .normalY,\n"
+          "  .normalZ:   Normal vector (e.g. slope),\n"
+          "  .velocityX,\n"
+          "  .velocityY,\n"
+          "  .velocityZ: Velocity vector (e.g., meter/sec) of meovement\n"
+          "  .is_set:    1=we hit water");
+static PyObject *XPLMProbeTerrainXYZFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"probeRef", "x", "y", "z", NULL};
   (void) self;
-  PyObject *probe, *outInfo;
+  PyObject *probe;
   float inX, inY, inZ;
-  int returnValues = 0;
 
-  if(!PyArg_ParseTuple(args, "OfffO", &probe, &inX, &inY, &inZ, &outInfo)){
-    PyErr_Clear();
-    returnValues = 1;
-    if(!PyArg_ParseTuple(args, "Offf", &probe, &inX, &inY, &inZ)){
-      return NULL;
-    }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Offf", keywords, &probe, &inX, &inY, &inZ)){
+    return NULL;
   }
+
   XPLMProbeRef inProbe = refToPtr(probe, probeName);
   XPLMProbeInfo_t info;
   info.structSize = sizeof(info);
@@ -55,65 +73,71 @@ static PyObject *XPLMProbeTerrainXYZFun(PyObject *self, PyObject *args)
   ret = PyProbeInfo_New(res, info.locationX, info.locationY, info.locationZ,
                            info.normalX, info.normalY, info.normalZ,
                            info.velocityX, info.velocityY, info.velocityZ, info.is_wet);
-  if (returnValues) 
-    return ret;
-
-  pythonLogWarning("XPLMProbeTerrainXYZ does not require final info parameter");
-
-  if (outInfo != Py_None)
-    PyList_Append(outInfo, ret);
-  
-  return PyLong_FromLong(res);
+  return ret;
 }
 
-static PyObject *XPLMGetMagneticVariationFun(PyObject *self, PyObject *args)
+My_DOCSTR(_getMagneticVariation__doc__, "getMagneticVariation", "latitude, longitude",
+          "Magnetic declination at point");
+static PyObject *XPLMGetMagneticVariationFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"latitude", "longitude", NULL};
   (void)self;
   if(!XPLMGetMagneticVariation_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetMagneticVariation is available only in XPLM300 and up.");
     return NULL;
   }
   double latitude, longitude;
-  if(!PyArg_ParseTuple(args, "dd", &latitude, &longitude)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "dd", keywords, &latitude, &longitude)){
     return NULL;
   }
   return PyFloat_FromDouble(XPLMGetMagneticVariation_ptr(latitude, longitude));
 }
 
-static PyObject *XPLMDegTrueToDegMagneticFun(PyObject *self, PyObject *args)
+My_DOCSTR(_degTrueToDegMagnetic__doc__, "degTrueToDegMagnetic", "degrees=0.0",
+          "Convert degrees True to degrees Magnetic, at user's current location");
+static PyObject *XPLMDegTrueToDegMagneticFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"degrees", NULL};
   (void)self;
   if(!XPLMDegTrueToDegMagnetic_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMDegTrueToDegMagnetic is available only in XPLM300 and up.");
     return NULL;
   }
-  float headingDegreesTrue;
-  if(!PyArg_ParseTuple(args, "f", &headingDegreesTrue)){
+  float headingDegreesTrue = 0.0;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|f", keywords, &headingDegreesTrue)){
     return NULL;
   }
   return PyFloat_FromDouble(XPLMDegTrueToDegMagnetic_ptr(headingDegreesTrue));
 }
 
-static PyObject *XPLMDegMagneticToDegTrueFun(PyObject *self, PyObject *args)
+My_DOCSTR(_degMagneticToDegTrue__doc__, "degMagneticToDegTrue", "degrees=0.0",
+          "Convert degrees Magnetic to degrees True, at user's current location");
+static PyObject *XPLMDegMagneticToDegTrueFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"degrees", NULL};
   (void)self;
   if(!XPLMDegMagneticToDegTrue_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMDegMagneticToDegTrue is available only in XPLM300 and up.");
     return NULL;
   }
-  float headingDegreesMagnetic;
-  if(!PyArg_ParseTuple(args, "f", &headingDegreesMagnetic)){
+  float headingDegreesMagnetic=0.0;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|f", keywords, &headingDegreesMagnetic)){
     return NULL;
   }
   return PyFloat_FromDouble(XPLMDegMagneticToDegTrue_ptr(headingDegreesMagnetic));
 }
 
 
-static PyObject *XPLMLoadObjectFun(PyObject *self, PyObject *args)
+My_DOCSTR(_loadObject__doc__, "loadObject", "path",
+          "Load OBJ file from path, returning objectRef\n"
+          "\n"
+          "Path may be absolute, or relative X-Plane Root");
+static PyObject *XPLMLoadObjectFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"path", NULL};
   (void)self;
   const char *inPath;
-  if(!PyArg_ParseTuple(args, "s", &inPath)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inPath)){
     return NULL;
   }
   XPLMObjectRef res = XPLMLoadObject(inPath);
@@ -149,23 +173,24 @@ static void objectLoaded(XPLMObjectRef inObject, void *inRefcon)
 }
 
 
-static PyObject *XPLMLoadObjectAsyncFun(PyObject *self, PyObject *args)
+My_DOCSTR(_loadObjectAsync__doc__, "loadObjectAsync", "path, loaded, refCon=None",
+          "Loads OBJ asynchronously, calling callback on completion.\n"
+          "\n"
+          "Callback signature is loaded(objecRef, refCon)\n"
+          "Object path is absolute or relative X-Plane root.");
+static PyObject *XPLMLoadObjectAsyncFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"path", "loaded", "refCon", NULL};
   (void)self;
   if(!XPLMLoadObjectAsync_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMLoadObjectAsync is available only in XPLM210 and up.");
     return NULL;
   }
   const char *inPath;
-  PyObject *callback, *inRefcon, *pluginSelf;
+  PyObject *callback, *inRefcon=Py_None;
 
-  if(!PyArg_ParseTuple(args, "OsOO", &pluginSelf, &inPath, &callback, &inRefcon)) {
-    PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "sOO", &inPath, &callback, &inRefcon)) {
-      return NULL;
-    }
-  } else {
-    pythonLogWarning("'self' deprecated as first parameter of XPLMLoadObjectAsync");
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "sO|O", keywords, &inPath, &callback, &inRefcon)) {
+    return NULL;
   }
 
   PyObject *argsObj = Py_BuildValue("(sOO)", inPath, callback, inRefcon);
@@ -179,45 +204,20 @@ static PyObject *XPLMLoadObjectAsyncFun(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
-#if defined(XPLM_DEPRECATED)
-static PyObject *XPLMDrawObjectsFun(PyObject *self, PyObject *args)
+
+My_DOCSTR(_unloadObject__doc__, "unloadObject", "objectRef",
+          "Unloads objectRef");
+static PyObject *XPLMUnloadObjectFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"objectRef", NULL};
   (void)self;
-  PyObject *object;
-  int inCount;
-  PyObject *locations;
-  int lighting;
-  int earth_relative;
-  if(!PyArg_ParseTuple(args, "OiOii", &object, &inCount, &locations, &lighting, &earth_relative)){
+
+  PyObject *objectRef;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &objectRef)) {
     return NULL;
   }
-  XPLMObjectRef inObject = refToPtr(object, objRefName);
-  XPLMDrawInfo_t *inLocations = (XPLMDrawInfo_t *)malloc(inCount * sizeof(XPLMDrawInfo_t));
-  int i;
-  PyObject *locationsTuple = PySequence_Tuple(locations);
-  for(i = 0; i < inCount; ++i){
-    PyObject *loc = PySequence_Tuple(PyTuple_GetItem(locationsTuple, i));
-    inLocations[i].structSize = sizeof(XPLMDrawInfo_t);
-    inLocations[i].x = getFloatFromTuple(loc, 0);
-    inLocations[i].y = getFloatFromTuple(loc, 1);
-    inLocations[i].z = getFloatFromTuple(loc, 2);
-    inLocations[i].pitch = getFloatFromTuple(loc, 3);
-    inLocations[i].heading = getFloatFromTuple(loc, 4);
-    inLocations[i].roll = getFloatFromTuple(loc, 5);
-    Py_DECREF(loc);
-  }
-  Py_DECREF(locationsTuple);
 
-  XPLMDrawObjects(inObject, inCount, inLocations, lighting, earth_relative);
-  free(inLocations);
-  Py_RETURN_NONE;
-}
-#endif
-
-static PyObject *XPLMUnloadObjectFun(PyObject *self, PyObject *args)
-{
-  (void)self;
-  XPLMObjectRef inObject = refToPtr(PyTuple_GetItem(args, 0), objRefName);
+  XPLMObjectRef inObject = refToPtr(objectRef, objRefName);
   XPLMUnloadObject(inObject);
   Py_RETURN_NONE;
 }
@@ -239,22 +239,29 @@ static void libraryEnumerator(const char *inFilePath, void *inRef)
   Py_XDECREF(res);
 }
 
-static PyObject *XPLMLookupObjectsFun(PyObject *self, PyObject *args)
+My_DOCSTR(_lookupObjects__doc__, "lookupObjects", "path, latitude=0.0, longitude=0.0, enumerator=None, refCon=None",
+          "Converts virtual path to file paths, calling enumerator with info\n"
+          "\n"
+          "Path is virual path, which may have zero or more matching file paths\n"
+          "in library. Count of results is returned by lookupObjects().\n"
+          "For each item found, enumerator(path, refCon) is called.");
+static PyObject *XPLMLookupObjectsFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"path", "latitude", "longitude", "enumerator", "refCon", NULL};
   (void)self;
   const char *inPath;
-  float inLatitude, inLongitude;
-  PyObject *enumerator;
-  PyObject *ref;
+  float inLatitude=0.0, inLongitude=0.0;
+  PyObject *enumerator=Py_None;
+  PyObject *ref=Py_None;
   PyObject *pluginSelf;
-  if(!PyArg_ParseTuple(args, "OsffOO", &pluginSelf, &inPath, &inLatitude, &inLongitude, &enumerator, &ref)) {
-    PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "sffOO", &inPath, &inLatitude, &inLongitude, &enumerator, &ref)) {
-      return NULL;
-    }
-  } else {
-    pythonLogWarning("'self' deprecated as first parameter of XPLMLookupObjects");
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s|ffOO", keywords, &inPath, &inLatitude, &inLongitude, &enumerator, &ref)) {
+    return NULL;
   }
+  if (!PyCallable_Check(enumerator)) {
+    PyErr_SetString(PyExc_RuntimeError , "lookupObject() enumerator callback not callable function.");
+    return NULL;
+  }
+
   pluginSelf = get_pluginSelf();
   void *myRef = (void *)++libEnumCntr;
   PyObject *refObj = PyLong_FromVoidPtr(myRef);
@@ -279,27 +286,41 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef XPLMSceneryMethods[] = {
-  {"XPLMCreateProbe", XPLMCreateProbeFun, METH_VARARGS, ""},
-  {"XPLMDestroyProbe", XPLMDestroyProbeFun, METH_VARARGS, ""},
-  {"XPLMProbeTerrainXYZ", XPLMProbeTerrainXYZFun, METH_VARARGS, ""},
-  {"XPLMDegMagneticToDegTrue", XPLMDegMagneticToDegTrueFun, METH_VARARGS, ""},
-  {"XPLMGetMagneticVariation", XPLMGetMagneticVariationFun, METH_VARARGS, ""},
-  {"XPLMDegTrueToDegMagnetic", XPLMDegTrueToDegMagneticFun, METH_VARARGS, ""},
-  {"XPLMLoadObject", XPLMLoadObjectFun, METH_VARARGS, ""},
-  {"XPLMLoadObjectAsync", XPLMLoadObjectAsyncFun, METH_VARARGS, ""},
+  {"createProbe", (PyCFunction)XPLMCreateProbeFun, METH_VARARGS | METH_KEYWORDS, _createProbe__doc__},
+  {"XPLMCreateProbe", (PyCFunction)XPLMCreateProbeFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"destroyProbe", (PyCFunction)XPLMDestroyProbeFun, METH_VARARGS | METH_KEYWORDS, _destroyProbe__doc__},
+  {"XPLMDestroyProbe", (PyCFunction)XPLMDestroyProbeFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"probeTerrainXYZ", (PyCFunction)XPLMProbeTerrainXYZFun, METH_VARARGS | METH_KEYWORDS, _probeTerrainXYZ__doc__},
+  {"XPLMProbeTerrainXYZ", (PyCFunction)XPLMProbeTerrainXYZFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"degMagneticToDegTrue", (PyCFunction)XPLMDegMagneticToDegTrueFun, METH_VARARGS | METH_KEYWORDS, _degMagneticToDegTrue__doc__},
+  {"XPLMDegMagneticToDegTrue", (PyCFunction)XPLMDegMagneticToDegTrueFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getMagneticVariation", (PyCFunction)XPLMGetMagneticVariationFun, METH_VARARGS | METH_KEYWORDS, _getMagneticVariation__doc__},
+  {"XPLMGetMagneticVariation", (PyCFunction)XPLMGetMagneticVariationFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"degTrueToDegMagnetic", (PyCFunction)XPLMDegTrueToDegMagneticFun, METH_VARARGS | METH_KEYWORDS, _degTrueToDegMagnetic__doc__},
+  {"XPLMDegTrueToDegMagnetic", (PyCFunction)XPLMDegTrueToDegMagneticFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"loadObject", (PyCFunction)XPLMLoadObjectFun, METH_VARARGS | METH_KEYWORDS, _loadObject__doc__},
+  {"XPLMLoadObject", (PyCFunction)XPLMLoadObjectFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"loadObjectAsync", (PyCFunction)XPLMLoadObjectAsyncFun, METH_VARARGS | METH_KEYWORDS, _loadObjectAsync__doc__},
+  {"XPLMLoadObjectAsync", (PyCFunction)XPLMLoadObjectAsyncFun, METH_VARARGS | METH_KEYWORDS, ""},
 #if defined(XPLM_DEPRECATED)
-  {"XPLMDrawObjects", XPLMDrawObjectsFun, METH_VARARGS, ""},
+  {"drawObjects", (PyCFunction)XPLMDrawObjectsFun, METH_VARARGS | METH_KEYWORDS, _drawObjects__doc__},
+  {"XPLMDrawObjects", (PyCFunction)XPLMDrawObjectsFun, METH_VARARGS | METH_KEYWORDS, ""},
 #endif
-  {"XPLMUnloadObject", XPLMUnloadObjectFun, METH_VARARGS, ""},
-  {"XPLMLookupObjects", XPLMLookupObjectsFun, METH_VARARGS, ""},
-  {"cleanup", cleanup, METH_VARARGS, ""},
+  {"unloadObject", (PyCFunction)XPLMUnloadObjectFun, METH_VARARGS | METH_KEYWORDS, _unloadObject__doc__},
+  {"XPLMUnloadObject", (PyCFunction)XPLMUnloadObjectFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"lookupObjects", (PyCFunction)XPLMLookupObjectsFun, METH_VARARGS | METH_KEYWORDS, _lookupObjects__doc__},
+  {"XPLMLookupObjects", (PyCFunction)XPLMLookupObjectsFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
 
 static struct PyModuleDef XPLMSceneryModule = {
   PyModuleDef_HEAD_INIT,
   "XPLMScenery",
-  NULL,
+  "Laminar documentation: \n"
+  "   https://developer.x-plane.com/sdk/XPLMScenery/\n"
+  "XPPython3 documentation: \n"
+  "   https://xppython3.rtfd.io/en/stable/development/modules/scenery.html",
   -1,
   XPLMSceneryMethods,
   NULL,
@@ -320,11 +341,16 @@ PyInit_XPLMScenery(void)
 
   PyObject *mod = PyModule_Create(&XPLMSceneryModule);
   if(mod){
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
     PyModule_AddIntConstant(mod, "xplm_ProbeY", xplm_ProbeY);
-
     PyModule_AddIntConstant(mod, "xplm_ProbeHitTerrain", xplm_ProbeHitTerrain);
     PyModule_AddIntConstant(mod, "xplm_ProbeError", xplm_ProbeError);
     PyModule_AddIntConstant(mod, "xplm_ProbeMissed", xplm_ProbeMissed );
+
+    PyModule_AddIntConstant(mod, "ProbeY", xplm_ProbeY);
+    PyModule_AddIntConstant(mod, "ProbeHitTerrain", xplm_ProbeHitTerrain);
+    PyModule_AddIntConstant(mod, "ProbeError", xplm_ProbeError);
+    PyModule_AddIntConstant(mod, "ProbeMissed", xplm_ProbeMissed );
   }
 
   return mod;

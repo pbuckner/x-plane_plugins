@@ -1,10 +1,11 @@
 XPLMMap
 =======
 .. py:module:: XPLMMap
+.. py:currentmodule:: xp
 
 To use::
 
-  import XPLMMap
+  import xp
 
 This API allows you to create new layers within X-Plane maps. Your layers
 can draw arbitrary OpenGL, but they conveniently also have access to
@@ -23,7 +24,7 @@ large amount of map area, like the terrain and clouds) appear beneath
 "markings" layers (like airport icons). This ensures that layers with fine
 details don't get obscured by layers with larger details.
 
-The XPLM map API reflects both aspects of this draw layering: you can
+The XPLMMap API reflects both aspects of this draw layering: you can
 register a layer as providing either markings or fill, and X-Plane will
 draw your fill layers beneath your markings layers (regardless of
 registration order). Likewise, you are guaranteed that your layer's icons
@@ -53,270 +54,357 @@ coordinates, the projection APIs also let you know the current heading for
 north. (Since X-Plane 11 maps can rotate to match the heading of the user's
 aircraft, it's not safe to assume that north is at zero degrees rotation.)
 
-Callbacks
----------
-When you create a new map layer (using :py:func:`XPLMCreateMapLayer`), you can provide
-any or all of these callbacks. They allow you to insert your own OpenGL
-drawing, text labels, and icons into the X-Plane map at the appropriate
-places, allowing your layer to behave as similarly to X-Plane's built-in
-layers as possible.
+.. note:: This API doesn't create new map windows, it creates *layers*, which can be
+     shown/hidden on the existing map window.
 
-There are three "drawing" callbacks:
+API consists of:
 
-* :py:func:`XPLMMapDrawingCallback_f` which draws the map layer: you can use OpenGL here.
-* :py:func:`XPLMMapIconDrawingCallback_f` which draws icons "above" the map layer.
-* :py:func:`XPLMMapLabelDrawingCallback_f` which draws labels.
+* Layer creation and destruction:
 
+  * :py:func:`createMapLayer`, :py:func:`destroyMapLayer`
 
-There are two "layer management" callbacks
-that your map layer can receive
-(if you provide the callback in your :ref:`XPLMCreateMapLayer_t`). They allow you
-to manage the lifecycle of your layer, as well as cache any
-computationally-intensive preparation you might need for drawing.
+  * :py:func:`registerMapCreationHook`, :py:func:`mapExists`
 
-* :py:func:`XPLMMapPrepareCacheCallback_f` which is called when the map's bounds change.
-* :py:func:`XPLMMapWillBeDeletedCallback_f` which is called just before the map gets deleted.
+* Drawing routines available *from within map drawing callback*:
 
-.. py:function:: XPLMMapDrawingCallback_f(layer, bounds, zoom, mapUnits, mapStyle, projection, refCon) -> None:
+  * :py:func:`drawMapIconFromSheet`, :py:func:`drawMapLabel`
 
- :param layer: :ref:`XPLMMapLayerID` you created via :py:func:`XPLMCreateMapLayer`
- :param bounds: list of four floats (left, top, right, bottom) representing map bounds              
- :param float zoom: ratio of zoom (1.0 = 100%)
- :param float mapUnits: Map Units per User Interface Unit
- :param mapStyle: :ref:`XPLMMapStyle`
- :param projection: :ref:`XPLMMapProjectionID`
- :param object refCon: reference constant
+* Projection and scaling utilities so your drawing gets displayed properly:
 
- This is the OpenGL map drawing callback for plugin-created map layers. You
- can perform arbitrary OpenGL drawing from this callback, with one
- exception: changes to the Z-buffer are not permitted, and will result in
- map drawing errors.
+  * :py:func:`mapProject`, :py:func:`mapUnproject`
 
- All drawing done from within this callback appears beneath all built-in
- X-Plane icons and labels, but above the built-in "fill" layers (layers
- providing major details, like terrain and water). Note, however, that the
- relative ordering between the drawing callbacks of different plugins is not
- guaranteed.
+  * :py:func:`mapScaleMeter`
 
-
-
-.. py:function:: XPLMMapIconDrawingCallback_f(layer, bounds, zoom, mapUnits, mapStyle, projection, refCon) -> None:
-
- :param layer: :ref:`XPLMMapLayerID` you created via :py:func:`XPLMCreateMapLayer`
- :param bounds: list of four floats (left, top, right, bottom) representing map bounds              
- :param float zoom: ratio of zoom (1.0 = 100%)
- :param float mapUnits: Map Units per User Interface Unit
- :param mapStyle: :ref:`XPLMMapStyle`
- :param projection: :ref:`XPLMMapProjectionID`
- :param object refCon: reference constant
-
- This is the icon drawing callback that enables plugin-created map layers to
- draw icons using X-Plane's built-in icon drawing functionality. You can
- request an arbitrary number of PNG icons to be drawn via
- :py:func:`XPLMDrawMapIconFromSheet` from within this callback, but you may not
- perform any OpenGL drawing here.
-
- Icons enqueued by this function will appear above all OpenGL drawing
- (performed by your optional :py:func:`XPLMMapDrawingCallback_f`), and above all
- built-in X-Plane map icons of the same layer type ("fill" or "markings," as
- determined by the :ref:`XPLMMapLayerType` in your :ref:`XPLMCreateMapLayer_t`). Note,
- however, that the relative ordering between the drawing callbacks of
- different plugins is not guaranteed.
-
-
-.. py:function:: XPLMMapLabelDrawingCallback_f(layer, bounds, zoom, mapUnits, mapStyle, projection, refCon) -> None:
-
- :param layer: :ref:`XPLMMapLayerID` you created via :py:func:`XPLMCreateMapLayer`
- :param bounds: list of four floats (left, top, right, bottom) representing map bounds              
- :param float zoom: ratio of zoom (1.0 = 100%)
- :param float mapUnits: Map Units per User Interface Unit
- :param mapStyle: :ref:`XPLMMapStyle`
- :param projection: :ref:`XPLMMapProjectionID`
- :param object refCon: reference constant
-
- This is the label drawing callback that enables plugin-created map layers
- to draw text labels using X-Plane's built-in labeling functionality. You
- can request an arbitrary number of text labels to be drawn via
- :py:func:`XPLMDrawMapLabel` from within this callback, but you may not perform any
- OpenGL drawing here.
-
- Labels enqueued by this function will appear above all OpenGL drawing
- (performed by your optional :py:func:`XPLMMapDrawingCallback_f`), and above all
- built-in map icons and labels of the same layer type ("fill" or "markings,"
- as determined by the :ref:`XPLMMapLayerType` in your :ref:`XPLMCreateMapLayer_t`). Note,
- however, that the relative ordering between the drawing callbacks of
- different plugins is not guaranteed.
-
-
-.. py:function:: XPLMMapPrepareCacheCallback_f(layer, bounds, projection, refCon) -> None:
-
- :param layer: :ref:`XPLMMapLayerID` you created via :py:func:`XPLMCreateMapLayer`
- :param bounds: list of four floats (left, top, right, bottom) representing map bounds              
- :param projection: :ref:`XPLMMapProjectionID`
- :param object refCon: reference constant
-
- A callback used to allow you to cache whatever information your layer needs
- to draw in the current map area.
-
- This is called each time the map's total bounds change. This is typically
- triggered by new DSFs being loaded, such that X-Plane discards old,
- now-distant DSFs and pulls in new ones. At that point, the available bounds
- of the map also change to match the new DSF area.
-
- By caching just the information you need to draw in this area, your future
- draw calls can be made faster, since you'll be able to simply "splat" your
- precomputed information each frame.
-
- We guarantee that the map projection will not change between successive
- prepare cache calls, nor will any draw call give you bounds outside these
- total map bounds. So, if you cache the projected map coordinates of all the
- items you might want to draw in the total map area, you can be guaranteed
- that no draw call will be asked to do any new work.
-
-
-.. py:function:: XPLMMapWillBeDeletedCallback_f(layer, refCon) -> None:
-
- :param layer: :ref:`XPLMMapLayerID` you created via :py:func:`XPLMCreateMapLayer`
- :param object refCon: reference constant
-
- Called just before your map layer gets deleted. Because SDK-created map
- layers have the same lifetime as the X-Plane map that contains them, if the
- map gets unloaded from memory, your layer will too.
-
-
+  * :py:func:`mapGetNorthHeading`
 
 Map Layer Creation and Destruction
 ----------------------------------
 
-Enables the creation of new map layers. Layers are created for a particular
+Layers are created for a particular
 instance of the X-Plane map. For instance, if you want your layer to appear
 in both the normal map interface and the Instructor Operator Station (IOS),
-you would need two separate calls to :py:func:`XPLMCreateMapLayer`, with two
-different values for your :ref:`XPLMCreateMapLayer_t` ``layer_name``. (That's what
-the documentation says -- but is that really two different ``layerName`` or two different ``mapToCreateLayerIn``?)
+you would need two separate calls to :py:func:`createMapLayer`, with two
+different values for *map*.
 
 Your layer's lifetime will be determined by the lifetime of the map it is
 created in. If the map is destroyed (on the X-Plane side), your layer will
-be too, and you'll receive a callback to your :py:func:`XPLMMapWillBeDeletedCallback_f`.
+be too, and you'll receive a callback to your ``deleteLayer()``.
 
-.. py:function:: XPLMCreateMapLayer(params) -> XPLMMapLayerID:
+You can only create a layer *after* the map has been created (by X-Plane). You
+can check to see if it exists (:py:func:`mapExists`) and register to be notified
+when it is created (:py:func:`registerMapCreationHook`).
 
- This routine creates a new map layer. You pass in an :ref:`XPLMCreateMapLayer_t`
- list with all of the fields set in.
+.. py:function:: createMapLayer(mapType=xp.MAP_USER_INTERFACE, layerType=xp.MapLayer_Markings, delete=None, prep=None, draw=None, icon=None, label=None, showToggle=1, name="", refCon=None)
 
- :param params: :ref:`XPLMCreateMapLayer_t` tuple
- :return: :ref:`XPLMMapLayerID` on success, None on failure
+ Create a new map layer, setting callback functions.
 
- Returns None if the layer creation failed. This happens most frequently
- because the map you specified in your ``mapToCreateLayerIn``
- field doesn't exist (that is, if
- :py:func:`XPLMMapExists` returns 0 for the specified map). You can use
- :py:func:`XPLMRegisterMapCreationHook` to get a notification each time a new map is
+ *mapType* indicates which map type this layer applies to. Either ``xp.MAP_USER_INTERFACE``
+ for the X-Plane Map Window or ``xp.MAP_IOS`` for the Instructor Operator Station.
+
+ *layerType* is either ``xp.MapLayer_Fill``, which will draw "fill" graphics, like weather patterns, terrain, etc, or
+ ``xp.MapLayer_Markings``, which provides marking for map features like NAVAIDs, airports, etc. Markings are always drawn
+ over Fill layers.
+
+ The layer's *name* will be displayed to the user within the Map Window, and if *showToggle* is 1, the user will have the
+ option to show/hide the layer.
+
+ >>> layerID = xp.createMapLayer(name="My New Layer")
+ >>> layerID
+ <capsule object "LayerIDRef" at 0x7fecc31d67b0>
+
+ .. image:: /images/map_layer.png
+
+ The remaining items are callback functions, each of which will be passed the *refCon* reference constant.
+ The callback functions do not return a value.
+
+ Parameters passed to most callback functions include:
+
+ * *layerID*: the layer you created via :py:func:`createMapLayer`
+
+ * *bounds*: list of four floats (left, top, right, bottom) representing map bounds              
+
+ * *zoom*: ratio of zoom (1.0 = 100%)
+
+ * *mapUnits*: Map Units per User Interface Unit (See :py:func:`mapScaleMeter`)
+
+ * *mapStyle*: One of:
+    .. data:: MapStyle_VFR_Sectional
+      :value: 0        
+    .. data:: MapStyle_IFR_LowEnroute
+      :value: 1        
+    .. data:: MapStyle_IFR_HighEnroute
+      :value: 2        
+
+ * *projection*: opaque handle for a map projection: Pass it to the projection APIs to translate between map coordinates and latitude/longitude
+
+ * *refCon*: reference constant provided with :py:func:`createMapLayer`
+
+ **Three Drawing callbacks:**
+ 
+ .. py:function:: drawLayer(layerID, bounds, zoom, mapUnits, mapStyle, projection, refCon)
+        
+     ``drawLayer()`` layer is lowest. You can perform arbitrary OpenGL drawing from
+     this callback, with one
+     exception: changes to the Z-buffer are not permitted, and will result in
+     map drawing errors.
+
+     All drawing done from within the ``drawLayer()`` callback appears beneath all built-in
+     X-Plane icons and labels, but above the built-in "fill" layers (layers
+     providing major details, like terrain and water). Note, however, that the
+     relative ordering between the drawing callbacks of different plugins is not
+     guaranteed.
+
+     >>> from OpenGL import GL
+     >>> def drawLayer(layerID, bounds, zoom, mapUnits, mapStyle, projection, refCon):
+     ...    (left, top, right, bottom) = bounds
+     ...    xp.setGraphicsState(0, 0, 0, 0, 1, 1, 0)
+     ...    GL.glColor3f(0, 1, 0)  # Green
+     ...    GL.glLineWidth(10)
+     ...    GL.glBegin(GL.GL_LINES)
+     ...    GL.glVertex2f(left, top)
+     ...    GL.glVertex2f(right, bottom)
+     ...    GL.glLineWidth(1)
+     ...    GL.glEnd()
+     ...
+     >>> layerID = xp.createMapLayer(name="Green Diagonal", draw=drawLayer)
+
+     .. image:: /images/map_diagonal.png
+     
+ .. py:function:: iconLayer(layerID, bounds, zoom, mapUnits, mapStyle, projection, refCon)
+
+     The ``iconLayer()`` callback enables plugin-created map layers to
+     draw icons using X-Plane's built-in icon drawing functionality. You can
+     request an arbitrary number of PNG icons to be drawn via
+     :py:func:`drawMapIconFromSheet` from within this callback, but you may not
+     perform any OpenGL drawing here.
+
+     Icons enqueued by this function will appear above all OpenGL drawing
+     (performed by your optional ``drawLayer()``), and above all
+     built-in X-Plane map icons of the same layer type ("fill" or "markings," as
+     determined by the *layerType* provided with :py:func:`createMapLayer`). Note,
+     however, that the relative ordering between the drawing callbacks of
+     different plugins is not guaranteed.
+
+     >>> from OpenGL import GL
+     >>> SAMPLE_IMG = "Resources/bitmaps/interface11/star.png"
+     >>> def iconLayer(layerID, bounds, zoom, mapUnits, mapStyle, projection, refCon):
+     ...    (left, top, right, bottom) = bounds
+     ...    width = xp.mapScaleMeter(projection, (left + right) / 2, (top + bottom) / 2) * 1609.34 * 10
+     ...    xp.drawMapIconFromSheet(layerID, SAMPLE_IMG, 0, 0, 1, 1, (left + right) / 2, (top + bottom) / 2, xp.MapOrientation_Map, 0, width)
+     ...
+     >>> layerID = xp.createMapLayer(name="Black Star", icon=iconLayer)
+
+     .. image:: /images/map_star.png
+                
+ .. py:function:: labelLayer(layerID, bounds, zoom, mapUnits, mapStyle, projection, refCon)
+
+     This is the label drawing callback that enables plugin-created map layers
+     to draw text labels using X-Plane's built-in labeling functionality. You
+     can request an arbitrary number of text labels to be drawn via
+     :py:func:`drawMapLabel` from within this callback, but you may not perform any
+     OpenGL drawing here.
+    
+     Labels enqueued by this function will appear above all OpenGL drawing
+     (performed by your optional :py:func:`drawLayer`), and above all
+     built-in map icons and labels of the same layer type ("fill" or "markings,"
+     as determined by the *layerType* in :py:func:`createMapLayer`). Note,
+     however, that the relative ordering between the drawing callbacks of
+     different plugins is not guaranteed.
+    
+     >>> from OpenGL import GL
+     >>> def labelLayer(layerID, bounds, zoom, mapUnits, mapStyle, projection, refCon):
+     ...    (left, top, right, bottom) = bounds
+     ...    xp.drawMapLabel(layerID, "Map Middle", (left + right) / 2, (top + bottom) / 2 , xp.MapOrientation_Map, 45)
+     ...
+     >>> layerID = xp.createMapLayer(name="Label Example", label=labelLayer)
+
+     .. image:: /images/map_label.png
+
+ **One callback whenever the maps bounds changes:**
+    
+ .. py:function:: prepLayer(layerID, bounds, projection, refCon)
+
+     A callback used to allow you to cache whatever information your layer needs
+     to draw in the current map area. (Because the draw callbacks will be called every frame!)
+
+     This is called each time the map's total bounds change. This is typically
+     triggered by new DSFs being loaded, such that X-Plane discards old,
+     now-distant DSFs and pulls in new ones. At that point, the available bounds
+     of the map also change to match the new DSF area.
+     
+     By caching just the information you need to draw in this area, your future
+     draw calls can be made faster, since you'll be able to simply "splat" your
+     precomputed information each frame.
+     
+     We guarantee that the map projection will not change between successive
+     prepare cache calls, nor will any draw call give you bounds outside these
+     total map bounds. So, if you cache the projected map coordinates of all the
+     items you might want to draw in the total map area, you can be guaranteed
+     that no draw call will be asked to do any new work.
+     
+     >>> def prepLayer(layerID, bounds, projection, refCon):
+     ...    xp.log(f"Bounds changed to: {bounds}")
+     ...
+     >>> layerID = xp.createMapLayer(name="Prep Example", prep=prepLayer)
+
+     (Significantly change your aircraft location and your map bounds will
+     change, causing the log message to be printed.)
+
+ **One callback just before map layer is deleted:**
+
+ .. py:function:: deleteLayer(layerID, refCon)
+
+     Called just before your map layer gets deleted. Because SDK-created map
+     layers have the same lifetime as the X-Plane map that contains them, if the
+     map gets unloaded from memory, your layer will too.
+     
+     >>> def deleteLayer(layerID, refCon):
+     ...    xp.log("Layer being deleted")
+     ...
+     >>> layerID = xp.createMapLayer(name="Delete Example", delete=deleteLayer)
+
+     This does not trigger when your map *layer* is disabled by the user, nor
+     when the map window itself is closed. For X-Plane 11.50+ it appears to
+     occur only when the sim is exited.
+     
+
+ On success, a :py:func:`createMapLayer` returns a layerID. Most common failure occurs when the map you specified in *map* does not exist
+ (e.g., :py:func:`mapExists` returns 0). You can use 
+ :py:func:`registerMapCreationHook` to get a notification each time a new map is
  opened in X-Plane, at which time you can create layers in it.
 
- .. _XPLMCreateMapLayer_t:
+ For legacy purposes, you may pass a 10-element tuple *instead of* individually
+ specifying the parameters.
 
-XPLMCreateMapLayer_t
-********************
+ The tuple is:
 
- Ten-item tuple (or list) used as input to :py:func:`XPLMCreateMapLayer`
+ ::
 
- = ====================== ==============================
- #  Tuple field            Value
- = ====================== ==============================
- 0 mapToCreateLayerIn     :ref:`XPLM Map Layer` string
- 1 layerType              :ref:`XPLMMapLayerType`
- 2 willBeDeletedCallback  :py:func:`XPLMMapWillBeDeletedCallback_f`
- 3 prepCacheCallback      :py:func:`XPLMMapPrepareCacheCallback_f`
- 4 drawCallback           :py:func:`XPLMMapDrawingCallback_f`
- 5 iconCallback           :py:func:`XPLMMapIconDrawingCallback_f`
- 6 labelCallback          :py:func:`XPLMMapLabelDrawingCallback_f`
- 7 showUiToggle           int 1= show toggle button for this layer
- 8 layerName              str to display in UI
- 9 refCon                 any object
- = ====================== ==============================
+    (
+      mapType,
+      layerType,
+      delete, prep, draw, icon, label,
+      showToggle,
+      name,
+      refCon
+    )
+    
+ Note the order is very important!
+ 
+ You pass in a tuple with **all of the fields** set in.
+
+ >>> t = (xp.MAP_USER_INTERFACE,
+ ...      xp.MapLayer_Markings,
+ ...      None, None, draw, icon, label,
+ ...      1,
+ ...      "My New Map",
+ ...      None)
+ ...
+ >>> layerID = xp.createMapLayer(t)
+
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMMap/#XPLMCreateMapLayer>`__ :index:`XPLMCreateMapLayer`
 
 
-.. py:function:: XPLMDestroyMapLayer(inLayer) -> int:
+.. py:function:: destroyMapLayer(layerID)
 
  Destroys a map layer you created (calling your
- :py:func:`XPLMMapWillBeDeletedCallback_f` if applicable).
- 
- :param layer: :ref:`XPLMMapLayerID`
- :return: int 1= successfully deleted               
+ ``deleteLayer()`` callback if applicable). Returns 1 on success.
 
-.. py:function::  XPLMMapCreatedCallback_f(mapIdentifier, refcon) -> None:
+ >>> layerID = xp.createMapLayer()
+ >>> xp.destroyMapLayer(layerID)
+ 1
 
- A callback you provide, to notify your plugin that a new map has been created in
- X-Plane. This is the best time to add a custom map layer using
- :py:func:`XPLMCreateMapLayer`. Register the callback using :py:func:`XPLMRegisterMapCreationHook`.
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMMap/#XPLMDestroyMapLayer>`__ :index:`XPLMDestroyMapLayer`
+  
 
- No OpenGL drawing is permitted within this callback.
+.. py:function:: registerMapCreationHook(mapCreated, refCon)
 
- :param str mapIdentifier: :ref:`XPLM Map Layer` string
- :param object refcon: Reference constant you provided during :py:func:`XPLMRegisterMapCreationHook`.
-
-
-.. py:function:: XPLMRegisterMapCreationHook(callback, refcon) -> None:
-
- Registers your :py:func:`XPLMMapCreatedCallback_f` callback to receive a
+ Registers your ``mapCreated()`` callback to receive a
  notification each time a new map is constructed in X-Plane. This callback is
  the best time to add your custom
- map layer using :py:func:`XPLMCreateMapLayer`.
+ map layer using :py:func:`createMapLayer`.
 
- :param callback: :py:func:`XPLMMapCreatedCallback_f` function you provide.
- :param object refcon: reference constant that will be provided to your callback.
+ .. py:function:: mapCreated(mapType, refCon)
+    
+    *mapType* is the type of map being created, either ``xp.MAP_USER_INTERFACE`` or ``xp.MAP_IOS``.
+    *refCon* is what you passed to :py:func:`registerMapCreationHook`
 
+    No OpenGL drawing is permitted within this callback.
+
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMMap/#XPLMRegisterMapCreationHook>`__ :index:`XPLMRegisterMapCreationHook`
+ 
  .. note:: You will not be notified about any maps that already exist --- you
-    can use :py:func:`XPLMMapExists` to check for maps that were created previously.
+    can use :py:func:`mapExists` to check for maps that were created previously.
 
-.. py:function:: XPLMMapExists(mapIdentifier) -> int:
+ >>> def mapCreated(mapType, refCon):
+ ...    if mapType == xp.MAP_USER_INTERFACE:
+ ...        do_my_create_layer()
+ ...
+ >>> if not xp.mapExists(xp.MAP_USER_INTERFACE):
+ ...    # map does not yet exist, so register a creation callback.
+ ...    xp.registerMapCreationHook(mapCreated)
+ ... else:
+ ...    # map already exists, so immediately create the layer
+ ...    do_my_create_layer()
 
- :param str mapIdentifier: :ref:`XPLM Map Layer` string
- :return int: 1= map already exists
+.. py:function:: mapExists(mapType)
 
  Returns 1 if the map with the specified identifier already exists in
- X-Plane. In that case, you can safely call :py:func:`XPLMCreateMapLayer` specifying
+ X-Plane. In that case, you can safely call :py:func:`createMapLayer` specifying
  that your layer should be added to that map.
 
+ Note that "exists" is different from "displayed". The map may have been displayed
+ and then hidden, yet it will still exist. You may create layers while the map window is
+ hidden.
+
+ *mapType* is one of ``xp.MAP_USER_INTERFACE``
+ for the X-Plane Map Window or ``xp.MAP_IOS`` for the Instructor Operator Station.
+
+ >>> xp.mapExists(xp.MAP_IOS)
+ 0
+ >>> xp.mapExists(xp.MAP_USER_INTERFACE)
+ 1
+
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMMap/#XPLMMapExists>`__ :index:`XPLMMapExists`
 
 Map Drawing
 -----------
 
 These APIs are only valid from within a map drawing callback (one of
-:py:func:`XPLMMapIconDrawingCallback_f` or :py:func:`XPLMMapLabelDrawingCallback_f`).
+``drawLayer()``, ``labelLayer()`` or ``iconLayer()``.)
+
 Your drawing
 callbacks are registered when you create a new map layer as part of your
-:ref:`XPLMCreateMapLayer_t`. The functions here hook into X-Plane's built-in map
+:py:func:`createMapLayer`. The functions here hook into X-Plane's built-in map
 drawing functionality for icons and labels, so that you get a consistent
 style with the rest of the X-Plane map.
 
 Note that the X-Plane 11 map introduces a strict ordering: layers of type
-:data:`xplm_MapLayer_Fill` get drawn beneath all :data:`xplm_MapLayer_Markings` layers.
-Likewise, all OpenGL drawing (performed in your layer's
-:py:func:`XPLMMapDrawingCallback_f`) will appear beneath any icons and labels you
-draw.
+:data:`MapLayer_Fill` get drawn beneath all :data:`MapLayer_Markings` layers.
+Likewise, all OpenGL drawing (performed in your layer's ``drawLayer()`` callback)
+will appear beneath any icons and labels you draw.
 
-.. py:function:: XPLMDrawMapIconFromSheet(layer, png, s, t, ds, dt, x, y, orientation, rotate, mapWidth) -> None:
+.. py:function:: drawMapIconFromSheet(layerID, png, s, t, ds, dt, x, y, orientation, rotate, mapWidth)
 
  Enables plugin-created map layers to draw PNG icons using X-Plane's
  built-in icon drawing functionality. Only valid from within an
- XPLMIconDrawingCallback_t (but you can request an arbitrary number of icons
+ ``iconLayer()`` callback (but you can request an arbitrary number of icons
  to be drawn from within your callback).
  
- :param layer: :ref:`XPLMMapLayerID`
- :param str png: path of the png file, relative X-Plane, e.g., "Resources/plugins/PythonPlugins/foo.png"
- :param int s:
- :param int t:
- :param int ds:
- :param int dt: s, t, ds, dt are icon coordinates within the png file (see below)
- :param float x:
- :param float y: (x, y) coordinates to draw the icon (projected Lat Lng, see :py:func:`XPLMMapProject`).
- :param int orientation: :ref:`XPLMMapOrientation`
- :param float rotate: clockwise rotation in degrees
- :param float mapWidth: width of the icon, in map units (See :py:func:`XPLMMapScaleMeter`)
+ *layerID* is the value returned from your :py:func:`createMapLayer`, *png* is the string
+ path to a PNG file, relative X-Plane root (e.g., "Resources/plugins/PythonPlugins/foo.png").
 
- X-Plane will automatically manage the memory for your texture so that it
+ *s*, *t*, *ds*, *dt* are icon coordinates within the png file (see below).
+
+ *x*, *y* are projected latitude and longitude coordinates, where you want to draw the icon. (See :py:func:`mapProject`).
+
+ *orientation* is the map's current orientation, either ``xp.MapOrientation_Map`` (0 degrees rotation matches map's north),
+ or ``xp.MapOrientation_UI`` (0 degrees rotation is "up" relative to the user interface). *rotate* indicated degrees
+ of clockwise rotation.
+
+ *mapWidth* is the width of the icon in **map units** (See :py:func:`mapScaleMeter`)
+
+ X-Plane will automatically manage the memory for your PNG texture so that it
  only has to be loaded from disk once as long as you continue drawing it
  per-frame. (When you stop drawing it, the memory may purged in a "garbage
  collection" pass, require a load from disk in the future.)
@@ -342,25 +430,33 @@ draw.
  the full image as 3 cells x 3 cells (i.e, ds, dt = (3, 3)), and the sub-image *E*
  is in cell (2, 0).
  
- This function is only valid from within an :py:func:`XPLMIconDrawingCallback_f` (but
+ This function is only valid from within an ``iconLayer()`` (but
  you can request an arbitrary number of icons to be drawn from within your
  callback).
 
+ See example in :py:func:`createMapLayer` ``iconLayer()`` callback above.
 
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMMap/#XPLMDrawMapIconFromSheet>`__ :index:`XPLMDrawMapIconFromSheet`
 
-.. py:function:: XPLMDrawMapLabel(layer, label, x, y, orientation, rotate) -> None:
+.. py:function:: drawMapLabel(layerID, label, x, y, orientation, rotate)
 
  Enables plugin-created map layers to draw text labels using X-Plane's
- built-in labeling functionality. Only valid from within an
- :py:func:`XPLMMapLabelDrawingCallback_f` (but you can request an arbitrary number of
- text labels to be drawn from within your callback).
+ built-in labeling functionality. Only valid from within a ``labelLayer()`` callback
+ (but you can request an arbitrary number of text labels to be drawn from within your callback).
 
- :param layer: :ref:`XPLMMapLayerID`
- :param str label: label to be drawn
- :param float x:
- :param float y: (x, y) coordinates to draw the icon (projected Lat Lng, see :py:func:`XPLMMapProject`).
- :param int orientation: :ref:`XPLMMapOrientation`
- :param float rotate: clockwise rotation in degrees
+ *layerID* is the value returned from your :py:func:`createMapLayer`, *label* is the string
+ to be displayed.
+
+  *x*, *y* are projected latitude and longitude coordinates, where you want to draw the icon. (See :py:func:`mapProject`).
+  The string will be centered on that point.
+
+ *orientation* is the map's current orientation, either ``xp.MapOrientation_Map`` (0 degrees rotation matches map's north),
+ or ``xp.MapOrientation_UI`` (0 degrees rotation is "up" relative to the user interface). *rotate* indicated degrees
+ of clockwise rotation.
+
+ See example in :py:func:`createMapLayer` ``labelLayer()`` callback above.
+
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMMap/#XPLMDrawMapLabel>`__ :index:`XPLMDrawMapLabel`
 
 Map Projections
 ---------------
@@ -379,72 +475,85 @@ Since X-Plane 11 maps can rotate to match the heading of the aircraft, the
 map's rotation can potentially change every frame.
 
 
-.. py:function:: XPLMMapProject(projection, latitude, longitude) -> (x, y)
+.. py:function:: mapProject(projection, latitude, longitude)
 
- Projects a latitude/longitude into map coordinates. This is the inverse of
- :py:func:`XPLMMapUnproject`.
+ Projects a *latitude*, *longitude* (in degrees) into map coordinates (x, y). This is the inverse of
+ :py:func:`mapUnproject`.
 
  Only valid from within a map layer callback (one of
- :py:func:`XPLMMapPrepareCacheCallback_f`, py:func:`XPLMMapDrawingCallback_f`,
- :py:func:`XPLMMapIconDrawingCallback_f`, or py:func:`XPLMMapLabelDrawingCallback_f`.)
+ :py:func:`prepLayer`, :py:func:`drawLayer`,
+ :py:func:`iconLayer`, or :py:func:`labelLayer`.)
 
- :param projection: :ref:`XPLMMapProjectionID` (You'll get this in the map layer callback)
- :param float latitude:
- :param float longitude: Latitude, longitude to be projected
- :return: (x, y)
- :rtype: (float, float)         
+ The returned (x, y) tuple can be used to draw on the map
+ (e.g, with :py:func:`drawMapIconFromSheet`, :py:func:`drawMapLabel`, or OpenGL).   
 
-.. py:function:: XPLMMapUnproject(projection, x, y) -> (latitude, longitude)
+ *projection* is opaque handle to the current projection, which you'll receive as
+ an input to you callbacks.
+
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMMap/#XPLMMapProject>`__ :index:`XPLMMapProject`
+
+.. py:function:: mapUnproject(projection, x, y)
 
  Transforms map coordinates back into a latitude and longitude. This is the
- inverse of :py:func:`XPLMMapProject`.
+ inverse of :py:func:`mapProject`.
 
  Only valid from within a map layer callback (one of
- :py:func:`XPLMMapPrepareCacheCallback_f`, :py:func:`XPLMMapDrawingCallback_f`,
- :py:func:`XPLMMapIconDrawingCallback_f`, or :py:func:`XPLMMapLabelDrawingCallback_f`.)
+ :py:func:`prepLayer`, :py:func:`drawLayer`,
+ :py:func:`iconLayer`, or :py:func:`labelLayer`.)
 
- :param projection: :ref:`XPLMMapProjectionID` (You'll get this in the map layer callback)
- :param float x:
- :param float y: (x, y) to be unprojected
- :return: (latitude, longitude
- :rtype: (float, float)         
+ *projection* is opaque handle to the current projection, which you'll receive as
+ an input to you callbacks.
 
+ Returns a pair of floats (latitude, longitude)
 
-.. py:function:: XPLMMapScaleMeter(projection, x, y) -> mapUnits:
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMMap/#XPLMMapUnproject>`__ :index:`XPLMMapUnproject`
 
- Returns the number of map units that correspond to a distance of one meter
- at a given set of map coordinates.
+ .. note:: While :py:func:`mapProject` and :py:func:`mapUnproject` are inverse functions,
+           they are only valid over the bounds of the current map. That is, the map coordinates
+           (0, 0) will map to many different (latitude, longitude) depending on
+           where the map is currently loaded. This is the reason for :py:func:`prepLayer`,
+           which will be called whenever the map's domain has changed. See example in
+           :doc:`PI_Map.py<../samples>` demo.
+
+.. py:function:: mapScaleMeter(projection, x, y)
+
+ Returns the number of map units that correspond to a distance of **one meter**
+ at a given set of map coordinates. (Because of the projection, "one meter"
+ at the center of the projected map may not be the same number of map units
+ as at the edges.)
 
  Only valid from within a map layer callback (one of
- :py:func:`XPLMMapPrepareCacheCallback_f`, :py:func:`XPLMMapDrawingCallback_f`,
- :py:func:`XPLMMapIconDrawingCallback_f`, or :py:func:`XPLMMapLabelDrawingCallback_f`.)
+ :py:func:`prepLayer`, :py:func:`drawLayer`,
+ :py:func:`iconLayer`, or :py:func:`labelLayer`.)
 
- :param projection: :ref:`XPLMMapProjectionID` (You'll get this in the map layer callback)
- :param float x:
- :param float y: (x, y) location on map for the calculation
- :return float mapUnits: Number of map units representing one meter of distance.
+ *projection* is opaque handle to the current projection, which you'll receive as
+ an input to you callbacks.
 
+ Number of map units allows you to scale map icons. For example, the width of a icon (:py:func:`iconLayer`)
+ is in map units. If you want the icon to be "10 miles" wide on the map, calculate the units, then convert
+ meters to miles and multiply for 10 miles:
 
-.. py:function:: XPLMMapGetNorthHeading(projection, x, y) -> heading:
+ >>> width = xp.mapScaleMeter(projection, x, y) * 1609.34 * 10
+
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMMap/#XPLMMapScaleMeter>`__ :index:`XPLMMapScaleMeter`
+
+.. py:function:: mapGetNorthHeading(projection, x, y)
 
  Returns the heading (in degrees clockwise from "up") that corresponds to
  north at a given point on the map. In other words, if your runway has a
  true heading of 360, you would use "north" as the Cartesian angle at which
  to draw the runway on the map. (You would add the result of
- XPLMMapGetNorthHeading() to your true heading to get the map angle.)
+ :py:func:`mapGetNorthHeading` to your true heading to get the map angle.)
  
- This is necessary becuase X-Plane's map can be rotated to match your
+ This is necessary because X-Plane's map can be rotated to match your
  aircraft's orientation; north is not always "up."
 
  Only valid from within a map layer callback (one of
- XPLMMapPrepareCacheCallback_f, XPLMMapDrawingCallback_f,
- XPLMMapIconDrawingCallback_f, or XPLMMapLabelDrawingCallback_f.)
+ :py:func:`prepLayer`, :py:func:`drawLayer`,
+ :py:func:`iconLayer`, or :py:func:`labelLayer`.)
 
- :param projection: :ref:`XPLMMapProjectionID` (You'll get this in the map layer callback)
- :param float x:
- :param float y: (x, y) location on map for the calculation
- :return: Heading, degrees clockwise from "up"
- :rtype: float
+ *projection* is opaque handle to the current projection, which you'll receive as
+ an input to you callbacks.
 
  .. warning::
 
@@ -462,118 +571,14 @@ map's rotation can potentially change every frame.
 
   .. image:: /images/XPLMMapGetNorthHeading.jpg
 
-Constants
----------
-
-.. _XPLMMapLayerID:
-
-XPLMMapLayerID
-**************
-
-XPLMMapLayerID is an opaque handle for a plugin-created map layer.
-Pass it to the map drawing APIs from an appropriate callback
-to draw in the layer you created.
-
-.. _XPLMMapProjectionID:
-
-XPLMMapProjectionID
-*******************
-
-XPLMMapProjectionID is an opaque handle for a map projection.
-Pass it to the projection APIs to translate between map coordinates
-and latitude/longitudes.
-
-.. _XPLMMapStyle:
-
-XPLMMapStyle
-************
-
-Indicates the visual style being drawn by the map. In X-Plane, the user can
-choose between a number of map types, and different map types may have use
-a different visual representation for the same elements (for instance, the
-visual style of the terrain layer changes drastically between the VFR and
-IFR layers), or certain layers may be disabled entirely in some map types
-(e.g., localizers are only visible in the IFR low-enroute style).
-
- .. data:: xplm_MapStyle_VFR_Sectional
-   :value: 0        
- .. data:: xplm_MapStyle_IFR_LowEnroute
-   :value: 1        
- .. data:: xplm_MapStyle_IFR_HighEnroute
-   :value: 2        
-
-.. _XPLMMapLayerType:
-
-XPLMMapLayerType
-****************
-
-Indicates the type of map layer you are creating. Fill layers will always
-be drawn beneath markings layers.
-
- .. data:: xplm_MapLayer_Fill
-    :value: 0        
-
-    A layer that draws "fill" graphics, like weather patterns, terrain, etc.
-    Fill layers frequently cover a large portion of the visible map area.
-
- .. data:: xplm_MapLayer_Markings
-    :value: 1        
-
-    A layer that provides markings for particular map features, like NAVAIDs,
-    airports, etc. Even dense markings layers cover a small portion of the
-    total map area.
-
-.. _XPLMMapOrientation:
-
-XPLMMapOrientation
-******************
-
-Indicates whether a map element should be match its rotation to the map
-itself, or to the user interface. For instance, the map itself may be
-rotated such that "up" matches the user's aircraft, but you may want to
-draw a text label such that it is always rotated zero degrees relative to
-the user's perspective. In that case, you would have it draw with UI
-orientation.
-
- .. data:: xplm_MapOrientation_Map
-   :value: 0        
-
-   Orient such that a 0 degree rotation matches the map's north
-
- .. data:: xplm_MapOrientation_UI
-   :value: 1        
-
-   Orient such that a 0 degree rotation is "up" relative to the user interface
-
-.. _XPLM Map Layer:
-
-XPLM Map Layer
-**************
-
-Globally unique identifiers, used as the
-mapToCreateLayerIn parameter in :ref:`XPLMCreateMapLayer_t`
-
- .. data:: XPLM_MAP_USER_INTERFACE
-  :value: "XPLM_MAP_USER_INTERFACE"        
-
-  X-Plane's Map window
-
- .. data:: XPLM_MAP_IOS
-  :value: "XPLM_MAP_IOS"        
-
-  X-Plane's Instructor Operator Station
-
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMMap/#XPLMMapGetNorthHeading>`__ :index:`XPLMMapGetNorthHeading`             
 
 Example
 -------
 
-See `XPython/demos/PI_Map.py <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/demos/PI_Map.py>`_
-demo for detailed example. To run, you'll need to:
+See :doc:`PI_Map.py<../samples>` demo for detailed example. To run, you'll need to:
 
 #. Copy the necessary image file ``map-sample-image.png`` from
-   `XPython/demos/ <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/demos/>`_ to your ``Resources/plugins``
-   directory, and
+   ``PythonPlugins/samples`` to your ``Resources/plugins`` directory, and
 #. Install OpenGL: You can do this within X-Plane by using the XPPython3 Pip Installer menu item and install the
    package ``pyopengl``.
-
-

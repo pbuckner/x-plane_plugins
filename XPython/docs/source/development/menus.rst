@@ -27,10 +27,10 @@ Plugins can append to this "Plugins" Menu, under the "Show Plugin Admin" item.
 The order of added items is simply determined by the order of
 calls -- by any plugin -- to any of the following::
   
-  XPLMCreateMenu(..., parentMenu=None, …)
-  XPLMAppendMenuItem(menuID=xp.findPluginsMenu())
-  XPLMAppendMenuItemWithCommand(menuID=xp.findPluginsMenu())
-  XPLMAppendSeparator(menuID=xp.findPluginsMenu())
+  xp.createMenu(..., parentMenu=None, …)
+  xp.appendMenuItem(menuID=xp.findPluginsMenu())
+  xp.appendMenuItemWithCommand(menuID=xp.findPluginsMenu())
+  xp.appendSeparator(menuID=xp.findPluginsMenu())
 
 We'll call these "top-level" menu items -- items directly placed under
 the "Plugins" menu.
@@ -84,17 +84,17 @@ will have indices [0, 1].
 Note that only :py:func:`xp.appendMenuItem` and :py:func:`xp.appendMenuItemWithCommand` return
 the newly created index number. Calling :py:func:`xp.createMenu` with ``parentMenu=None``
 will add an item, but you'll have to "know" which index it is, as the function returns a
-:ref:`XPLMMenuID`, not an index.
+``menuID``, not an index.
 Similarly, calling :py:func:`xp.appendSeparator` with ``menuID=None`` will increment the
 index. Laminar documentation (and header file) indicates
-XPLMAppendSeparator() does not return anything, but actually
+:py:func:`appendSeparator` does not return anything, but actually
 it does… and so do we.
 
 You'll need the index value if you want to delete
 the item. For example, if the separator is your
 plugin's third addition (that is, index #2), then
 to remove the separator, call
-``XPLMRemoveMenuItem(menuID=findPluginsMenu(), index=2)``.
+``xp.removeMenuItem(menuID=findPluginsMenu(), index=2)``.
 
 One more thing about menu item index: When you remove a menu item using :py:func:`xp.removeMenuItem`,
 each of the other menu items for the same menu has its menu index updated to remove any numbering gap.
@@ -126,23 +126,23 @@ When created (with createMenu()) they will have a
 right-arrow ('>') displayed. This will be displayed even if
 there are no sub-items. In the graphic to the right, we
 know all of the items were added with
-XPLMAppendMenuItem (or XPLMAppendMenuItemWithCommand) except `Item 2` which
-was added using XPLMCreateMenu.
+:py:func:`appendMenuItem` (or :py:func:`appendMenuItemWithCommand`) except `Item 2` which
+was added using :py:func:`createMenu`.
 
 When you create a Menu (i.e., something with '>'),
 you can create it on the top-level menu
-by specifying ``None`` for the parentMenu (*not findPluginsMenu()*).
-You'll get a :ref:`XPLMMenuID` as a return, and recall that internally
+by specifying ``None`` for the parentMenu (*not* :py:func:`findPluginsMenu`).
+You'll get a ``menuID`` as a return, and recall that internally
 an index is incremented.
 
 .. image:: /images/menu5.png
            :align: right
 
-The benefit of the XPLMMenuID is you'll need it to place menu
+The benefit of the ``menuID`` is you'll need it to place menu
 items as part of that item's sub-menu.
 
 Add a regular item as a sub-item using
-AppendMenuItem (or AppendMenuItemWithCommand) with the parent XPLMMenuID
+AppendMenuItem (or AppendMenuItemWithCommand) with the parent ``menuID``.
 
 .. code::
 
@@ -207,7 +207,7 @@ Because plugins can be reloaded in a running system, if you do not clean up you 
 be re-created on the subsequent start / enable, resulting in two sets of menus. Most likely the initial menus will
 no longer work, but they'll confuse the user.
 
-To clean up a menu, all you need to do is call :py:func:`XPLMMenus.XPLMClearAllMenuItems` for each of your menus (each :ref:`XPLMMenuID`, not
+To clean up a menu, all you need to do is call :py:func:`clearAllMenuItems` for each of your menus (each ``menuID``, not
 each index.) Remember to *also* call using the top-level menuID to remove your item(s) from the top-level plugin menu::
 
   for menuID in self.menuIDs:

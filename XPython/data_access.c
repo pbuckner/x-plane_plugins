@@ -3,6 +3,7 @@
 #include <sys/time.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMDataAccess.h>
 #include <XPLM/XPLMUtilities.h>
@@ -38,11 +39,25 @@ static const char dataRefName[] = "datarefRef";
 #define READREFCON 16
 #define WRITEREFCON 17
 
-static PyObject *XPLMFindDataRefFun(PyObject *self, PyObject *args)
+static inline XPLMDataRef drefFromObj(PyObject *obj)
+{
+  XPLMDataRef ret = (XPLMDataRef)refToPtr(obj, dataRefName);
+  if (! ret) {
+    PyErr_SetString(PyExc_TypeError, "invalid dataRef");
+  }
+  return ret;
+}
+
+My_DOCSTR(_findDataRef__doc__, "findDataRef", "name",
+          "Looks up string name of data ref and returns dataRef code\n"
+          "to be used with get and set data ref functions,\n"
+          "or None, if name cannot be found.");
+static PyObject *XPLMFindDataRefFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void) self;
+  static char *keywords[] = {"name", NULL};
   const char *inDataRefName;
-  if(!PyArg_ParseTuple(args, "s", &inDataRefName)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inDataRefName)){
     return NULL;
   }
   XPLMDataRef ref = XPLMFindDataRef(inDataRefName);
@@ -53,14 +68,18 @@ static PyObject *XPLMFindDataRefFun(PyObject *self, PyObject *args)
   }
 }
 
-static PyObject *XPLMCanWriteDataRefFun(PyObject *self, PyObject *args)
+My_DOCSTR(_canWriteDataRef__doc__, "canWriteDataRef", "dataRef",
+          "Returns True if dataRef is writable, False otherwise. Also\n"
+          "returns False if provided dataRef is None.");
+static PyObject *XPLMCanWriteDataRefFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"dataRef", NULL};
   (void) self;
   PyObject *dataRef;
-  if(!PyArg_ParseTuple(args, "O", &dataRef)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &dataRef)){
     return NULL;
   }
-  XPLMDataRef inDataRef = refToPtr(dataRef, dataRefName);
+  XPLMDataRef inDataRef = drefFromObj(dataRef);
   if(XPLMCanWriteDataRef(inDataRef)){
     Py_RETURN_TRUE;
   }else{
@@ -68,14 +87,17 @@ static PyObject *XPLMCanWriteDataRefFun(PyObject *self, PyObject *args)
   }
 }
 
-static PyObject *XPLMIsDataRefGoodFun(PyObject *self, PyObject *args)
+My_DOCSTR(_isDataRefGood__doc__, "isDataRefGood", "dataRef",
+          "(Deprecated, do not use.)");
+static PyObject *XPLMIsDataRefGoodFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"dataRef", NULL};
   (void) self;
   PyObject *dataRef;
-  if(!PyArg_ParseTuple(args, "O", &dataRef)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &dataRef)){
     return NULL;
   }
-  XPLMDataRef inDataRef = refToPtr(dataRef, dataRefName);
+  XPLMDataRef inDataRef = drefFromObj(dataRef);
   if (XPLMIsDataRefGood(inDataRef)){
     Py_RETURN_TRUE;
   } else {
@@ -83,114 +105,149 @@ static PyObject *XPLMIsDataRefGoodFun(PyObject *self, PyObject *args)
   }
 }
 
-static PyObject *XPLMGetDataRefTypesFun(PyObject *self, PyObject *args)
+My_DOCSTR(_getDataRefTypes__doc__, "getDataRefTypes", "dataRef",
+          "Returns or'd values of data type(s) supported by dataRef.\n"
+          "   1 Type_Int\n"
+          "   2 Type_Float\n"
+          "   4 Type_Double\n"
+          "   8 Type_FloatArray\n"
+          "  16 Type_IntArray\n"
+          "  32 Type_Data\n");
+static PyObject *XPLMGetDataRefTypesFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"dataRef", NULL};
   (void) self;
   PyObject *dataRef;
-  if(!PyArg_ParseTuple(args, "O", &dataRef)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &dataRef)){
     return NULL;
   }
-  XPLMDataRef inDataRef = refToPtr(dataRef, dataRefName);
+  XPLMDataRef inDataRef = drefFromObj(dataRef);
   return PyLong_FromLong(XPLMGetDataRefTypes(inDataRef));
 }
 
-static PyObject *XPLMGetDataiFun(PyObject *self, PyObject *args)
+My_DOCSTR(_getDatai__doc__, "getDatai", "dataRef",
+          "Returns integer value for dataRef.");
+static PyObject *XPLMGetDataiFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"dataRef", NULL};
   (void) self;
   PyObject *dataRef;
-  if(!PyArg_ParseTuple(args, "O", &dataRef)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &dataRef)){
     return NULL;
   }
-  XPLMDataRef inDataRef = refToPtr(dataRef, dataRefName);
+  XPLMDataRef inDataRef = drefFromObj(dataRef);
   return PyLong_FromLong(XPLMGetDatai(inDataRef));
 }
 
-static PyObject *XPLMSetDataiFun(PyObject *self, PyObject *args)
+My_DOCSTR(_setDatai__doc__, "setDatai", "dataRef, value=0",
+          "Sets integer value for dataRef.");
+static PyObject *XPLMSetDataiFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"dataRef", "value", NULL};
   (void) self;
   PyObject *dataRef;
-  int inValue;
-  if(!PyArg_ParseTuple(args, "Oi", &dataRef, &inValue)){
+  int inValue = 0;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", keywords, &dataRef, &inValue)){
     return NULL;
   }
-  XPLMDataRef inDataRef = refToPtr(dataRef, dataRefName);
+  XPLMDataRef inDataRef = drefFromObj(dataRef);
   XPLMSetDatai(inDataRef, inValue);
   Py_RETURN_NONE;
 }
 
-static PyObject *XPLMGetDatafFun(PyObject *self, PyObject *args)
+My_DOCSTR(_getDataf__doc__, "getDataf", "dataRef",
+          "Returns float value for dataRef.");
+static PyObject *XPLMGetDatafFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"dataRef", NULL};
   (void) self;
   PyObject *dataRef;
-  if(!PyArg_ParseTuple(args, "O", &dataRef)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &dataRef)){
     return NULL;
   }
-  XPLMDataRef inDataRef = refToPtr(dataRef, dataRefName);
+  XPLMDataRef inDataRef = drefFromObj(dataRef);
   return PyFloat_FromDouble(XPLMGetDataf(inDataRef));
 }
 
-static PyObject *XPLMSetDatafFun(PyObject *self, PyObject *args)
+My_DOCSTR(_setDataf__doc__, "setDataf", "dataRef, value=0.0",
+          "Sets float value for dataRef.");
+static PyObject *XPLMSetDatafFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"dataRef", "value", NULL};
   (void) self;
   PyObject *dataRef;
-  float inValue;
-  if(!PyArg_ParseTuple(args, "Of", &dataRef, &inValue)){
+  float inValue = 0.0;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|f", keywords, &dataRef, &inValue)){
     return NULL;
   }
-  XPLMDataRef inDataRef = refToPtr(dataRef, dataRefName);
+  XPLMDataRef inDataRef = drefFromObj(dataRef);
   XPLMSetDataf(inDataRef, inValue);
   Py_RETURN_NONE;
 }
 
-static PyObject *XPLMGetDatadFun(PyObject *self, PyObject *args)
+My_DOCSTR(_getDatad__doc__, "getDatad", "dataRef",
+          "Returns double value for dataRef (as a python float)");
+static PyObject *XPLMGetDatadFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"dataRef", NULL};
   (void) self;
   PyObject *dataRef;
-  if(!PyArg_ParseTuple(args, "O", &dataRef)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &dataRef)){
     return NULL;
   }
-  XPLMDataRef inDataRef = refToPtr(dataRef, dataRefName);
+  XPLMDataRef inDataRef = drefFromObj(dataRef);
   return PyFloat_FromDouble(XPLMGetDatad(inDataRef));
 }
 
-static PyObject *XPLMSetDatadFun(PyObject *self, PyObject *args)
+My_DOCSTR(_setDatad__doc__, "setDatad", "dataRef, value=0.0",
+          "Sets double value for dataRef.");
+static PyObject *XPLMSetDatadFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"dataRef", "value", NULL};
   (void) self;
   PyObject *dataRef;
-  double inValue;
-  if(!PyArg_ParseTuple(args, "Od", &dataRef, &inValue)){
+  double inValue = 0.0;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|d", keywords, &dataRef, &inValue)){
     return NULL;
   }
-  XPLMDataRef inDataRef = refToPtr(dataRef, dataRefName);
+  XPLMDataRef inDataRef = drefFromObj(dataRef);
   XPLMSetDatad(inDataRef, inValue);
   Py_RETURN_NONE;
 }
 
-static inline XPLMDataRef drefFromObj(PyObject *obj)
+My_DOCSTR(_getDatavi__doc__, "getDatavi", "dataRef, values=None, offset=0, count=-1",
+          "Get integer array value for dataRef.\n"
+          "\n"
+          "If values is None, return number of elements in the array (only).\n"
+          "Otherwise, values should be a list into which will be copied elements\n"
+          "from the dataRef, starting at offset, and continuing for count # of elements.\n"
+          "If count is negative, or unspecified, all elements (relative offset) are copied.\n"
+          "\n"
+          "Returns the number of elements copied.");
+static PyObject *XPLMGetDataviFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  return (XPLMDataRef)refToPtr(obj, dataRefName);
-}
-
-static PyObject *XPLMGetDataviFun(PyObject *self, PyObject *args)
-{
+  static char *keywords[] = {"dataRef", "values", "offset", "count", NULL};
   (void) self;
   PyObject *drefObj;
-  PyObject *outValuesObj;
+  PyObject *outValuesObj=Py_None;
   int *outValues = NULL;
-  int inOffset, inMax;
-  if(!PyArg_ParseTuple(args, "OOii", &drefObj, &outValuesObj, &inOffset, &inMax)){
+  int inOffset=0, inMax=-1;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|Oii", keywords, &drefObj, &outValuesObj, &inOffset, &inMax)){
     return NULL;
   }
   XPLMDataRef inDataRef= drefFromObj(drefObj);
   if(outValuesObj && (outValuesObj != Py_None)){
     if(!PyList_Check(outValuesObj)){
-      PyErr_SetString(PyExc_TypeError, "XPLMGetDatavi expects list or None as the outValues parameter.");
+      PyErr_SetString(PyExc_TypeError, "getDatavi expects list or None as the values parameter.");
       return NULL;
+    }
+    if (inMax <= 0) {
+      inMax = XPLMGetDatavi(inDataRef, NULL, 0, 0);
     }
     if(inMax > 0){
       outValues = (int *)malloc(inMax * sizeof(int));
     }else{
-      PyErr_SetString(PyExc_RuntimeError, "XPLMGetDatavi inMax value must be positive.");
+      PyErr_SetString(PyExc_RuntimeError, "getDatavi count value must be positive.");
       return NULL;
     }
   }
@@ -212,63 +269,93 @@ static PyObject *XPLMGetDataviFun(PyObject *self, PyObject *args)
   return PyLong_FromLong(res);
 }
 
-static PyObject *XPLMSetDataviFun(PyObject *self, PyObject *args)
+My_DOCSTR(_setDatavi__doc__, "setDatavi", "dataRef, values, offset=0, count=-1",
+          "Set integer array value for dataRef.\n"
+          "\n"
+          "values is a list of integers, to be written into dataRef starting\n"
+          "at offset. Up to count values are written.\n"
+          "\n"
+          "If count is negative (or not provided), all values in the list are copied.\n"
+          "It is an error for count to be greater than the length of the list.\n"
+          "\n"
+          "No return value.");
+static PyObject *XPLMSetDataviFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"dataRef", "values", "offset", "count", NULL};
   (void) self;
   PyObject *drefObj;
   PyObject *inValuesObj;
   int *inValues = NULL;
-  int inOffset, inCount;
-  if(!PyArg_ParseTuple(args, "OOii", &drefObj, &inValuesObj, &inOffset, &inCount)){
+  int inOffset=0, inCount=-1;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|ii", keywords, &drefObj, &inValuesObj, &inOffset, &inCount)){
     return NULL;
   }
   XPLMDataRef inDataRef= drefFromObj(drefObj);
   if(!PySequence_Check(inValuesObj)){
-    PyErr_SetString(PyExc_TypeError, "XPLMSetDatavi expects list as the inValues parameter.");
+    PyErr_SetString(PyExc_TypeError, "setDatavi expects list as the values parameter.");
     return NULL;
   }
-  if(PySequence_Length(inValuesObj) < inCount){
-    PyErr_SetString(PyExc_RuntimeError, "XPLMSetDatavi list too short.");
+  if(inCount > 0 && PySequence_Length(inValuesObj) < inCount){
+    PyErr_SetString(PyExc_RuntimeError, "setDatavi list too short for provided count.");
     return NULL;
   }
+  if (inCount <= 0) {
+    inCount = PySequence_Length(inValuesObj);
+  }
+
   inValues = (int *)malloc(inCount * sizeof(int));
-  PyObject *tup = PySequence_Tuple(inValuesObj);
+  /* PyObject *tup = PySequence_Tuple(inValuesObj); */
   for(int i = 0; i < inCount; ++i){
-    inValues[i] = PyLong_AsLong(PyTuple_GetItem(tup, i));
+    PyObject *f = PySequence_GetItem(inValuesObj, i);
+    inValues[i] = PyLong_AsLong(f);
+    Py_DECREF(f);
   }
-  Py_DECREF(tup);
+  /* Py_DECREF(tup); */
   
   XPLMSetDatavi(inDataRef, inValues, inOffset, inCount);
   free(inValues);
   Py_RETURN_NONE;
 }
 
-static PyObject *XPLMGetDatavfFun(PyObject *self, PyObject *args)
+My_DOCSTR(_getDatavf__doc__, "getDatavf", "dataRef, values=None, offset=0, count=-1",
+          "Get float array value for dataRef.\n"
+          "\n"
+          "If values is None, return number of elements in the array (only).\n"
+          "Otherwise, values should be a list into which will be copied elements\n"
+          "from the dataRef, starting at offset, and continuing for count # of elements.\n"
+          "If count is negative, or unspecified, all elements (relative offset) are copied.\n"
+          "\n"
+          "Returns the number of elements copied.");
+static PyObject *XPLMGetDatavfFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"dataRef", "values", "offset", "count", NULL};
   (void) self;
   PyObject *drefObj;
-  PyObject *outValuesObj;
+  PyObject *outValuesObj=Py_None;
   float *outValues = NULL;
-  int inOffset, inMax;
-  if(!PyArg_ParseTuple(args, "OOii", &drefObj, &outValuesObj, &inOffset, &inMax)){
+  int inOffset=0, inMax=-1;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|Oii", keywords, &drefObj, &outValuesObj, &inOffset, &inMax)){
     return NULL;
   }
   XPLMDataRef inDataRef = drefFromObj(drefObj);
   if(outValuesObj && (outValuesObj != Py_None)){
     if(!PyList_Check(outValuesObj)){
-      PyErr_SetString(PyExc_TypeError, "XPLMGetDatavf expects list or None as the outValues parameter.");
+      PyErr_SetString(PyExc_TypeError, "getDatavf expects list or None as the values parameter.");
       return NULL;
+    }
+    if (inMax <= 0) {
+      inMax = XPLMGetDatavf(inDataRef, NULL, 0, 0);
     }
     if(inMax > 0){
       outValues = (float *)malloc(inMax * sizeof(float));
     }else{
-      PyErr_SetString(PyExc_RuntimeError, "XPLMGetDatavf inMax value must be positive.");
+      PyErr_SetString(PyExc_RuntimeError, "getDatavf count value must be positive.");
       return NULL;
     }
   }
   
   int res = XPLMGetDatavf(inDataRef, outValues, inOffset, inMax);
-  
+
   if(outValues != NULL){
     if(PyList_Size(outValuesObj) > 0){
       PySequence_DelSlice(outValuesObj, 0, PyList_Size(outValuesObj));
@@ -280,35 +367,53 @@ static PyObject *XPLMGetDatavfFun(PyObject *self, PyObject *args)
       PyList_Append(outValuesObj, tmp);
       Py_DECREF(tmp);
     }
+    free(outValues);
   }
-  free(outValues);
   return PyLong_FromLong(res);
 }
 
-static PyObject *XPLMSetDatavfFun(PyObject *self, PyObject *args)
+My_DOCSTR(_setDatavf__doc__, "setDatavf", "dataRef, values, offset=0, count=-1",
+          "Set float array value for dataRef.\n"
+          "\n"
+          "values is a list of floats, to be written into dataRef starting\n"
+          "at offset. Up to count values are written.\n"
+          "\n"
+          "If count is negative (or not provided), all values in the list are copied.\n"
+          "It is an error for count to be greater than the length of the list.\n"
+          "\n"
+          "No return value.");
+static PyObject *XPLMSetDatavfFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"dataRef", "values", "offset", "count", NULL};
   (void) self;
   PyObject *drefObj;
   PyObject *inValuesObj;
   float *inValues = NULL;
-  int inOffset, inCount;
-  if(!PyArg_ParseTuple(args, "OOii", &drefObj, &inValuesObj, &inOffset, &inCount)){
+  int inOffset=0, inCount=-1;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|ii", keywords, &drefObj, &inValuesObj, &inOffset, &inCount)){
     return NULL;
   }
   XPLMDataRef inDataRef = drefFromObj(drefObj);
   if(!PySequence_Check(inValuesObj)){
-    PyErr_SetString(PyExc_TypeError, "XPLMSetDatavf expects list as the inValues parameter.");
+    PyErr_SetString(PyExc_TypeError, "setDatavf expects list as the values parameter.");
     return NULL;
   }
-  if(PySequence_Length(inValuesObj) < inCount){
-    PyErr_SetString(PyExc_RuntimeError, "XPLMSetDatavf list too short.");
+  if(inCount > 0 && PySequence_Length(inValuesObj) < inCount){
+    PyErr_SetString(PyExc_RuntimeError, "setDatavf list too short for provided count.");
     return NULL;
   }
+  if (inCount <= 0) {
+    inCount = PySequence_Length(inValuesObj);
+  }
+
   inValues = (float *)malloc(inCount * sizeof(float));
-  PyObject *tup = PySequence_Tuple(inValuesObj);
+  /* PyObject *tup = PySequence_Tuple(inValuesObj);*/
   for(int i = 0; i < inCount; ++i){
-    inValues[i] = PyFloat_AsDouble(PyTuple_GetItem(tup, i));
+    PyObject *f = PySequence_GetItem(inValuesObj, i);
+    inValues[i] = PyFloat_AsDouble(f);
+    Py_DECREF(f);
   }
+  /* Py_DECREF(tup); */
   
   XPLMSetDatavf(inDataRef, inValues, inOffset, inCount);
   free(inValues);
@@ -316,26 +421,41 @@ static PyObject *XPLMSetDatavfFun(PyObject *self, PyObject *args)
 }
 
 
-static PyObject *XPLMGetDatabFun(PyObject *self, PyObject *args)
+My_DOCSTR(_getDatab__doc__, "getDatab", "dataRef, values=None, offset=0, count=-1",
+          "Get byte array value for dataRef.\n"
+          "\n"
+          "If values is None, return number of elements in the array (only).\n"
+          "Otherwise, values should be a list into which will be copied elements\n"
+          "from the dataRef, starting at offset, and continuing for count # of elements.\n"
+          "If count is negative, or unspecified, all elements (relative offset) are copied.\n"
+          "\n"
+          "See also getDatas()."
+          "\n"
+          "Returns the number of elements copied.");
+static PyObject *XPLMGetDatabFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"dataRef", "values", "offset", "count", NULL};
   (void) self;
   PyObject *drefObj;
-  PyObject *outValuesObj;
+  PyObject *outValuesObj = Py_None;
   uint8_t *outValues = NULL;
-  int inOffset, inMax;
-  if(!PyArg_ParseTuple(args, "OOii", &drefObj, &outValuesObj, &inOffset, &inMax)){
+  int inOffset=0, inMax=-1;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|Oii", keywords, &drefObj, &outValuesObj, &inOffset, &inMax)){
     return NULL;
   }
   XPLMDataRef inDataRef= drefFromObj(drefObj);
   if(outValuesObj && (outValuesObj != Py_None)){
     if(!PyList_Check(outValuesObj)){
-      PyErr_SetString(PyExc_TypeError, "XPLMGetDatab expects list or None as the outValues parameter.");
+      PyErr_SetString(PyExc_TypeError, "getDatab expects list or None as the values parameter.");
       return NULL;
+    }
+    if (inMax <= 0) {
+      inMax = XPLMGetDatab(inDataRef, NULL, 0, 0);
     }
     if(inMax > 0){
       outValues = (uint8_t *)malloc(inMax * sizeof(uint8_t));
     }else{
-      PyErr_SetString(PyExc_RuntimeError, "XPLMGetDatab inMax value must be positive.");
+      PyErr_SetString(PyExc_RuntimeError, "getDatab count value must be positive.");
       return NULL;
     }
   }
@@ -356,34 +476,157 @@ static PyObject *XPLMGetDatabFun(PyObject *self, PyObject *args)
   return PyLong_FromLong(res);
 }
 
-static PyObject *XPLMSetDatabFun(PyObject *self, PyObject *args)
+My_DOCSTR(_setDatab__doc__, "setDatab", "dataRef, values, offset=0, count=-1",
+          "Set byte array value for dataRef.\n"
+          "\n"
+          "values is a list of bytes, to be written into dataRef starting\n"
+          "at offset. Up to count values are written.\n"
+          "\n"
+          "If count is negative (or not provided), all values in the list are copied.\n"
+          "It is an error for count to be greater than the length of the list.\n"
+          "\n"
+          "See also setDatas()."
+          "\n"
+          "No return value.");
+static PyObject *XPLMSetDatabFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"dataRef", "values", "offset", "count", NULL};
   (void) self;
   PyObject *drefObj;
   PyObject *inValuesObj;
   uint8_t *inValues = NULL;
-  int inOffset, inCount;
-  if(!PyArg_ParseTuple(args, "OOii", &drefObj, &inValuesObj, &inOffset, &inCount)){
+  int inOffset=0, inCount=-1;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|ii", keywords, &drefObj, &inValuesObj, &inOffset, &inCount)){
     return NULL;
   }
   XPLMDataRef inDataRef= drefFromObj(drefObj);
   if(!PySequence_Check(inValuesObj)){
-    PyErr_SetString(PyExc_TypeError, "XPLMSetDatab expects list as the inValues parameter.");
+    PyErr_SetString(PyExc_TypeError, "setDatab expects list as the values parameter.");
     return NULL;
   }
-  if(PySequence_Length(inValuesObj) < inCount){
-    PyErr_SetString(PyExc_RuntimeError, "XPLMSetDatab list too short.");
+  if(inCount > 0 && PySequence_Length(inValuesObj) < inCount){
+    PyErr_SetString(PyExc_RuntimeError, "setDatab list too short.");
     return NULL;
   }
+  if (inCount <= 0) {
+    inCount = PySequence_Length(inValuesObj);
+  }
+  
   inValues = (uint8_t *)malloc(inCount * sizeof(uint8_t));
-  PyObject *tup = PySequence_Tuple(inValuesObj);
+  /* PyObject *tup = PySequence_Tuple(inValuesObj); */
   for(int i = 0; i < inCount; ++i){
-    inValues[i] = PyLong_AsLong(PyTuple_GetItem(tup, i));
+    PyObject *f = PySequence_GetItem(inValuesObj, i);
+    inValues[i] = PyLong_AsLong(f);
+    Py_DECREF(f);
   }
-  Py_DECREF(tup);
+  /* Py_DECREF(tup); */
   
   XPLMSetDatab(inDataRef, inValues, inOffset, inCount);
   free(inValues);
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_getDatas__doc__, "getDatas", "dataRef, offset=0, count=-1",
+          "Returns string value for dataRef.\n"
+          "\n"
+          "String is the first null-terminated sequence found in the byte-array\n"
+          "dataRef, starting at offset. If count is given, string returned is\n"
+          "restricted to count length (not including a null byte).\n"
+          "\n"
+          "Note not all byte-array dataRefs are strings: be sure the requested\n"
+          "dataRef is storing character information. Otherwise use getDatab().");
+static PyObject *XPLMGetDatasFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"dataRef", "offset", "count", NULL};
+  (void) self;
+  PyObject *drefObj;
+  char *outValues = NULL;
+  int inOffset=0, inMax=-1;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|ii", keywords, &drefObj, &inOffset, &inMax)){
+    return NULL;
+  }
+  XPLMDataRef inDataRef= drefFromObj(drefObj);
+  if (inMax <= 0) {
+    inMax = XPLMGetDatab(inDataRef, NULL, 0, 0);
+  }
+  if(inMax > 0){
+    outValues = (char *)malloc(inMax * sizeof(char));
+  }else{
+    PyErr_SetString(PyExc_RuntimeError, "getDatas count value must be positive.");
+    return NULL;
+  }
+  
+  int res = XPLMGetDatab(inDataRef, outValues, inOffset, inMax);
+  if(outValues != NULL){
+    size_t len = strlen(outValues);
+    len = len > (size_t) res ? (size_t) res : len;  // in case returned outValues doesn't end with '\0' 
+    PyObject *string = PyUnicode_FromStringAndSize(outValues, len);
+    free(outValues);
+    Py_INCREF(string);
+    return string;
+  }
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_setDatas__doc__, "setDatas", "dataRef, value, offset=0, count=-1",
+          "Set byte array to string value for dataRef.\n"
+          "\n"
+          "value is a python unicode string (capable of being encoded as 'UTF-8').\n"
+          "String is written into the dataRef starting at offset. Up to count\n"
+          "characters are written. If count is more than len(value), the written\n"
+          "values are padded with zeros ('\\x00') up to count.\n"
+          "\n"
+          "If count is negative (or not provided), value is copied AND the\n"
+          "remaining length of the dataRef is zero-filled. Use count to limit\n"
+          "the amount of padding.\n"
+          "\n"
+          "If len(value) is greater than existing dataRef value, and count is not\n"
+          "specified, the underlying dataRef is NOT extended to accommodate the\n"
+          "full string. Instead the string is copied upto the end of the existing\n"
+          "data. To extend the underlying dataRef, provide a larger value for count.\n"
+          "\n"
+          "Caution: extend dataRef only if the underlying dataRef is implemented in \n"
+          "python. Attempting to extend non-python dataRefs will cause the sim to\n"
+          "crash.\n"
+          "\n"
+          "No return value.");
+
+static PyObject *XPLMSetDatasFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"dataRef", "value", "offset", "count", NULL};
+  (void) self;
+  PyObject *drefObj;
+  PyObject *inValueObj;
+  const char *inValue = NULL;
+  int inOffset=0, inCount=-1;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|ii", keywords, &drefObj, &inValueObj, &inOffset, &inCount)){
+    return NULL;
+  }
+  XPLMDataRef inDataRef= drefFromObj(drefObj);
+
+  if(!PyUnicode_Check(inValueObj)){
+    PyErr_SetString(PyExc_TypeError, "setDatas expects unicode string as the value parameter.");
+    return NULL;
+  }
+  /* if(inCount > 0 && PyUnicode_GetLength(inValueObj) < inCount){ */
+  /*   PyErr_SetString(PyExc_RuntimeError, "setDatab value string too short for provided count."); */
+  /*   return NULL; */
+  /* } */
+  char *buffer;
+  int bufferSize;
+  if (inCount <= 0) {
+    /* if count isn't provided, we'll need to zero-fill to the end */
+    int dataRefLength = XPLMGetDatab(inDataRef, NULL, 0, 0);
+    /* inCount = PyUnicode_GetLength(inValueObj);*/
+    bufferSize = dataRefLength - inOffset;
+  } else {
+    bufferSize = inCount;
+  }
+  buffer = malloc(bufferSize);
+  inValue = PyUnicode_AsUTF8(inValueObj); /* docs say I'm not responsible for de-allocation of inValue */
+  strncpy(buffer, inValue, bufferSize);
+  XPLMSetDatab(inDataRef, (void *)buffer, inOffset, bufferSize);
+  free(buffer);
   Py_RETURN_NONE;
 }
 
@@ -821,6 +1064,15 @@ static int getDatab(void *inRefcon, void *outValue, int inOffset, int inMax)
       uint8_t *pOutValue = (uint8_t *)outValue;
       for(int i = 0; i < res; ++i){
         pOutValue[i] = PyLong_AsLong(PyList_GetItem(outValuesObj, i));
+        err = PyErr_Occurred();
+        if(err){
+          char msg[1024];
+          sprintf(msg, "[%s] getDatab callback %s failed to return valid data",
+                  objToStr(PyTuple_GetItem(pCbks, PLUGINSELF)),
+                  objToStr(oFun));
+          PyErr_SetString(err, msg);
+          return 0;
+        }
       }
     }
   }
@@ -875,24 +1127,51 @@ static void setDatab(void *inRefcon, void *inValue, int inOffset, int inCount)
 }
 
 
-static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args)
+My_DOCSTR(_registerDataAccessor__doc__, "registerDataAccessor", "name, dataType=Type_Unknown, writable=-1, readInt=None, writeInt=None, readFloat=None, writeFloat=None, readDouble=None, writeDouble=None, readIntArray=None, writeIntArray=None, readFloatArray=None, writeFloatArray=None, readData=None, writeData=None, readRefCon=None, writeRefCon=None",
+          "Register data accessors for provided string name.\n"
+          "\n"
+          "Provide one or more read/write callback functions which implement\n"
+          "get/set access. If dataType is Type_Unknown, or writable is -1, we'll\n"
+          "calculate their value to match provided callbacks.\n\n"
+          "Two optional refCon are available, to be passed to your get/set functions.\n"
+          "\n"
+          "* Scalar get callback functions take single (refCon) parameter \n"
+          "  and return the value.\n"
+          "* Scalar set callback functions take (refCon, value) parameters \n"
+          "  with no return.\n"
+          "* Vector gets take (refCon, values, offset, count), return # elements\n"
+          "  copied into values.\n"
+          "* Vector sets take (refCon, values, offset, count), with no return\n");
+          
+          
+static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"name", "dataType", "writable", "readInt", "writeInt", "readFloat", "writeFloat", "readDouble", "writeDouble", "readIntArray", "writeIntArray", "readFloatArray", "writeFloatArray", "readData", "writeData", "readRefCon", "writeRefCon", NULL};
   (void)self;
   PyObject *pluginSelf;
   const char *inDataName;
-  int inDataType, inIsWritable;
-  PyObject *ri, *wi, *rf, *wf, *rd, *wd, *rai, *wai, *raf, *waf, *rab, *wab, *rRef, *wRef;
-  if (!PyArg_ParseTuple(args, "OsiiOOOOOOOOOOOOOO", &pluginSelf, &inDataName, &inDataType, &inIsWritable,
-                        &ri, &wi, &rf, &wf, &rd, &wd, &rai, &wai, &raf, &waf, &rab, &wab, &rRef, &wRef)) {
-    PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "siiOOOOOOOOOOOOOO", &inDataName, &inDataType, &inIsWritable,
-                         &ri, &wi, &rf, &wf, &rd, &wd, &rai, &wai, &raf, &waf, &rab, &wab, &rRef, &wRef)) {
-      return NULL;
-    }
-  } else {
-    pythonLogWarning("'self' deprecated as first parameter of XPLMRegisterDataAccessor");
+  int inDataType=xplmType_Unknown, inIsWritable=-1;
+  PyObject *ri=Py_None, *wi=Py_None, *rf=Py_None, *wf=Py_None, *rd=Py_None, *wd=Py_None, *rai=Py_None, *wai=Py_None, *raf=Py_None,
+    *waf=Py_None, *rab=Py_None, *wab=Py_None, *rRef=Py_None, *wRef=Py_None;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s|iiOOOOOOOOOOOOOO", keywords, &inDataName, &inDataType, &inIsWritable,
+                                  &ri, &wi, &rf, &wf, &rd, &wd, &rai, &wai, &raf, &waf, &rab, &wab, &rRef, &wRef)) {
+    return NULL;
   }
   pluginSelf = get_pluginSelf();
+  if (inIsWritable == -1) {
+    inIsWritable = (wi != Py_None || wf != Py_None || wd != Py_None || wai != Py_None || waf != Py_None) ? 1 : 0;
+  }
+  if (inDataType == xplmType_Unknown) {
+    inDataType |= (ri != Py_None || wi != Py_None) ? xplmType_Int : 0;
+    inDataType |= (rf != Py_None || wf != Py_None) ? xplmType_Float : 0;
+    inDataType |= (rd != Py_None || wd != Py_None) ? xplmType_Double : 0;
+    inDataType |= (rai != Py_None || wai != Py_None) ? xplmType_IntArray : 0;
+    inDataType |= (raf != Py_None || waf != Py_None) ? xplmType_FloatArray : 0;
+    inDataType |= (rab != Py_None || wab != Py_None) ? xplmType_Data : 0;
+    if (inDataType == xplmType_Unknown) {
+      PyErr_SetString(PyExc_ValueError, "Could not determing dataType value for dataRef");
+    }
+  }
 
   void *refcon = (void *)accessorCntr++;
   PyObject *refconObj = PyLong_FromVoidPtr(refcon);
@@ -921,18 +1200,16 @@ static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args)
   return resObj;
 }
 
-static PyObject *XPLMUnregisterDataAccessorFun(PyObject *self, PyObject *args)
+My_DOCSTR(_unregisterDataAccessor__doc__, "unregisterDataAccessor", "accessor",
+          "Unregisters data accessor.");
+static PyObject *XPLMUnregisterDataAccessorFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"accessor", NULL};
   (void)self;
   PyObject *pluginSelf;
   PyObject *drefObj;
-  if(!PyArg_ParseTuple(args, "OO", &pluginSelf, &drefObj)) {
-    PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "O", &drefObj)) {
-      return NULL;
-    }
-  } else {
-    pythonLogWarning("'self' deprecated as first parameter of XPLMUnRegisterDataAccessor");
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &drefObj)) {
+    return NULL;
   }
   pluginSelf = get_pluginSelf();
   PyObject *refconObj = PyDict_GetItemWithError(drefDict, drefObj);
@@ -962,7 +1239,7 @@ static PyObject *XPLMUnregisterDataAccessorFun(PyObject *self, PyObject *args)
   if(PyDict_DelItem(drefDict, drefObj)){
     printf("XPLMUnregisterDataref: Couldn't remove the dref.\n");
   }
-  XPLMUnregisterDataAccessor(refToPtr(drefObj, dataRefName));
+  XPLMUnregisterDataAccessor(drefFromObj(drefObj));
   Py_RETURN_NONE;
 }
 
@@ -979,7 +1256,6 @@ static void dataChanged(void *inRefcon)
   PyObject *arg = PyTuple_GetItem(sharedObj, 4);
   PyObject *oRes = PyObject_CallFunctionObjArgs(callbackFun, arg, NULL);
   PyObject *err = PyErr_Occurred();
-  fprintf(pythonLogFile, "dataChanged\n");
   if(err){
     char msg[1024];
     sprintf(msg, "[%s] Error in dataChanged callback %s",
@@ -993,20 +1269,23 @@ static void dataChanged(void *inRefcon)
   Py_DECREF(oRes);
 }
 
-static PyObject *XPLMShareDataFun(PyObject *self, PyObject *args)
+My_DOCSTR(_shareData__doc__, "shareData", "name, dataType, dataChanged=None, refCon=None",
+          "Create shared data ref with provided name and dataType.\n"
+          "\n"
+          "Optionally provide a callback function which will be called whenever\n"
+          "this data ref has been changed.\n"
+          "\nCallback takes single (refCon) parameter\n"
+          "\nReturns 1 on success 0 otherwise.");
+static PyObject *XPLMShareDataFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"name", "dataType", "dataChanged", "refCon", NULL};
   (void) self;
   PyObject *pluginSelf;
   const char *inDataName;
-  XPLMDataTypeID inDataType;
-  PyObject *inNotificationFunc, *inNotificationRefcon;
-  if(!PyArg_ParseTuple(args, "OsiOO", &pluginSelf, &inDataName, &inDataType, &inNotificationFunc, &inNotificationRefcon)) {
-    PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "siOO", &inDataName, &inDataType, &inNotificationFunc, &inNotificationRefcon)) {
-      return NULL;
-    }
-  } else {
-    pythonLogWarning("'self' deprecated as first parameter of XPLMShareData");
+  XPLMDataTypeID inDataType = xplmType_Unknown;
+  PyObject *inNotificationFunc=Py_None, *inNotificationRefcon=Py_None;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "si|OO", keywords, &inDataName, &inDataType, &inNotificationFunc, &inNotificationRefcon)) {
+    return NULL;
   }
   pluginSelf = get_pluginSelf();
   void *refcon = (void *)sharedCntr++;
@@ -1030,28 +1309,29 @@ static PyObject *XPLMShareDataFun(PyObject *self, PyObject *args)
   return PyLong_FromLong(res);
 }
 
-static PyObject *XPLMUnshareDataFun(PyObject *self, PyObject *args)
+My_DOCSTR(_unshareData__doc__, "unshareData", "name, dataType, dataChanged=None, refCon=None",
+          "Unshare data. If dataChanged function was provided with initial shareData()\n"
+          "the callback will no longer be called on data changes.\n"
+          "All parameter values must match those provided with shareData()\n"
+          "in order to be successful."
+          "\n"
+          "Returns 1 on success, 0 otherwise");
+static PyObject *XPLMUnshareDataFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  static char *keywords[] = {"name", "dataType", "dataChanged", "refCon", NULL};
   (void) self;
   Py_ssize_t cnt = 0;
   PyObject *pKey = NULL, *pVal = NULL;
   const char *inDataName = NULL;
-  XPLMDataTypeID inDataType;
-  long tmpInDataType;
-  PyObject *callbackObj = NULL;
-  PyObject *refconObj = NULL;
+  XPLMDataTypeID inDataType = xplmType_Unknown;
+  PyObject *callbackObj = Py_None;
+  PyObject *refconObj = Py_None;
   PyObject *pluginSelf = NULL;
-  if(!PyArg_ParseTuple(args, "OsiOO", &pluginSelf, &inDataName, &tmpInDataType, &callbackObj, &refconObj)) {
-    PyErr_Clear();
-    if(!PyArg_ParseTuple(args, "siOO", &inDataName, &tmpInDataType, &callbackObj, &refconObj)) {
-      return NULL;
-    }
-  } else {
-    pythonLogWarning("'self' deprecated as first parameter of XPLMUnshareData");
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "si|OO", keywords, &inDataName, &inDataType, &callbackObj, &refconObj)) {
+    return NULL;
   }
     
   pluginSelf = get_pluginSelf();
-  inDataType = (XPLMDataTypeID)tmpInDataType;
   PyObject *inDataNameObj, *target, *inDataNameUTF8Obj;
   char *dict_inDataName;
   target = NULL;
@@ -1120,34 +1400,59 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 
 
 static PyMethodDef XPLMDataAccessMethods[] = {
-  {"XPLMFindDataRef", XPLMFindDataRefFun, METH_VARARGS, "Find a dataref"},
-  {"XPLMCanWriteDataRef", XPLMCanWriteDataRefFun, METH_VARARGS, "Check dataref writeability"},
-  {"XPLMIsDataRefGood", XPLMIsDataRefGoodFun, METH_VARARGS, ""},
-  {"XPLMGetDataRefTypes", XPLMGetDataRefTypesFun, METH_VARARGS, "Check dataref type"},
-  {"XPLMGetDatai", XPLMGetDataiFun, METH_VARARGS, ""},
-  {"XPLMSetDatai", XPLMSetDataiFun, METH_VARARGS, ""},
-  {"XPLMGetDataf", XPLMGetDatafFun, METH_VARARGS, ""},
-  {"XPLMSetDataf", XPLMSetDatafFun, METH_VARARGS, ""},
-  {"XPLMGetDatad", XPLMGetDatadFun, METH_VARARGS, ""},
-  {"XPLMSetDatad", XPLMSetDatadFun, METH_VARARGS, ""},
-  {"XPLMGetDatavi", XPLMGetDataviFun, METH_VARARGS, ""},
-  {"XPLMSetDatavi", XPLMSetDataviFun, METH_VARARGS, ""},
-  {"XPLMGetDatavf", XPLMGetDatavfFun, METH_VARARGS, ""},
-  {"XPLMSetDatavf", XPLMSetDatavfFun, METH_VARARGS, ""},
-  {"XPLMGetDatab", XPLMGetDatabFun, METH_VARARGS, ""},
-  {"XPLMSetDatab", XPLMSetDatabFun, METH_VARARGS, ""},
-  {"XPLMRegisterDataAccessor", XPLMRegisterDataAccessorFun, METH_VARARGS, ""},
-  {"XPLMUnregisterDataAccessor", XPLMUnregisterDataAccessorFun, METH_VARARGS, ""},
-  {"XPLMShareData", XPLMShareDataFun, METH_VARARGS, ""},
-  {"XPLMUnshareData", XPLMUnshareDataFun, METH_VARARGS, ""},
-  {"cleanup", cleanup, METH_VARARGS, ""},
+  {"findDataRef", (PyCFunction)XPLMFindDataRefFun, METH_VARARGS | METH_KEYWORDS, _findDataRef__doc__},
+  {"XPLMFindDataRef", (PyCFunction)XPLMFindDataRefFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"canWriteDataRef", (PyCFunction)XPLMCanWriteDataRefFun, METH_VARARGS | METH_KEYWORDS, _canWriteDataRef__doc__},
+  {"XPLMCanWriteDataRef", (PyCFunction)XPLMCanWriteDataRefFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"isDataRefGood", (PyCFunction)XPLMIsDataRefGoodFun, METH_VARARGS | METH_KEYWORDS, _isDataRefGood__doc__},
+  {"XPLMIsDataRefGood", (PyCFunction)XPLMIsDataRefGoodFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getDataRefTypes", (PyCFunction)XPLMGetDataRefTypesFun, METH_VARARGS | METH_KEYWORDS, _getDataRefTypes__doc__},
+  {"XPLMGetDataRefTypes", (PyCFunction)XPLMGetDataRefTypesFun, METH_VARARGS | METH_KEYWORDS, "Check dataref type"},
+  {"getDatai", (PyCFunction)XPLMGetDataiFun, METH_VARARGS | METH_KEYWORDS, _getDatai__doc__},
+  {"XPLMGetDatai", (PyCFunction)XPLMGetDataiFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"setDatai", (PyCFunction)XPLMSetDataiFun, METH_VARARGS | METH_KEYWORDS, _setDatai__doc__},
+  {"XPLMSetDatai", (PyCFunction)XPLMSetDataiFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getDataf", (PyCFunction)XPLMGetDatafFun, METH_VARARGS | METH_KEYWORDS, _getDataf__doc__},
+  {"XPLMGetDataf", (PyCFunction)XPLMGetDatafFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"setDataf", (PyCFunction)XPLMSetDatafFun, METH_VARARGS | METH_KEYWORDS, _setDataf__doc__},
+  {"XPLMSetDataf", (PyCFunction)XPLMSetDatafFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getDatad", (PyCFunction)XPLMGetDatadFun, METH_VARARGS | METH_KEYWORDS, _getDatad__doc__},
+  {"XPLMGetDatad", (PyCFunction)XPLMGetDatadFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"setDatad", (PyCFunction)XPLMSetDatadFun, METH_VARARGS | METH_KEYWORDS, _setDatad__doc__},
+  {"XPLMSetDatad", (PyCFunction)XPLMSetDatadFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getDatavi", (PyCFunction)XPLMGetDataviFun, METH_VARARGS | METH_KEYWORDS, _getDatavi__doc__},
+  {"XPLMGetDatavi", (PyCFunction)XPLMGetDataviFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"setDatavi", (PyCFunction)XPLMSetDataviFun, METH_VARARGS | METH_KEYWORDS, _setDatavi__doc__},
+  {"XPLMSetDatavi", (PyCFunction)XPLMSetDataviFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getDatavf", (PyCFunction)XPLMGetDatavfFun, METH_VARARGS | METH_KEYWORDS, _getDatavf__doc__},
+  {"XPLMGetDatavf", (PyCFunction)XPLMGetDatavfFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"setDatavf", (PyCFunction)XPLMSetDatavfFun, METH_VARARGS | METH_KEYWORDS, _setDatavf__doc__},
+  {"XPLMSetDatavf", (PyCFunction)XPLMSetDatavfFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getDatab", (PyCFunction)XPLMGetDatabFun, METH_VARARGS | METH_KEYWORDS, _getDatab__doc__},
+  {"getDatas", (PyCFunction)XPLMGetDatasFun, METH_VARARGS | METH_KEYWORDS, _getDatas__doc__},
+  {"XPLMGetDatab", (PyCFunction)XPLMGetDatabFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"setDatab", (PyCFunction)XPLMSetDatabFun, METH_VARARGS | METH_KEYWORDS, _setDatab__doc__},
+  {"setDatas", (PyCFunction)XPLMSetDatasFun, METH_VARARGS | METH_KEYWORDS, _setDatas__doc__},
+  {"XPLMSetDatab", (PyCFunction)XPLMSetDatabFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"registerDataAccessor", (PyCFunction)XPLMRegisterDataAccessorFun, METH_VARARGS | METH_KEYWORDS, _registerDataAccessor__doc__},
+  {"XPLMRegisterDataAccessor", (PyCFunction)XPLMRegisterDataAccessorFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"unregisterDataAccessor", (PyCFunction)XPLMUnregisterDataAccessorFun, METH_VARARGS | METH_KEYWORDS, _unregisterDataAccessor__doc__},
+  {"XPLMUnregisterDataAccessor", (PyCFunction)XPLMUnregisterDataAccessorFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"shareData", (PyCFunction)XPLMShareDataFun, METH_VARARGS | METH_KEYWORDS, _shareData__doc__},
+  {"XPLMShareData", (PyCFunction)XPLMShareDataFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"unshareData", (PyCFunction)XPLMUnshareDataFun, METH_VARARGS | METH_KEYWORDS, _unshareData__doc__},
+  {"XPLMUnshareData", (PyCFunction)XPLMUnshareDataFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
 
 static struct PyModuleDef XPLMDataAccessModule = {
   PyModuleDef_HEAD_INIT,
   "XPLMDataAccess",
-  NULL,
+  "Laminar documentation: \n"
+  "   https://developer.x-plane.com/sdk/XPLMDataAccess/\n"
+  "XPPython3 documentation: \n"
+  "   https://xppython3.rtfd.io/en/stable/development/modules/dataaccess.html",
   -1,
   XPLMDataAccessMethods,
   NULL,
@@ -1161,7 +1466,6 @@ PyInit_XPLMDataAccess(void)
 {
   PyObject *mod = PyModule_Create(&XPLMDataAccessModule);
   if(mod){
-
     if(!(accessorDict = PyDict_New())){
       return NULL;
     }
@@ -1173,28 +1477,22 @@ PyInit_XPLMDataAccess(void)
     if(!(sharedDict = PyDict_New())){
       return NULL;
     }
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
     PyDict_SetItemString(xppythonDicts, "sharedDrefs", sharedDict);
-
-    /* Data of a type the current XPLM doesn't do.                                 */
     PyModule_AddIntConstant(mod, "xplmType_Unknown", xplmType_Unknown);
-
-    /* A single 4-byte integer, native endian.                                     */
     PyModule_AddIntConstant(mod, "xplmType_Int", xplmType_Int);
-
-    /* A single 4-byte float, native endian.                                       */
     PyModule_AddIntConstant(mod, "xplmType_Float", xplmType_Float);
-
-    /* A single 8-byte double, native endian.                                      */
     PyModule_AddIntConstant(mod, "xplmType_Double", xplmType_Double);
-
-    /* An array of 4-byte floats, native endian.                                   */
     PyModule_AddIntConstant(mod, "xplmType_FloatArray", xplmType_FloatArray);
-
-    /* An array of 4-byte integers, native endian.                                 */
     PyModule_AddIntConstant(mod, "xplmType_IntArray", xplmType_IntArray);
-
-    /* A variable block of data.                                                   */
     PyModule_AddIntConstant(mod, "xplmType_Data", xplmType_Data);
+    PyModule_AddIntConstant(mod, "Type_Unknown", xplmType_Unknown);
+    PyModule_AddIntConstant(mod, "Type_Int", xplmType_Int);
+    PyModule_AddIntConstant(mod, "Type_Float", xplmType_Float);
+    PyModule_AddIntConstant(mod, "Type_Double", xplmType_Double);
+    PyModule_AddIntConstant(mod, "Type_FloatArray", xplmType_FloatArray);
+    PyModule_AddIntConstant(mod, "Type_IntArray", xplmType_IntArray);
+    PyModule_AddIntConstant(mod, "Type_Data", xplmType_Data);
   }
 
   return mod;

@@ -26,6 +26,10 @@ XPPython3 installs a single menu item, "XPPython3", on the plugin menu.
      god-only-knows what problems you may discover: *Beta* allows me to easily distribute a release to active
      developers around the world, but I don't always update for all platforms and versions.
 
+     If you (or I) screw up and you download a non-working beta, you can always either uncheck "Include Betas"
+     to download the latest stable version. Or, if we've really screwed up a beta, delete the XPPython folder and
+     re-download the zip file, as if you were doing an initial installation.
+
 
 * **Performance** menu item displays a list of all loaded XPPython3 plugins with some live performance statistics for each.
 
@@ -34,7 +38,7 @@ XPPython3 installs a single menu item, "XPPython3", on the plugin menu.
   You can use this to see how a particular plugin is impacting your overall performance. For details, see :doc:`performance`.
 
 
-The next three items are:
+The next three menu items are:
 
 * **Version** -- with an indication if you're using the most current version. If you're not,
   selecting this item will attempt to update your XPPython3 version to the latest.

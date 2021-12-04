@@ -33,12 +33,12 @@ Python3 and _only_ SDK 303+ (X-Plane 11.50+)
 
 On the appropriate architecture:
 
-    $ make linux
-    $ make darwin
-    $ make windows
+    $ make Linux
+    $ make Darwin
+    $ make Windows
 
 4. Build objects are in (lin|mac|win) subdirectory: .o and <target>.xpl.
-   AND python plugin <target>.xpl copied to `Resources/plugsin/XPPython3/(mac|win|lin)_x64/`.
+   AND python plugin <target>.xpl copied to `Resources/plugins/XPPython3/(mac|win|lin)_x64/`.
 
 Quick non-X-Plane test, from XPPython3 directory  ##!! Only partially supported 5/29/2020
 `$ make test`
@@ -54,10 +54,41 @@ That way, starting X-Plane, will use latest built plugin
 For Windows.. I installed 64-bit version of mingw, updated makefiles to support
 cd /z
 
-## To Release:
-1. Build all versions (python3.x for each platform)
-2. Commit changes to master
+## Internal Development
+1. Check what branch you're on, ideally, it should be named for feature ('parameters')
+   git status
+   git switch <feature>
+2. Update makefile for alpha/beta numbering (this gets compiled into code)
+3. Update docs/source/conf.py for (ultimate) release (without alpha/beta)
+4. Update docs/source/_theme/python_docs_theme/versions.html versionlist, setting stable / beta
+5. Build and test locally
+
+## Release Beta (make available remotely)
+1. Check branch, latest work should be (still) in feature branch
+   git status
+2. Build all versions (python3.x for each platform)
 3. Compare staging python vs. build python code ~/xp/Resources/plugins/XPPython/compare.csh
+4. Verify imgui compiled correctly
+5. Merge feature branch into beta
+   git switch beta
+   git merge <feature>
+5. Commit
+   git commit -a  -m 'merge from feature'
+6. Push to remote. Docs should build with change to 'beta' branch.
+
+## To Release:
+
+1. On Beta branch
+   git switch beta
+2. Update Makefile for final version
+3. Build all versions (python3.x for each platform)
+4. Quick test
+5. Commit (final) for beta
+   git commit -a -m 'final for 3.1.1'
+6. Merge beta into master
+   git switch master
+   git merge beta
+   git commit -a -m 'merge from beta'
 4. Push to github
 5. "Make Release".
    a) github.com/pbuckner/x-plane_plugins/releases "Draft a new release"

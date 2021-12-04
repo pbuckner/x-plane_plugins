@@ -6,6 +6,7 @@
 #include <structmember.h>
 #include "xppythontypes.h"
 #include <XPLM/XPLMUtilities.h>
+#include <XPLM/XPLMNavigation.h>
 #include "utils.h"
 #include "trackMetrics.h"
 #include "xppython.h"
@@ -122,11 +123,11 @@ HotKeyInfo_init(HotKeyInfoObject *self, PyObject *args, PyObject *kwds)
 }
 
 static PyMemberDef HotKeyInfo_members[] = {
-    {"virtualKey", T_INT, offsetof(HotKeyInfoObject, virtualKey), 0, "virtual key code"},
-    {"flags", T_INT, offsetof(HotKeyInfoObject, flags), 0, "XPLMKeyFlags"},
-    {"description", T_OBJECT_EX, offsetof(HotKeyInfoObject, description), 0, "Description"},
-    {"plugin", T_INT, offsetof(HotKeyInfoObject, plugin), 0, "XPLMPluginID"},
-    {NULL, T_INT, 0, 0, ""}  /* Sentinel */
+  {"virtualKey", T_INT, offsetof(HotKeyInfoObject, virtualKey), 0, "Virtual Key"},
+  {"flags", T_INT, offsetof(HotKeyInfoObject, flags), 0, "XPLMKeyFlags"},
+  {"description", T_OBJECT_EX, offsetof(HotKeyInfoObject, description), 0, "Description"},
+  {"plugin", T_INT, offsetof(HotKeyInfoObject, plugin), 0, "XPLMPluginID"},
+  {NULL, T_INT, 0, 0, ""}  /* Sentinel */
 };
 
 static PyTypeObject HotKeyInfoType = {
@@ -377,6 +378,14 @@ static PyMemberDef PluginInfo_members[] = {
     {NULL, T_INT, 0, 0, ""}  /* Sentinel */
 };
 
+static PyObject *PluginInfo_str(PluginInfoObject *obj) {
+  return PyUnicode_FromFormat("%S: '%S'\n  %S\n  ---\n  %S",
+                              obj->name,
+                              obj->signature,
+                              obj->filePath,
+                              obj->description);
+}
+
 static PyTypeObject PluginInfoType = {
                                       PyVarObject_HEAD_INIT(NULL, 0)
                                       .tp_name = "xppython3.PluginInfo",
@@ -389,6 +398,7 @@ static PyTypeObject PluginInfoType = {
                                       .tp_dealloc = (destructor) PluginInfo_dealloc,
                                       .tp_traverse = (traverseproc) PluginInfo_traverse,
                                       .tp_clear = (inquiry) PluginInfo_clear,
+                                      .tp_str = (reprfunc) PluginInfo_str,
                                       .tp_members = PluginInfo_members,
 
 };
@@ -498,14 +508,69 @@ static PyMemberDef NavAidInfo_members[] = {
     {"type", T_INT, offsetof(NavAidInfoObject, type), 0, "XPLMNavType"},
     {"latitude", T_FLOAT, offsetof(NavAidInfoObject, latitude), 0, "latitude"},
     {"longitude", T_FLOAT, offsetof(NavAidInfoObject, longitude), 0, "longitude"},
-    {"height", T_FLOAT, offsetof(NavAidInfoObject, height), 0, "height"},
-    {"frequency", T_INT, offsetof(NavAidInfoObject, frequency), 0, "frequency"},
-    {"heading", T_FLOAT, offsetof(NavAidInfoObject, heading), 0, "heading"},
-    {"navAidID", T_OBJECT_EX, offsetof(NavAidInfoObject, navAidID), 0, "nav aid ID"},
-    {"name", T_OBJECT, offsetof(NavAidInfoObject, name), 0, "nav aid name"},
-    {"reg", T_INT, offsetof(NavAidInfoObject, reg), 0, "navaid is within local 'region'"},
+    {"height", T_FLOAT, offsetof(NavAidInfoObject, height), 0, "height (meters)"},
+    {"frequency", T_INT, offsetof(NavAidInfoObject, frequency), 0, "frequency (x100, expect for NDB)"},
+    {"heading", T_FLOAT, offsetof(NavAidInfoObject, heading), 0, "heading, for GlideSlope value is localizer bearing (true) + GS angle x 100,000\n"
+     "e.g., GS of 3.00 degrees on heading 122.53125 becomes 300122.53125"},
+    {"navAidID", T_OBJECT_EX, offsetof(NavAidInfoObject, navAidID), 0, "navaid ID"},
+    {"name", T_OBJECT, offsetof(NavAidInfoObject, name), 0, "navaid name"},
+    {"reg", T_INT, offsetof(NavAidInfoObject, reg), 0, "1 if navaid is within local 'region', 0 otherwise"},
     {NULL, T_INT, 0, 0, ""}  /* Sentinel */
 };
+
+static PyObject *NavAidInfo_str(NavAidInfoObject *obj) {
+  /* Name (<ID>), type, (lat, lon), frequncy*/
+  char *navAidType;
+  char *floats;
+  if (obj->frequency == 0.0) {
+    asprintf(&floats, "(%.3f, %.3f) ---", obj->latitude, obj->longitude);
+  } else {
+    asprintf(&floats, "(%.3f, %.3f) %.2f", obj->latitude, obj->longitude, obj->frequency/100.0);
+  }
+
+  switch(obj->type) {
+  case xplm_Nav_Airport:
+    navAidType = "Airport"; break;
+  case xplm_Nav_NDB:
+    navAidType = "NDB";
+    free(floats);
+    asprintf(&floats, "(%.3f, %.3f) %d", obj->latitude, obj->longitude, obj->frequency);
+    break;
+  case xplm_Nav_VOR:
+    navAidType = "VOR"; break;
+  case xplm_Nav_ILS:
+    navAidType = "ILS"; break;
+  case xplm_Nav_Localizer:
+    navAidType = "Localizer"; break;
+  case xplm_Nav_GlideSlope:
+    navAidType = "GlideSlope"; break;
+  case xplm_Nav_OuterMarker:
+    navAidType = "OuterMarker"; break;
+  case xplm_Nav_MiddleMarker:
+    navAidType = "MiddleMarker"; break;
+  case xplm_Nav_InnerMarker:
+    navAidType = "InnerMarker"; break;
+  case xplm_Nav_Fix:
+    navAidType = "Fix"; break;
+  case xplm_Nav_DME:
+    navAidType = "DME"; break;
+  case xplm_Nav_LatLon:
+    navAidType = "LatLon"; break;
+  case xplm_Nav_Unknown:
+    navAidType = "Unknown"; break;
+  default:
+    navAidType = "Other Unknown";
+  }
+  
+  PyObject *ret = PyUnicode_FromFormat("%S (%S) %s %s",
+                                       obj->name,
+                                       obj->navAidID,
+                                       navAidType,
+                                       floats);
+  free(floats);
+  return ret;
+                              
+}
 
 static PyTypeObject NavAidInfoType = {
                                       PyVarObject_HEAD_INIT(NULL, 0)
@@ -519,6 +584,7 @@ static PyTypeObject NavAidInfoType = {
                                       .tp_dealloc = (destructor) NavAidInfo_dealloc,
                                       .tp_traverse = (traverseproc) NavAidInfo_traverse,
                                       .tp_clear = (inquiry) NavAidInfo_clear,
+                                      .tp_str = (reprfunc) NavAidInfo_str,
                                       .tp_members = NavAidInfo_members,
 
 };
@@ -606,14 +672,59 @@ FMSEntryInfo_init(FMSEntryInfoObject *self, PyObject *args, PyObject *kwds)
 }
 
 static PyMemberDef FMSEntryInfo_members[] = {
-    {"type", T_INT, offsetof(FMSEntryInfoObject, type), 0, "XPLMNavType"},
-    {"navAidID", T_OBJECT_EX, offsetof(FMSEntryInfoObject, navAidID), 0, "nav aid ID"},
-    {"ref", T_INT, offsetof(FMSEntryInfoObject, ref), 0, "XPLMNavref"},
-    {"altitude", T_INT, offsetof(FMSEntryInfoObject, altitude), 0, "altitude"},
+    {"type", T_INT, offsetof(FMSEntryInfoObject, type), 0, "XPLMNavType or NAV_NOT_FOUND if LatLon"},
+    {"navAidID", T_OBJECT_EX, offsetof(FMSEntryInfoObject, navAidID), 0, "navaid ID or None, if LatLon"},
+    {"ref", T_INT, offsetof(FMSEntryInfoObject, ref), 0, "XPLMNavref or None"},
+    {"altitude", T_INT, offsetof(FMSEntryInfoObject, altitude), 0, "altitude (in feet)"},
     {"lat", T_FLOAT, offsetof(FMSEntryInfoObject, lat), 0, "latitude"},
     {"lon", T_FLOAT, offsetof(FMSEntryInfoObject, lon), 0, "longitude"},
     {NULL, T_INT, 0, 0, ""}  /* Sentinel */
 };
+
+static PyObject *FMSEntryInfo_str(FMSEntryInfoObject *obj) {
+  char *navAidType;
+  char *floats;
+  switch(obj->type) {
+  case xplm_Nav_Airport:
+    navAidType = "Airport"; break;
+  case xplm_Nav_NDB:
+    navAidType = "NDB"; break;
+  case xplm_Nav_VOR:
+    navAidType = "VOR"; break;
+  case xplm_Nav_ILS:
+    navAidType = "ILS"; break;
+  case xplm_Nav_Localizer:
+    navAidType = "Localizer"; break;
+  case xplm_Nav_GlideSlope:
+    navAidType = "GlideSlope"; break;
+  case xplm_Nav_OuterMarker:
+    navAidType = "OuterMarker"; break;
+  case xplm_Nav_MiddleMarker:
+    navAidType = "MiddleMarker"; break;
+  case xplm_Nav_InnerMarker:
+    navAidType = "InnerMarker"; break;
+  case xplm_Nav_Fix:
+    navAidType = "Fix"; break;
+  case xplm_Nav_DME:
+    navAidType = "DME"; break;
+  case xplm_Nav_LatLon:
+    navAidType = "LatLon"; break;
+  case xplm_Nav_Unknown:
+    navAidType = "Unknown"; break;
+  default:
+    navAidType = "Other Unknown";
+  }
+  PyObject *ret;
+  asprintf(&floats, "(%.3f, %.3f) @%d'", obj->lat, obj->lon, obj->altitude);
+  if (obj->type == xplm_Nav_LatLon) {
+    ret = PyUnicode_FromFormat("%s: %s", navAidType, floats);
+  } else {
+    ret = PyUnicode_FromFormat("%s: [%d] %S, %s", navAidType, obj->ref, obj->navAidID, floats);
+  }
+  free(floats);
+  return ret;
+}
+
 
 static PyTypeObject FMSEntryInfoType = {
                                       PyVarObject_HEAD_INIT(NULL, 0)
@@ -627,6 +738,7 @@ static PyTypeObject FMSEntryInfoType = {
                                       .tp_dealloc = (destructor) FMSEntryInfo_dealloc,
                                       .tp_traverse = (traverseproc) FMSEntryInfo_traverse,
                                       .tp_clear = (inquiry) FMSEntryInfo_clear,
+                                      .tp_str = (reprfunc) FMSEntryInfo_str,
                                       .tp_members = FMSEntryInfo_members,
 
 };
@@ -641,6 +753,11 @@ PyFMSEntryInfo_New(int type, char *navAidID, int ref, int altitude, float lat, f
   return (PyObject*)obj;
 }
 
+My_DOCSTR(_getPluginStats__doc__, "getPluginStats", "",
+          "Return dictionary of python plugin performance statistics\n"
+          "\n"
+          "Keys are different python plugins, with key=None being\n"
+          "overall performance of XPPython3 plugin.");
 static PyObject *XPGetPluginStats(PyObject *self, PyObject *args)
 {
   (void) self;
@@ -680,6 +797,10 @@ static PyObject *XPGetPluginStats(PyObject *self, PyObject *args)
   return info;
 }
 
+My_DOCSTR(_pythonGetDicts__doc__, "pythonGetDicts", "",
+          "Return dictionary of internal xppython3 dictionaries\n"
+          "\n"
+          "See documentation, intended for debugging only");
 static PyObject *XPPythonGetDictsFun(PyObject *self, PyObject *args)
 {
   (void) self;
@@ -688,6 +809,8 @@ static PyObject *XPPythonGetDictsFun(PyObject *self, PyObject *args)
   return xppythonDicts;
 }
 
+My_DOCSTR(_pythonLog__doc__, "log", "",
+          "Log string to XPPython3log.txt file. Flush buffer, if no string is provided.");
 static PyObject *XPPythonLogFun(PyObject *self, PyObject *args)
 {
   (void) self;
@@ -708,6 +831,8 @@ static PyObject *XPPythonLogFun(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+My_DOCSTR(_pythonSystemLog__doc__, "systemLog", "",
+          "Log string to system log file, Log.txt, with newline appended, flushing buffer.");
 static PyObject *XPSystemLogFun(PyObject *self, PyObject *args)
 {
   (void) self;
@@ -731,12 +856,39 @@ static PyObject *XPSystemLogFun(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+My_DOCSTR(_pythonGetCapsules__doc__, "pythonGetCapsules", "",
+          "Returns internal dictionary of Capsules\n"
+          "\n"
+          "Intended for debugging only");
 static PyObject *XPPythonGetCapsulesFun(PyObject *self, PyObject *args)
 {
   (void) self;
   (void) args;
   Py_INCREF(xppythonCapsules);
   return xppythonCapsules;
+}
+
+My_DOCSTR(_derefCapsule__doc__, "derefCapsule", "capsule_type, capsule",
+          "Dereference a capsule to retrieve internal C language pointer\n"
+          "\n"
+          "Intended for debugging only");
+
+static PyObject *XPPythonDerefCapsuleFun(PyObject *self, PyObject *args)
+{
+  (void) self;
+  const char *capsule_type;
+  PyObject *capsule;
+  if(!PyArg_ParseTuple(args, "sO", &capsule_type, &capsule)) {
+    return NULL;
+  }
+  /* fprintf(pythonLogFile, "Capsule Name: %s\n", PyCapsule_GetName(capsule)); */
+  /* fflush(pythonLogFile); */
+  /* fprintf(pythonLogFile, "Capsule Context: %p\n", PyCapsule_GetContext(capsule)); */
+  /* fflush(pythonLogFile); */
+  /* fprintf(pythonLogFile, "Capsule Pointer: %p\n", PyCapsule_GetPointer(capsule, capsule_type)); */
+  /* fflush(pythonLogFile); */
+
+  return PyLong_FromVoidPtr(PyCapsule_GetPointer(capsule, capsule_type));
 }
 
 static PyObject *cleanup(PyObject *self, PyObject *args)
@@ -749,19 +901,28 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef XPPythonMethods[] = {
-  {"XPPythonGetDicts", XPPythonGetDictsFun, METH_VARARGS, ""},
-  {"XPPythonGetCapsules", XPPythonGetCapsulesFun, METH_VARARGS, ""},
-  {"XPPythonLog", XPPythonLogFun, METH_VARARGS, ""},
+  {"pythonGetDicts", (PyCFunction)XPPythonGetDictsFun, METH_VARARGS, _pythonGetDicts__doc__},
+  {"XPPythonGetDicts", (PyCFunction)XPPythonGetDictsFun, METH_VARARGS, ""},
+  {"pythonGetCapsules", (PyCFunction)XPPythonGetCapsulesFun, METH_VARARGS, _pythonGetCapsules__doc__},
+  {"XPPythonGetCapsules", (PyCFunction)XPPythonGetCapsulesFun, METH_VARARGS, ""},
+  {"derefCapsule", (PyCFunction)XPPythonDerefCapsuleFun, METH_VARARGS, _derefCapsule__doc__},
+  {"XPPythonDerefCapsule", (PyCFunction)XPPythonDerefCapsuleFun, METH_VARARGS, ""},
+  {"log", (PyCFunction)XPPythonLogFun, METH_VARARGS, _pythonLog__doc__},
+  {"XPPythonLog", (PyCFunction)XPPythonLogFun, METH_VARARGS, ""},
   {"XPSystemLog", XPSystemLogFun, METH_VARARGS, ""},
-  {"XPGetPluginStats", XPGetPluginStats, METH_VARARGS, ""},
-  {"cleanup", cleanup, METH_VARARGS, ""},
+  {"systemLog", XPSystemLogFun, METH_VARARGS, _pythonSystemLog__doc__},
+  {"sys_log", XPSystemLogFun, METH_VARARGS, _pythonSystemLog__doc__},
+  {"getPluginStats", (PyCFunction)XPGetPluginStats, METH_VARARGS | METH_KEYWORDS, _getPluginStats__doc__},
+  {"XPGetPluginStats", (PyCFunction)XPGetPluginStats, METH_VARARGS | METH_KEYWORDS, ""},
+  {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
 
 static struct PyModuleDef XPPythonModule = {
   PyModuleDef_HEAD_INIT,
   "XPPython",
-  NULL,
+  "XPPython3 documentation: \n"
+  "   https://xppython3.rtfd.io/en/stable/development/modules/kpython.html",
   -1,
   XPPythonMethods,
   NULL,
@@ -789,6 +950,7 @@ PyInit_XPPython(void)
   PyObject *mod = PyModule_Create(&XPPythonModule);
 
   if (mod != NULL) {
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
     PyModule_AddStringConstant(mod, "VERSION", pythonPluginVersion);
     PyModule_AddStringConstant(mod, "PLUGINSPATH", pythonPluginsPath);
     PyModule_AddStringConstant(mod, "INTERNALPLUGINSPATH", pythonInternalPluginsPath);

@@ -42,8 +42,8 @@ Now, continue with :ref:`Installation<for-mac>`.
 
 ----
 
-.. [#F1] If you're curious about what the *Authorize XPL* script actually does, you can open it, or the
-         related ``Authorize XPL.scpt`` script file in the Apple Script Editor.
+.. [#F1] If you're curious about what the *Authorize XPL* script actually does, you can open it
+         in the Apple Script Editor.
 
 .. [#F2] What? Why bother *authorizing* an application to *authorize* the plugin, isn't that double
          the work? Well, not really. If you're comfortable typing commands into Terminal, you don't

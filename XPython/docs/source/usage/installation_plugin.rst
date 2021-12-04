@@ -44,23 +44,15 @@ Installation
   your ``Resources/plugins/PythonPlugins/samples``
   folder. To execute a sample, move a plugin up into the `PythonPlugins` folder.)
 
+.. _for-mac:
+
   **For Mac**
-     Your newly downloaded plugin is subject to Apple's quarantine on recent versions of macOS. You will **not** be
-     able to execute the plugin until you first remove the quarantine::
-
-       $ cd /users/pbuck/X-Plane/Resources/plugins/XPPython3/mac_x64
-       $ xattr -d com.apple.quarantine XPPython3.xpl 
-
-     (Or whereever you installed X-Plane: the top folder name will differ.)
      
-     If you forget to do this, *XPPython3 will not load* and you'll get error popup indicating XPPython3.xpl cannot be opened. See
-     :doc:`common_errors`.
+     STOP! Before continuing, you need to remove the quarantine. Follow instructions in :doc:`mac_quarantine`.
+     
+     If you forget to do this, *XPPython3 will not load* and you'll get error popup
+     indicating XPPython3.xpl cannot be opened. See :doc:`common_errors`.
 
-     You should also remove from quarantine it ``imgui`` shared library::
-
-       $ cd /users/pbuck/X-Plane/Resources/plugins/XPPython3/imgui
-       $ xattr -d com.apple.quarantine core.*
-  
 4. Start X-Plane.
 
   On installation success, we'll popup a window:

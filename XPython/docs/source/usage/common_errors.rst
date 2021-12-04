@@ -39,31 +39,10 @@ You get popup on initial execution:
 
 **Solution**
    1. Press **Cancel**. If you move it to the trash, you'll have to download it again...
+      
 
-   2. On Cancel, X-Plane *will start*, but it simple ignores the plugin.
+   2. Follow instructions to remove the quarantine as described in :doc:`mac_quarantine`.
 
-   3. Quit X-Plane. You'll only need to fix this once.
-
-   4. Open Terminal app, and go to the folder <X-Plane>/Resources/plugins/XPPython3/mac_x64::
-
-        $ cd /Users/pbuck/X-Plane/Resources/plugins/XPPython3/mac_x64
-
-      (I don't know where you installed X-Plane, so the top folders may be different)
-
-   5. Verify quarantine information for XPPython3.xpl::
-
-        $ xattr -l XPPython3.xpl
-        com.apple.quarantine: 0083;619aec20;Safari;47F5FBD6-CEA4-425C-93A3-1856380C71D5
-
-      The code after "com.apple.quarantine" will be different but it's existence indicates
-      the file *is subject to quarantine*.
-
-   5. Remove the quarantine for XPPython3.xpl::
-
-        $ xattr -d com.apple.quarantine  XPPython3.xpl
-
-   That's it: restart X-Plane and you should not see the popup! (These steps will work for other plugins as well.)
-   
 ----        
 
 You get an eror message in a Log file complaining about SSL CERTIFICATES:

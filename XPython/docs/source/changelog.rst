@@ -6,11 +6,14 @@ Known Bugs
 
  None (prove me wrong!)
 
-3.1.0\ *x* (In Beta)
-----------------------
+3.1.0 (4-Dec-2021)
+------------------
 :New Features:
    * **Support for Python 3.10**. Because my life just isn't complicated enough.
 
+   * Added script to simplify Mac Installation (removing quarantine flag). See
+     :doc:`/usage/mac_quarantine`.
+     
    * Made interface more "pythonic":
 
      * Added keywords for all parameters (e.g., ``xp.getWindowGeometry(windowID=xxx)``)
@@ -41,7 +44,8 @@ Known Bugs
 
 :Improvements:
    * Upgraded **Mini Python** plugin which supports resizable debugging window and *full language scripting*, see
-     :doc:`/development/debugger`.
+     :doc:`/development/debugger`. (You'll need to re-download Samples and copy updated `PI_MiniPython.py` if
+     you want to use it.)     
 
    * Hundreds of documentation improvements, providing *executable examples* of most SDK functions, and documenting
      the dozen or so interfaces where X-Plane does not actually implement the Laminar SDK documentation correctly.

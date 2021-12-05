@@ -10,10 +10,7 @@ Requirements
 Installation
 ============
 
-1. Install 64-bit Python 3.9
-
-  (*Python 3.10* is supported, but not yet recommended: it works, but as it was just released, some
-  third-party modules are not available.)
+1. Install 64-bit Python 3.10
 
   + https://www.python.org/downloads/
 
@@ -32,7 +29,7 @@ Installation
 
 2. Download XPPython zipfile:
 
-  + `xppython39.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython39.zip>`_.
+  + `xppython310.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython310.zip>`_.
 
 3. Extract the xppython*.zip into your :code:`X-Plane/Resources/plugins` folder, such that you have folder there called :code:`XPPython3`.
 

@@ -1398,7 +1398,7 @@ Keystrokes that can be managed by others. These are lower-level than window keyb
 If you have a sniffer and a hot key, the sniffer is called first (even if it is an "after" sniffer)
 and if it consumes the key, the hot key will not be called.
 
-.. py:function:: registerHotKey(vKey, flags, description="", hotKey, refCon)
+.. py:function:: registerHotKey(vKey, flags, description="", hotKey, refCon=None)
 
  Register a hotkey.
 
@@ -1478,7 +1478,7 @@ and if it consumes the key, the hot key will not be called.
 
  Remap a hot key's keystroke.
 
- *hostKeyID* can be either one returned from :py:func:`registerHotKey`, or
+ *hotKeyID* can be either one returned from :py:func:`registerHotKey`, or
  found using :py:func:`getNthHotKey`.
 
  Set *vKey* and *flags* as you would with :py:func:`registerHotKey`.

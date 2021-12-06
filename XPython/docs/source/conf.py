@@ -65,7 +65,9 @@ html_theme_options = {
     'root_name': '',
     'root_icon': 'xppython3.png',
     'root_url': '',
-    'issues_url': 'https://github.com/pbuckner/x-plane_plugins/issues'
+    'issues_url': 'https://github.com/pbuckner/x-plane_plugins/issues',
+    'collapsiblesidebar': True,
+    'versionlist': [('3.1.1', 'beta'), ('3.1.0', 'stable')]
 }
 html_js_files = [
     'js/versions.js'

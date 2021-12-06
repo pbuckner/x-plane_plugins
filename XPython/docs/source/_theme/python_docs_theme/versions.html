@@ -1,6 +1,6 @@
-{% set versionlist = [('3.1.1', 'beta'), ('3.1.0', 'stable')] %}
+{% if theme_versionlist|tobool %}
 Current stable release is
-{% for x in versionlist %}
+{% for x in theme_versionlist %}
      {% if x[1] == 'stable' %}
         {{ x[0] }}
      {% endif %}
@@ -10,10 +10,11 @@ Current stable release is
 {% endfor %}
 <br/>
 <select class="version-selector">
-{% for v, name in versionlist %}
+{% for v, name in theme_versionlist %}
     <option value="{{ name|e }}"
             {{ "selected" if v == release else "" }} >
       {{ name.title() }}: {{ v }}
     </option>
 {% endfor %}
 </select>
+{% endif %}

@@ -90,6 +90,7 @@ div.body hr {
 div.body pre {
     border-radius: 3px;
     border: 1px solid #ac9;
+    background-color: #eeffcc;
 }
 
 div.body div.admonition, div.body div.impl-detail {

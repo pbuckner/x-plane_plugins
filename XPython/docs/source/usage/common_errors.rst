@@ -10,18 +10,20 @@ On Windows
    The specified module could not be found.
      
 **Cause**:
-    X-Plane cannot load all DLLs required by plugin. In this case, the python plugin is looking for python itself.
-    Usually, python is installed in `C:\\Program Files\\Python3X folder`, where you'll find a file `python3.dll`.
+    X-Plane cannot load all DLLs required by plugin. In this case, the XPPython plugin is looking for Python DLL.
+    The Python version of XPPython3 (3.6, 3.7, ..., 3.10) looks for the same named DLL
+    (python36.dll, python37.dll, ..., pthon310.dll).
    
 **Solution**:
-    1. Python needs to be installed "for all users" -- that places the folder under \Program Files, if not for all
-       users, it's stored somewhere else & X-Plane may not be able to find it. And,
-    2. Add Python to environment variables.
+    Windows using your %PATH% environment variable to find DLLs, so when you install:
 
-Both of these options can be set by the installer downloaded from python.org (this *Advanced Options* window is
-the next window after *Options* in the installation wizard).
+    * Add Python to environment variables.
 
-     .. image:: /images/pythonwindows.png
+    If you forgot on the initial install of python,
+    you can go to Windows Settings -> Apps -> Python 3.x (64-bit), select *Modify*, then go through
+    the options until you find *Add Python to environment variables*.
+
+     .. image:: /images/add_python_to_path.jpg
 
 ----
 

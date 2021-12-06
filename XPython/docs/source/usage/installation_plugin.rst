@@ -15,7 +15,12 @@ Installation
   + https://www.python.org/downloads/
 
   **For Windows**
-    install it "For All Users".  (*PLEASE*. This is the single most common error!)
+    select "Add Python x.x to PATH" (*PLEASE*. This is the single most common error!)
+
+    .. image:: /images/windows_python_environment.jpg
+
+    Choose either "Install Now" or "Customize Installation", either will work as long has python is
+    added to your path!
 
   **For Linux**
     use your package manager (deb, apt, etc.) install as root, and make sure you also have pip and libpython.

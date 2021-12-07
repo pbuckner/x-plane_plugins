@@ -6,6 +6,11 @@ Known Bugs
 
  None (prove me wrong!)
 
+3.1.1 (7-Dec-2021)
+------------------
+:Fixes:
+   * createWindowEx() ordering of keyword parameters was incorrect.
+
 3.1.0 (4-Dec-2021)
 ------------------
 :New Features:

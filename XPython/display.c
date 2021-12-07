@@ -466,9 +466,10 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
   int layer=xplm_WindowLayerFloatingWindows;
   PyObject *draw=Py_None, *click=Py_None, *key=Py_None, *cursor=Py_None, *wheel=Py_None, *rightClick=Py_None, *refCon=Py_None;
   PyObject *paramsObj=Py_None;
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OiiiiiiOOOOOOO", keywords, &firstObj, &top, &right, &bottom, &visible,
-                                  &decoration, &layer,
-                                  &draw, &click, &key, &cursor, &wheel, &rightClick, &refCon)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OiiiiOOOOOOiiO", keywords,
+                                  &firstObj, &top, &right, &bottom, &visible,
+                                  &draw, &click, &key, &cursor, &wheel, &refCon,
+                                  &decoration, &layer, &rightClick)){
     return NULL;
   }
   if (firstObj == Py_None) {

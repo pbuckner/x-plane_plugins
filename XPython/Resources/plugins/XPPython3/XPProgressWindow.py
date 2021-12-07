@@ -90,7 +90,7 @@ class XPProgressWindow:
         xp.showWidget(self.progressWindow)
 
     def setProgress(self, value=0):
-        xp.setWidgetProperty(self.progressWidget, xp.Property_ProgressPosition, self.maxValue * (value if value < 1 else 1))
+        xp.setWidgetProperty(self.progressWidget, xp.Property_ProgressPosition, int(self.maxValue * (value if value < 1 else 1)))
 
     def setCaption(self, caption=''):
         caption_text = caption.split('\n')

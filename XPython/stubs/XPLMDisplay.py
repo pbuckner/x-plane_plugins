@@ -1,171 +1,12 @@
 from typing import Tuple
-"""XPLM Display APIs (based on CHeaders/XPLM/XPLMDisplay.h)
-
- This API provides the basic hooks to draw in X-Plane and create user
- interface. All X-Plane drawing is done in OpenGL.  The X-Plane plug-in
- manager takes care of properly setting up the OpenGL context and matrices.
- You do not decide when in your code's  execution to draw; X-Plane tells you
- when it is ready to have your plugin draw.
-
- X-Plane's drawing strategy is straightforward: every "frame" the screen is
- rendered by drawing the 3-d scene (dome, ground, objects, airplanes, etc.)
- and then drawing the cockpit on top of it.  Alpha blending is used to
- overlay the cockpit over the world (and the gauges over the panel, etc.).
-
- There are two ways you can draw: directly and in a window.
-
- Direct drawing involves drawing to the screen before or after X-Plane
- finishes a phase of drawing.  When you draw directly, you can specify
- whether x-plane is to complete this phase or not.  This allows you to do
- three things: draw before x-plane does (under it), draw after x-plane does
- (over it), or draw instead of x-plane.
-
- To draw directly, you register a callback and specify what phase you want
- to intercept.  The plug-in manager will call you over and over to draw that
- phase.
-
- Direct drawing allows you to override scenery, panels, or anything. Note
- that you cannot assume that you are the only plug-in drawing at this
- phase.
-
- Window drawing provides slightly higher level functionality. With window
- drawing you create a window that takes up a portion of the screen. Window
- drawing is always two dimensional. Window drawing is front-to-back
- controlled; you can specify that you want your window to be brought on
- top, and other plug-ins may put their window on top of you. Window drawing
- also allows you to sign up for key presses and receive mouse clicks.
-
- Note: all 2-d (and thus all window drawing) is done in 'cockpit pixels'.
- Even when the OpenGL window contains more than 1024x768 pixels, the cockpit
- drawing is magnified so that only 1024x768 pixels are available.
-
- There are three ways to get keystrokes:
-
- If you create a window, the window can take keyboard focus.  It will then
- receive all keystrokes.  If no window has focus, X-Plane receives
- keystrokes.  Use this to implement typing in dialog boxes, etc.  Only one
- window may have focus at a time; your window will be notified if it loses
- focus.
-
- If you need to associate key strokes with commands/functions in your
- plug-in, use a hot key.  A hoy is a key-specific callback.  Hotkeys are
- sent based on virtual key strokes, so any key may be distinctly mapped with
- any modifiers.  Hot keys  can be remapped by other plug-ins.  As a plug-in,
- you don't have to worry about  what your hot key ends up mapped to; other
- plug-ins may provide a UI for remapping keystrokes.  So hotkeys allow a
- user to resolve conflicts and customize keystrokes.
-
- If you need low level access to the keystroke stream, install a key
- sniffer.  Key sniffers can be installed above everything or right in front
- of the sim.
-
- DRAWING CALLBACKS
- Basic drawing callbacks are for low level intercepting of render loop. The
- purpose of drawing callbacks is to provide targeted additions or
- replacements to x-plane's graphics environment (for example, to add extra
- custom objects, or replace drawing of the AI aircraft).  Do not assume that
- the drawing callbacks will be called in the order implied by the
- enumerations. Also do not assume that each drawing phase ends before
- another begins; they may be nested.
-
- XPLMDrawingPhase
- This constant indicates which part of drawing we are in.  Drawing is done
- from the back to the front.  We get a callback before or after each item.
- Metaphases provide access to the beginning and end of the 3d (scene) and 2d
- (cockpit) drawing in a manner that is independent of new phases added via
- x-plane implementation.
-
- WARNING: As X-Plane's scenery evolves, some drawing phases may cease to
- exist and new ones may be invented. If you need a particularly specific
- use of these codes, consult Austin and/or be prepared to revise your code
- as X-Plane evolves.
-
- xplm_Phase_FirstScene
-   - This is the earliest point at which you can draw in 3-d.
-
- xplm_Phase_Terrain
-   - Drawing of land and water.
-
- xplm_Phase_Airports
-   - Drawing runways and other airport detail.
-
- xplm_Phase_Vectors
-   - Drawing roads, trails, trains, etc.
-
- xplm_Phase_Objects
-   - 3-d objects (houses, smokestacks, etc.
-
- xplm_Phase_Airplanes
-   - External views of airplanes, both yours and the AI aircraft.
-
- xplm_Phase_LastScene
-   - This is the last point at which you can draw in 3-d.
-
- xplm_Phase_FirstCockpit
-   - This is the first phase where you can draw in 2-d.
-
- xplm_Phase_Panel
-   - The non-moving parts of the aircraft panel.
-
- xplm_Phase_Gauges
-   - The moving parts of the aircraft panel.
-
- xplm_Phase_Window
-   - Floating windows from plugins.
-
- xplm_Phase_LastCockpit
-   - The last change to draw in 2d.
-
- xplm_Phase_LocalMap3D
-   - 3-d Drawing for the local map.  Use regular OpenGL coordinates to draw in
-     this phase.
-
- xplm_Phase_LocalMap2D
-   - 2-d Drawing of text over the local map.
-
- xplm_Phase_LocalMapProfile
-   - Drawing of the side-profile view in the local map screen.
-"""
-
 xplm_Phase_Modern3D = 31
-
-# This is the first phase where you can draw in 2-d.
 xplm_Phase_FirstCockpit = 35
-
-# The non-moving parts of the aircraft panel.
 xplm_Phase_Panel = 40
-
-# The moving parts of the aircraft panel.
 xplm_Phase_Gauges = 45
-
-# Floating windows from plugins.
 xplm_Phase_Window = 50
-
-# The last change to draw in 2d.
 xplm_Phase_LastCockpit = 55
 
-
-###############################################################################
-
 def XPLMDrawCallback_f(inPhase, inIsBefore, inRefcon):
-    """Prototype for a low level drawing callback.
-
-      inPhase    - integer (xplm_Phase_*)
-      inIsBefore - integer
-      inRefcon   - integer
-
-      return integer (0/1)
-
-      You are passed in the phase and whether it is before or after. If you are
-      before the phase, return 1 to let x-plane draw or 0 to suppress x-plane
-      drawing. If you are after the phase the return value is ignored.
-
-      Refcon is a unique value that you specify when registering the callback.
-
-      Upon entry the OpenGL context will be correctly set up for you and OpenGL
-      will be in 'local' coordinates for 3d drawing and panel coordinates for 2d
-      drawing.  The OpenGL state (texturing, etc.) will be unknown.
-    """
     return int  # 0= Suppress x-plane drawing; 1=let x-plane draw
 
 ###############################################################################
@@ -220,34 +61,8 @@ def XPLMRegisterDrawCallback(inCallback, inPhase, inWantsBefore, inRefcon):
 
 
 def XPLMUnregisterDrawCallback(inCallback, inPhase, inWantsBefore, inRefcon):
-    """Unregister a low level drawing callback.
-
-      inCallback    - callback reference
-      inPhase       - integer (xplm_Phase_*)
-      inWantsBefore - integer
-      inRefcon      - integer
-
-      returns integer (0/1)
-
-      You must unregister a callback for each time you register a callback if
-      you have registered it multiple times with different refcons.
-      The routine returns 1 if it can find the callback to unregister, 0 otherwise.
-    """
     return int  # 1=callback found and unregistered, 0=otherwise
 
-
-###############################################################################
-# WINDOW API
-###############################################################################
-
-###############################################################################
-# XPLMMouseStatus
-#
-# When the mouse is clicked, your mouse click routine is called repeatedly.
-# It is first called with the mouse down message.  It is then called zero or
-# more times with the mouse-drag message, and finally it is called once with
-# the mouse up message.  All of these messages will be directed to the same
-# window.
 xplm_MouseDown = 1
 xplm_MouseDrag = 2
 xplm_MouseUp = 3

@@ -586,7 +586,11 @@ static PyObject *XPSetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject
       XPSendMessageToWidget(refToPtr(widget, widgetRefName), xpMsg_PropertyChanged, xpMode_Direct, property, (intptr_t) value);
     }
   } else {
-    XPSetWidgetProperty(refToPtr(widget, widgetRefName), inProperty, PyLong_AsLong(value));
+    XPSetWidgetProperty(refToPtr(widget, widgetRefName), inProperty, value == Py_None ? 0: PyLong_AsLong(value));
+    PyObject *err = PyErr_Occurred();
+    if(err){
+      fprintf(pythonLogFile, "Error trying to set widget property %d with value %s\n", inProperty, objToStr(value));
+    }
   }
   Py_RETURN_NONE;
 }

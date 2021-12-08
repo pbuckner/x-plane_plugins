@@ -15,7 +15,7 @@ My_DOCSTR(_setGraphicsState__doc__, "setGraphicsState", "fog=0, numberTexUnits=0
           "Use instead of any glEnable / glDisable calls.");
 static PyObject *XPLMSetGraphicsStateFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"fog", "numberTextUnits", "lighting", "alphaTesting", "alphaBlending", "depthTesting", "depthWriting", NULL};
+  static char *keywords[] = {"fog", "numberTexUnits", "lighting", "alphaTesting", "alphaBlending", "depthTesting", "depthWriting", NULL};
   (void) self;
 
   int inEnableFog = 0;

@@ -6,6 +6,14 @@ Known Bugs
 
  None (prove me wrong!)
 
+3.1.2 (7-Dec-2021)
+------------------
+:Fixes:
+   * Python updater script sometimes failed to successful download updated software.
+     If your software is "stuck" and not updating, *delete* XPPython3 folder, and
+     reinstall by downloading the lastest version. See :doc:`/usage/older_python`
+     and get the version which matches your version of Python.
+
 3.1.1 (7-Dec-2021)
 ------------------
 :Fixes:

@@ -36,6 +36,8 @@ Installation
 
   + `xppython310.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython310.zip>`_.
 
+    (Use the above zip file only if you have Python 3.10 installed. Otherwise, use `Other Versions of Python <older_python.html>`_.
+
 3. Extract the xppython*.zip into your :code:`X-Plane/Resources/plugins` folder, such that you have folder there called :code:`XPPython3`.
 
   This plugin XPPython3 folder must be placed in :code:`<XP>/Resources/plugins`.

@@ -39,6 +39,18 @@ files from ``samples`` to get the plugin working.
    |                            | plugin. Original by Sandy Barbour include with         |
    |                            | PythonInterface.                                       |
    +----------------------------+--------------------------------------------------------+
+   |PI_ExampleGauge.py          | Ported from Sandy Barbour's Example Gauge example.     |
+   |                            |                                                        |
+   |                            | Draws a floating panel, with gauge tied to ENGN\_N1\_  |
+   |                            | dataref. Press F8 to toggle display, drag panel by     |
+   |                            | selecting top ~20 pixels of panel.                     |
+   |                            |                                                        |
+   |                            | Copy ExampleGauge/\*.bmp bitmaps from sample direcctory|
+   |                            | into Resource/plugins/PythonPlugins/ExampleGauge/ so   |
+   |                            | this plugin can find them.                             |
+   |                            |                                                        |
+   |                            | Uses OpenGL, textures, registerHotKey.                 |
+   +----------------------------+--------------------------------------------------------+
    |PI_FMSUtility1.py           | Ported from python2 example. Demonstrates access to    |
    |                            | the FMS. getDisplayFMSEntry, setDisplayFMSEntry,       |
    |                            | getDestinationFMSEntry, setDestinationFMSEntry,        |
@@ -107,7 +119,7 @@ files from ``samples`` to get the plugin working.
    +----------------------------+--------------------------------------------------------+
    |PI_OpenGL.py                | Demonstrates use of OpenGL, *and* tests the            |
    |                            | installation for correct set up of OpenGL. **Note**    |
-   |                            | Mac Big Sur will not run OpenGL without a minor        |
+   |                            | Mac Big Sur will not run OpenGL without a minor        |        
    |                            | one-time change. This plugin may be useful to          |
    |                            | plugin developers who require clients to install OpenGL|
    |                            | (or imgui).                                            |
@@ -119,7 +131,7 @@ files from ``samples`` to get the plugin working.
    |PI_Position1.py             | Ported from python2. Demonstrates how to change        |
    |                            | aircraft attitude. Original by Sandy Barbour included  |
    |                            | with PythonInterface. Uses localToWorld, worldToLocal, |
-   |                            | getWidgetProperty, setWidgetPropoerty, setDataf.       |        
+   |                            | getWidgetProperty, setWidgetPropoerty, setDataf.       |
    +----------------------------+--------------------------------------------------------+
    |PI_SharedData1.py,          | Ported from python2. Demonstrates sharing data         |
    |PI_SharedData2.py           | between to different plugins. Using findDataRef,       |

@@ -6,6 +6,12 @@ Known Bugs
 
  None (prove me wrong!)
 
+3.1.3x (Beta)
+------------------
+:Fixes:
+   * :py:func:`xp.setGraphicsState` keyword parameter name has been corrected. Was ``numberTextUnits``, now correctly
+     spelled ``numberTexUnits``. If you use just positional parameters, you'll not see the error.
+
 3.1.2 (7-Dec-2021)
 ------------------
 :Fixes:

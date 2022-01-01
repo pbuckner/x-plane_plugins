@@ -90,7 +90,7 @@ a) X-Plane is running; and, b) where it is located.
 Multicast beacons are pretty standard, the only "custom" aspects are which port the
 multicast is on (49707 for X-Plane) and the data contents of the beacon itself.
 
-See example code in `find_xp() <../_static/find_xp.py>`_ which will wait for X-Plane to startup and will then
+See example code in `find_xp() </_static/find_xp.py>`_ which will wait for X-Plane to startup and will then
 return information about the version of X-Plane found.
 
 You can use it like::

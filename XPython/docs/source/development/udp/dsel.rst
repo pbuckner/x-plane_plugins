@@ -39,13 +39,13 @@ To stop receiving data, use send ``USEL`` command with the same list of integers
    DSEL merely indicates *what* data to send, not *where* to send it. It *will not* automatically send the requested
    UDP data to the same port making the request (unlike other commands listed here.)
 
-   Therefore, you'll need to *also* set the the internet options using :doc:`ISE4 <ise4>` or :doc:`ISE6 <ise4>`.
+   Therefore, you'll need to *also* set the Internet options using :doc:`ISE4 <ise4>` or :doc:`ISE6 <ise4>`.
    
 DATA* Response
 --------------
 
 The result of the ``DSEL`` command will be a simple data structure sent to the IP / Port set by :doc:`ISE4 <ise4>` or :doc:`ISE6 <ise4>`.
-(Let me sat that again -- the data is sent to the set IP / Port, *not* returned to the same port which made the ``DSEL`` request.)
+(Let me say that again -- the data is sent to the **set** [#how]_ IP / Port, *not* returned to the same port which made the ``DSEL`` request.)
 
 :Receive:
 
@@ -75,5 +75,20 @@ For example, index 0 is listed as "Frame rate". If you were to Show in Cockpit, 
 The eight values represent the above 8 slots (you'll note the third slot is blank, and the third data
 item is '-999.0')
  
+----
+
+.. [#how]
+   Of course, the set port might be the same port as your socket, but you'd have to configure it that way, either using
+   :doc:`ISE4 <ise4>` or :doc:`ISE6 <ise4>` or simply setting the IP/Port on the X-Plane Settings->Data Output page:
+   Select "Send network data output" and set the values for IP Address and Port to match your socket's address and port.
+
+   >>> cmd = 64
+   >>> ip = sock.getsockname()[0]
+   >>> port = str(sock.getsockname()[1])
+   >>> msg = struct.pack('<ISE4xi16s8si', cmd, ip.encode('utf-8'), port.encode('utf-8'), 1)
+   >>> sock.sendto(msg, (beacon['ip'], beacon['port']))
+   >>>
+
+   
 .. toctree::
    :maxdepth: 1

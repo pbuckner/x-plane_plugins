@@ -84,11 +84,11 @@ which they bear a striking resemblance to) in the following ways:
   as :py:mod:`XPLMDisplay` windows.
 
 
-.. py:function:: createWidget(left, top, right, bottom, visible, descriptor, isRoot, container, class)
+.. py:function:: createWidget(left, top, right, bottom, visible, descriptor, isRoot, container, widgetClass)
 
     This function creates a new widget and returns the new widget's ``widgetID`` to you.
     If the widget creation fails for some reason, it returns None. Widget
-    creation will fail either if you pass a bad *class* ID or if there is not
+    creation will fail either if you pass a bad *widgetClass* ID or if there is not
     adequate memory.
 
     *left*, *top*, *right*, *bottom* are global screen coordinates (**not relative to container widget**).
@@ -105,7 +105,7 @@ which they bear a striking resemblance to) in the following ways:
     an non-root widget without specifying a *container*. In this case, the created widget, and it's children,
     will not be displayed until placed within a root widget.
     
-    *class* is one of the standard pre-defined widget classes, see :py:mod:`XPStandardWidgets`.
+    *widgetClass* is one of the standard pre-defined widget classes, see :py:mod:`XPStandardWidgets`.
 
     A note on widget embedding: a widget is only called (and will be drawn,
     etc.) if it is placed within a widget that will be called. Root widgets are

@@ -56,7 +56,7 @@ static inline void mapCallback(int inCallbackIndex, XPLMMapLayerID inLayer, cons
   if(!pRes){
     PyObject *err = PyErr_Occurred();
     if(err){
-      PyErr_Print();
+      pythonLogException();
     }
   }
   Py_DECREF(zoomRatioObj);
@@ -99,7 +99,7 @@ static inline void mapPrepareCacheCallback(XPLMMapLayerID inLayer, const float *
     printf("MapPrepareCacheCallback callback failed.\n");
     PyObject *err = PyErr_Occurred();
     if(err){
-      PyErr_Print();
+      pythonLogException();
     }
   }
   Py_DECREF(boundsObj);
@@ -133,7 +133,7 @@ static inline void mapWillBeDeletedCallback(XPLMMapLayerID inLayer, void *inRefc
     printf("MapWillBeDeletedCallback callback failed.\n");
     PyObject *err = PyErr_Occurred();
     if(err){
-      PyErr_Print();
+      pythonLogException();
     }
   }
   Py_DECREF(layerObj);
@@ -159,7 +159,7 @@ static inline void mapCreatedCallback(const char *mapType, void *inRefcon)
     printf("mapCreatedCallback callback failed.\n");
     PyObject *err = PyErr_Occurred();
     if(err){
-      PyErr_Print();
+      pythonLogException();
     }
   }
   Py_DECREF(mapTypeObj);

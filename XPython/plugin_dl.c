@@ -1,3 +1,4 @@
+#include <Python.h>
 #include <stdint.h>
 #include <dlfcn.h>
 #include <sys/time.h>
@@ -14,6 +15,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include "utils.h"
 
 typedef struct{
   const char *name;
@@ -147,8 +149,9 @@ bool loadFunctions(t_fcn_info *ptr)
   return res;
 }
 
-bool loadAllFunctions(void)
+bool loadSDKFunctions(void)
 {
+  pythonDebug("loadSDKFunctions Loading...");
   int xp_ver, xplm_ver;
   XPLMHostApplicationID app;
   XPLMGetVersions(&xp_ver, &xplm_ver, &app);
@@ -163,6 +166,7 @@ bool loadAllFunctions(void)
   if(xplm_ver >= 210){
     res &= loadFunctions(funcs210);
   }
+  pythonDebug("  loadSDKFunctions Loaded");
   return res;
 }
 

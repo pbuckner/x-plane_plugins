@@ -349,6 +349,7 @@ static PyObject *XPLMGetDatavfFun(PyObject *self, PyObject *args, PyObject *kwar
     if(inMax > 0){
       outValues = (float *)malloc(inMax * sizeof(float));
     }else{
+      fprintf(pythonLogFile, "getdatavf count value must be positive\n");
       PyErr_SetString(PyExc_RuntimeError, "getDatavf count value must be positive.");
       return NULL;
     }
@@ -368,6 +369,10 @@ static PyObject *XPLMGetDatavfFun(PyObject *self, PyObject *args, PyObject *kwar
       Py_DECREF(tmp);
     }
     free(outValues);
+  }
+  PyObject *err = PyErr_Occurred();
+  if(err) {
+    fprintf(pythonLogFile, "Error has already occurred in getDatavf: %s\n", objToStr(err));
   }
   return PyLong_FromLong(res);
 }
@@ -834,7 +839,16 @@ static int getDatavi(void *inRefcon, int *outValues, int inOffset, int inMax)
   }
 
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, outValuesObj, oArg2, oArg3, NULL);
-  if(PyErr_Occurred()){
+  PyObject *err = PyErr_Occurred();
+  if(err) {
+    fprintf(pythonLogFile, "[%s] getDatavi callback %s failed with %s.\n",
+            objToStr(PyTuple_GetItem(pCbks, PLUGINSELF)),
+            objToStr(oFun),
+            objToStr(err));
+    pythonLogException(); /* because if we don't clear it here, it will get reported by the "next"
+                             python call, which is likely completely unrelated to this error (because
+                             this is being executed in a callback.
+                             Side-effect is PrintEx() also clears the error.*/
     return 0;
   }
   Py_DECREF(oArg2);
@@ -846,7 +860,7 @@ static int getDatavi(void *inRefcon, int *outValues, int inOffset, int inMax)
   }
   Py_DECREF(oRes);
 
-  PyObject *err = PyErr_Occurred();
+  err = PyErr_Occurred();
   if (err) {
     char msg[1024];
     sprintf(msg, "[%s] getDatadvi callback %s failed to return an int",
@@ -936,7 +950,16 @@ static int getDatavf(void *inRefcon, float *outValues, int inOffset, int inMax)
   }
 
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, outValuesObj, oArg2, oArg3, NULL);
-  if(PyErr_Occurred()) {
+  PyObject *err = PyErr_Occurred();
+  if(err) {
+    fprintf(pythonLogFile, "[%s] getDatavf callback %s failed with %s.\n",
+            objToStr(PyTuple_GetItem(pCbks, PLUGINSELF)),
+            objToStr(oFun),
+            objToStr(err));
+    pythonLogException(); /* because if we don't clear it here, it will get reported by the "next"
+                             python call, which is likely completely unrelated to this error (because
+                             this is being executed in a callback.
+                             Side-effect is PrintEx() also clears the error.*/
     return 0;
   }
   Py_DECREF(oArg2);
@@ -949,10 +972,10 @@ static int getDatavf(void *inRefcon, float *outValues, int inOffset, int inMax)
 
   Py_DECREF(oRes);
 
-  PyObject *err = PyErr_Occurred();
+  err = PyErr_Occurred();
   if(err) {
     char msg[1024];
-    sprintf(msg, "[%s] getDatadvf callback %s failed to length of data",
+    sprintf(msg, "[%s] getDatavf callback %s failed to get length of data",
             objToStr(PyTuple_GetItem(pCbks, PLUGINSELF)),
             objToStr(oFun));
     PyErr_SetString(err, msg);
@@ -960,6 +983,11 @@ static int getDatavf(void *inRefcon, float *outValues, int inOffset, int inMax)
     if(outValuesObj != Py_None){
       for(int i = 0; i < res; ++i){
         PyObject *item = PyList_GetItem(outValuesObj, i);  /* GetItem borrows */
+        err = PyErr_Occurred();
+        if (err){
+          fprintf(pythonLogFile, "Failed to get #%d from returned values\n", i);
+          return i;
+        }
         if (item == 0 || item == NULL || item == Py_None) {
           outValues[i] = 0.0;
         } else {
@@ -1039,7 +1067,16 @@ static int getDatab(void *inRefcon, void *outValue, int inOffset, int inMax)
     Py_INCREF(outValuesObj);
   }
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, outValuesObj, oArg2, oArg3, NULL);
-  if(PyErr_Occurred()){
+  PyObject *err = PyErr_Occurred();
+  if(err) {
+    fprintf(pythonLogFile, "[%s] getDatab callback %s failed with %s.\n",
+            objToStr(PyTuple_GetItem(pCbks, PLUGINSELF)),
+            objToStr(oFun),
+            objToStr(err));
+    pythonLogException(); /* because if we don't clear it here, it will get reported by the "next"
+                             python call, which is likely completely unrelated to this error (because
+                             this is being executed in a callback.
+                             Side-effect is PrintEx() also clears the error.*/
     return 0;
   }
   Py_DECREF(oArg2);
@@ -1052,10 +1089,10 @@ static int getDatab(void *inRefcon, void *outValue, int inOffset, int inMax)
 
   Py_DECREF(oRes);
 
-  PyObject *err = PyErr_Occurred();
+  err = PyErr_Occurred();
   if(err){
     char msg[1024];
-    sprintf(msg, "[%s] getDatadb callback %s failed to length of data",
+    sprintf(msg, "[%s] getData callback %s failed to get length of data",
             objToStr(PyTuple_GetItem(pCbks, PLUGINSELF)),
             objToStr(oFun));
     PyErr_SetString(err, msg);
@@ -1295,12 +1332,12 @@ static PyObject *XPLMShareDataFun(PyObject *self, PyObject *args, PyObject *kwar
   }
   PyObject *refconObj =  PyLong_FromVoidPtr(refcon);
   if(PyErr_Occurred()) {
-    PyErr_Print();
+    pythonLogException();
     return NULL;
   }
   PyObject *argsObj = Py_BuildValue("(OsiOO)", pluginSelf, inDataName, inDataType, inNotificationFunc, inNotificationRefcon);
   if (!argsObj || PyErr_Occurred()) {
-    PyErr_Print();
+    pythonLogException();
     return NULL;
   }
   PyDict_SetItem(sharedDict,refconObj, argsObj);

@@ -10,9 +10,11 @@
 #include "utils.h"
 #include "trackMetrics.h"
 #include "xppython.h"
+#include "manage_instance.h"
 
 PyObject *xppythonDicts = NULL, *xppythonCapsules = NULL;
 extern const char *pythonPluginVersion, *pythonPluginsPath, *pythonInternalPluginsPath;
+int pythonFlushLog = 0;
 static PyObject *getExecutable(void);
 
 PluginStats pluginStats[512];
@@ -753,6 +755,24 @@ PyFMSEntryInfo_New(int type, char *navAidID, int ref, int altitude, float lat, f
   return (PyObject*)obj;
 }
 
+My_DOCSTR(_reloadPlugin__doc__, "reloadPlugin", "signature",
+          "Reload (python) plugin with provided signature\n"
+          "\n"
+          "Plugin will be disabled, stopped, reloaded, then\n"
+          "started and enabled.");
+static PyObject *XPReloadPlugin(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  (void) self;
+  static char *kwlist[] = {"signature", NULL};
+  PyObject *signature;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", kwlist, &signature)) {
+    return NULL;
+  }
+  xpy_reloadInstance(signature);
+  Py_RETURN_NONE;
+}
+
+
 My_DOCSTR(_getPluginStats__doc__, "getPluginStats", "",
           "Return dictionary of python plugin performance statistics\n"
           "\n"
@@ -815,18 +835,22 @@ static PyObject *XPPythonLogFun(PyObject *self, PyObject *args)
 {
   (void) self;
   const char *inString;
+  int flush = 0;
   if(!PyArg_ParseTuple(args, "s", &inString)) {
     /* don't bother sending error */
     PyErr_Clear();
-    fflush(pythonLogFile);
+    flush = 1;
   } else {
     if (strlen(inString)) {
       char *moduleName = get_moduleName();
       fprintf(pythonLogFile, "[%s] %s\n", moduleName, inString);
       free(moduleName);
     } else {
-      fflush(pythonLogFile);
+      flush = 1;
     }
+  }
+  if (flush || pythonFlushLog) {
+      fflush(pythonLogFile);
   }
   Py_RETURN_NONE;
 }
@@ -914,6 +938,8 @@ static PyMethodDef XPPythonMethods[] = {
   {"sys_log", XPSystemLogFun, METH_VARARGS, _pythonSystemLog__doc__},
   {"getPluginStats", (PyCFunction)XPGetPluginStats, METH_VARARGS | METH_KEYWORDS, _getPluginStats__doc__},
   {"XPGetPluginStats", (PyCFunction)XPGetPluginStats, METH_VARARGS | METH_KEYWORDS, ""},
+  {"reloadPlugin", (PyCFunction)XPReloadPlugin, METH_VARARGS | METH_KEYWORDS, _reloadPlugin__doc__},
+  {"XPReloadPlugin", (PyCFunction)XPReloadPlugin, METH_VARARGS | METH_KEYWORDS, ""},
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };

@@ -242,7 +242,7 @@ static void featureEnumerator(const char *inFeature, void *inRef)
   Py_DECREF(inFeatureObj);
   if(err){
     printf("Error occured during the feature enumeration callback(inFeature = '%s' inRef = %p):\n", inFeature, inRef);
-    PyErr_Print();
+    pythonLogException();
   }
   Py_XDECREF(res);
 }

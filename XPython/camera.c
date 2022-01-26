@@ -49,7 +49,7 @@ static int cameraControl(XPLMCameraPosition_t *outCameraPosition, int inIsLosing
             objToStr(PyTuple_GetItem(callbackInfo, 0)),
             objToStr(fun));
     PyErr_SetString(err, msg);
-    PyErr_Print();
+    pythonLogException();
     return 0;
   }
 

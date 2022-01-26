@@ -3,11 +3,9 @@ XPPython3
 
 .. Note:: 
 
-   Please contact me directly with questions ``xppython3 [at] avnwx.com``.
-
-   Also, please let
+   Please let
    me know about confusing documentation: There's no point in building a plugin if no one can
-   figure out how to use it.
+   figure out how to use it. (See :ref:`GettingSupport`.)
 
    *Or* use the built-in `hypothes.is <https://web.hypothes.is/help/>`_ commenting system. Comments
    are stored in the cloud and are viewable by everyone. Use the icons in the upper right:
@@ -27,9 +25,9 @@ Key Requirements
   to port it to Python3. (Python2 is end-of-life.)
 * **64-bit only**: X-Plane is now 64-bit only, which means it only works for 64-bit versions of python.
 * **X-Plane SDK 303** *minimum*: This is base SDK version for X-Plane 11.50. Vulkan/Metal and OpenGL are supported.
-* **Python3 only**: This will not work with python2 programs which are not compatible with Python3. Note that you will have
-  to use the correct version of this plugin to match the version of python installed on your system. We currently support
-  python3.7, python3.8, python3.9, and python310. Python3.10 is recommended.
+* **Python3 only**: Python3.10 is recommended. This will not work with python2 programs which are not compatible with
+  Python3. Note that you will have to use the correct version of this plugin to match the version of python
+  installed on your system. We currently support python3.7, python3.8, python3.9, and python3.10. 
 * See :doc:`changelog`.
   
 

@@ -10,7 +10,7 @@ Requirements
 Installation
 ============
 
-1. Install 64-bit Python 3.10
+1. Install 64-bit Python 3.10.x
 
   + https://www.python.org/downloads/
 
@@ -36,7 +36,7 @@ Installation
 
   + `xppython310.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython310.zip>`_.
 
-    (Use the above zip file only if you have Python 3.10 installed. Otherwise, use `Other Versions of Python <older_python.html>`_.
+    (Use the above zip file only if you have Python 3.10.x installed. Otherwise, use `Other Versions of Python <older_python.html>`_.
 
 3. Extract the xppython*.zip into your :code:`X-Plane/Resources/plugins` folder, such that you have folder there called :code:`XPPython3`.
 
@@ -168,8 +168,8 @@ Include:
 #. Copy of ``XPPython3Log.txt`` (which tells us most everything about your Python installation). This log is found
    in the same folder as Log.txt.
 
-Provide that information to x-plane.org/forums or email support: Information is available from the
-*About* XPPython3 menu.
+Provide that information to `x-plane.org/forums <https://forums.x-plane.org/index.php?/forums/forum/630-python-development/>`_
+or `email support <mailto:xppython3@avnwx.com?body=What%20happened%3F%0A%0AWhat%20did%20you%20expect%20to%20happen%3F%0A%0AWhich%20python%20plugin%28s%29%20are%20you%20using%3F%0A%0AAttach%20Log.txt%20and%20XPPython3Log.txt>`_. Information is available from the *About* XPPython3 menu.
 
 
 More Installation Topics

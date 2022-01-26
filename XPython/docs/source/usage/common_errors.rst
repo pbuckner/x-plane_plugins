@@ -23,6 +23,8 @@ On Windows
     you can go to Windows Settings -> Apps -> Python 3.x (64-bit), select *Modify*, then go through
     the options until you find *Add Python to environment variables*.
 
+    You may want to restart your computer after python installation.
+    
      .. image:: /images/add_python_to_path.jpg
 
 ----

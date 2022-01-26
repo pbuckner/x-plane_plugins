@@ -51,7 +51,7 @@ static float flightLoopCallback(float inElapsedSinceLastCall, float inElapsedTim
             objToStr(PyTuple_GetItem(callbackInfo, 0)),
             objToStr(PyTuple_GetItem(callbackInfo, 1)),
             inRefcon);
-    PyErr_Print();
+    pythonLogException();
     tmp = -1.0f;
   }else{
     tmp = PyFloat_AsDouble(res);
@@ -198,8 +198,9 @@ static PyObject *XPLMUnregisterFlightLoopCallbackFun(PyObject *self, PyObject *a
     Py_DECREF(revId);
     Py_DECREF(refconAddr);
     Py_DECREF(pluginSelf);
-    printf("Couldn't find the id of the requested callback.\n");
-    return NULL;
+    fprintf(pythonLogFile, "[%s] Couldn't find the id of the requested callback for %s with refCon %s.\n",
+            objToStr(pluginSelf), objToStr(callback), objToStr(refcon));
+    Py_RETURN_NONE;
   }
   PyDict_DelItem(flRevDict, revId);
   XPLMUnregisterFlightLoopCallback(flightLoopCallback, PyLong_AsVoidPtr(id));

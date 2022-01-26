@@ -196,6 +196,37 @@ commandRefcons
 
  Purpose: Used with :ref:`commandCallbacks` (see above)
 
+.. _menuPluginIdx:
+
+menuPluginIdx
+-------------
+
+ :key:
+    <plugin>
+
+ :value: list of integers (possibly empty)
+
+ X-Plane uses an index for menu IDs. Each (C-API) plugin has an independent list starting at zero.
+ When a menu item is removed, subsequent menu items have their indices decremented to "fill-in" the
+ missing slot.
+
+ With XPPython3, "we" only get a single list from Laminar, and therefore "we" have to track which
+ menu item goes with which python plugin. This data structure maintains the mapping.
+
+ Note that this index is relevant only for items added to the main plugin menu (not to sub menus).
+ This is because items are numbered from zero, for each menu. Because the main plugin menu
+ is shared, we have to fake the zero-based index for each python plugin. Sub menus can
+ continue with zero-based index for each of their items & these do not need to be remapped.
+
+    'menuPluginIdx':
+        {'/Resources/plugins/PythonPlugins/PI_Aircraft.py': [],
+         '/Resources/plugins/PythonPlugins/PI_MiniPython.py': [7, 9],
+         '/Resources/plugins/PythonPlugins/PI_SeeAndAvoid.py': [8],
+         '/Resources/plugins/XPPython3/I_PI_Updater.py': [6]},
+
+ MiniPython plugin will refer to menu item [0] and [1], and XPPython3 will translate requests
+ to X-Plane as [7] and [9] -- assuming MiniPython plugin added to items to the main plugin menu.
+
 .. _menus:
 
 menus
@@ -210,6 +241,11 @@ menus
     tuple, (<plugin>, Display String, <XPLMMenuIDRef>parent, menuItemNumber, <menu handler python method>, <refCon>)  
 
  Similar to :ref:`commandCallbacks` (described above), XPPython intercepts calls to menus.
+ We provide X-Plane with a single custom menu handler for all your menus, and include a unique integer as the menu's reference
+ constant. X-Plane will, with the reference constant, and we'll use the reference constant to retrieve your
+ menu details from this dictionary, as ``menus[refCon]``.
+
+ The value if the index is meaningless -- it is just a unique value, matching a value in menuRefs.
 
 .. _menuRefs:
 
@@ -223,6 +259,8 @@ menuRefs
  :value:
 
     integer index into menus[] dict
+
+ Maps from X-Plane XPLMMenuIDRef to a key into the menus[] dict.
 
 .. _fl:
 

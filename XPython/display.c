@@ -156,7 +156,7 @@ static PyObject *XPLMUnregisterDrawCallbackFun(PyObject *self, PyObject *args, P
   PyObject *err = PyErr_Occurred();
   if(err){
     printf("Error occured during the XPLMUnregisterDrawCallback call:\n");
-    PyErr_Print();
+    pythonLogException();
   }
   return PyLong_FromLong(res);
 }
@@ -199,7 +199,7 @@ static PyObject *XPLMUnregisterKeySnifferFun(PyObject *self, PyObject *args, PyO
   PyObject *err = PyErr_Occurred();
   if(err){
     printf("Error occured during the XPLMUnregisterKeySnifferCallback call:\n");
-    PyErr_Print();
+    pythonLogException();
   }
   return PyLong_FromLong(res);
 }
@@ -218,7 +218,7 @@ static void drawWindow(XPLMWindowID  inWindowID,
   if (func != Py_None) {
     PyObject *oRes = PyObject_CallFunctionObjArgs(func, pID, inRefcon, NULL);
     if(PyErr_Occurred()) {
-      PyErr_Print();
+      pythonLogException();
     }
     Py_XDECREF(oRes);
   }
@@ -278,7 +278,7 @@ static void handleKey(XPLMWindowID  inWindowID,
   Py_XDECREF(oRes);
   PyObject *err = PyErr_Occurred();
   if(err){
-    PyErr_Print();
+    pythonLogException();
   }
   Py_DECREF(pID);
 }
@@ -312,7 +312,7 @@ static int handleMouseClick(XPLMWindowID     inWindowID,
   Py_DECREF(arg3);
   Py_DECREF(pID);
   if(err){
-    PyErr_Print();
+    pythonLogException();
     return 1;
   }
   if (!PyLong_Check(pRes)) {
@@ -355,7 +355,7 @@ static int handleRightClick(XPLMWindowID     inWindowID,
   Py_DECREF(pID);
   PyObject *err = PyErr_Occurred();
   if(err){
-    PyErr_Print();
+    pythonLogException();
     return 1;
   }
   if (!PyLong_Check(pRes)) {
@@ -394,7 +394,7 @@ static XPLMCursorStatus handleCursor(XPLMWindowID  inWindowID,
   Py_DECREF(arg2);
   Py_DECREF(pID);
   if(err){
-    PyErr_Print();
+    pythonLogException();
     return 0;
   }
   int res = (int)PyLong_AsLong(pRes);
@@ -432,7 +432,7 @@ static int handleMouseWheel(XPLMWindowID  inWindowID,
   Py_DECREF(arg4);
   Py_DECREF(pID);
   if(err){
-    PyErr_Print();
+    pythonLogException();
     return 1;
   }
   int res = (int)PyLong_AsLong(pRes);
@@ -1222,7 +1222,7 @@ void hotkeyCallback(void *inRefcon)
   PyObject *err = PyErr_Occurred();
   Py_XDECREF(res);  // in case hotkey doesn't happent to return anything
   if(err){
-    PyErr_Print();
+    pythonLogException();
   }
 }
 
@@ -1677,7 +1677,7 @@ int XPLMDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
  cleanup:
   err = PyErr_Occurred();
   if(err){
-    PyErr_Print();
+    pythonLogException();
   }
 
   Py_XDECREF(pRes);
@@ -1728,7 +1728,7 @@ int XPLMKeySnifferCallback(char inChar, XPLMKeyFlags inFlags, char inVirtualKey,
  cleanup:
   err = PyErr_Occurred();
   if(err){
-    PyErr_Print();
+    pythonLogException();
   }
 
   Py_XDECREF(pRes);

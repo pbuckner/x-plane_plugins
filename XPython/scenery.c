@@ -163,7 +163,7 @@ static void objectLoaded(XPLMObjectRef inObject, void *inRefcon)
   PyObject *err = PyErr_Occurred();
   if(err){
     printf("Error occured during the objectLoaded callback(inRefcon = %p):\n", inRefcon);
-    PyErr_Print();
+    pythonLogException();
   }else{
     Py_DECREF(res);
   }

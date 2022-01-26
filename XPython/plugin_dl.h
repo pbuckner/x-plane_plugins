@@ -61,6 +61,6 @@ extern typeof(XPLMSetWindowGeometryVR) *XPLMSetWindowGeometryVR_ptr;
 extern typeof(XPLMWindowIsInVR) *XPLMWindowIsInVR_ptr;
 
 
-bool loadAllFunctions(void);
+bool loadSDKFunctions(void);
 
 #endif

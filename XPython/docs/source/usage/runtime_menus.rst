@@ -71,8 +71,24 @@ The next three menu items are:
 
 Finally:
 
-* **Reload** - Stops and restarts python, reloading all scripts.
+* **Reload scripts** - Stop / Reload / Restart all python plugins.
 
+  All python plugins are:
+    1) Disabled
+    2) Stopped
+    3) Reloaded
+    4) Started
+    5) Enabled
+
+  This allows plugins to clean up after themselves (via XPluginDisable / XPluginStop), and fully re-intialize (via
+  XPluginStart, XPluginEnable). We also attempt to unregister and delete resources no properly removed by the plugin
+  themselves.
+  
+  When step #3 **Reload** occurs, we re-search for possible plugins, so if you add or delete
+  a plugin, it will be updated. Also, existing python plugin code will be reloaded (aka ``importlib.reload()``)
+  which allows for XPPython3 to execute changed python code, very useful for debugging. Normal python3 reload
+  caveats apply (i.e., usually it works, but sometimes it doesn't.)
+  
   .. Caution:: While this works, note that some
     plugins do not clean up after themselves, so loading all python plugins may result in duplications. Note
     that "reloading" is really a developer tool and not particularly reliable, so use it if you can while

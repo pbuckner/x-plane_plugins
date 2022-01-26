@@ -19,7 +19,7 @@ Installation
 
     .. image:: /images/windows_python_environment.jpg
 
-    Choose either "Install Now" or "Customize Installation", either will work as long has python is
+    Choose either "Install Now" or "Customize Installation", either will work as long as python is
     added to your path!
 
   **For Linux**

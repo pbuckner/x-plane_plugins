@@ -112,7 +112,7 @@ void planesAvailable(void *inRefcon)
   PyObject *err = PyErr_Occurred();
   if(err){
     printf("Error occured during the planesAvailable callback(inRefcon = %p):\n", inRefcon);
-    PyErr_Print();
+    pythonLogException();
   }
   Py_XDECREF(res);
 }

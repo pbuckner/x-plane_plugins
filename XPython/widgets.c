@@ -15,6 +15,8 @@
 
 static PyObject *widgetCallbackDict;
 static PyObject *widgetPropertyDict;
+static void clearChildrenXPWidgetData(PyObject *widget);
+static void clearXPWidgetData(PyObject *widget);
 PyObject *widgetIDCapsules;
 
 int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inParam1, intptr_t inParam2)
@@ -145,11 +147,11 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
 
 
 
-My_DOCSTR(_createWidget__doc__, "createWidget", "left, top, right, bottom, visible, descriptor, isRoot, container, class",
+My_DOCSTR(_createWidget__doc__, "createWidget", "left, top, right, bottom, visible, descriptor, isRoot, container, widgetClass",
           "Create widget of class at location\n"
           "\n"
           "isRoot=1 if widget is a root widget, container is None or widgetID of parent widget\n"
-          "class is one of predefined classes:\n"
+          "widgetClass is one of predefined classes:\n"
           "  WidgetClass_MainWindow\n"
           "  WidgetClass_SubWindow\n"
           "  WidgetClass_Button\n"
@@ -162,7 +164,7 @@ My_DOCSTR(_createWidget__doc__, "createWidget", "left, top, right, bottom, visib
           );
 static PyObject *XPCreateWidgetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"left", "top", "right", "bottom", "visible", "descriptor", "isRoot", "container", "class", NULL};
+  static char *keywords[] = {"left", "top", "right", "bottom", "visible", "descriptor", "isRoot", "container", "widgetClass", NULL};
   (void) self;
   int inLeft, inTop, inRight, inBottom, inVisible, inIsRoot;
   const char *inDescriptor;
@@ -248,12 +250,48 @@ static PyObject *XPDestroyWidgetFun(PyObject *self, PyObject *args, PyObject *kw
   }
   XPWidgetID wid = refToPtr(widget, widgetRefName);
   XPDestroyWidget(wid, inDestroyChildren);
-  PyObject *w = PyDict_GetItem(widgetCallbackDict, widget);
-  if(w){
+  if (inDestroyChildren) {
+    clearChildrenXPWidgetData(widget);
+  }
+  clearXPWidgetData(widget);
+  Py_RETURN_NONE;
+}
+
+
+static void clearChildrenXPWidgetData(PyObject *widget) {
+  XPWidgetID wid = refToPtr(widget, widgetRefName);
+  int numChildren = XPCountChildWidgets(wid);
+  pythonDebug("Clearing children xp widget data [%d] for %s", numChildren, objDebug(widget));
+  for (int i=0; i<numChildren; i++) {
+    PyObject *child_widget = getPtrRef(XPGetNthChildWidget(wid, i), widgetIDCapsules, widgetRefName);
+    clearChildrenXPWidgetData(child_widget);
+    clearXPWidgetData(child_widget);
+  }
+}
+
+static void clearXPWidgetData(PyObject *widget) {
+  pythonDebug(" ... clearing xp widgetdata for %s", objDebug(widget));
+  XPWidgetID wid = refToPtr(widget, widgetRefName);
+  if (PyDict_GetItem(widgetCallbackDict, widget)) {
+    pythonDebug(" widget found in callback dict");
     PyDict_DelItem(widgetCallbackDict, widget);
   }
+
+  /* PropertyDict key is tuple: (<capsule> prop id) */
+  PyObject *keys = PyDict_Keys(widgetPropertyDict); /* new */
+  PyObject *key_iterator = PyObject_GetIter(keys); /*new*/
+  PyObject *key;
+  while ((key = PyIter_Next(key_iterator))) {/*new*/
+    if (PyObject_RichCompareBool(PyTuple_GetItem(key, 0), widget, Py_EQ)) {/*tuple borrowed*/
+      pythonDebug("   deleting widget property: %s", objDebug(PyTuple_GetItem(key, 1)));
+      PyDict_DelItem(widgetPropertyDict, key);
+    }
+    Py_DECREF(key);
+  }
+  Py_DECREF(key_iterator);
+  Py_DECREF(keys);
+
   removePtrRef(wid, widgetIDCapsules);
-  Py_RETURN_NONE;
 }
 
 My_DOCSTR(_sendMessageToWidget__doc__, "sendMessageToWidget", "widgetID, message, dispatchMode=1, param1=0, param2=0",
@@ -558,7 +596,7 @@ static PyObject *XPGetWidgetUnderlyingWindowFun(PyObject *self, PyObject *args, 
   return getPtrRef(res, windowIDCapsules, windowIDRef);
 }
 
-My_DOCSTR(_setWidgetProperty__doc__, "setWidgetProperty", "widgetID, propertyID, value=Py_None",
+My_DOCSTR(_setWidgetProperty__doc__, "setWidgetProperty", "widgetID, propertyID, value=None",
           "Set widget property to value");
 static PyObject *XPSetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {

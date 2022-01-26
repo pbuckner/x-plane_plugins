@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath('../../stubs'))
 # -- Project information -----------------------------------------------------
 
 project = 'XPPython3'
-copyright = '2021, Peter Buckner'
+copyright = '2022, Peter Buckner'
 author = 'Peter Buckner'
 
 master_doc = 'index'

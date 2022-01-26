@@ -15,23 +15,16 @@ const char *widgetRefName = "XPLMWidgetID";
 int pythonWarnings = 1;  /* 1= issue warnings, 0= do not */
 int pythonDebugs = 0; /* 1= issue DEBUG messages, 0= do not */
 
+
 PyObject *get_pythonline();
 
 void pythonDebug(const char *fmt, ...) {
-  //PyObject *err = PyErr_Occurred();
-  bool err = 0;
-  if (err || pythonDebugs) {
-    Py_VerboseFlag = 0;/* 0= off, 1= each file as loaded, 2= each file that is checked when searching for module */
+  if (pythonDebugs) {
     char *msg;
     va_list ap;
     va_start(ap, fmt);
     vasprintf(&msg, fmt, ap);
     va_end(ap);
-    if (err) {
-      fprintf(pythonLogFile, "PyErr occurred: check log\n");
-      fflush(pythonLogFile);
-      PyErr_Print();
-    }
     fprintf(pythonLogFile, "DEBUG>> %s\n", msg);
     fflush(pythonLogFile);
     free(msg);
@@ -51,14 +44,118 @@ void dbg(const char *msg){
   PyObject *err = PyErr_Occurred();
   if(err){
     printf("Error occured during the %s call:\n", msg);
-    PyErr_Print();
+    pythonLogException();
   }
+}
+
+
+char * objDebug(PyObject *item) {
+  /* Same as objToStr, but is a no-op if pythonDebugs not set. (saves us from work and memory) */
+  if (pythonDebugs) {
+    // returns char * pointer to something in heap
+    PyObject *pyAsStr = PyObject_Str(item); // new object
+    PyObject *pyBytes = PyUnicode_AsEncodedString(pyAsStr, "utf-8", "replace"); // new object
+    
+    PyObject *err = PyErr_Occurred();
+    if(err){
+      fprintf(pythonLogFile, "Error occured during objToStr\n");
+      pythonLogException();
+      return strdup("<Error>");
+    }
+    char *res = PyBytes_AsString(pyBytes);  //borrowed (from pyBytes)
+    res = strdup(res); // allocated on heap
+    Py_DECREF(pyAsStr);
+    Py_DECREF(pyBytes);
+    return res;
+  }
+  return "";
+}
+
+void pythonLogException()
+{
+  PyObject *ptype, *pvalue, *ptraceback;
+  int full_traceback = 0;  /* set to '1' if we're able to do a full traceback */
+  char *foo;
+
+  PyErr_Fetch(&ptype, &pvalue, &ptraceback);
+  PyErr_NormalizeException(&ptype, &pvalue, &ptraceback);
+  if (!ptype && !pvalue && !ptraceback) {
+    return; /* no current exception */
+  }
+  PyErr_Clear();
+
+  if (ptraceback != NULL) {
+    PyException_SetTraceback(pvalue, ptraceback);
+  }
+
+  PyObject *module = get_pluginSelf();
+  char *module_name = get_moduleName();
+
+  /* First, attempt to fully format exception with traceback
+     If the _fails_ then we'll print the Exception type & value below.
+   */
+  PyObject *tb_module_name = PyUnicode_DecodeFSDefault("traceback"); /* new */
+  PyObject *tb_module = PyImport_Import(tb_module_name); /* new */
+  Py_DECREF(tb_module_name);
+  if (tb_module != NULL) {
+    PyObject *fmt_exception = PyObject_GetAttrString(tb_module, "format_exception");
+    if (fmt_exception && PyCallable_Check(fmt_exception)) {
+      PyObject *vals = PyObject_CallFunctionObjArgs(fmt_exception, ptype, pvalue, ptraceback, NULL);
+      if (vals == NULL) {
+        if(PyErr_Occurred()) {
+          fprintf(pythonLogFile, "Unable to format exception\n");
+          PyErr_Print();
+        }
+      } else {
+        PyObject *localsDict = PyDict_New();
+        PyDict_SetItemString(localsDict, "__builtins__", PyEval_GetBuiltins()); 
+        PyDict_SetItemString(localsDict, "vals", vals);
+        PyDict_SetItemString(localsDict, "module", module);
+        PyRun_String("ret = []\n"
+                     "[ret.extend(x.split('\\n')) for x in vals]\n"
+                     "ret = '\\n'.join(['EXCEPTION>> [{}] {}'.format(module or 'Main', x) for x in ret])\n",
+                     Py_file_input, localsDict, localsDict);
+        PyObject *tb_string = PyDict_GetItemString(localsDict, "ret"); /* borrowed */
+        char *foo = objToStr(tb_string);
+        Py_DECREF(localsDict);
+        fprintf(pythonLogFile, "%s\n", foo);
+        free(foo);
+        full_traceback = 1;
+        Py_DECREF(vals);
+      }
+      Py_DECREF(fmt_exception);
+    }
+  }
+
+  if (!full_traceback) {
+    /* Failed to print full traceback. Print what we can. */
+    foo = objToStr(ptype);
+    fprintf(pythonLogFile, "EXCEPTION>> [%s] %s\n", module_name, foo);
+    free(foo);
+    foo = objToStr(pvalue);
+    fprintf(pythonLogFile, "EXCEPTION>> [%s] %s\n", module_name, foo);
+    free(foo);
+  }
+
+  Py_XDECREF(ptype);
+  Py_XDECREF(pvalue);
+  Py_XDECREF(ptraceback);
+  Py_XDECREF(module);
+  free(module_name);
+  fflush(pythonLogFile);
 }
 
 char * objToStr(PyObject *item) {
   // returns char * pointer to something in heap
   PyObject *pyAsStr = PyObject_Str(item); // new object
   PyObject *pyBytes = PyUnicode_AsEncodedString(pyAsStr, "utf-8", "replace"); // new object
+
+  PyObject *err = PyErr_Occurred();
+  if(err){
+    fprintf(pythonLogFile, "Error occured during objToStr\n");
+    pythonLogException();
+    return strdup("<Error>");
+  }
   char *res = PyBytes_AsString(pyBytes);  //borrowed (from pyBytes)
   res = strdup(res); // allocated on heap
   Py_DECREF(pyAsStr);
@@ -96,7 +193,11 @@ PyObject *get_module() {
 }
   
 char *get_moduleName() {
-  return objToStr(get_module());
+  PyObject *module = get_module();
+  if (Py_None == module) { 
+    return strdup("Main");
+  }
+  return objToStr(module);
 }
   
 PyObject *get_pluginSelf() {

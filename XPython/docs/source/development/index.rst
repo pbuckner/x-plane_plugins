@@ -77,6 +77,11 @@ Tools
   type in python expressions in a running application and see the results: You'll need to move it
   from ``samples`` up into the ``PythonPlugins`` directory in order for it to load.
 
+* **Plugin Performance** (See :doc:`/usage/performance`.)
+
+  XPPython3 monitors the performance of individual python plugins and displays this information
+  when you select the `XPPython3` -> `Performance` menu item.
+
 * **Python Stubs** (Download from github: `stubs.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/stubs.zip>`_.)
    
   Because the XPLM* modules are contained within a shared library, they are not useful for support tools such as

@@ -6,12 +6,33 @@ Known Bugs
 
  None (prove me wrong!)
 
-3.1.3x (Beta)
+3.1.3 (2-Feb-2022)
 ------------------
+:New Features:
+   * **Reload Plugins** support. Added back the "Reload Scripts" which reloads updated python code and restarts
+     all plugins.
+
+   * **xppython3.ini** config file. Mostly to enable detailed plugin debugging, an initialization file
+     allows for setting some run-time parameters for the main XPPython3 plugin. File is *optional*, and
+     located in ``Output/preferences``.
+     
+:Improvements:
+   * **Error reporting** now occurs primarily into the XPPython3Log.txt file. Previously, some python coding
+     errors resulted in messages to stderr.
+     
+   * **Improved performance reporting** for python plugins: we're able to track and display a greater percentage
+     of time spent by each python plugin, resulting in more accurate reporting.
+     
 :Fixes:
    * :py:func:`xp.setGraphicsState` keyword parameter name has been corrected. Was ``numberTextUnits``, now correctly
      spelled ``numberTexUnits``. If you use just positional parameters, you'll not see the error.
 
+   * :py:func:`xp.createWidget` keyword parameter name has been corrected. Was ``class``, now ``widgetClass``. (*class* is
+     a reserved word.)
+
+   * Linking code change allows XPPython3 to run on older MacOS (minimum required: Mojave - 10.14). Mojave support
+     is deprecated and is enabled now merely to aid transition. It will likely not be support with X-Plane 12.
+     
 3.1.2 (7-Dec-2021)
 ------------------
 :Fixes:

@@ -4,10 +4,14 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <XPLM/XPLMDefs.h>
-
+#include <XPLM/XPLMUtilities.h>
 #include <XPLM/XPLMPlugin.h>
 #include <sys/types.h>
 #include <dlfcn.h>
+#if LIN
+/* to get strlcat() */
+#include <bsd/string.h>
+#endif
 
 #include "menus.h"
 #include "utils.h"
@@ -281,8 +285,12 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
   /* Find and handle config.ini file */
   XPLMGetPrefsPath(xpy_ini_file);
   XPLMExtractFileAndPath(xpy_ini_file);
+#if LIN || APL
   strlcat(xpy_ini_file, "/xppython3.ini", 512);
-
+#endif
+#if IBM
+  strcat_s(xpy_ini_file, 512, "/xppython3.ini");
+#endif
   pythonDebugs = xpy_config_get_int("[Main].debug");
   pythonWarnings = xpy_config_get_int("[Main].warning");
   Py_VerboseFlag = xpy_config_get_int("[Main].py_verbose");/* 0= off, 1= each file as loaded, 2= each file that is checked when searching for module */
@@ -490,6 +498,12 @@ static FILE *getLogFile(void) {
   }
   if(fp == NULL){
     fp = stdout;
+    XPLMDebugString("[XPPython3] Starting... Logging to standard out\n");
+  } else {
+    char *msg;
+    asprintf(&msg, "[XPPython3] Starting... Logging to %s\n", logFileName);
+    XPLMDebugString(msg);
+    free(msg);
   }
   return fp;
 }

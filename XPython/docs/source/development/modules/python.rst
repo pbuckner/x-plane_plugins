@@ -128,6 +128,16 @@ Functions
    'PythonPlugins.PI_MiniPython': {'fl'; 0, 'draw': 0, 'customw': 33499},
   }
 
+  Values are in micro-seconds, keys are
+
+  * **fl**: Time spent within flight loop callback(s).
+
+  * **draw**: Time spent within draw callback(s).
+
+  * **customw**: Time spent within custom widgets. This includes handling mouse and keyboard events, but is
+    primarily the time taken to draw the custom widgets. Non-custom widgets (i.e., standard Laminar widgets)
+    are not counted (SDK does not provide access to this timing information.)
+
 Constants
 ---------
 

@@ -6,6 +6,7 @@ import pickle
 import XPLMUtilities
 import XPLMProcessing
 import XPPython
+import xp
 
 Name = ''
 
@@ -57,7 +58,9 @@ class Config(object):
                 with open(self.filename, 'rb') as fp:
                     self.config.update(pickle.load(fp))
             except IOError:
-                system_log("Cannot load initialization file {}, defaulting to internal values.".format(self.ConfigFilename))
+                system_log(f"Cannot load initialization file {self.ConfigFilename}, defaulting to internal values.")
+            except EOFError:
+                system_log(f"Bad initialization file {self.ConfigFilename}, defaulting to internal values.")
         super(Config, self).__init__(*args, **kwargs)
 
     def save(self):

@@ -9,6 +9,7 @@ import os.path
 import platform
 import re
 from urllib.request import urlopen
+from urllib.parse import urlencode
 from urllib.error import URLError
 try:
     from ssl import SSLCertVerificationError  # py 3.7+
@@ -69,6 +70,7 @@ class Version(StrictVersion):
 
 class Updater(Config):
     VersionCheckURL = "http://example.com/foo.json"
+    VersionCheckData = None
 
     """
     To Use
@@ -126,8 +128,12 @@ class Updater(Config):
     def check(self, forceUpgrade=False):
         xp.log("Calling Check with version check url: {}".format(self.VersionCheckURL))
         if self.VersionCheckURL:
+            if self.VersionCheckData is not None:
+                data = urlencode(self.VersionCheckData).encode('utf-8')
+            else:
+                data = None
             try:
-                ret = urlopen(self.VersionCheckURL + ('&beta=y' if self.config.get('beta', False) else ''))
+                ret = urlopen(self.VersionCheckURL + ('&beta=y' if self.config.get('beta', False) else ''), data=data)
                 if ret.getcode() != 200:
                     xp.sys_log("Failed to get {}, returned code: {}".format(self.VersionCheckURL, ret.getcode()))
                     return

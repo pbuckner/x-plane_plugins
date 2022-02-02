@@ -10,13 +10,33 @@
 #include "xppythontypes.h"
 #include "xppython.h"
 
-static PyObject *drawCallbackDict, *drawCallbackIDDict;
+static PyObject *drawCallbackDict;
+#define DRAW_PLUGIN 0
+#define DRAW_CALLBACK 1  
+#define DRAW_PHASE 2
+#define DRAW_BEFORE 3
+#define DRAW_REFCON 4  
+
+static PyObject *drawCallbackIDDict;
 static intptr_t drawCallbackCntr;
 static PyObject *keySniffCallbackDict;
+#define KEYSNIFF_PLUGIN 0
+#define KEYSNIFF_CALLBACK 1
+#define KEYSNIFF_BEFORE 2
+#define KEYSNIFF_REFCON 3
+
 static intptr_t keySniffCallbackCntr;
 
 //draw, key,mouse, cursor, wheel
 static PyObject *windowDict;
+#define WINDOW_DRAW 0
+#define WINDOW_CLICK 1
+#define WINDOW_KEY 2
+#define WINDOW_CURSOR 3
+#define WINDOW_WHEEL 4
+#define WINDOW_RIGHTCLICK 5
+#define WINDOW_PLUGIN 6
+
 static intptr_t hotkeyCntr;
 static PyObject *hotkeyDict;
 static PyObject *hotkeyIDDict;
@@ -208,21 +228,30 @@ static PyObject *XPLMUnregisterKeySnifferFun(PyObject *self, PyObject *args, PyO
 static void drawWindow(XPLMWindowID  inWindowID,
                 void         *inRefcon)
 {
+  struct timespec all_stop, all_start;
+  clock_gettime(CLOCK_MONOTONIC, &all_start);
   PyObject *pID = getPtrRef(inWindowID, windowIDCapsules, windowIDRef);
   PyObject *pCbks = PyDict_GetItem(windowDict, pID);
   if(pCbks == NULL){
     printf("Unknown window passed to drawWindow (%p).\n", inWindowID);
     return;
   }
-  PyObject *func = PyTuple_GetItem(pCbks, 0);
+  PyObject *func = PyTuple_GetItem(pCbks, WINDOW_DRAW);
   if (func != Py_None) {
+    struct timespec stop, start;
+    clock_gettime(CLOCK_MONOTONIC, &start);
     PyObject *oRes = PyObject_CallFunctionObjArgs(func, pID, inRefcon, NULL);
+    clock_gettime(CLOCK_MONOTONIC, &stop);
+    pluginStats[getPluginIndex(PyTuple_GetItem(pCbks, WINDOW_PLUGIN))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+
     if(PyErr_Occurred()) {
       pythonLogException();
     }
     Py_XDECREF(oRes);
   }
   Py_DECREF(pID);
+  clock_gettime(CLOCK_MONOTONIC, &all_stop);
+  pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
 }
 
 static void handleKey(XPLMWindowID  inWindowID,
@@ -270,7 +299,7 @@ static void handleKey(XPLMWindowID  inWindowID,
   PyObject *arg3 = PyLong_FromLong((unsigned int)inVirtualKey);
   PyObject *arg4 = PyLong_FromLong(losingFocus);
   // printf("Calling handleKey callback. inWindowID = %p, pPID = %s, losingFocus = %d\n", inWindowID, objToStr(pID), losingFocus);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(PyTuple_GetItem(pCbks, 2), pID, arg1, arg2, arg3, inRefcon, arg4, NULL);
+  PyObject *oRes = PyObject_CallFunctionObjArgs(PyTuple_GetItem(pCbks, WINDOW_KEY), pID, arg1, arg2, arg3, inRefcon, arg4, NULL);
   Py_XDECREF(arg1);
   Py_XDECREF(arg2);
   Py_XDECREF(arg3);
@@ -296,7 +325,7 @@ static int handleMouseClick(XPLMWindowID     inWindowID,
     printf("Unknown window passed to click callback (%p).\n", inWindowID);
     return 1;
   }
-  PyObject *func = PyTuple_GetItem(pCbks, 1);  /* borrowed */
+  PyObject *func = PyTuple_GetItem(pCbks, WINDOW_CLICK);  /* borrowed */
   if (func == Py_None) {
     /* consume click */
     return 1;
@@ -340,7 +369,7 @@ static int handleRightClick(XPLMWindowID     inWindowID,
     printf("Unknown window passed to rightClick callback (%p).\n", inWindowID);
     return 1;
   }
-  PyObject *func = PyTuple_GetItem(pCbks, 5);
+  PyObject *func = PyTuple_GetItem(pCbks, WINDOW_RIGHTCLICK);
   if (func == Py_None) {
     return 1; /* consume click in window */
   }
@@ -382,7 +411,7 @@ static XPLMCursorStatus handleCursor(XPLMWindowID  inWindowID,
     printf("Unknown window passed to handleCursor (%p).\n", inWindowID);
     return 0;
   }
-  PyObject *cbk = PyTuple_GetItem(pCbks, 3);
+  PyObject *cbk = PyTuple_GetItem(pCbks, WINDOW_CURSOR);
   if((cbk == NULL) || (cbk == Py_None)){
     return 0;
   }
@@ -416,7 +445,7 @@ static int handleMouseWheel(XPLMWindowID  inWindowID,
     printf("Unknown window passed to handleMouseWheel (%p).\n", inWindowID);
     return 1;
   }
-  PyObject *cbk = PyTuple_GetItem(pCbks, 4);
+  PyObject *cbk = PyTuple_GetItem(pCbks, WINDOW_WHEEL);
   if((cbk == NULL) || (cbk == Py_None)){
     return 1;
   }
@@ -459,6 +488,7 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
 {
   static char *keywords[] = {"left", "top", "right", "bottom", "visible", "draw", "click", "key", "cursor", "wheel", "refCon", "decoration", "layer", "rightClick", NULL};
   (void) self;
+  PyObject *pluginSelf = get_pluginSelf();
   PyObject *firstObj=Py_None;
   int left=100, right=200, top=200, bottom=100;
   int visible=0;
@@ -556,8 +586,7 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
   
   Py_INCREF(params.refcon);
 
-  PyObject *cbkTuple = Py_BuildValue("(OOOOOO)", draw, click, key, cursor, wheel, rightClick);
-
+  PyObject *cbkTuple = Py_BuildValue("(OOOOOOO)", draw, click, key, cursor, wheel, rightClick, pluginSelf);
   params.drawWindowFunc = drawWindow;
   params.handleMouseClickFunc = handleMouseClick;
   params.handleKeyFunc = handleKey;
@@ -1648,11 +1677,11 @@ int XPLMDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
   }
 
   if(!tup){
-    fprintf(pythonLogFile, "drawCallbac, got unknown inRefcon (%p)!\n", inRefcon);
+    fprintf(pythonLogFile, "drawCallback, got unknown inRefcon (%p)!\n", inRefcon);
     goto cleanup;
   }
-  fun =    PyTuple_GetItem(tup, 1);
-  refcon = PyTuple_GetItem(tup, 4);
+  fun =    PyTuple_GetItem(tup, DRAW_CALLBACK);
+  refcon = PyTuple_GetItem(tup, DRAW_REFCON);
   PyObject *inPhaseObj = PyLong_FromLong(inPhase);
   PyObject *inIsBeforeObj = PyLong_FromLong(inIsBefore);
 
@@ -1660,16 +1689,16 @@ int XPLMDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
   clock_gettime(CLOCK_MONOTONIC, &start);
   pRes = PyObject_CallFunctionObjArgs(fun, inPhaseObj, inIsBeforeObj, refcon, NULL);
   clock_gettime(CLOCK_MONOTONIC, &stop);
-  pluginStats[getPluginIndex(PyTuple_GetItem(tup, 0))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+  pluginStats[getPluginIndex(PyTuple_GetItem(tup, DRAW_PLUGIN))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
 
   Py_DECREF(inPhaseObj);
   Py_DECREF(inIsBeforeObj);
   if(!pRes){
-    fprintf(pythonLogFile, "[%s] Draw callback %s failed.\n", objToStr(PyTuple_GetItem(tup, 0)), objToStr(fun));
+    fprintf(pythonLogFile, "[%s] Draw callback %s failed.\n", objToStr(PyTuple_GetItem(tup, DRAW_PLUGIN)), objToStr(fun));
     goto cleanup;
   }
   if(!PyLong_Check(pRes)){
-    fprintf(pythonLogFile, "[%s] Draw callback %s returned a wrong type.\n", objToStr(PyTuple_GetItem(tup, 0)), objToStr(fun));
+    fprintf(pythonLogFile, "[%s] Draw callback %s returned a wrong type.\n", objToStr(PyTuple_GetItem(tup, DRAW_PLUGIN)), objToStr(fun));
     goto cleanup;
   }
   res = (int)PyLong_AsLong(pRes);
@@ -1706,21 +1735,21 @@ int XPLMKeySnifferCallback(char inChar, XPLMKeyFlags inFlags, char inVirtualKey,
     fprintf(pythonLogFile, "keySninfferCallback, got unknown inRefcon (%p)!\n", inRefcon);
     goto cleanup;
   }
-  fun =    PyTuple_GetItem(tup, 1);
+  fun =    PyTuple_GetItem(tup, KEYSNIFF_CALLBACK);
   PyObject *inCharObj = PyLong_FromLong(inChar);
   PyObject *inFlagsObj = PyLong_FromLong(inFlags);
   PyObject *inVirtualKeyObj = PyLong_FromLong((unsigned int)inVirtualKey);
-  refcon = PyTuple_GetItem(tup, 3);
+  refcon = PyTuple_GetItem(tup, KEYSNIFF_REFCON);
   pRes = PyObject_CallFunctionObjArgs(fun, inCharObj, inFlagsObj, inVirtualKeyObj, refcon, NULL);
   Py_DECREF(inCharObj);
   Py_DECREF(inFlagsObj);
   Py_DECREF(inVirtualKeyObj);
   if(!pRes){
-    fprintf(pythonLogFile, "[%s] Key sniffer callback %s failed.\n", objToStr(PyTuple_GetItem(tup, 0)), objToStr(fun));
+    fprintf(pythonLogFile, "[%s] Key sniffer callback %s failed.\n", objToStr(PyTuple_GetItem(tup, KEYSNIFF_PLUGIN)), objToStr(fun));
     goto cleanup;
   }
   if(!PyLong_Check(pRes)){
-    fprintf(pythonLogFile, "[%s] Key sniffer callback %s returned a wrong type.\n", objToStr(PyTuple_GetItem(tup, 0)), objToStr(fun));
+    fprintf(pythonLogFile, "[%s] Key sniffer callback %s returned a wrong type.\n", objToStr(PyTuple_GetItem(tup, KEYSNIFF_PLUGIN)), objToStr(fun));
     goto cleanup;
   }
   res = (int)PyLong_AsLong(pRes);

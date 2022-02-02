@@ -85,6 +85,10 @@ class XPListBox(object):
     def clear(self):
         xp.setWidgetProperty(self.widgetID, Prop.ListBoxClear, 1)
 
+    def destroy(self):
+        if self.widgetID:
+            xp.destroyWidget(self.widgetID, 1)
+        
     def add(self, s):
         xp.setWidgetDescriptor(self.widgetID, s)
         xp.setWidgetProperty(self.widgetID, Prop.ListBoxAddItem, 1)

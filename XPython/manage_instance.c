@@ -4,7 +4,7 @@
 #include "utils.h"
 #include "manage_instances.h"
 #include "manage_instance.h"
-#include "menu.h"
+#include "menus.h"
 
 extern void clearInstanceMenuItems();
 extern void clearInstanceCommands();

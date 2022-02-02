@@ -15,12 +15,12 @@ class Config (scriptupdate.Updater):
     Sig = "xppython3.updater.{}.{}".format(sys.version_info.major, sys.version_info.minor)
     Desc = "Automatic updater for XPPython3 plugin"
     Version = XPPython.VERSION
-    VersionCheckURL = ('https://maps.avnwx.com/x-plane/versions.json?product={PRODUCT}'
-                       '&current={VERSION}&platform={PLATFORM}&xp={XP}&sdk={SDK}'
-                       ''.format(PRODUCT=urllib.parse.quote_plus(Sig),
-                                 VERSION=urllib.parse.quote_plus(Version),
-                                 PLATFORM=sys.platform, XP=xp.getVersions()[0],
-                                 SDK=xp.getVersions()[1]))
+    VersionCheckData = {'product': urllib.parse.quote_plus(Sig),
+                        'current': urllib.parse.quote_plus(Version),
+                        'platform': sys.platform,
+                        'xp': xp.getVersions()[0],
+                        'sdk': xp.getVersions()[1]}
+    VersionCheckURL = 'https://maps.avnwx.com/x-plane/versions.json'
     ConfigFilename = 'updater.pkl'
     defaults = {
         'autoUpgrade': False,
@@ -178,8 +178,12 @@ class PythonInterface(Config):
                 xp.setWidgetDescriptor(w['frvalue'],
                                        '{:.0f} / {:4.1f} fps'.format(frp * 1000000, 1.0 / frp))
                 if self.stats[None]['fl'] > 0:
-                    xp.setWidgetDescriptor(w['fl_fps'], 'Python Flight loop: {:5.2f} fps'.format(
-                        (self.stats[None]['fl'] / (maximum * 1000000.0)) / (frp * frp)
+                    sq_frp = frp * frp
+                    xp.setWidgetDescriptor(w['fl_fps'], 'Cost: {:4.1f} + {:4.1f} + {:4.1f} = {:5.2f} fps'.format(
+                        (self.stats[None]['customw'] / (maximum * 1000000.0)) / sq_frp,
+                        (self.stats[None]['draw'] / (maximum * 1000000.0)) / sq_frp,
+                        (self.stats[None]['fl'] / (maximum * 1000000.0)) / sq_frp,
+                        ((self.stats[None]['fl'] + self.stats[None]['draw'] + self.stats[None]['customw']) / (maximum * 1000000.0)) / sq_frp,
                     ))
                 self.status_idx = 0
             return -1
@@ -227,7 +231,6 @@ class PythonInterface(Config):
             xp.destroyWidget(self.aboutWindow['widgetID'], 1)
             self.aboutWindow = None
         if self.performanceWindow:
-            xp.unregisterFlightLoopCallback(self.performanceFLCallback, [])
             xp.destroyWidget(self.performanceWindow['widgetID'], 1)
             self.performanceWindow = None
         self.save()
@@ -288,9 +291,17 @@ class PythonInterface(Config):
                 top -= 5
                 bottom -= 5
 
-            strWidth = int(xp.measureString(fontID, k))
+            # shorten the displayed label, if it's too wide
+            k_label = k
+            strWidth = int(xp.measureString(fontID, k_label))
+            if strWidth > right - 300:
+                k_label = k_label.replace('Laminar Research', '.').replace('.plugins.PythonPlugins.', '...')
+                strWidth = int(xp.measureString(fontID, k_label))
+                if strWidth > right - 300:
+                    k_label = '...' + k_label[-35:]
+                    strWidth = int(xp.measureString(fontID, k_label))
             widgetWindow['widgets'][k + 'label'] = xp.createWidget(left + 10, top, left + strWidth, bottom,
-                                                                   1, k, 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+                                                                   1, k_label, 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
             widgetWindow['widgets'][k + 'customw'] = xp.createWidget(right - 300, top, right - colRight[0], bottom,
                                                                      1, '', 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
             widgetWindow['widgets'][k + 'draw'] = xp.createWidget(right - 300, top, right - colRight[1], bottom,
@@ -314,7 +325,7 @@ class PythonInterface(Config):
         label = "0"
         widgetWindow['widgets']['frvalue'] = xp.createWidget(left + 10 + int(strWidth) + 10, top, right - 300, bottom,
                                                              1, label, 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
-        widgetWindow['widgets']['fl_fps'] = xp.createWidget(right - 200, top, right - 100, bottom,
+        widgetWindow['widgets']['fl_fps'] = xp.createWidget(right - 225, top, right - 100, bottom,
                                                             1, 'fl_fps', 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
 
         return widgetWindow

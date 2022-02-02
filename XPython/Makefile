@@ -3,7 +3,7 @@
 PLUGIN_PATH=Resources/plugins/XPPython3
 XP_SDK=../SDK
 VERSIONS= 36 37 38 39 310
-XPPYTHONVERSION=3.1.3a
+XPPYTHONVERSION=3.1.3
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
 #########
 # COMMON opts
@@ -49,7 +49,7 @@ ifeq ($(TARGET), Linux)
   CFLAGS38= $(CFLAGS) $(shell python3.8-config --cflags) -DPYTHONVERSION=\"3.8\"
   CFLAGS39= $(CFLAGS) $(shell python3.9-config --cflags) -DPYTHONVERSION=\"3.9\"
   CFLAGS310= $(CFLAGS) $(shell python3.10-config --cflags) -DPYTHONVERSION=\"3.10\"
-  LDFLAGS +=  -shared -fPIC -fpic -ldl -g -fvisibility=hidden -Wl,--export-dynamic
+  LDFLAGS +=  -shared -fPIC -fpic -ldl -lbsd -g -fvisibility=hidden -Wl,--export-dynamic
   # For python3.6, python3.7, --ldflags includes the python library, for 3.8 it does not (why?)
   LDFLAGS36 = $(LDFLAGS) $(shell python3.6-config --ldflags)
   LDFLAGS37 = $(LDFLAGS) $(shell python3.7-config --ldflags)

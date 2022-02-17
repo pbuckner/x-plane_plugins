@@ -23,6 +23,13 @@ files from ``samples`` to get the plugin working.
    |                            | `"Drawing 2-D That Matches the 3-D world" <https://deve|
    |                            | loper.x-plane.com/code-sample/coachmarks/>`_.          |
    +----------------------------+--------------------------------------------------------+
+   |PI_Arduino1.py              | Finds and connects with Arduino device and polls device|
+   |                            | for information using a separate python Thread in order|
+   |                            | to not slow down X-Plane.                              |
+   |                            |                                                        |
+   |                            | Includes example Arduino program (which you'll need to |
+   |                            | download to your device).                              |
+   +----------------------------+--------------------------------------------------------+
    |PI_Bounds.py                | Displays monitor number, size and if you're running VR |
    |                            | using getWindowGeometry, getMonitorBounds and related. |
    |                            | See also :doc:`/development/window_position`.          |
@@ -116,10 +123,10 @@ files from ``samples`` to get the plugin working.
    |PI_Navigation1.py           | Ported from python2 example. Demonstrates use of FMC   |
    |                            | and the navigation databases. Uses findNavAid,         |
    |                            | getNavAidInfo, setFMSEntry, clearFMSEntry.             |
-   +----------------------------+--------------------------------------------------------+
+   +----------------------------+--------------------------------------------------------+        
    |PI_OpenGL.py                | Demonstrates use of OpenGL, *and* tests the            |
    |                            | installation for correct set up of OpenGL. **Note**    |
-   |                            | Mac Big Sur will not run OpenGL without a minor        |        
+   |                            | Mac Big Sur will not run OpenGL without a minor        |
    |                            | one-time change. This plugin may be useful to          |
    |                            | plugin developers who require clients to install OpenGL|
    |                            | (or imgui).                                            |

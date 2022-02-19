@@ -6,6 +6,15 @@ Known Bugs
 
  None (prove me wrong!)
 
+3.1.4 (19-Feb-2022)
+-------------------
+:Fixes:
+   * **print() regression**: Fixes problem created in v3.1.3 where python stdout and stderr where not
+     redirected to XPPython3Log.txt. For 3.1.3, python stdout and stderr went to X-Plane stdout and stderr,
+     which (for most people) is really inconvenient. Now ``print()`` output is sent to XPPython3Log.txt file,
+     just as it used to prior to v3.1.3.  (Also fixes the use of standard python ``logging`` module, which normally
+     writes to stderr: it will *also* now correctly write to XPPython3Log.txt.)
+
 3.1.3 (2-Feb-2022)
 ------------------
 :New Features:

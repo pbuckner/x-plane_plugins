@@ -26,7 +26,7 @@ author = 'Peter Buckner'
 master_doc = 'index'
 
 # The full version, including alpha/beta/rc tags
-release = '3.1.3'
+release = '3.1.4'
 
 # -- general configuration ---------------------------------------------------
 
@@ -67,7 +67,7 @@ html_theme_options = {
     'root_url': '',
     'issues_url': 'https://github.com/pbuckner/x-plane_plugins/issues',
     'collapsiblesidebar': True,
-    'versionlist': [('3.1.3', 'stable'), ('3.1.4', 'beta')]
+    'versionlist': [('3.1.4', 'stable'), ('3.1.5', 'beta'), ('Latest', 'latest')]
 }
 html_js_files = [
     'js/versions.js'

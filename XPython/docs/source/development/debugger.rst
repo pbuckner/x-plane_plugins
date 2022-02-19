@@ -51,6 +51,34 @@ Some useful things to do:
   We've added hundreds of directly executable examples in this XPPython3 documentation: You can
   copy from your web browser and paste (paste using Ctrl-V) into the debugger.
 
+* **Search SDK**: Don't remember the exact function name? The debugger window supports searching: Type
+  a slash followed by a word and we'll search the ``xp`` module and return a list of matching
+  functions and constants.
+
+  >>> /font
+  Font_Basic
+  Font_Proportional
+  Property_Font
+  getFontDimensions
+  >>> help(xp.getFontDimensions)
+  Help on built-in function getFontDimensions in module XPLMGraphics:
+  |
+  getFontDimensions(fontID)
+  |     Get information about font
+  |
+  |     Returns (width, height, digitsOnly). Proportional fonts
+  |     return hopefully average width.
+
+* **Search DataRefs**: Search through datarefs (actually the Laminar provided DataRefs.txt file) using
+  a question mark.
+
+  >>> ?G1000
+  sim/cockpit/g1000/gcu478 input sel int y enum FMS=0 XPDR=1 COM=2 NAV=3
+  sim/graphics/misc/kill_g1000_ah int y boolean If set to true, the G1000 PFD instrument won't
+  |  draw the attitude indicator background
+  sim/cockpit2/autopilot/vnav_armed int n boolean Vnav is armed, o or 1 - this is different
+  |  from the "FMS" button - it is used ONLY for a physical G1000 connected by ethernet.
+  
 * **Execute X-Plane Commands**:
 
     >>> pause_cmd = xp.findCommand('sim/operation/pause_toggle')

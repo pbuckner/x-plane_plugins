@@ -99,7 +99,13 @@ Tools
    
   .. Note:: Do not place stubs in XPPython3 or PythonPlugins folder where they will be found by
             X-Plane! The stubs do not actually execute code.
-               
+
+* **Debug Config Initialization** (See :doc:`xppython3.ini`.)
+
+  For debugging, we've added some run-time flags which can be configured and stored. These
+  increase the level of internal debugging output, and increase the frequency of buffer flushing.
+  Will slow down execution time a small bit, but may make your debugging easier.
+  
 Advanced Topics
 ---------------
 
@@ -132,6 +138,7 @@ Advanced Topics
    quickstart
    changesfromp2
    debugger
+   xppython3.ini
    plugins
    menus
    window_position

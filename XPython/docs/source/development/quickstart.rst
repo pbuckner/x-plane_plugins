@@ -27,6 +27,8 @@ Couple of quick points common to all XPPython3 plugins:
 
 * ``print()`` sends information to the XPPython3Log.txt. This is great for quick debugging. Remove these
   prior to deploying your plugin.
+* ``import logging``: Using the standard python ``logging`` module sends information to stderr. Like ``stdout``, ``stderr`` is
+  also redirected to XPPython3Log.txt.
 * :py:func:`xp.log` sends to the XPPython3Log.txt, and automatically adds ``[<your plugin name>]`` to the
   text. This is better for "real" messages you want to keep in the python log that the end user might need to
   see to help you debug in the field.
@@ -37,10 +39,10 @@ Couple of quick points common to all XPPython3 plugins:
 * The python interface supports positional and keyword parameters. For many functions,
   some parameters are optional. See documentation for details. (Keyword parameters are
   *only* for the ``xp`` varient, e.g., ``xp.destroyWindow``. ``XPLM`` varients, e.g., ``XPLMDisplay.XPLMDestroyWindow``,
-  support only positional parameters, and all parameters must be specified.
+  support only positional parameters, and all parameters must be specified.::
 
      xp.destroyWindow(myWindowID)           # Works! Use positional parameters
-     xp.destroyWindow(windowId=myWindowID)  # Also Works!
+     xp.destroyWindow(windowID=myWindowID)  # Also Works!
 
 * In our examples, we freely mix traditional API with shortened *xp* API::
 

@@ -34,10 +34,13 @@ Couple of quick points common to all XPPython3 plugins:
   sparingly (there's enough stuff in Log.txt already) but this is most useful for initial
   configuration problems, as the user is most likely to provide you with a Log.txt file
   and say, "it doesn't work."
-* While we provide a python interface, you have to call all functions with all the positional parameters::
+* The python interface supports positional and keyword parameters. For many functions,
+  some parameters are optional. See documentation for details. (Keyword parameters are
+  *only* for the ``xp`` varient, e.g., ``xp.destroyWindow``. ``XPLM`` varients, e.g., ``XPLMDisplay.XPLMDestroyWindow``,
+  support only positional parameters, and all parameters must be specified.
 
      xp.destroyWindow(myWindowID)           # Works! Use positional parameters
-     xp.destroyWindow(windowId=myWindowID)  # Fails! Keyword parameters not supported
+     xp.destroyWindow(windowId=myWindowID)  # Also Works!
 
 * In our examples, we freely mix traditional API with shortened *xp* API::
 
@@ -52,6 +55,7 @@ Couple of quick points common to all XPPython3 plugins:
 
   The benefit of the *xp* interface is you don't have to remember which module
   the function is defined in & if it's XP... or XPLM... or XPUI... See :doc:`xp module documentation </development/modules/xp>`.
+  Plus, you can use optional and keyword parameters.
 
 .. toctree::
    :caption: Code Examples:

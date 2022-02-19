@@ -64,7 +64,7 @@ static bool xpy3_disabled = true;
 static bool xpy3_started = false;
 
 // extern int allErrorsEncountered;
-// static PyObject *loggerModuleObj;
+static PyObject *loggerModuleObj;
 static void *pythonHandle = NULL;
 
 extern PyMODINIT_FUNC PyInit_XPLMDefs(void);
@@ -88,7 +88,7 @@ extern PyMODINIT_FUNC PyInit_XPLMInstance(void);
 extern PyMODINIT_FUNC PyInit_XPLMMap(void);
 /* extern PyMODINIT_FUNC PyInit_SBU(void); */
 extern PyMODINIT_FUNC PyInit_XPPython(void);
-// extern PyMODINIT_FUNC PyInit_XPythonLogWriter(void);
+extern PyMODINIT_FUNC PyInit_XPythonLogWriter(void);
 
 int initPython(void){
   /* Initalize Python and internal modules
@@ -114,12 +114,10 @@ int initPython(void){
   PyImport_AppendInittab("XPWidgetUtils", PyInit_XPWidgetUtils);
   PyImport_AppendInittab("XPLMInstance", PyInit_XPLMInstance);
   PyImport_AppendInittab("XPLMMap", PyInit_XPLMMap);
-  /* XPythonLogger is used only by 'examples' testing infrastructure
-     which we no longer use. Commented out for now.. perhaps add it back
-     in if/when we further enhance automated testing.
+  /* XPythonLogger
      It had to be treated differently from other python modules because we
-     wanted it loaded first and unloaded last */
-  //PyImport_AppendInittab("XPythonLogger", PyInit_XPythonLogWriter);
+     wanted it imported first and unloaded last */
+  PyImport_AppendInittab("XPythonLogger", PyInit_XPythonLogWriter);
   
   /* PyImport_AppendInittab("SandyBarbourUtilities", PyInit_SBU);  -- Python2 stuff, for which there is no xppython3 equivalent */
   
@@ -130,7 +128,7 @@ int initPython(void){
     return -1;
   }
 
-  // loggerModuleObj = PyImport_ImportModule("XPythonLogger");
+  loggerModuleObj = PyImport_ImportModule("XPythonLogger");
 
   setSysPath();
   /***********************
@@ -244,7 +242,7 @@ static int stopPython(void)
     }
     ++mod_ptr;
   }
-  // Py_DECREF(loggerModuleObj);
+  Py_DECREF(loggerModuleObj);
   Py_Finalize();
   if (pythonHandle) {
     dlclose(pythonHandle);

@@ -1444,6 +1444,7 @@ and if it consumes the key, the hot key will not be called.
 .. py:function:: getNthHotKey(index)
 
  Returns HotKeyID of Nth hotkey (0-based indexing).
+
  >>> xp.countHotKeys()
  1
  >>> hotKeyID = xp.getNthHotKey(0)

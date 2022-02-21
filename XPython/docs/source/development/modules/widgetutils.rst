@@ -119,7 +119,7 @@ Functions
 .. py:function:: createWidgets(widgetDefs, parentID=None)
 
  .. warning:: This function does not work. X-Plane 11.55 (at least) does not properly read
-   the value in *widgetDefs*. Bug has been filed with Laminar 15-November-2021.
+   the value in *widgetDefs*. Bug has been filed with Laminar 15-November-2021 and is XPD-11514.
 
 
  This function creates a series of widgets, returning a list of created widgetIDs.

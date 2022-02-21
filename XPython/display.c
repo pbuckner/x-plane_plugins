@@ -715,7 +715,7 @@ My_DOCSTR(_getAllMonitorBoundsGlobal__doc__, "getAllMonitorBoundsGlobal", "bound
           "bounds for each monitor running full-screen simulator.\n"
           "\n"
           "Callback function is\n"
-          "  bounds(index, refCon, left, top, right, bottom, refCon)");
+          "  bounds(index, left, top, right, bottom, refCon)");
 
 static PyObject *XPLMGetAllMonitorBoundsGlobalFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {

@@ -50,7 +50,7 @@ static inline void mapCallback(int inCallbackIndex, XPLMMapLayerID inLayer, cons
 
   PyObject *zoomRatioObj = PyFloat_FromDouble(zoomRatio);
   PyObject *mapUnitsPerUserInterfaceUnitObj = PyFloat_FromDouble(mapUnitsPerUserInterfaceUnit);
-  PyObject *mapStyleObj = PyFloat_FromDouble(mapStyle);
+  PyObject *mapStyleObj = PyLong_FromLong(mapStyle);
   PyObject *pRes = PyObject_CallFunctionObjArgs(callback, layerObj, boundsObj, zoomRatioObj,
                                          mapUnitsPerUserInterfaceUnitObj, mapStyleObj, mapProjectionCapsule, refconObj,NULL);
   if(!pRes){

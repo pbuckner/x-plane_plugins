@@ -384,7 +384,7 @@ Note that the X-Plane 11 map introduces a strict ordering: layers of type
 Likewise, all OpenGL drawing (performed in your layer's ``drawLayer()`` callback)
 will appear beneath any icons and labels you draw.
 
-.. py:function:: drawMapIconFromSheet(layerID, png, s, t, ds, dt, x, y, orientation, rotate, mapWidth)
+.. py:function:: drawMapIconFromSheet(layerID, png, s, t, ds, dt, x, y, orientation, rotationDegrees, mapWidth)
 
  Enables plugin-created map layers to draw PNG icons using X-Plane's
  built-in icon drawing functionality. Only valid from within an
@@ -399,7 +399,7 @@ will appear beneath any icons and labels you draw.
  *x*, *y* are projected latitude and longitude coordinates, where you want to draw the icon. (See :py:func:`mapProject`).
 
  *orientation* is the map's current orientation, either ``xp.MapOrientation_Map`` (0 degrees rotation matches map's north),
- or ``xp.MapOrientation_UI`` (0 degrees rotation is "up" relative to the user interface). *rotate* indicated degrees
+ or ``xp.MapOrientation_UI`` (0 degrees rotation is "up" relative to the user interface). *rotationDegrees* indicated degrees
  of clockwise rotation.
 
  *mapWidth* is the width of the icon in **map units** (See :py:func:`mapScaleMeter`)

@@ -378,13 +378,13 @@ static PyObject *XPLMMapExistsFun(PyObject *self, PyObject *args, PyObject *kwar
   return PyLong_FromLong(res);
 }
 
-My_DOCSTR(_drawMapIconFromSheet__doc__, "drawMapIconFromSheet", "layerID, png, s, t, ds, dt, x, y, orientation, rotate, mapWidth",
+My_DOCSTR(_drawMapIconFromSheet__doc__, "drawMapIconFromSheet", "layerID, png, s, t, ds, dt, x, y, orientation, rotationDegrees, mapWidth",
           "Draws icon into map layer.\n"
           "\n"
           "Only valid within iconLayer() callback.");
 static PyObject *XPLMDrawMapIconFromSheetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"layerID", "png", "s", "t", "ds", "dt", "x", "y", "orientation", "rotate", "mapWidth", NULL};
+  static char *keywords[] = {"layerID", "png", "s", "t", "ds", "dt", "x", "y", "orientation", "rotationDegrees", "mapWidth", NULL};
   (void) self;
   PyObject *layerObj;
   const char *inPngPath;

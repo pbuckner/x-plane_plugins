@@ -27,7 +27,7 @@ Scenery-related APIs include:
     
   * :py:func:`loadObject`, :py:func:`loadObjectAsync`
 
-  * :py:func:`unloadObjext`
+  * :py:func:`unloadObject`
 
     
     

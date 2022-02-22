@@ -85,17 +85,7 @@ Tools
 * **Python Stubs** (Download from github: `stubs.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/stubs.zip>`_.)
    
   Because the XPLM* modules are contained within a shared library, they are not useful for support tools such as
-  pylint. For this reason, we've included a set of stubs.
-   
-  Include the stub directory as part of your python path (during development) and pylint will be useful. If you
-  use ``xp.py`` be sure to include your ``Resources/plugins/XPPython3`` directory.
-   
-  For example, include this in :code:`~/.pylintrc`:
-   
-  .. code-block:: text
-   
-         [MASTER]                                                                                    
-         init-hook="import sys;sys.path.extend(['.', '/path_to_stubs/stubs', 'XP/Resources/plugins/XPPython3'])"
+  pylint. For this reason, we've included a set of stubs. See :doc:`stubs` for details.
    
   .. Note:: Do not place stubs in XPPython3 or PythonPlugins folder where they will be found by
             X-Plane! The stubs do not actually execute code.
@@ -139,6 +129,7 @@ Advanced Topics
    changesfromp2
    debugger
    xppython3.ini
+   stubs
    plugins
    menus
    window_position

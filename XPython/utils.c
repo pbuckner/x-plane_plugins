@@ -58,7 +58,7 @@ char * objDebug(PyObject *item) {
     
     PyObject *err = PyErr_Occurred();
     if(err){
-      fprintf(pythonLogFile, "Error occured during objToStr\n");
+      fprintf(pythonLogFile, "[XPPython3] Error occured during objToStr\n");
       pythonLogException();
       return strdup("<Error>");
     }
@@ -100,10 +100,15 @@ void pythonLogException()
   if (tb_module != NULL) {
     PyObject *fmt_exception = PyObject_GetAttrString(tb_module, "format_exception");
     if (fmt_exception && PyCallable_Check(fmt_exception)) {
-      PyObject *vals = PyObject_CallFunctionObjArgs(fmt_exception, ptype, pvalue, ptraceback, NULL);
+      PyObject *vals;
+      if (pvalue && ptraceback) {
+        vals = PyObject_CallFunctionObjArgs(fmt_exception, ptype, pvalue, ptraceback, NULL);
+      } else {
+        vals = PyObject_CallFunctionObjArgs(fmt_exception, ptype, NULL);
+      }
       if (vals == NULL) {
         if(PyErr_Occurred()) {
-          fprintf(pythonLogFile, "Unable to format exception\n");
+          fprintf(pythonLogFile, "[XPPython3] Unable to format exception\n");
           PyErr_Print();
         }
       } else {
@@ -130,10 +135,10 @@ void pythonLogException()
   if (!full_traceback) {
     /* Failed to print full traceback. Print what we can. */
     foo = objToStr(ptype);
-    fprintf(pythonLogFile, "EXCEPTION>> [%s] %s\n", module_name, foo);
+    fprintf(pythonLogFile, "EXCEPTION>> [%s] type: %s\n", module_name, foo);
     free(foo);
     foo = objToStr(pvalue);
-    fprintf(pythonLogFile, "EXCEPTION>> [%s] %s\n", module_name, foo);
+    fprintf(pythonLogFile, "EXCEPTION>> [%s] value: %s\n", module_name, foo);
     free(foo);
   }
 
@@ -152,7 +157,7 @@ char * objToStr(PyObject *item) {
 
   PyObject *err = PyErr_Occurred();
   if(err){
-    fprintf(pythonLogFile, "Error occured during objToStr\n");
+    fprintf(pythonLogFile, "[XPPython3] Error occured during objToStr\n");
     pythonLogException();
     return strdup("<Error>");
   }

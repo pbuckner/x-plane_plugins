@@ -4,7 +4,7 @@ Current stable release is
      {% if x[1] == 'stable' %}
         {{ x[0] }}
      {% endif %}
-     {% if x[1] == 'stable' and x[1] != release %}
+     {% if x[1] == 'stable' and x[0] != release %}
         <br/> This is {{ release }}
      {% endif %}
 {% endfor %}

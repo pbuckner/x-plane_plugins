@@ -6,6 +6,20 @@ Known Bugs
 
  None (prove me wrong!)
 
+3.1.5x (Beta)
+-------------------
+:Improvements:
+   * **Reload Plugins**, now even better for development. We record timestamps *of all python modules* on
+     loading. When *Reload* is called, we first disable and stop all python plugins, do some internal
+     cleanup of data-structures, then reload all python plugins, *and all changed python modules*. Finally,
+     all python plugins are re-Enabled, and re-Started. Reloaded modules are enumerated in the log file.
+
+   * **Updated Stub Files** with full type-hinting are available as a separate download. Their use
+     is documented in :doc:`/development/stubs`.
+
+   * **XPPython3 Preferences file** documented, useful for debugging. See :doc:`/development/xppython3.ini`.
+
+
 3.1.4 (19-Feb-2022)
 -------------------
 :Fixes:

@@ -54,6 +54,7 @@ static int loadPythonLibrary(void);
 static void setCrypto(void);
 static FILE *getLogFile(void);
 static void setSysPath(void);
+static void handleConfigFile(void);
 
 FILE *pythonLogFile;
 
@@ -66,6 +67,7 @@ static bool xpy3_started = false;
 // extern int allErrorsEncountered;
 static PyObject *loggerModuleObj;
 static void *pythonHandle = NULL;
+static PyObject *pythonModuleMTimes;
 
 extern PyMODINIT_FUNC PyInit_XPLMDefs(void);
 extern PyMODINIT_FUNC PyInit_XPLMDisplay(void);
@@ -123,7 +125,7 @@ int initPython(void){
   
   Py_Initialize();
   if(!Py_IsInitialized()){
-    fprintf(pythonLogFile, "Failed to initialize Python.\n");
+    fprintf(pythonLogFile, "[XPPython3] Failed to initialize Python.\n");
     fflush(pythonLogFile);
     return -1;
   }
@@ -142,7 +144,7 @@ int initPython(void){
   sceneryPlugins = PyList_New(0);
 
   if (! (xppythonDicts || xppythonCapsules || moduleDict || pluginDict || aircraftPlugins || sceneryPlugins)) {
-    fprintf(pythonLogFile, "Failed to allocate internal data structures. Fatal Error.\n");
+    fprintf(pythonLogFile, "[XPPython3] Failed to allocate internal data structures. Fatal Error.\n");
     return -1;
   }
 
@@ -168,13 +170,35 @@ static int startPython(void)
   loadSDKFunctions();
 
   if(initPython()) {
-    fprintf(pythonLogFile, "Failed to start python, fatal error.\n");
+    fprintf(pythonLogFile, "[XPPython3] Failed to start python, fatal error.\n");
     return -1;
   }
 
   xpy_startInternalInstances();
   #define EXCLUDE_AIRCRAFT 0
   xpy_startInstances(EXCLUDE_AIRCRAFT);
+
+  /* Initials mtimes for imports */
+  pythonModuleMTimes = PyDict_New();
+  PyObject *localsDict = PyDict_New();
+  PyDict_SetItemString(localsDict, "__builtins__", PyEval_GetBuiltins());
+  PyDict_SetItemString(localsDict, "mtimes", pythonModuleMTimes);
+  PyRun_String("import sys\n"
+               "import os\n"
+               "import importlib\n"
+               "for mod in list(sys.modules.values()):\n"
+               "  if mod and hasattr(mod, '__file__') and mod.__file__:\n"
+               "    try:\n"
+               "      mtime = os.stat(mod.__file__).st_mtime\n"
+               "    except (OSError, IOError) as e:\n"
+               "      continue\n"
+               "    if mod.__file__.endswith('.pyc') and os.path.exists(mod.__file__[:-1]):\n"
+               "      mtime = max(mtime, os.stat(mod.__file__[:-1]).st_mtime)\n"
+               "    if mod not in mtimes:\n"
+               "      mtimes [mod] = mtime\n",
+               Py_file_input, localsDict, localsDict);
+  Py_DECREF(localsDict);
+
   xpy3_started = true;
   return 1;
 }
@@ -224,7 +248,7 @@ static int stopPython(void)
     PyObject *mod = PyImport_ImportModule(*mod_ptr);
     fflush(stdout);
     if (PyErr_Occurred()) {
-      fprintf(pythonLogFile, "XPlugin Failed during stop of internal module %s\n", *mod_ptr);
+      fprintf(pythonLogFile, "[XPPython3] Failed during stop of internal module %s\n", *mod_ptr);
       pythonLogException();
       return 1;
     }
@@ -232,7 +256,7 @@ static int stopPython(void)
     if(mod){
       PyObject *pRes = PyObject_CallMethod(mod, "_cleanup", NULL);
       if (PyErr_Occurred() ) {
-        fprintf(pythonLogFile, "XPlugin Failed during cleanup of internal module %s\n", *mod_ptr);
+        fprintf(pythonLogFile, "[XPPython3] Failed during cleanup of internal module %s\n", *mod_ptr);
         pythonLogException();
         return 1;
       }
@@ -254,15 +278,21 @@ static int stopPython(void)
 PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
 {
   if (XPLMFindPluginBySignature("sandybarbour.projects.pythoninterface") != XPLM_NO_PLUGIN_ID) {
-    XPLMDebugString("FATAL ERROR: XPPython3 Detected python2 PythonInterface plugin. These plugins are incompatible\n");
+    XPLMDebugString("[XPPython3] FATAL ERROR: XPPython3 Detected python2 PythonInterface plugin. These plugins are incompatible\n");
     return 0;
   }
 
   pythonLogFile = getLogFile();
 
+  char *c_time_string;
+  time_t current_time;
+  current_time = time(NULL);
+  c_time_string = ctime(&current_time);
+
+  fprintf(pythonLogFile, "[%s] Version %s Started -- %s\n", pythonPluginName, pythonPluginVersion, c_time_string);
+
   if (loadPythonLibrary() == -1) {return 0;}
 
-  fprintf(pythonLogFile, "%s version %s Started.\n", pythonPluginName, pythonPluginVersion);
   fflush(pythonLogFile);
   strcpy(outName, pythonPluginName);
   strcpy(outSig, pythonPluginSig);
@@ -271,28 +301,15 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
   if (XPLMHasFeature("XPLM_USE_NATIVE_PATHS")) {
     XPLMEnableFeature("XPLM_USE_NATIVE_PATHS", 1);
   } else {
-    fprintf(pythonLogFile, "Warning: XPLM_USE_NATIVE_PATHS not enabled. Using Legacy paths.\n");
+    fprintf(pythonLogFile, "[XPPython3] Warning: XPLM_USE_NATIVE_PATHS not enabled. Using Legacy paths.\n");
   }
   if (XPLMHasFeature("XPLM_USE_NATIVE_WIDGET_WINDOWS")) {
     XPLMEnableFeature("XPLM_USE_NATIVE_WIDGET_WINDOWS", 1);
   } else {
-    fprintf(pythonLogFile, "Warning: XPLM_USE_NATIVE_WIDGET_WINDOWS not enabled. Using Legacy windows.\n");
+    fprintf(pythonLogFile, "[XPPython3] Warning: XPLM_USE_NATIVE_WIDGET_WINDOWS not enabled. Using Legacy windows.\n");
   }
 
-
-  /* Find and handle config.ini file */
-  XPLMGetPrefsPath(xpy_ini_file);
-  XPLMExtractFileAndPath(xpy_ini_file);
-#if LIN || APL
-  strlcat(xpy_ini_file, "/xppython3.ini", 512);
-#endif
-#if IBM
-  strcat_s(xpy_ini_file, 512, "/xppython3.ini");
-#endif
-  pythonDebugs = xpy_config_get_int("[Main].debug");
-  pythonWarnings = xpy_config_get_int("[Main].warning");
-  Py_VerboseFlag = xpy_config_get_int("[Main].py_verbose");/* 0= off, 1= each file as loaded, 2= each file that is checked when searching for module */
-  pythonFlushLog = xpy_config_get_int("[Main].flush_log");/* 0= off, 1= on */
+  handleConfigFile();
 
   /* Create Commands */
   disableScripts = XPLMCreateCommand(pythonDisableCommand, "Disable all running scripts");
@@ -320,7 +337,12 @@ PLUGIN_API void XPluginStop(void)
   /* if(allErrorsEncountered){ */
   /*   fprintf(pythonLogFile, "Total errors encountered: %d\n", allErrorsEncountered); */
   /* } */
-  fprintf(pythonLogFile, "%s Stopped.\n", pythonPluginName);
+  char *c_time_string;
+  time_t current_time;
+  current_time = time(NULL);
+  c_time_string = ctime(&current_time);
+
+  fprintf(pythonLogFile, "[%s] Stopped. %s\n", pythonPluginName, c_time_string);
   fclose(pythonLogFile);
 }
 
@@ -334,25 +356,79 @@ static int commandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, vo
     if (! xpy3_disabled) {
       XPluginDisable();
       xpy3_disabled = true;
-      fprintf(pythonLogFile, "XPPython3: Disabled scripts.\n");
+      fprintf(pythonLogFile, "[XPPython3] Disabled scripts.\n");
     } else {
       fprintf(pythonLogFile, "XPPython3: already disabled.\n");
     }
   }else if(inCommand == enableScripts){
     if (xpy3_disabled) {
       XPluginEnable();
-      fprintf(pythonLogFile, "XPPython3: Enabled scripts.\n");
+      fprintf(pythonLogFile, "[XPPython3] Enabled scripts.\n");
     } else {
       fprintf(pythonLogFile, "XPPython3: already enabled.\n");
     }
   }else if(inCommand == reloadScripts){
     if (! xpy3_disabled) {
+      char *c_time_string;
+      time_t current_time;
+      current_time = time(NULL);
+      c_time_string = ctime(&current_time);
+      fprintf(pythonLogFile, "[XPPython3] Reloading Scripts.======= %s\n", c_time_string);
+      fprintf(pythonLogFile, "[XPPython3] Reload -- 1) Disable existing scripts.=======\n");
       xpy_disableInstances();/* Internal, PythonPlugins, scenery, aircraft */
+      fprintf(pythonLogFile, "[XPPython3] Reload -- 2) Stop existing scripts.=======\n");
       xpy_stopInstances();   /* Internal, PythonPlugins, scenery, aircraft */
+      fprintf(pythonLogFile, "[XPPython3] Reload -- 3) Reset Menu.=======\n");
       resetMenus();
+      fprintf(pythonLogFile, "[XPPython3] Reload -- 4) Reload Config file.=======\n");
+      handleConfigFile();
+      fprintf(pythonLogFile, "[XPPython3] Reload -- 5) Determine changed python modules.=======\n");
+      PyObject *localsDict = PyDict_New();
+      PyDict_SetItemString(localsDict, "__builtins__", PyEval_GetBuiltins());
+      PyDict_SetItemString(localsDict, "mtimes", pythonModuleMTimes);
+      PyRun_String("import sys\n"
+                   "import os\n"
+                   "import importlib\n"
+                   "result = []\n"
+                   "for mod in list(sys.modules.values()):\n"
+                   "  if mod and hasattr(mod, '__file__') and mod.__file__:\n"
+                   "    # result.append(f'{mod.__file__}')\n"
+                   "    try:\n"
+                   "      mtime = os.stat(mod.__file__).st_mtime\n"
+                   "    except (OSError, IOError) as e:\n"
+                   "      result.append(f'Opps for {mod.__file__}: {e}')\n"
+                   "      continue\n"
+                   "    if mod.__file__.endswith('.pyc') and os.path.exists(mod.__file__[:-1]):\n"
+                   "      mtime = max(mtime, os.stat(mod.__file__[:-1]).st_mtime)\n"
+                   "    if mod not in mtimes:\n"
+                   "      mtimes [mod] = mtime\n"
+                   "    elif mtimes[mod] < mtime:\n"
+                   "      try:\n"
+                   "        result.append(mod.__file__)\n"
+                   "        importlib.reload(mod)\n"
+                   "        mtimes[mod] = mtime\n"
+                   "      except ImportError:\n"
+                   "        pass\n"
+                   "result = '\\n  '.join(result)\n",
+                   Py_file_input, localsDict, localsDict);
+      PyObject *result = PyDict_GetItemString(localsDict, "result");
+      PyObject *err = PyErr_Occurred();
+      if (err) {
+        fprintf(pythonLogFile, "[XPPython3] Error occured during the reload of modules.\n");
+        pythonLogException();
+      }
+      if (PyUnicode_GET_LENGTH(result) > 2) {
+        fprintf(pythonLogFile, " Module(s) reloaded:  \n  %s\n", objToStr(result));
+      }
+      Py_DECREF(localsDict);
+      
+      fprintf(pythonLogFile, "[XPPython3] Reload -- 6) Restart Internal Python plugins.=======\n");
       xpy_startInternalInstances(); /* Internal */
+      fprintf(pythonLogFile, "[XPPython3] Reload -- 7) Restart PythonPlugins (Scenery and aircraft) plugins.=======\n");
       xpy_startInstances(1); /* PythonPlugins, scenery, aircraft */
+      fprintf(pythonLogFile, "[XPPython3] Reload -- 8) Eanble PythonPlugins.=======\n");
       xpy_enableInstances(); /* Internal, PythonPlugins, scenery, aircraft */
+      fprintf(pythonLogFile, "[XPPython3] Reloaded Scripts.=======\n");
       xpy3_disabled = false;
     } else {
       fprintf(pythonLogFile, "XPPython3 is disabled, cannot reload.\n");
@@ -472,7 +548,7 @@ static int loadPythonLibrary(void)
     fflush(pythonLogFile);
     return -1;
   }
-  fprintf(pythonLogFile, "Python shared library loaded: %s\n", library);
+  fprintf(pythonLogFile, "[XPPython3] Python shared library loaded: %s\n", library);
   fflush(pythonLogFile);
 #endif
   return 0;
@@ -544,6 +620,7 @@ static void setCrypto(void) {
     fprintf(pythonLogFile, "[XPPython3] Cryptography package not installed, XPPython3.xpyce will not be supported. See Documentation.\n");
     return;
   }
+
   Py_DECREF(cryptographyModuleObj);
   char *xpyceModule = "XPPython3.xpyce";
   PyObject *pModule = PyImport_ImportModule(xpyceModule);
@@ -553,11 +630,28 @@ static void setCrypto(void) {
       PyObject *meta_path = PySys_GetObject("meta_path");
       PyList_Insert(meta_path, 0, pFunction);
       PySys_SetObject("meta_path", meta_path);
-      fprintf(pythonLogFile, "%s loader initialized.\n", xpyceModule);
+      fprintf(pythonLogFile, "[XPPython3] %s loader initialized.\n", xpyceModule);
     } else {
-      fprintf(pythonLogFile, "Failed to intialize %s PathFinder.\n", xpyceModule);
+      fprintf(pythonLogFile, "[XPPython3] Failed to intialize %s PathFinder.\n", xpyceModule);
     }
   } else {
-    fprintf(pythonLogFile, "Failed to load %s.\n", xpyceModule);
+    fprintf(pythonLogFile, "[XPPython3] Failed to load %s.\n", xpyceModule);
   }
 }
+
+static void handleConfigFile(void) {  /* Find and handle config.ini file */
+  XPLMGetPrefsPath(xpy_ini_file);
+  XPLMExtractFileAndPath(xpy_ini_file);
+#if LIN || APL
+  strlcat(xpy_ini_file, "/xppython3.ini", 512);
+#endif
+#if IBM
+  strcat_s(xpy_ini_file, 512, "/xppython3.ini");
+#endif
+  pythonDebugs = xpy_config_get_int("[Main].debug");
+  pythonWarnings = xpy_config_get_int("[Main].warning");
+  Py_VerboseFlag = xpy_config_get_int("[Main].py_verbose");/* 0= off, 1= each file as loaded, 2= each file that is checked when searching for module */
+  pythonFlushLog = xpy_config_get_int("[Main].flush_log");/* 0= off, 1= on */
+  pythonDebug("Read config file: %s\n", xpy_ini_file);
+}
+

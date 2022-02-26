@@ -147,7 +147,7 @@ FlightLoop - New Style
   >>> flightLoopID = xp.createFlightLoop(MyCallback)
   >>> xp.destroyFlightLoop(flightLoopID)
 
-  `Official SDK <https://developer.x-plane.com/sdk/XPLMProcessing/#XPLMDestroyFlightLoop`  >`__ :index:`XPLMDestroyFlightLoop`   
+  `Official SDK <https://developer.x-plane.com/sdk/XPLMProcessing/#XPLMDestroyFlightLoop>`__ :index:`XPLMDestroyFlightLoop`   
 
 .. py:function::  scheduleFlightLoop(flightLoopID, interval, relativeToNow=1)
 

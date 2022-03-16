@@ -169,7 +169,7 @@ Include:
    in the same folder as Log.txt.
 
 Provide that information to `x-plane.org/forums <https://forums.x-plane.org/index.php?/forums/forum/630-python-development/>`_
-or `email support <mailto:xppython3@avnwx.com?body=What%20happened%3F%0A%0AWhat%20did%20you%20expect%20to%20happen%3F%0A%0AWhich%20python%20plugin%28s%29%20are%20you%20using%3F%0A%0AAttach%20Log.txt%20and%20XPPython3Log.txt>`_. Information is available from the *About* XPPython3 menu.
+or `email support <mailto:support@xppython3.org?body=What%20happened%3F%0A%0AWhat%20did%20you%20expect%20to%20happen%3F%0A%0AWhich%20python%20plugin%28s%29%20are%20you%20using%3F%0A%0AAttach%20Log.txt%20and%20XPPython3Log.txt>`_. Information is available from the *About* XPPython3 menu.
 
 
 More Installation Topics

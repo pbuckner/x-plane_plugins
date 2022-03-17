@@ -167,19 +167,21 @@ PyObject *getPluginInfo(PyObject *signature){
 int xpy_enableInstance(PyObject *moduleName, PyObject *pluginInstance) {
   pythonDebug("Enabling instance: %s", objDebug(moduleName));
   PyObject *pRes = PyObject_CallMethod(pluginInstance, "XPluginEnable", NULL);
+
+  if(PyErr_Occurred()) {
+    pythonLogException();
+    fprintf(pythonLogFile, "[XPPython3] Error occured during call to %s XPluginEnable\n", objToStr(moduleName));
+    return 0;
+  }
+
   if(!(pRes && PyLong_Check(pRes))){
     fprintf(pythonLogFile, "[XPPython3] %s XPluginEnable returned '%s' rather than an integer.\n", objToStr(moduleName), objToStr(pRes));
   } else {
     pythonDebug("%s XPluginEnable returned %ld", objDebug(moduleName), PyLong_AsLong(pRes));
   }
-  int ret = 0;
-  if(PyErr_Occurred()) {
-    pythonLogException();
-    fprintf(pythonLogFile, "[XPPython3] Error occured during call to %s XPluginEnable\n", objToStr(moduleName));
-  } else {
-    ret = PyLong_AsLong(pRes) > 0 ? 1 : 0;
-    Py_DECREF(pRes);
-  }
+
+  int ret = PyLong_AsLong(pRes) > 0 ? 1 : 0;
+  Py_DECREF(pRes);
   return ret;
 }
 

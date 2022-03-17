@@ -13,6 +13,7 @@
 #include "manage_instance.h"
 
 PyObject *xppythonDicts = NULL, *xppythonCapsules = NULL;
+PyObject *PythonModuleMTimes = NULL;
 extern const char *pythonPluginVersion, *pythonPluginsPath, *pythonInternalPluginsPath;
 int pythonFlushLog = 0;
 static PyObject *getExecutable(void);
@@ -974,12 +975,14 @@ PyInit_XPPython(void)
     return NULL;
 
   PyObject *mod = PyModule_Create(&XPPythonModule);
+  PythonModuleMTimes = PyDict_New();
 
   if (mod != NULL) {
     PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
     PyModule_AddStringConstant(mod, "VERSION", pythonPluginVersion);
     PyModule_AddStringConstant(mod, "PLUGINSPATH", pythonPluginsPath);
     PyModule_AddStringConstant(mod, "INTERNALPLUGINSPATH", pythonInternalPluginsPath);
+    PyModule_AddIntConstant(mod, "pythonDebugLevel", pythonDebugs);
     PyModule_AddObject(mod, "pythonExecutable", getExecutable());
     PyModule_AddObject(mod, "HotKeyInfo", (PyObject *) &HotKeyInfoType);
     PyModule_AddObject(mod, "ProbeInfo", (PyObject *) &ProbeInfoType);
@@ -987,6 +990,7 @@ PyInit_XPPython(void)
     PyModule_AddObject(mod, "NavAidInfo", (PyObject *) &NavAidInfoType);
     PyModule_AddObject(mod, "FMSEntryInfo", (PyObject *) &FMSEntryInfoType);
     PyModule_AddObject(mod, "TrackMetrics", (PyObject *) &TrackMetricsType);
+    PyModule_AddObject(mod, "ModuleMTimes", PythonModuleMTimes);
   }
   Py_INCREF(&HotKeyInfoType);
   Py_INCREF(&ProbeInfoType);

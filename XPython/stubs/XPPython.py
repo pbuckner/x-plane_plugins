@@ -4,6 +4,7 @@ VERSION = 'x.x.x'
 PLUGINSPATH = 'Resources/plugins/PythonPlugins'
 INTERNALPLUGINSPATH = 'Resources/plugins/XPPython3'
 pythonExecutable = '/path/to/python'
+pythonDebugLevel = 0
 
 
 def pythonGetDicts() -> Dict:
@@ -32,4 +33,3 @@ def derefCapsule(capsule_type: str, capsule: object) -> int:
 
 sys_log = systemLog
 pythonLog = log
-

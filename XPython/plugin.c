@@ -55,6 +55,10 @@ static void setCrypto(void);
 static FILE *getLogFile(void);
 static void setSysPath(void);
 static void handleConfigFile(void);
+static void reloadSysModules(void);
+static void initMtimes(void);
+
+time_t SymStartTime = 0;
 
 FILE *pythonLogFile;
 
@@ -67,7 +71,6 @@ static bool xpy3_started = false;
 // extern int allErrorsEncountered;
 static PyObject *loggerModuleObj;
 static void *pythonHandle = NULL;
-static PyObject *pythonModuleMTimes;
 
 extern PyMODINIT_FUNC PyInit_XPLMDefs(void);
 extern PyMODINIT_FUNC PyInit_XPLMDisplay(void);
@@ -151,7 +154,7 @@ int initPython(void){
   PyDict_SetItemString(xppythonDicts, "plugins", pluginDict);
   PyDict_SetItemString(xppythonDicts, "modules", moduleDict);
 
-  setCrypto(); /* crypto uses some XPLM functions, so we need to have interal dictionaries already defined */
+  setCrypto(); /* crypto uses some XPLM functions, so we need to have internal dictionaries already defined */
 
   return 0;
 }
@@ -177,28 +180,6 @@ static int startPython(void)
   xpy_startInternalInstances();
   #define EXCLUDE_AIRCRAFT 0
   xpy_startInstances(EXCLUDE_AIRCRAFT);
-
-  /* Initials mtimes for imports */
-  pythonModuleMTimes = PyDict_New();
-  PyObject *localsDict = PyDict_New();
-  PyDict_SetItemString(localsDict, "__builtins__", PyEval_GetBuiltins());
-  PyDict_SetItemString(localsDict, "mtimes", pythonModuleMTimes);
-  PyRun_String("import sys\n"
-               "import os\n"
-               "import importlib\n"
-               "for mod in list(sys.modules.values()):\n"
-               "  if mod and hasattr(mod, '__file__') and mod.__file__:\n"
-               "    try:\n"
-               "      mtime = os.stat(mod.__file__).st_mtime\n"
-               "    except (OSError, IOError) as e:\n"
-               "      continue\n"
-               "    if mod.__file__.endswith('.pyc') and os.path.exists(mod.__file__[:-1]):\n"
-               "      mtime = max(mtime, os.stat(mod.__file__[:-1]).st_mtime)\n"
-               "    if mod not in mtimes:\n"
-               "      mtimes [mod] = mtime\n",
-               Py_file_input, localsDict, localsDict);
-  Py_DECREF(localsDict);
-
   xpy3_started = true;
   return 1;
 }
@@ -285,9 +266,8 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
   pythonLogFile = getLogFile();
 
   char *c_time_string;
-  time_t current_time;
-  current_time = time(NULL);
-  c_time_string = ctime(&current_time);
+  SymStartTime = time(NULL);
+  c_time_string = ctime(&SymStartTime);
 
   fprintf(pythonLogFile, "[%s] Version %s Started -- %s\n", pythonPluginName, pythonPluginVersion, c_time_string);
 
@@ -383,50 +363,12 @@ static int commandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, vo
       fprintf(pythonLogFile, "[XPPython3] Reload -- 4) Reload Config file.=======\n");
       handleConfigFile();
       fprintf(pythonLogFile, "[XPPython3] Reload -- 5) Determine changed python modules.=======\n");
-      PyObject *localsDict = PyDict_New();
-      PyDict_SetItemString(localsDict, "__builtins__", PyEval_GetBuiltins());
-      PyDict_SetItemString(localsDict, "mtimes", pythonModuleMTimes);
-      PyRun_String("import sys\n"
-                   "import os\n"
-                   "import importlib\n"
-                   "result = []\n"
-                   "for mod in list(sys.modules.values()):\n"
-                   "  if mod and hasattr(mod, '__file__') and mod.__file__:\n"
-                   "    # result.append(f'{mod.__file__}')\n"
-                   "    try:\n"
-                   "      mtime = os.stat(mod.__file__).st_mtime\n"
-                   "    except (OSError, IOError) as e:\n"
-                   "      result.append(f'Opps for {mod.__file__}: {e}')\n"
-                   "      continue\n"
-                   "    if mod.__file__.endswith('.pyc') and os.path.exists(mod.__file__[:-1]):\n"
-                   "      mtime = max(mtime, os.stat(mod.__file__[:-1]).st_mtime)\n"
-                   "    if mod not in mtimes:\n"
-                   "      mtimes [mod] = mtime\n"
-                   "    elif mtimes[mod] < mtime:\n"
-                   "      try:\n"
-                   "        result.append(mod.__file__)\n"
-                   "        importlib.reload(mod)\n"
-                   "        mtimes[mod] = mtime\n"
-                   "      except ImportError:\n"
-                   "        pass\n"
-                   "result = '\\n  '.join(result)\n",
-                   Py_file_input, localsDict, localsDict);
-      PyObject *result = PyDict_GetItemString(localsDict, "result");
-      PyObject *err = PyErr_Occurred();
-      if (err) {
-        fprintf(pythonLogFile, "[XPPython3] Error occured during the reload of modules.\n");
-        pythonLogException();
-      }
-      if (PyUnicode_GET_LENGTH(result) > 2) {
-        fprintf(pythonLogFile, " Module(s) reloaded:  \n  %s\n", objToStr(result));
-      }
-      Py_DECREF(localsDict);
-      
+      reloadSysModules();
       fprintf(pythonLogFile, "[XPPython3] Reload -- 6) Restart Internal Python plugins.=======\n");
       xpy_startInternalInstances(); /* Internal */
       fprintf(pythonLogFile, "[XPPython3] Reload -- 7) Restart PythonPlugins (Scenery and aircraft) plugins.=======\n");
       xpy_startInstances(1); /* PythonPlugins, scenery, aircraft */
-      fprintf(pythonLogFile, "[XPPython3] Reload -- 8) Eanble PythonPlugins.=======\n");
+      fprintf(pythonLogFile, "[XPPython3] Reload -- 8) Enable PythonPlugins.=======\n");
       xpy_enableInstances(); /* Internal, PythonPlugins, scenery, aircraft */
       fprintf(pythonLogFile, "[XPPython3] Reloaded Scripts.=======\n");
       xpy3_disabled = false;
@@ -443,6 +385,7 @@ PLUGIN_API int XPluginEnable(void)
 {
   xpy3_disabled = false;
   xpy_enableInstances();
+  initMtimes();
   return 1;
 }
 
@@ -628,13 +571,20 @@ static void setCrypto(void) {
     PyObject *pFunction = PyObject_GetAttrString(pModule, "XPYCEPathFinder");
     if (pFunction) {
       PyObject *meta_path = PySys_GetObject("meta_path");
-      PyList_Insert(meta_path, 0, pFunction);
-      PySys_SetObject("meta_path", meta_path);
+      PyList_Append(meta_path, pFunction);
+      //PyList_Insert(meta_path, 0, pFunction);
+      //PySys_SetObject("meta_path", meta_path);
+
       fprintf(pythonLogFile, "[XPPython3] %s loader initialized.\n", xpyceModule);
     } else {
       fprintf(pythonLogFile, "[XPPython3] Failed to intialize %s PathFinder.\n", xpyceModule);
     }
   } else {
+    PyObject *err = PyErr_Occurred();
+    if (err) {
+      fprintf(pythonLogFile, "[XPPython3] Error occured during the loading of xpyce.\n");
+      pythonLogException();
+    }
     fprintf(pythonLogFile, "[XPPython3] Failed to load %s.\n", xpyceModule);
   }
 }
@@ -655,3 +605,76 @@ static void handleConfigFile(void) {  /* Find and handle config.ini file */
   pythonDebug("Read config file: %s\n", xpy_ini_file);
 }
 
+static void initMtimes(void) {
+  PythonModuleMTimes = PyDict_New();
+  /* Initials mtime for imports */
+  PyObject *localsDict = PyDict_New();
+  PyDict_SetItemString(localsDict, "__builtins__", PyEval_GetBuiltins());
+  PyDict_SetItemString(localsDict, "mtimes", PythonModuleMTimes);
+  PyRun_String("import sys\n"
+               "import os\n"
+               "import importlib\n"
+               "for mod in list(sys.modules.values()):\n"
+               "  if mod and hasattr(mod, '__file__') and mod.__file__:\n"
+               "    try:\n"
+               "      mtime = os.stat(mod.__file__).st_mtime\n"
+               "    except (OSError, IOError) as e:\n"
+               "      continue\n"
+               "    if mod.__file__.endswith('.pyc') and os.path.exists(mod.__file__[:-1]):\n"
+               "      mtime = max(mtime, os.stat(mod.__file__[:-1]).st_mtime)\n"
+               "    if mod not in mtimes:\n"
+               "      mtimes [mod] = mtime\n",
+               Py_file_input, localsDict, localsDict);
+  Py_DECREF(localsDict);
+}
+
+static void reloadSysModules(void) {
+  PyObject *localsDict = PyDict_New();
+  PyDict_SetItemString(localsDict, "__builtins__", PyEval_GetBuiltins());
+  PyDict_SetItemString(localsDict, "mtimes", PythonModuleMTimes);
+  PyDict_SetItemString(localsDict, "sym_start", PyLong_FromLong(SymStartTime));
+  /* reload_unknown... if sys.modules has a module for which we don't know the mtime,
+   *                   do we reload it anyway? Py_True
+   */
+  PyDict_SetItemString(localsDict, "reload_unknown", Py_True);
+  PyRun_String("import sys\n"
+               "import os\n"
+               "import importlib\n"
+               "result = []\n"
+               "for mod in list(sys.modules.values()):\n"
+               "  if mod and hasattr(mod, '__file__') and mod.__file__:\n" /* some don't have __file__, some __file__ are None */
+               "    try:\n"
+               "      mtime = os.stat(mod.__file__).st_mtime\n"  /* if it's simple foo.py */
+               "    except (OSError, IOError) as e:\n"
+               "      result.append(f'Opps for {mod.__file__}: {e}')\n"
+               "      continue\n"
+               "    if mod.__file__.endswith('.pyc') and os.path.exists(mod.__file__[:-1]):\n"  /* if there is (also) a pyc */
+               "      mtime = max(mtime, os.stat(mod.__file__[:-1]).st_mtime)\n"
+               "    if not (reload_unknown or mod in mtimes):\n"
+               "      mtimes [mod] = mtime\n"
+               "    elif (reload_unknown and not mod in mtimes and mtime > sym_start)  or mtimes[mod] < mtime:\n"
+               "      mtimes[mod] = mtime\n"
+               "      if hasattr(mod, '__spec__') and hasattr(mod.__spec__, 'origin') and mod.__spec__.origin in ('frozen', 'builtin'):\n"
+               "        continue\n"
+               "      try:\n"
+               "        result.append(mod.__file__)\n"
+               "        importlib.reload(mod)\n"
+               "        mtimes[mod] = mtime\n"
+               "      except ImportError:\n"
+               "        result.append(f'>> Failed to reload {mod.__file__}')\n"
+               "        pass\n"
+               "      except Exception as e:\n"
+               "        result.append(f'>> Failed reloading {mod.__file__}: {e}')\n"
+               "result = '\\n  > '.join(result)\n",
+               Py_file_input, localsDict, localsDict);
+  PyObject *result = PyDict_GetItemString(localsDict, "result");
+  PyObject *err = PyErr_Occurred();
+  if (err) {
+    fprintf(pythonLogFile, "[XPPython3] Error occured during the reload of modules.\n");
+    pythonLogException();
+  }
+  if (PyUnicode_GET_LENGTH(result) > 2) {
+    fprintf(pythonLogFile, " Module(s) reloaded:  \n  > %s\n", objToStr(result));
+  }
+  Py_DECREF(localsDict);
+}

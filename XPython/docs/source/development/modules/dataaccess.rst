@@ -974,11 +974,13 @@ reference used by several plugins but do not know which plugins will be
 installed, or if all plugins sharing data need to be notified when that
 data is changed, use shared data references.
 
+.. note:: You cannot "share" a built-in dataRef. While you may think
+          sharing a built-in would allow you to register a *dataChanged* callback,
+          the registration returns successfully,
+          but the callback is never invoked.
 
 
-
-
-.. py:function:: shareData(name, dataType, changed=None, refCon=None)
+.. py:function:: shareData(name, dataType, dataChanged=None, refCon=None)
 
  This routine connects a plug-in to shared data, creating the shared data if
  necessary. *name* is a standard style of path string for the data ref,
@@ -990,7 +992,7 @@ data is changed, use shared data references.
  returned, so it is important that plug-in authors collaborate to establish
  public standards for shared data.
 
- If a notificationFunc *changed* is passed in and is not None, it
+ If a notificationFunc *dataChanged* is passed in and is not None, it
  will be called whenever the data is modified. The provided *refCon*
  will be passed to the callback. This allows your plug-in to know which shared
  data was changed if multiple shared data are handled by one callback, or if
@@ -1041,7 +1043,7 @@ data is changed, use shared data references.
  to simply create and manage the data reference & then you can poll (using :py:func:`getDataf`)
  to get data updates.
 
-.. py:function:: unshareData(name, dataType, changed=None, refCon=None)
+.. py:function:: unshareData(name, dataType, dataChanged=None, refCon=None)
 
  This routine removes your notification function for shared data. Call it
  when done with the data to stop receiving change notifications. Arguments

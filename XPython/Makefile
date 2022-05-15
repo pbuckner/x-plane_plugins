@@ -3,7 +3,7 @@
 PLUGIN_PATH=Resources/plugins/XPPython3
 XP_SDK=../SDK
 VERSIONS= 36 37 38 39 310
-XPPYTHONVERSION=3.1.5a
+XPPYTHONVERSION=3.1.5b
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
 #########
 # COMMON opts
@@ -155,7 +155,7 @@ Resources/plugins/xppython3%.zip: win/XPPython3%.xpl lin/XPPython3%.xpl mac/XPPy
 	#     xppython36-linux.zip 
 	#     xppython36-darwin.zip 
 	cd Resources/plugins; \
-		$(ZIP) $(notdir $@) -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md  XPPython3/xpyce/\*.py XPPython3/xp_imgui/\*.py; \
+		$(ZIP) $(notdir $@) -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md XPPython3/xp_imgui/\*.py; \
 		v=`echo $(notdir $@) | sed  's/xppython\([0-9]*\).zip/\1/'`; \
 		$(ZIP) $(notdir $@) -u XPPython3/imgui/*.py XPPython3/imgui/integrations/*.py XPPython3/imgui/core*$$v* ; \
 		$(ZIP) $(notdir $@) -u XPPython3/utils/*.py ; \

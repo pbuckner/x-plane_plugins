@@ -91,23 +91,6 @@ On All Platforms
 
 .. code-block:: none
 
-   [XPPython3] Cryptography package not installed, XPPython3.xpyce will not be supported.
-   See Documentation.
-
-**Cause**:
-    Cryptography is an option package. It is required by XPPython3's xpyce module, but that module is
-    only required if you are using encrypted python.
-
-**Solution**:
-    You can either ignore this error (if you're not using encrypted python) or you can safely install
-    this packages using XPPython3 Pip Package Installer, and install ``cryptography``.
-
-    See also :ref:`pip-package-installer`.
-        
-----
-
-.. code-block:: none
-
    Can't open <folder> to scan for plugins.
 
 **Cause**:

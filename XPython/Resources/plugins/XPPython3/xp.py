@@ -453,6 +453,7 @@ sys_log = XPPython.sys_log
 VERSION = XPPython.VERSION
 PLUGINSPATH = XPPython.PLUGINSPATH
 INTERNALPLUGINSPATH = XPPython.INTERNALPLUGINSPATH
+pythonDebugLevel = XPPython.pythonDebugLevel
 import XPStandardWidgets
 WidgetClass_MainWindow = XPStandardWidgets.xpWidgetClass_MainWindow
 WidgetClass_SubWindow = XPStandardWidgets.xpWidgetClass_SubWindow

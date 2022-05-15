@@ -511,14 +511,14 @@ void clearInstanceCommands(PyObject *pluginSelf)
 {
   PyObject *key, *value;
   Py_ssize_t pos = 0;
-  pythonDebug("  Clearing commands for [%s]", objDebug(pluginSelf));
+  pythonDebug("%*s Clearing commands for [%s]", 6, " ", objDebug(pluginSelf));
   int count = 0;
   while (PyDict_Next(commandCallbackDict, &pos, &key, &value)) {
     PyObject *commandPlugin = PyTuple_GetItem(value, CALLBACK_PLUGIN);
     if (PyObject_RichCompareBool(commandPlugin, pluginSelf, Py_EQ)) {
       count ++;
       intptr_t refcon = PyLong_AsLong(key);
-      pythonDebug("    Removing command handler for [%ld] [%s]", refcon, objDebug(PyTuple_GetItem(value, CALLBACK_PLUGIN)));
+      pythonDebug("%*s Removing command handler for [%ld] [%s]", 8, " ", refcon, objDebug(PyTuple_GetItem(value, CALLBACK_PLUGIN)));
       XPLMUnregisterCommandHandler(refToPtr(PyTuple_GetItem(value, CALLBACK_CAPSULE), commandRefName),
                                    commandCallback,
                                    PyLong_AsLong(PyTuple_GetItem(value, CALLBACK_BEFORE)),
@@ -527,7 +527,7 @@ void clearInstanceCommands(PyObject *pluginSelf)
       PyDict_DelItem(commandCallbackDict, key);
     }
   }
-  pythonDebug("    Cleared %d commands for [%s]", count, objDebug(pluginSelf));
+  pythonDebug("%*s Cleared %d commands for [%s]", 8, " ", count, objDebug(pluginSelf));
 }
 
 static PyObject *cleanup(PyObject *self, PyObject *args)

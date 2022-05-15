@@ -166,7 +166,7 @@ bool loadSDKFunctions(void)
   if(xplm_ver >= 210){
     res &= loadFunctions(funcs210);
   }
-  pythonDebug("  loadSDKFunctions Loaded");
+  pythonDebug("  loadSDKFunctions Loaded.");
   return res;
 }
 

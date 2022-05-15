@@ -51,7 +51,6 @@ static XPLMCommandRef reloadScripts;
 static int commandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void *inRefcon);
 
 static int loadPythonLibrary(void);
-static void setCrypto(void);
 static FILE *getLogFile(void);
 static void setSysPath(void);
 static void handleConfigFile(void);
@@ -154,8 +153,6 @@ int initPython(void){
   PyDict_SetItemString(xppythonDicts, "plugins", pluginDict);
   PyDict_SetItemString(xppythonDicts, "modules", moduleDict);
 
-  setCrypto(); /* crypto uses some XPLM functions, so we need to have internal dictionaries already defined */
-
   return 0;
 }
 
@@ -164,7 +161,7 @@ static int startPython(void)
 /* Start Python and all plugin instances
  * return 0: success, otherwise fail... all failures are fatal */
 {
-  pythonDebug("Calling startPython...");
+  pythonDebug("Calling startPython()");
   if (xpy3_started) {
     pythonDebug("Error, python already started");
     return 0;
@@ -300,7 +297,7 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
   XPLMRegisterCommandHandler(enableScripts, commandHandler, 1, (void *)1);
   XPLMRegisterCommandHandler(reloadScripts, commandHandler, 1, (void *)2);
 
-  pythonDebug("commands created");
+  pythonDebug("Registered commands");
 
   if(startPython() == -1) return 0;
 
@@ -557,38 +554,6 @@ static void setSysPath(void) {
   Py_DECREF(xPlaneDirObj);
 }
 
-static void setCrypto(void) {
-  PyObject *cryptographyModuleObj = PyImport_ImportModule("cryptography");
-  if (!cryptographyModuleObj) {
-    fprintf(pythonLogFile, "[XPPython3] Cryptography package not installed, XPPython3.xpyce will not be supported. See Documentation.\n");
-    return;
-  }
-
-  Py_DECREF(cryptographyModuleObj);
-  char *xpyceModule = "XPPython3.xpyce";
-  PyObject *pModule = PyImport_ImportModule(xpyceModule);
-  if (pModule) {
-    PyObject *pFunction = PyObject_GetAttrString(pModule, "XPYCEPathFinder");
-    if (pFunction) {
-      PyObject *meta_path = PySys_GetObject("meta_path");
-      PyList_Append(meta_path, pFunction);
-      //PyList_Insert(meta_path, 0, pFunction);
-      //PySys_SetObject("meta_path", meta_path);
-
-      fprintf(pythonLogFile, "[XPPython3] %s loader initialized.\n", xpyceModule);
-    } else {
-      fprintf(pythonLogFile, "[XPPython3] Failed to intialize %s PathFinder.\n", xpyceModule);
-    }
-  } else {
-    PyObject *err = PyErr_Occurred();
-    if (err) {
-      fprintf(pythonLogFile, "[XPPython3] Error occured during the loading of xpyce.\n");
-      pythonLogException();
-    }
-    fprintf(pythonLogFile, "[XPPython3] Failed to load %s.\n", xpyceModule);
-  }
-}
-
 static void handleConfigFile(void) {  /* Find and handle config.ini file */
   XPLMGetPrefsPath(xpy_ini_file);
   XPLMExtractFileAndPath(xpy_ini_file);
@@ -602,7 +567,7 @@ static void handleConfigFile(void) {  /* Find and handle config.ini file */
   pythonWarnings = xpy_config_get_int("[Main].warning");
   Py_VerboseFlag = xpy_config_get_int("[Main].py_verbose");/* 0= off, 1= each file as loaded, 2= each file that is checked when searching for module */
   pythonFlushLog = xpy_config_get_int("[Main].flush_log");/* 0= off, 1= on */
-  pythonDebug("Read config file: %s\n", xpy_ini_file);
+  pythonDebug("Read config file: %s", xpy_ini_file);
 }
 
 static void initMtimes(void) {
@@ -650,7 +615,7 @@ static void reloadSysModules(void) {
                "      continue\n"
                "    if mod.__file__.endswith('.pyc') and os.path.exists(mod.__file__[:-1]):\n"  /* if there is (also) a pyc */
                "      mtime = max(mtime, os.stat(mod.__file__[:-1]).st_mtime)\n"
-               "    if not (reload_unknown or mod in mtimes):\n"
+               "    if (not reload_unknown and mod not in mtimes) or (mtime <= sym_start and mod not in mtimes):\n"
                "      mtimes [mod] = mtime\n"
                "    elif (reload_unknown and not mod in mtimes and mtime > sym_start)  or mtimes[mod] < mtime:\n"
                "      mtimes[mod] = mtime\n"

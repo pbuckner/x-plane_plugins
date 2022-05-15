@@ -27,7 +27,9 @@ Key Requirements
 * **X-Plane SDK 303** *minimum*: This is base SDK version for X-Plane 11.50. Vulkan/Metal and OpenGL are supported.
 * **Python3 only**: Python3.10 is recommended. This will not work with python2 programs which are not compatible with
   Python3. Note that you will have to use the correct version of this plugin to match the version of python
-  installed on your system. We currently support python3.7, python3.8, python3.9, and python3.10. 
+  installed on your system. We currently support python3.7, python3.8, python3.9, and python3.10. *However* we
+  will be dropping support for python versions earlier than python3.9 with the arrival of X-Plane 12.
+
 * See :doc:`changelog`.
   
 

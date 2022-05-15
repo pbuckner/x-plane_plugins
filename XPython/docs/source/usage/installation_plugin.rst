@@ -74,9 +74,9 @@ Errors are logged, see :doc:`logfiles`.
 Running the First Time - Pip Package Installer
 ==============================================
 
-First time running X-Plane, go to the XPPython3 Menu, select "Pip Package Installer" and install two
-useful packages: ``pyopengl, cryptography``. Type in the package names and press Install. It will take a few seconds (depends on
-your Internet speed.) Though these packages are not required by XPPython3, they are commonly used by plugins, so you might
+First time running X-Plane, go to the XPPython3 Menu, select "Pip Package Installer" and install a
+useful package: ``pyopengl``. Type in the package name and press Install. It will take a few seconds (depends on
+your Internet speed.) Though this package is not required by XPPython3, it is commonly used by plugins, so you might
 as well install them now.
 
 If Pip fails because it cannot find pip (most commonly on linux) make sure you've manually added the python3-pip package.

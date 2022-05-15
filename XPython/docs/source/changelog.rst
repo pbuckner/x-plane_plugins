@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+.. Note::
+
+   We will be dropping support for Python 3.6, 3.7, and 3.8 once X-Plane 12 is released.
+   Most users are already using Python 3.10. If you're not, you might consider upgrading.
+
+
 Known Bugs
 ----------
 
@@ -8,6 +14,14 @@ Known Bugs
 
 3.1.5x (Beta)
 -------------------
+:Fixes:
+   * **Removed xpyce** cryptography feature. While the encrypting python works great, it is
+     way to easy to obtain decrypted byte-code in a running process and decompile it back to
+     reasonable source code. I've removed this feature as it might give a false sense of security.
+     If encrypted python is important to you, use Cython and generate per-platform binary files.
+
+     | 
+     
 :Improvements:
    * **Reload Plugins**, now even better for development. We record timestamps *of all python modules* on
      loading. When *Reload* is called, we first disable and stop all python plugins, do some internal
@@ -244,7 +258,8 @@ Known Bugs
    * Detects the existence of python2 PythonInterface plugin and immediately exits XPPython3 with
      a Fatal Error written to Log.txt: These two plugins cannot run simultaneously: they almost can, but
      will fail in miserably difficult-to-debug ways. So we don't even try.
-   * Initial documentation for :doc:`development/xpyce`, which enables loading of encrypted pyc modules.
+   * Initial documentation for xpyce, which enables loading of encrypted pyc modules. [This feature has
+     been removed since 3.1.5.]
 
 :Fixes:
 
@@ -299,7 +314,8 @@ Known Bugs
    * Loading by "packages". Global plugins are now loaded as part of either XPPython3 or PythonPlugins
      package. This allows the use of relative package imports by plugins. See :doc:`development/import`.
    * Improved documentation: added :doc:`changelog`, added values for enumeration / constants, fixed minor bugs
-   * Initial support for xpyce: enabled loading of encrypted pyc modules. (Documentation :doc:`development/xpyce`)
+   * Initial support for xpyce: enabled loading of encrypted pyc modules. (Documentation xpyce [This feature has been removed
+     since 3.1.5])
 
 
    | 

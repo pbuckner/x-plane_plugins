@@ -80,8 +80,7 @@ The result of :py:func:`XPPython.XPPythonGetDicts` is a dictionary of these dict
         {('Mini Python Interpreter', 'xppython3.minipython', 'For debugging / testing, the provides a mini python interpreter', 'PythonPlugins.PI_MiniPython'): <PythonPlugins.PI_MiniPython.PythonInterface object at 0x7ff2ca700a90>,
          ('See and Avoid', 'com.avnwx.SeeAndAvoid.p3', 'See and Avoid traffic generator', 'PythonPlugins.PI_SeeAndAvoid'): <PythonPlugins.PI_SeeAndAvoid.PythonInterface object at 0x7ff2bff3ad30>,
          ('XPPython Aircraft Plugin driver', 'xppython3.aircraft_plugin', 'XPPython Plugin which enables use of aircraft plugins', 'PythonPlugins.PI_Aircraft'): <PythonPlugins.PI_Aircraft.PythonInterface object at 0x7ff2ca63ce50>,
-         ('XPPython3 Updater', 'com.avnwx.xppython3.updater.3.8', 'Automatic updater for XPPython3 plugin', 'XPPython3.I_PI_Updater'): <XPPython3.I_PI_Updater.PythonInterface object at 0x7ff312547640>,
-         ('xpyce tester', 'xppython3.pyce_tester', 'test program for loading pyce files', 'PythonPlugins.PI_xpyce_test'): <PythonPlugins.PI_xpyce_test.PythonInterface object at 0x7ff2bff3e790>},
+         ('XPPython3 Updater', 'com.avnwx.xppython3.updater.3.8', 'Automatic updater for XPPython3 plugin', 'XPPython3.I_PI_Updater'): <XPPython3.I_PI_Updater.PythonInterface object at 0x7ff312547640>},
    'plugins':
          {<PythonPlugins.PI_Aircraft.PythonInterface object at 0x7ff2ca63ce50>: ('XPPython Aircraft Plugin driver',
                                                                                  'xppython3.aircraft_plugin',

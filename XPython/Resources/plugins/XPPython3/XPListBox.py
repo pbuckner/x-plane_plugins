@@ -60,7 +60,7 @@ xpMessage_ListBoxItemSelected = 1001900
 
 
 class XPListBox(object):
-    def __init__(self, left, top, right, bottom, visible, descriptor, container, autoScroll=True):
+    def __init__(self, left, top, right, bottom, visible, descriptor, container, autoScroll=True, leftPad=5):
         """
         Same parameters as createCustomWidget
         descriptor: Initial entry (can be '')
@@ -79,6 +79,7 @@ class XPListBox(object):
 
         (interface hasn't been updated to support updating / deleting a subset of lines)
         """
+        self.leftPad = leftPad
         self.widgetID = xp.createCustomWidget(left, top, right, bottom, visible, descriptor, 0, container, self.listBoxProc)
         self.autoScroll = autoScroll
 
@@ -121,7 +122,7 @@ class XPListBox(object):
         if message == xp.Msg_Create:
             listBoxDataObj = {'Items': [], 'Lefts': [], 'Rights': []}
             descriptor = xp.getWidgetDescriptor(widget)
-            self.listBoxFillWithData(listBoxDataObj, descriptor, (right - left - 20))
+            self.listBoxFillWithData(listBoxDataObj, descriptor, (right - (left + self.leftPad) - 20))
             xp.setWidgetProperty(widget, Prop.ListBoxData, listBoxDataObj)
 
             xp.setWidgetProperty(widget, Prop.ListBoxCurrentItem, currentItem)
@@ -154,12 +155,12 @@ class XPListBox(object):
                 xp.setWidgetProperty(widget, Prop.ListBoxAddItem, 0)  # unset it
                 descriptor = xp.getWidgetDescriptor(widget)
 
-                if xp.measureString(xp.Font_Basic, descriptor) > (right - left - 20):
-                    charsPer = int((right - left - 20) / fontWidth)
+                if xp.measureString(xp.Font_Basic, descriptor) > (right - (left + self.leftPad) - 20):
+                    charsPer = int((right - (left + self.leftPad) - 20) / fontWidth)
                     for x in range(0, len(descriptor), charsPer):
-                        self.listBoxAddItem(listBoxDataObj, descriptor[x:x + charsPer], (right - left - 20))
+                        self.listBoxAddItem(listBoxDataObj, descriptor[x:x + charsPer], (right - (left + self.leftPad) - 20))
                 else:
-                    self.listBoxAddItem(listBoxDataObj, descriptor, (right - left - 20))
+                    self.listBoxAddItem(listBoxDataObj, descriptor, (right - (left + self.leftPad) - 20))
 
                 scrollbarMax = len(listBoxDataObj['Items'])
                 sliderPosition = scrollbarMax
@@ -181,7 +182,7 @@ class XPListBox(object):
                 xp.setWidgetProperty(widget, Prop.ListBoxAddItemsWithClear, 0)  # unset it
                 descriptor = xp.getWidgetDescriptor(widget)
                 self.listBoxClear(listBoxDataObj)
-                self.listBoxFillWithData(listBoxDataObj, descriptor, (right - left - 20))
+                self.listBoxFillWithData(listBoxDataObj, descriptor, (right - (left + self.leftPad) - 20))
                 scrollbarMax = len(listBoxDataObj['Items'])
                 sliderPosition = scrollbarMax
                 xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, sliderPosition)
@@ -199,7 +200,7 @@ class XPListBox(object):
             if xp.getWidgetProperty(widget, Prop.ListBoxInsertItem, None):
                 xp.setWidgetProperty(widget, Prop.ListBoxInsertItem, 0)
                 descriptor = xp.getWidgetDescriptor(widget)
-                self.listBoxInsertItem(listBoxDataObj, descriptor, (right - left - 20), currentItem)
+                self.listBoxInsertItem(listBoxDataObj, descriptor, (right - (left + self.leftPad) - 20), currentItem)
             if xp.getWidgetProperty(widget, Prop.ListBoxDeleteItem, None):
                 xp.setWidgetProperty(widget, Prop.ListBoxDeleteItem, 0)
                 if listBoxDataObj['Items'] and len(listBoxDataObj['Items']) > currentItem:
@@ -254,11 +255,11 @@ class XPListBox(object):
 
                     listBoxWidth = (right - 20) - left
                     fontWidth, fontHeight, _other = xp.getFontDimensions(xp.Font_Basic)
-                    maxChars = int(listBoxWidth / fontWidth)
+                    maxChars = int((listBoxWidth - self.leftPad) / fontWidth)
                     buffer = listBoxDataObj['Items'][listBoxIndex][0:maxChars]
                     listBoxIndex += 1
                     xp.drawString(text,
-                                  left, itemBottom + 2,
+                                  left + self.leftPad, itemBottom + 2,
                                   buffer, None, xp.Font_Basic)
                 itemNumber += 1
             return 1

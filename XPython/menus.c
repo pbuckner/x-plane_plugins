@@ -201,9 +201,9 @@ void clearInstanceMenuItems(PyObject *pluginSelf) {
      menuPluginIdx items and shift existing indices "up" (to a small index number)
      if the existing index is greater than a index in the deletion list (e.g., '[3, 5, 6]')
    */
-  pythonDebug("  Clearing top-level menu items for %s", objDebug(pluginSelf));
+  pythonDebug("%*s Clearing top-level menu items for %s", 6, " ", objDebug(pluginSelf));
   if (!PyDict_Contains(menuPluginIdxDict, pluginSelf)) {
-    pythonDebug("    No menu items for %s", objDebug(pluginSelf));
+    pythonDebug("%*s No menu items for %s", 8, " ", objDebug(pluginSelf));
     return;
   }
 
@@ -234,7 +234,7 @@ void clearInstanceMenuItems(PyObject *pluginSelf) {
                Py_file_input, localsDict, localsDict);
   nextXPLMMenuIdx = PyLong_AsLong(PyDict_GetItemString(localsDict, "nextXPLMMenuIdx"));
   PyObject *list = PyDict_GetItemString(localsDict, "l");
-  pythonDebug("   list of menu ids for this plugin is: %s", objDebug(list));
+  pythonDebug("%*s List of menu ids for this plugin is: %s", 8, " ", objDebug(list));
   PyObject *iterator = PyObject_GetIter(list);
   PyObject *item;
   while ((item = PyIter_Next(iterator))) {
@@ -245,7 +245,7 @@ void clearInstanceMenuItems(PyObject *pluginSelf) {
   Py_DECREF(iterator);
   Py_DECREF(localsDict);
 
-  pythonDebug("    Clearing menu");
+  pythonDebug("%*s Clearing menu", 8, " ");
   
   PyObject *md_keys = PyDict_Keys(menuDict); /* new */
   PyObject *md_key_iterator = PyObject_GetIter(md_keys); /*new*/
@@ -253,14 +253,14 @@ void clearInstanceMenuItems(PyObject *pluginSelf) {
   while ((md_key = PyIter_Next(md_key_iterator))) {/*new*/
     PyObject *md_value = PyDict_GetItem(menuDict, md_key); /*borrowed*/
     if (PyTuple_GetItem(md_value, MENU_PLUGINSELF) == pluginSelf) {/*borrowed*/
-      pythonDebug("   found menu[] for plugin, %s", objDebug(PyTuple_GetItem(md_value, MENU_NAME)));
+      pythonDebug("%*s, Found menu[] for plugin, %s", 10, " ", objDebug(PyTuple_GetItem(md_value, MENU_NAME)));
       PyObject *mrd_keys = PyDict_Keys(menuRefDict); /*new*/
       PyObject *mrd_key_iterator = PyObject_GetIter(mrd_keys);/*new*/
       PyObject *mrd_key;
       while ((mrd_key = PyIter_Next(mrd_key_iterator))) {/*new*/
         PyObject *mrd_value = PyDict_GetItem(menuRefDict, mrd_key);/*borrowed*/
         if (PyLong_AsLong(mrd_value) == PyLong_AsLong(md_key)) {
-          pythonDebug("      clearing menu items for %ld", PyLong_AsLong(mrd_value));
+          pythonDebug("%*s Clearing menu items for %ld", 10, " ", PyLong_AsLong(mrd_value));
           XPLMClearAllMenuItems(refToPtr(mrd_key, menuIDRef));
           XPLMDestroyMenu(refToPtr(mrd_key, menuIDRef));
           PyDict_DelItem(menuRefDict, mrd_key);
@@ -281,7 +281,7 @@ void clearInstanceMenuItems(PyObject *pluginSelf) {
     PyDict_DelItem(menuPluginIdxDict, pluginSelf);
   }
 
-  pythonDebug("    Cleared top-level menu items for %s", objDebug(pluginSelf));
+  pythonDebug("%*s Cleared top-level menu items for %s", 8, " ", objDebug(pluginSelf));
 }
 
 My_DOCSTR(_appendMenuItem__doc__, "appendMenuItem", "menuID=None, name=\"Item\", refCon=None",

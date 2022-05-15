@@ -68,10 +68,13 @@ static PyObject *loadPIClass(const char *fname)
  * Returns pluginInstance on success (or NULL)
  */
 {
+  int already_loaded = 0;
   PyObject *err;
   pythonDebug(" . Loading class in '%s'", fname);
   PyObject *pName = PyUnicode_DecodeFSDefault(fname);
   if (pName) {
+    PyObject *sys_modules = PySys_GetObject("modules"); /* borrowed */
+    already_loaded = (PyDict_Contains(sys_modules, pName) == 1);
     PyObject *pModule1 = PyImport_Import(pName); /* returns new reference */
     err = PyErr_Occurred();
     if (err){
@@ -79,16 +82,19 @@ static PyObject *loadPIClass(const char *fname)
       pythonDebug("Error occured during import of %s", fname);
       pythonDebug("%s\n^^^^", objToStr(err));
     }
-
-    pythonDebug(" . Module loaded '%s'", objDebug(pModule1));
     if (pModule1) {
-      PyObject *pModule = PyImport_ReloadModule(pModule1);
-      pythonDebug(" . Module reloaded '%s'", objDebug(pModule));
-      Py_DECREF(pModule1);
+      PyObject *pModule;
+      if (already_loaded) {
+        pModule = PyImport_ReloadModule(pModule1);
+        pythonDebug(" . Module reloaded '%s'", objDebug(pModule));
+        Py_DECREF(pModule1);
+      } else {
+        pythonDebug(" . Module loaded '%s'", objDebug(pModule1));
+        pModule = pModule1;
+      }
+        
       PyObject *pClass = PyObject_GetAttrString(pModule, "PythonInterface");
-      pythonDebug(" . Got pClass '%s'", objDebug(pClass));
       if (pClass && PyCallable_Check(pClass)) {
-        pythonDebug(" . Got callable class");
         PyObject *pluginInstance = PyObject_CallObject(pClass, NULL);
         if (PyErr_Occurred()){
           pythonLogException();
@@ -100,6 +106,7 @@ static PyObject *loadPIClass(const char *fname)
           return xpy_startInstance(pName, pModule, pluginInstance) ? pluginInstance : NULL;
         }
       } else {
+        pythonDebug(" . Failed to get callable PythonInterface class");
         Py_DECREF(pName);
         Py_DECREF(pModule);
         fprintf(pythonLogFile, "[XPPython3] Problem getting PythonInterface class in %s.\n", fname);

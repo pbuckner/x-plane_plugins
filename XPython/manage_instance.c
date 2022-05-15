@@ -165,7 +165,7 @@ PyObject *getPluginInfo(PyObject *signature){
 }
 
 int xpy_enableInstance(PyObject *moduleName, PyObject *pluginInstance) {
-  pythonDebug("Enabling instance: %s", objDebug(moduleName));
+  pythonDebug("  Enabling instance: %s", objDebug(moduleName));
   PyObject *pRes = PyObject_CallMethod(pluginInstance, "XPluginEnable", NULL);
 
   if(PyErr_Occurred()) {
@@ -177,7 +177,7 @@ int xpy_enableInstance(PyObject *moduleName, PyObject *pluginInstance) {
   if(!(pRes && PyLong_Check(pRes))){
     fprintf(pythonLogFile, "[XPPython3] %s XPluginEnable returned '%s' rather than an integer.\n", objToStr(moduleName), objToStr(pRes));
   } else {
-    pythonDebug("%s XPluginEnable returned %ld", objDebug(moduleName), PyLong_AsLong(pRes));
+    pythonDebug("    %s XPluginEnable returned %ld", objDebug(moduleName), PyLong_AsLong(pRes));
   }
 
   int ret = PyLong_AsLong(pRes) > 0 ? 1 : 0;
@@ -204,12 +204,12 @@ void xpy_disableInstance(PyObject *moduleName, PyObject *pluginInstance) {
 }
 
 void xpy_stopInstance(PyObject *moduleName, PyObject *pluginInstance) {
-  pythonDebug("  Stopping instance: %s", objDebug(moduleName));
+  pythonDebug("%*s Stopping instance: %s", 2, " ", objDebug(moduleName));
 
   int has_attr = PyObject_HasAttrString(pluginInstance, "XPluginStop");
   if (!has_attr) {
     /* ignore error, if XPluginStop is not defined in the PythonInterface class */
-    pythonDebug(" (no XPluginStop for this module)");
+    pythonDebug("%*s (no XPluginStop for this module)", 4, " ");
   } else {
     PyObject *pRes = PyObject_CallMethod(pluginInstance, "XPluginStop", NULL);
     PyObject *err = PyErr_Occurred();
@@ -227,7 +227,7 @@ void xpy_stopInstance(PyObject *moduleName, PyObject *pluginInstance) {
 }
 
 void xpy_cleanUpInstance(PyObject *moduleName, PyObject *pluginInstance) {
-  pythonDebug("  Cleaning instance: %s", objDebug(moduleName));
+  pythonDebug("%*s Cleaning instance: %s", 4, " ", objDebug(moduleName));
   PyObject *pluginInfo = PyDict_GetItem(pluginDict, pluginInstance); /* borrowed */
   PyObject *err = PyErr_Occurred();
   if (err) {
@@ -266,7 +266,7 @@ void xpy_cleanUpInstance(PyObject *moduleName, PyObject *pluginInstance) {
     /* Py_DECREF(pluginInfo);*/
   }
   Py_DECREF(pluginInstance);
-  pythonDebug("  Cleaned instance: %s", objDebug(moduleName));
+  pythonDebug("%*s Cleaned instance: %s", 6, " ", objDebug(moduleName));
   err = PyErr_Occurred();
   if (err) {
     pythonLogException();

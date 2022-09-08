@@ -185,7 +185,6 @@ when it is created (:py:func:`registerMapCreationHook`).
      however, that the relative ordering between the drawing callbacks of
      different plugins is not guaranteed.
 
-     >>> from OpenGL import GL
      >>> SAMPLE_IMG = "Resources/bitmaps/interface11/star.png"
      >>> def iconLayer(layerID, bounds, zoom, mapUnits, mapStyle, projection, refCon):
      ...    (left, top, right, bottom) = bounds
@@ -211,7 +210,6 @@ when it is created (:py:func:`registerMapCreationHook`).
      however, that the relative ordering between the drawing callbacks of
      different plugins is not guaranteed.
     
-     >>> from OpenGL import GL
      >>> def labelLayer(layerID, bounds, zoom, mapUnits, mapStyle, projection, refCon):
      ...    (left, top, right, bottom) = bounds
      ...    xp.drawMapLabel(layerID, "Map Middle", (left + right) / 2, (top + bottom) / 2 , xp.MapOrientation_Map, 45)

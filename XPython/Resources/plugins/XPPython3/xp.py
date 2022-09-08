@@ -8,6 +8,8 @@ ControlCameraForever = XPLMCamera.ControlCameraForever
 import XPLMDataAccess
 findDataRef = XPLMDataAccess.findDataRef
 getDataRefTypes = XPLMDataAccess.getDataRefTypes
+canWriteDataRef = XPLMDataAccess.canWriteDataRef
+isDataRefGood = XPLMDataAccess.isDataRefGood
 getDatai = XPLMDataAccess.getDatai
 setDatai = XPLMDataAccess.setDatai
 getDataf = XPLMDataAccess.getDataf

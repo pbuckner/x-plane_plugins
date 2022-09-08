@@ -341,6 +341,9 @@ Set Array
  >>> dataRef = xp.findDataRef('sim/flightmodel/engine/ENGN_thro')
  >>> xp.getDatavf(dataRef)
  8
+
+(Note for XP11 there are 8 elements, as shown here. XP12 has 16 values.)
+ 
  >>> values = []
  >>> xp.getDatavf(dataRef, values)
  8
@@ -437,7 +440,7 @@ useful.
 
   *offset* works in a similar manner
 
-  >>> xp.getDatas(dataRef, count=3 offset=7)
+  >>> xp.getDatas(dataRef, count=3, offset=7)
   '172'
 
 .. py:function:: setDatas(dataRef, value, offset=0, count=-1)

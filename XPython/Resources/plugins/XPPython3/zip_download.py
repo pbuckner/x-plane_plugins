@@ -31,37 +31,56 @@ class ZipDownload:
     def __init__(self):
         self.update_thread = None
         self.counter = 0
+        self.progressWindow = None
+        self.caption = ''
+        self.progress = 0
 
     def get_zipfile(self, download_url, cksum=None):
         num_captions = max(2, len(self.initial_progress_msg.split('\n')), len(self.final_progress_msg.split('\n')))
         self.progressWindow = XPProgressWindow(self.initial_progress_msg, num_captions)
+        self.flightLoopID = xp.createFlightLoop(self.progressFLCallback)
+        xp.scheduleFlightLoop(self.flightLoopID, -1)
         log("ZipDownload.get_zipfile called with: {}".format(download_url))
         if self.update_thread and self.update_thread.is_alive():
             self.update_thread.join()
+            
 
         self.update_thread = threading.Thread(target=lambda: self._download(download_url, cksum))
-        self.progressWindow.setCaption("Starting Download...")
-        self.progressWindow.setProgress(0)
+        self.setCaption("Starting Download...")
+        self.setProgress(0)
         self.progressWindow.show()
         self.update_thread.start()
 
+    def progressFLCallback(self, *args, **kwargs):
+        self.progressWindow.setCaption(self.caption)
+        self.progressWindow.setProgress(self.progress)
+        if xp.isWidgetVisible(self.progressWindow):
+            return -1
+        return 0
+        
+    def setCaption(self, caption):
+        self.caption = caption
+        
+    def setProgress(self, progress=0):
+        self.progress = progress
+    
     def _download(self, download_url, cksum=None):
         log('_download started')
 
         def hook(chunk, maxChunk, total):
             if total > 0:
                 p = (chunk * maxChunk) / total
-                self.progressWindow.setProgress(p)
-                self.progressWindow.setCaption("Downloading [{:2.0%}]".format(p))
+                self.setProgress(p)
+                self.setCaption("Downloading [{:2.0%}]".format(p))
             else:
-                self.progressWindow.setCaption("Downloading [{}]...".format(self.counter))
+                self.setCaption("Downloading [{}]...".format(self.counter))
             self.counter += 1
 
         if self.install_path is None:
             log("Error: install_path not set")
             return
 
-        self.progressWindow.setCaption("Downloading")
+        self.setCaption("Downloading")
         success = None
 
         if not os.path.exists(self.download_path):
@@ -81,7 +100,7 @@ class ZipDownload:
                            "    See https://xppython3.readthedocs.io/en/latest/usage/common_errors.html\n")
                     xp.sys_log(msg)
                     xp.log(msg)
-                    self.progressWindow.setCaption("Python Installation incomplete, See XPPython3Log.txt for details")
+                    self.setCaption("Python Installation incomplete, See XPPython3Log.txt for details")
                     return
             except Exception:
                 pass
@@ -90,27 +109,27 @@ class ZipDownload:
         except Exception as e:
             log('Error while retrieving: {} ({}): {}'.format(download_url, zipfile, e))
             return
-        self.progressWindow.setCaption("Download complete.")
+        self.setCaption("Download complete.")
         log("Downloaded file: {}".format(zipfile))
         try:
             if cksum is not None and not self._verify(zipfile, cksum):
-                self.progressWindow.setCaption("Not upgraded: Field does not match checksum: incomplete download?")
+                self.setCaption("Not upgraded: Field does not match checksum: incomplete download?")
                 xp.sys_log("Not upgraded: File does not match checksum: incomplete download?")
                 return
         except Exception as e:
-            self.progressWindow.setCaption("Failed to verify download checksum.")
+            self.setCaption("Failed to verify download checksum.")
             xp.sys_log("Failed to verify download file checksum: {}, json has: {}. {}, ".format(download_url, cksum, e))
 
         with ZipFile(zipfile, 'r') as zipfp:
-            self.progressWindow.setCaption("Testing the downloaded zip file...")
+            self.setCaption("Testing the downloaded zip file...")
             if not zipfp.testzip():
-                self.progressWindow.setCaption("Testing complete. Preparing to extract.")
+                self.setCaption("Testing complete. Preparing to extract.")
                 success = True
                 files = zipfp.infolist()
                 numfiles = len(files)
                 for idx, i in enumerate(files):
-                    self.progressWindow.setProgress(idx / numfiles)
-                    self.progressWindow.setCaption("Extracting [{}/{}] {}".format(idx + 1, numfiles, os.path.basename(i.filename)))
+                    self.setProgress(idx / numfiles)
+                    self.setCaption("Extracting [{}/{}] {}".format(idx + 1, numfiles, os.path.basename(i.filename)))
                     try:
                         if self.remove_top_dir:
                             # change ZipInfo value of filename
@@ -139,34 +158,34 @@ class ZipDownload:
                         zipfp.extract(i, path=self.install_path)
                     except PermissionError as e:
                         success = False
-                        self.progressWindow.setCaption("Extraction failed for {}.".format(i.filename))
+                        self.setCaption("Extraction failed for {}.".format(i.filename))
                         xp.sys_log(">>>> Failed to extract {}, upgrade failed: {}".format(i.filename, e))
                         break
-                self.progressWindow.setProgress(1)
+                self.setProgress(1)
             else:
-                self.progressWindow.setCaption("Test failed.")
+                self.setCaption("Test failed.")
                 success = False
                 xp.sys_log("failed testzip()")
         if success:
             os.remove(zipfile)
-            self.progressWindow.setProgress(1)
-            self.progressWindow.setCaption(self.final_progress_msg)
+            self.setProgress(1)
+            self.setCaption(self.final_progress_msg)
             xp.sys_log("Download successful")
 
     def _verify(self, filename, file_cksum=None):
         cksum = None
         hash_md5 = hashlib.md5()
-        self.progressWindow.setCaption("Verifying...")
-        self.progressWindow.setProgress()
+        self.setCaption("Verifying...")
+        self.setProgress()
         filesize = os.path.getsize(filename)
         fileread = 0
         with open(filename, 'rb') as f:
             for chunk in iter(lambda: f.read(4086), b''):
                 fileread += 4086
                 p = fileread / filesize
-                self.progressWindow.setProgress(p)
-                self.progressWindow.setCaption("Verifying [{:2.0%}]".format(p))
+                self.setProgress(p)
+                self.setCaption("Verifying [{:2.0%}]".format(p))
                 hash_md5.update(chunk)
             cksum = hash_md5.hexdigest()
-        self.progressWindow.setCaption("Verification complete.")
+        self.setCaption("Verification complete.")
         return file_cksum == cksum

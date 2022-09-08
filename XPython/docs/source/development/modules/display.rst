@@ -858,7 +858,7 @@ within bounds in :doc:`/development/window_position`.
  (In the above example, I have two of my three monitors running fullscreen.)
 
  This function is informed of the global bounds (in boxels) of a particular monitor
- within the X-Plane global desktop space. Note that X-Plane must be running in full
+ within the X-Plane global desktop space. **Note** that X-Plane must be running in full
  screen on a monitor in order for that monitor to be passed to you in this callback.
 
 .. py:function:: getAllMonitorBoundsOS(bounds, refCon)
@@ -929,6 +929,9 @@ Window Functions
  >>> xp.getWindowGeometry(windowID)
  (100, 200, 200, 100)
 
+ Note that a window has geometry even when not visible & :func:`createWindowEx` creates hidden
+ windows by default. Make it visible using ``xp.setWindowIsVisible(windowID)``.
+ 
  Also supports older calling style where you pass in lists as parameters, the results
  are copied rather than returned. (Don't use this -- it's here really just
  to help those used to the way C-language SDK worked.)
@@ -1007,7 +1010,7 @@ Window Functions
 
  >>> windowID = xp.createWindowEx()
  >>> if xp.windowIsInVR(windowID):
- ...     xp.getWindowGeometry(windowID)
+ ...     xp.getWindowGeometryVR(windowID)
  ...
  (200, 100)
 
@@ -1165,7 +1168,7 @@ Window Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMSetWindowResizingLimits>`__ :index:`XPLMSetWindowResizingLimits`
 
- >>> windowID = xp.createWindowEx(visible=1, width=100)
+ >>> windowID = xp.createWindowEx(visible=1, left=100, right=200)
  >>> xp.setWindowResizingLimits(windowID, minWidth=100)
 
 .. py:function:: setWindowPositioningMode(windowID, mode, index=-1)
@@ -1186,7 +1189,7 @@ Window Functions
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMSetWindowPositioningMode>`__ :index:`XPLMSetWindowPositioningMode`
 
  >>> windowID = xp.createWindowEx(visible=1)
- >>> xp.setWindowPositioningMode(windowID, xp.WindowPopout)
+ >>> xp.setWindowPositioningMode(windowID, xp.WindowPopOut)
  
  
  :index:`XPLMWindowPositioningMode`
@@ -1285,9 +1288,9 @@ Window Functions
  pass keyboard strokes directly to X-Plane.
 
  >>> windowID = xp.createWindowEx(visible=1)
- >>> xp.hasKeyboardFocus()
+ >>> xp.hasKeyboardFocus(windowID)
  0
- >>> xp.takeKeyboardFocus(windowID) ; xp.hasKeyboardFocus()
+ >>> xp.takeKeyboardFocus(windowID) ; xp.hasKeyboardFocus(windowID)
  1
 
  (Because the debugger will have keyboard focus, for obvious reasons, execute
@@ -1405,7 +1408,9 @@ and if it consumes the key, the hot key will not be called.
  *vKey* (:ref:`Virtual Key Codes`) is the hot key to be pressed to activate (this may be changed later by your
  plugin, or some other plugin, using :py:func:`setHotKeyCombination`).
 
- *flags* are bitwise OR'd values for Shift / Ctrl to be pressed witht the hot key. (:ref:`XPLMKeyFlags`)
+ *flags* are bitwise OR'd values for Shift / Ctrl to be pressed with the hot key. **Note** you need to include
+ ``xp.DownFlag`` or ``xp.UpFlag``.
+ (:ref:`XPLMKeyFlags`)
 
  Include a *description* for the hot key, so others (using :py:func:`getHotKeyInfo`) can understand
  the intent of your hot key.
@@ -1422,7 +1427,7 @@ and if it consumes the key, the hot key will not be called.
  >>> def MyHotKey(refCon):
  ...     xp.speakString("You pressed the Hot Key")
  ...
- >>> hotKeyID = xp.registerHotKey(xp.VK_Z, xp.ShiftFlag, "Speak Hotkey Example", MyHotKey)
+ >>> hotKeyID = xp.registerHotKey(xp.VK_Z, xp.DownFlag, "Speak Hotkey Example", MyHotKey)
  >>>
  >>> xp.unregisterHotKey(hotKeyID)
 

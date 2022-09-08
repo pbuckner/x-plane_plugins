@@ -355,5 +355,5 @@ metrics.
 
  Proportional UI font.
 
- `Official SDK <https://developer.x-plane.com/sdk/XPLMGraphics/#xplm_Font_Basic>`__ :index:`xplm_Font_Basic`         
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMGraphics/#xplm_Font_Proportional>`__ :index:`xplm_Font_Proportional`         
 

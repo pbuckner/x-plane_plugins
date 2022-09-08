@@ -18,6 +18,12 @@ def getDataRefTypes(dataRef: int) -> int:
     return int()
 
 
+def canWriteDataRef(dataRef: int) -> bool:
+    return bool()
+
+def isDataRefGood(dataRef: int) -> bool:
+    return bool()
+
 def getDatai(dataRef: int) -> int:
     return int()
 

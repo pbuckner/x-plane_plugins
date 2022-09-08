@@ -3,7 +3,7 @@
 PLUGIN_PATH=Resources/plugins/XPPython3
 XP_SDK=../SDK
 VERSIONS= 36 37 38 39 310
-XPPYTHONVERSION=3.1.5b
+XPPYTHONVERSION=3.1.5c
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
 #########
 # COMMON opts
@@ -61,13 +61,13 @@ ifeq ($(TARGET), Linux)
 endif
 
 ifeq ($(TARGET), Darwin)
-  CFLAGS += ${XPLM_CPPFLAGS} -DIBM=0 -DAPL=1 -DLIN=0 -arch x86_64 -mmacosx-version-min=10.14
+  CFLAGS += ${XPLM_CPPFLAGS} -DIBM=0 -DAPL=1 -DLIN=0
   CFLAGS36=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.6/bin/python3-config --cflags) -DPYTHONVERSION=\"3.6\"
   CFLAGS37=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.7/bin/python3-config --cflags) -DPYTHONVERSION=\"3.7\"
   CFLAGS38=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.8/bin/python3-config --cflags) -DPYTHONVERSION=\"3.8\"
   CFLAGS39=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.9/bin/python3-config --cflags) -DPYTHONVERSION=\"3.9\"
   CFLAGS310=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.10/bin/python3-config --cflags) -DPYTHONVERSION=\"3.10\"
-  LDFLAGS += -shared -fPIC -fpic -ldl -g -fvisibility=hidden -undefined dynamic_lookup -mmacosx-version-min=10.14
+  LDFLAGS += -shared -fPIC -fpic -ldl -g -fvisibility=hidden -undefined dynamic_lookup
   LDFLAGS36 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.6/bin/python3-config --ldflags)
   LDFLAGS37 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.7/bin/python3-config --ldflags)
   LDFLAGS38 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.8/bin/python3-config --ldflags) -lpython3.8
@@ -100,34 +100,94 @@ PLUGIN_OBJ = pluginXXX.o defsXXX.o displayXXX.o utilsXXX.o graphicsXXX.o data_ac
 	trackMetricsXXX.o manage_instanceXXX.o manage_instancesXXX.o logwriterXXX.o load_modulesXXX.o ini_fileXXX.o
 
 %36.o	: %.c
+ifeq ($(TARGET),Darwin)
+	$(CC) -target arm64-apple-macos11 -c $(CFLAGS36) $< -o $@.arm
+	$(CC) -target x86_64-apple-macos10.12 -c $(CFLAGS36) $< -o $@.x86
+	touch $@
+else
 	$(CC) -c $(CFLAGS36) $< -o $@
+endif
 
 %37.o	: %.c
+ifeq ($(TARGET),Darwin)
+	$(CC) -target arm64-apple-macos11 -c $(CFLAGS37) $< -o $@.arm
+	$(CC) -target x86_64-apple-macos10.12 -c $(CFLAGS37) $< -o $@.x86
+	touch $@
+else
 	$(CC) -c $(CFLAGS37) $< -o $@
+endif
 
 %38.o	: %.c
+ifeq ($(TARGET),Darwin)
+	$(CC) -target arm64-apple-macos11 -c $(CFLAGS38) $< -o $@.arm
+	$(CC) -target x86_64-apple-macos10.12 -c $(CFLAGS38) $< -o $@.x86
+	touch $@
+else
 	$(CC) -c $(CFLAGS38) $< -o $@
+endif
 
 %39.o	: %.c
+ifeq ($(TARGET),Darwin)
+	$(CC) -target arm64-apple-macos11 -c $(CFLAGS39) $< -o $@.arm
+	$(CC) -target x86_64-apple-macos10.12 -c $(CFLAGS39) $< -o $@.x86
+	touch $@
+else
 	$(CC) -c $(CFLAGS39) $< -o $@
+endif
 
 %310.o	: %.c
+ifeq ($(TARGET),Darwin)
+	$(CC) -target arm64-apple-macos11 -c $(CFLAGS310) $< -o $@.arm
+	$(CC) -target x86_64-apple-macos10.12 -c $(CFLAGS310) $< -o $@.x86
+	touch $@
+else
 	$(CC) -c $(CFLAGS310) $< -o $@
+endif
 
 XPPython36.xpl: $(subst XXX,36,$(PLUGIN_OBJ))
-	$(LD) $^ $(LDFLAGS36) -o $@ 
+ifeq ($(TARGET), Darwin)
+	$(LD) -target arm64-apple-macos11 $(^:.o=.o.arm) $(LDFLAGS36) -o $@.arm
+	$(LD) -target x86_64-apple-macos10.12 $(^:.o=.o.x86) $(LDFLAGS36) -o $@.x86
+	lipo -create -output $@ $@.arm $@.x86
+else
+	$(LD) $^ $(LDFLAGS36) -o $@
+endif
 
 XPPython37.xpl: $(subst XXX,37,$(PLUGIN_OBJ))
-	$(LD) $^ $(LDFLAGS37) -o $@ 
+ifeq ($(TARGET), Darwin)
+	$(LD) -target arm64-apple-macos11 $(^:.o=.o.arm) $(LDFLAGS37) -o $@.arm
+	$(LD) -target x86_64-apple-macos10.12 $(^:.o=.o.x86) $(LDFLAGS37) -o $@.x86
+	lipo -create -output $@ $@.arm $@.x86
+else
+	$(LD) $^ $(LDFLAGS37) -o $@
+endif
 
 XPPython38.xpl: $(subst XXX,38,$(PLUGIN_OBJ))
-	$(LD) $^ $(LDFLAGS38) -o $@ 
+ifeq ($(TARGET), Darwin)
+	$(LD) -target arm64-apple-macos11 $(^:.o=.o.arm) $(LDFLAGS38) -o $@.arm
+	$(LD) -target x86_64-apple-macos10.12 $(^:.o=.o.x86) $(LDFLAGS38) -o $@.x86
+	lipo -create -output $@ $@.arm $@.x86
+else
+	$(LD) $^ $(LDFLAGS38) -o $@
+endif
 
 XPPython39.xpl: $(subst XXX,39,$(PLUGIN_OBJ))
-	$(LD) $^ $(LDFLAGS39) -o $@ 
+ifeq ($(TARGET), Darwin)
+	$(LD) -target arm64-apple-macos11 $(^:.o=.o.arm) $(LDFLAGS39) -o $@.arm
+	$(LD) -target x86_64-apple-macos10.12 $(^:.o=.o.x86) $(LDFLAGS39) -o $@.x86
+	lipo -create -output $@ $@.arm $@.x86
+else
+	$(LD) $^ $(LDFLAGS39) -o $@
+endif
 
 XPPython310.xpl: $(subst XXX,310,$(PLUGIN_OBJ))
-	$(LD) $^ $(LDFLAGS310) -o $@ 
+ifeq ($(TARGET), Darwin)
+	$(LD) -target arm64-apple-macos11 $(^:.o=.o.arm) $(LDFLAGS310) -o $@.arm
+	$(LD) -target x86_64-apple-macos10.12 $(^:.o=.o.x86) $(LDFLAGS310) -o $@.x86
+	lipo -create -output $@ $@.arm $@.x86
+else
+	$(LD) $^ $(LDFLAGS310) -o $@
+endif
 
 
 StandardPythonUtils = Resources/plugins/XPPython3/xp.py Resources/plugins/XPPython3/xp_imgui/ Resources/plugins/XPPython3/I_PI_Updater.py Resources/plugins/XPPython3/scriptupdate.py Resources/plugins/XPPython3/scriptconfig.py Resources/plugins/XPPython3/I_PI_FirstTime.py Resources/plugins/XPPython3/zip_download.py Resources/plugins/XPPython3/imgui/core.cp310-win_amd64.pyd
@@ -212,7 +272,7 @@ SUBDIRSCLEAN=$(addsuffix .clean,$(SUBDIRS))
 clean : $(SUBDIRSCLEAN)
 
 clean_current_directory:
-	rm -f *.so *.o main_??? xppython3?.xpl default.prof* coverage.txt *.log *~ a.out xppython3?.zip
+	rm -f *.so *.o main_??? xppython3?.xpl default.prof* coverage.txt *.log *~ a.out xppython3?.zip *.arm *.x86
 
 %.clean: %
 	$(MAKE) -C $< clean_current_directory

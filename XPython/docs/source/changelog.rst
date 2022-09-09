@@ -12,14 +12,40 @@ Known Bugs
 
  None (prove me wrong!)
 
-3.1.5x (Beta)
+3.1.5 (9-Sep-2022)
 -------------------
+:Note:
+   * This release *does not support* python 3.6 which has reached end-of-life.
+     Use XPPython3 v3.1.4 if that is required.
+
+   * This release will be the *last* to support python 3.7 and 3.8. Most users have
+     moved to 3.10 & I suggest you do as well.
+
+   * This release is *compatible* with X-Plane 12. It does not support any X-Plane 12 specific
+     features. (E.g., SDK 400+). As X-Plane 12 beta releases evolve we may see issues, please
+     let me know.
+
+     | 
+     
+:New Features:
+   * **Universal Binaries for Mac** Python 3.10 and Python 3.9 versions of XPPython3 support
+     x86 (Intel) and newer ARM (M1 Silicon) architectures using the same binary file.
+     Other versions of python support only the older Intel processor.
+
+     | 
+
 :Fixes:
    * **Removed xpyce** cryptography feature. While the encrypting python works great, it is
      way to easy to obtain decrypted byte-code in a running process and decompile it back to
      reasonable source code. I've removed this feature as it might give a false sense of security.
      If encrypted python is important to you, use Cython and generate per-platform binary files.
 
+   * **Fixed download bug** in ``zip_download.py``. This was not an issue with X-Plane 11, but
+     X-Plane 12 is more senstive about access from non-main threads. The download routines (used
+     to update XPPython3) used a child thread to write to the popup dialog box to indicated
+     download status. This worked with X-Plane 11, but failed with X-Plane 12. An alternative
+     implementation is provided which works for both.
+     
      | 
      
 :Improvements:

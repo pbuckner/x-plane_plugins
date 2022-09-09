@@ -67,7 +67,7 @@ html_theme_options = {
     'root_url': '',
     'issues_url': 'https://github.com/pbuckner/x-plane_plugins/issues',
     'collapsiblesidebar': True,
-    'versionlist': [('3.1.4', 'stable'), ('3.1.5', 'beta'), ('In-Progress', 'latest')]
+    'versionlist': [('3.1.5', 'stable'), ('4.0.0', 'beta'), ('In-Progress', 'latest')]
 }
 html_js_files = [
     'js/versions.js'

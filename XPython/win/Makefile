@@ -32,7 +32,7 @@ PYDEV38=/c/Program\ Files/Python38
 PYDEV39=/c/Program\ Files/Python39
 PYDEV310=/c/Program\ Files/Python310
 
-all : XPPython36.xpl XPPython37.xpl XPPython38.xpl XPPython39.xpl XPPython310.xpl libpython3.dll.a libpython36.dll.a libpython37.dll.a libpython38.dll.a  libpython39.dll.a libpython310.dll.a
+all : XPPython37.xpl XPPython38.xpl XPPython39.xpl XPPython310.xpl libpython3.dll.a libpython37.dll.a libpython38.dll.a  libpython39.dll.a libpython310.dll.a
 	@echo $^
 
 libpython36.dll.a : $(PYDEV36)/python36.dll

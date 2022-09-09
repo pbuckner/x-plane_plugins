@@ -17,10 +17,13 @@ XPPython3 [#why]_ is a plugin for Laminar Research `X-Plane <https://www.x-plane
 of additional plugins using python3. This is an upgrade of Sandy Barbour's excellent
 `PythonInterface <http://www.xpluginsdk.org/python_interface.htm>`_ plugin, which supported only python2.
 
+Curious? See `current usage graphs <https://maps.avnwx.com/x-plane/stats>`_.
+
 Key Requirements
 ----------------
 
-* **X-Plane 11.50** *minimum* There is no attempt to make this work on older versions of X-Plane. This plugin
+* **X-Plane 11.50** *minimum*, tentative support also for X-Plane 12.
+  There is no attempt to make this work on older versions of X-Plane. This plugin
   *cannot* co-exist with the older "PythonInterface" plugin, so you if your favorite plugin still uses Python2, ask the plugin's maintainer
   to port it to Python3. (Python2 is end-of-life.)
 * **64-bit only**: X-Plane is now 64-bit only, which means it only works for 64-bit versions of python.
@@ -29,6 +32,8 @@ Key Requirements
   Python3. Note that you will have to use the correct version of this plugin to match the version of python
   installed on your system. We currently support python3.7, python3.8, python3.9, and python3.10. *However* we
   will be dropping support for python versions earlier than python3.9 with the arrival of X-Plane 12.
+
+XPPython3 will also work with X-Plane 12. Please file bug reports if you have issues.
 
 * See :doc:`changelog`.
   

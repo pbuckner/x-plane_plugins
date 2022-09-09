@@ -2,8 +2,8 @@
 
 PLUGIN_PATH=Resources/plugins/XPPython3
 XP_SDK=../SDK
-VERSIONS= 36 37 38 39 310
-XPPYTHONVERSION=3.1.5c
+VERSIONS= 37 38 39 310
+XPPYTHONVERSION=3.1.5
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
 #########
 # COMMON opts
@@ -79,11 +79,11 @@ endif
 
 #########
 # Build targets
-Windows:
+Windows windows:
 	cd win && $(MAKE)
 	cd ..
 
-Darwin:
+Darwin darwin:
 	cd mac && $(MAKE)
 	cd ..
 
@@ -242,7 +242,6 @@ install_beta : $(zipfiles)
 	# 3) On the server, execute updatemd5.py <>.zip <version>
 	#    ... the server code will manage -win32, -darwin and -linux variants
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; \
-		./updatemd5.py xppython36b.zip "$(XPPYTHONVERSION) - for Python 3.6"; \
 		./updatemd5.py xppython37b.zip "$(XPPYTHONVERSION) - for Python 3.7"; \
 		./updatemd5.py xppython38b.zip "$(XPPYTHONVERSION) - for Python 3.8"; \
 		./updatemd5.py xppython39b.zip "$(XPPYTHONVERSION) - for Python 3.9"; \
@@ -256,7 +255,6 @@ install_remote : $(zipfiles)
 	scp Resources/plugins/xppython3?{,-darwin,-linux,-win32}.zip pbuck@avnwx.com:/var/www/production/data/x-plane
 	scp Resources/plugins/xppython310{,-darwin,-linux,-win32}.zip pbuck@avnwx.com:/var/www/production/data/x-plane
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; \
-		./updatemd5.py xppython36.zip "$(XPPYTHONVERSION) - for Python 3.6"; \
 		./updatemd5.py xppython37.zip "$(XPPYTHONVERSION) - for Python 3.7"; \
 		./updatemd5.py xppython38.zip "$(XPPYTHONVERSION) - for Python 3.8"; \
 		./updatemd5.py xppython39.zip "$(XPPYTHONVERSION) - for Python 3.9"; \

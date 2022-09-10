@@ -53,19 +53,24 @@ This is all required:
    * Your ``PythonInterface`` can inherit from other classes.
    * BUT, you must have exactly one ``class PythonInterface``. That's how we get the plugin's entry point.
 
-#. You **must** have five named methods: ``XPluginStart()``, ``XPluginStop()``, ``XPluginEnable()``, ``XPluginDisable()``, and ``XPluginReceiveMessage()``.
+#. You **must** have two named methods: ``XPluginStart()`` and ``XPluginEnable()``
 
    * You can have other methods also.
    * The required methods could be imported from another class.
    * Order of methods are not important.
-   * BUT, they all must exist. X-Plane will invoke you methods directly, calling you ``PI_avDD3.PythonInterface().XPluginStart()`` when
+   * BUT, they all must exist. X-Plane will invoke your methods directly, calling your ``PI_avDD3.PythonInterface().XPluginStart()`` when
      it is ready to start your plugin, so that had better exist.
+
+#. You **should** have three more methods:  ``XPluginStop()``, ``XPluginDisable()``, ``XPluginReceiveMessage()``
+
+   * These are not require, and their absence is treated with a sane default.
+   * If included, the need to have the correct signature with the correct return value.
 
 #. Your ``XPPluginStart`` **must** return three strings, in this order:
 
    * **Name**: The name should be short, but is used just for display purposes. So whatever you like.
-   * **Signature**: The signature *must be unique* across all plugins in the system. Plugsin have the
-     ability to communicate with othe plugins and they use the unique signature to find the other plugin.
+   * **Signature**: The signature *must be unique* across all plugins in the system. Plugins have the
+     ability to communicate with other plugins and they use the unique signature to find the other plugin.
      A common technique is to name the plugin relative to a domain name you control. (It does not have
      to be a domain name, you could uses "Fred's First Plugin" as a signature.)
    * **Description**: Like the name, this is really just for descriptive purposes.
@@ -76,6 +81,18 @@ This is all required:
 
    * Returning ``1`` indicates you were successfully enabled. If you don't return ``1``, we'll assume the worse and
      never speak with you again.
+
+... So technically, minimum would be:
+
+::
+
+ class PythonInterface:
+
+     def XPluginStart(self):
+         return '', '', ''
+
+     def XPluginEnable(self):
+         return 1
 
 That's it!
 

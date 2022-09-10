@@ -26,7 +26,7 @@ author = 'Peter Buckner'
 master_doc = 'index'
 
 # The full version, including alpha/beta/rc tags
-release = 'In-Progress'
+release = '3.1.5'
 
 # -- general configuration ---------------------------------------------------
 

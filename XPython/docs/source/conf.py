@@ -37,7 +37,8 @@ extensions = [
     'sphinx_comments',
     'sphinx.ext.autodoc',
     'sphinx.ext.githubpages',
-    'sphinx.ext.todo'
+    'sphinx.ext.todo',
+    'sphinx_search.extension'
 ]
 
 # Add any paths that contain templates here, relative to this directory.

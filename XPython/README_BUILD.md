@@ -54,6 +54,39 @@ That way, starting X-Plane, will use latest built plugin
 For Windows.. I installed 64-bit version of mingw, updated makefiles to support
 cd /z
 
+## Documentation (only) updates
+The goal is to update documentation (only), such that it gets on github and
+fires off a 'readthedocs' build, in the appropriate version ('stable', 'latest', 'beta')
+1) work in the 'correct' branch
+   If this is for beta:
+     a) work in beta branch, so pushes go to origin/beta
+     b) and set conf.py for beta, e.g., '4.0.0a'
+   If this is for spot updates:
+     a) work in master, so pushes go to origin/master
+     b) set conf.py for latest 'In-Progress'
+     Once spot changes look good:
+        i) change conf.py to stable e.g., '3.1.5'
+        ii) push to origin/master
+            $ git push
+        ii) update stable tag 'v3.1.5' to include latest master
+            $ git diff v3.1.5..master
+            ....
+            $ git tag -f -a v3.1.5
+            $ git push -f --tags
+          
+2) set docs/source/conf.py
+   a) value of release... This enables the "Selector" properly -- <option value="latest" selected></option>
+      release = 'In-Progress'  # to update "latest"
+       -or-
+      release = '4.0.0a'       # to update "beta"
+       -or-
+      release = '3.1.5'        # to update stable
+   b) value of versionlist
+      'versionlist': [('3.1.5', 'stable'), ('4.0.0a', 'beta'), ('In-Progress', 'latest')]
+      The value of 'release' must be one of the (x[0]) values of versionlist.
+      
+
+
 ## Internal Development
 1. Check what branch you're on, ideally, it should be named for feature ('parameters')
    git status
@@ -79,7 +112,34 @@ cd /z
 ## To Release:
 
 1. On Beta branch
-   git switch beta
+   $ git switch beta
+
+   (To see what's 'added' for beta:
+   $ git diff master..beta (compares local beta branch with local master branch)
+   + added by beta
+   - removed by beta
+
+   * "You branch is ahead of origin/beta..." means local beta has more than github.com beta.
+     To see _which files_ are ahead:
+     $ git log origin/beta..beta (...for files)
+     $ git diff origin/beta..beta (...for changes)
+
+     $ git push
+     ...merely updates beta on github.com
+
+   A push to github.com for beta will kick off a readthedocs build... for 'beta'.
+
+   For document to go immediately into 'latest', need to move it to master
+     $ git switch master
+     $ git log master..beta  # (see files different beta -> master)
+     $ git merge beta
+     $ git log origin/master..master # (see files different github -> local master)
+     $ git push   # push files up to github master... which will trigger 'master', and 'latest' readthedocs build
+
+     You can commit a single file, if you're making, for example, single file doc changes:
+     $ git commit <file> -m 'message'
+     
+
 2. Update Makefile for final version
 3. Build all versions (python3.x for each platform)
 4. Quick test

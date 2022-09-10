@@ -193,3 +193,9 @@ dl > dt span ~ em {
     font-family: monospace, sans-serif;
 }
 
+#sidebarbutton {
+    background-color: #ccc;
+}
+#sidebarbutton:hover {
+    background-color: #999;
+}

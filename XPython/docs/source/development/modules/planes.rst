@@ -35,7 +35,7 @@ Functions
  This routine places the user at a given airport.  Specify the airport by
  its ICAO code (e.g. 'KBOS').
 
- .. warning:: Using an invalid airport code will **crash the sim**.
+ .. warning:: Using an invalid airport code will **crash the sim**, this includes using something other than ICAO. For example, 'JFK' does not work.
 
  >>> xp.placeUserAtAirport('KBOS')
 
@@ -56,7 +56,7 @@ Functions
  | *heading* is degrees True, (use :py:func:`getMagneticVariation` to convert.)
  | *speed* is meters per second (1 meter per second = 1.94384 knots).
 
- >>> xp.placeUserAtLocation(35, -122.5, 2000 / 3.28084, 110 / 1.94384)
+ >>> xp.placeUserAtLocation(35, -122.5, 2000 / 3.28084, 90, 110 / 1.94384)
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMPlaceUserAtLocation>`__ :index:`XPLMPlaceUserAtLocation`
  

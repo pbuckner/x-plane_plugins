@@ -199,3 +199,6 @@ dl > dt span ~ em {
 #sidebarbutton:hover {
     background-color: #999;
 }
+div.sphinxsidebar p.topless {
+    max-width: 185px;
+}

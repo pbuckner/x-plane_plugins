@@ -183,6 +183,8 @@ plugin.
     
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMReloadPlugins>`__ :index:`XPLMReloadPlugins`
  
+.. _Inter-plugin Messaging:
+
 Inter-plugin Messaging
 ----------------------
 
@@ -199,6 +201,16 @@ command in another.
 By convention, plugin-defined notifications should have the high bit set
 (e.g. be greater or equal to unsigned 0x8000000) while commands should have
 this bit be cleared.
+
+You receive messages as calls to your plugin's
+``PythonInterface.XPluginReceiveMessage(inFromWho, inMessage, inParam)`` method.
+
+ | **inFromWho**: integer plugin ID (or 0)
+ | **inMessage**: integer message ID, one of those below, or a plugin-defined notification
+ | **inParam**: integer or string, but its meaning (and use) depends on the particular message, described below.
+
+Common use for these messages is to detect when the user has changed aircraft (MSG_PLANE_LOADED) or location (MSG_AIRPORT_LOADED),
+or entered/existed VR (MSG_ENTERED_VR, MSG_EXITED_VR).
 
 The following messages are sent to your plugin by X-Plane.
 
@@ -392,7 +404,7 @@ should not expect a feature to be guaranteed present.
   ...    refCon.append(name)
   ...
   >>> xp.enumerateFeatures(enumerator, refCon=feature_names)
-  >>> print(f"Supported Features: {feature_names})
+  >>> print(f"Supported Features: {feature_names}")
   Supported Features: ['XPLM_WANTS_REFLECTIONS', 'XPLM_USE_NATIVE_PATHS', 'XPLM_USE_NATIVE_WIDGET_WINDOWS']
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMEnumerateFeatures>`__ :index:`XPLMEnumerateFeatures`

@@ -85,7 +85,7 @@ Functions
     * path to the model filename
 
  >>> xp.getNthAircraftModel(0)
- ('Cessna_172SP.acf', '/Volumns/SSD1/X-Plane/Aircraft/Laminar Research/Cessna 172SP/Cessna_172SP.acf')
+ ('Cessna_172SP.acf', '/Volumes/SSD1/X-Plane/Aircraft/Laminar Research/Cessna 172 SP/Cessna_172SP.acf')
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMGetNthAircraftModel>`__ :index:`XPLMGetNthAircraftModel`
 
@@ -96,17 +96,17 @@ Functions
 
  In the simplest form, attempt to acquire all the aircraft:
 
- >>> xp.acquireAircraft()
+ >>> xp.acquirePlanes()
  1
 
  If you provide a *callback*, **and do not immediately get access**, :py:func:`acquirePlanes` will
- return 0, and call you callback when able. You ``callback()`` is passed the *refCon*.
+ return 0, and call you callback when able. Your ``callback()`` is passed the *refCon*.
  If you are able to acquire immediately, you callback will not be called.
 
  >>> def MyCallback(refCon):
  ...    xp.log("Aquired airplanes")
  ...
- >>> xp.acquireAircraft(callback=MyCallback)
+ >>> xp.acquirePlanes(callback=MyCallback)
  1
 
  *aircraft* is supposed to be a list of strings, specifying the planes you

@@ -25,8 +25,8 @@ Functions
  If the acf file cannot be found the user will be notified and their aircraft
  will be re-initialized.
 
- >>> xp.setUsersAircraft("Aircraft/Laminar Research/Cessna 172SP/Cessna_172SP_G1000.acf")
- >>> xp.setUsersAircraft("/Volumns/SSD1/X-Plane/Aircraft/Laminar Research/Cessna 172SP/Cessna_172SP_G1000.acf")
+ >>> xp.setUsersAircraft("Aircraft/Laminar Research/Cessna 172 SP/Cessna_172SP_G1000.acf")
+ >>> xp.setUsersAircraft("/Volumes/SSD1/X-Plane/Aircraft/Laminar Research/Cessna 172 SP/Cessna_172SP_G1000.acf")
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMSetUsersAircraft>`__ :index:`XPLMSetUsersAircraft`
 
@@ -53,7 +53,7 @@ Functions
  ``sim/operation/prefs/startup_running`` says).
 
  | *elevation* is meters MSL (1 meter = 3.28084 feet),
- | *heading* is degrees True,
+ | *heading* is degrees True, (use :py:func:`getMagneticVariation` to convert.)
  | *speed* is meters per second (1 meter per second = 1.94384 knots).
 
  >>> xp.placeUserAtLocation(35, -122.5, 2000 / 3.28084, 110 / 1.94384)

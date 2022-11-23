@@ -183,6 +183,19 @@ PyObject *get_module() {
   PyThreadState *tstate = PyThreadState_Get();
   PyFrameObject *last_frame = NULL, *frame = NULL;
   PyObject *moduleName = Py_None;
+  
+#if PY_VERSION_HEX > 0x030b0000
+  if (NULL != tstate && NULL != PyThreadState_GetFrame(tstate)) {
+    frame = PyThreadState_GetFrame(tstate);
+    while (NULL != frame) {
+      last_frame = frame;
+      frame = PyFrame_GetBack(frame);
+    }
+  }
+  if (last_frame) {
+    moduleName = PyDict_GetItemString(PyFrame_GetGlobals(last_frame), "__name__");
+  }
+#else
   if (NULL != tstate && NULL != tstate->frame) {
     frame = tstate->frame;
     while (NULL != frame) {
@@ -193,6 +206,7 @@ PyObject *get_module() {
   if (last_frame) {
     moduleName = PyDict_GetItemString(last_frame->f_globals, "__name__");
   }
+#endif
   PyGILState_Release(gilState);
   return moduleName;
 }
@@ -215,7 +229,17 @@ PyObject *get_pythonline() {
   PyThreadState *tstate = PyThreadState_Get();
   PyObject *last_filenameObj = Py_None;
   int line = 0;
-  if (NULL != tstate && NULL != tstate->frame) {
+#if PY_VERSION_HEX > 0x030b0000
+  if (NULL != tstate && NULL != PyThreadState_GetFrame(tstate)) {
+    PyFrameObject *frame = PyThreadState_GetFrame(tstate);
+    if (frame) {
+      last_filenameObj = PyFrame_GetCode(frame)->co_filename;
+      // line = PyCode_Addr2Line(frame->f_code, frame->f_lasti);  /* This is not available on window version */
+      line = PyFrame_GetLineNumber(frame);
+    }
+  }
+#else
+    if (NULL != tstate && NULL != tstate->frame) {
     PyFrameObject *frame = tstate->frame;
     if (frame) {
       last_filenameObj = frame->f_code->co_filename;
@@ -223,7 +247,7 @@ PyObject *get_pythonline() {
       line = frame->f_lineno;
     }
   }
-
+#endif
   char *last_filename = objToStr(last_filenameObj); // allocates new string on heap
   char *token = strrchr(last_filename, '/');
   if (token == NULL) {

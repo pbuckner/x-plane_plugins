@@ -153,7 +153,7 @@ void xpy_startSceneryPlugins()
 void xpy_enableInstances() {
   /* Enables all instances (everything in moduleDict).
      Normally, aircraft plugins are intialized when aircraft is loaded, not
-     at startup, so here, IF we see an existing aircraft instance we'll disable and top _it_
+     at startup, so here, IF we see an existing aircraft instance we'll disable and stop _it_
      and attempt to start and enable for current aircraft
      NOTE: THIS SEEMS CONVOLUTED.
    */

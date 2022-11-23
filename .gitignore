@@ -1,8 +1,10 @@
+XPython/SDK400/
 XPython/mac/*.arm
 XPython/mac/*.x86
 XPython/docs/source/_static/find_xp.pyc
 XPython/docs/source/_static/test.py
 XPython/docs/source/_static/xp_dref.py
 XPython/Resources/plugins/xppython*-*.zip
+XPython/Resources/plugins/xppython*b.zip
 XPython/macros.emacs
 XPython/docs/recent_annotations.py

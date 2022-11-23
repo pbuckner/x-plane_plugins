@@ -1,5 +1,6 @@
 //Python comes first!
 #include <Python.h>
+#include <unistd.h>
 #include <sys/time.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -131,6 +132,15 @@ int initPython(void){
     fflush(pythonLogFile);
     return -1;
   }
+
+  char *msg;
+  PyObject *runtime_version = PySys_GetObject("version_info"); /* borrowed */
+  int major = PyLong_AsLong(PyTuple_GetItem(runtime_version, 0)); /* borrowed */
+  int minor = PyLong_AsLong(PyTuple_GetItem(runtime_version, 1)); /* borrowed */
+  int micro = PyLong_AsLong(PyTuple_GetItem(runtime_version, 2)); /* borrowed */
+  asprintf(&msg, "[XPPython3] Python runtime initialized %d.%d.%d\n", major, minor, micro);
+  XPLMDebugString(msg);
+  free(msg);
 
   loggerModuleObj = PyImport_ImportModule("XPythonLogger");
 
@@ -459,6 +469,13 @@ static int loadPythonLibrary(void)
      Now, prior to 3.8, the library name included 'm' to indicate it includes pymalloc, which
      which is prefered, so we look for those FIRST, and if not found, look for
      libraries without the 'm'.
+
+     The _reason_ we have to do this is a python problem which (still) exists on linux (November 2022)
+     Essential, the python shared libs (say _ssl.so) don't look within the python libpythonX.X.so shared
+     lib, so the imported shared lib will fail with something like:
+      ImportError: /usr/lib/python/lib-dynload/_sso.so: undefined symbol: PyEx_ValueError
+
+     See https://mail.python.org/pipermail/new-bugs-announce/2008-November/003322.html
   */
 #if LIN
   char *suffix = "so";
@@ -476,11 +493,19 @@ static int loadPythonLibrary(void)
     pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
   }
   if (!pythonHandle) {
+    sprintf(library, "%slibpython%sm.%s.1.0", path, PYTHONVERSION, suffix);
+    pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
+  }
+  if (!pythonHandle) {
     sprintf(library, "%slibpython%s.%s", path, PYTHONVERSION, suffix);
     pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
   }
   if (!pythonHandle) {
     sprintf(library, "%slibpython%s.%s.1", path, PYTHONVERSION, suffix);
+    pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
+  }
+  if (!pythonHandle) {
+    sprintf(library, "%slibpython%s.%s.1.0", path, PYTHONVERSION, suffix);
     pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
   }
   if (!pythonHandle) {
@@ -510,15 +535,17 @@ static FILE *getLogFile(void) {
   } else {
     fp = fopen(logFileName, "w");
   }
+  char *msg;
   if(fp == NULL){
     fp = stdout;
-    XPLMDebugString("[XPPython3] Starting... Logging to standard out\n");
+    asprintf(&msg, "[XPPython3] Starting %s (compiled: %0x)... Logging to standard out\n",
+             pythonPluginVersion, PY_VERSION_HEX);
   } else {
-    char *msg;
-    asprintf(&msg, "[XPPython3] Starting... Logging to %s\n", logFileName);
-    XPLMDebugString(msg);
-    free(msg);
+    asprintf(&msg, "[XPPython3] Starting %s (compiled: %0x)... Logging to %s\n",
+             pythonPluginVersion, PY_VERSION_HEX, logFileName);
   }
+  XPLMDebugString(msg);
+  free(msg);
   return fp;
 }
 

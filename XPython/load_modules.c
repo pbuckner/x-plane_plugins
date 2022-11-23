@@ -16,7 +16,7 @@ void xpy_loadModules(const char *path, const char *package, const char *pattern,
   DIR *dir = opendir(path);
   PyObject *pluginInstance;
   if(dir == NULL){
-    fprintf(pythonLogFile, "[XPPython3] Scanning for plugsin in '%s': directory not found.\n", path);
+    fprintf(pythonLogFile, "[XPPython3] Scanning for plugins in '%s': directory not found.\n", path);
     fflush(pythonLogFile);
     return;
   }

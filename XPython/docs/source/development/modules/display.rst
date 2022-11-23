@@ -37,6 +37,14 @@ There are two ways you can draw: directly and in a window.
 
   See :ref:`Direct Drawing`.
 
+* **Avionics drawing** (X-Plane 12+) allows you to draw directly onto
+  avionics device screens.
+
+  Similar to Direct Drawing, you register a callback with :py:func:`registerAvionicsCallbacksEx`
+  and specify which device to draw on, and whether to draw before or after X-Plane draws.
+
+  See :ref:`Avionics Drawing`.
+  
 * **Window drawing** provides slightly higher level functionality. With window
   drawing you create a window with :py:func:`createWindowEx`
   that takes up a portion of the screen. Window
@@ -241,6 +249,113 @@ the same or different phases as long as the reference constant is unique for eac
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMUnregisterDrawCallback>`__ :index:`XPLMUnregisterDrawCallback`
 
+.. _Avionics Drawing:
+
+Avionics Drawing
+----------------
+
+(to be provided)
+
+Avionics Drawing Functions
+**************************
+
+.. py:function:: registerAvionicsCallbacksEx(deviceId, before=None, after=None, refCon=None)
+ 
+ Registers function to be called `before` and/or `after` X-Plane draws on the
+ specified device.
+
+ Returns an AvionicsID which should be passed to :py:func:`unregisterAvionicsCallbacks`.
+
+ Both `before` and `after` callback functions have identical signatures. Return value for
+ `after` callback is ignored. Return value for `before` function is either `1` to indicated
+ X-Plane should continue to draw, or `0` to indicate X-Plane should not also draw on the
+ specified device.
+
+ Note that your callback is called even if the device is not "powered on".
+
+ Callback functions have three parameters:
+
+ | deviceID: which should match the deviceID provided with registration
+ | inIsBefore: boolean to indicated if this callback is being called before, or after X-Plane drawing.
+ | refCon: reference constant provide with registration.
+
+ >>> from OpenGL import GL
+ >>> def MyDraw(deviceID, isBefore, refCon):
+ ...     xp.setGraphicsState(0, 1)
+ ...     xp.drawString([1, 0, 0], 10, 10, f"Viewport size is {GL.glGetIntegerv(GL.GL_VIEWPORT)}", None, xp.Font_Basic)
+ ...     return 1
+ ...
+ >>> avionicsID = xp.registerAvionicsCallbacksEx(xp.Device_G1000_PFD_1, after=MyDraw)
+
+  .. image:: /images/avionics_draw_g1000.png
+
+.. py:function:: unregisterAvionicsCallbacks(avionicsID)
+
+ Unregisters specified avionics callbacks.
+
+ >>> xp.unregisterAvionicsCallbacks(avionicsID)
+ 
+Device IDs
+**********
+
+ Use any of these device IDs with :py:func:`registerAvionicsCallbacksEx`.
+
+ +----------------------------------------+-----------------------------------------------------------+
+ | .. py:data:: Device_GNS430_1           | GNS430, pilot side                                        |
+ |  :value: 0                             |                                                           |
+ +----------------------------------------+-----------------------------------------------------------+
+ | .. py:data:: Device_GNS430_2           | GNS430, copilot side                                      |
+ |  :value: 1                             |                                                           |
+ +----------------------------------------+-----------------------------------------------------------+
+ | .. py:data:: Device_GNS530_1           | GNS530, pilot side                                        |
+ |  :value: 2                             |                                                           |
+ +----------------------------------------+-----------------------------------------------------------+
+ | .. py:data:: Device_GNS530_2           | GNS530, copilot side                                      |
+ |  :value: 3                             |                                                           |
+ +----------------------------------------+-----------------------------------------------------------+
+ | .. py:data:: Device_CDU739_1           | Generic airliner CDU, pilot side                          |
+ |  :value: 4                             |                                                           |
+ +----------------------------------------+-----------------------------------------------------------+
+ | .. py:data:: Device_CDU739_2           | Generic airliner CDU, copilot side                        |
+ |  :value: 5                             |                                                           |
+ +----------------------------------------+-----------------------------------------------------------+
+ | .. py:data:: Device_G1000_PFD_1        | G1000 Primary Flight Display, pilot side                  |
+ |  :value: 6                             |                                                           |
+ +----------------------------------------+-----------------------------------------------------------+
+ | .. py:data:: Device_G1000_MFD          | G1000 Multifunction Display                               |
+ |  :value: 7                             |                                                           |
+ +----------------------------------------+-----------------------------------------------------------+
+ | .. py:data:: Device_G1000_PFD_2        | G1000 Primary Flight Display, copilot side                |
+ |  :value: 8                             |                                                           |
+ +----------------------------------------+-----------------------------------------------------------+
+ | .. py:data:: Device_CDU815_1           | Primus CDU, pilot side                                    |
+ |  :value: 9                             |                                                           |
+ +----------------------------------------+-----------------------------------------------------------+
+ | .. py:data:: Device_CDU815_2           | Primus CDU, copilot side                                  |
+ |  :value: 10                            |                                                           |
+ +----------------------------------------+-----------------------------------------------------------+
+ | .. py:data:: Device_Primus_PFD_1       | Primus Primary Flight Display, pilot side                 |
+ |  :value: 11                            |                                                           |
+ +----------------------------------------+-----------------------------------------------------------+
+ | .. py:data:: Device_Primus_PFD_2       | Primus Primary Flight Display, copilot side               |
+ |  :value: 12                            |                                                           |
+ +----------------------------------------+-----------------------------------------------------------+
+ | .. py:data:: Device_Primus_MFD_1       | Primus Multifunction Display, pilot side                  |
+ |  :value: 13                            |                                                           |
+ +----------------------------------------+-----------------------------------------------------------+
+ | .. py:data:: Device_Primus_MFD_2       | Primus Multifunction Display, copilot side                |
+ |  :value: 14                            |                                                           |
+ +----------------------------------------+-----------------------------------------------------------+
+ | .. py:data:: Device_Primus_MFD_3       | Primus Multifunction Display, centeral                    |
+ |  :value: 15                            |                                                           |
+ +----------------------------------------+-----------------------------------------------------------+
+ | .. py:data:: Device_Primus_RMU_1       | Primus Radio Management Unit, pilot side                  |
+ |  :value: 16                            |                                                           |
+ +----------------------------------------+-----------------------------------------------------------+
+ | .. py:data:: Device_Primus_RMU_2       | Primus Radio Management Unit, copilot side                |
+ |  :value: 17                            |                                                           |
+ +----------------------------------------+-----------------------------------------------------------+
+ 
 .. _Window Drawing:
 
 Window Drawing

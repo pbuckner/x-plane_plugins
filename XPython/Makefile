@@ -1,14 +1,14 @@
 .PHONY : clean darwin lin windows sdk
 
 PLUGIN_PATH=Resources/plugins/XPPython3
-XP_SDK=../SDK
-VERSIONS= 37 38 39 310
-XPPYTHONVERSION=3.1.5
+XP_SDK=../SDK400
+VERSIONS= 39 310 311
+XPPYTHONVERSION=4.0.0a
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
 #########
 # COMMON opts
 CFLAGS=-Wall -Wextra -g -fpic -fPIC -fvisibility=hidden -DXPPYTHON3VERSION=\"$(XPPYTHONVERSION)\"
-XPLM_CPPFLAGS = -DXPLM200 -DXPLM210 -DXPLM300 -DXPLM301 -DXPLM302 -DXPLM303 \
+XPLM_CPPFLAGS = -DXPLM200 -DXPLM210 -DXPLM300 -DXPLM301 -DXPLM302 -DXPLM303 -DXPLM400 \
                 -I$(XP_SDK)/CHeaders -I$(XP_SDK)/CHeaders/XPLM -I$(XP_SDK)/CHeaders/Widgets
 ZIP=zip
 
@@ -18,25 +18,19 @@ ZIP=zip
 ifeq ($(TARGET), Windows)
   # Do to the way we build for windows against 'python3.dll', the resulting binaries (3.6, 3.7, 3.8) are identical
   # except for the embedded 'version' value
-  PYDEV36=/c/Program\ Files/Python36
-  PYDEV37=/c/Program\ Files/Python37
-  PYDEV38=/c/Program\ Files/Python38
   PYDEV39=/c/Program\ Files/Python39
   PYDEV310=/c/Program\ Files/Python310
+  PYDEV311=/c/Program\ Files/Python311
   PY_CFLAGS = -Wno-unused-result -Wno-pointer-to-int-cast -Wno-cast-function-type -Wsign-compare -Wunreachable-code -fno-common -DNDEBUG -fwrapv -O3 -D_GNU_SOURCE
   PY_LDFLAGS = 
   CFLAGS+= ${PY_CFLAGS} ${XPLM_CPPFLAGS} -DIBM=1 -DAPL=0 -DLIN=0 -I/c/msys64/mingw64/include -I/usr/include
-  CFLAGS36=-I${PYDEV36}/include $(CFLAGS) -DPYTHONVERSION=\"3.6\"
-  CFLAGS37=-I${PYDEV37}/include $(CFLAGS) -DPYTHONVERSION=\"3.7\"
-  CFLAGS38=-I${PYDEV38}/include $(CFLAGS) -DPYTHONVERSION=\"3.8\"
   CFLAGS39=-I${PYDEV39}/include $(CFLAGS) -DPYTHONVERSION=\"3.9\"
   CFLAGS310=-I${PYDEV310}/include $(CFLAGS) -DPYTHONVERSION=\"3.10\"
+  CFLAGS311=-I${PYDEV311}/include $(CFLAGS) -DPYTHONVERSION=\"3.11\"
   LDFLAGS+= -shared -static-libgcc -static-libstdc++ -static -lpthread  ${PY_LDFLAGS} -L/c/msys64/mingw64/lib -ldl -lregex -ltre -lintl -liconv $(XP_SDK)/Libraries/Win/XPLM_64.lib $(XP_SDK)/Libraries/Win/XPWidgets_64.lib
-  LDFLAGS36=$(LDFLAGS) -L. -lpython36.dll
-  LDFLAGS37=$(LDFLAGS) -L. -lpython37.dll
-  LDFLAGS38=$(LDFLAGS) -L. -lpython38.dll
   LDFLAGS39=$(LDFLAGS) -L. -lpython39.dll
   LDFLAGS310=$(LDFLAGS) -L. -lpython310.dll
+  LDFLAGS311=$(LDFLAGS) -L. -lpython311.dll
   PLUGIN_DIR=win_x64
   LD=g++
 endif
@@ -44,35 +38,26 @@ endif
 ifeq ($(TARGET), Linux)
   # apt-get install python3.6 python3.6-dev python3.7 python3.7-dev python3.8 python3.8-dev
   CFLAGS +=  ${XPLM_CPPFLAGS} -DIBM=0 -DAPL=0 -DLIN=1
-  CFLAGS36= $(CFLAGS) $(shell python3.6-config --cflags) -DPYTHONVERSION=\"3.6\"
-  CFLAGS37= $(CFLAGS) $(shell python3.7-config --cflags) -DPYTHONVERSION=\"3.7\"
-  CFLAGS38= $(CFLAGS) $(shell python3.8-config --cflags) -DPYTHONVERSION=\"3.8\"
   CFLAGS39= $(CFLAGS) $(shell python3.9-config --cflags) -DPYTHONVERSION=\"3.9\"
   CFLAGS310= $(CFLAGS) $(shell python3.10-config --cflags) -DPYTHONVERSION=\"3.10\"
+  CFLAGS311= $(CFLAGS) $(shell python3.11-config --cflags) -DPYTHONVERSION=\"3.11\"
   LDFLAGS +=  -shared -fPIC -fpic -ldl -lbsd -g -fvisibility=hidden -Wl,--export-dynamic
-  # For python3.6, python3.7, --ldflags includes the python library, for 3.8 it does not (why?)
-  LDFLAGS36 = $(LDFLAGS) $(shell python3.6-config --ldflags)
-  LDFLAGS37 = $(LDFLAGS) $(shell python3.7-config --ldflags)
-  LDFLAGS38 = $(LDFLAGS) $(shell python3.8-config --ldflags) -lpython3.8
   LDFLAGS39 = $(LDFLAGS) $(shell python3.9-config --ldflags) -lpython3.9
   LDFLAGS310 = $(LDFLAGS) $(shell python3.10-config --ldflags) -lpython3.10
+  LDFLAGS311 = $(LDFLAGS) $(shell python3.11-config --ldflags) -lpython3.11
   PLUGIN_DIR=lin_x64
   LD=cc
 endif
 
 ifeq ($(TARGET), Darwin)
   CFLAGS += ${XPLM_CPPFLAGS} -DIBM=0 -DAPL=1 -DLIN=0
-  CFLAGS36=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.6/bin/python3-config --cflags) -DPYTHONVERSION=\"3.6\"
-  CFLAGS37=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.7/bin/python3-config --cflags) -DPYTHONVERSION=\"3.7\"
-  CFLAGS38=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.8/bin/python3-config --cflags) -DPYTHONVERSION=\"3.8\"
   CFLAGS39=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.9/bin/python3-config --cflags) -DPYTHONVERSION=\"3.9\"
   CFLAGS310=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.10/bin/python3-config --cflags) -DPYTHONVERSION=\"3.10\"
+  CFLAGS311=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.11/bin/python3-config --cflags) -DPYTHONVERSION=\"3.11\"
   LDFLAGS += -shared -fPIC -fpic -ldl -g -fvisibility=hidden -undefined dynamic_lookup
-  LDFLAGS36 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.6/bin/python3-config --ldflags)
-  LDFLAGS37 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.7/bin/python3-config --ldflags)
-  LDFLAGS38 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.8/bin/python3-config --ldflags) -lpython3.8
   LDFLAGS39 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.9/bin/python3-config --ldflags) -lpython3.9
   LDFLAGS310 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.10/bin/python3-config --ldflags) -lpython3.10
+  LDFLAGS311 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.11/bin/python3-config --ldflags) -lpython3.11
   PLUGIN_DIR=mac_x64
   LD=cc
 endif
@@ -99,33 +84,6 @@ PLUGIN_OBJ = pluginXXX.o defsXXX.o displayXXX.o utilsXXX.o graphicsXXX.o data_ac
 	standard_widgetsXXX.o uigraphicsXXX.o widgetutilsXXX.o instanceXXX.o mapXXX.o plugin_dlXXX.o sbXXX.o utilsXXX.o xppythonXXX.o \
 	trackMetricsXXX.o manage_instanceXXX.o manage_instancesXXX.o logwriterXXX.o load_modulesXXX.o ini_fileXXX.o
 
-%36.o	: %.c
-ifeq ($(TARGET),Darwin)
-	$(CC) -target arm64-apple-macos11 -c $(CFLAGS36) $< -o $@.arm
-	$(CC) -target x86_64-apple-macos10.12 -c $(CFLAGS36) $< -o $@.x86
-	touch $@
-else
-	$(CC) -c $(CFLAGS36) $< -o $@
-endif
-
-%37.o	: %.c
-ifeq ($(TARGET),Darwin)
-	$(CC) -target arm64-apple-macos11 -c $(CFLAGS37) $< -o $@.arm
-	$(CC) -target x86_64-apple-macos10.12 -c $(CFLAGS37) $< -o $@.x86
-	touch $@
-else
-	$(CC) -c $(CFLAGS37) $< -o $@
-endif
-
-%38.o	: %.c
-ifeq ($(TARGET),Darwin)
-	$(CC) -target arm64-apple-macos11 -c $(CFLAGS38) $< -o $@.arm
-	$(CC) -target x86_64-apple-macos10.12 -c $(CFLAGS38) $< -o $@.x86
-	touch $@
-else
-	$(CC) -c $(CFLAGS38) $< -o $@
-endif
-
 %39.o	: %.c
 ifeq ($(TARGET),Darwin)
 	$(CC) -target arm64-apple-macos11 -c $(CFLAGS39) $< -o $@.arm
@@ -144,31 +102,13 @@ else
 	$(CC) -c $(CFLAGS310) $< -o $@
 endif
 
-XPPython36.xpl: $(subst XXX,36,$(PLUGIN_OBJ))
-ifeq ($(TARGET), Darwin)
-	$(LD) -target arm64-apple-macos11 $(^:.o=.o.arm) $(LDFLAGS36) -o $@.arm
-	$(LD) -target x86_64-apple-macos10.12 $(^:.o=.o.x86) $(LDFLAGS36) -o $@.x86
-	lipo -create -output $@ $@.arm $@.x86
+%311.o	: %.c
+ifeq ($(TARGET),Darwin)
+	$(CC) -target arm64-apple-macos11 -c $(CFLAGS311) $< -o $@.arm
+	$(CC) -target x86_64-apple-macos10.12 -c $(CFLAGS311) $< -o $@.x86
+	touch $@
 else
-	$(LD) $^ $(LDFLAGS36) -o $@
-endif
-
-XPPython37.xpl: $(subst XXX,37,$(PLUGIN_OBJ))
-ifeq ($(TARGET), Darwin)
-	$(LD) -target arm64-apple-macos11 $(^:.o=.o.arm) $(LDFLAGS37) -o $@.arm
-	$(LD) -target x86_64-apple-macos10.12 $(^:.o=.o.x86) $(LDFLAGS37) -o $@.x86
-	lipo -create -output $@ $@.arm $@.x86
-else
-	$(LD) $^ $(LDFLAGS37) -o $@
-endif
-
-XPPython38.xpl: $(subst XXX,38,$(PLUGIN_OBJ))
-ifeq ($(TARGET), Darwin)
-	$(LD) -target arm64-apple-macos11 $(^:.o=.o.arm) $(LDFLAGS38) -o $@.arm
-	$(LD) -target x86_64-apple-macos10.12 $(^:.o=.o.x86) $(LDFLAGS38) -o $@.x86
-	lipo -create -output $@ $@.arm $@.x86
-else
-	$(LD) $^ $(LDFLAGS38) -o $@
+	$(CC) -c $(CFLAGS311) $< -o $@
 endif
 
 XPPython39.xpl: $(subst XXX,39,$(PLUGIN_OBJ))
@@ -187,6 +127,15 @@ ifeq ($(TARGET), Darwin)
 	lipo -create -output $@ $@.arm $@.x86
 else
 	$(LD) $^ $(LDFLAGS310) -o $@
+endif
+
+XPPython311.xpl: $(subst XXX,311,$(PLUGIN_OBJ))
+ifeq ($(TARGET), Darwin)
+	$(LD) -target arm64-apple-macos11 $(^:.o=.o.arm) $(LDFLAGS311) -o $@.arm
+	$(LD) -target x86_64-apple-macos10.12 $(^:.o=.o.x86) $(LDFLAGS311) -o $@.x86
+	lipo -create -output $@ $@.arm $@.x86
+else
+	$(LD) $^ $(LDFLAGS311) -o $@
 endif
 
 
@@ -238,14 +187,13 @@ install_beta : $(zipfiles)
 	for f in $^; do cp $$f `echo "$$f" | sed 's/\.zip/b.zip/g'`; done
 	# 2) upload them to server
 	scp Resources/plugins/xppython3?{,-darwin,-linux,-win32}b.zip pbuck@avnwx.com:/var/www/production/data/x-plane
-	scp Resources/plugins/xppython310{,-darwin,-linux,-win32}b.zip pbuck@avnwx.com:/var/www/production/data/x-plane
+	scp Resources/plugins/xppython31?{,-darwin,-linux,-win32}b.zip pbuck@avnwx.com:/var/www/production/data/x-plane
 	# 3) On the server, execute updatemd5.py <>.zip <version>
 	#    ... the server code will manage -win32, -darwin and -linux variants
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; \
-		./updatemd5.py xppython37b.zip "$(XPPYTHONVERSION) - for Python 3.7"; \
-		./updatemd5.py xppython38b.zip "$(XPPYTHONVERSION) - for Python 3.8"; \
 		./updatemd5.py xppython39b.zip "$(XPPYTHONVERSION) - for Python 3.9"; \
-		./updatemd5.py xppython310b.zip "$(XPPYTHONVERSION) - for Python 3.10"'
+		./updatemd5.py xppython310b.zip "$(XPPYTHONVERSION) - for Python 3.10"; \
+		./updatemd5.py xppython311b.zip "$(XPPYTHONVERSION) - for Python 3.11"'
 
 install_remote : $(zipfiles)
 	@if [ "$(BETA)" -gt "0" ]; then \
@@ -253,12 +201,11 @@ install_remote : $(zipfiles)
 		exit 1; \
 	fi
 	scp Resources/plugins/xppython3?{,-darwin,-linux,-win32}.zip pbuck@avnwx.com:/var/www/production/data/x-plane
-	scp Resources/plugins/xppython310{,-darwin,-linux,-win32}.zip pbuck@avnwx.com:/var/www/production/data/x-plane
+	scp Resources/plugins/xppython31?{,-darwin,-linux,-win32}.zip pbuck@avnwx.com:/var/www/production/data/x-plane
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; \
-		./updatemd5.py xppython37.zip "$(XPPYTHONVERSION) - for Python 3.7"; \
-		./updatemd5.py xppython38.zip "$(XPPYTHONVERSION) - for Python 3.8"; \
 		./updatemd5.py xppython39.zip "$(XPPYTHONVERSION) - for Python 3.9"; \
-		./updatemd5.py xppython310.zip "$(XPPYTHONVERSION) - for Python 3.10"'
+		./updatemd5.py xppython310.zip "$(XPPYTHONVERSION) - for Python 3.10"; \
+		./updatemd5.py xppython311.zip "$(XPPYTHONVERSION) - for Python 3.11"'
 
 install_sdk : sdk
 	$(ZIP) -R examples examples/\*.py

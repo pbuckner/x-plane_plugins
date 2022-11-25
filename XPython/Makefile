@@ -141,7 +141,7 @@ endif
 
 StandardPythonUtils = Resources/plugins/XPPython3/xp.py Resources/plugins/XPPython3/xp_imgui/ Resources/plugins/XPPython3/I_PI_Updater.py Resources/plugins/XPPython3/scriptupdate.py Resources/plugins/XPPython3/scriptconfig.py Resources/plugins/XPPython3/I_PI_FirstTime.py Resources/plugins/XPPython3/zip_download.py Resources/plugins/XPPython3/imgui/core.cp310-win_amd64.pyd
 
-Resources/plugins/xppython3%.zip: win/XPPython3%.xpl lin/XPPython3%.xpl mac/XPPython3%.xpl $(StandardPythonUtils)
+Resources/plugins/xp3%.zip: win/XPPython3%.xpl lin/XPPython3%.xpl mac/XPPython3%.xpl $(StandardPythonUtils)
 	# remove old
 	rm -f $@
 	rm -f Resources/plugins/XPPython3/*/*.xpl
@@ -153,20 +153,20 @@ Resources/plugins/xppython3%.zip: win/XPPython3%.xpl lin/XPPython3%.xpl mac/XPPy
 	cp $(filter win/%, $^) Resources/plugins/XPPython3/win_x64/XPPython3.xpl
 	cp $(filter mac/%, $^) Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
 	cp $(filter lin/%, $^) Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
-	# 1) Create full zip file (e.g., xppython3X.zip)
+	# 1) Create full zip file (e.g., xp3X.zip)
 	# 2) Update that file with imgui stuff
 	# 3) for win, mac, lin
 	#    a) duplicate zip
 	#    b) delete from zip 'other' architecture file to reduce size
 	# result is four files for each version:
-	#     xppython36.zip
-	#     xppython36-win32.zip
-	#     xppython36-linux.zip 
-	#     xppython36-darwin.zip 
+	#     xp36.zip
+	#     xp36-win32.zip
+	#     xp36-linux.zip 
+	#     xp36-darwin.zip 
 	cd Resources/plugins; \
 		$(ZIP) $(notdir $@) -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md XPPython3/xp_imgui/\*.py; \
-		v=`echo $(notdir $@) | sed  's/xppython\([0-9]*\).zip/\1/'`; \
-		$(ZIP) $(notdir $@) -u XPPython3/imgui/*.py XPPython3/imgui/integrations/*.py XPPython3/imgui/core*$$v* ; \
+		v=`echo $(notdir $@) | sed  's/xp\([0-9]*\).zip/\1/'`; \
+		$(ZIP) $(notdir $@) -u XPPython3/imgui/*.py XPPython3/imgui/integrations/*.py XPPython3/imgui/core*$$v* XPPython3/imgui/internal*$$v* ; \
 		$(ZIP) $(notdir $@) -u XPPython3/utils/*.py ; \
 		$(ZIP) $(notdir $@) -u -r XPPython3/Authori*.app ; \
 		cp $(notdir $@) $(basename $(notdir $@))-win32.zip; \
@@ -179,33 +179,33 @@ Resources/plugins/xppython3%.zip: win/XPPython3%.xpl lin/XPPython3%.xpl mac/XPPy
 	rm -r Resources/plugins/XPPython3/*_x64
 
 
-zipfiles=$(foreach version,$(VERSIONS), Resources/plugins/xppython$(version).zip) $(foreach version,$(VERSIONS), Resources/plugins/xppython$(version)-win32.zip) $(foreach version,$(VERSIONS), Resources/plugins/xppython$(version)-darwin.zip) $(foreach version,$(VERSIONS), Resources/plugins/xppython$(version)-linux.zip)
+zipfiles=$(foreach version,$(VERSIONS), Resources/plugins/xp$(version).zip) $(foreach version,$(VERSIONS), Resources/plugins/xp$(version)-win32.zip) $(foreach version,$(VERSIONS), Resources/plugins/xp$(version)-darwin.zip) $(foreach version,$(VERSIONS), Resources/plugins/xp$(version)-linux.zip)
 
 install_beta : $(zipfiles)
-	# dendencies are xppython3?.zip and xppython3?-(win32|linux|darwin).zip
-	# 1) rename each to beta naming xppython3?b.zip and xppython3?-(win32|linux|darwin)b.zip
+	# dendencies are xp3?.zip and xp3?-(win32|linux|darwin).zip
+	# 1) rename each to beta naming xp3?b.zip and xp?-(win32|linux|darwin)b.zip
 	for f in $^; do cp $$f `echo "$$f" | sed 's/\.zip/b.zip/g'`; done
 	# 2) upload them to server
-	scp Resources/plugins/xppython3?{,-darwin,-linux,-win32}b.zip pbuck@avnwx.com:/var/www/production/data/x-plane
-	scp Resources/plugins/xppython31?{,-darwin,-linux,-win32}b.zip pbuck@avnwx.com:/var/www/production/data/x-plane
+	scp Resources/plugins/xp3?{,-darwin,-linux,-win32}b.zip pbuck@avnwx.com:/var/www/production/data/x-plane
+	scp Resources/plugins/xp31?{,-darwin,-linux,-win32}b.zip pbuck@avnwx.com:/var/www/production/data/x-plane
 	# 3) On the server, execute updatemd5.py <>.zip <version>
 	#    ... the server code will manage -win32, -darwin and -linux variants
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; \
-		./updatemd5.py xppython39b.zip "$(XPPYTHONVERSION) - for Python 3.9"; \
-		./updatemd5.py xppython310b.zip "$(XPPYTHONVERSION) - for Python 3.10"; \
-		./updatemd5.py xppython311b.zip "$(XPPYTHONVERSION) - for Python 3.11"'
+		./updatemd5.py xp39b.zip "$(XPPYTHONVERSION) - for Python 3.9"; \
+		./updatemd5.py xp310b.zip "$(XPPYTHONVERSION) - for Python 3.10"; \
+		./updatemd5.py xp311b.zip "$(XPPYTHONVERSION) - for Python 3.11"'
 
 install_remote : $(zipfiles)
 	@if [ "$(BETA)" -gt "0" ]; then \
 		echo "Current version is BETA: $(XPPYTHONVERSION). Not installing"; \
 		exit 1; \
 	fi
-	scp Resources/plugins/xppython3?{,-darwin,-linux,-win32}.zip pbuck@avnwx.com:/var/www/production/data/x-plane
-	scp Resources/plugins/xppython31?{,-darwin,-linux,-win32}.zip pbuck@avnwx.com:/var/www/production/data/x-plane
+	scp Resources/plugins/xp3?{,-darwin,-linux,-win32}.zip pbuck@avnwx.com:/var/www/production/data/x-plane
+	scp Resources/plugins/xp31?{,-darwin,-linux,-win32}.zip pbuck@avnwx.com:/var/www/production/data/x-plane
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; \
-		./updatemd5.py xppython39.zip "$(XPPYTHONVERSION) - for Python 3.9"; \
-		./updatemd5.py xppython310.zip "$(XPPYTHONVERSION) - for Python 3.10"; \
-		./updatemd5.py xppython311.zip "$(XPPYTHONVERSION) - for Python 3.11"'
+		./updatemd5.py xp39.zip "$(XPPYTHONVERSION) - for Python 3.9"; \
+		./updatemd5.py xp310.zip "$(XPPYTHONVERSION) - for Python 3.10"; \
+		./updatemd5.py xp311.zip "$(XPPYTHONVERSION) - for Python 3.11"'
 
 install_sdk : sdk
 	$(ZIP) -R examples examples/\*.py

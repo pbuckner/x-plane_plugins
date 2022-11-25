@@ -12,9 +12,9 @@ PREL - Init the Airplane at Location
                         apt_rwy_idx,            # it's an index, not the runway heading
                         apt_rwy_dir,            # again, an index
                         lat_deg, lon_deg,       # Not needed, if you use apt_id
-                        ele_mtr,                # elevation
-                        psi_tru,                # aircraft heading
-                        spd_msc)                # speed
+                        ele_mtr,                # elevation meters
+                        psi_tru,                # aircraft heading true
+                        spd_msc)                # speed meters per second
       sock.sendto(msg, (beacon['ip'], beacon['port']))
 
 The "type of start" is a integer, currently one of:

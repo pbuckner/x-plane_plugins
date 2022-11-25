@@ -32,6 +32,9 @@ PYDEV311=/c/Program\ Files/Python311
 all : XPPython39.xpl XPPython310.xpl XPPython311.xpl libpython3.dll.a libpython39.dll.a libpython310.dll.a libpython311.dll.a
 	@echo $^
 
+# Note if you add a new version of python, you may need to manually call make libpython<>.dll.a as
+# I don't appear to have dependencies working properly
+
 libpython39.dll.a : $(PYDEV39)/python39.dll
 	gendef - "$^" > python39.def
 	dlltool -D "$^" -d python39.def -l $@

@@ -1,4 +1,5 @@
 XPython/SDK400/
+XPython/Resources/plugins/xp3*.zip
 XPython/mac/*.arm
 XPython/mac/*.x86
 XPython/docs/source/_static/find_xp.pyc

@@ -33,15 +33,7 @@
 import traceback
 from collections import namedtuple
 import sys
-try:
-    import OpenGL.GL as GL
-except ImportError:
-    print("[XPPython3] OpenGL not found. Use XPPython3 Pip Package Installer to install 'PyOpenGL' package and restart.")
-    import platform
-    if platform.system() == 'Darwin' and (platform.mac_ver()[0] == '10.16' or platform.mac.ver()[0].startswith('11.')):
-        print("[XPPython3] For Mac 10.16+ \"Big Sur\", \"Monterey\" you need to also edit OpenGL/platform/ctypesloader.py.")
-    raise
-
+import OpenGL.GL as GL
 from XPPython3 import imgui
 from XPPython3 import xp
 from .xprenderer import XPRenderer
@@ -99,7 +91,8 @@ class Window:
         self.io = imgui.get_io()
         # self.io.ini_file_name = '/dev/null'
         self.io.config_mac_osx_behaviors = False
-        self.io.config_resize_windows_from_edges = False
+        self.io.config_windows_resize_from_edges = False
+            
 
         # self.io.ini_file_name = None
         self.io.config_flags = imgui.CONFIG_NAV_NO_CAPTURE_KEYBOARD
@@ -210,7 +203,7 @@ class Window:
                     xp.log("Failure with window pos / size: {}".format(e))
                     raise
 
-                imgui.begin("",
+                imgui.begin("X-Plane",
                             flags=imgui.WINDOW_NO_TITLE_BAR | imgui.WINDOW_NO_RESIZE | imgui.WINDOW_NO_COLLAPSE)
                 if self.buildWindow:
                     self.buildWindow(windowID, inRefCon)

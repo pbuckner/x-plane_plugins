@@ -18,7 +18,6 @@ except ImportError:
     raise
 from XPPython3 import imgui
 from XPPython3.imgui.integrations.opengl import FixedPipelineRenderer
-
 from XPPython3 import xp
 
 

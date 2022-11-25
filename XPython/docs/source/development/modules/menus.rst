@@ -242,14 +242,13 @@ Functions
 
 .. py:function:: appendMenuSeparator(menuID=None)
 
- This routine adds a separator to the end of a menu. (Note Laminar documentation, and
- Laminar provided header file indicates this returns void, but actually, it returns
- the integer index.)
+ This routine adds a separator to the end of a menu. SDK303 this returns an integer
+ menu index. SDK400 does not return a value (and yet, the separator indeed "consumes"
+ a menu index.)
 
  Append to main Plugins Menu if *menuID* is None.
 
  >>> xp.appendMenuSeparator()
- 2
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMMenus/#XPLMAppendMenuSeparator>`__ :index:`XPLMAppendMenuSeparator`
 

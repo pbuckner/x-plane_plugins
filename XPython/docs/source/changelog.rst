@@ -3,7 +3,7 @@ Change Log
 
 .. Note::
 
-   We will be dropping support for Python 3.6, 3.7, and 3.8 once X-Plane 12 is released.
+   We will be dropping support for Python 3.6, 3.7, 3.8, and 3.9 once X-Plane 12 is released.
    Most users are already using Python 3.10. If you're not, you might consider upgrading.
 
 
@@ -18,7 +18,7 @@ Known Bugs
    * This release *does not support* python 3.6 which has reached end-of-life.
      Use XPPython3 v3.1.4 if that is required.
 
-   * This release will be the *last* to support python 3.7 and 3.8. Most users have
+   * This release will be the *last* to support python 3.7, 3.8, 3.9. Most users have
      moved to 3.10 & I suggest you do as well.
 
    * This release is *compatible* with X-Plane 12. It does not support any X-Plane 12 specific

@@ -26,7 +26,7 @@ Functions
  will be re-initialized.
 
  >>> xp.setUsersAircraft("Aircraft/Laminar Research/Cessna 172SP/Cessna_172SP_G1000.acf")
- >>> xp.setUsersAircraft("/Volumns/SSD1/X-Plane/Aircraft/Laminar Research/Cessna 172SP/Cessna_172SP_G1000.acf")
+ >>> xp.setUsersAircraft("/Volumes/SSD1/X-Plane/Aircraft/Laminar Research/Cessna 172SP/Cessna_172SP_G1000.acf")
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMSetUsersAircraft>`__ :index:`XPLMSetUsersAircraft`
 
@@ -35,7 +35,7 @@ Functions
  This routine places the user at a given airport.  Specify the airport by
  its ICAO code (e.g. 'KBOS').
 
- .. warning:: Using an invalid airport code will **crash the sim**.
+ .. warning:: Using an invalid airport code will **crash the sim**, this includes using something other than ICAO. For example, 'JFK' does not work.
 
  >>> xp.placeUserAtAirport('KBOS')
 
@@ -53,10 +53,10 @@ Functions
  ``sim/operation/prefs/startup_running`` says).
 
  | *elevation* is meters MSL (1 meter = 3.28084 feet),
- | *heading* is degrees True,
+ | *heading* is degrees True, (use :py:func:`getMagneticVariation` to convert.)
  | *speed* is meters per second (1 meter per second = 1.94384 knots).
 
- >>> xp.placeUserAtLocation(35, -122.5, 2000 / 3.28084, 110 / 1.94384)
+ >>> xp.placeUserAtLocation(35, -122.5, 2000 / 3.28084, 90, 110 / 1.94384)
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMPlaceUserAtLocation>`__ :index:`XPLMPlaceUserAtLocation`
  
@@ -85,7 +85,7 @@ Functions
     * path to the model filename
 
  >>> xp.getNthAircraftModel(0)
- ('Cessna_172SP.acf', '/Volumns/SSD1/X-Plane/Aircraft/Laminar Research/Cessna 172SP/Cessna_172SP.acf')
+ ('Cessna_172SP.acf', '/Volumes/SSD1/X-Plane/Aircraft/Laminar Research/Cessna 172SP/Cessna_172SP.acf')
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMGetNthAircraftModel>`__ :index:`XPLMGetNthAircraftModel`
 
@@ -96,17 +96,17 @@ Functions
 
  In the simplest form, attempt to acquire all the aircraft:
 
- >>> xp.acquireAircraft()
+ >>> xp.acquirePlanes()
  1
 
  If you provide a *callback*, **and do not immediately get access**, :py:func:`acquirePlanes` will
- return 0, and call you callback when able. You ``callback()`` is passed the *refCon*.
+ return 0, and call you callback when able. Your ``callback()`` is passed the *refCon*.
  If you are able to acquire immediately, you callback will not be called.
 
  >>> def MyCallback(refCon):
- ...    xp.log("Aquired airplanes")
+ ...    xp.log("Acquired airplanes")
  ...
- >>> xp.acquireAircraft(callback=MyCallback)
+ >>> xp.acquirePlanes(callback=MyCallback)
  1
 
  *aircraft* is supposed to be a list of strings, specifying the planes you
@@ -127,7 +127,7 @@ Functions
 .. py:function:: setActiveAircraftCount(count)
 
  This routine sets the number of active planes.  If you pass in a number
- higher than the total number of planes availables, only the total number of
+ higher than the total number of planes available, only the total number of
  planes available is actually used.
 
  You must have exclusive access to planes first (:py:func:`acquirePlanes`)
@@ -153,7 +153,10 @@ Functions
  Pass in the *path* of the  model with
  the .acf extension. Path may be relative X-Plane Root.
  The *index* is zero based, but you  may not pass in 0
- (use :py:func:`setUsersAircraft` to load the user's aircracft).
+ (use :py:func:`setUsersAircraft` to load the user's aircraft).
+
+ This *does not* add a new AI aircraft, if you use an index greater
+ than current aircraft count. (It will do nothing.)
 
  If the aircraft path is invalid, the user will be notified.
 
@@ -173,9 +176,9 @@ Functions
     simple re-enable AI. However, if you acquire all planes,
     set the active count to 1 (User aircraft only) and then reset the count to
     something larger than 1,
-    all of the added aircraft will have their AI re-enabled.
+    all of the added aircraft will have their AI re-enabled once you call :py:func:`xp.releasePlanes`
 
-    It seems this is likely an unintended side-effect, but works for XP11.
+    It seems this is likely an unintended side-effect, but works for XP11 and XP12.
     
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMDisableAIForPlane>`__ :index:`XPLMDisableAIForPlane`

@@ -47,7 +47,7 @@ static PyObject *XPLMPlaceUserAtAirportFun(PyObject *self, PyObject *args, PyObj
 My_DOCSTR(_placeUserAtLocation__doc__, "placeUserAtLocation", "latitude, longitude, elevation, heading, speed",
           "Place user aircraft at location with engines running.\n"
           "\n"
-          "elevation si meeters, heading is True, speed is meters per second");
+          "elevation is meters, heading is True, speed is meters per second");
 static PyObject *XPLMPlaceUserAtLocationFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   static char *keywords[] = {"latitude", "longitude", "elevation", "heading", "speed", NULL};

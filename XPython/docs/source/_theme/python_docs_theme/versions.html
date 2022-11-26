@@ -1,20 +1,14 @@
-{% if theme_versionlist|tobool %}
-Current stable release is
-{% for x in theme_versionlist %}
-     {% if x[1] == 'stable' %}
-        {{ x[0] }}
-     {% endif %}
-     {% if x[1] == 'stable' and x[0] != release %}
-        <br/> This is {{ release }}
-     {% endif %}
-{% endfor %}
-<br/>
-<select class="version-selector">
-{% for v, name in theme_versionlist %}
-    <option value="{{ name|e }}"
-            {{ "selected" if v == release else "" }} >
-      {{ name.title() }}: {{ v }}
+{% if theme_versionhash|tobool %}
+  Current stable release is {{ theme_versionhash['latest'] }}
+  {% if release != 'latest' %}
+     <br/> <span style="background-color:pink;font-weight:bold">This is {{ theme_versionhash[release] }}</span>
+  {% endif %}
+  <br/>
+  <select class="version-selector">
+  {% for key, value in theme_versionhash.items() %}
+    <option value="{{ key|e }}" {% if key == release %}selected{% endif %}>
+      {{ value }}
     </option>
-{% endfor %}
-</select>
+  {% endfor %}
+  </select>
 {% endif %}

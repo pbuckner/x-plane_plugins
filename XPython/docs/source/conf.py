@@ -61,15 +61,16 @@ html_js_files = [
 html_theme = 'python_docs_theme'
 html_theme_path = ['_theme', ]
 html_last_updated_fmt = ""
-html_title = '{} v{}'.format(project, release)
 html_theme_options = {
     'root_name': '',
     'root_icon': 'xppython3.png',
     'root_url': '',
     'issues_url': 'https://github.com/pbuckner/x-plane_plugins/issues',
     'collapsiblesidebar': True,
-    'versionlist': [('3.1.5', 'stable'), ('4.0.0a', 'beta'), ('In-Progress', 'latest')]
+    'versionhash': {'beta': 'v4.0.0 BETA',
+                    'latest': 'v3.1.5'}
 }
+html_title = f"{project} {html_theme_options['versionhash'][release]}"
 html_js_files = [
     'js/versions.js'
 ]    

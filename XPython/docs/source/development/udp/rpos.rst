@@ -43,7 +43,6 @@ RPOS - Request Aircraft Position
 
     X-Plane 11.55 (at least) documentation indicates the first five bytes are ``RPOS\x00``.
     In reality, ``RPOS4`` is sent (without a null).
-    A bug has been filed with Laminar Research: 2021-Sep-1.
 
 .. toctree::
    :maxdepth: 1

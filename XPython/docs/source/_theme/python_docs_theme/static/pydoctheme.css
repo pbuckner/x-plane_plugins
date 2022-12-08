@@ -37,6 +37,7 @@ div.sphinxsidebar {
     border-radius: 5px;
     line-height: 130%;
     font-size: smaller;
+    position: relative;
 }
 
 div.sphinxsidebar h3, div.sphinxsidebar h4 {
@@ -195,6 +196,9 @@ dl > dt span ~ em {
 
 #sidebarbutton {
     background-color: #ccc;
+    position:absolute;
+    top: 0;
+    right: 0;
 }
 #sidebarbutton:hover {
     background-color: #999;

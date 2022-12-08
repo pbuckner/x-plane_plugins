@@ -34,7 +34,5 @@ RADR - Weather Radar
     Additionally, documentation indicates 4-byte ``float storm_level_0_100`` whereas it is
     actually a single unsigned char.
     
-    A bug has been filed with Laminar Research: 2021-Sep-2.
-
 .. toctree::
    :maxdepth: 1

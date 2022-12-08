@@ -1,3 +1,5 @@
+:orphan:
+   
 Common Installation Errors
 --------------------------
 
@@ -11,8 +13,8 @@ On Windows
      
 **Cause**:
     X-Plane cannot load all DLLs required by plugin. In this case, the XPPython plugin is looking for Python DLL.
-    The Python version of XPPython3 (3.6, 3.7, ..., 3.10) looks for the same named DLL
-    (python36.dll, python37.dll, ..., pthon310.dll).
+    The Python version of XPPython3 (3.10, 3.11, 3.12) looks for the same named DLL
+    (python310.dll, python311.dll, ..., pthon312.dll).
    
 **Solution**:
     Windows using your %PATH% environment variable to find DLLs, so when you install:
@@ -108,7 +110,7 @@ On All Platforms
          crazy about having to pay to get a signature as I make no money on XPPython3.
          If you'd like to donate, I promise to
          use the first $100 of XPPython3 donations each year to purchase a signature so
-         that others may avoid this hassle. You can donate
-         through
+         that others may avoid this hassle. You can donate through
          `Paypal <https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TA3EJ9VWFCH3N&source=url>`_.
+         
 

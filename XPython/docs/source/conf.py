@@ -65,7 +65,7 @@ html_theme_options = {
     'root_name': '',
     'root_icon': 'xppython3.png',
     'root_url': '',
-    'issues_url': 'https://github.com/pbuckner/x-plane_plugins/issues',
+    'issues_url': '/en/latest/usage/getting_support.html',
     'collapsiblesidebar': True,
     'versionhash': {'beta': 'v4.0.0 BETA',
                     'latest': 'v3.1.5'}
@@ -82,6 +82,6 @@ html_static_path = ['_static']
 
 add_module_names = False
 
-comments_config = {
-    "hypothesis": True
-}
+# comments_config = {
+#     "hypothesis": True
+# }

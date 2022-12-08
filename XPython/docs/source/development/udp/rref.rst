@@ -10,7 +10,7 @@ until you *unsubscribe* from it.
 
    The dataref is a bytestring.::
 
-     dataref = 'sim/aircraft/engines/acf_num_engines'
+     dataref = 'sim/aircraft/engine/acf_num_engines'
      msg = struct.pack("<4sxii400s", b'RREF',
                        freq,                     # Send data # times/second
                        index,                    # include this index number with results
@@ -22,14 +22,14 @@ until you *unsubscribe* from it.
 ----
 
 :Receive:
-   UDP packets will have header ``RREF\x00`` and include the index you passed during
+   UDP packets will have header ``RREF`` and include the index you passed during
    the request (that's how you'll know which dataref this is) and a single
    floating point value *regardless of which dataref you're requesting*.::
 
-     (header,         # 'RREF'
+     (header,         # 'RREF,'
       idx,            # integer, matching what you sent
       value           # single floating point value
-      ) = struct.unpack('<4sxif', data)
+      ) = struct.unpack('<5sif', data)
 
    Note the received packet may contain multiple <index><value> pairs, see example below.
    
@@ -59,13 +59,13 @@ The code might look like::
   cmd = b'RREF'  # "Request DataRef(s)"
   freq = 1       # number of times per second (integer)
   index = 0      # "my" number, so I can match responsed with my request
-  msg = struct.pack("<4sxii400s", cmd, freq, index, b'sim/aircraft/engines/acf_num_engines')
+  msg = struct.pack("<4sxii400s", cmd, freq, index, b'sim/aircraft/engine/acf_num_engines')
   sock.sendto(msg, (beacon['ip'], beacon['port']))
   
   # 2) Block, waiting to receive a packet
   data, addr = sock.recvfrom(2048)
   header = data[0:5]
-  if header != b'RREF\x00':
+  if header[0:5] != b'RREF,':
       raise ValueError("Unknown packet")
 
   # 3) Unpack the data:
@@ -75,7 +75,7 @@ The code might look like::
 
   # 4) Unsubscribe -- as otherwise we'll continue to get this data, once every second!
   freq = 0
-  msg = struct.pack("<4sxii400s", cmd, freq, index, b'sim/aircraft/engines/acf_num_engines')
+  msg = struct.pack("<4sxii400s", cmd, freq, index, b'sim/aircraft/engine/acf_num_engines')
   sock.sendto(msg, (beacon['ip'], beacon['port']))
 
 You'll always get a float
@@ -122,7 +122,7 @@ For performance reasons, X-Plane may send multiple dataref results in a single U
 to be prepared for this::
 
   data, addr = sock.recvfrom(2048)
-  values = data[5:]                  # skipping over 'RREF\x00' header, get _all_ values
+  values = data[5:]                  # skipping over 'RREF,' header, get _all_ values
   num_values = int(len(values) / 8)  # Each dataref is 8 bytes long (index + value)
   for i in range(num_values):
       dref_info = data[(5 + 8 * i):(5 + 8 * (i + 1))]  # extract the 8 byte segment

@@ -628,7 +628,7 @@ static PyObject *XPLMSetDatasFun(PyObject *self, PyObject *args, PyObject *kwarg
     bufferSize = inCount;
   }
   buffer = malloc(bufferSize);
-  inValue = PyUnicode_AsUTF8(inValueObj); /* docs say I'm not responsible for de-allocation of inValue */
+  inValue = PyUnicode_AsUTF8AndSize(inValueObj, NULL); /* docs say I'm not responsible for de-allocation of inValue */
   strncpy(buffer, inValue, bufferSize);
   XPLMSetDatab(inDataRef, (void *)buffer, inOffset, bufferSize);
   free(buffer);

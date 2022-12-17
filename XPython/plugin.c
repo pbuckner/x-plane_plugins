@@ -592,7 +592,9 @@ static void handleConfigFile(void) {  /* Find and handle config.ini file */
 #endif
   pythonDebugs = xpy_config_get_int("[Main].debug");
   pythonWarnings = xpy_config_get_int("[Main].warning");
+#ifndef Py_LIMITED_API
   Py_VerboseFlag = xpy_config_get_int("[Main].py_verbose");/* 0= off, 1= each file as loaded, 2= each file that is checked when searching for module */
+#endif
   pythonFlushLog = xpy_config_get_int("[Main].flush_log");/* 0= off, 1= on */
   pythonDebug("Read config file: %s", xpy_ini_file);
 }
@@ -665,7 +667,7 @@ static void reloadSysModules(void) {
     fprintf(pythonLogFile, "[XPPython3] Error occured during the reload of modules.\n");
     pythonLogException();
   }
-  if (PyUnicode_GET_LENGTH(result) > 2) {
+  if (PyUnicode_GetLength(result) > 2) {
     fprintf(pythonLogFile, " Module(s) reloaded:  \n  > %s\n", objToStr(result));
   }
   Py_DECREF(localsDict);

@@ -184,7 +184,7 @@ PyObject *get_module() {
   PyFrameObject *last_frame = NULL, *frame = NULL;
   PyObject *moduleName = Py_None;
   
-#if PY_VERSION_HEX > 0x030b0000
+#if Py_LIMITED_API || PY_VERSION_HEX >= 0x030a0000
   if (NULL != tstate && NULL != PyThreadState_GetFrame(tstate)) {
     frame = PyThreadState_GetFrame(tstate);
     while (NULL != frame) {
@@ -359,3 +359,10 @@ void removePtrRef(void *ptr, PyObject *dict)
 /* } */
 
 
+void MyPyRun_String(const char *str, int start, PyObject *globals, PyObject *locals) {
+  PyObject *filename = PyUnicode_FromString("<input>");
+  PyObject *codeObj = Py_CompileString(str, filename, start);
+  PyEval_EvalCode(codeObj, globals, locals);
+  Py_DECREF(codeObj);
+  Py_DECREF(filename);
+}

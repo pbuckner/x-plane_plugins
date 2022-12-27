@@ -13,7 +13,7 @@ Additionally:
 
 * `X-Plane Developer Documentation @ developer.x-plane.com <https://developer.x-plane.com/sdk/plugin-sdk-documents/>`_.  The official X-Plane SDK documentation is for C-language, and most of that has been translated to python and documented with XPPython3. However, when in doubt, check the Laminar docs.
 
-Note we use a `Simplified Python Interface in module xp <modules/xp.html>`_. This makes **all** interfaces available from::
+Note we use a Simplified Python Interface as described in :doc:`xp`. This makes **all** interfaces available from::
 
   import xp
 

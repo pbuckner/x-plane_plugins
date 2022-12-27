@@ -1,12 +1,19 @@
 ##############################################
 # To use:
+# 1) create a draw callback which includes imgui code:
 #      def drawCallback(windowID, refCon):
 #          imgui.text('label')
 #          if imgui.button("Press Me"):
 #             do_something()
-
+#
+# 2) At some point (perhaps in response to menu selection)
+#    Create an xp_imgui.Window() instance, passing in your drawCallback
 #      imgWindow = Window([..., drawCallback, ...])
 #      imgWindow.setTitle('<string>')
+#
+#    When the window is displayed, it will include imgui widgets
+#
+# 3) When you're done with the window, destroy it
 #      ...
 #      imgWindow.destroy()
 #
@@ -28,20 +35,28 @@
 # At program end, you should destroy the IMGUI window calling .destroy()
 #
 # YOU SHOULD NOT NEED TO MAKE ANY CHANGES TO THIS FILE -- if you do, it's most
-# likely you're fixing a bug I should know about, so tell me about it -- pbuck@avnwx.com
+# likely you're fixing a bug I should know about, so tell me about it -- support@xppython3.org
 
 import traceback
 from collections import namedtuple
 import sys
-import OpenGL.GL as GL
-from XPPython3 import imgui
+try:
+    import OpenGL.GL as GL
+except ImportError:
+    print("[XPPython3] OpenGL not found. Use XPPython3 Pip Package Installer to install 'pyopengl' package and restart.")
+    raise
+
+try:
+    from XPPython3 import imgui
+except ImportError:
+    import imgui
 from XPPython3 import xp
 from .xprenderer import XPRenderer
 
 CreateWindow_t = namedtuple('CreateWindow_t', ['left', 'top', 'right', 'bottom',
                                                'visible',
                                                'drawWindowFunc',
-                                               'handleMouseFunc',
+                                               'handleMouseClickFunc',
                                                'handleKeyFunc',
                                                'handleCursorFunc',
                                                'handleMouseWheelFunc',
@@ -58,19 +73,9 @@ def loge(s):
 
 class Window:
     def __init__(self, left=100, top=200, right=200, bottom=100, visible=0, 
-                 draw=None, click=None, key=None, cursor=None, wheel=None,
-                 refCon=None, decoration=1, layer=1,
-                 rightClick=None):
-        if isinstance(left, (list, tuple)):
-            # "old" style
-            pok = left
-            if len(pok) == 13:
-                # Because handleRightClickFunc may not be specified
-                pok.append(None)
-            createWindow_t = CreateWindow_t(*pok)
-        else:
-            createWindow_t = CreateWindow_t(left, top, right, bottom, visible, draw, click, key, cursor, wheel,
-                                            refCon, decoration, layer, rightClick)
+                 draw=None, refCon=None, decoration=1, layer=1):
+        self.createWindow_t = CreateWindow_t(left, top, right, bottom, visible, draw, None, None, None, None,
+                                             refCon, decoration, layer, None)
         self.stop = False
         self.imgui_context = None
         self.fontTextureId = None
@@ -91,7 +96,10 @@ class Window:
         self.io = imgui.get_io()
         # self.io.ini_file_name = '/dev/null'
         self.io.config_mac_osx_behaviors = False
-        self.io.config_windows_resize_from_edges = False
+        try:
+            self.io.config_resize_windows_from_edges = False
+        except AttributeError:
+            self.io.config_windows_resize_from_edges = False
             
 
         # self.io.ini_file_name = None
@@ -121,15 +129,15 @@ class Window:
         self.io.key_map[imgui.KEY_Z] = xp.VK_Z
 
         self.renderer = XPRenderer()
-        self.onClickCB = createWindow_t.handleMouseFunc
-        self.buildWindow = createWindow_t.drawWindowFunc
 
-        imguiCreateWindow_t = [createWindow_t.left, createWindow_t.top, createWindow_t.right, createWindow_t.bottom,
-                               createWindow_t.visible,
-                               self.drawWindow, self.handleMouseClick, self.handleKey,
-                               self.handleCursor, self.handleMouseWheel, createWindow_t.refcon,
-                               createWindow_t.decorateAsFloatingWindow, createWindow_t.layer,
-                               self.handleRightClick]
+        # Here, we create the XP window, but pass to it "our" callbacks (e.g., self.drawWindow, self.handleMouseClick)
+        # "Our" callbacks will do whatever they need to do and then call the user-provided callbacks
+        imguiCreateWindow_t = [self.createWindow_t.left, self.createWindow_t.top, self.createWindow_t.right, self.createWindow_t.bottom,
+                               self.createWindow_t.visible,
+                               self.imguiDrawWindow, self.imguiHandleMouseClick, self.imguiHandleKey,
+                               self.imguiHandleCursor, self.imguiHandleMouseWheel, self.createWindow_t.refcon,
+                               self.createWindow_t.decorateAsFloatingWindow, self.createWindow_t.layer,
+                               self.imguiHandleRightClick]
         self.windowID = xp.createWindowEx(imguiCreateWindow_t)
         xp.bringWindowToFront(self.windowID)
 
@@ -151,7 +159,7 @@ class Window:
         except Exception:
             loge("Exception while trying to delete window")
 
-    def handleMouseClick(self, inWindowID, x, y, inMouse, inRefCon):
+    def imguiHandleMouseClick(self, inWindowID, x, y, inMouse, inRefCon):
         # if not xp.hasKeyboardFocus(inWindowID):
         #     xp.takeKeyboardFocus(inWindowID)
         # First, handle imgui mouse click
@@ -163,17 +171,13 @@ class Window:
         else:
             self.io.mouse_down[0] = False
 
-        # Second, if user provided traditional XP callback, call that also
-        if (self.onClickCB):
-            self.onClickCB(inWindowID, x, y, inMouse, inRefCon)
-
         # Finally, return 1 to indicate we've handled the mouse click
         return 1
 
     def setTitle(self, title):
         xp.setWindowTitle(self.windowID, title)
 
-    def drawWindow(self, windowID, inRefCon):
+    def imguiDrawWindow(self, windowID, inRefCon):
         self.updateMatrices()
         imgui.set_current_context(self.imgui_context)
         if self.stop:
@@ -205,8 +209,8 @@ class Window:
 
                 imgui.begin("X-Plane",
                             flags=imgui.WINDOW_NO_TITLE_BAR | imgui.WINDOW_NO_RESIZE | imgui.WINDOW_NO_COLLAPSE)
-                if self.buildWindow:
-                    self.buildWindow(windowID, inRefCon)
+                if self.createWindow_t.drawWindowFunc:
+                    self.createWindow_t.drawWindowFunc(windowID, inRefCon)
                 imgui.end()
                 imgui.render()
 
@@ -228,31 +232,16 @@ class Window:
     def requestInputFocus(self, req):
         xp.takeKeyboardFocus(self.windowID if req else None)
 
-    def handleRightClick(self, inWindowID, x, y, inMouse, inRefCon):
+    def imguiHandleRightClick(self, inWindowID, x, y, inMouse, inRefCon):
         return 1
 
-    def handleCursor(self, inWindowID, x, y, inRefCon):
-        imgui.set_current_context(self.imgui_context)
-        io = imgui.get_io()
-        outX, outY = self.translateToImguiSpace(x, y)
-        io.mouse_pos = outX, outY
-
+    def imguiHandleCursor(self, inWindowID, x, y, inRefCon):
         return xp.CursorDefault
 
-    def handleMouseWheel(self, inWindowID, x, y, wheel, clicks, inRefCon):
-        imgui.set_current_context(self.imgui_context)
-        io = imgui.get_io()
-        outX, outY = self.translateToImguiSpace(x, y)
-        io.mouse_pos = outX, outY
-        if wheel == 0:
-            io.mouse_wheel = clicks
-        elif wheel == 1:
-            io.mouse_wheel_horizontal = clicks
+    def imguiHandleMouseWheel(self, inWindowID, x, y, wheel, clicks, inRefCon):
         return 1
 
-    def handleKey(self, inWindowID, inKey, inFlags, inVirtualKey, inRefCon, losingFocus):
-        # xp.log("Handle Key: winid: {}, key: {}, flags: {}, v_key: {}, losing: {}".format(
-        #     inWindowID, inKey, inFlags, inVirtualKey, losingFocus))
+    def imguiHandleKey(self, inWindowID, inKey, inFlags, inVirtualKey, inRefCon, losingFocus):
         if losingFocus:
             self.requestInputFocus(False)
             return

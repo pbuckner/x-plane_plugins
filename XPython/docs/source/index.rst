@@ -35,8 +35,19 @@ See :doc:`development/index` to write your own python plugins.
 Next:
 
 .. toctree::
-   :maxdepth: 2
+   :hidden:
+   :titlesonly:
+      
+   usage/installation_plugin
+   usage/runtime_menus
+   usage/pip
+   usage/logfiles
+   usage/add_plugin
+   development/index
+   development/udp/index
 
+
+..   
    How to Install <usage/installation_plugin>
    How to Develop <development/index>
 

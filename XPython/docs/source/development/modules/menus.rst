@@ -354,3 +354,8 @@ About Window (code not provided)::
              displayAboutWindow()
     
 For more about menus and menu items see :doc:`/development/menus`.
+
+.. toctree::
+   :hidden:
+
+   /development/menus

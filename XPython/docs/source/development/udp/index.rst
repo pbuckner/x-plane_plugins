@@ -1,5 +1,5 @@
-Standalone Python with UDP
---------------------------
+Standalone Python & UDP
+-----------------------
 
 In addition to plugins, X-Plane supports external communications via UDP. This
 allows any number of separate processes (potentially on separate computers) to
@@ -23,7 +23,7 @@ UDP is pretty simple: you'll create a UDP (i.e., DATAGRAM) socket, and then use 
 to send information to a remote port::
 
   sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-  msg = makeMsg()
+  msg = myMakeMsg()
   sock.send_to(msg, (X_PLANE_IP, UDP_PORT))
 
 Receiving information is similarly simple::
@@ -205,6 +205,7 @@ X-Plane UDP Summary
 
 .. toctree::
    :maxdepth: 1
+   :hidden:
    :caption: Details
 
    acfn

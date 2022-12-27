@@ -1,14 +1,18 @@
 xp
 ==
 
+This module doesn't actually add any new functions, but it does provide the simplified
+mapping of SDK functions and enumerations. I **strongly** suggest you use this interface
+as it provides a more pythonic was of doing things.
+
 .. py:module:: xp
 
 To use::
 
   from XPPython3 import xp
 
-To use, add :code:`from XPPython3 import xp` at the top of you file, and all of the SDK API, from all modules
-will be available to you.
+To use, add :code:`from XPPython3 import xp` at the top of you file, and *all of the SDK API*, from *all* modules
+will be available to you, with these benefits:
 
 * **Simplified Mapping**: To further reduce typing, function names and constants have been
   renamed (shortened) in a consistent manner.
@@ -39,12 +43,12 @@ Rules:
 
 .. table::
 
- ================================== =======================
- Laminar SDK                        import xp
- ================================== =======================
- XPLMCamera.XPLMReadCameraPostion() xp.readCameraPosition()
- XPUIGraphics.XPDrawWindow()        xp.drawWindow()
- ================================== =======================
+ =================================== =======================
+ Laminar SDK                         import xp
+ =================================== =======================
+ XPLMCamera.XPLMReadCameraPosition() xp.readCameraPosition()
+ XPUIGraphics.XPDrawWindow()         xp.drawWindow()
+ =================================== =======================
 
 * Constants start with Capital letter. Leading xp\_, xplm\_, etc. are dropped
 
@@ -113,7 +117,7 @@ Keyword Arguments
 -----------------
 
 Keyword arguments free you from a particular order of parameters, and
-increases the readiblity of code::
+increases the readability of code::
 
   myRefCon = {'data': 'xxx'}
   xp.registerKeySniffer(MyCallback, refCon=myRefCon)

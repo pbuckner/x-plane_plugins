@@ -3,6 +3,7 @@ Plugin Installation
 
 Requirements
 ============
+
 * **Python3** not Python2, 64-bit.
 * **X-Plane 12.00+**. Linux, Mac (Intel and M-series processors) or Windows.
   This plugin is built with SDK 400 and is NOT backward compatible to X-Plane 11 or earlier.
@@ -82,28 +83,24 @@ Four steps:
 
   .. image:: /images/python_samples_popup.png
 
-If you have problems with installation
-======================================
+.. Note::
+   If you have problems with installation
 
-a) *Actually read this page*.
-b) Check :doc:`common_errors`.
-c) If you still have problems with installation provide information described in :doc:`getting_support`.
+   a) *Actually read this page*.
+   b) Check :doc:`common_errors`.
+   c) If you still have problems with installation provide information described in :doc:`getting_support`.
 
 Errors are logged, see :doc:`logfiles`.
 
-|
-|
-
-Next, How to use XPPython3:
+If it's running, get familiar with :doc:`runtime_menus`.
 
 .. toctree::
-   :maxdepth: 2
+   :titlesonly:
+   :hidden:
 
-   runtime_menus
-   pip
-   logfiles
-   add_plugin
-
+   common_errors
+   getting_support
+   
 ----
 
 .. [#F1] "*But I already have a copy of python on my computer*". Yes, you probably do. Is it the right version,

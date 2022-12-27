@@ -1,7 +1,23 @@
-:orphan:
-   
 Common Installation Errors
 --------------------------
+
+On All Platforms
+================
+
+.. code-block:: none
+
+   Can't open <folder> to scan for plugins.
+
+**Cause**:
+    XPPython3 looks for its main plugin folder PythonPlugins (See :doc:`installation_plugin`), and if not
+    found, it will complain. Additionally, XPPython3 will look for aircraft-specific plugins specific
+    to the loaded user aircraft (:doc:`/development/plugins`).
+
+**Solution**:
+    If you were expecting python plugin to be loaded, check to make sure the file(s) are place in the
+    correct location. If you're not anticipating a plugin to be loaded, ignore the message.
+  
+----
 
 On Windows
 ==========
@@ -33,6 +49,7 @@ On Windows
 
 On Mac
 ======
+
 
 You get popup on initial execution:
 
@@ -89,21 +106,8 @@ You get an eror message in a Log file complaining about SSL CERTIFICATES:
 
          
 On All Platforms
-================
 
-.. code-block:: none
 
-   Can't open <folder> to scan for plugins.
-
-**Cause**:
-    XPPython3 looks for its main plugin folder PythonPlugins (See :doc:`installation_plugin`), and if not
-    found, it will complain. Additionally, XPPython3 will look for aircraft-specific plugins specific
-    to the loaded user aircraft (:doc:`/development/plugins`).
-
-**Solution**:
-    If you were expecting python plugin to be loaded, check to make sure the file(s) are place in the
-    correct location. If you're not anticipating a plugin to be loaded, ignore the message.
-  
 ----
 
 .. [#F1] "*Apple signature costs $100/year*". I'm in favor of the quarantine system, but not

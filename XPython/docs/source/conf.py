@@ -70,10 +70,16 @@ html_theme_options = {
     'versionhash': {'beta': 'v4.0.0 BETA',
                     'latest': 'v3.1.5'}
 }
+html_sidebars = {
+    '**': ['versions.html', 'globaltoc.html', 'relations.html', 'searchbox.html']
+}
+html_modindex_common_prefix = ['xp.', ]
+html_toc_object_entries = False
 html_title = f"{project} {html_theme_options['versionhash'][release]}"
 html_js_files = [
     'js/versions.js'
 ]    
+html_show_sourcelink = False
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

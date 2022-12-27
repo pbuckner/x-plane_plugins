@@ -1,5 +1,5 @@
-Runtime XPPython3 Menus
-=======================
+XPPython3 Menus
+===============
 
 XPPython3 installs a single menu item, "XPPython3", on the plugin menu.
 

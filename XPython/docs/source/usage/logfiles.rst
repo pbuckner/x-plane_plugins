@@ -1,5 +1,5 @@
 Logging
-=======
+-------
 
 There are two main log files. (Any particular plugin may also create their own log file.)
 
@@ -18,18 +18,18 @@ If you have errors running python plugins,
 For common installation error messages, see :doc:`common_errors`.
 
 `Log.txt`
-*********
+=========
 
 Some messages go to Log.txt. Specifically, when python plugin itself is loaded, something like:
 
 .. parsed-literal::
 
-   Loaded: /Volumes/Red1/X-PlaneB11-Python3/Resources/plugins/XPPython3/mac_x64/XPPython3.xpl (xppython3.main).
+   Loaded: /Volumes/C/X-Plane/Resources/plugins/XPPython3/mac_x64/XPPython3.xpl (xppython3.main).
    
 If XPPython3 cannot load, you'll see an error in this log file.
 
 `XPPython3Log.txt`
-******************
+==================
 
 Python messages go to :code:`<XP>/XPPython3Log.txt` [#F1]_. You can change location of this logfile
 by setting environment variable :code:`XPPYTHON3_LOG`. Log is re-written each time [#F2]_. If you want to preserve

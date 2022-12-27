@@ -79,6 +79,14 @@ files from ``samples`` to get the plugin working.
    |PI_imgui.py                 | Simple popup window with imgui-based widgets.          |
    |                            | See :doc:`/development/imgui`.                         |
    +----------------------------+--------------------------------------------------------+
+   |PI_imguiBarometer.py        | Shows interaction between an ImGui widget and a        |
+   |                            | dataref. A slider monitors current value of            |
+   |                            | 'barometer_setting' dataref, updating the slider if the|
+   |                            | value is changed in the cockpit. Also, if the value of |
+   |                            | the slider is manually changed, it will update the     |
+   |                            | value in the aircraft. Uses imgui, command handlers and|
+   |                            | dataref APIs.                                          |
+   +----------------------------+--------------------------------------------------------+
    | PI_InputOutput1.py         | Ported from python2 example. Demonstrates input /      |
    |                            | output of data from X-Plane, (changing engine throttle |
    |                            | and obtaining resulting N1). Should be used with the   |
@@ -115,7 +123,7 @@ files from ``samples`` to get the plugin working.
    |PI_MiniPython.py            | In-game python interpreter. Allows you to execute      |
    |                            | most python within context of running X-Plane. Great   |
    |                            | way to test SDK APIs and see what happens. Requires    |
-   |                            | XPListBox.py to be copied also.                        |
+   |                            | XPListBox.py to be copied also.                        |        
    +----------------------------+--------------------------------------------------------+
    |PI_MultiProcess.py          | Demonstrates use of python multiprocessing module.     |
    |                            | Uses xp.pythonExecutable.                              |
@@ -123,7 +131,7 @@ files from ``samples`` to get the plugin working.
    |PI_Navigation1.py           | Ported from python2 example. Demonstrates use of FMC   |
    |                            | and the navigation databases. Uses findNavAid,         |
    |                            | getNavAidInfo, setFMSEntry, clearFMSEntry.             |
-   +----------------------------+--------------------------------------------------------+        
+   +----------------------------+--------------------------------------------------------+
    |PI_OpenGL.py                | Demonstrates use of OpenGL, *and* tests the            |
    |                            | installation for correct set up of OpenGL. **Note**    |
    |                            | Mac Big Sur will not run OpenGL without a minor        |

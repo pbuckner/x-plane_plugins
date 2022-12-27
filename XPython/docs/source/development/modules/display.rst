@@ -1614,3 +1614,7 @@ and if it consumes the key, the hot key will not be called.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMGetHotKeyInfo>`__ :index:`XPLMGetHotKeyInfo`
 
+.. toctree::
+   :hidden:
+
+   /development/window_position

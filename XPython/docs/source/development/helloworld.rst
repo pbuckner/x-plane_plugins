@@ -5,59 +5,9 @@ Simple `Hello World` program which creates and displays a message in a window.
 
 .. image:: /images/hello_world_demo.png
 
-::
+.. include:: helloworld.py
+   :code:
 
- import xp
- 
- class PythonInterface:
-     def __init__(self):
-         self.Name = "HelloWorld1"
-         self.Sig = "helloWorld1.demos.xppython3"
-         self.Desc = "A test plugin for the Python Interface."
-
-     def XPluginStart(self):
-         windowInfo = (50, 600, 300, 400, 1,
-                       self.DrawWindowCallback,
-                       self.MouseClickCallback,
-                       self.KeyCallback,
-                       self.CursorCallback,
-                       self.MouseWheelCallback,
-                       0,
-                       xp.WindowDecorationRoundRectangle,
-                       xp.WindowLayerFloatingWindows,
-                       None)
-         self.WindowId = xp.createWindowEx(windowInfo)
-         return self.Name, self.Sig, self.Desc
- 
-     def XPluginStop(self):
-         xp.destroyWindow(self.WindowId)
- 
-     def XPluginEnable(self):
-         return 1
- 
-     def XPluginDisable(self):
-         pass
- 
-     def XPluginReceiveMessage(self, inFromWho, inMessage, inParam):
-         pass
- 
-     def DrawWindowCallback(self, inWindowID, inRefcon):
-         (left, top, right, bottom) = xp.getWindowGeometry(inWindowID)
-         xp.drawTranslucentDarkBox(left, top, right, bottom)
-         color = 1.0, 1.0, 1.0
-         xp.drawString(color, left + 5, top - 20, "Hello World", 0, xp.Font_Basic)
- 
-     def KeyCallback(self, inWindowID, inKey, inFlags, inVirtualKey, inRefcon, losingFocus):
-         pass
- 
-     def MouseClickCallback(self, inWindowID, x, y, inMouse, inRefcon):
-         return 1
- 
-     def CursorCallback(self, inWindowID, x, y, inRefcon):
-         return xp.CursorDefault
- 
-     def MouseWheelCallback(self, inWindowID, x, y, wheel, clicks, inRefcon):
-         return 1
  
 Let's go through the differences from :doc:`skeleton` example.
 
@@ -66,7 +16,7 @@ It's a good idea that anything you create or register in `Start` you destroy or 
 Similarly, if you do it in `Enable`, un-do it in `Disable`.
 
 When the window is created we provide callbacks. These are invoked by X-Plane when certain events occur,
-allowing us to respond. We save the windowID as in instance member so it's available to us later
+allowing us to respond. We save the windowID as an instance member so it's available to us later
 when we need to destroy it.
 
 Details
@@ -88,7 +38,7 @@ can intermix the styles if you prefer, but I'm done with typing x-p-l-m.
 CreateWindowEx
 **************
 
-In ``XPluginStart`` we use :func:`xp.createWindowEx`  (i.e., :func:`XPLMDisplay.XPLMCreateWindowEx`) which takes
+In ``XPluginStart`` we use :func:`xp.createWindowEx`  (i.e., :func:`XPLMDisplay.XPLMCreateWindowEx`) which traditionally takes
 a tuple as input. The first four items are the corners (left, top, right, bottom). X-Plane 2-D coordinates increase going left-to-right,
 and from bottom-to-top. So ``(50, 600, 300, 400)`` is a box with upper left corner a (50, 600) and bottom right corner at (300, 400):
 
@@ -106,9 +56,11 @@ and from bottom-to-top. So ``(50, 600, 300, 400)`` is a box with upper left corn
 After the position integers, there is ``1`` so the window is immediately visible. If ``0``, then we'd need to
 make it visible in response to an event (menu, key press, etc.)
 
-Then there are the list of five callbacks. These **must** be existing functions, we cannot pass None, even if we
+Then there are the list of five callbacks. When added to this tuple interface, these **must** be existing functions,
+we cannot pass None, even if we
 don't want them to do anything. This is in contrast with the *final* callback for RightClickHandler, which we are
-permitted to set to None.
+permitted to set to None. (But..., see :ref:`create_simple` below).
+
 
 :DrawWindow:
    Called whenever X-Plane needs to draw our window. This will be *every frame* it is visible, so ideally keep this fast.
@@ -147,5 +99,20 @@ And finally we pass ``None`` for our MouseRightClick callback.
 We store the results of ``createWindowEx`` so it's available later when we destroy it as part of cleanup.
 
 Given we've already described the DrawWindow callback above, that's the whole plugin.
+
+.. _create_simple:
+
+CreateWindowEx - simplified
+***************************
+
+The C API passes parameters as a tuple, similar to how we did it above. It works, but it's error
+prone and not pythonic. Consider the simpler::
+
+  def XPluginStart(self):
+      self.windowId = xp.createWindowEx(left=50, top=600, bottom=300, right=400,
+                                        visible=1,
+                                        draw=self.drawWindowCallback)
+      return self.name, self.sig, self.desc
+
 
 See :doc:`hellowidget` for next example.

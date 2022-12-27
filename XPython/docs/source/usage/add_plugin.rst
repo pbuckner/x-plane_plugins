@@ -39,7 +39,7 @@ The structure is:
 Add a Python Plugin
 -------------------
 
-Third-party Python plugins themselves go to [#F1]_:
+Third-party Python plugins themselves go to:
 
 * **Resources/plugins/PythonPlugins/** folder
 
@@ -49,6 +49,8 @@ Third-party Python plugins themselves go to [#F1]_:
 
   + Plugins are loaded in order as returned by the OS: that is, do not assume alphabetically!
   + Python files can then import other python files.
+
+(There are exceptions, but this will cover 99% of your plugins. [#F1]_) 
 
 So as a quick test, copy the file ``PI_HellowWorld1.py`` from ``PythonPlugins/samples`` up one folder to ``PythonPlugins``.
 

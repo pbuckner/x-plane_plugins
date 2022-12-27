@@ -9,7 +9,7 @@ There are two main log files. (Any particular plugin may also create their own l
 If you have errors running python plugins,
 
 1. Check **Log.txt**. Make sure python and the python plugin are installed correctly. If not,
-   there will be a message in Log.txt, and XPPython3.txt will not be created. Verify it's Python3, not Python2
+   there will be a message in Log.txt, and XPPython3Log.txt will not be created. Verify it's Python3, not Python2
    getting loaded.
 
 2. Check **XPPython3Log.txt**. Most python coding errors / exceptions will be reported in this

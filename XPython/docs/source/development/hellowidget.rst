@@ -128,7 +128,7 @@ self.widgetCallback()
 
 Our widget callback handles the message for all of our widgets, and prints out the message.
 To avoid being overwhelmed by thousand of messages in XPPython.log, we implement a simple
-counter: We'll actually print out only the first 10 occuranced of any message type.
+counter: We'll actually print out only the first 10 occurances of any message type.
 
 A python note: Because our callback is a member function, its first parameter is ``self``. That
 means when X-Plane calls our callback, we'll have access to our plugin's ``PythonInterface`` instance "for free".
@@ -139,7 +139,7 @@ which case you'd omit the ``self`` parameter::
       ...
 
 Each invocation of the callback is passed the message itself, the widget to which the message is
-directed, and two parameters. See code in WidgetMessage to see the meaning of param1 and param2::
+directed, and two parameters. See code in WidgetMessage (and :ref:`XPWidgetMessage`) to see the meaning of param1 and param2::
 
     def widgetCallback(self, inMessage, inWidget, inParam1, inParam2):
         self.widgetMsgCounter[inMessage] = 1 + self.widgetMsgCounter.setdefault(inMessage, 0)

@@ -12,7 +12,7 @@ Known Bugs
 
  None (prove me wrong!)
 
-Beta 4.0.0c (27-Dec-2022)
+Beta 4.0.0 (27-Dec-2022)
 -------------------------
 :Note:
    * Supports Python 3.10 and 3.11 **only**. Please upgrade your python

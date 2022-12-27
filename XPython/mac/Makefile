@@ -1,7 +1,7 @@
 VPATH=..
 TARGET=$(shell uname)
 
-all : XPPython39.xpl XPPython310.xpl XPPython311.xpl
+all : XPPython310.xpl XPPython311.xpl
 	@echo $^
 
 # all : xppython3.xpl

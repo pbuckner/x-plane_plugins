@@ -79,7 +79,7 @@ This is all required:
 
 #. You **should** have three more methods:  ``XPluginStop()``, ``XPluginDisable()``, ``XPluginReceiveMessage()``
 
-   * These are not require, and their absence is treated with a sane default.
+   * These are not required, and their absence is handled with a sane default.
    * If included, the need to have the correct signature with the correct return value.
    * See :ref:`Inter-plugin Messaging` for more information about ``XPluginReceiveMessage()``.
 

@@ -8,6 +8,9 @@ Requirements
 * **X-Plane 12.00+**. Linux, Mac (Intel and M-series processors) or Windows.
   This plugin is built with SDK 400 and is NOT backward compatible to X-Plane 11 or earlier.
 
+.. warning:: This version of XPPython3 requires X-Plane 12. If you are using X-Plane 11.52, you
+             must install XPPython3 v3.1.5. See `Installation for X-Plane 11 <https://xppython3.rtfd.io/en/3.1.5/usage/installation_plugin.html>`_.
+
 Installation
 ============
 
@@ -16,6 +19,12 @@ Four steps:
 1. **Download and install Python 3.11.x**
 
   + https://www.python.org/downloads/
+
+  .. warning:: 
+
+     Do not use Python 3.11.1 on Windows. It has a loading bug and will not work.
+
+     Version 3.10.x is okay, 3.11.0 is okay, 3.11.2+ is okay.
 
   **For Windows**
     select "Add Python x.x to PATH" (*PLEASE*. This is the single most common error!)

@@ -3,7 +3,7 @@
 PLUGIN_PATH=Resources/plugins/XPPython3
 XP_SDK=../SDK400
 VERSIONS= 310 311
-XPPYTHONVERSION=4.0.0a
+XPPYTHONVERSION=4.0.0c
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
 #########
 # COMMON opts
@@ -189,7 +189,7 @@ SUBDIRSCLEAN=$(addsuffix .clean,$(SUBDIRS))
 clean : $(SUBDIRSCLEAN)
 
 clean_current_directory:
-	rm -f *.so *.o main_??? xppython3??.xpl default.prof* coverage.txt *.log *~ a.out xppython3?.zip *.arm *.x86
+	rm -f *.so *.o main_??? XPPython3??.xpl default.prof* coverage.txt *.log *~ a.out xppython3?.zip *.arm *.x86
 
 %.clean: %
 	$(MAKE) -C $< clean_current_directory

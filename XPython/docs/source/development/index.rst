@@ -42,7 +42,7 @@ that file in ``Resources/plugins/PythonPlugins``::
           xp.speakString("Hello World")
           return 1
 
-Make sure your audio is on start X-Plane. While the XP is initializing, before the plane or location is loaded,
+Make sure your audio is on and start X-Plane. While the XP is initializing, before the plane or location is loaded,
 you'll hear "Hello World".
 
 Your first plugin!

@@ -37,7 +37,7 @@ Beta 4.0.0c (27-Dec-2022)
 :Improvements:
    * **Reorganized documentation**. This on-line documentation has been reorganized
      with new sections added to (I hope) make writing plugins easier. Also Table
-     of Contents section (right side of every page) now shows your progress through
+     of Contents section (left side of every page) now shows your progress through
      all the information.
 
 3.1.5 (9-Sep-2022)

@@ -458,6 +458,13 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
 
 static int loadPythonLibrary(void) 
 {
+#if IBM
+  if (PY_VERSION_HEX >= 0x030b0100 && PY_VERSION_HEX < 0x030b0200) {
+    fprintf(pythonLogFile, "Python v3.11.1 is not supported on Windows, use v3.10.x, v3.11.0, or v3.11.2+ \n");
+    fflush(pythonLogFile);
+    return -1;
+  }
+#endif
 #if LIN || APL
   /* Prefered library is simple .so:
       libpython3.8.so

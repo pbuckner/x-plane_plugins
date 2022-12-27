@@ -31,4 +31,4 @@ Installing a package already installed is not a problem. You can install multipl
 
 ----
 
-.. [#F1] You'll install python libraries using PIP: you do not install X-Plane plugins using PIP).
+.. [#F1] You'll install python libraries using PIP: you do not install X-Plane plugins using PIP.

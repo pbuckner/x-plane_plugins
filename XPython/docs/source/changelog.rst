@@ -3,14 +3,42 @@ Change Log
 
 .. Note::
 
-   We will be dropping support for Python 3.6, 3.7, and 3.8 once X-Plane 12 is released.
-   Most users are already using Python 3.10. If you're not, you might consider upgrading.
+   With X-Plane 12, the new SDK is likly to be updated a few more times. This
+   will require updates to XPPython3 which I hope to keep to a minimum.
 
 
 Known Bugs
 ----------
 
  None (prove me wrong!)
+
+Beta 4.0.0c (27-Dec-2022)
+-------------------------
+:Note:
+   * Supports Python 3.10 and 3.11 **only**. Please upgrade your python
+     installation. We'll likely add 3.12 once it's fully released.
+
+   * XPPython3 v3.1.5 is the *final* release for X-Plane 11.
+
+     |
+
+:New Features:
+   * **SDK400**: This is the first version of the updated SDK for X-Plane 12
+     (and is why this will not work with older versions of X-Plane.)
+     
+   * **Python 3.11** support required some internal changes. You should not
+     need to change any of your plugins.
+
+   * **ImGui 1.8.2** widget library is now supported (and included). See :doc:`/development/imgui`.
+     This is an upgrade from previous v1.4.6.
+
+     |
+   
+:Improvements:
+   * **Reorganized documentation**. This on-line documentation has been reorganized
+     with new sections added to (I hope) make writing plugins easier. Also Table
+     of Contents section (right side of every page) now shows your progress through
+     all the information.
 
 3.1.5 (9-Sep-2022)
 -------------------

@@ -49,7 +49,7 @@ Four steps:
 
 2. **Download XPPython3 zipfile**:
 
-  + `xppython311.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython311.zip>`_.
+  + `xppython311.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xp311.zip>`_.
 
     (Use the above zip file only if you have Python 3.11.x installed. Otherwise, use `Other Versions of Python <older_python.html>`_.
 

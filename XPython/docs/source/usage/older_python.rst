@@ -25,8 +25,8 @@ of python.)
 Any micro-release may be used for a particular major.minor release: For example, python 3.10.0 and 3.10.4 are both "3.10".
 If you must use something other than the latest python, use a compatible version of the plugin:
 
-  + For Python3.10: `xppython310.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython310.zip>`_.
-  + For Python3.11: `xppython311.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython311.zip>`_.
+  + For Python3.10: `xppython310.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xp310.zip>`_.
+  + For Python3.11: `xppython311.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xp311.zip>`_.
 
 .. Note::
    All operating systems will allow you to have multiple versions of python installed (a bold statement, I know).

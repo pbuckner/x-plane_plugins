@@ -26,7 +26,7 @@ author = 'Peter Buckner'
 master_doc = 'index'
 
 # The full version, including alpha/beta/rc tags
-release = 'latest'
+release = '4.0.0'
 
 # -- general configuration ---------------------------------------------------
 
@@ -67,7 +67,7 @@ html_theme_options = {
     'root_url': '',
     'issues_url': '/en/latest/usage/getting_support.html',
     'collapsiblesidebar': True,
-    'versionhash': {'latest': 'v4.0.0',
+    'versionhash': {'4.0.0': 'v4.0.0',
                     'beta': 'v4.0.0 BETA',
                     '3.1.5': 'v3.1.5'}
 }

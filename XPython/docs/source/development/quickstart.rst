@@ -70,6 +70,16 @@ Couple of quick points common to all XPPython3 plugins:
     myWindowID = xp.createWindow()
     XPLMDisplay.XPLMDestroyWindow(myWindowID)
 
+* Finally, if you write bad python code, or use Python2 rather than Python3 syntax, you'll see the exception in
+  XPPython3Log.txt -- usually, but see warning.
+
+.. warning:: Errors in some calls to the X-Plane interface don't cause exceptions. Instead
+             they'll just terminate the plugin's method (e.g., terminate the flightloop or draw callback)
+             with no further message. These are hard to debug, but adding print statements to your plugin
+             to verify statement execution will help
+
+             Other errors may cause X-Plane to simply terminate.
+
 Code Examples
 -------------
 

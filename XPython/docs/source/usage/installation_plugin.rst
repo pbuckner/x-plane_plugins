@@ -34,7 +34,7 @@ Installation
 
 2. Download XPPython zipfile:
 
-  + `xppython310.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython310.zip>`_.
+  + `xppython310.zip <https://github.com/pbuckner/x-plane_plugins/raw/3.1.5/XPython/Resources/plugins/xppython310.zip>`_.
 
     (Use the above zip file only if you have Python 3.10.x installed. Otherwise, use `Other Versions of Python <older_python.html>`_.
 

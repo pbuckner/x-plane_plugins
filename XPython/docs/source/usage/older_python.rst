@@ -19,13 +19,13 @@ version does not match. If you change python versions on you computer, you must 
 to match. Any micro-release may be used for a particular major.minor release: For example, python 3.10.0 and 3.10.4 are both "3.10".
 If you must use something other than the latest python, use a compatible version of the plugin:
 
-  + For Python3.9: `xppython39.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython39.zip>`_.
-  + For Python3.10: `xppython310.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython310.zip>`_.
+  + For Python3.9: `xppython39.zip <https://github.com/pbuckner/x-plane_plugins/raw/3.1.5/XPython/Resources/plugins/xppython39.zip>`_.
+  + For Python3.10: `xppython310.zip <https://github.com/pbuckner/x-plane_plugins/raw/3.1.5/XPython/Resources/plugins/xppython310.zip>`_.
 
 Still supported for X-Plane 11, but will be dropped for X-Plane 12. We recommend against starting with these versions:
 
-  + For Python3.7: `xppython37.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython37.zip>`_.
-  + For Python3.8: `xppython38.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython38.zip>`_.
+  + For Python3.7: `xppython37.zip <https://github.com/pbuckner/x-plane_plugins/raw/3.1.5/XPython/Resources/plugins/xppython37.zip>`_.
+  + For Python3.8: `xppython38.zip <https://github.com/pbuckner/x-plane_plugins/raw/3.1.5/XPython/Resources/plugins/xppython38.zip>`_.
 
 .. Note::
    All operating systems will allow you to have multiple versions of python installed (a bold statement, I know).
@@ -36,6 +36,6 @@ Still supported for X-Plane 11, but will be dropped for X-Plane 12. We recommend
 *Python3.6 is deprecated*: we still build a version, but will be dropping support soon. Zip file is included here for
 emergency support: *Update your python!*
 
-  + For Python3.6: `xppython36.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xppython36.zip>`_.
+  + For Python3.6: `xppython36.zip <https://github.com/pbuckner/x-plane_plugins/raw/3.1.5/XPython/Resources/plugins/xppython36.zip>`_.
 
    

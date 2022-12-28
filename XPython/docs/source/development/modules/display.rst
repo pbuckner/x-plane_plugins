@@ -254,7 +254,13 @@ the same or different phases as long as the reference constant is unique for eac
 Avionics Drawing
 ----------------
 
-(to be provided)
+.. warning:: Avionics drawing is broken in X-Plane 12. Bug XPD-13293, at least.
+    The API described below will compile and run, but the callback is called
+    with the wrong devicedID and at the wrong time.
+    
+Avionics callback is convenient in that is provides the proper setup for a number of glass avionics devices.
+When you draw function is called, OpenGL is properly set for the device's viewport. Additionally, you
+can draw before, after, or instead of the X-Plane drawing for that device.
 
 Avionics Drawing Functions
 **************************
@@ -282,7 +288,9 @@ Avionics Drawing Functions
  >>> from OpenGL import GL
  >>> def MyDraw(deviceID, isBefore, refCon):
  ...     xp.setGraphicsState(0, 1)
- ...     xp.drawString([1, 0, 0], 10, 10, f"Viewport size is {GL.glGetIntegerv(GL.GL_VIEWPORT)}", None, xp.Font_Basic)
+ ...     xp.drawString([1, 0, 0], 10, 10,
+ ...                   f"Viewport size is {GL.glGetIntegerv(GL.GL_VIEWPORT)}",
+ ...                   None, xp.Font_Basic)
  ...     return 1
  ...
  >>> avionicsID = xp.registerAvionicsCallbacksEx(xp.Device_G1000_PFD_1, after=MyDraw)
@@ -346,7 +354,7 @@ Device IDs
  | .. py:data:: Device_Primus_MFD_2       | Primus Multifunction Display, copilot side                |
  |  :value: 14                            |                                                           |
  +----------------------------------------+-----------------------------------------------------------+
- | .. py:data:: Device_Primus_MFD_3       | Primus Multifunction Display, centeral                    |
+ | .. py:data:: Device_Primus_MFD_3       | Primus Multifunction Display, central                     |
  |  :value: 15                            |                                                           |
  +----------------------------------------+-----------------------------------------------------------+
  | .. py:data:: Device_Primus_RMU_1       | Primus Radio Management Unit, pilot side                  |
@@ -511,7 +519,7 @@ Window Drawing Functions
  |                                             | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_WindowLayerFlightOverlay>`__      |
  |                                             | :index:`xplm_WindowLayerFlightOverlay`                                                 |
  +---------------------------------------------+----------------------------------------------------------------------------------------+
- | .. py:data:: WindowLayerFloatingWindow      | Windows that "float" over the sime, like the X-Plane 11 map does. If you are not sure  |
+ | .. py:data:: WindowLayerFloatingWindow      | Windows that "float" over the sim, like the X-Plane 11 map does. If you are not sure   |
  |   :value: 1                                 | which layer to create your window in, choose floating                                  |
  |                                             |                                                                                        |
  |                                             | `Official SDK                                                                          |

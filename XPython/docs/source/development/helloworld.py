@@ -22,7 +22,7 @@ class PythonInterface:
         return self.name, self.sig, self.desc
 
     def XPluginStop(self):
-        xp.destroyWindow(self.iindowId)
+        xp.destroyWindow(self.windowId)
 
     def XPluginEnable(self):
         return 1

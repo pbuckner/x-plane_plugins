@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath('../../stubs'))
 # -- Project information -----------------------------------------------------
 
 project = 'XPPython3'
-copyright = '2022, Peter Buckner'
+copyright = '2023, Peter Buckner'
 author = 'Peter Buckner'
 
 master_doc = 'index'
@@ -68,7 +68,7 @@ html_theme_options = {
     'root_url': '',
     'issues_url': 'https://github.com/pbuckner/x-plane_plugins/issues',
     'collapsiblesidebar': True,
-    'versionlist': [('3.1.5', 'stable'), ]
+    'versionlist': [('4.0', 'latest'), ('3.1.5', '3.1.5')]
 }
 html_js_files = [
     'js/versions.js'

@@ -1,10 +1,10 @@
 {% if theme_versionlist|tobool %}
 Current stable release is
 {% for x in theme_versionlist %}
-     {% if x[1] == 'stable' %}
+     {% if x[1] == 'latest' %}
         {{ x[0] }}
      {% endif %}
-     {% if x[1] == 'stable' and x[0] != release %}
+     {% if x[1] == 'latest' and x[0] != release %}
         <br/> This is {{ release }}
      {% endif %}
 {% endfor %}

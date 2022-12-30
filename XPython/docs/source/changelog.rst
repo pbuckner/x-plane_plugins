@@ -12,8 +12,8 @@ Known Bugs
 
  None (prove me wrong!)
 
-Beta 4.0.0 (27-Dec-2022)
--------------------------
+4.0.0 (2-Jan-2023)
+------------------
 :Note:
    * Supports Python 3.10 and 3.11 **only**. Please upgrade your python
      installation. We'll likely add 3.12 once it's fully released.

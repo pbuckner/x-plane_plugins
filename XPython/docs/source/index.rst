@@ -1,17 +1,12 @@
 XPPython3
 =========
 
-.. Note:: 
+.. Warning:: 
 
-   Please let
-   me know about confusing documentation: There's no point in building a plugin if no one can
-   figure out how to use it. (See :ref:`GettingSupport`.)
+  This documentation is for XPPython3 v3.1.5, which is the **last** version to support X-Plane 11.
 
-   *Or* use the built-in `hypothes.is <https://web.hypothes.is/help/>`_ commenting system. Comments
-   are stored in the cloud and are viewable by everyone. Use the icons in the upper right:
-
-     .. image:: /images/hypothesis.png
-
+  If you are using X-Plane 12, you should install the lastest version of this plugin, available
+  `here <https://xppython3.readthedocs.io/en/latest/index.html>`_.
              
 XPPython3 [#why]_ is a plugin for Laminar Research `X-Plane <https://www.x-plane.com>`_. It supports writing
 of additional plugins using python3. This is an upgrade of Sandy Barbour's excellent

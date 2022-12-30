@@ -38,7 +38,7 @@ files from ``samples`` to get the plugin working.
    |                            | orbits the aircraft, using controlCamera.              |
    +----------------------------+--------------------------------------------------------+
    |PI_CommandSim1.py           | Ported from python2 example. Simple sending of XP      |
-   |                            | commmands using menu items. appendMenuItemWithCommand  |
+   |                            | commands using menu items. appendMenuItemWithCommand   |
    |                            | and findCommand.                                       |
    +----------------------------+--------------------------------------------------------+
    |PI_Control1.py              | Ported from python2. Demonstrates how to move aircraft |
@@ -52,7 +52,7 @@ files from ``samples`` to get the plugin working.
    |                            | dataref. Press F8 to toggle display, drag panel by     |
    |                            | selecting top ~20 pixels of panel.                     |
    |                            |                                                        |
-   |                            | Copy ExampleGauge/\*.bmp bitmaps from sample direcctory|
+   |                            | Copy ExampleGauge/\*.bmp bitmaps from sample directory |
    |                            | into Resource/plugins/PythonPlugins/ExampleGauge/ so   |
    |                            | this plugin can find them.                             |
    |                            |                                                        |
@@ -79,7 +79,15 @@ files from ``samples`` to get the plugin working.
    |PI_imgui.py                 | Simple popup window with imgui-based widgets.          |
    |                            | See :doc:`/development/imgui`.                         |
    +----------------------------+--------------------------------------------------------+
-   |PI_InputOutput1.py          | Ported from python2 example. Demonstrates input /      |
+   |PI_imguiBarometer.py        | Shows interaction between an ImGui widget and a        |
+   |                            | dataref. A slider monitors current value of            |
+   |                            | 'barometer_setting' dataref, updating the slider if the|
+   |                            | value is changed in the cockpit. Also, if the value of |
+   |                            | the slider is manually changed, it will update the     |
+   |                            | value in the aircraft. Uses imgui, command handlers and|
+   |                            | dataref APIs.                                          |
+   +----------------------------+--------------------------------------------------------+
+   | PI_InputOutput1.py         | Ported from python2 example. Demonstrates input /      |
    |                            | output of data from X-Plane, (changing engine throttle |
    |                            | and obtaining resulting N1). Should be used with the   |
    |                            | Override1 plugin                                       |
@@ -90,7 +98,7 @@ files from ``samples`` to get the plugin working.
    |                            | and displays result. Uses registerKeySniffer.          |
    +----------------------------+--------------------------------------------------------+
    |PI_ListBox.py               | Demonstrates the use of a listbox widget (requires     |
-   |                            | XPListBox.py.) XPListBox was modelled after            |
+   |                            | XPListBox.py.) XPListBox was modeled after             |
    |                            | a version on                                           |
    |                            | `xsquawkbox.net                                        |
    |                            | <https://www.xsquawkbox.net/xpsdk/mediawiki/           |
@@ -115,15 +123,15 @@ files from ``samples`` to get the plugin working.
    |PI_MiniPython.py            | In-game python interpreter. Allows you to execute      |
    |                            | most python within context of running X-Plane. Great   |
    |                            | way to test SDK APIs and see what happens. Requires    |
-   |                            | XPListBox.py to be copied also.                        |
+   |                            | XPListBox.py to be copied also.                        |        
    +----------------------------+--------------------------------------------------------+
-   |PI_MultiProcess.py          | Demostrates use of python multiprocessing module.      |
+   |PI_MultiProcess.py          | Demonstrates use of python multiprocessing module.     |
    |                            | Uses xp.pythonExecutable.                              |
    +----------------------------+--------------------------------------------------------+
    |PI_Navigation1.py           | Ported from python2 example. Demonstrates use of FMC   |
    |                            | and the navigation databases. Uses findNavAid,         |
    |                            | getNavAidInfo, setFMSEntry, clearFMSEntry.             |
-   +----------------------------+--------------------------------------------------------+        
+   +----------------------------+--------------------------------------------------------+
    |PI_OpenGL.py                | Demonstrates use of OpenGL, *and* tests the            |
    |                            | installation for correct set up of OpenGL. **Note**    |
    |                            | Mac Big Sur will not run OpenGL without a minor        |
@@ -138,7 +146,13 @@ files from ``samples`` to get the plugin working.
    |PI_Position1.py             | Ported from python2. Demonstrates how to change        |
    |                            | aircraft attitude. Original by Sandy Barbour included  |
    |                            | with PythonInterface. Uses localToWorld, worldToLocal, |
-   |                            | getWidgetProperty, setWidgetPropoerty, setDataf.       |
+   |                            | getWidgetProperty, setWidgetProperty, setDataf.        |
+   +----------------------------+--------------------------------------------------------+
+   |PI_RightWingTip1.py         | Loads and displaces Instance objects. Display is       |
+   |                            | relative to the user aircraft such that the objects    |
+   |                            | appear to be "welded" to the airframe. Based on idea   |
+   |                            | described at forums.x-plane.org. User createInstance,  |
+   |                            | lookupObjects, loadObjectAsync, instanceSetPosition.   |
    +----------------------------+--------------------------------------------------------+
    |PI_SharedData1.py,          | Ported from python2. Demonstrates sharing data         |
    |PI_SharedData2.py           | between to different plugins. Using findDataRef,       |
@@ -155,7 +169,7 @@ files from ``samples`` to get the plugin working.
    |                            | Ported from C version on developer.x-plane.com         |
    |                            | `"Overriding TCAS" <https://developer.x-plane.com/code-|
    |                            | sample/overriding-tcas/>`_ and discussed in            |
-   |                            | `"Overriding TCAS and providing traffice information"  |
+   |                            | `"Overriding TCAS and providing traffic information"   |
    |                            | <https://developer.x-plane.com/article/overriding-tcas-|
    |                            | and-providing-traffic-information/>`_                  |
    |                            | Uses getDatad, getDataf, getDatavi,                    |
@@ -163,7 +177,7 @@ files from ``samples`` to get the plugin working.
    |                            | setActiveAircraftCount, acquirePlanes, releasePlanes,  |
    |                            | countAircraft, getPluginInfo.                          |
    +----------------------------+--------------------------------------------------------+
-   |PI_TextureDraw.py           | Ported from C vesion on devevlper.x-plane.com          |
+   |PI_TextureDraw.py           | Ported from C version on devevlper.x-plane.com         |
    |                            | `"TextureDraw" <https://developer.x-plane.com/code-samp|
    |                            | le/texturedraw/>`_ Uses bindTexture2d, setGraphicsState|
    |                            | , and generateTextureNumbers, with OpenGL              |

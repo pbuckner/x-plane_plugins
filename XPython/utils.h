@@ -32,5 +32,5 @@ void pythonDebug(const char *fmt, ...);
 
 extern const char *pythonPluginsPath;
 extern const char *pythonInternalPluginsPath;
-
+void MyPyRun_String(const char *str, int start, PyObject *globals, PyObject *locals);
 #endif

@@ -1,144 +1,89 @@
 Plugin Development
 ==================
 
-To develop python3 plugins, you'll need to have the XPPython3 plugin installed first (and python3, of course).
+What is XPPython3
+-----------------
+XPPython3 is a standard X-Plane compiled plugin, which loads and executes python plugins. Messages sent by X-Plane to
+plugins are received by XPPython3 which then forwards messages to each of the python plugins, translating native "C" language
+data types into relevant python datatypes.
 
-Output from python :code:`print()` statements, python coding errors and exceptions will appear
-in :code:`XPPython3Log.txt`.
+Function calls made from python plugins are handled by XPPython3, which translates python data types to C and then makes
+the equivalent call into X-Plane using the X-Plane SDK. From X-Plane's perspective, XPPython3 is a single plugin: Only
+XPPython3 knows about the individual python plugins.
 
-.. Note::
- Errors in some calls to XP interface don't cause exceptions but
- rather just terminate the plugin's method (e.g., terminate the flightloop) with no further
- message. These are hard to debug, but adding print statements to you plugin to verify statement
- execution will help.
+    .. image:: /images/xppython3-overview.png
 
-If you write bad python code, or use Python2 rather than Python3 syntax, you'll see the exception
-in XPPython3Log.txt.
+The XPPython3 programming interface matches the X-Plane C SDK interface, using the same concepts. So if you're
+familiar with the SDK you'll find the python interface pretty easy. Similarly, you should be able to
+translate examples from C into python (and vice-versa) without much effort. [#effort]_
 
-Documentation
--------------
+Why use XPPython3?
 
-You will find these resources helpful:
+* Python language
+* Simplified API through the addition of keyword and default parameters
+* Integrated python interpreter allowing you to literally cut-and-paste examples from this documentation into a
+  running X-Plane.
 
-* :doc:`modules/index` Documentation
+Hello World
+-----------
 
-  Note we use a `Simplified Python Interface in module xp <modules/xp.html>`_.
-  You'll find it much faster and easier to write new
-  code using this interface and won't wear out your XPLM keys. You can use the older style (e.g., ``import XPLMMenus``,
-  but new code will work better with the ``xp`` style interface.)
+So, following the time-honored tradition of first program: here's an audio Hello World.
 
-  We've attempted to fully document the API here, noting changes from the official C-Language SDK.
-  (Don't forget to use the `Search`
-  field in the header of each of these documentation web pages to find what you're looking for!)
+Put the following in a file called "PI_HelloWorld.py" (being mindful of leading spaces!) and place
+that file in ``Resources/plugins/PythonPlugins``::
 
-  *Most* of the APIs in this documentation include example source code which can be cut and pasted into the :doc:`debugger`.
-  
-  * `X-Plane Developer Documentation @ developer.x-plane.com <https://developer.x-plane.com/sdk/plugin-sdk-documents/>`_
+  import xp
 
-    X-Plane's documentation is for C-language, and most of that has been translated to python and documented
-    with XPPython3. However, when in doubt, check the Laminar docs.
+  class PythonInterface:
+      def XPluginStart(self):
+          return "Hello World", "xppython3.hello", "Simple Hello World"
 
-* :doc:`/changelog`. Lists recent changes to this SDK.
+      def XPluginEnable(self):
+          xp.speakString("Hello World")
+          return 1
 
-* :doc:`import`. Information about python packages and proper way to import.
-    
-* :doc:`imgui`. Using `Dear IMGUI <https://github.com/ocornut/imgui>`_ (and OpenGL) with XPPython3.
-    
-* :doc:`plugins`: Though most plugins are Global Plugins, you can code Aircraft and Scenery plugins.
+Make sure your audio is on and start X-Plane. While the XP is initializing, before the plane or location is loaded,
+you'll hear "Hello World".
 
-And for something completely different:
+Your first plugin!
 
-* :doc:`udp/index`: *Not* XPPython3, and *not* a plugin, but this documents python access to X-Plane via UDP.
+Now, while X-Plane continues to run, navigate to the Plugins menu, and select XPPython3->Performance. Here
+you'll see (at least) three python plugins running::
 
-Code Examples
--------------
+  PythonPlugins.PI_HelloWorld
+  XPPython3.I_PI_FirstTime
+  XPPython3.I_PI_Updater
 
-* :doc:`quickstart`.  Bare-bones skeleton and Hello World to get you started.
+That's it. Your plugin is running. Exit X-Plane and take a look at ``<XP>/XPPython3Log.txt``, located
+in the same folder as ``Log.txt``. It will have lines like::
 
-* :doc:`samples`.   Ported versions of C++ and Python2 demos. Many of
-  these are copied to your ``PythonPlugins/samples/`` folder on installation, but there may be more, and more recent demos
-  on github. You can download the latest set, refreshing the ``samples`` folder, by selecting **Download Samples** from the
-  XPPython3 menu.
+  [XPPython3] Version 4.0.0 - for Python 3.11 Started -- Thu Dec  8 09:23:34 2022
+  ...
+  [XPPython3] PythonPlugins.PI_HelloWorld initialized.
+  [XPPython3]  Name: Hello World
+  [XPPython3]  Sig:  xppython3.hello
+  [XPPython3]  Desc: Simple Hello World
 
-* `XPython/examples/ (github) <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/examples/>`_ Python test code exercising each interface
-  is in this directory, organized primarily one example file per module.
-  You can copy them into your :code:`/PythonPlugins` directory to have them executed by X-Plane with
-  few modifications.
+Want to do something more interesting? Work through the next :doc:`quickstart` examples.
 
-  Most of these examples where used to exercise specific aspects of the API rather than provide useful, instructive examples.
-  See :doc:`samples` if you're looking for something more helpful.
-
-Tools
------
-
-* **Mini Debugger** (See :doc:`debugger`.)
-
-  The ``PI_MiniPython.py`` plugin, available under ``PythonPlugins/samples/``, allows you to
-  type in python expressions in a running application and see the results: You'll need to move it
-  from ``samples`` up into the ``PythonPlugins`` directory in order for it to load.
-
-* **Plugin Performance** (See :doc:`/usage/performance`.)
-
-  XPPython3 monitors the performance of individual python plugins and displays this information
-  when you select the `XPPython3` -> `Performance` menu item.
-
-* **Python Stubs** (Download from github: `stubs.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/stubs.zip>`_.)
-   
-  Because the XPLM* modules are contained within a shared library, they are not useful for support tools such as
-  pylint. For this reason, we've included a set of stubs. See :doc:`stubs` for details.
-   
-  .. Note:: Do not place stubs in XPPython3 or PythonPlugins folder where they will be found by
-            X-Plane! The stubs do not actually execute code.
-
-* **Debug Config Initialization** (See :doc:`xppython3.ini`.)
-
-  For debugging, we've added some run-time flags which can be configured and stored. These
-  increase the level of internal debugging output, and increase the frequency of buffer flushing.
-  Will slow down execution time a small bit, but may make your debugging easier.
-  
-Advanced Topics
----------------
-
-* **Porting** from older plugin?
-
-  Note that XPPython3 is backward compatible to the API, but you will need
-  to make changes to support python3 vs. python2. That being said XPPython3 has a new simplified API which (though not
-  backward compatible) will make new code easier to write.
-
-  * :doc:`changesfromp2`
-  * :doc:`portingNotes`
-  * `NOAA Weather Plugin <https://github.com/pbuckner/XplaneNoaaWeather/>`_
-
-    **Unofficial** port of Joan's NOAWeather plugin.
-    Use git-compare to see what types of things change from python2 to python3. (Joan is familiar with the changes
-    and will be responsible for official support in the future -- this is merely a porting example.)
-
-* Using python **multiprocessing or subprocess?** See :doc:`multiprocessing` for hints and an example.
-
+|
+|
 
 .. toctree::
    :maxdepth: 1
-   :caption: All Advanced topcs
-
-   import
-   callbacks
-   quickstart
-   changesfromp2
-   debugger
-   xppython3.ini
-   stubs
-   plugins
-   menus
-   window_position
-   opengl
-   imgui
-   multiprocessing
-   portingNotes
-   udp/index
-   modules/index
-   xppythondicts
-
-.. toctree::
    :hidden:
+   :caption: Development Resources:
 
-   standalone
+   quickstart
+   Python SDK Modules <modules/index>
+   Graphics options <graphics>
+   tools
+   implementation_details
+   /changelog
+
+----
+
+.. [#effort]
+   Except, of course, where python has vastly more programmer-friendly control and data structures, and
+   built-in libraries which you'll have to deal with yourself in the cold C world. Python:
+   `"Batteries included" <https://www.computer.org/csdl/magazine/cs/2007/03/c3007/13rRUzpQPH7>`_

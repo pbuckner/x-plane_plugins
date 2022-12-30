@@ -12,7 +12,7 @@ from XPPython3.utils import samples
 
 class Config (scriptupdate.Updater):
     Name = "XPPython3 Updater"
-    Sig = "xppython3.updater.{}.{}".format(sys.version_info.major, sys.version_info.minor)
+    Sig = f"xppython3.{xp.getVersions()[1]}.{sys.version_info.major}.{sys.version_info.minor}"  #{SDK}
     Desc = "Automatic updater for XPPython3 plugin"
     Version = XPPython.VERSION
     VersionCheckData = {'product': urllib.parse.quote_plus(Sig),

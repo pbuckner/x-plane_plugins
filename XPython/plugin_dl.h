@@ -60,6 +60,9 @@ extern typeof(XPLMGetWindowGeometryVR) *XPLMGetWindowGeometryVR_ptr;
 extern typeof(XPLMSetWindowGeometryVR) *XPLMSetWindowGeometryVR_ptr;
 extern typeof(XPLMWindowIsInVR) *XPLMWindowIsInVR_ptr;
 
+//XPLM_400
+extern typeof(XPLMRegisterAvionicsCallbacksEx) *XPLMRegisterAvionicsCallbacksEx_ptr;
+extern typeof(XPLMUnregisterAvionicsCallbacks) *XPLMUnregisterAvionicsCallbacks_ptr;
 
 bool loadSDKFunctions(void);
 

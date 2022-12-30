@@ -3,8 +3,9 @@ from __future__ import absolute_import
 import warnings
 from distutils.version import LooseVersion
 
-from pyglet.window import key, mouse
+from pyglet.window import key, mouse, Window
 import pyglet
+import pyglet.clock
 
 import imgui
 
@@ -23,11 +24,13 @@ class PygletMixin(object):
         key.PAGEDOWN: imgui.KEY_PAGE_DOWN,
         key.HOME: imgui.KEY_HOME,
         key.END: imgui.KEY_END,
+        key.INSERT: imgui.KEY_INSERT,
         key.DELETE: imgui.KEY_DELETE,
-        key.SPACE: imgui.KEY_SPACE,
         key.BACKSPACE: imgui.KEY_BACKSPACE,
+        key.SPACE: imgui.KEY_SPACE,
         key.RETURN: imgui.KEY_ENTER,
         key.ESCAPE: imgui.KEY_ESCAPE,
+        key.NUM_ENTER: imgui.KEY_PAD_ENTER,
         key.A: imgui.KEY_A,
         key.C: imgui.KEY_C,
         key.V: imgui.KEY_V,
@@ -35,6 +38,25 @@ class PygletMixin(object):
         key.Y: imgui.KEY_Y,
         key.Z: imgui.KEY_Z,
     }
+    _gui_time = None
+
+    MOUSE_CURSORS = {
+        imgui.MOUSE_CURSOR_ARROW: Window.CURSOR_DEFAULT,
+        imgui.MOUSE_CURSOR_TEXT_INPUT: Window.CURSOR_TEXT,
+        imgui.MOUSE_CURSOR_RESIZE_ALL: Window.CURSOR_SIZE,
+        imgui.MOUSE_CURSOR_RESIZE_NS: Window.CURSOR_SIZE_UP_DOWN,
+        imgui.MOUSE_CURSOR_RESIZE_EW: Window.CURSOR_SIZE_LEFT_RIGHT,
+        imgui.MOUSE_CURSOR_RESIZE_NESW: Window.CURSOR_SIZE_DOWN_LEFT,
+        imgui.MOUSE_CURSOR_RESIZE_NWSE: Window.CURSOR_SIZE_DOWN_RIGHT,
+        imgui.MOUSE_CURSOR_HAND: Window.CURSOR_HAND
+    }
+
+    def __init__(self):
+        super(PygletMixin, self).__init__()
+        self._cursor = -2
+        self._window = None
+        # Let Dear imgui know we have mouse cursor support
+        self.io.backend_flags |= imgui.BACKEND_HAS_MOUSE_CURSORS
 
     def _set_pixel_ratio(self, window):
         window_size = window.get_size()
@@ -54,6 +76,7 @@ class PygletMixin(object):
 
 
     def _attach_callbacks(self, window):
+        self._window = window
         window.push_handlers(
             self.on_mouse_motion,
             self.on_key_press,
@@ -84,6 +107,20 @@ class PygletMixin(object):
                             key_pressed in (key.LALT, key.RALT)
         self.io.key_shift = mods & key.MOD_SHIFT or \
                             key_pressed in (key.LSHIFT, key.RSHIFT)
+
+    def _handle_mouse_cursor(self):
+        if self.io.config_flags & imgui.CONFIG_NO_MOUSE_CURSOR_CHANGE:
+            return
+
+        mouse_cursor = imgui.get_mouse_cursor()
+        window = self._window
+        if self._cursor != mouse_cursor:
+            self._cursor = mouse_cursor
+            if mouse_cursor == imgui.MOUSE_CURSOR_NONE:
+                window.set_mouse_visible(False)
+            else:
+                cursor = self.MOUSE_CURSORS.get(mouse_cursor)
+                window.set_mouse_cursor(window.get_system_mouse_cursor(cursor))
 
     def on_mouse_motion(self, x, y, dx, dy):
         self.io.mouse_pos = x, self.io.display_size.y - y
@@ -145,6 +182,18 @@ class PygletMixin(object):
 
     def on_resize(self, width, height):
         self.io.display_size = width, height
+    
+    def process_inputs(self):
+        io = imgui.get_io()
+        
+        current_time = pyglet.clock.tick()
+
+        if self._gui_time:
+            io.delta_time = current_time - self._gui_time
+        else:
+            io.delta_time = 1. / 60.
+        if(io.delta_time <= 0.0): io.delta_time = 1./ 1000.
+        self._gui_time = current_time
 
 
 class PygletFixedPipelineRenderer(PygletMixin, FixedPipelineRenderer):
@@ -154,6 +203,10 @@ class PygletFixedPipelineRenderer(PygletMixin, FixedPipelineRenderer):
         self._map_keys()
         if attach_callbacks: self._attach_callbacks(window)
 
+    def render(self, draw_data):
+        super(PygletFixedPipelineRenderer, self).render(draw_data)
+        self._handle_mouse_cursor()
+
 
 class PygletProgrammablePipelineRenderer(PygletMixin, ProgrammablePipelineRenderer):
     def __init__(self, window, attach_callbacks = True):
@@ -161,6 +214,10 @@ class PygletProgrammablePipelineRenderer(PygletMixin, ProgrammablePipelineRender
         self._set_pixel_ratio(window)
         self._map_keys()
         if attach_callbacks: self._attach_callbacks(window)
+
+    def render(self, draw_data):
+        super(PygletProgrammablePipelineRenderer, self).render(draw_data)
+        self._handle_mouse_cursor()
 
 
 class PygletRenderer(PygletFixedPipelineRenderer):

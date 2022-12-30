@@ -2,7 +2,7 @@ Global, Aircraft, and Scenery Plugins
 =====================================
 
 From an X-Plane perspective, there are three types of plugins:
-Global, Aircraft, and Scenery. Internally, these plugins are identical.
+Global, Aircraft, and Scenery. Internally, these plugins are identical:
 They have access to the same SDK calls, receive the same messages,
 and must follow the same set of rules.
 

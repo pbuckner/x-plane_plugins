@@ -1,5 +1,5 @@
-Standalone Python with UDP
---------------------------
+Standalone Python & UDP
+-----------------------
 
 In addition to plugins, X-Plane supports external communications via UDP. This
 allows any number of separate processes (potentially on separate computers) to
@@ -23,7 +23,7 @@ UDP is pretty simple: you'll create a UDP (i.e., DATAGRAM) socket, and then use 
 to send information to a remote port::
 
   sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-  msg = makeMsg()
+  msg = myMakeMsg()
   sock.send_to(msg, (X_PLANE_IP, UDP_PORT))
 
 Receiving information is similarly simple::
@@ -31,16 +31,16 @@ Receiving information is similarly simple::
   data, addr = sock.recvfrom(2048)
   handleData(data)
 
-The more difficult part is working this ``sent_to()`` and ``recvfrom()`` into a working program
+The more difficult part is working this ``send_to()`` and ``recvfrom()`` into a working program
 so you don't get confused while interleaving sends and receives. (You can put the receiver in a
 python thread. See example in :doc:`rref`.)
 
 UDP and X-Plane
 ===============
 X-Plane understands a particular format, described in
-**<XP>/Instructions/X-Plane SPECS from Austin/Exchanging Data with X-Plane.rtfd**.
+**Exchanging Data with X-Plane.rtfd** under **<XP>/Instructions**.
 However, *that document is not accurate*. I suppose because it's just not been updated in a while, but
-it no longer matches with X-Plane 11.55+ does.
+it no longer matches with what X-Plane 11.55 or 12 does.
 
 X-Plane's interface is (usually) described using C language structures and expects a particular size
 and encoding of data. You'll have to format ('pack')
@@ -100,11 +100,20 @@ You can use it like::
   port = beacon['port']
   ip = beacon['ip']
 
-By default, X-Plane is set for UDP networking. You do not have to enable anything under X-Plane Settings->Network.
+By default, X-Plane 11 is set for UDP networking. You do not have to enable anything under X-Plane Settings->Network.
 This includes External Visuals, External Apps, or UDP Ports.
+
+.. Note::
+   XP 12 appears to disable UDP networking initially. Check Settings->Network page, and make sure
+   "Accept incoming connections" is enabled.
 
 Note your socket related to the beacon is different from the socket you use to send and receive information
 from X-Plane. One you've *found* X-Plane, you can close the beacon socket.
+
+For initial debugging, it may be helpful to have X-Plane log networking data to Log.txt: that way you can
+see verify it is receiving what you think you're sending. This can be enabled on Settings->General, select "Output network data to Log.txt"
+option under the Data section. The problem with this option is that it also logs all Beacon posts, so there
+will be lots of log entries.
 
 X-Plane UDP Summary
 ===================
@@ -196,6 +205,7 @@ X-Plane UDP Summary
 
 .. toctree::
    :maxdepth: 1
+   :hidden:
    :caption: Details
 
    acfn

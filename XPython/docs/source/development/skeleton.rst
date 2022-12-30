@@ -1,46 +1,35 @@
 Skeleton
 ========
 
-This does nothing, except log itself in XPPython3Log.txt -- a minimal "I Am Here".
+Plugins (C and Python) work by having a standard calling interface:
 
-::
++--+-------------------------+-----------------------------------------------------------------+
+|1.|``XPluginStart``         | Called by X-Plane at startup, this is called for every plugin   |
+|  |                         | and each plugin returns its signature.                          |
++--+-------------------------+-----------------------------------------------------------------+
+|2.|``XPluginEnable``        |Once all plugins are started, X-Plane calls each plugin to       |
+|  |                         |register callbacks and other resources.  Each plugin returns 1 or|
+|  |                         |0 indicating it enabled properly.                                |
++--+-------------------------+-----------------------------------------------------------------+
+|3.|``XPluginReceiveMessage``|While running, X-Plane may send messages to all plugins such as  |
+|  |                         |"PLANE_LOADED" or "ENTERED_VR". Plugins use this call to handle  |
+|  |                         |(or ignore) the message.                                         |
++--+-------------------------+-----------------------------------------------------------------+
+|4.|``XPluginDisable``       |Called at X-Plane termination so each plugin can unregister any  |
+|  |                         |callbacks and stop "doing work".                                 |
++--+-------------------------+-----------------------------------------------------------------+
+|5.|``XPluginStop``          |Called after all plugins are disabled so each plugin is able to  |
+|  |                         |save its state, close files, deallocate resources.               |
++--+-------------------------+-----------------------------------------------------------------+
 
- class PythonInterface:
-     def __init__(self):
-         self.Name = "Skeleton"
-         self.Sig = "skeleton.xppython3"
-         self.Desc = "Minimal do-nothing plugin"
 
-     def XPluginStart(self):
-         # Required by XPPython3
-         # Called once by X-Plane on startup (or when plugins are re-starting as part of reload)
-         # You need to return three strings
-         return self.Name, self.Sig, self.Desc
 
-     def XPluginStop(self):
-         # Called once by X-Plane on quit (or when plugins are exiting as part of reload)
-         # Return is ignored
-         pass
+In Python, here's how it looks.
+The following code does nothing, except log itself in XPPython3Log.txt -- a minimal "I Am Here". (Seriously, don't bother
+coding this example -- just use it as a reference.)
 
-     def XPluginEnable(self):
-         # Required by XPPython3
-         # Called once by X-Plane, after all plugins have "Started" (including during reload sequence).
-         # You need to return an integer 1, if you have successfully enabled, 0 otherwise.
-         return 1
-
-     def XPluginDisable(self):
-         # Called once by X-Plane, when plugin is requested to be disabled. All plugins
-         # are disabled prior to Stop.
-         # Return is ignored
-         pass
-
-     def XPluginReceiveMessage(self, inFromWho, inMessage, inParam):
-         # Called by X-Plane whenever a plugin message is being sent to your
-         # plugin. Messages include MSG_PLANE_LOADED, MSG_ENTERED_VR, etc., as
-         # described in XPLMPlugin module.
-         # Messages may be custom inter-plugin messages, as defined by other plugins.
-         # Return is ignored
-         pass
+.. include:: skeleton.py
+  :code:
 
 Place it into the PythonPlugins folder, restart X-Plane and nothing will happen, except XPPython3Log.txt will
 include:
@@ -77,12 +66,6 @@ This is all required:
    * BUT, they all must exist. X-Plane will invoke your methods directly, calling your ``PI_avDD3.PythonInterface().XPluginStart()`` when
      it is ready to start your plugin, so that had better exist.
 
-#. You **should** have three more methods:  ``XPluginStop()``, ``XPluginDisable()``, ``XPluginReceiveMessage()``
-
-   * These are not require, and their absence is treated with a sane default.
-   * If included, the need to have the correct signature with the correct return value.
-   * See :ref:`Inter-plugin Messaging` for more information about ``XPluginReceiveMessage()``.
-
 #. Your ``XPPluginStart`` **must** return three strings, in this order:
 
    * **Name**: The name should be short, but is used just for display purposes. So whatever you like.
@@ -94,12 +77,18 @@ This is all required:
 
    You'll note it our example, we set these values in ``__init__()``, but strictly speaking, that's not required
 
+#. You **should** have three more methods:  ``XPluginStop()``, ``XPluginDisable()``, ``XPluginReceiveMessage()``
+
+   * These are not required, and their absence is handled with a sane default.
+   * If included, the need to have the correct signature with the correct return value.
+   * See :ref:`Inter-plugin Messaging` for more information about ``XPluginReceiveMessage()``.
+
 #. Your ``XPluginEnable`` **should** return ``1``.
 
    * Returning ``1`` indicates you were successfully enabled. If you don't return ``1``, we'll assume the worse and
      never speak with you again.
 
-... So technically, minimum would be:
+... So technically, the absolute minimum would be:
 
 ::
 

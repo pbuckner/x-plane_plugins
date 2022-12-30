@@ -1,6 +1,24 @@
 Common Installation Errors
 --------------------------
 
+On All Platforms
+================
+
+.. code-block:: none
+
+   Can't open <folder> to scan for plugins.
+
+**Cause**:
+    XPPython3 looks for its main plugin folder PythonPlugins (See :doc:`installation_plugin`), and if not
+    found, it will complain. Additionally, XPPython3 will look for aircraft-specific plugins specific
+    to the loaded user aircraft (:doc:`/development/plugins`).
+
+**Solution**:
+    If you were expecting python plugin to be loaded, check to make sure the file(s) are place in the
+    correct location. If you're not anticipating a plugin to be loaded, ignore the message.
+  
+----
+
 On Windows
 ==========
 
@@ -11,8 +29,8 @@ On Windows
      
 **Cause**:
     X-Plane cannot load all DLLs required by plugin. In this case, the XPPython plugin is looking for Python DLL.
-    The Python version of XPPython3 (3.6, 3.7, ..., 3.10) looks for the same named DLL
-    (python36.dll, python37.dll, ..., pthon310.dll).
+    The Python version of XPPython3 (3.10, 3.11, 3.12) looks for the same named DLL
+    (python310.dll, python311.dll, ..., pthon312.dll).
    
 **Solution**:
     Windows using your %PATH% environment variable to find DLLs, so when you install:
@@ -31,6 +49,7 @@ On Windows
 
 On Mac
 ======
+
 
 You get popup on initial execution:
 
@@ -87,28 +106,15 @@ You get an eror message in a Log file complaining about SSL CERTIFICATES:
 
          
 On All Platforms
-================
 
-.. code-block:: none
 
-   Can't open <folder> to scan for plugins.
-
-**Cause**:
-    XPPython3 looks for its main plugin folder PythonPlugins (See :doc:`installation_plugin`), and if not
-    found, it will complain. Additionally, XPPython3 will look for aircraft-specific plugins specific
-    to the loaded user aircraft (:doc:`/development/plugins`).
-
-**Solution**:
-    If you were expecting python plugin to be loaded, check to make sure the file(s) are place in the
-    correct location. If you're not anticipating a plugin to be loaded, ignore the message.
-  
 ----
 
 .. [#F1] "*Apple signature costs $100/year*". I'm in favor of the quarantine system, but not
          crazy about having to pay to get a signature as I make no money on XPPython3.
          If you'd like to donate, I promise to
          use the first $100 of XPPython3 donations each year to purchase a signature so
-         that others may avoid this hassle. You can donate
-         through
+         that others may avoid this hassle. You can donate through
          `Paypal <https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TA3EJ9VWFCH3N&source=url>`_.
+         
 

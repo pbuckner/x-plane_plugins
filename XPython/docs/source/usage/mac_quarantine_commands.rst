@@ -1,5 +1,5 @@
 :orphan:
-
+   
 Mac Quarantine By Hand
 ----------------------
 
@@ -16,7 +16,7 @@ Removing the quarantine ``xattr`` isn't hard to do, if you're comfortable with t
       $ xattr -l XPPython3.xpl
       com.apple.quarantine: 0083;619aec20;Safari;47F5FBD6-CEA4-425C-93A3-1856380C71D5
 
-   The code after "com.apple.quarantine" will be different but it's existence indicates
+   The code after "com.apple.quarantine" will be different but its existence indicates
    the file *is subject to quarantine*.
 
 #. Remove the quarantine for XPPython3.xpl::

@@ -37,6 +37,10 @@ Functions
 
  .. warning:: Using an invalid airport code will **crash the sim**, this includes using something other than ICAO. For example, 'JFK' does not work.
 
+ .. note:: You cannot call ``placeUserAtAirport()`` in your Start or Enable callback as the (initial) user aircraft has not yet
+           been placed (you will crash the sim). You may
+           create a flight loop callback and then execute ``placeUserAtAirport()`` within the callback, or in response to a menu or command.
+
  >>> xp.placeUserAtAirport('KBOS')
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMPlaceUserAtAirport>`__ :index:`XPLMPlaceUserAtAirport`

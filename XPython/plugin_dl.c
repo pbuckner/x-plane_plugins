@@ -121,6 +121,15 @@ t_fcn_info funcs301[] = {
   {NULL, NULL}
 };
 
+//XPLM400 functions
+typeof(XPLMRegisterAvionicsCallbacksEx) *XPLMRegisterAvionicsCallbacksEx_ptr = NULL;
+typeof(XPLMUnregisterAvionicsCallbacks) *XPLMUnregisterAvionicsCallbacks_ptr = NULL;
+t_fcn_info funcs400[] = {
+  {"XPLMRegisterAvionicsCallbacksEx", (void*) &XPLMRegisterAvionicsCallbacksEx_ptr},
+  {"XPLMUnregisterAvionicsCallbacks", (void*) &XPLMUnregisterAvionicsCallbacks_ptr},
+  {NULL, NULL}
+};
+
  
 
 
@@ -157,6 +166,9 @@ bool loadSDKFunctions(void)
   XPLMGetVersions(&xp_ver, &xplm_ver, &app);
 
   bool res = true;
+  if(xplm_ver >= 400){
+    res &= loadFunctions(funcs400);
+  }
   if(xplm_ver >= 301){
     res &= loadFunctions(funcs301);
   }

@@ -25,39 +25,22 @@ TARGET=Windows
 # Note that by default, installation appears to favor 32-bit
 
 TARGET=Windows
-PYDEV=/c/Program\ Files/Python38
-PYDEV36=/c/Program\ Files/Python36
-PYDEV37=/c/Program\ Files/Python37
-PYDEV38=/c/Program\ Files/Python38
-PYDEV39=/c/Program\ Files/Python39
 PYDEV310=/c/Program\ Files/Python310
+PYDEV311=/c/Program\ Files/Python311
 
-all : XPPython37.xpl XPPython38.xpl XPPython39.xpl XPPython310.xpl libpython3.dll.a libpython37.dll.a libpython38.dll.a  libpython39.dll.a libpython310.dll.a
+all : XPPython310.xpl XPPython311.xpl libpython3.dll.a libpython310.dll.a libpython311.dll.a
 	@echo $^
 
-libpython36.dll.a : $(PYDEV36)/python36.dll
-	gendef - "$^" > python36.def
-	dlltool -D "$^" -d python36.def -l $@
-
-libpython37.dll.a : $(PYDEV37)/python37.dll
-	gendef - "$^" > python37.def
-	dlltool -D "$^" -d python37.def -l $@
-
-libpython3.dll.a : $(PYDEV)/python3.dll
-	gendef - "$^" > python3.def
-	dlltool -D "$^" -d python3.def -l $@
-
-libpython38.dll.a : $(PYDEV38)/python38.dll
-	gendef - "$^" > python38.def
-	dlltool -D "$^" -d python38.def -l $@
-
-libpython39.dll.a : $(PYDEV39)/python39.dll
-	gendef - "$^" > python39.def
-	dlltool -D "$^" -d python39.def -l $@
+# Note if you add a new version of python, you may need to manually call make libpython<>.dll.a as
+# I don't appear to have dependencies working properly
 
 libpython310.dll.a : $(PYDEV310)/python310.dll
 	gendef - "$^" > python310.def
 	dlltool -D "$^" -d python310.def -l $@
+
+libpython311.dll.a : $(PYDEV311)/python311.dll
+	gendef - "$^" > python311.def
+	dlltool -D "$^" -d python311.def -l $@
 
 include ../Makefile
 

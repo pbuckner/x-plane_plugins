@@ -37,6 +37,7 @@ div.sphinxsidebar {
     border-radius: 5px;
     line-height: 130%;
     font-size: smaller;
+    position: relative;
 }
 
 div.sphinxsidebar h3, div.sphinxsidebar h4 {
@@ -195,6 +196,9 @@ dl > dt span ~ em {
 
 #sidebarbutton {
     background-color: #ccc;
+    position:absolute;
+    top: 0;
+    right: 0;
 }
 #sidebarbutton:hover {
     background-color: #999;
@@ -202,3 +206,30 @@ dl > dt span ~ em {
 div.sphinxsidebar p.topless {
     max-width: 185px;
 }
+
+div.sphinxsidebarwrapper>ul>li {
+    margin-bottom: .25em;
+}
+div.sphinxsidebarwrapper>ul>li>ul>li {
+    margin-bottom: .15em;
+}
+.sphinxsidebarwrapper>ul {
+    counter-reset: list-item;
+    list-style-type: none;
+}
+.sphinxsidebarwrapper>ul>li>ul {
+    list-style-type: none;
+}
+.sphinxsidebarwrapper>ul li::before {
+    content: counters(list-item,'.') ': ';
+}
+.toctree-l1.current a.current {
+    font-weight: bold;
+    text-decoration: underline;
+}
+.sphinxsidebarwrapper>ul>li>ul>li>ul>li::before,
+.sphinxsidebarwrapper>ul>li>ul>li>ul>li>ul>li::before {
+    content: "";
+}
+    
+    

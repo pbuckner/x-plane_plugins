@@ -2,7 +2,6 @@
 Python Plugin updater, modelled after PI_ScriptUpdater.py by
 Joan Perez i Cauhe
 """
-from distutils.version import StrictVersion
 import json
 import os
 import os.path
@@ -19,6 +18,7 @@ except ImportError:
 import XPPython3.xp as xp
 from XPPython3.scriptconfig import Config
 from XPPython3.zip_download import ZipDownload
+from XPPython3.utils.version import StrictVersion
 
 
 class Version(StrictVersion):

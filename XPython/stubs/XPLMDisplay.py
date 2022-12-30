@@ -27,6 +27,35 @@ WindowFullScreenOnMonitor = 2
 WindowFullScreenOnAllMonitors = 3
 WindowPopOut = 4
 WindowVR = 5
+Device_GNS430_1 = 0
+Device_GNS430_2 = 1
+Device_GNS530_1 = 2
+Device_GNS530_2 = 3
+Device_CDU739_1 = 4
+Device_CDU739_2 = 5
+Device_G1000_PFD_1 = 6
+Device_G1000_PFD_2 = 7
+Device_G1000_MFD = 8
+Device_CDU815_1 = 9
+Device_CDU815_2 = 10
+Device_Primus_PFD_1 = 11
+Device_Primus_PFD_2 = 12
+Device_Primus_MFD_1 = 13
+Device_Primus_MFD_2 = 14
+Device_Primus_MFD_3 = 15
+Device_Primus_RMU_1 = 16
+Device_Primus_RMU_2 = 17
+
+
+def registerAvionicsCallbacksEx(deviceId: int,
+                                before: Union[None, Callable[[int, int, Any], int]] = None,
+                                after: Union[None, Callable[[int, int, Any], int]] = None,
+                                refcon: Any = None) -> int:
+    return int()  # avionicsID
+
+
+def unregisterAvionicsCallbacks(avionicsID: int) -> None:
+    return
 
 
 def registerDrawCallback(draw: Callable[[int, int, Any], int],

@@ -365,8 +365,11 @@ static PyObject *XPLMAppendMenuItemWithCommandFun(PyObject *self, PyObject *args
 
 My_DOCSTR(_appendMenuSeparator__doc__, "appendMenuSeparator", "menuID=None",
           "Adds separator to end of menu\n"
+#if !defined(XPLM400)
           "\n"
-          "Returns index of created item.");
+          "Returns index of created item."
+#endif
+          );
 static PyObject *XPLMAppendMenuSeparatorFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   static char *keywords[] = {"menuID", NULL};
@@ -375,13 +378,15 @@ static PyObject *XPLMAppendMenuSeparatorFun(PyObject *self, PyObject *args, PyOb
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", keywords, &menuID)){
     return NULL;
   }
-  int ret;
-  if (menuID == Py_None) {
-    ret = XPLMAppendMenuSeparator(XPLMFindPluginsMenu());
-  } else {
-    ret = XPLMAppendMenuSeparator(refToPtr(menuID, menuIDRef));
-  }
   XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : refToPtr(menuID, menuIDRef);
+
+#if defined(XPLM400)  
+  XPLMAppendMenuSeparator(inMenu);
+#else
+  int ret;
+  ret = XPLMAppendMenuSeparator(inMenu);
+#endif  
+
   if (inMenu == XPLMFindPluginsMenu()) {
     // fprintf(pythonLogFile, "Appending Separator to PluginsMenus: [%d], next: [%d]\n", ret, nextXPLMMenuIdx);
     PyObject *pluginSelf = get_pluginSelf();
@@ -394,8 +399,12 @@ static PyObject *XPLMAppendMenuSeparatorFun(PyObject *self, PyObject *args, PyOb
     Py_DECREF(pluginSelf);
     nextXPLMMenuIdx++;
   }
+#if defined(XPLM400)
+  Py_RETURN_NONE;
+#else  
   // Py_RETURN_NONE;  /* actually, apppendMenuSeparator __does__ return a value */
   return PyLong_FromLong(ret);
+#endif
 }
 
 My_DOCSTR(_setMenuItemName__doc__, "setMenuItemName", "menuID=None, index=0, name=\"New Name\"",

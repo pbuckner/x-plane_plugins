@@ -1,5 +1,5 @@
-Runtime XPPython3 Menus
-=======================
+XPPython3 Menus
+===============
 
 XPPython3 installs a single menu item, "XPPython3", on the plugin menu.
 
@@ -69,6 +69,8 @@ The next three menu items are:
   You will most likely need OpenGL (which is a drawing package). For python, it is called ``pyopengl``. That's
   why we suggest you install it at your first opportunity. It's free.
 
+  PIP is further described in :doc:`pip`.
+
 Finally:
 
 * **Reload scripts** - Stop / Reload / Restart all python plugins.
@@ -94,11 +96,3 @@ Finally:
     that "reloading" is really a developer tool and not particularly reliable, so use it if you can while
     you're developing new plugins, but otherwise restart X-Plane if you want to run a clean version. For example,
     it is a known problem that reloading XPPython3 after using the imgui module will crash the system.
-
-
-.. toctree::
-  :caption: Details
-  :maxdepth: 1
-             
-
-  performance             

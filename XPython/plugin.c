@@ -1,5 +1,6 @@
 //Python comes first!
 #include <Python.h>
+#include <unistd.h>
 #include <sys/time.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -131,6 +132,24 @@ int initPython(void){
     fflush(pythonLogFile);
     return -1;
   }
+
+  char *msg;
+  PyObject *runtime_version = PySys_GetObject("version_info"); /* borrowed */
+  int major = PyLong_AsLong(PyTuple_GetItem(runtime_version, 0)); /* borrowed */
+  int minor = PyLong_AsLong(PyTuple_GetItem(runtime_version, 1)); /* borrowed */
+  int micro = PyLong_AsLong(PyTuple_GetItem(runtime_version, 2)); /* borrowed */
+
+#if IBM
+  if (major == 3 && minor == 11 && micro == 1) {
+    fprintf(pythonLogFile, "Python v3.11.1 is not supported on Windows, use v3.10.x, v3.11.0, or v3.11.2+ \n");
+    fflush(pythonLogFile);
+    return -1;
+  }
+#endif
+
+  asprintf(&msg, "[XPPython3] Python runtime initialized %d.%d.%d\n", major, minor, micro);
+  XPLMDebugString(msg);
+  free(msg);
 
   loggerModuleObj = PyImport_ImportModule("XPythonLogger");
 
@@ -459,6 +478,13 @@ static int loadPythonLibrary(void)
      Now, prior to 3.8, the library name included 'm' to indicate it includes pymalloc, which
      which is prefered, so we look for those FIRST, and if not found, look for
      libraries without the 'm'.
+
+     The _reason_ we have to do this is a python problem which (still) exists on linux (November 2022)
+     Essential, the python shared libs (say _ssl.so) don't look within the python libpythonX.X.so shared
+     lib, so the imported shared lib will fail with something like:
+      ImportError: /usr/lib/python/lib-dynload/_sso.so: undefined symbol: PyEx_ValueError
+
+     See https://mail.python.org/pipermail/new-bugs-announce/2008-November/003322.html
   */
 #if LIN
   char *suffix = "so";
@@ -476,11 +502,19 @@ static int loadPythonLibrary(void)
     pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
   }
   if (!pythonHandle) {
+    sprintf(library, "%slibpython%sm.%s.1.0", path, PYTHONVERSION, suffix);
+    pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
+  }
+  if (!pythonHandle) {
     sprintf(library, "%slibpython%s.%s", path, PYTHONVERSION, suffix);
     pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
   }
   if (!pythonHandle) {
     sprintf(library, "%slibpython%s.%s.1", path, PYTHONVERSION, suffix);
+    pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
+  }
+  if (!pythonHandle) {
+    sprintf(library, "%slibpython%s.%s.1.0", path, PYTHONVERSION, suffix);
     pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
   }
   if (!pythonHandle) {
@@ -510,15 +544,17 @@ static FILE *getLogFile(void) {
   } else {
     fp = fopen(logFileName, "w");
   }
+  char *msg;
   if(fp == NULL){
     fp = stdout;
-    XPLMDebugString("[XPPython3] Starting... Logging to standard out\n");
+    asprintf(&msg, "[XPPython3] Starting %s (compiled: %0x)... Logging to standard out\n",
+             pythonPluginVersion, PY_VERSION_HEX);
   } else {
-    char *msg;
-    asprintf(&msg, "[XPPython3] Starting... Logging to %s\n", logFileName);
-    XPLMDebugString(msg);
-    free(msg);
+    asprintf(&msg, "[XPPython3] Starting %s (compiled: %0x)... Logging to %s\n",
+             pythonPluginVersion, PY_VERSION_HEX, logFileName);
   }
+  XPLMDebugString(msg);
+  free(msg);
   return fp;
 }
 
@@ -565,7 +601,9 @@ static void handleConfigFile(void) {  /* Find and handle config.ini file */
 #endif
   pythonDebugs = xpy_config_get_int("[Main].debug");
   pythonWarnings = xpy_config_get_int("[Main].warning");
+#ifndef Py_LIMITED_API
   Py_VerboseFlag = xpy_config_get_int("[Main].py_verbose");/* 0= off, 1= each file as loaded, 2= each file that is checked when searching for module */
+#endif
   pythonFlushLog = xpy_config_get_int("[Main].flush_log");/* 0= off, 1= on */
   pythonDebug("Read config file: %s", xpy_ini_file);
 }
@@ -638,7 +676,7 @@ static void reloadSysModules(void) {
     fprintf(pythonLogFile, "[XPPython3] Error occured during the reload of modules.\n");
     pythonLogException();
   }
-  if (PyUnicode_GET_LENGTH(result) > 2) {
+  if (PyUnicode_GetLength(result) > 2) {
     fprintf(pythonLogFile, " Module(s) reloaded:  \n  > %s\n", objToStr(result));
   }
   Py_DECREF(localsDict);

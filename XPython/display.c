@@ -11,21 +11,29 @@
 #include "xppython.h"
 
 static PyObject *drawCallbackDict;
+static intptr_t drawCallbackCntr;
 #define DRAW_PLUGIN 0
 #define DRAW_CALLBACK 1  
 #define DRAW_PHASE 2
 #define DRAW_BEFORE 3
 #define DRAW_REFCON 4  
-
 static PyObject *drawCallbackIDDict;
-static intptr_t drawCallbackCntr;
+
 static PyObject *keySniffCallbackDict;
+static intptr_t keySniffCallbackCntr;
 #define KEYSNIFF_PLUGIN 0
 #define KEYSNIFF_CALLBACK 1
 #define KEYSNIFF_BEFORE 2
 #define KEYSNIFF_REFCON 3
 
-static intptr_t keySniffCallbackCntr;
+static PyObject *avionicsCallbacksDict; // key is PyLong(avionicsCallbacksCntr)
+static intptr_t avionicsCallbacksCntr;
+#define AVIONICS_PLUGIN 0
+#define AVIONICS_DEVICE 1
+#define AVIONICS_BEFORE 2
+#define AVIONICS_AFTER  3
+#define AVIONICS_REFCON 4
+static PyObject *avionicsCallbacksIDDict; // key is avionicsIDCapsule, value is PyLong(avionicsCallbacksCntr)
 
 //draw, key,mouse, cursor, wheel
 static PyObject *windowDict;
@@ -37,16 +45,22 @@ static PyObject *windowDict;
 #define WINDOW_RIGHTCLICK 5
 #define WINDOW_PLUGIN 6
 
-static intptr_t hotkeyCntr;
 static PyObject *hotkeyDict;
+static intptr_t hotkeyCntr;
+#define HOTKEY_CALLBACK 0
+#define HOTKEY_REFCON 1
 static PyObject *hotkeyIDDict;
 
 static PyObject *monitorBndsCallback;
 
 PyObject *windowIDCapsules;
-static PyObject *hotkeyIDCapsules;
 const char *windowIDRef = "XPLMWindowIDRef";
+
+static PyObject *hotkeyIDCapsules;
 static const char hotkeyIDRef[] = "XPLMHotkeyIDRef";
+
+PyObject *avionicsIDCapsules;
+const char *avionicsIDRef = "XPLMAvionicsIDRef";
 
 
 static void receiveMonitorBounds(int inMonitorIndex, int inLeftBx, int inTopBx,
@@ -105,6 +119,110 @@ static PyObject *XPLMRegisterDrawCallbackFun(PyObject *self, PyObject *args, PyO
   }
   return PyLong_FromLong(res);
 }
+
+
+int genericAvionicsCallback(XPLMDeviceID inDeviceID, int inIsBefore, void *inRefcon);
+
+My_DOCSTR(_registerAvionicsCallbacksEx__doc__, "registerAvionicsCallbacksEx", "deviceId, before=None, after=None, refCon=None",
+          "Registers draw callback for particular device.\n"
+          "\n"
+          "Registers drawing callback(s) to enhance or replace X-Plane drawing. For\n"
+          "'before' callback, return 1 to let X-Plane draw or 0 to suppress X-Plane\n"
+          "drawing. Return value for 'after' callback is ignored.\n"
+          "\n"
+          "Upon entry, OpenGL context will be correctly set in panel coordinates for 2d drawing.\n"
+          "OpenGL state (texturing, etc.) will be unknwon.\n"
+          "\n"
+          "Successful registration returns an AvionicsID."
+         );
+static PyObject *XPLMRegisterAvionicsCallbacksExFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  (void) self;
+  static char *keywords[] = {"deviceId", "before", "after", "refCon", NULL};
+  int deviceId;
+  PyObject *beforeCallback = Py_None;
+  PyObject *afterCallback = Py_None;
+  PyObject *refcon = Py_None;
+
+  if(!XPLMRegisterAvionicsCallbacksEx_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMRegisterAvionicsCallbacksEx is available only in XPLM400 and up.");
+    return NULL;
+  }
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i|OOO", keywords, &deviceId, &beforeCallback, &afterCallback, &refcon)){
+    return NULL;
+  }
+
+  if (beforeCallback == Py_None && afterCallback == Py_None) {
+    PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterAviationCallbacksEx: Both before and after callbacks cannot be None.");
+    return NULL;
+  }
+  PyObject *pluginSelf = get_pluginSelf();
+  PyObject *idx = PyLong_FromLong(++avionicsCallbacksCntr);
+  if(!idx){
+    PyErr_SetString(PyExc_RuntimeError ,"Couldn't create long.\n");
+    return NULL;
+  }
+  PyObject *argObj = Py_BuildValue("OiOOO", pluginSelf, deviceId, beforeCallback, afterCallback, refcon);
+  PyDict_SetItem(avionicsCallbacksDict, idx, argObj);
+  Py_DECREF(idx);
+  Py_DECREF(argObj);
+    
+  XPLMCustomizeAvionics_t params;
+  params.structSize = sizeof(params);
+  params.deviceId = deviceId;
+  params.drawCallbackBefore = beforeCallback != Py_None ? genericAvionicsCallback : NULL;
+  params.drawCallbackAfter = afterCallback != Py_None ? genericAvionicsCallback : NULL;
+  params.refcon = (void *)avionicsCallbacksCntr;
+
+  if (beforeCallback != Py_None) {
+    Py_INCREF(beforeCallback);
+  }
+  if (afterCallback != Py_None) {
+    Py_INCREF(afterCallback);
+  }
+  
+  XPLMAvionicsID avionicsId = XPLMRegisterAvionicsCallbacksEx(&params);
+  PyObject *aID = getPtrRef(avionicsId, avionicsIDCapsules, avionicsIDRef);
+  if(!aID){
+    PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterAvionicsCallbacksEx failed.\n");
+    return NULL;
+  }
+
+  PyDict_SetItem(avionicsCallbacksIDDict, aID, PyLong_FromLong(avionicsCallbacksCntr));
+  return aID;
+}
+
+My_DOCSTR(_unregisterAvionicsCallbacks__doc__, "unregisterAvionicsCallbacks", "avionicsId",
+          "Unregisters avionics draw callback(s) associated with given avionicsId.\n"
+          "\n"
+          "Does not return a value."
+         );
+static PyObject *XPLMUnregisterAvionicsCallbacksFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"avionicsId", NULL};
+  (void) self;
+  PyObject *aID;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &aID)) {
+    return NULL;
+  }
+  if (aID == NULL) {
+    PyErr_SetString(PyExc_RuntimeError, "XPLMUnregisterAvionicsCallback bad avionicsID\n");
+    return NULL;
+  }
+  XPLMAvionicsID avionicsId = refToPtr(aID, avionicsIDRef);
+  XPLMUnregisterAvionicsCallbacks(avionicsId);
+
+  /* and... remove from data structures */
+  removePtrRef(avionicsId, avionicsIDCapsules);
+  PyDict_DelItem(avionicsCallbacksDict, PyDict_GetItem(avionicsCallbacksIDDict, aID));
+  PyDict_DelItem(avionicsCallbacksIDDict, aID);
+  Py_DECREF(aID);
+
+  return Py_None;
+}
+          
+
 
 My_DOCSTR(_registerKeySniffer__doc__, "registerKeySniffer", "sniffer, before=0, refCon=None",
           "Registers a key sniffer callba function.\n"
@@ -1247,7 +1365,7 @@ void hotkeyCallback(void *inRefcon)
     printf("Unknown refcon passed to hotkeyCallback (%p).\n", inRefcon);
     return;
   }
-  PyObject *res = PyObject_CallFunctionObjArgs(PyTuple_GetItem(pCbk, 0), PyTuple_GetItem(pCbk, 1), NULL);
+  PyObject *res = PyObject_CallFunctionObjArgs(PyTuple_GetItem(pCbk, HOTKEY_CALLBACK), PyTuple_GetItem(pCbk, HOTKEY_REFCON), NULL);
   PyObject *err = PyErr_Occurred();
   Py_XDECREF(res);  // in case hotkey doesn't happent to return anything
   if(err){
@@ -1422,10 +1540,17 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   Py_DECREF(hotkeyDict);
   PyDict_Clear(hotkeyIDDict);
   Py_DECREF(hotkeyIDDict);
+  PyDict_Clear(avionicsCallbacksDict);
+  Py_DECREF(avionicsCallbacksDict);
+  PyDict_Clear(avionicsCallbacksIDDict);
+  Py_DECREF(avionicsCallbacksIDDict);
   PyDict_Clear(windowIDCapsules);
   Py_DECREF(windowIDCapsules);
   PyDict_Clear(hotkeyIDCapsules);
   Py_DECREF(hotkeyIDCapsules);
+
+  PyDict_Clear(avionicsIDCapsules);
+  Py_DECREF(avionicsIDCapsules);
   Py_RETURN_NONE;
 }
 
@@ -1509,6 +1634,13 @@ static PyMethodDef XPLMDisplayMethods[] = {
   {"XPLMSetWindowGeometryVR", (PyCFunction)XPLMSetWindowGeometryVRFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"windowIsInVR", (PyCFunction)XPLMWindowIsInVRFun, METH_VARARGS | METH_KEYWORDS, _windowIsInVR__doc__},
   {"XPLMWindowIsInVR", (PyCFunction)XPLMWindowIsInVRFun, METH_VARARGS | METH_KEYWORDS, ""},
+
+  // SDK 400
+  {"registerAvionicsCallbacksEx", (PyCFunction)XPLMRegisterAvionicsCallbacksExFun, METH_VARARGS | METH_KEYWORDS, _registerAvionicsCallbacksEx__doc__},
+  {"XPLMRegisterAvionicsCallbacksEx", (PyCFunction)XPLMRegisterAvionicsCallbacksExFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"unregisterAvionicsCallbacks", (PyCFunction)XPLMUnregisterAvionicsCallbacksFun, METH_VARARGS | METH_KEYWORDS, _unregisterAvionicsCallbacks__doc__},
+  {"XPLMUnregisterAvionicsCallbacks", (PyCFunction)XPLMUnregisterAvionicsCallbacksFun, METH_VARARGS | METH_KEYWORDS, ""},
+  
   {"_cleanup", cleanup, METH_VARARGS, "cleanup"},
   {NULL, NULL, 0, NULL}
 };
@@ -1531,38 +1663,39 @@ static struct PyModuleDef XPLMDisplayModule = {
 PyMODINIT_FUNC
 PyInit_XPLMDisplay(void)
 {
-  if(!(drawCallbackDict = PyDict_New())){
-    return NULL;
-  }
+  if(!(avionicsCallbacksDict = PyDict_New())){return NULL;}
+  PyDict_SetItemString(xppythonDicts, "avionicsCallbacks", avionicsCallbacksDict);
+
+  if(!(avionicsCallbacksIDDict = PyDict_New())){return NULL;}
+  PyDict_SetItemString(xppythonDicts, "avionicsIDs", avionicsCallbacksIDDict);
+
+  if(!(drawCallbackDict = PyDict_New())){return NULL;}
   PyDict_SetItemString(xppythonDicts, "drawCallbacks", drawCallbackDict);
-  if(!(drawCallbackIDDict = PyDict_New())){
-    return NULL;
-  }
+
+  if(!(drawCallbackIDDict = PyDict_New())){return NULL;}
   PyDict_SetItemString(xppythonDicts, "drawCallbackIDs", drawCallbackIDDict);
-  if(!(keySniffCallbackDict = PyDict_New())){
-    return NULL;
-  }
+
+  if(!(keySniffCallbackDict = PyDict_New())){return NULL;}
   PyDict_SetItemString(xppythonDicts, "keySniffCallbacks", keySniffCallbackDict);
-  if(!(windowDict = PyDict_New())){
-    return NULL;
-  }
+
+  if(!(windowDict = PyDict_New())){return NULL;}
   PyDict_SetItemString(xppythonDicts, "windows", windowDict);
-  if(!(hotkeyDict = PyDict_New())){
-    return NULL;
-  }
+
+  if(!(hotkeyDict = PyDict_New())){return NULL;}
   PyDict_SetItemString(xppythonDicts, "hotkeys", hotkeyDict);
-  if(!(hotkeyIDDict = PyDict_New())){
-    return NULL;
-  }
+
+  if(!(hotkeyIDDict = PyDict_New())){return NULL;}
   PyDict_SetItemString(xppythonDicts, "hotkeyIDs", hotkeyIDDict);
-  if(!(windowIDCapsules = PyDict_New())){
-    return NULL;
-  }
+
+  if(!(windowIDCapsules = PyDict_New())){return NULL;}
   PyDict_SetItemString(xppythonCapsules, windowIDRef, windowIDCapsules);
-  if(!(hotkeyIDCapsules = PyDict_New())){
-    return NULL;
-  }
+
+  if(!(hotkeyIDCapsules = PyDict_New())){return NULL;}
   PyDict_SetItemString(xppythonCapsules, hotkeyIDRef, hotkeyIDCapsules);
+
+  if(!(avionicsIDCapsules = PyDict_New())){return NULL;}
+  PyDict_SetItemString(xppythonCapsules, avionicsIDRef, avionicsIDCapsules);
+
   PyObject *mod = PyModule_Create(&XPLMDisplayModule);
   if(mod){
     PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
@@ -1654,9 +1787,79 @@ PyInit_XPLMDisplay(void)
     PyModule_AddIntConstant(mod, "WindowDecorationRoundRectangle", xplm_WindowDecorationRoundRectangle);
     PyModule_AddIntConstant(mod, "WindowDecorationSelfDecorated", xplm_WindowDecorationSelfDecorated);
     PyModule_AddIntConstant(mod, "WindowDecorationSelfDecoratedResizable", xplm_WindowDecorationSelfDecoratedResizable);
+
+#if defined(XPLM400)    
+    PyModule_AddIntConstant(mod, "Device_GNS430_1", xplm_device_GNS430_1);
+    PyModule_AddIntConstant(mod, "Device_GNS430_2", xplm_device_GNS430_2);
+    PyModule_AddIntConstant(mod, "Device_GNS530_1", xplm_device_GNS530_1);
+    PyModule_AddIntConstant(mod, "Device_GNS530_2", xplm_device_GNS530_2);
+    PyModule_AddIntConstant(mod, "Device_CDU739_1", xplm_device_CDU739_1);
+    PyModule_AddIntConstant(mod, "Device_CDU739_2", xplm_device_CDU739_2);
+    PyModule_AddIntConstant(mod, "Device_G1000_PFD_1", xplm_device_G1000_PFD_1);
+    PyModule_AddIntConstant(mod, "Device_G1000_PFD_2", xplm_device_G1000_PFD_2);
+    PyModule_AddIntConstant(mod, "Device_G1000_MFD", xplm_device_G1000_MFD);
+    PyModule_AddIntConstant(mod, "Device_CDU815_1", xplm_device_CDU815_1);
+    PyModule_AddIntConstant(mod, "Device_CDU815_2", xplm_device_CDU815_2);
+    PyModule_AddIntConstant(mod, "Device_Primus_PFD_1", xplm_device_Primus_PFD_1);
+    PyModule_AddIntConstant(mod, "Device_Primus_PFD_2", xplm_device_Primus_PFD_2);
+    PyModule_AddIntConstant(mod, "Device_Primus_MFD_1", xplm_device_Primus_MFD_1);
+    PyModule_AddIntConstant(mod, "Device_Primus_MFD_2", xplm_device_Primus_MFD_2);
+    PyModule_AddIntConstant(mod, "Device_Primus_MFD_3", xplm_device_Primus_MFD_3);
+    PyModule_AddIntConstant(mod, "Device_Primus_RMU_1", xplm_device_Primus_RMU_1);
+    PyModule_AddIntConstant(mod, "Device_Primus_RMU_2", xplm_device_Primus_RMU_2);
+#endif
   }
 
   return mod;
+}
+
+int genericAvionicsCallback(XPLMDeviceID inDeviceID, int inIsBefore, void *inRefcon)
+{
+  (void) inDeviceID;
+  PyObject *pl = PyLong_FromVoidPtr(inRefcon);/*new*/
+  PyObject *err = NULL;
+  PyObject *pRes = NULL;
+  int res = 0;
+  if (pl == NULL) {
+    fprintf(pythonLogFile, "avionicsDrawCallback, can't create PyLong.\n");
+    goto cleanup;
+  }
+
+  PyObject *tup = PyDict_GetItem(avionicsCallbacksDict, pl); /*borrowed*/
+  Py_DECREF(pl);
+  if (!tup) {
+    fprintf(pythonLogFile, "avionicsDrawCallback, got unknown inRefcon(%p)!\n", inRefcon);
+    goto cleanup;
+  }
+
+  PyObject *fun = PyTuple_GetItem(tup, inIsBefore ? AVIONICS_BEFORE : AVIONICS_AFTER); /* borrowed */
+  PyObject *refCon = PyTuple_GetItem(tup, AVIONICS_REFCON);/* borrowed */
+  PyObject *deviceId = PyTuple_GetItem(tup, AVIONICS_DEVICE);/* borrowed -- and should match inDeviceID, which we ignore */
+  PyObject *isBefore = PyLong_FromLong(inIsBefore);/* new */
+  pRes = PyObject_CallFunctionObjArgs(fun, deviceId, isBefore, refCon, NULL);
+  Py_DECREF(isBefore);
+
+  if(!pRes){
+    fprintf(pythonLogFile, "[%s] Avionics Draw callback %s failed.\n", objToStr(PyTuple_GetItem(tup, AVIONICS_PLUGIN)), objToStr(fun));
+    goto cleanup;
+  }
+  if (inIsBefore) {
+    if(!PyLong_Check(pRes)){
+      /* _before_ callbacks should return 1 or 0  -- _after_ callback returns are ignored */
+      fprintf(pythonLogFile, "[%s] Avionics Draw callback %s returned a wrong type.\n", objToStr(PyTuple_GetItem(tup, AVIONICS_PLUGIN)), objToStr(fun));
+      goto cleanup;
+    }
+    res = (int)PyLong_AsLong(pRes);
+  }
+                                   
+ cleanup:
+  err = PyErr_Occurred();
+  if(err){
+    pythonLogException();
+  }
+  Py_XDECREF(pRes);
+
+  return res;
 }
 
 int XPLMDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)

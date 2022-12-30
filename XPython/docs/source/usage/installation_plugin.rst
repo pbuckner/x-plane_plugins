@@ -11,6 +11,8 @@ Requirements
 .. warning:: This version of XPPython3 requires X-Plane 12. If you are using X-Plane 11.52, you
              must install XPPython3 v3.1.5. See `Installation for X-Plane 11 <https://xppython3.rtfd.io/en/3.1.5/usage/installation_plugin.html>`_.
 
+If you're **upgrading** from XPPython v3.1.5, see :doc:`upgrading`.
+
 Installation
 ============
 

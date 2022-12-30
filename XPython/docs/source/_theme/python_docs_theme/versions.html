@@ -5,7 +5,7 @@ Current stable release is
         {{ x[0] }}
      {% endif %}
      {% if x[1] == 'latest' and x[0] != release %}
-        <br/> This is {{ release }}
+        <br/> <span style="background-color:pink;font-weight:bold">This is {{ release }}</span>
      {% endif %}
 {% endfor %}
 <br/>

@@ -1,6 +1,11 @@
 Plugin Installation
 -------------------
 
+.. Warning::
+   This is for X-Plane 11. If you are using X-Plane 12, you should be installing
+   the latest version of XPPython3,
+   available `here <https://xppython3.readthedocs.io/en/latest/usage/installation_plugin.html>`_.
+
 Requirements
 ============
 * 64-bit operating system: linux, mac, or windows

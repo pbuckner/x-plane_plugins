@@ -121,6 +121,7 @@ Resources/plugins/xp3%.zip: win/XPPython3%.xpl lin/XPPython3%.xpl mac/XPPython3%
 	# remove old
 	rm -f $@
 	rm -f Resources/plugins/XPPython3/*/*.xpl
+	echo "$(XPPYTHONVERSION) for $(notdir $^)" > Resources/plugins/XPPython3/version.txt
 	# make staging directories
 	mkdir -p Resources/plugins/XPPython3/win_x64
 	mkdir -p Resources/plugins/XPPython3/lin_x64
@@ -145,6 +146,7 @@ Resources/plugins/xp3%.zip: win/XPPython3%.xpl lin/XPPython3%.xpl mac/XPPython3%
 		$(ZIP) $(notdir $@) -u XPPython3/imgui/*.py XPPython3/imgui/integrations/*.py XPPython3/imgui/core*$$v* XPPython3/imgui/internal*$$v* ; \
 		$(ZIP) $(notdir $@) -u XPPython3/utils/*.py ; \
 		$(ZIP) $(notdir $@) -u -r XPPython3/Authori*.app ; \
+		$(ZIP) $(notdir $@) -u XPPython3/version.txt ; \
 		cp $(notdir $@) $(basename $(notdir $@))-win32.zip; \
 		$(ZIP) -d $(basename $(notdir $@))-win32.zip XPPython3/lin_\* XPPython3/mac_\* XPPython3/imgui/core.cpython\*; \
 		cp $(notdir $@) $(basename $(notdir $@))-darwin.zip; \

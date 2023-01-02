@@ -1815,6 +1815,8 @@ PyInit_XPLMDisplay(void)
 
 int genericAvionicsCallback(XPLMDeviceID inDeviceID, int inIsBefore, void *inRefcon)
 {
+  struct timespec all_stop, all_start;
+  clock_gettime(CLOCK_MONOTONIC, &all_start);
   (void) inDeviceID;
   PyObject *pl = PyLong_FromVoidPtr(inRefcon);/*new*/
   PyObject *err = NULL;
@@ -1836,7 +1838,11 @@ int genericAvionicsCallback(XPLMDeviceID inDeviceID, int inIsBefore, void *inRef
   PyObject *refCon = PyTuple_GetItem(tup, AVIONICS_REFCON);/* borrowed */
   PyObject *deviceId = PyTuple_GetItem(tup, AVIONICS_DEVICE);/* borrowed -- and should match inDeviceID, which we ignore */
   PyObject *isBefore = PyLong_FromLong(inIsBefore);/* new */
+  struct timespec stop, start;
+  clock_gettime(CLOCK_MONOTONIC, &start);
   pRes = PyObject_CallFunctionObjArgs(fun, deviceId, isBefore, refCon, NULL);
+  clock_gettime(CLOCK_MONOTONIC, &stop);
+  pluginStats[getPluginIndex(PyTuple_GetItem(tup, AVIONICS_PLUGIN))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   Py_DECREF(isBefore);
 
   if(!pRes){
@@ -1858,6 +1864,9 @@ int genericAvionicsCallback(XPLMDeviceID inDeviceID, int inIsBefore, void *inRef
     pythonLogException();
   }
   Py_XDECREF(pRes);
+
+  clock_gettime(CLOCK_MONOTONIC, &all_stop);
+  pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
 
   return res;
 }

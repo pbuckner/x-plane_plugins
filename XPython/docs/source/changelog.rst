@@ -12,6 +12,23 @@ Known Bugs
 
  None (prove me wrong!)
 
+4.0.1 (BETA)
+------------
+
+:New Features:
+   * **Avionics Draw** times now contribute XPPython3 performance calculation. Time
+     spent within avionics draw callbacks is added to the "Drawing Misc." time. See
+     :doc:`/usage/performance`.
+
+     |
+        
+:Improvments:
+   * **Authorize XPL** script changed slightly to update the XPL file found in same
+     folder hierarchy as the script. Previously, it relied on the location of the
+     script with the same script id. Unfortunately, if you had multiple copies of
+     the script on your computer, click on *one* of the copies might actually
+     execute in the folder of a *different* copy.
+     
 4.0.0 (2-Jan-2023)
 ------------------
 :Note:

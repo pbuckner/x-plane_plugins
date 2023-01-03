@@ -121,7 +121,7 @@ Resources/plugins/xp3%.zip: win/XPPython3%.xpl lin/XPPython3%.xpl mac/XPPython3%
 	# remove old
 	rm -f $@
 	rm -f Resources/plugins/XPPython3/*/*.xpl
-	echo "$(XPPYTHONVERSION) for $(notdir $^)" > Resources/plugins/XPPython3/version.txt
+	echo "XPPython3 v$(XPPYTHONVERSION) for $(subst .xpl,,$(subst XPPython3,Python 3.,$(notdir $(filter win/XPP%, $^))))" > Resources/plugins/XPPython3/version.txt
 	# make staging directories
 	mkdir -p Resources/plugins/XPPython3/win_x64
 	mkdir -p Resources/plugins/XPPython3/lin_x64

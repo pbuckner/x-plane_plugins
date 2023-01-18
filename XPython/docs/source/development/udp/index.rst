@@ -56,7 +56,7 @@ The easiest way to pack and unpack is to use the python ``struct`` module. For e
 The initial string ``<4sxii400s`` describes how to pack the remaining arguments:
 
   +----------+-------------------------------------------------------------+
-  | ``>``    | little endian (i.e., least significant byte in the lowest   |
+  | ``<``    | little endian (i.e., least significant byte in the lowest   |
   |          | memory position)                                            |
   +----------+-------------------------------------------------------------+
   | ``4s``   | a 4-byte object, commonly string, e.g., 'RREF', expressed   |

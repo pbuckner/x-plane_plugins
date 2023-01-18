@@ -62,6 +62,7 @@ def find_xp(wait=3.0):
                 #    uint role;                     // 1 for master, 2 for extern visual, 3 for IOS
                 #    ushort port;                   // port number X-Plane is listening on
                 #    xchr    computer_name[500];    // the hostname of the computer
+                #    ushort  raknet_port;           // port number the X-Plane Raknet clinet is listening on
                 # };
 
                 (beacon_major_version, beacon_minor_version, application_host_id,
@@ -69,6 +70,7 @@ def find_xp(wait=3.0):
 
                 computer_name = packet[21:]  # Python3, these are bytes, not a string
                 computer_name = computer_name.split(b'\x00')[0]  # get name upto, but excluding first null byte
+                (raknet_port, ) = struct.unpack('<H', packet[-2:])
 
                 if all([beacon_major_version == 1,
                         beacon_minor_version == 2,
@@ -78,7 +80,8 @@ def find_xp(wait=3.0):
                         'port': port,
                         'hostname': computer_name.decode('utf-8'),
                         'xplane_version': xplane_version_number,
-                        'role': role
+                        'role': role,
+                        'raknet_port': raknet_port
                     }
 
         except socket.timeout:

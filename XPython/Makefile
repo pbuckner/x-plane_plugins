@@ -3,7 +3,7 @@
 PLUGIN_PATH=Resources/plugins/XPPython3
 XP_SDK=../SDK400
 VERSIONS= 310 311
-XPPYTHONVERSION=4.0.1a
+XPPYTHONVERSION=4.0.1b
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
 #########
 # COMMON opts

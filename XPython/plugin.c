@@ -417,15 +417,19 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
 {
   if(xpy3_disabled) return;
 
-  PyObject *pluginInfo, *pluginInstance, *pRes;
+  PyObject *pluginInfo, *pluginInstance, *pRes, *pModuleName;
   Py_ssize_t pos = 0;
   PyObject *param;
   param = PyLong_FromLong((long)inParam);
   pythonDebug("XPPython3 received message, forwarding to all plugins: From: %d, Msg: %ld, inParam: %ld",
               inFromWho, inMessage, (long)inParam);
 
-  while(PyDict_Next(moduleDict, &pos, &pluginInfo, &pluginInstance)){
-    char *moduleName = objToStr(PyTuple_GetItem(pluginInfo, PLUGIN_MODULE_NAME));
+  while(PyDict_Next(moduleDict, &pos, &pModuleName, &pluginInstance)){
+    pluginInfo = PyDict_GetItem(pluginDict, pluginInstance);
+    if (PyList_GetItem(pluginInfo, PLUGIN_DISABLED) == Py_True) {
+      continue;
+    }
+    char *moduleName = objToStr(pModuleName);
     pRes = PyObject_CallMethod(pluginInstance, "XPluginReceiveMessage", "ilO", inFromWho, inMessage, param);
 
     PyObject *err = PyErr_Occurred();

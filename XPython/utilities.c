@@ -328,7 +328,6 @@ static int commandCallback(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, v
   Py_DECREF(arg1);
   Py_DECREF(arg2);
   PyObject *err = PyErr_Occurred();
-  char msg[1024];
   if(err){
     fprintf(pythonLogFile, "Error in CommandCallback [%s] %s\n",
             objToStr(PyTuple_GetItem(pCbk, CALLBACK_PLUGIN)),
@@ -340,15 +339,14 @@ static int commandCallback(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, v
     */
     return 0;
   }
-  int res = PyLong_AsLong(oRes);
-  err = PyErr_Occurred();
-  if(err){
-    sprintf(msg, "Expected integer for return from CommandCallback [%s] %s",
+  if (!(oRes && PyLong_Check(oRes))) {
+    fprintf(pythonLogFile, "[%s] %s CommandCallback returned '%s' rather than an integer.\n",
             objToStr(PyTuple_GetItem(pCbk, CALLBACK_PLUGIN)),
-            objToStr(PyTuple_GetItem(pCbk, CALLBACK_METHOD)));
-    PyErr_SetString(err, msg);
-    pythonLogException();
+            objToStr(PyTuple_GetItem(pCbk, CALLBACK_METHOD)),
+            objToStr(oRes));
+    return 1;  /* return '1' to allow X-Plane to continue processing */
   }
+  int res = PyLong_AsLong(oRes);
   Py_DECREF(oRes);
   return res;
 }

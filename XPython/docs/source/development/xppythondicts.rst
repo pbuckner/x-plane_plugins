@@ -77,27 +77,31 @@ The result of :py:func:`XPPython.XPPythonGetDicts` is a dictionary of these dict
               <bound method PythonInterface.menuHandler of <PythonPlugins.PI_SeeAndAvoid.PythonInterface object at 0x7ff2bff3ad30>>,
               None)},
    'modules':
-        {('Mini Python Interpreter', 'xppython3.minipython', 'For debugging / testing, the provides a mini python interpreter', 'PythonPlugins.PI_MiniPython'): <PythonPlugins.PI_MiniPython.PythonInterface object at 0x7ff2ca700a90>,
-         ('See and Avoid', 'com.avnwx.SeeAndAvoid.p3', 'See and Avoid traffic generator', 'PythonPlugins.PI_SeeAndAvoid'): <PythonPlugins.PI_SeeAndAvoid.PythonInterface object at 0x7ff2bff3ad30>,
-         ('XPPython Aircraft Plugin driver', 'xppython3.aircraft_plugin', 'XPPython Plugin which enables use of aircraft plugins', 'PythonPlugins.PI_Aircraft'): <PythonPlugins.PI_Aircraft.PythonInterface object at 0x7ff2ca63ce50>,
-         ('XPPython3 Updater', 'com.avnwx.xppython3.updater.3.8', 'Automatic updater for XPPython3 plugin', 'XPPython3.I_PI_Updater'): <XPPython3.I_PI_Updater.PythonInterface object at 0x7ff312547640>},
+        {'PythonPlugins.PI_MiniPython': <PythonPlugins.PI_MiniPython.PythonInterface object at 0x7ff2ca700a90>,
+         'PythonPlugins.PI_SeeAndAvoid': <PythonPlugins.PI_SeeAndAvoid.PythonInterface object at 0x7ff2bff3ad30>,
+         'PythonPlugins.PI_Aircraft': <PythonPlugins.PI_Aircraft.PythonInterface object at 0x7ff2ca63ce50>,
+         'XPPython3.I_PI_Updater': <XPPython3.I_PI_Updater.PythonInterface object at 0x7ff312547640>},
    'plugins':
-         {<PythonPlugins.PI_Aircraft.PythonInterface object at 0x7ff2ca63ce50>: ('XPPython Aircraft Plugin driver',
+         {<PythonPlugins.PI_Aircraft.PythonInterface object at 0x7ff2ca63ce50>: ['XPPython Aircraft Plugin driver',
                                                                                  'xppython3.aircraft_plugin',
                                                                                  'XPPython Plugin which enables use of aircraft plugins',
-                                                                                 'PythonPlugins.PI_Aircraft'),
-          <PythonPlugins.PI_MiniPython.PythonInterface object at 0x7ff2ca700a90>: ('Mini Python Interpreter',
+                                                                                 'PythonPlugins.PI_Aircraft',
+                                                                                 False],
+          <PythonPlugins.PI_MiniPython.PythonInterface object at 0x7ff2ca700a90>: ['Mini Python Interpreter',
                                                                                    'xppython3.minipython',
                                                                                    'For debugging / testing, the provides a mini python interpreter',
-                                                                                   'PythonPlugins.PI_MiniPython'),
-          <PythonPlugins.PI_SeeAndAvoid.PythonInterface object at 0x7ff2bff3ad30>: ('See and Avoid',
+                                                                                   'PythonPlugins.PI_MiniPython',
+                                                                                   False],
+          <PythonPlugins.PI_SeeAndAvoid.PythonInterface object at 0x7ff2bff3ad30>: ['See and Avoid',
                                                                                      'com.avnwx.SeeAndAvoid.p3',
                                                                                      'See and Avoid traffic generator',
-                                                                                     'PythonPlugins.PI_SeeAndAvoid'),
-           <XPPython3.I_PI_Updater.PythonInterface object at 0x7ff312547640>: ('XPPython3 Updater',
+                                                                                     'PythonPlugins.PI_SeeAndAvoid',
+                                                                                     False],
+           <XPPython3.I_PI_Updater.PythonInterface object at 0x7ff312547640>: ['XPPython3 Updater',
                                                                                'com.avnwx.xppython3.updater.3.8',
                                                                                'Automatic updater for XPPython3 plugin',
-                                                                               'XPPython3.I_PI_Updater')},
+                                                                               'XPPython3.I_PI_Updater',
+                                                                               False]},
    'widgetCallbacks':
       {<capsule object "XPLMWidgetID" at 0x7ff2ca63cc60>: [<bound method PythonInterface.widgetMsgs of <PythonPlugins.PI_MiniPython.PythonInterface object at 0x7ff2ca700a90>>],
        <capsule object "XPLMWidgetID" at 0x7ff2ca63cf90>: [<bound method PythonInterface.textEdit of <PythonPlugins.PI_MiniPython.PythonInterface object at 0x7ff2ca700a90>>],
@@ -122,15 +126,11 @@ The result of :py:func:`XPPython.XPPythonGetDicts` is a dictionary of these dict
 modules
 -------
 
- All loaded plugins, by module
+ All loaded plugins, by module.
 
  :key:
 
-    Tuple (Name, Signature, Description, Module) for the plugin.
-
-    The Name, Signature, Description are as provided by the Python Plugin in
-    the return from ``XPluginStart()``. The Module is package + module as loaded by
-    python.
+    Module Name  for the plugin.
 
  :value:
 
@@ -141,7 +141,18 @@ modules
 plugins
 -------
 
- Opposite of :ref:`modules`
+ Information about all plugins, by PythonInterface object.
+ 
+ :key:
+
+    PythonInterface object (e.g., "self" for each plugins)
+
+  :value:
+
+    List consisting of the Name, Signature, Description are as provided by the Python Plugin in
+    the return from ``XPluginStart()``. The Module is package + module as loaded by
+    python. The final boolean indicates if the module has been disabled (either at the request of the
+    plugin, or because ``XPluginEnable()`` failed.
 
 .. _commandCallbacks:
 

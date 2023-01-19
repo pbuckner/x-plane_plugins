@@ -47,14 +47,23 @@ static float flightLoopCallback(float inElapsedSinceLastCall, float inElapsedTim
   Py_DECREF(inElapsedTimeSinceLastFlightLoopObj);
   Py_DECREF(counterObj);
   if(err){
-    fprintf(pythonLogFile, "[%s]: %s Error occured during the flightLoop callback (inRefcon = %p):\n",
+    pythonLogException();
+    fprintf(pythonLogFile, "[%s]: %s Error occured during the flightLoop callback (inRefcon = %p), disabling:\n",
             objToStr(PyTuple_GetItem(callbackInfo, 0)),
             objToStr(PyTuple_GetItem(callbackInfo, 1)),
             inRefcon);
-    pythonLogException();
-    tmp = -1.0f;
-  }else{
+    tmp = 0.0f;
+  } else if (PyFloat_Check(res)) {
     tmp = PyFloat_AsDouble(res);
+  } else if (PyLong_Check(res) {
+    tmp = PyLong_AsDouble(res);
+  } else {
+    fprintf(pythonLogFile, "[%s]: %s Error occured during the flightLoop callback (inRefcon = %p), disabling: Bad return value '%s'\n",
+            objToStr(PyTuple_GetItem(callbackInfo, 0)),
+            objToStr(PyTuple_GetItem(callbackInfo, 1)),
+            inRefcon,
+            objToStr(res));
+    tmp = 0.0f;
   }
   Py_XDECREF(res);
 
@@ -145,7 +154,7 @@ My_DOCSTR(_registerFlightLoopCallback__doc__, "registerFlightLoopCallback", "cal
           "interval indicates when you'll be called next:\n"
           "  0= deactivate \n"
           "  >0 seconds \n"
-          "  <0 flightLoopes\n"
+          "  <0 flightLoops\n"
           "Callback function gets (lastCall, elapsedTime, counter, refCon)");
 static PyObject *XPLMRegisterFlightLoopCallbackFun(PyObject* self, PyObject *args, PyObject *kwargs)
 {

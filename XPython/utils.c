@@ -103,8 +103,12 @@ void pythonLogException()
       PyObject *vals;
       if (pvalue && ptraceback) {
         vals = PyObject_CallFunctionObjArgs(fmt_exception, ptype, pvalue, ptraceback, NULL);
+      } else if (pvalue) {
+        PyObject *fmt_exception_only = PyObject_GetAttrString(tb_module, "format_exception_only");
+        vals = PyObject_CallFunctionObjArgs(fmt_exception_only, ptype, pvalue, NULL);
+        Py_DECREF(fmt_exception_only);
       } else {
-        vals = PyObject_CallFunctionObjArgs(fmt_exception, ptype, NULL);
+        vals = PyObject_CallFunctionObjArgs(fmt_exception, ptype, pvalue, NULL);
       }
       if (vals == NULL) {
         if(PyErr_Occurred()) {

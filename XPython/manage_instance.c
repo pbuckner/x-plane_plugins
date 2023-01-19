@@ -64,30 +64,30 @@ int xpy_startInstance(PyObject *pName, PyObject *pModule, PyObject* pluginInstan
 }
 
 void updatePluginDict(PyObject *pName, PyObject *pModule, PyObject *pRes, PyObject *pluginInstance) {
-  PyObject *pluginInfo = PyTuple_New(5);  /* pluginInfo is new reference */
-
-  /* PyTuple_GetItem borrows reference, PyTuple_SetItem steals:pluginInfo now owns pRes[0] */
+  PyObject *pluginInfo = PyList_New(6);  /* pluginInfo is new reference */
   PyObject *tmp;
 
   tmp = PyTuple_GetItem(pRes, PLUGIN_NAME);
   Py_INCREF(tmp);
-  PyTuple_SetItem(pluginInfo, PLUGIN_NAME, tmp);
+  PyList_SetItem(pluginInfo, PLUGIN_NAME, tmp);
 
   tmp = PyTuple_GetItem(pRes, PLUGIN_SIGNATURE);
   Py_INCREF(tmp);
-  PyTuple_SetItem(pluginInfo, PLUGIN_SIGNATURE, tmp);
+  PyList_SetItem(pluginInfo, PLUGIN_SIGNATURE, tmp);
 
   tmp = PyTuple_GetItem(pRes, PLUGIN_DESCRIPTION);
   Py_INCREF(tmp);
-  PyTuple_SetItem(pluginInfo, PLUGIN_DESCRIPTION, tmp);
+  PyList_SetItem(pluginInfo, PLUGIN_DESCRIPTION, tmp);
 
-  PyTuple_SetItem(pluginInfo, PLUGIN_MODULE, pModule);
+  PyList_SetItem(pluginInfo, PLUGIN_MODULE, pModule);
 
-  PyTuple_SetItem(pluginInfo, PLUGIN_MODULE_NAME, pName);
+  PyList_SetItem(pluginInfo, PLUGIN_MODULE_NAME, pName);
+  PyList_SetItem(pluginInfo, PLUGIN_DISABLED, Py_False);
 
-  PyDict_SetItem(moduleDict, pluginInfo, pluginInstance);
+  PyDict_SetItem(moduleDict, pName, pluginInstance);
   PyDict_SetItem(pluginDict, pluginInstance, pluginInfo);
   if(PyErr_Occurred()) {
+    fprintf(pythonLogFile, "Error while updating plugin dict\n");
     pythonLogException();
   }
 }
@@ -111,21 +111,23 @@ void xpy_reloadInstance(PyObject *signature) {
     return;
   }
 
-  PyObject *moduleName = PyTuple_GetItem(pluginInfo, PLUGIN_MODULE_NAME);
+  PyObject *moduleName = PyList_GetItem(pluginInfo, PLUGIN_MODULE_NAME);
   pythonDebug("  which is module: %s", objDebug(moduleName));
-  PyObject *pluginInstance = PyDict_GetItem(moduleDict, pluginInfo);
+  PyObject *pluginInstance = PyDict_GetItem(moduleDict, moduleName);
   
-  xpy_disableInstance(moduleName, pluginInstance);
+  if (PyList_GetItem(pluginInfo, PLUGIN_DISABLED) == Py_False) {
+    xpy_disableInstance(moduleName, pluginInstance);
+  }
   xpy_stopInstance(moduleName, pluginInstance);
 
   /* clean up as best we can */
   /*   remove from Dicts
    */
-  PyDict_DelItem(moduleDict, pluginInfo);
+  PyDict_DelItem(moduleDict, moduleName);
   PyDict_DelItem(pluginDict, pluginInstance);
 
   pythonDebug("Calling ReloadModule");
-  PyObject *module = PyImport_ReloadModule(PyTuple_GetItem(pluginInfo, PLUGIN_MODULE));
+  PyObject *module = PyImport_ReloadModule(PyList_GetItem(pluginInfo, PLUGIN_MODULE));
   PyObject *err = PyErr_Occurred();
   if (err) {
     pythonLogException();
@@ -146,7 +148,16 @@ void xpy_reloadInstance(PyObject *signature) {
       return;
     }
     if(xpy_startInstance(moduleName, module, pluginInstance)) {
-      xpy_enableInstance(moduleName, pluginInstance); /* returns 1 on successful enable, 0 otherwise. */
+      /* on reload, we attempt to reload _all_ plugins, even if they'd previously
+         request to be disabled */
+      if (0 == xpy_enableInstance(moduleName, pluginInstance)) {
+        /* we could not enable the plugin (or plugin requested not to be enabled
+           Mark it as disabled, so we'll not sent messages (or Disable) to it later
+        */
+        PyList_SetItem(pluginInfo, PLUGIN_DISABLED, Py_True);
+      } else {
+        PyList_SetItem(pluginInfo, PLUGIN_DISABLED, Py_False);
+      }
     }
   }
 }
@@ -155,7 +166,7 @@ PyObject *getPluginInfo(PyObject *signature){
   PyObject *pluginInfo, *pluginInstance;
   Py_ssize_t pos = 0;
   while(PyDict_Next(pluginDict, &pos, &pluginInstance, &pluginInfo)){
-    if (! PyObject_RichCompareBool(PyTuple_GetItem(pluginInfo, PLUGIN_SIGNATURE), signature, Py_EQ)) {
+    if (! PyObject_RichCompareBool(PyList_GetItem(pluginInfo, PLUGIN_SIGNATURE), signature, Py_EQ)) {
       continue;
     }
     pythonDebug("Found plugin for signature: %s", objDebug(signature));
@@ -181,6 +192,9 @@ int xpy_enableInstance(PyObject *moduleName, PyObject *pluginInstance) {
   }
 
   int ret = PyLong_AsLong(pRes) > 0 ? 1 : 0;
+  if (ret == 0) {
+    fprintf(pythonLogFile, "[XPPython3] %s not enabled.\n", objToStr(moduleName));
+  }
   Py_DECREF(pRes);
   return ret;
 }
@@ -228,7 +242,6 @@ void xpy_stopInstance(PyObject *moduleName, PyObject *pluginInstance) {
 
 void xpy_cleanUpInstance(PyObject *moduleName, PyObject *pluginInstance) {
   pythonDebug("%*s Cleaning instance: %s", 4, " ", objDebug(moduleName));
-  PyObject *pluginInfo = PyDict_GetItem(pluginDict, pluginInstance); /* borrowed */
   PyObject *err = PyErr_Occurred();
   if (err) {
     pythonLogException();
@@ -261,9 +274,8 @@ void xpy_cleanUpInstance(PyObject *moduleName, PyObject *pluginInstance) {
   } else {
     fprintf(pythonLogFile, "[XPPython3] Plugin is not in plugindict! %s\n", objToStr(moduleName));
   }
-  if (PyDict_Contains(moduleDict, pluginInfo)) {
-    PyDict_DelItem(moduleDict, pluginInfo);
-    /* Py_DECREF(pluginInfo);*/
+  if (PyDict_Contains(moduleDict, moduleName)) {
+    PyDict_DelItem(moduleDict, moduleName);
   }
   Py_DECREF(pluginInstance);
   pythonDebug("%*s Cleaned instance: %s", 6, " ", objDebug(moduleName));

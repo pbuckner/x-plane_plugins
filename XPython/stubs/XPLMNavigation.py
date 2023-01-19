@@ -20,15 +20,15 @@ def getFirstNavAid() -> XPLMNavRef:
     return XPLMNavRef(0)
 
 
-def getNextNavAid(navRef: XPLMNavRef) -> Union[Literal[-1], XPLMNavRef]:
+def getNextNavAid(navRef: XPLMNavRef) -> XPLMNavRef:
     return XPLMNavRef(0)  # XPLMNavRef
 
 
-def findFirstNavAidOfType(navType: int) -> Union[Literal[-1], XPLMNavRef]:
+def findFirstNavAidOfType(navType: int) -> XPLMNavRef:
     return XPLMNavRef(0)  # XPLMNavRef
 
 
-def findLastNavAidOfType(navType: int) -> Union[Literal[-1], XPLMNavRef]:
+def findLastNavAidOfType(navType: int) -> XPLMNavRef:
     return XPLMNavRef(0)  # XPLMNavRef
 
 
@@ -37,7 +37,7 @@ def findNavAid(name: Union[None, str] = None,
                lat: Union[None, float] = None,
                lon: Union[None, float] = None,
                freq: Union[None, int] = None,
-               navType: int = NAV_NOT_FOUND) -> Union[Literal[-1], XPLMNavRef]:
+               navType: int = NAV_NOT_FOUND) -> XPLMNavRef:
     return XPLMNavRef(0)  # XPLMNavRef
 
 

@@ -22,12 +22,24 @@ Known Bugs
 
      |
         
-:Improvments:
+:Improvements:
    * **Authorize XPL** script changed slightly to update the XPL file found in same
      folder hierarchy as the script. Previously, it relied on the location of the
      script with the same script id. Unfortunately, if you had multiple copies of
      the script on your computer, click on *one* of the copies might actually
      execute in the folder of a *different* copy.
+
+   * **Disabled means disabled**. If you disable your python plugin (perhaps by
+     returning zero in response the the XPluginEnable request.) We'll no longer
+     forward messages to you, or attempt to disable your plugin when reloading or
+     shutting down. However, if you reload all plugins, we'll attempt to re-enable
+     your plugin.
+     
+   * **CommandCallback error processing** improved: if you write a CommandCallback which
+     fails to return required 0 or 1, we'll report the error more clearly.
+
+   * **Internal Python Dicts** changed. ``modules`` dict now uses module name as the key
+     instead of plugin info tuple. This allows us the change plugin information dynamically.
      
 4.0.0 (2-Jan-2023)
 ------------------

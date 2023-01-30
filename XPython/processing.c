@@ -55,7 +55,7 @@ static float flightLoopCallback(float inElapsedSinceLastCall, float inElapsedTim
     tmp = 0.0f;
   } else if (PyFloat_Check(res)) {
     tmp = PyFloat_AsDouble(res);
-  } else if (PyLong_Check(res) {
+  } else if (PyLong_Check(res)) {
     tmp = PyLong_AsDouble(res);
   } else {
     fprintf(pythonLogFile, "[%s]: %s Error occured during the flightLoop callback (inRefcon = %p), disabling: Bad return value '%s'\n",

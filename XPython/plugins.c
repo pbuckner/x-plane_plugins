@@ -293,6 +293,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 static PyMethodDef XPLMPluginMethods[] = {
   {"getMyID", (PyCFunction)XPLMGetMyIDFun, METH_VARARGS, _getMyID__doc__},
   {"XPLMGetMyID", (PyCFunction)XPLMGetMyIDFun, METH_VARARGS, ""},
@@ -327,6 +329,8 @@ static PyMethodDef XPLMPluginMethods[] = {
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
+#pragma GCC diagnostic pop
+
 
 static struct PyModuleDef XPLMPluginModule = {
   PyModuleDef_HEAD_INIT,

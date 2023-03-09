@@ -296,6 +296,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 static PyMethodDef XPLMNavigationMethods[] = {
   {"getFirstNavAid", (PyCFunction)XPLMGetFirstNavAidFun, METH_VARARGS, _getFirstNavAid__doc__},
   {"XPLMGetFirstNavAid", (PyCFunction)XPLMGetFirstNavAidFun, METH_VARARGS, ""},
@@ -334,6 +336,8 @@ static PyMethodDef XPLMNavigationMethods[] = {
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
+#pragma GCC diagnostic pop
+
 
 static struct PyModuleDef XPLMNavigationModule = {
   PyModuleDef_HEAD_INIT,

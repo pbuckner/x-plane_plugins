@@ -22,6 +22,8 @@
 #include "xppython.h"
 #include "ini_file.h"
 
+static int pythonVerbose = 0;
+
 /*************************************
  * Python plugin upgrade for Python 3
  *   Michal        f.josef@email.cz (uglyDwarf on x-plane.org)
@@ -126,7 +128,15 @@ int initPython(void){
   
   /* PyImport_AppendInittab("SandyBarbourUtilities", PyInit_SBU);  -- Python2 stuff, for which there is no xppython3 equivalent */
   
-  Py_Initialize();
+  if (pythonVerbose) {
+    PyConfig config;
+    PyConfig_InitPythonConfig(&config);
+    config.verbose = pythonVerbose;
+    Py_InitializeFromConfig(&config);
+    PyConfig_Clear(&config);
+  } else {
+    Py_Initialize();
+  }
   if(!Py_IsInitialized()){
     fprintf(pythonLogFile, "[XPPython3] Failed to initialize Python.\n");
     fflush(pythonLogFile);
@@ -147,7 +157,9 @@ int initPython(void){
   }
 #endif
 
-  asprintf(&msg, "[XPPython3] Python runtime initialized %d.%d.%d\n", major, minor, micro);
+  if (-1 == asprintf(&msg, "[XPPython3] Python runtime initialized %d.%d.%d\n", major, minor, micro)) {
+    fprintf(pythonLogFile, "Failed to allocate asprintf memory, cannot initialize.\n");
+  }
   XPLMDebugString(msg);
   free(msg);
 
@@ -275,8 +287,7 @@ static int stopPython(void)
 PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
 {
   if (XPLMFindPluginBySignature("sandybarbour.projects.pythoninterface") != XPLM_NO_PLUGIN_ID) {
-    XPLMDebugString("[XPPython3] FATAL ERROR: XPPython3 Detected python2 PythonInterface plugin. These plugins are incompatible\n");
-    return 0;
+    XPLMDebugString("[XPPython3] WARNING: XPPython3 Detected python2 PythonInterface plugin. These plugins are incompatible.\n");
   }
 
   pythonLogFile = getLogFile();
@@ -551,11 +562,15 @@ static FILE *getLogFile(void) {
   char *msg;
   if(fp == NULL){
     fp = stdout;
-    asprintf(&msg, "[XPPython3] Starting %s (compiled: %0x)... Logging to standard out\n",
-             pythonPluginVersion, PY_VERSION_HEX);
+    if (-1 == asprintf(&msg, "[XPPython3] Starting %s (compiled: %0x)... Logging to standard out\n",
+                       pythonPluginVersion, PY_VERSION_HEX)) {
+      fprintf(pythonLogFile, "Failed to allocate asprintf memory, cannot start.\n");
+    }
   } else {
-    asprintf(&msg, "[XPPython3] Starting %s (compiled: %0x)... Logging to %s\n",
-             pythonPluginVersion, PY_VERSION_HEX, logFileName);
+    if (-1 == asprintf(&msg, "[XPPython3] Starting %s (compiled: %0x)... Logging to %s\n",
+                       pythonPluginVersion, PY_VERSION_HEX, logFileName)) {
+      fprintf(pythonLogFile, "Failed to allocate asprintf memory, failed to start.\n");
+    }
   }
   XPLMDebugString(msg);
   free(msg);
@@ -606,7 +621,8 @@ static void handleConfigFile(void) {  /* Find and handle config.ini file */
   pythonDebugs = xpy_config_get_int("[Main].debug");
   pythonWarnings = xpy_config_get_int("[Main].warning");
 #ifndef Py_LIMITED_API
-  Py_VerboseFlag = xpy_config_get_int("[Main].py_verbose");/* 0= off, 1= each file as loaded, 2= each file that is checked when searching for module */
+  pythonVerbose = xpy_config_get_int("[Main].py_verbose");/* 0= off, 1= each file as loaded, 2= each file that is checked when searching for module */
+  /* Py_VerboseFlag = xpy_config_get_int("[Main].py_verbose"); 0= off, 1= each file as loaded, 2= each file that is checked when searching for module */
 #endif
   pythonFlushLog = xpy_config_get_int("[Main].flush_log");/* 0= off, 1= on */
   pythonDebug("Read config file: %s", xpy_ini_file);

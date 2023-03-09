@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <structmember.h>
 #include "xppythontypes.h"
+#include <XPLM/XPLMDataAccess.h>
 #include <XPLM/XPLMUtilities.h>
 #include <XPLM/XPLMNavigation.h>
 #include "utils.h"
@@ -159,6 +160,124 @@ PyHotKeyInfo_New(int virtualKey, int flags, char *description, int plugin)
   return (PyObject*)obj;
 }
 
+/* DataRefInfo Type */
+typedef struct {
+  PyObject_HEAD
+  PyObject *name;
+  XPLMDataTypeID type;
+  PyObject *writable;
+  XPLMPluginID owner;
+} DataRefInfoObject;
+
+static PyObject *
+DataRefInfo_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+  (void) args;
+  (void) kwds;
+  DataRefInfoObject *self;
+  self = (DataRefInfoObject *) type->tp_alloc(type, 0);
+  if (self != NULL) {
+    self->name = PyUnicode_FromString("");
+    if (self->name == NULL) {
+      Py_DECREF(self);
+      return NULL;
+    }
+  }
+  return (PyObject *) self;
+}
+
+static int
+DataRefInfo_traverse(DataRefInfoObject *self, visitproc visit, void *arg)
+{
+  (void) visit;
+  (void) arg;
+  Py_VISIT(self->name);  // visit python objects
+  Py_VISIT(self->writable);  // visit python objects
+  return 0;
+}
+static int
+DataRefInfo_clear(DataRefInfoObject *self)
+{
+  (void) self;
+  Py_CLEAR(self->name); // clear python objects
+  Py_CLEAR(self->writable);
+  return 0;
+}
+    
+static void
+DataRefInfo_dealloc(DataRefInfoObject *self)
+{
+  PyObject_GC_UnTrack(self);
+  DataRefInfo_clear(self);
+  Py_TYPE(self)->tp_free((PyObject *) self);
+}
+
+static int
+DataRefInfo_init(DataRefInfoObject *self, PyObject *args, PyObject *kwds)
+{
+  static char *kwlist[] = {"name", "type", "writable", "owner", NULL};
+  PyObject *name = NULL, *writable = NULL;
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|UiOi", kwlist,
+                                   &name, &self->type, &writable, &self->owner))
+    return -1;
+  PyObject *tmp;
+  if (name) {
+    tmp = self->name;
+    Py_INCREF(name);
+    self->name = name;
+    Py_XDECREF(tmp);
+  }
+  if (writable) {
+    tmp = self->writable;
+    self->writable = writable ? Py_True : Py_False;
+    Py_INCREF(self->writable);
+    Py_XDECREF(tmp);
+  }
+  return 0;
+}
+
+static PyMemberDef DataRefInfo_members[] = {
+  {"name", T_OBJECT_EX, offsetof(DataRefInfoObject, name), 0, "name"},
+  {"type", T_INT, offsetof(DataRefInfoObject, type), 0, "type"},
+  {"writable", T_OBJECT_EX, offsetof(DataRefInfoObject, writable), 0, "writable"},
+  {"owner", T_INT, offsetof(DataRefInfoObject, owner), 0, "owner"},
+  {NULL, T_INT, 0, 0, ""}  /* Sentinel */
+};
+
+static PyObject *DataRefInfo_str(DataRefInfoObject *obj) {
+  return PyUnicode_FromFormat("%S: 0x%x %s [%i]",
+                              obj->name,
+                              obj->type, 
+                              obj->writable == Py_True ? "writable" : "read-only",
+                              obj->owner);
+}
+
+static PyTypeObject DataRefInfoType = {
+  PyVarObject_HEAD_INIT(NULL, 0)
+  .tp_name = "xppython3.DataRefInfo",
+  .tp_doc = "DataRefInfo",
+  .tp_basicsize = sizeof(DataRefInfoObject),
+  .tp_itemsize = 0,
+  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+  .tp_new = DataRefInfo_new,
+  .tp_init = (initproc) DataRefInfo_init,
+  .tp_dealloc = (destructor) DataRefInfo_dealloc,
+  .tp_traverse = (traverseproc) DataRefInfo_traverse,
+  .tp_clear = (inquiry) DataRefInfo_clear,
+  .tp_str = (reprfunc) DataRefInfo_str,
+  .tp_members = DataRefInfo_members,
+};
+
+PyObject *
+PyDataRefInfo_New(const char *name, int type, int writable, int owner)
+{
+  PyObject *argsList = Py_BuildValue("siii", name, type, writable, owner);
+  PyObject *obj = PyObject_CallObject((PyObject *) &DataRefInfoType, argsList);
+  Py_DECREF(argsList);
+  return (PyObject*)obj;
+}
+  
+  
 /* ProbeInfo Type */
 typedef struct {
   PyObject_HEAD
@@ -228,7 +347,7 @@ ProbeInfo_init(ProbeInfoObject *self, PyObject *args, PyObject *kwds)
 }
 
 static PyMemberDef ProbeInfo_members[] = {
-    {"result", T_INT, offsetof(ProbeInfoObject, result), 0, "XPLMProbResult, result of query"},
+    {"result", T_INT, offsetof(ProbeInfoObject, result), 0, "XPLMProbeResult, result of query"},
     {"locationX", T_FLOAT, offsetof(ProbeInfoObject, locationX), 0, "locationX"},
     {"locationY", T_FLOAT, offsetof(ProbeInfoObject, locationY), 0, "locationY"},
     {"locationZ", T_FLOAT, offsetof(ProbeInfoObject, locationZ), 0, "locationZ"},
@@ -525,10 +644,11 @@ static PyObject *NavAidInfo_str(NavAidInfoObject *obj) {
   /* Name (<ID>), type, (lat, lon), frequncy*/
   char *navAidType;
   char *floats;
+  int asprintf_ret;
   if (obj->frequency == 0.0) {
-    asprintf(&floats, "(%.3f, %.3f) ---", obj->latitude, obj->longitude);
+    asprintf_ret = asprintf(&floats, "(%.3f, %.3f) ---", obj->latitude, obj->longitude);
   } else {
-    asprintf(&floats, "(%.3f, %.3f) %.2f", obj->latitude, obj->longitude, obj->frequency/100.0);
+    asprintf_ret = asprintf(&floats, "(%.3f, %.3f) %.2f", obj->latitude, obj->longitude, obj->frequency/100.0);
   }
 
   switch(obj->type) {
@@ -537,7 +657,7 @@ static PyObject *NavAidInfo_str(NavAidInfoObject *obj) {
   case xplm_Nav_NDB:
     navAidType = "NDB";
     free(floats);
-    asprintf(&floats, "(%.3f, %.3f) %d", obj->latitude, obj->longitude, obj->frequency);
+    asprintf_ret = asprintf(&floats, "(%.3f, %.3f) %d", obj->latitude, obj->longitude, obj->frequency);
     break;
   case xplm_Nav_VOR:
     navAidType = "VOR"; break;
@@ -565,6 +685,10 @@ static PyObject *NavAidInfo_str(NavAidInfoObject *obj) {
     navAidType = "Other Unknown";
   }
   
+  if (-1 == asprintf_ret) {
+    fprintf(pythonLogFile, "Failed to allocate asprintf memory. Failing navaid info.\n");
+  }
+
   PyObject *ret = PyUnicode_FromFormat("%S (%S) %s %s",
                                        obj->name,
                                        obj->navAidID,
@@ -718,7 +842,9 @@ static PyObject *FMSEntryInfo_str(FMSEntryInfoObject *obj) {
     navAidType = "Other Unknown";
   }
   PyObject *ret;
-  asprintf(&floats, "(%.3f, %.3f) @%d'", obj->lat, obj->lon, obj->altitude);
+  if (-1==asprintf(&floats, "(%.3f, %.3f) @%d'", obj->lat, obj->lon, obj->altitude)) {
+    fprintf(pythonLogFile, "Failed to allocate memory for asprintf, FMSEntryInfo\n");
+  }
   if (obj->type == xplm_Nav_LatLon) {
     ret = PyUnicode_FromFormat("%s: %s", navAidType, floats);
   } else {
@@ -870,7 +996,9 @@ static PyObject *XPSystemLogFun(PyObject *self, PyObject *args)
     if (strlen(inString)) {
       char *moduleName = get_moduleName();
       char *msg;
-      asprintf(&msg, "[XP3: %s] %s\n", moduleName, inString);
+      if (-1 == asprintf(&msg, "[XP3: %s] %s\n", moduleName, inString)) {
+        fprintf(pythonLogFile, "Failed to allocate memory for asprintf syslog.\n");
+      }
       free(moduleName);
       XPLMDebugString(msg);
       free(msg);
@@ -925,6 +1053,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 static PyMethodDef XPPythonMethods[] = {
   {"pythonGetDicts", (PyCFunction)XPPythonGetDictsFun, METH_VARARGS, _pythonGetDicts__doc__},
   {"XPPythonGetDicts", (PyCFunction)XPPythonGetDictsFun, METH_VARARGS, ""},
@@ -944,6 +1074,8 @@ static PyMethodDef XPPythonMethods[] = {
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
+#pragma GCC diagnostic pop
+
 
 static struct PyModuleDef XPPythonModule = {
   PyModuleDef_HEAD_INIT,
@@ -964,6 +1096,8 @@ PyInit_XPPython(void)
   if (PyType_Ready(&HotKeyInfoType) < 0)
     return NULL;
   if (PyType_Ready(&ProbeInfoType) < 0)
+    return NULL;
+  if (PyType_Ready(&DataRefInfoType) < 0)
     return NULL;
   if (PyType_Ready(&PluginInfoType) < 0)
     return NULL;
@@ -986,6 +1120,7 @@ PyInit_XPPython(void)
     PyModule_AddObject(mod, "pythonExecutable", getExecutable());
     PyModule_AddObject(mod, "HotKeyInfo", (PyObject *) &HotKeyInfoType);
     PyModule_AddObject(mod, "ProbeInfo", (PyObject *) &ProbeInfoType);
+    PyModule_AddObject(mod, "DataRefInfo", (PyObject *) &DataRefInfoType);
     PyModule_AddObject(mod, "PluginInfo", (PyObject *) &PluginInfoType);
     PyModule_AddObject(mod, "NavAidInfo", (PyObject *) &NavAidInfoType);
     PyModule_AddObject(mod, "FMSEntryInfo", (PyObject *) &FMSEntryInfoType);
@@ -994,6 +1129,7 @@ PyInit_XPPython(void)
   }
   Py_INCREF(&HotKeyInfoType);
   Py_INCREF(&ProbeInfoType);
+  Py_INCREF(&DataRefInfoType);
   Py_INCREF(&PluginInfoType);
   Py_INCREF(&NavAidInfoType);
   Py_INCREF(&FMSEntryInfoType);

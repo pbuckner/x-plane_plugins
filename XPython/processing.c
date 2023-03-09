@@ -369,6 +369,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 }
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 static PyMethodDef XPLMProcessingMethods[] = {
   {"getElapsedTime", (PyCFunction)XPLMGetElapsedTimeFun, METH_VARARGS, _getElapsedTime__doc__},
   {"XPLMGetElapsedTime", (PyCFunction)XPLMGetElapsedTimeFun, METH_VARARGS, ""},
@@ -389,6 +391,8 @@ static PyMethodDef XPLMProcessingMethods[] = {
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
+#pragma GCC diagnostic pop
+
 
 static struct PyModuleDef XPLMProcessingModule = {
   PyModuleDef_HEAD_INIT,

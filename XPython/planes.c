@@ -249,6 +249,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 static PyMethodDef XPLMPlanesMethods[] = {
   {"setUsersAircraft", (PyCFunction)XPLMSetUsersAircraftFun, METH_VARARGS | METH_KEYWORDS, _setUsersAircraft__doc__},
   {"XPLMSetUsersAircraft", (PyCFunction)XPLMSetUsersAircraftFun, METH_VARARGS | METH_KEYWORDS, ""},
@@ -281,6 +283,8 @@ static PyMethodDef XPLMPlanesMethods[] = {
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
+#pragma GCC diagnostic pop
+
 
 static struct PyModuleDef XPLMPlanesModule = {
   PyModuleDef_HEAD_INIT,

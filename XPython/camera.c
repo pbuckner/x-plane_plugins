@@ -219,6 +219,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 static PyMethodDef XPLMCameraMethods[] = {
   {"controlCamera", (PyCFunction)XPLMControlCameraFun, METH_VARARGS | METH_KEYWORDS, _controlCamera__doc__},
   {"XPLMControlCamera", (PyCFunction)XPLMControlCameraFun, METH_VARARGS | METH_KEYWORDS, ""},
@@ -231,6 +233,8 @@ static PyMethodDef XPLMCameraMethods[] = {
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
+#pragma GCC diagnostic pop
+
 
 static struct PyModuleDef XPLMCameraModule = {
   PyModuleDef_HEAD_INIT,

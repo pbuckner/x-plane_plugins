@@ -58,9 +58,11 @@ static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args, PyObject *k
     PyObject *defListItem = PySequence_GetItem(widgetDefs, i);
     if (PySequence_Length(defListItem) != 9) {
       char *msg;
-      asprintf(&msg, "createWidgets, widgetDefs list, definition #%d contains %lld elements, it must contain 9.\n",
-               i+1,
-               (long long)PySequence_Length(defListItem));
+      if (-1 == asprintf(&msg, "createWidgets, widgetDefs list, definition #%d contains %lld elements, it must contain 9.\n",
+                         i+1,
+                         (long long)PySequence_Length(defListItem))) {
+        fprintf(pythonLogFile, "Failed to allocate asprintf memory. Create Widgets failed.\n");
+      }
       PyErr_SetString(PyExc_ValueError , msg);
       free(msg);
       free(ioWidgets);
@@ -365,6 +367,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 static PyMethodDef XPWidgetUtilsMethods[] = {
   {"createWidgets", (PyCFunction)XPUCreateWidgetsFun, METH_VARARGS | METH_KEYWORDS, _createWidgets__doc__},
   {"XPUCreateWidgets", (PyCFunction)XPUCreateWidgetsFun, METH_VARARGS | METH_KEYWORDS, ""},
@@ -381,6 +385,8 @@ static PyMethodDef XPWidgetUtilsMethods[] = {
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
+#pragma GCC diagnostic pop
+
 
 
 static struct PyModuleDef XPWidgetUtilsModule = {

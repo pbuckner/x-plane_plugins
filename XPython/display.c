@@ -464,7 +464,9 @@ static int handleMouseClick(XPLMWindowID     inWindowID,
   }
   if (!PyLong_Check(pRes)) {
     char *msg;
-    asprintf(&msg, "click() callback [%s] failed to return integer\n.", objToStr(func));
+    if (-1 == asprintf(&msg, "click() callback [%s] failed to return integer\n.", objToStr(func))) {
+      fprintf(pythonLogFile, "Failed to allocate asprintf memory for callback error.\n");
+    }
     PyErr_SetString(PyExc_ValueError, msg);
     free(msg);
     return 1;
@@ -507,7 +509,9 @@ static int handleRightClick(XPLMWindowID     inWindowID,
   }
   if (!PyLong_Check(pRes)) {
     char *msg;
-    asprintf(&msg, "rightClick() callback [%s] failed to return integer\n.", objToStr(func));
+    if (-1 == asprintf(&msg, "rightClick() callback [%s] failed to return integer\n.", objToStr(func))) {
+      fprintf(pythonLogFile, "Failed to allocate asprintf memory for right click callback.\n");
+    }
     PyErr_SetString(PyExc_ValueError, msg);
     free(msg);
     return 1;
@@ -1555,6 +1559,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 }
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 static PyMethodDef XPLMDisplayMethods[] = {
   {"registerDrawCallback", (PyCFunction)XPLMRegisterDrawCallbackFun, METH_VARARGS | METH_KEYWORDS, _registerDrawCallback__doc__},
   {"XPLMRegisterDrawCallback", (PyCFunction)XPLMRegisterDrawCallbackFun, METH_VARARGS | METH_KEYWORDS, ""},
@@ -1644,6 +1650,8 @@ static PyMethodDef XPLMDisplayMethods[] = {
   {"_cleanup", cleanup, METH_VARARGS, "cleanup"},
   {NULL, NULL, 0, NULL}
 };
+#pragma GCC diagnostic pop
+
 
 static struct PyModuleDef XPLMDisplayModule = {
   PyModuleDef_HEAD_INIT,

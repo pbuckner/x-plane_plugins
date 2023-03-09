@@ -23,7 +23,9 @@ void pythonDebug(const char *fmt, ...) {
     char *msg;
     va_list ap;
     va_start(ap, fmt);
-    vasprintf(&msg, fmt, ap);
+    if (-1 == vasprintf(&msg, fmt, ap)) {
+      fprintf(pythonLogFile, "Failed to allocation vasprintf memory in pythonDebug\n");
+    }
     va_end(ap);
     fprintf(pythonLogFile, "DEBUG>> %s\n", msg);
     fflush(pythonLogFile);

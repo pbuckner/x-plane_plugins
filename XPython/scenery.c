@@ -285,6 +285,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 static PyMethodDef XPLMSceneryMethods[] = {
   {"createProbe", (PyCFunction)XPLMCreateProbeFun, METH_VARARGS | METH_KEYWORDS, _createProbe__doc__},
   {"XPLMCreateProbe", (PyCFunction)XPLMCreateProbeFun, METH_VARARGS | METH_KEYWORDS, ""},
@@ -313,6 +315,8 @@ static PyMethodDef XPLMSceneryMethods[] = {
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
+#pragma GCC diagnostic pop
+
 
 static struct PyModuleDef XPLMSceneryModule = {
   PyModuleDef_HEAD_INIT,

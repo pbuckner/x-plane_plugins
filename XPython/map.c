@@ -570,6 +570,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 static PyMethodDef XPLMMapMethods[] = {
   {"createMapLayer", (PyCFunction)XPLMCreateMapLayerFun, METH_VARARGS | METH_KEYWORDS, _createMapLayer__doc__},
   {"XPLMCreateMapLayer", (PyCFunction)XPLMCreateMapLayerFun, METH_VARARGS | METH_KEYWORDS, ""},
@@ -594,6 +596,8 @@ static PyMethodDef XPLMMapMethods[] = {
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
+#pragma GCC diagnostic pop
+
 
 static struct PyModuleDef XPLMMapModule = {
   PyModuleDef_HEAD_INIT,

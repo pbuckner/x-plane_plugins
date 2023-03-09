@@ -4,3 +4,4 @@ extern PyObject *PyNavAidInfo_New(int type, float latitude, float longitude, flo
 extern PyObject *PyFMSEntryInfo_New(int type, char *navAidID, int ref, int altitude, float lat, float lon);
 extern PyObject *PyPluginInfo_New(char *name, char *filePath, char *signature, char *description);
 extern PyObject *PyProbeInfo_New(int result, float locationX, float locationY, float locationZ, float normalX, float normalY, float normalZ, float velocityX, float velocityY, float velocityZ, int is_wet);
+extern PyObject *PyDataRefInfo_New(const char *name, int type, int writable, int owner);

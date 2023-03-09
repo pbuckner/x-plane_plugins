@@ -57,7 +57,9 @@ void xpy_startAircraftPlugins()
   *tmp = '\0';
   // pythonDebug("Will look for Aircraft PI files in %s/plugins/PythonPlugins\n", outPath);
   char *plugins_path;
-  asprintf(&plugins_path, "%s/plugins/PythonPlugins", outPath);
+  if (-1 == asprintf(&plugins_path, "%s/plugins/PythonPlugins", outPath)) {
+    fprintf(pythonLogFile, "Failed to allocate memory with asprintf. Unable to start.\n");
+  }
 
   /* 'Aircraft' has to be in syspath, and get aircraft_path_rel*/
   PyObject *localsDict = PyDict_New();

@@ -287,7 +287,7 @@ static int stopPython(void)
 PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
 {
   if (XPLMFindPluginBySignature("sandybarbour.projects.pythoninterface") != XPLM_NO_PLUGIN_ID) {
-    XPLMDebugString("[XPPython3] WARNING: XPPython3 Detected python2 PythonInterface plugin. These plugins are incompatible.\n");
+    XPLMDebugString("[XPPython3] WARNING: XPPython3 Detected python2 PythonInterface plugin. These plugins have compatibility issues.\n");
   }
 
   pythonLogFile = getLogFile();
@@ -315,6 +315,9 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
   } else {
     fprintf(pythonLogFile, "[XPPython3] Warning: XPLM_USE_NATIVE_WIDGET_WINDOWS not enabled. Using Legacy windows.\n");
   }
+  if (XPLMHasFeature("XPLM_WANTS_DATAREF_NOTIFICATIONS")) {
+    XPLMEnableFeature("XPLM_WANTS_DATAREF_NOTIFICATIONS", 1);
+  }    
 
   handleConfigFile();
 

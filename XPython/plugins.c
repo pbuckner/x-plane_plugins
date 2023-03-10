@@ -215,8 +215,8 @@ static PyObject *XPLMEnableFeatureFun(PyObject *self, PyObject *args, PyObject *
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s|i", keywords, &inFeature, &inEnable)){
     return NULL;
   }
-  if (!inEnable && ! (strcmp(inFeature, "XPLM_USE_NATIVE_PATHS") && strcmp(inFeature, "XPLM_USE_NATIVE_WIDGET_WINDOWS"))) {
-    PyErr_SetString(PyExc_RuntimeError, "An XPPython3 plugin is attempting to disable XPLM_USE_NATIVE_PATHS or XPLM_USE_NATIVE_WIDGET_WINDOWS feature, not allowed");
+  if (!inEnable && ! (strcmp(inFeature, "XPLM_USE_NATIVE_PATHS") && strcmp(inFeature, "XPLM_USE_NATIVE_WIDGET_WINDOWS") && strcmp(inFeature, "XPLM_WANTS_DATAREF_NOTIFICATIONS"))) {
+    PyErr_SetString(PyExc_RuntimeError, "An XPPython3 plugin is attempting to disable NATIVE_PATHS NATIVE_WIDGET_WINDOWS or DATAREF_NOTIFICATIONS feature, this is not allowed");
   } else {
     XPLMEnableFeature(inFeature, inEnable);
   }

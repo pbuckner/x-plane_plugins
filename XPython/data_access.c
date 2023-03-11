@@ -8,6 +8,8 @@
 #include <XPLM/XPLMDataAccess.h>
 #include <XPLM/XPLMUtilities.h>
 #include "utils.h"
+#include "xppythontypes.h"
+#include "plugin_dl.h"
 
 //static PyObject *rwCallbackDict;
 //static intptr_t rwCallbackCntr;
@@ -1346,6 +1348,100 @@ static PyObject *XPLMShareDataFun(PyObject *self, PyObject *args, PyObject *kwar
   return PyLong_FromLong(res);
 }
 
+My_DOCSTR(_countDataRefs__doc__, "countDataRefs", "",
+          "Returns the total number of datarefs that have been registered in X-Plane.");
+static PyObject *XPLMCountDataRefsFun(PyObject *self, PyObject *args)
+{
+  (void)self;
+  (void)args;
+  if(!XPLMCountDataRefs_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMCountDataRefs is available only in XPLM400 and up and requires at least X-Plane v12.04.");
+    return NULL;
+  }
+  return PyLong_FromLong(XPLMCountDataRefs_ptr());
+}
+
+My_DOCSTR(_getDataRefsByIndex__doc__, "getDataRefsByIndex", "offset=0, count=1",
+          "Returns list of dataRefs, each similar to return from xp.findDataRef().\n"
+          "Use xp.getDataRefInfo() to access information about the dataref.\n"
+          "As a special case, count=-1 returns all datarefs starting from offset to the end.\n"
+          "\n"
+          "CAUTION: requesting datarefs greater than countDataRefs() returns garbage. If you\n"
+          "try to use these, you may crash the sim." );
+static PyObject *XPLMGetDataRefsByIndexFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"offset", "count", NULL};
+  (void)self;
+  int offset = 0;
+  int count = 1;
+
+  if(!XPLMGetDataRefsByIndex_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMGetDataRefsByIndex is available only in XPLM400 and up and requires at least X-Plane v12.04.");
+    return NULL;
+  }
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|ii", keywords, &offset, &count)) {
+    return NULL;
+  }
+  if (offset < 0) {
+    PyErr_SetString(PyExc_ValueError, "invalid offset, too low");
+    Py_RETURN_NONE;
+  }
+  if (count < 0) {
+    count = XPLMCountDataRefs_ptr() - offset;
+    if (count < 0) {
+      PyErr_SetString(PyExc_ValueError, "invalid offset, too high");
+      Py_RETURN_NONE;
+    }
+  }
+  if (count + offset > XPLMCountDataRefs_ptr()) {
+      PyErr_SetString(PyExc_ValueError, "invalid count and offset, too high");
+      Py_RETURN_NONE;
+  }
+
+  XPLMDataRef *outDataRefs = (XPLMDataRef *)malloc(count * sizeof(XPLMDataRef));
+  XPLMGetDataRefsByIndex_ptr(offset, count, outDataRefs);
+  PyObject *outValuesObj = PyList_New(0);
+  for(int i = 0; i < count; i++) {
+    if (outDataRefs[i] == NULL) {
+      /* bail.. the only time this (should) happen is if we're asked to get more dataRefs than there
+         are in the system. We'll get garbage data which (often) includes
+      */
+      free(outDataRefs);
+      Py_RETURN_NONE;
+    }
+    PyList_Append(outValuesObj, getPtrRefOneshot(outDataRefs[i], dataRefName));
+  }
+  free(outDataRefs);
+  return outValuesObj;
+}
+
+My_DOCSTR(_getDataRefInfo__doc__, "getDataRefInfo", "dataRef",
+          "Return DataRefInfo object for provided dataRef.\n"
+          "\n"
+          "DataRefInfo object is .name, .type, .writable, .owner\n"
+          "  recall type is a bitfield, see xp.getDataRefTypes()");
+static PyObject *XPLMGetDataRefInfoFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"dataRef", NULL};
+  (void) self;
+
+  if(!XPLMGetDataRefInfo_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMGetDataRefInfo is available only in XPLM400 and up and requires at least X-Plane v12.04.");
+    return NULL;
+  }
+
+  PyObject *dataRef;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &dataRef)){
+    return NULL;
+  }
+  XPLMDataRef inDataRef = drefFromObj(dataRef);
+  XPLMDataRefInfo_t outInfo;
+  outInfo.structSize = sizeof(XPLMDataRefInfo_t);
+  XPLMGetDataRefInfo_ptr(inDataRef, &outInfo);
+  return PyDataRefInfo_New(outInfo.name, outInfo.type, outInfo.writable, outInfo.owner);
+}
+
 My_DOCSTR(_unshareData__doc__, "unshareData", "name, dataType, dataChanged=None, refCon=None",
           "Unshare data. If dataChanged function was provided with initial shareData()\n"
           "the callback will no longer be called on data changes.\n"
@@ -1436,6 +1532,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 static PyMethodDef XPLMDataAccessMethods[] = {
   {"findDataRef", (PyCFunction)XPLMFindDataRefFun, METH_VARARGS | METH_KEYWORDS, _findDataRef__doc__},
   {"XPLMFindDataRef", (PyCFunction)XPLMFindDataRefFun, METH_VARARGS | METH_KEYWORDS, ""},
@@ -1479,9 +1577,17 @@ static PyMethodDef XPLMDataAccessMethods[] = {
   {"XPLMShareData", (PyCFunction)XPLMShareDataFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"unshareData", (PyCFunction)XPLMUnshareDataFun, METH_VARARGS | METH_KEYWORDS, _unshareData__doc__},
   {"XPLMUnshareData", (PyCFunction)XPLMUnshareDataFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"countDataRefs", (PyCFunction)XPLMCountDataRefsFun, METH_VARARGS, _countDataRefs__doc__},
+  {"XPLMCountDataRefs", (PyCFunction)XPLMCountDataRefsFun, METH_VARARGS, ""},
+  {"getDataRefsByIndex", (PyCFunction)XPLMGetDataRefsByIndexFun, METH_VARARGS | METH_KEYWORDS, _getDataRefsByIndex__doc__},
+  {"XPLMGetDataRefsByIndex", (PyCFunction)XPLMGetDataRefsByIndexFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getDataRefInfo", (PyCFunction)XPLMGetDataRefInfoFun, METH_VARARGS | METH_KEYWORDS, _getDataRefInfo__doc__},
+  {"XPLMGetDataRefInfo", (PyCFunction)XPLMGetDataRefInfoFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
+#pragma GCC diagnostic pop
+
 
 static struct PyModuleDef XPLMDataAccessModule = {
   PyModuleDef_HEAD_INIT,

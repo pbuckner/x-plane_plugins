@@ -12,7 +12,7 @@ Known Bugs
 
  None (prove me wrong!)
 
-4.0.1 (BETA)
+4.1.0 (BETA)
 ------------
 
 :New Features:
@@ -20,6 +20,11 @@ Known Bugs
      spent within avionics draw callbacks is added to the "Drawing Misc." time. See
      :doc:`/usage/performance`.
 
+   * **Weather Module** SDK400 introduced XPLMWeather which provides :py:func:`xp.getMETARForAirport`
+     and :py:func:`xp.getWeatherAtLocation`.
+
+   * **DataRef Query** functions added by SDK400. :py:func:`countDataRefs`, :py:func:`getDataRefByIndex`,
+     and py:func:`getDataRefInfo`.
      |
         
 :Improvements:
@@ -41,11 +46,20 @@ Known Bugs
    * **Internal Python Dicts** changed. ``modules`` dict now uses module name as the key
      instead of plugin info tuple. This allows us the change plugin information dynamically.
      
+     |
+
+:Fixes:
+   * Changed python2 compatibility check. Formerly, if we discovered PythonInterface (python2)
+     plugin running, we would block loading XPPython3 plugin, to avoid compatibility issues.
+     It appears PythonInterface and XPPython3 can run together under Windows. On other platforms
+     it appears to fail. Rather than stopping XPPython3, we now just issue a warning (and you're on
+     your own!)
+     
 4.0.0 (2-Jan-2023)
 ------------------
 :Note:
    * Supports Python 3.10 and 3.11 **only**. Please upgrade your python
-     installation. We'll likely add 3.12 once it's fully released.
+     installation. We'll likely add 3.12 once it's fully released (scheduled for late 2023)
 
    * XPPython3 v3.1.5 is the *final* release for X-Plane 11.
 

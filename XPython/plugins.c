@@ -379,6 +379,9 @@ PyInit_XPLMPlugin(void)
     PyModule_AddIntConstant(mod, "MSG_ENTERED_VR", XPLM_MSG_ENTERED_VR);
     PyModule_AddIntConstant(mod, "MSG_EXITING_VR", XPLM_MSG_EXITING_VR);
     PyModule_AddIntConstant(mod, "MSG_RELEASE_PLANES", XPLM_MSG_RELEASE_PLANES);
+    PyModule_AddIntConstant(mod, "MSG_FMOD_BANK_LOADED", XPLM_MSG_FMOD_BANK_LOADED);
+    PyModule_AddIntConstant(mod, "MSG_FMOD_BANK_UNLOADING", XPLM_MSG_FMOD_BANK_UNLOADING);
+    PyModule_AddIntConstant(mod, "MSG_DATAREFS_ADDED", XPLM_MSG_DATAREFS_ADDED);
   }
   return mod;
 }

@@ -272,6 +272,10 @@ PyObject *
 PyDataRefInfo_New(const char *name, int type, int writable, int owner)
 {
   PyObject *argsList = Py_BuildValue("siii", name, type, writable, owner);
+  if (PyErr_Occurred() || ! argsList) {
+    fprintf(pythonLogFile, "Failed to create DataRefInfo args list\n");
+    Py_RETURN_NONE;
+  }
   PyObject *obj = PyObject_CallObject((PyObject *) &DataRefInfoType, argsList);
   Py_DECREF(argsList);
   return (PyObject*)obj;
@@ -1099,6 +1103,12 @@ PyInit_XPPython(void)
     return NULL;
   if (PyType_Ready(&DataRefInfoType) < 0)
     return NULL;
+  if (PyType_Ready(&WeatherInfoType) < 0)
+    return NULL;
+  if (PyType_Ready(&WeatherInfoCloudsType) < 0)
+    return NULL;
+  if (PyType_Ready(&WeatherInfoWindsType) < 0)
+    return NULL;
   if (PyType_Ready(&PluginInfoType) < 0)
     return NULL;
   if (PyType_Ready(&TrackMetricsType) < 0)
@@ -1121,6 +1131,9 @@ PyInit_XPPython(void)
     PyModule_AddObject(mod, "HotKeyInfo", (PyObject *) &HotKeyInfoType);
     PyModule_AddObject(mod, "ProbeInfo", (PyObject *) &ProbeInfoType);
     PyModule_AddObject(mod, "DataRefInfo", (PyObject *) &DataRefInfoType);
+    PyModule_AddObject(mod, "WeatherInfo", (PyObject *) &WeatherInfoType);
+    PyModule_AddObject(mod, "WeatherInfoClouds", (PyObject *) &WeatherInfoCloudsType);
+    PyModule_AddObject(mod, "WeatherInfoWinds", (PyObject *) &WeatherInfoWindsType);
     PyModule_AddObject(mod, "PluginInfo", (PyObject *) &PluginInfoType);
     PyModule_AddObject(mod, "NavAidInfo", (PyObject *) &NavAidInfoType);
     PyModule_AddObject(mod, "FMSEntryInfo", (PyObject *) &FMSEntryInfoType);
@@ -1130,6 +1143,9 @@ PyInit_XPPython(void)
   Py_INCREF(&HotKeyInfoType);
   Py_INCREF(&ProbeInfoType);
   Py_INCREF(&DataRefInfoType);
+  Py_INCREF(&WeatherInfoType);
+  Py_INCREF(&WeatherInfoCloudsType);
+  Py_INCREF(&WeatherInfoWindsType);
   Py_INCREF(&PluginInfoType);
   Py_INCREF(&NavAidInfoType);
   Py_INCREF(&FMSEntryInfoType);

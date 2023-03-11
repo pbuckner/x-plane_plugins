@@ -10,6 +10,21 @@ Type_IntArray = 16  #: An array of 4-byte integers, native endian.
 Type_Data = 32  # A: variable block of data.
 
 
+class PyDataRefInfo:
+    name = ""
+    type = 0  # DataRefType
+    writable = True
+    owner = 0  # PluginID
+    
+def getDataRefInfo(dataRef: int) -> PyDataRefInfo:
+    return PyDataRefInfo()
+
+def getDataRefsByIndex(offset: int = 0, count: int = 1) -> List:
+    return list()  # of DataRefs
+
+def countDataRefs() -> int:
+    return int()
+
 def findDataRef(name: str) -> Union[int, None]:
     return int()
 

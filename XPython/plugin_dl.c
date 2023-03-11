@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <dlfcn.h>
 #include <sys/time.h>
+#include <XPLM/XPLMDataAccess.h>
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMProcessing.h>
 #include <XPLM/XPLMScenery.h>
@@ -11,6 +12,7 @@
 #include <XPLM/XPLMMap.h>
 #include <XPLM/XPLMDisplay.h>
 #include <XPLM/XPLMPlanes.h>
+#include <XPLM/XPLMWeather.h>
 #include <Widgets/XPWidgets.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -124,9 +126,19 @@ t_fcn_info funcs301[] = {
 //XPLM400 functions
 typeof(XPLMRegisterAvionicsCallbacksEx) *XPLMRegisterAvionicsCallbacksEx_ptr = NULL;
 typeof(XPLMUnregisterAvionicsCallbacks) *XPLMUnregisterAvionicsCallbacks_ptr = NULL;
+typeof(XPLMCountDataRefs) *XPLMCountDataRefs_ptr = NULL;
+typeof(XPLMGetDataRefsByIndex) *XPLMGetDataRefsByIndex_ptr = NULL;
+typeof(XPLMGetDataRefInfo) *XPLMGetDataRefInfo_ptr = NULL;
+typeof(XPLMGetMETARForAirport) *XPLMGetMETARForAirport_ptr = NULL;
+typeof(XPLMGetWeatherAtLocation) *XPLMGetWeatherAtLocation_ptr = NULL;
 t_fcn_info funcs400[] = {
   {"XPLMRegisterAvionicsCallbacksEx", (void*) &XPLMRegisterAvionicsCallbacksEx_ptr},
   {"XPLMUnregisterAvionicsCallbacks", (void*) &XPLMUnregisterAvionicsCallbacks_ptr},
+  {"XPLMCountDataRefs", (void*) &XPLMCountDataRefs_ptr},
+  {"XPLMGetDataRefsByIndex", (void*) &XPLMGetDataRefsByIndex_ptr},
+  {"XPLMGetDataRefInfo", (void*) &XPLMGetDataRefInfo_ptr},
+  {"XPLMGetMETARForAirport", (void*) &XPLMGetMETARForAirport_ptr},
+  {"XPLMGetWeatherAtLocation", (void*) &XPLMGetWeatherAtLocation_ptr},
   {NULL, NULL}
 };
 

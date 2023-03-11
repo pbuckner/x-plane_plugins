@@ -138,7 +138,7 @@ Navaid Functions
  * If *freq* is provided , then any navaids considered must match this
    frequency.  Note that this will screen out radio beacons that do not have
    frequency data published (like inner markers) but not fixes and airports.
-   **Note this is an integer**, frequency input is real frequency time 100 to create a integer (e.g., specify
+   **Note this is an integer**, frequency input is real frequency times 100 to create a integer (e.g., specify
    13775 to search for 137.75).
 
  * If *name* is provided, only navaids that contain the fragment in

@@ -4,6 +4,7 @@
 #include <sys/time.h>
 #include <stdbool.h>
 #include <XPLM/XPLMDefs.h>
+#include <XPLM/XPLMDataAccess.h>
 #include <XPLM/XPLMProcessing.h>
 #include <XPLM/XPLMScenery.h>
 #include <XPLM/XPLMMenus.h>
@@ -11,6 +12,7 @@
 #include <XPLM/XPLMMap.h>
 #include <XPLM/XPLMDisplay.h>
 #include <XPLM/XPLMPlanes.h>
+#include <XPLM/XPLMWeather.h>
 #include <Widgets/XPWidgetDefs.h>
 #include <Widgets/XPWidgets.h>
 
@@ -63,6 +65,11 @@ extern typeof(XPLMWindowIsInVR) *XPLMWindowIsInVR_ptr;
 //XPLM_400
 extern typeof(XPLMRegisterAvionicsCallbacksEx) *XPLMRegisterAvionicsCallbacksEx_ptr;
 extern typeof(XPLMUnregisterAvionicsCallbacks) *XPLMUnregisterAvionicsCallbacks_ptr;
+extern typeof(XPLMCountDataRefs) *XPLMCountDataRefs_ptr;
+extern typeof(XPLMGetDataRefsByIndex) *XPLMGetDataRefsByIndex_ptr;
+extern typeof(XPLMGetDataRefInfo) *XPLMGetDataRefInfo_ptr;
+extern typeof(XPLMGetMETARForAirport) *XPLMGetMETARForAirport_ptr;
+extern typeof(XPLMGetWeatherAtLocation) *XPLMGetWeatherAtLocation_ptr;
 
 bool loadSDKFunctions(void);
 

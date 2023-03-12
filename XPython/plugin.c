@@ -446,6 +446,12 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
       continue;
     }
     char *moduleName = objToStr(pModuleName);
+    if (inMessage == XPLM_MSG_DATAREFS_ADDED && (long) inParam > 100000) {
+      /* bug -- inParam is sent as pointer to value, rather than value itself. We'll
+         convert to value and send _that_ to python plugins */
+      fprintf(pythonLogFile, "Sending %ld instead\n", *(long*)inParam);
+      param = PyLong_FromLong(*(long*)inParam);
+    }
     pRes = PyObject_CallMethod(pluginInstance, "XPluginReceiveMessage", "ilO", inFromWho, inMessage, param);
 
     PyObject *err = PyErr_Occurred();

@@ -6,6 +6,7 @@ XPython/mac/*.x86
 XPython/mac/*.o
 XPython/mac/*.xpl
 XPython/SDK/
+XPython/SDK400.beta/
 XPython/docs/source/_static/find_xp.pyc
 XPython/docs/source/_static/test.py
 XPython/docs/source/_static/xp_dref.py

@@ -1,4 +1,5 @@
-extern PyTypeObject WeatherInfoType, WeatherInfoCloudsType, WeatherInfoWindsType;
+extern PyTypeObject WeatherInfoType, WeatherInfoCloudsType, WeatherInfoWindsType,
+  HotKeyInfoType, DataRefInfoType, ProbeInfoType, PluginInfoType, NavAidInfoType, FMSEntryInfoType, TrackMetricsType;
 
 extern PyObject *PyHotKeyInfo_New(int virtualKey, int flags, char* description, int plugin);
 extern PyObject *PyTrackMetrics_New(int isVertical, int downBtnSize, int downPageSize, int thumbSize, int upPageSize, int upBtnSize);

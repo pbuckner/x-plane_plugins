@@ -96,12 +96,12 @@ TrackMetrics_getitem(TrackMetricsObject *self, Py_ssize_t i) {
                  
 
 static PyMemberDef TrackMetrics_members[] = {
-    {"isVertical", T_INT, offsetof(TrackMetricsObject, isVertical), 0, "isVertical"},
-    {"downBtnSize", T_INT, offsetof(TrackMetricsObject, downBtnSize), 0, "downButtonSize"},
-    {"downPageSize", T_INT, offsetof(TrackMetricsObject, downPageSize), 0, "downPageSize"},
-    {"thumbSize", T_INT, offsetof(TrackMetricsObject, thumbSize), 0, "thumbSize"},
-    {"upPageSize", T_INT, offsetof(TrackMetricsObject, upPageSize), 0, "upPageSize"},
-    {"upBtnSize", T_INT, offsetof(TrackMetricsObject, upBtnSize), 0, "upButtonSize"},
+    {"isVertical", T_INT, offsetof(TrackMetricsObject, isVertical), 0, "1= vertically aligned, horizontal otherwise"},
+    {"downBtnSize", T_INT, offsetof(TrackMetricsObject, downBtnSize), 0, "Down (or left) button size (pixels)"},
+    {"downPageSize", T_INT, offsetof(TrackMetricsObject, downPageSize), 0, "Down page size, between button and thumb (pixels)"},
+    {"thumbSize", T_INT, offsetof(TrackMetricsObject, thumbSize), 0, "Size of thumb (pixels)"},
+    {"upPageSize", T_INT, offsetof(TrackMetricsObject, upPageSize), 0, "Up page size, thumb and button (pixels)"},
+    {"upBtnSize", T_INT, offsetof(TrackMetricsObject, upBtnSize), 0, "Up (or right) button size (pixels)"},
     {NULL, T_INT, 0, 0, ""}  /* Sentinel */
 };
 
@@ -117,21 +117,22 @@ static PySequenceMethods TrackMetrics_SequenceMethods = {
                                                          .sq_item = (ssizeargfunc) TrackMetrics_getitem,
 };
 
-PyTypeObject TrackMetricsType = {
-                                 PyVarObject_HEAD_INIT(NULL, 0)
-                                 .tp_name = "xppython3.TrackMetrics",
-                                 .tp_doc = "TrackMetrics",
-                                 .tp_basicsize = sizeof(TrackMetricsObject),
-                                 .tp_itemsize = 0,
-                                 .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
-                                 .tp_new = TrackMetrics_new,
-                                 .tp_init = (initproc) TrackMetrics_init,
-                                 .tp_dealloc = (destructor) TrackMetrics_dealloc,
-                                 .tp_as_sequence = &TrackMetrics_SequenceMethods,
-                                 .tp_str = (reprfunc) TrackMetrics_str,
-                                 .tp_traverse = (traverseproc) TrackMetrics_traverse,
-                                 .tp_clear = (inquiry) TrackMetrics_clear,
-                                 .tp_members = TrackMetrics_members,
+PyTypeObject
+TrackMetricsType = {
+  PyVarObject_HEAD_INIT(NULL, 0)
+  .tp_name = "XPPython.TrackMetrics",
+  .tp_doc = "TrackMetrics, return from xp.getTrackMetrics",
+  .tp_basicsize = sizeof(TrackMetricsObject),
+  .tp_itemsize = 0,
+  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+  .tp_new = TrackMetrics_new,
+  .tp_init = (initproc) TrackMetrics_init,
+  .tp_dealloc = (destructor) TrackMetrics_dealloc,
+  .tp_as_sequence = &TrackMetrics_SequenceMethods,
+  .tp_str = (reprfunc) TrackMetrics_str,
+  .tp_traverse = (traverseproc) TrackMetrics_traverse,
+  .tp_clear = (inquiry) TrackMetrics_clear,
+  .tp_members = TrackMetrics_members,
 };
 
 

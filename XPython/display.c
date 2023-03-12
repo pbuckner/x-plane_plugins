@@ -182,7 +182,7 @@ static PyObject *XPLMRegisterAvionicsCallbacksExFun(PyObject *self, PyObject *ar
     Py_INCREF(afterCallback);
   }
   
-  XPLMAvionicsID avionicsId = XPLMRegisterAvionicsCallbacksEx(&params);
+  XPLMAvionicsID avionicsId = XPLMRegisterAvionicsCallbacksEx_ptr(&params);
   PyObject *aID = getPtrRef(avionicsId, avionicsIDCapsules, avionicsIDRef);
   if(!aID){
     PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterAvionicsCallbacksEx failed.\n");
@@ -203,6 +203,12 @@ static PyObject *XPLMUnregisterAvionicsCallbacksFun(PyObject *self, PyObject *ar
   static char *keywords[] = {"avionicsId", NULL};
   (void) self;
   PyObject *aID;
+
+  if(!XPLMUnregisterAvionicsCallbacks_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMUnregisterAvionicsCallbacks is available only in XPLM400 and up.");
+    return NULL;
+  }
+
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &aID)) {
     return NULL;
   }
@@ -211,7 +217,7 @@ static PyObject *XPLMUnregisterAvionicsCallbacksFun(PyObject *self, PyObject *ar
     return NULL;
   }
   XPLMAvionicsID avionicsId = refToPtr(aID, avionicsIDRef);
-  XPLMUnregisterAvionicsCallbacks(avionicsId);
+  XPLMUnregisterAvionicsCallbacks_ptr(avionicsId);
 
   /* and... remove from data structures */
   removePtrRef(avionicsId, avionicsIDCapsules);

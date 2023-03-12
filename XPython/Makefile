@@ -85,7 +85,8 @@ PLUGIN_OBJ = pluginXXX.o defsXXX.o displayXXX.o utilsXXX.o graphicsXXX.o data_ac
 	navigationXXX.o pluginsXXX.o planesXXX.o processingXXX.o cameraXXX.o widget_defsXXX.o widgetsXXX.o \
 	standard_widgetsXXX.o uigraphicsXXX.o widgetutilsXXX.o instanceXXX.o mapXXX.o plugin_dlXXX.o sbXXX.o utilsXXX.o xppythonXXX.o \
 	weatherXXX.o weatherinfo_typeXXX.o weatherinfoclouds_typeXXX.o weatherinfowinds_typeXXX.o\
-	trackMetricsXXX.o manage_instanceXXX.o manage_instancesXXX.o logwriterXXX.o load_modulesXXX.o ini_fileXXX.o
+	hotkeyinfo_typeXXX.o datarefinfo_typeXXX.o probeinfo_typeXXX.o plugininfo_typeXXX.o navaidinfo_typeXXX.o fmsentryinfo_typeXXX.o \
+	trackmetrics_typeXXX.o manage_instanceXXX.o manage_instancesXXX.o logwriterXXX.o load_modulesXXX.o ini_fileXXX.o
 
 %310.o	: %.c
 ifeq ($(TARGET),Darwin)

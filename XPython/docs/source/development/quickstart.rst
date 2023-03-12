@@ -40,7 +40,7 @@ Couple of quick points common to all XPPython3 plugins:
   the python API easy.
   See `Simplified Python Interface in module xp <modules/xp.html>`_ for details. (Keyword parameters are
   *only* for the ``xp`` varient, e.g., ``xp.destroyWindow()``. The ``XPLM`` varients such as ``XPLMDisplay.XPLMDestroyWindow()``,
-  support only positional parameters, and all parameters must be specified.
+  support only positional parameters, and as such, all parameters must be specified.
   ::
 
      xp.destroyWindow(myWindowID)              # Works! Use positional parameters

@@ -97,7 +97,7 @@ You can retrieve all dataRefs by interating through a full list known by X-Plane
  2. :py:func:`getDataRefsByIndex` returns a list of dataRef based on index number. The use :py:func:`getDataRefInfo` to
     retrieve information about each dataref.
 
-To support discovery of dataRefs registered after your plugin, a new message :py:data:`MSG_DATAREFS_ADDDED` will
+To support discovery of dataRefs registered after your plugin, a new message :py:data:`MSG_DATAREFS_ADDED` will
 be sent to your plugin whenever a plugin is registered. If interested, you can query for new information
 based on index.
 
@@ -221,7 +221,9 @@ Functions
 
     >>> xp.countDataRefs()
     6928
-    
+
+  This is similar to the value you'll receive in your XPluginReceiveMessage routine for the :py:data:`MSG_DATAREFS_ADDED` message.
+  
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMCountDataRefs>`__: :index:`XPLMCountDataRefs`
 
 .. py:function:: getDataRefsByIndex(offset=0, count=1)

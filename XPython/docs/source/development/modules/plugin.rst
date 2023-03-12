@@ -312,6 +312,37 @@ On startup, you'll see::
  Synthetic traffic providers should always yield to online networks. The
  parameter is unused and should be ignored.
 
+.. py:data:: MSG_FMOD_BANK_LOADED
+  :value: 112
+
+  Sent to your plugin after FMOD sound banks are loaded. The parameter is the
+  XPLMBankID enum in XPLMSound.h, 0 for the master bank, and 1 for the radio bank.
+
+.. py:data:: MSG_FMOD_BANK_UNLOADING
+  :value: 113
+
+  Sent to your plugin before FMOD banks are unloaded. Any associated resources
+  should be cleaned up at this point. The parameter is the XPLMBankID enum
+  in XPLMSound.h, 0 for the master bank, and 1 for the radio bank.
+
+.. py:data:: MSG_DATAREFS_ADDED
+  :value: 114             
+
+  Sent to your plugin per-frame (at most) when/if datarefs are added. It will include the new data ref
+  total count so that your plugin can keep a local cache of the total, see what's
+  changed and know which ones to inquire about if it cares. Normally this
+  is enabled/disabled through the use of the ``XPLM_WANTS_DATAREF_NOTIFICATIONS`` feature,
+  but as XPPython3 requires this to be enabled, you'll always get these messages.
+
+  .. Warning:: This appears to be broken in 12.04r3. You'll get the message, but the value
+               of ``param`` is not the new count of dataRefs: it appears to be a pointer to the
+               value, rather than the value itself. Bug
+               filed with Laminar 11-March-2023.
+
+  .. Note:: To work around the bug, we'll automatically convert the pointer value to the
+            actual count, the the value you receive with ``param`` is the count of the
+            current dataRefs.
+  
 .. py:function:: sendMessageToPlugin(pluginID, message, param=None)
 
  Send plugin *message* (as opposed to, say, a Widget message) to another *pluginID*.  Pass

@@ -231,5 +231,7 @@ div.sphinxsidebarwrapper>ul>li>ul>li {
 .sphinxsidebarwrapper>ul>li>ul>li>ul>li>ul>li::before {
     content: "";
 }
-    
-    
+
+div.footer {
+    margin-right: 100px; /* so 'versions' popup doesn't block info */
+}

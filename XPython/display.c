@@ -472,9 +472,10 @@ static int handleMouseClick(XPLMWindowID     inWindowID,
     char *msg;
     if (-1 == asprintf(&msg, "click() callback [%s] failed to return integer\n.", objToStr(func))) {
       fprintf(pythonLogFile, "Failed to allocate asprintf memory for callback error.\n");
+    } else {
+      PyErr_SetString(PyExc_ValueError, msg);
+      free(msg);
     }
-    PyErr_SetString(PyExc_ValueError, msg);
-    free(msg);
     return 1;
   }
   int res = (int)PyLong_AsLong(pRes);
@@ -517,9 +518,10 @@ static int handleRightClick(XPLMWindowID     inWindowID,
     char *msg;
     if (-1 == asprintf(&msg, "rightClick() callback [%s] failed to return integer\n.", objToStr(func))) {
       fprintf(pythonLogFile, "Failed to allocate asprintf memory for right click callback.\n");
+    } else {
+      PyErr_SetString(PyExc_ValueError, msg);
+      free(msg);
     }
-    PyErr_SetString(PyExc_ValueError, msg);
-    free(msg);
     return 1;
   }
   int res = (int)PyLong_AsLong(pRes);

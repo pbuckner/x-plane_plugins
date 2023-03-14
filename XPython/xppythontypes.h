@@ -1,6 +1,6 @@
-extern PyTypeObject WeatherInfoType, WeatherInfoCloudsType, WeatherInfoWindsType,
-  HotKeyInfoType, DataRefInfoType, ProbeInfoType, PluginInfoType, NavAidInfoType, FMSEntryInfoType, TrackMetricsType;
-
+extern PyTypeObject WeatherInfoType, WeatherInfoCloudsType, WeatherInfoWindsType;
+extern PyTypeObject DataRefInfoType,  HotKeyInfoType, PluginInfoType, NavAidInfoType, FMSEntryInfoType, TrackMetricsType,
+  ProbeInfoType;
 extern PyObject *PyHotKeyInfo_New(int virtualKey, int flags, char* description, int plugin);
 extern PyObject *PyTrackMetrics_New(int isVertical, int downBtnSize, int downPageSize, int thumbSize, int upPageSize, int upBtnSize);
 extern PyObject *PyNavAidInfo_New(int type, float latitude, float longitude, float height, int frequency, float heading, char* navAidID, char *name, int reg);
@@ -15,4 +15,3 @@ extern PyObject *PyWeatherInfo_New(float temperature_alt, float dewpoint_alt, fl
                                    PyObject *wind_layers,PyObject *cloud_layers);
 extern PyObject *PyWeatherInfoClouds_New(float cloud_type, float coverage, float alt_top, float alt_base);
 extern PyObject *PyWeatherInfoWinds_New(float alt_msl, float speed, float direction, float gust_speed, float shear, float turbulence);
- 

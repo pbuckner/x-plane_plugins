@@ -310,7 +310,17 @@ void *refToPtr(PyObject *ref, const char *refName)
   if (ref == Py_None || (!strcmp(widgetRefName, refName) && PyLong_Check(ref) && PyLong_AsLong(ref) == 0)){
     return NULL;
   }else{
-    return PyCapsule_GetPointer(ref, refName);
+    void *ptr = PyCapsule_GetPointer(ref, refName);
+    if (pythonDebugs) {
+      PyObject *err = PyErr_Occurred();
+      if(err){
+        pythonLogException();
+        fprintf(pythonLogFile, "Failed to convert '%s' capsule (%s) to pointer\n", refName, objToStr(ref));
+        fflush(pythonLogFile);
+        return NULL;
+      }
+    }
+    return ptr;
   }
 }
 

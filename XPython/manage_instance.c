@@ -79,12 +79,17 @@ void updatePluginDict(PyObject *pName, PyObject *pModule, PyObject *pRes, PyObje
   Py_INCREF(tmp);
   PyList_SetItem(pluginInfo, PLUGIN_DESCRIPTION, tmp);
 
+  Py_INCREF(pModule);
   PyList_SetItem(pluginInfo, PLUGIN_MODULE, pModule);
 
+  Py_INCREF(pName);
   PyList_SetItem(pluginInfo, PLUGIN_MODULE_NAME, pName);
+  Py_INCREF(Py_False);
   PyList_SetItem(pluginInfo, PLUGIN_DISABLED, Py_False);
 
+  Py_INCREF(pluginInstance);
   PyDict_SetItem(moduleDict, pName, pluginInstance);
+  Py_INCREF(pluginInfo);
   PyDict_SetItem(pluginDict, pluginInstance, pluginInfo);
   if(PyErr_Occurred()) {
     fprintf(pythonLogFile, "Error while updating plugin dict\n");

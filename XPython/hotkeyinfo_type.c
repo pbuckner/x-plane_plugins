@@ -83,7 +83,7 @@ PyTypeObject
 HotKeyInfoType = {
   PyVarObject_HEAD_INIT(NULL, 0)
   .tp_name = "XPPython.HotKeyInfo",
-  .tp_doc = "HotKeyInfo, return from xp.getHotKeyInfo()",
+  .tp_doc = PyDoc_STR("HotKeyInfo, return from xp.getHotKeyInfo()"),
   .tp_basicsize = sizeof(HotKeyInfoObject),
   .tp_itemsize = 0,
   .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
@@ -101,6 +101,6 @@ PyHotKeyInfo_New(int virtualKey, int flags, char *description, int plugin)
 {
   PyObject *argsList = Py_BuildValue("iisi", virtualKey, flags, description, plugin);
   PyObject *obj = PyObject_CallObject((PyObject *) &HotKeyInfoType, argsList);
-  Py_DECREF(argsList);
+  Py_XDECREF(argsList);
   return (PyObject*)obj;
 }

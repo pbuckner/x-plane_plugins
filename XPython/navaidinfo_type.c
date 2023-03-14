@@ -173,7 +173,7 @@ PyTypeObject
 NavAidInfoType = {
   PyVarObject_HEAD_INIT(NULL, 0)
   .tp_name = "XPPython.NavAidInfo",
-  .tp_doc = "NavAidInfo, return from xp.getNavAidInfo()",
+  .tp_doc = PyDoc_STR("NavAidInfo, return from xp.getNavAidInfo()"),
   .tp_basicsize = sizeof(NavAidInfoObject),
   .tp_itemsize = 0,
   .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
@@ -192,7 +192,7 @@ PyNavAidInfo_New(int type, float latitude, float longitude, float height, int fr
 {
   PyObject *argsList = Py_BuildValue("ifffifUUi", type, latitude, longitude, height, frequency, heading, navAidID, name, reg);
   PyObject *obj = PyObject_CallObject((PyObject *) &NavAidInfoType, argsList);
-  Py_DECREF(argsList);
+  Py_XDECREF(argsList);
   return (PyObject*)obj;
 }
 

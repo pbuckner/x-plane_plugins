@@ -137,7 +137,7 @@ PyTypeObject
 FMSEntryInfoType = {
   PyVarObject_HEAD_INIT(NULL, 0)
   .tp_name = "XPPython.FMSEntryInfo",
-  .tp_doc = "FMSEntryInfo, return from xp.getFMSEntryInfo()",
+  .tp_doc = PyDoc_STR("FMSEntryInfo, return from xp.getFMSEntryInfo()"),
   .tp_basicsize = sizeof(FMSEntryInfoObject),
   .tp_itemsize = 0,
   .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
@@ -156,6 +156,6 @@ PyFMSEntryInfo_New(int type, char *navAidID, int ref, int altitude, float lat, f
 {
   PyObject *argsList = Py_BuildValue("iUiiff", type, navAidID, ref, altitude, lat, lon);
   PyObject *obj = PyObject_CallObject((PyObject *) &FMSEntryInfoType, argsList);
-  Py_DECREF(argsList);
+  Py_XDECREF(argsList);
   return (PyObject*)obj;
 }

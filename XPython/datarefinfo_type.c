@@ -101,7 +101,7 @@ PyTypeObject
 DataRefInfoType = {
   PyVarObject_HEAD_INIT(NULL, 0)
   .tp_name = "XPPython.DataRefInfo",
-  .tp_doc = "DataRefInfo, return from xp.getDataRefInfo()",
+  .tp_doc = PyDoc_STR("DataRefInfo, return from xp.getDataRefInfo()"),
   .tp_basicsize = sizeof(DataRefInfoObject),
   .tp_itemsize = 0,
   .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
@@ -123,6 +123,6 @@ PyDataRefInfo_New(const char *name, int type, int writable, int owner)
     Py_RETURN_NONE;
   }
   PyObject *obj = PyObject_CallObject((PyObject *) &DataRefInfoType, argsList);
-  Py_DECREF(argsList);
+  Py_XDECREF(argsList);
   return (PyObject*)obj;
 }

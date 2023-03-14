@@ -1,7 +1,6 @@
 #define _GNU_SOURCE 1
 #include <Python.h>
 #include <structmember.h>
-#include "trackMetrics.h"
 
 /* TrackMetrics TYPE */
 typedef struct {
@@ -121,7 +120,7 @@ PyTypeObject
 TrackMetricsType = {
   PyVarObject_HEAD_INIT(NULL, 0)
   .tp_name = "XPPython.TrackMetrics",
-  .tp_doc = "TrackMetrics, return from xp.getTrackMetrics",
+  .tp_doc = PyDoc_STR("TrackMetrics, return from xp.getTrackMetrics"),
   .tp_basicsize = sizeof(TrackMetricsObject),
   .tp_itemsize = 0,
   .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
@@ -141,6 +140,6 @@ PyTrackMetrics_New(int isVertical, int downBtnSize, int downPageSize, int thumbS
 {
   PyObject *argsList = Py_BuildValue("iiiiii", isVertical, downBtnSize, downPageSize, thumbSize, upPageSize, upBtnSize);
   PyObject *obj = PyObject_CallObject((PyObject *) &TrackMetricsType, argsList);
-  Py_DECREF(argsList);
+  Py_XDECREF(argsList);
   return (PyObject*)obj;
 }

@@ -128,7 +128,7 @@ PyTypeObject
 PluginInfoType = {
   PyVarObject_HEAD_INIT(NULL, 0)
   .tp_name = "XPPython.PluginInfo",
-  .tp_doc = "PluginInfo, return from xp.getPluginInfo()",
+  .tp_doc = PyDoc_STR("PluginInfo, return from xp.getPluginInfo()"),
   .tp_basicsize = sizeof(PluginInfoObject),
   .tp_itemsize = 0,
   .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
@@ -147,6 +147,6 @@ PyPluginInfo_New(char *name, char *filePath, char *signature, char *description)
 {
   PyObject *argsList = Py_BuildValue("ssss", name, filePath, signature, description);
   PyObject *obj = PyObject_CallObject((PyObject *) &PluginInfoType, argsList);
-  Py_DECREF(argsList);
+  Py_XDECREF(argsList);
   return (PyObject*)obj;
 }

@@ -90,7 +90,7 @@ PyTypeObject
 ProbeInfoType = {
   PyVarObject_HEAD_INIT(NULL, 0)
   .tp_name = "XPPython.ProbeInfo",
-  .tp_doc = "ProbeInfo, return from xp.probeTerrainXYZ()",
+  .tp_doc = PyDoc_STR("ProbeInfo, return from xp.probeTerrainXYZ()"),
   .tp_basicsize = sizeof(ProbeInfoObject),
   .tp_itemsize = 0,
   .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
@@ -109,6 +109,6 @@ PyProbeInfo_New(int result, float locationX, float locationY, float locationZ, f
   PyObject *argsList = Py_BuildValue("ifffffffffi", result, locationX, locationY, locationZ, normalX, normalY, normalZ,
                                      velocityX, velocityY, velocityZ, is_wet);
   PyObject *obj = PyObject_CallObject((PyObject *) &ProbeInfoType, argsList);
-  Py_DECREF(argsList);
+  Py_XDECREF(argsList);
   return (PyObject*)obj;
 }

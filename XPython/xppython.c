@@ -5,11 +5,9 @@
 #include <stdbool.h>
 #include <structmember.h>
 #include "xppythontypes.h"
-#include <XPLM/XPLMDataAccess.h>
 #include <XPLM/XPLMUtilities.h>
 #include <XPLM/XPLMNavigation.h>
 #include "utils.h"
-#include "trackMetrics.h"
 #include "xppython.h"
 #include "manage_instance.h"
 
@@ -177,10 +175,11 @@ static PyObject *XPSystemLogFun(PyObject *self, PyObject *args)
       char *msg;
       if (-1 == asprintf(&msg, "[XP3: %s] %s\n", moduleName, inString)) {
         fprintf(pythonLogFile, "Failed to allocate memory for asprintf syslog.\n");
+      } else {
+        XPLMDebugString(msg);
+        free(msg);
       }
       free(moduleName);
-      XPLMDebugString(msg);
-      free(msg);
     } else {
       /* DebugString already, always flushes, so ignore empty prints */
     }

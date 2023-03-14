@@ -3,7 +3,7 @@ Change Log
 
 .. Note::
 
-   With X-Plane 12, the new SDK is likly to be updated a few more times. This
+   With X-Plane 12, the new SDK is likely to be updated a few more times. This
    will require updates to XPPython3 which I hope to keep to a minimum.
 
 
@@ -113,7 +113,7 @@ Known Bugs
      If encrypted python is important to you, use Cython and generate per-platform binary files.
 
    * **Fixed download bug** in ``zip_download.py``. This was not an issue with X-Plane 11, but
-     X-Plane 12 is more senstive about access from non-main threads. The download routines (used
+     X-Plane 12 is more sensitive about access from non-main threads. The download routines (used
      to update XPPython3) used a child thread to write to the popup dialog box to indicated
      download status. This worked with X-Plane 11, but failed with X-Plane 12. An alternative
      implementation is provided which works for both.
@@ -173,7 +173,7 @@ Known Bugs
 :Fixes:
    * Python updater script sometimes failed to successful download updated software.
      If your software is "stuck" and not updating, *delete* XPPython3 folder, and
-     reinstall by downloading the lastest version. See :doc:`/usage/older_python`
+     reinstall by downloading the latest version. See :doc:`/usage/older_python`
      and get the version which matches your version of Python.
 
 3.1.1 (7-Dec-2021)

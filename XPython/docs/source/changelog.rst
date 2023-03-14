@@ -23,8 +23,9 @@ Known Bugs
    * **Weather Module** SDK400 introduced XPLMWeather which provides :py:func:`xp.getMETARForAirport`
      and :py:func:`xp.getWeatherAtLocation`.
 
-   * **DataRef Query** functions added by SDK400. :py:func:`countDataRefs`, :py:func:`getDataRefByIndex`,
-     and py:func:`getDataRefInfo`.
+   * **DataRef Query** functions added by SDK400. :py:func:`xp.countDataRefs`, :py:func:`xp.getDataRefsByIndex`,
+     and py:func:`xp.getDataRefInfo`.
+
      |
         
 :Improvements:

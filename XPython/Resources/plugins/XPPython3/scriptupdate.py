@@ -178,7 +178,11 @@ class Updater(Config):
                     xp.log("Failed to find key: {}".format(e))
                     return
 
-            self.new_version = info['version']
+            try:
+                self.new_version = info['version']
+            except KeyError:
+                xp.log(f"scriptupdater cannot determine update version information for plugin {self.Sig}: {info}")
+                return
             self.beta_version = info.get('beta_version', '')
             uptodate, version = self.calc_update(try_beta=self.config.get('beta', False),
                                                  current_version=self.Version,

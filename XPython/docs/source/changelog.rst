@@ -24,7 +24,7 @@ Known Bugs
      and :py:func:`xp.getWeatherAtLocation`.
 
    * **DataRef Query** functions added by SDK400. :py:func:`xp.countDataRefs`, :py:func:`xp.getDataRefsByIndex`,
-     and py:func:`xp.getDataRefInfo`.
+     and :py:func:`xp.getDataRefInfo`.
 
      |
         

@@ -62,6 +62,7 @@ void xpy_startAircraftPlugins()
   }
 
   /* 'Aircraft' has to be in syspath, and get aircraft_path_rel*/
+  pythonDebug("STARTING Aircraft plugins.");
   PyObject *localsDict = PyDict_New();
   PyDict_SetItemString(localsDict, "__builtins__", PyEval_GetBuiltins());
   PyDict_SetItemString(localsDict, "aircraft_path", PyUnicode_FromString(outPath));
@@ -77,13 +78,23 @@ void xpy_startAircraftPlugins()
                "package = (aircraft_path_rel + '/plugins/PythonPlugins').replace('/', '.').replace('\\\\', '.')\n",
                Py_file_input, localsDict, localsDict);
   
-  char *package = objToStr(PyDict_GetItemString(localsDict, "package"));
+  PyObject *package = PyDict_GetItemString(localsDict, "package");
+  if (package == NULL) {
+    fprintf(pythonLogFile, "[XPPython3] Failed to load aircraft package. Likely missing or bad xp.py, %p\n", package);
+    fflush(pythonLogFile);
+  }
+  if(PyErr_Occurred()) {
+    pythonLogException();
+    pythonDebug("  FAILED to start aircraft plugin.");
+    return;
+  }
+
+  char *package_str = objToStr(package);
   Py_DECREF(localsDict);
   /* ... need to know these are 'aircraft' plugins, so I can remove them later!!! */
-  pythonDebug("STARTING Aircraft plugins.");
-  xpy_loadModules(plugins_path, package, "^PI_.*\\.py$", aircraftPlugins);
+  xpy_loadModules(plugins_path, package_str, "^PI_.*\\.py$", aircraftPlugins);
   pythonDebug("  STARTED Aircraft plugins.");
-  free(package);
+  free(package_str);
   free(plugins_path);
 }
 
@@ -119,6 +130,16 @@ void xpy_startSceneryPlugins()
                Py_file_input, localsDict, localsDict);
   
   PyObject *packages = PyDict_GetItemString(localsDict, "packages");
+  if (packages == NULL) {
+    fprintf(pythonLogFile, "[XPPython3] Failed to load scenery packages. Likely missing or bad xp.py, %p\n", packages);
+    fflush(pythonLogFile);
+  }
+  if(PyErr_Occurred()) {
+    pythonLogException();
+    pythonDebug("  FAILED to start scenery plugins.");
+    return;
+  }
+
   PyObject *iterator = PyObject_GetIter(packages);
   PyObject *packageInfo;
 
@@ -303,6 +324,7 @@ void xpy_stopInstances()
       continue;
     }
     xpy_stopInstance(pModuleName, pluginInstance);
+    Py_DECREF(pModuleName);
   }
   Py_DECREF(md_key_iterator);
   Py_DECREF(md_keys);

@@ -215,8 +215,10 @@ static PyObject *XPLMEnableFeatureFun(PyObject *self, PyObject *args, PyObject *
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s|i", keywords, &inFeature, &inEnable)){
     return NULL;
   }
-  if (!inEnable && ! (strcmp(inFeature, "XPLM_USE_NATIVE_PATHS") && strcmp(inFeature, "XPLM_USE_NATIVE_WIDGET_WINDOWS") && strcmp(inFeature, "XPLM_WANTS_DATAREF_NOTIFICATIONS"))) {
-    PyErr_SetString(PyExc_RuntimeError, "An XPPython3 plugin is attempting to disable NATIVE_PATHS NATIVE_WIDGET_WINDOWS or DATAREF_NOTIFICATIONS feature, this is not allowed");
+  if (!inEnable && ! (strcmp(inFeature, "XPLM_USE_NATIVE_PATHS") &&
+                      strcmp(inFeature, "XPLM_USE_NATIVE_WIDGET_WINDOWS") &&
+                      strcmp(inFeature, "XPLM_WANTS_DATAREF_NOTIFICATIONS"))) {
+    PyErr_SetString(PyExc_RuntimeError, "An XPPython3 plugin is attempting to disable NATIVE_PATHS, NATIVE_WIDGET_WINDOWS or DATAREF_NOTIFICATIONS feature, this is not allowed");
   } else {
     XPLMEnableFeature(inFeature, inEnable);
   }
@@ -273,23 +275,15 @@ static PyObject *XPLMEnumerateFeaturesFun(PyObject *self, PyObject *args, PyObje
   Py_RETURN_NONE;
 }
 
-void plugins_cleanup(void) {
-  if (! (feDict && PyDict_Check(feDict))) {
-    return;
-  }
-  PyDict_Clear(feDict);
-  Py_DECREF(feDict);
-}
-
 static PyObject *cleanup(PyObject *self, PyObject *args)
 {
   (void) self;
   (void) args;
-  if (! (feDict && PyDict_Check(feDict))) {
-    Py_RETURN_NONE;
+  if (feDict && PyDict_Check(feDict)) {
+    PyDict_Clear(feDict);
+    Py_DECREF(feDict);
+    feDict = Py_None;
   }
-  PyDict_Clear(feDict);
-  Py_DECREF(feDict);
   Py_RETURN_NONE;
 }
 

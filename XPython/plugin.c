@@ -252,7 +252,7 @@ static int stopPython(void)
   char *mods[] = {"XPLMDefs", "XPLMDisplay", "XPLMGraphics", "XPLMUtilities", "XPLMScenery", "XPLMMenus",
                   "XPLMNavigation", "XPLMPlugin", "XPLMPlanes", "XPLMProcessing", "XPLMCamera", "XPWidgetDefs",
                   "XPWidgets", "XPStandardWidgets", "XPUIGraphics", "XPWidgetUtils", "XPLMInstance",
-                  "XPLMMap", "XPLMDataAccess", "XPLMWeather",/*"SandyBarbourUtilities", */ "XPPython", NULL};
+                  "XPLMMap", "XPLMDataAccess", "XPLMWeather", /*"SandyBarbourUtilities", */ "XPPython", NULL};
   char **mod_ptr = mods;
 
   while(*mod_ptr != NULL){
@@ -319,7 +319,7 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
   }
   if (XPLMHasFeature("XPLM_WANTS_DATAREF_NOTIFICATIONS")) {
     XPLMEnableFeature("XPLM_WANTS_DATAREF_NOTIFICATIONS", 1);
-  }    
+  }
 
   handleConfigFile();
 
@@ -439,6 +439,12 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
   param = PyLong_FromLong((long)inParam);
   pythonDebug("XPPython3 received message, forwarding to all plugins: From: %d, Msg: %ld, inParam: %ld",
               inFromWho, inMessage, (long)inParam);
+  if (inMessage == XPLM_MSG_DATAREFS_ADDED && (long) inParam > 100000) {
+    /* bug -- inParam is sent as pointer to value, rather than value itself. We'll
+       convert to value and send _that_ to python plugins */
+    pythonDebug("...Sending %ld instead\n", *(long*)inParam);
+    param = PyLong_FromLong(*(long*)inParam);
+  }
 
   while(PyDict_Next(moduleDict, &pos, &pModuleName, &pluginInstance)){
     pluginInfo = PyDict_GetItem(pluginDict, pluginInstance);
@@ -446,12 +452,6 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
       continue;
     }
     char *moduleName = objToStr(pModuleName);
-    if (inMessage == XPLM_MSG_DATAREFS_ADDED && (long) inParam > 100000) {
-      /* bug -- inParam is sent as pointer to value, rather than value itself. We'll
-         convert to value and send _that_ to python plugins */
-      fprintf(pythonLogFile, "Sending %ld instead\n", *(long*)inParam);
-      param = PyLong_FromLong(*(long*)inParam);
-    }
     pRes = PyObject_CallMethod(pluginInstance, "XPluginReceiveMessage", "ilO", inFromWho, inMessage, param);
 
     PyObject *err = PyErr_Occurred();

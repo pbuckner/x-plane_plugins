@@ -1588,7 +1588,6 @@ static PyMethodDef XPLMDataAccessMethods[] = {
 };
 #pragma GCC diagnostic pop
 
-
 static struct PyModuleDef XPLMDataAccessModule = {
   PyModuleDef_HEAD_INIT,
   "XPLMDataAccess",

@@ -100,6 +100,11 @@ For compatibility with Laminar documentation, this documentation splits the SDK 
 |                        |* Find internal X-Plane function symbol, for access to code not      |
 |                        |  directly supported by the SDK.                                     |
 +------------------------+---------------------------------------------------------------------+
+|:doc:`sound`            |Play sound, at a specific location, in a particular direction, with  |
+|                        |fading. (Uses FMOD).                                                 |
+|                        |                                                                     |
+|                        |                                                                     |
++------------------------+---------------------------------------------------------------------+
 |:doc:`weather`          |* Get METAR for given airport                                        |
 |                        |                                                                     |
 |                        |* Get Weather Information for given location (latitude, longitude,   |
@@ -158,6 +163,7 @@ And three XPPython-specific additions (also accessible with simple ``import xp``
    plugin
    processing
    scenery
+   sound
    weather
    uigraphics
    widgets

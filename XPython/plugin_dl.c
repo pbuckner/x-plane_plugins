@@ -13,6 +13,7 @@
 #include <XPLM/XPLMDisplay.h>
 #include <XPLM/XPLMPlanes.h>
 #include <XPLM/XPLMWeather.h>
+#include <XPLM/XPLMSound.h>
 #include <Widgets/XPWidgets.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -131,6 +132,19 @@ typeof(XPLMGetDataRefsByIndex) *XPLMGetDataRefsByIndex_ptr = NULL;
 typeof(XPLMGetDataRefInfo) *XPLMGetDataRefInfo_ptr = NULL;
 typeof(XPLMGetMETARForAirport) *XPLMGetMETARForAirport_ptr = NULL;
 typeof(XPLMGetWeatherAtLocation) *XPLMGetWeatherAtLocation_ptr = NULL;
+
+#if defined(_FMOD_COMMON_H)
+typeof(XPLMGetFMODStudio) *XPLMGetFMODStudio_ptr = NULL;
+typeof(XPLMGetFMODChannel) *XPLMGetFMODChannel_ptr = NULL;
+#endif
+typeof(XPLMPlayPCMOnBus) *XPLMPlayPCMOnBus_ptr = NULL;
+typeof(XPLMStopAudio) *XPLMStopAudio_ptr = NULL;
+typeof(XPLMSetAudioPosition) *XPLMSetAudioPosition_ptr = NULL;
+typeof(XPLMSetAudioFadeDistance) *XPLMSetAudioFadeDistance_ptr = NULL;
+typeof(XPLMSetAudioPitch) *XPLMSetAudioPitch_ptr = NULL;
+typeof(XPLMSetAudioVolume) *XPLMSetAudioVolume_ptr = NULL;
+typeof(XPLMSetAudioCone) *XPLMSetAudioCone_ptr = NULL;
+
 t_fcn_info funcs400[] = {
   {"XPLMRegisterAvionicsCallbacksEx", (void*) &XPLMRegisterAvionicsCallbacksEx_ptr},
   {"XPLMUnregisterAvionicsCallbacks", (void*) &XPLMUnregisterAvionicsCallbacks_ptr},
@@ -139,6 +153,17 @@ t_fcn_info funcs400[] = {
   {"XPLMGetDataRefInfo", (void*) &XPLMGetDataRefInfo_ptr},
   {"XPLMGetMETARForAirport", (void*) &XPLMGetMETARForAirport_ptr},
   {"XPLMGetWeatherAtLocation", (void*) &XPLMGetWeatherAtLocation_ptr},
+#if defined(_FMOD_COMMON_H)
+  {"XPLMGetFMODStudio", (void*) &XPLMGetFMODStudio_ptr},
+  {"XPLMGetFMODChannel", (void*) &XPLMGetFMODChannel_ptr},
+#endif
+  {"XPLMPlayPCMOnBus", (void*) &XPLMPlayPCMOnBus_ptr},
+  {"XPLMStopAudio", (void*) &XPLMStopAudio_ptr},
+  {"XPLMSetAudioPosition", (void*) &XPLMSetAudioPosition_ptr},
+  {"XPLMSetAudioFadeDistance", (void*) &XPLMSetAudioFadeDistance_ptr},
+  {"XPLMSetAudioPitch", (void*) &XPLMSetAudioPitch_ptr},
+  {"XPLMSetAudioVolume", (void*) &XPLMSetAudioVolume_ptr},
+  {"XPLMSetAudioCone", (void*) &XPLMSetAudioCone_ptr},
   {NULL, NULL}
 };
 

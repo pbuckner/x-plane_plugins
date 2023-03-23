@@ -13,6 +13,7 @@
 #include <XPLM/XPLMDisplay.h>
 #include <XPLM/XPLMPlanes.h>
 #include <XPLM/XPLMWeather.h>
+#include <XPLM/XPLMSound.h>
 #include <Widgets/XPWidgetDefs.h>
 #include <Widgets/XPWidgets.h>
 
@@ -70,6 +71,19 @@ extern typeof(XPLMGetDataRefsByIndex) *XPLMGetDataRefsByIndex_ptr;
 extern typeof(XPLMGetDataRefInfo) *XPLMGetDataRefInfo_ptr;
 extern typeof(XPLMGetMETARForAirport) *XPLMGetMETARForAirport_ptr;
 extern typeof(XPLMGetWeatherAtLocation) *XPLMGetWeatherAtLocation_ptr;
+
+#define PLUGIN_DLL(x) extern typeof(x) *x##_ptr
+#if defined(_FMOD_COMMON_H)
+PLUGIN_DLL(XPLMGetFMODStudio);
+PLUGIN_DLL(XPLMGetFMODChannel);
+#endif
+PLUGIN_DLL(XPLMPlayPCMOnBus);
+PLUGIN_DLL(XPLMStopAudio);
+PLUGIN_DLL(XPLMSetAudioPosition);
+PLUGIN_DLL(XPLMSetAudioFadeDistance);
+PLUGIN_DLL(XPLMSetAudioPitch);
+PLUGIN_DLL(XPLMSetAudioVolume);
+PLUGIN_DLL(XPLMSetAudioCone);
 
 bool loadSDKFunctions(void);
 

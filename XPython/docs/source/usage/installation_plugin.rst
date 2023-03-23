@@ -8,8 +8,9 @@ Requirements
 * **X-Plane 12.00+**. Linux, Mac (Intel and M-series processors) or Windows.
   This plugin is built with SDK 400 and is NOT backward compatible to X-Plane 11 or earlier.
 
-.. warning:: This version of XPPython3 requires X-Plane 12. If you are using X-Plane 11.52, you
-             must install XPPython3 v3.1.5. See `Installation for X-Plane 11 <https://xppython3.rtfd.io/en/3.1.5/usage/installation_plugin.html>`_.
+.. note:: This version of XPPython3 requires X-Plane 12. If you are using X-Plane 11.52, you
+   must install XPPython3 v3.1.5.
+   See `Installation for X-Plane 11 <https://xppython3.rtfd.io/en/3.1.5/usage/installation_plugin.html>`_.
 
 If you're **upgrading** from XPPython v3.1.5, see :doc:`upgrading`.
 
@@ -51,11 +52,16 @@ Four steps:
 
 2. **Download XPPython3 zipfile**:
 
-  + `xppython311.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xp311.zip>`_.
+  Select zipfile based on the version of python you are using:
 
-    (Use the above zip file only if you have Python 3.11.x installed. Otherwise, use `Other Versions of Python <older_python.html>`_.
+  +-------------------+----------------------------------------------------------------------------------------------------------------+
+  | For Python 3.11.x |`xp311.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xp311.zip>`_       |
+  +-------------------+----------------------------------------------------------------------------------------------------------------+
+  | For Python 3.10.x |`xp310.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xp310.zip>`_       |
+  +-------------------+----------------------------------------------------------------------------------------------------------------+
 
-3. **Extract the xppython*.zip** into your :code:`X-Plane/Resources/plugins` folder, such that you have folder there called :code:`XPPython3`.
+
+3. **Extract the xp31x.zip** into your :code:`X-Plane/Resources/plugins` folder, such that you have folder there called :code:`XPPython3`.
 
   This plugin XPPython3 folder must be placed in :code:`<XP>/Resources/plugins`.
   On first execution, XPPython3 **will create** the :code:`Resources/plugins/PythonPlugins` folder.

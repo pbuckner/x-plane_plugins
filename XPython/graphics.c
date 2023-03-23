@@ -382,7 +382,7 @@ PyInit_XPLMGraphics(void)
 {
   PyObject *mod = PyModule_Create(&XPLMGraphicsModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
     PyModule_AddIntConstant(mod, "xplm_Tex_GeneralInterface", xplm_Tex_GeneralInterface);
     PyModule_AddIntConstant(mod, "xplmFont_Basic", xplmFont_Basic);
     PyModule_AddIntConstant(mod, "xplmFont_Proportional", xplmFont_Proportional);

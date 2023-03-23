@@ -897,7 +897,7 @@ PyInit_XPWidgets(void)
   PyDict_SetItemString(xppythonCapsules, widgetRefName, widgetIDCapsules);
   PyObject *mod = PyModule_Create(&XPWidgetsModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
   }
 
   return mod;

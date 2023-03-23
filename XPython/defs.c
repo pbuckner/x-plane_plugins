@@ -39,7 +39,7 @@ PyInit_XPLMDefs(void)
 {
   PyObject *mod = PyModule_Create(&XPLMDefsModule);
   if(mod != NULL){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
     PyModule_AddIntConstant(mod, "XPLM_NO_PLUGIN_ID", XPLM_NO_PLUGIN_ID);
     PyModule_AddIntConstant(mod, "XPLM_PLUGIN_XPLANE", XPLM_PLUGIN_XPLANE);
     PyModule_AddIntConstant(mod, "kXPLM_Version", kXPLM_Version);

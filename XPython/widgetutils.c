@@ -409,7 +409,7 @@ PyInit_XPWidgetUtils(void)
 {
   PyObject *mod = PyModule_Create(&XPWidgetUtilsModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
     PyModule_AddIntConstant(mod, "NO_PARENT", NO_PARENT);
     PyModule_AddIntConstant(mod, "PARAM_PARENT", PARAM_PARENT);
 

@@ -345,7 +345,7 @@ PyInit_XPLMScenery(void)
 
   PyObject *mod = PyModule_Create(&XPLMSceneryModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
     PyModule_AddIntConstant(mod, "xplm_ProbeY", xplm_ProbeY);
     PyModule_AddIntConstant(mod, "xplm_ProbeHitTerrain", xplm_ProbeHitTerrain);
     PyModule_AddIntConstant(mod, "xplm_ProbeError", xplm_ProbeError);

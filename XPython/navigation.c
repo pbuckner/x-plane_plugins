@@ -359,7 +359,7 @@ PyInit_XPLMNavigation(void)
 {
   PyObject *mod = PyModule_Create(&XPLMNavigationModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
     PyModule_AddIntConstant(mod, "xplm_Nav_Unknown", xplm_Nav_Unknown);
     PyModule_AddIntConstant(mod, "xplm_Nav_Airport", xplm_Nav_Airport);
     PyModule_AddIntConstant(mod, "xplm_Nav_NDB", xplm_Nav_NDB);

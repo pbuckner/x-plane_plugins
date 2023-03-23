@@ -175,7 +175,7 @@ PyInit_XPLMInstance(void)
 {
   PyObject *mod = PyModule_Create(&XPLMInstanceModule);
   if(mod) {
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
   }
   return mod;
 }

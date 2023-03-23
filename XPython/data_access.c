@@ -1619,7 +1619,7 @@ PyInit_XPLMDataAccess(void)
     if(!(sharedDict = PyDict_New())){
       return NULL;
     }
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
     PyDict_SetItemString(xppythonDicts, "sharedDrefs", sharedDict);
     PyModule_AddIntConstant(mod, "xplmType_Unknown", xplmType_Unknown);
     PyModule_AddIntConstant(mod, "xplmType_Int", xplmType_Int);

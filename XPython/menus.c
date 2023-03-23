@@ -702,7 +702,7 @@ PyInit_XPLMMenus(void)
 
   PyObject *mod = PyModule_Create(&XPLMMenusModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
     PyModule_AddIntConstant(mod, "xplm_Menu_NoCheck", xplm_Menu_NoCheck);
     PyModule_AddIntConstant(mod, "xplm_Menu_Unchecked", xplm_Menu_Unchecked);
     PyModule_AddIntConstant(mod, "xplm_Menu_Checked", xplm_Menu_Checked);

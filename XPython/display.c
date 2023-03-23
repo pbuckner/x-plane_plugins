@@ -1714,7 +1714,7 @@ PyInit_XPLMDisplay(void)
 
   PyObject *mod = PyModule_Create(&XPLMDisplayModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
 #if defined(XPLM_DEPRECATED)
     PyModule_AddIntConstant(mod, "xplm_Phase_FirstScene", xplm_Phase_FirstScene);
     PyModule_AddIntConstant(mod, "xplm_Phase_Terrain", xplm_Phase_Terrain);

@@ -702,3 +702,23 @@ PARAM_PARENT = XPWidgetUtils.PARAM_PARENT
 import XPLMWeather
 getMETARForAirport = XPLMWeather.getMETARForAirport
 getWeatherAtLocation = XPLMWeather.getWeatherAtLocation
+import XPLMSound
+stopAudio = XPLMSound.stopAudio
+playPCMOnBus = XPLMSound.playPCMOnBus
+setAudioCone = XPLMSound.setAudioCone
+setAudioPitch = XPLMSound.setAudioPitch
+setAudioVolume = XPLMSound.setAudioVolume
+setAudioPosition = XPLMSound.setAudioPosition
+setAudioFadeDistance = XPLMSound.setAudioFadeDistance
+import wave
+def playWaveOnBus(wav, loop, audioType, callback=None, refCon=None):
+    data = wav.readframes(wav.getnframes())
+    return playPCMOnBus(data,
+                        (wav.getnframes() * wav.getsampwidth() * wav.getnchannels()),
+                        wav.getsampwidth(),
+                        wav.getframerate(),
+                        wav.getnchannels(),
+                        loop,
+                        audioType,
+                        callback,
+                        refCon)

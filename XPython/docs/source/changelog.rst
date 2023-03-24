@@ -23,9 +23,15 @@ Known Bugs
    * **Weather Module** SDK400 introduced XPLMWeather which provides :py:func:`xp.getMETARForAirport`
      and :py:func:`xp.getWeatherAtLocation`.
 
+   * **Sound Module** SDK400 introduced XPLMSound which provides the ability to easily
+     play 3d sound using :py:func:`xp.playPCMOnBus` and related functions.
+
    * **DataRef Query** functions added by SDK400. :py:func:`xp.countDataRefs`, :py:func:`xp.getDataRefsByIndex`,
      and :py:func:`xp.getDataRefInfo`.
 
+   * **SDK401** supported. X-Plane SDK400 had a c-compiler compatibility issue which has been
+     fixed in SDK401 -- there was no additional functionality in this version.
+     
      |
         
 :Improvements:

@@ -32,11 +32,6 @@ This API provides access to the X-Plane enhanced weather system and requires at 
   >>> xp.getMETARForAirport('KJFK')
   ''
 
-  .. Warning::
-
-     While the API will return *"a METAR"* for the airport, it does not necessarily return the *"latest
-     METAR"* for the airport, as seen in the X-Plane downloaded METAR file. Bug reported to Laminar 11-March-2023.
-
  `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLMGetMETARForAirport>`__ :index:`XPLMGetMETARForAirport`
 
 .. py:function:: getWeatherAtLocation(latitude, longitude, altitude_m)

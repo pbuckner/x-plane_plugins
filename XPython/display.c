@@ -57,7 +57,7 @@ PyObject *windowIDCapsules;
 const char *windowIDRef = "XPLMWindowIDRef";
 
 static PyObject *hotkeyIDCapsules;
-static const char hotkeyIDRef[] = "XPLMHotkeyIDRef";
+static const char hotkeyIDRef[] = "XPLMHotkeyID";
 
 PyObject *avionicsIDCapsules;
 const char *avionicsIDRef = "XPLMAvionicsIDRef";

@@ -19,7 +19,7 @@ static intptr_t accessorCntr;
 static PyObject *sharedDict;
 static intptr_t sharedCntr;
 
-static const char dataRefName[] = "datarefRef";
+static const char dataRefName[] = "XPLMDataRef";
 
 /* accessorDict args */
 #define PLUGINSELF 0

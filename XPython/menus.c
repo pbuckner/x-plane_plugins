@@ -25,7 +25,7 @@ static PyObject *menuPluginIdxDict; /* plugin -> [list of Laminar menu IDs] */
 static int nextXPLMMenuIdx = 0;
 void clearInstanceMenuItems();
 
-static const char menuIDRef[] = "XPLMMenuIDRef"; 
+static const char menuIDRef[] = "XPLMMenuID"; 
 
 void resetMenus() {nextXPLMMenuIdx = 0;}
 

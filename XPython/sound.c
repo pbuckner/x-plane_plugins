@@ -6,7 +6,7 @@
 #include "plugin_dl.h"
 #include "utils.h"
 
-static const char fmodChannelRefName[] = "FMOD_CHANNELRefName";
+static const char fmodChannelRefName[] = "FMOD_CHANNEL";
 
 static intptr_t callbackCntr;
 static PyObject *callbackDict;

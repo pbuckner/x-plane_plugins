@@ -13,7 +13,7 @@ static intptr_t flCntr;
 static PyObject *flDict;  /* {flCntr: ([0]pluginSelf, [1]callback, [2]refCon)} */
 static PyObject *flRevDict; /*{(pluginSelf, callback, refConAddr): flCntr }*/
 
-static const char flIDRef[] = "FlightLoopIDRef";
+static const char flIDRef[] = "XPLMFlightLoopID";
 static float flightLoopCallback(float inElapsedSinceLastCall, float inElapsedTimeSinceLastFlightLoop, 
                                 int counter, void * inRefcon)
 {

@@ -16,8 +16,8 @@ intptr_t mapCreateCntr;
 PyObject *mapLayerIDCapsules;
 PyObject *mapProjectionCapsule;
 
-static const char layerIDRefName[] = "LayerIdRef";
-static const char projectionRefName[] = "ProjectionRef";
+static const char layerIDRefName[] = "XPLMMapLayerID";
+static const char projectionRefName[] = "XPLMMapProjectionID";
 
 
 static inline void mapCallback(int inCallbackIndex, XPLMMapLayerID inLayer, const float *inMapBoundsLeftTopRightBottom, float zoomRatio,

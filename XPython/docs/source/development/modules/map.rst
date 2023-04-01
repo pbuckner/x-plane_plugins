@@ -537,15 +537,18 @@ map's rotation can potentially change every frame.
 
 .. py:function:: mapGetNorthHeading(projection, x, y)
 
+ Returns the heading (in degrees clockwise) from the positive Y axis ("up")
+ in the cartesian mapping coordinate system to true north at the point passed in.
+ You can use it as a clockwise rotation offset to align icons and other 2-d
+ drawing with true nort on the map, compensating for rotations in the map due to
+ projection. (Don't you hate it when engineers write documentation.)
+
  Returns the heading (in degrees clockwise from "up") that corresponds to
  north at a given point on the map. In other words, if your runway has a
  true heading of 360, you would use "north" as the Cartesian angle at which
  to draw the runway on the map. (You would add the result of
  :py:func:`mapGetNorthHeading` to your true heading to get the map angle.)
  
- This is necessary because X-Plane's map can be rotated to match your
- aircraft's orientation; north is not always "up."
-
  Only valid from within a map layer callback (one of
  :py:func:`prepLayer`, :py:func:`drawLayer`,
  :py:func:`iconLayer`, or :py:func:`labelLayer`.)
@@ -553,21 +556,16 @@ map's rotation can potentially change every frame.
  *projection* is opaque handle to the current projection, which you'll receive as
  an input to you callbacks.
 
- .. warning::
+ The result is unrelated to the orientation of
+ the user aircraft. Instead, this returns the "mapping angle" which is the angle
+ measured clockwise from the tangent to the projection of the meridian to the
+ northing coordinate line (grid north). This has typical values (for LR VFR
+ sectional map projection) on the order of 0.0002 or less. Essentially it says,
+ for the given map, and a given point on that map: where is true north vis-a-vis
+ "up" in the projection. For Northern Hemisphere meridians curve ever-so-slightly
+ inward from bottom-to-top using the Laminar map projection.
 
-  The above reflects current documentation which is inaccurate.
-  Documentation bug filed with Laminar 5-May-2020.
-
-  The interface is correct, but the result is unrelated to the orientation of
-  the user aircraft. Instead, this returns the "mapping angle" which is the angle
-  measured clockwise from the tangent to the projection of the meridian to the
-  northing coordinate line (grid north). This has typical values (for LR VFR
-  sectional map projection) on the order of 0.0002 or less. Essentially it says,
-  for the given map, and a given point on that map: where is true north vis-a-vis
-  "up" in the projection. For Northern Hemisphere meridians curve ever-so-slightly
-  inward from bottom-to-top using the Laminar map projection.
-
-  .. image:: /images/XPLMMapGetNorthHeading.jpg
+ .. image:: /images/XPLMMapGetNorthHeading.jpg
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMMap/#XPLMMapGetNorthHeading>`__ :index:`XPLMMapGetNorthHeading`             
 

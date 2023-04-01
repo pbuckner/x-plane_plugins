@@ -336,10 +336,10 @@ On startup, you'll see::
 
   .. Warning:: This appears to be broken in 12.04r3. You'll get the message, but the value
                of ``param`` is not the new count of dataRefs: it appears to be a pointer to the
-               value, rather than the value itself. Bug
+               value, rather than the value itself. Bug XPD-13931
                filed with Laminar 11-March-2023.
 
-  .. Note:: To work around the bug, we'll automatically convert the pointer value to the
+  .. Note:: To work around XPD-13931, we'll automatically convert the pointer value to the
             actual count, the the value you receive with ``param`` is the count of the
             current dataRefs.
   

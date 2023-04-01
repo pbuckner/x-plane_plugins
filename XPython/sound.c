@@ -296,7 +296,7 @@ static PyObject *XPLMSetAudioFadeDistanceFun(PyObject *self, PyObject *args, PyO
 }
 
 My_DOCSTR(_setAudioVolume__doc__, "setAudioVolume", "channel, volume=1.0",
-          "Set the curretn volume of an active FMOD channel. This should be used to\n"
+          "Set the current volume of an active FMOD channel. This should be used to\n"
           "handle changes in the audio source volume, not for fading with distance.\n"
           "Values from 0.0 to 1.0 are normal, above 1 can be used to artificially amplify\n"
           "a sound.");

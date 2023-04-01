@@ -75,7 +75,7 @@ extern typeof(XPLMGetWeatherAtLocation) *XPLMGetWeatherAtLocation_ptr;
 #define PLUGIN_DLL(x) extern typeof(x) *x##_ptr
 #if defined(_FMOD_COMMON_H)
 PLUGIN_DLL(XPLMGetFMODStudio);
-PLUGIN_DLL(XPLMGetFMODChannel);
+PLUGIN_DLL(XPLMGetFMODChannelGroup);
 #endif
 PLUGIN_DLL(XPLMPlayPCMOnBus);
 PLUGIN_DLL(XPLMStopAudio);

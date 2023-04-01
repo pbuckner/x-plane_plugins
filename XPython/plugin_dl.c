@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include <dlfcn.h>
 #include <sys/time.h>
+#include <fmod.h>
+#include <fmod_studio.h>
 #include <XPLM/XPLMDataAccess.h>
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMProcessing.h>
@@ -135,7 +137,7 @@ typeof(XPLMGetWeatherAtLocation) *XPLMGetWeatherAtLocation_ptr = NULL;
 
 #if defined(_FMOD_COMMON_H)
 typeof(XPLMGetFMODStudio) *XPLMGetFMODStudio_ptr = NULL;
-typeof(XPLMGetFMODChannel) *XPLMGetFMODChannel_ptr = NULL;
+typeof(XPLMGetFMODChannelGroup) *XPLMGetFMODChannelGroup_ptr = NULL;
 #endif
 typeof(XPLMPlayPCMOnBus) *XPLMPlayPCMOnBus_ptr = NULL;
 typeof(XPLMStopAudio) *XPLMStopAudio_ptr = NULL;
@@ -155,7 +157,7 @@ t_fcn_info funcs400[] = {
   {"XPLMGetWeatherAtLocation", (void*) &XPLMGetWeatherAtLocation_ptr},
 #if defined(_FMOD_COMMON_H)
   {"XPLMGetFMODStudio", (void*) &XPLMGetFMODStudio_ptr},
-  {"XPLMGetFMODChannel", (void*) &XPLMGetFMODChannel_ptr},
+  {"XPLMGetFMODChannelGroup", (void*) &XPLMGetFMODChannelGroup_ptr},
 #endif
   {"XPLMPlayPCMOnBus", (void*) &XPLMPlayPCMOnBus_ptr},
   {"XPLMStopAudio", (void*) &XPLMStopAudio_ptr},

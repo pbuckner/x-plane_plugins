@@ -254,10 +254,6 @@ the same or different phases as long as the reference constant is unique for eac
 Avionics Drawing
 ----------------
 
-.. warning:: Avionics drawing is broken in X-Plane 12. Bug XPD-13293, at least.
-    The API described below will compile and run, but the callback is called
-    with the wrong devicedID and at the wrong time.
-    
 Avionics callback is convenient in that is provides the proper setup for a number of glass avionics devices.
 When you draw function is called, OpenGL is properly set for the device's viewport. Additionally, you
 can draw before, after, or instead of the X-Plane drawing for that device.
@@ -519,7 +515,7 @@ Window Drawing Functions
  |                                             | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_WindowLayerFlightOverlay>`__      |
  |                                             | :index:`xplm_WindowLayerFlightOverlay`                                                 |
  +---------------------------------------------+----------------------------------------------------------------------------------------+
- | .. py:data:: WindowLayerFloatingWindow      | Windows that "float" over the sim, like the X-Plane 11 map does. If you are not sure   |
+ | .. py:data:: WindowLayerFloatingWindows     | Windows that "float" over the sim, like the X-Plane 11 map does. If you are not sure   |
  |   :value: 1                                 | which layer to create your window in, choose floating                                  |
  |                                             |                                                                                        |
  |                                             | `Official SDK                                                                          |

@@ -1,5 +1,7 @@
 #define _GNU_SOURCE 1
 #include <Python.h>
+#include <fmod.h>
+#include <fmod_studio.h>
 #include <XPLM/XPLMSound.h>
 #include "plugin_dl.h"
 #include "utils.h"
@@ -11,6 +13,7 @@ static PyObject *callbackDict;
 static void soundCallback(void *inRefcon, FMOD_RESULT status);
   
 /* See also https://qa.fmod.com/t/how-to-use-fmod-from-a-python-script/12293/2 */
+/* or module pyfmodex ?? */
 
 static PyObject *cleanup(PyObject *self, PyObject *args)
 {
@@ -23,7 +26,9 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 
 #if defined (_FMOD_COMMON_H)
 My_DOCSTR(_getFMODStudio__doc__, "getFMODStudio", "",
-          "Returns handle to the FMOD Studio");
+          "Get PyCapsule to FMOD_STUDIO_SYSTEM, allowing you to load/process whatever\n"
+          "else you need. You will need to use python ctypes to access. See\n"
+          "documentation.");
 static PyObject *XPLMGetFMODStudioFun(PyObject *self, PyObject *args)
 {
   (void)self;
@@ -32,38 +37,28 @@ static PyObject *XPLMGetFMODStudioFun(PyObject *self, PyObject *args)
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetFMODStudio is available only in XPLM400 and up and requires at least X-Plane v12.04.");
     return NULL;
   }
-  PyErr_SetString(PyExc_NotImplementedError , "XPLMGetFMODStudio is not supported yet.");
-  Py_RETURN_NONE;
+  FMOD_STUDIO_SYSTEM *ret = XPLMGetFMODStudio_ptr();
+  return getPtrRefOneshot(ret, "FMOD_STUDIO_SYSTEM");
 }
   
 My_DOCSTR(_getFMODChannelGroup__doc__, "getFMODChannelGroup", "audioType",
-          "Returns handle to the FMOD ChannelGroup");
+          "Returns PyCapsule to the FMOD_CHANNELGROUP with the given index.\n"
+          "You will need to use python ctypes to access. See documentation.");
 static PyObject *XPLMGetFMODChannelGroupFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void)self;
-  (void)args;
-  (void)kwargs;
   if (!XPLMGetFMODChannelGroup_ptr) {
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetFMODChannelGroup is available only in XPLM400 and up and requires at least X-Plane v12.04.");
     return NULL;
   }
-  PyErr_SetString(PyExc_NotImplementedError , "XPLMGetFMODChannelGroup is not supported yet.");
-  Py_RETURN_NONE;
-}
-  
-My_DOCSTR(_getFMODChannelGroup__doc__, "getFMODChannelGroup", "audioType",
-          "Returns handle to the FMOD ChannelGroup");
-static PyObject *XPLMGetFMODChannelGroupFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  (void)self;
-  (void)args;
-  (void)kwargs;
-  if (!XPLMGetFMODChannelGroup_ptr) {
-    PyErr_SetString(PyExc_RuntimeError , "XPLMGetFMODChannelGroup is available only in XPLM400 and up and requires at least X-Plane v12.04.");
+  XPLMAudioBus audioType;
+  static char *keywords[] = {"audioType", NULL};
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &audioType)){
     return NULL;
   }
-  PyErr_SetString(PyExc_NotImplementedError , "XPLMGetFMODChannelGroup is not supported yet.");
-  Py_RETURN_NONE;
+
+  FMOD_CHANNELGROUP *ret = XPLMGetFMODChannelGroup_ptr(audioType);
+  return getPtrRefOneshot(ret, "FMOD_CHANNELGROUP");
 }
 #endif
 

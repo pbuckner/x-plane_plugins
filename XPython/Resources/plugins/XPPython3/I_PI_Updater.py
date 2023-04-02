@@ -4,7 +4,6 @@ import re
 import os
 import subprocess
 import webbrowser
-import XPPython
 from XPPython3 import scriptupdate
 from XPPython3 import xp
 from XPPython3.utils import samples
@@ -16,7 +15,7 @@ class Config (scriptupdate.Updater):
     Name = "XPPython3 Updater"
     Sig = f"xppython3.{xp.getVersions()[1]}.{sys.version_info.major}.{sys.version_info.minor}"  #{SDK}
     Desc = "Automatic updater for XPPython3 plugin"
-    Version = XPPython.VERSION
+    Version = xp.VERSION
     VersionCheckData = {'product': urllib.parse.quote_plus(Sig),
                         'current': urllib.parse.quote_plus(Version),
                         'platform': sys.platform,
@@ -366,7 +365,7 @@ class PythonInterface(Config):
 
         top = bottom - 8
         bottom = int(top - strHeight)
-        s = f'This is Version {XPPython.VERSION}'
+        s = f'This is Version {xp.VERSION}'
         strWidth = xp.measureString(fontID, s)
         right = int(left + strWidth)
         xp.createWidget(left, top, right, bottom, 1, s, 0, widgetWindow['widgetID'],

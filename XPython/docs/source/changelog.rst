@@ -12,14 +12,10 @@ Known Bugs
 
  None (prove me wrong!)
 
-4.1.0 (BETA)
-------------
+4.1.0 (2-Apr-2023)
+------------------
 
 :New Features:
-   * **Avionics Draw** times now contribute XPPython3 performance calculation. Time
-     spent within avionics draw callbacks is added to the "Drawing Misc." time. See
-     :doc:`/usage/performance`.
-
    * **Weather Module** SDK400 introduced XPLMWeather which provides :py:func:`xp.getMETARForAirport`
      and :py:func:`xp.getWeatherAtLocation`.
 
@@ -29,8 +25,12 @@ Known Bugs
    * **DataRef Query** functions added by SDK400. :py:func:`xp.countDataRefs`, :py:func:`xp.getDataRefsByIndex`,
      and :py:func:`xp.getDataRefInfo`.
 
+   * **Avionics Draw** times now contribute XPPython3 performance calculation. Time
+     spent within avionics draw callbacks is added to the "Drawing Misc." time. See
+     :doc:`/usage/performance`.
+
    * **SDK401** supported. X-Plane SDK400 had a c-compiler compatibility issue which has been
-     fixed in SDK401 -- there was no additional functionality in this version.
+     fixed in SDK401 -- there was no additional functionality in this SDK version.
      
      |
         
@@ -52,6 +52,7 @@ Known Bugs
 
    * **Internal Python Dicts** changed. ``modules`` dict now uses module name as the key
      instead of plugin info tuple. This allows us the change plugin information dynamically.
+     PyCapsule names have been changed to match their original C datatype.
      
      |
 
@@ -367,7 +368,7 @@ Known Bugs
 
 :Fixes:
 
-  * Fixed problems with :py:func:`XPLMDataAccess.XPLMRegisterDataAccessor`. When accessing a data item which
+  * Fixed problems with :py:func:`xp.registerDataAccessor`. When accessing a data item which
     had not yet been defined, sim would crash. Incorrect logic caused accessing data arrays
     to return incorrect values. Now tested with `DataRefEditor plugin <http://www.xsquawkbox.net/xpsdk/mediawiki/DataRefEditor>`_.
     Documentation has been updated to better describe use of accessors.
@@ -406,8 +407,8 @@ Known Bugs
  * On startup, log may include ``Couldn't find the callback list for widget ID <> for message 15``. This appears
    to be harmless. This was due to newly created CustomWidgets not passing the initial "Accept_Parent" message
    correctly.
- * :py:data:`XPWidgetDefs.xpMsg_MouseWheel` message incorrectly processed
-   during :py:func:`XPWidgetUtils.XPUSelectIfNeeded`, which would result in an
+ * :py:data:`xp.Msg_MouseWheel` message incorrectly processed
+   during :py:func:`xp.selectIfNeeded`, which would result in an
    error message being sent to XPPython3Log.txt. This has been corrected.
 
 3.0.2 (29-Sep-2020)

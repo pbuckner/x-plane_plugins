@@ -710,6 +710,24 @@ setAudioPitch = XPLMSound.setAudioPitch
 setAudioVolume = XPLMSound.setAudioVolume
 setAudioPosition = XPLMSound.setAudioPosition
 setAudioFadeDistance = XPLMSound.setAudioFadeDistance
+getFMODStudio = XPLMSound.getFMODStudio
+getFMODChannelGroup = XPLMSound.getFMODChannelGroup
+AudioRadioCom1 = XPLMSound.AudioRadioCom1
+AudioRadioCom2 = XPLMSound.AudioRadioCom2
+AudioRadioPilot = XPLMSound.AudioRadioPilot
+AudioRadioCopilot = XPLMSound.AudioRadioCopilot
+AudioExteriorAircraft = XPLMSound.AudioExteriorAircraft
+AudioExteriorEnvironment = XPLMSound.AudioExteriorEnvironment
+AudioExteriorUnprocessed = XPLMSound.AudioExteriorUnprocessed
+AudioInterior = XPLMSound.AudioInterior
+AudioUI = XPLMSound.AudioUI
+AudioGround = XPLMSound.AudioGround
+Master = XPLMSound.Master
+MasterBank = XPLMSound.MasterBank
+RadioBank = XPLMSound.RadioBank
+FMOD_OK = XPLMSound.FMOD_OK
+FMOD_SOUND_FORMAT_PCM16 = XPLMSound.FMOD_SOUND_FORMAT_PCM16
+
 import wave
 def playWaveOnBus(wav, loop, audioType, callback=None, refCon=None):
     data = wav.readframes(wav.getnframes())

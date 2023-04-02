@@ -1,6 +1,8 @@
 # http://www.xsquawkbox.net/xpsdk/mediawiki/TestWidgets
 from enum import IntEnum
 try:
+    import OpenGL
+    OpenGL.ERROR_CHECKING = False
     from OpenGL import GL
     HIGHLITE = True
 except ImportError:
@@ -217,7 +219,6 @@ class XPListBox(object):
             if HIGHLITE:
                 xp.setGraphicsState(0, 1, 0, 0, 1, 0, 0)
                 GL.glColor4f(1.0, 1.0, 1.0, 1.0)
-
                 xp.setGraphicsState(0, 0, 0, 0, 0, 0, 0)
 
             # Now draw each item.

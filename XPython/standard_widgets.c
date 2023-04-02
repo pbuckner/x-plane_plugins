@@ -42,7 +42,7 @@ PyInit_XPStandardWidgets(void)
 {
   PyObject *mod = PyModule_Create(&XPStandardWidgetsModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
     PyModule_AddIntConstant(mod, "xpWidgetClass_MainWindow", xpWidgetClass_MainWindow);
     PyModule_AddIntConstant(mod, "xpMainWindowStyle_MainWindow", xpMainWindowStyle_MainWindow);
     PyModule_AddIntConstant(mod, "xpMainWindowStyle_Translucent", xpMainWindowStyle_Translucent);

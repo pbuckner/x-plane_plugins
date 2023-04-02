@@ -215,8 +215,10 @@ static PyObject *XPLMEnableFeatureFun(PyObject *self, PyObject *args, PyObject *
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s|i", keywords, &inFeature, &inEnable)){
     return NULL;
   }
-  if (!inEnable && ! (strcmp(inFeature, "XPLM_USE_NATIVE_PATHS") && strcmp(inFeature, "XPLM_USE_NATIVE_WIDGET_WINDOWS"))) {
-    PyErr_SetString(PyExc_RuntimeError, "An XPPython3 plugin is attempting to disable XPLM_USE_NATIVE_PATHS or XPLM_USE_NATIVE_WIDGET_WINDOWS feature, not allowed");
+  if (!inEnable && ! (strcmp(inFeature, "XPLM_USE_NATIVE_PATHS") &&
+                      strcmp(inFeature, "XPLM_USE_NATIVE_WIDGET_WINDOWS") &&
+                      strcmp(inFeature, "XPLM_WANTS_DATAREF_NOTIFICATIONS"))) {
+    PyErr_SetString(PyExc_RuntimeError, "An XPPython3 plugin is attempting to disable NATIVE_PATHS, NATIVE_WIDGET_WINDOWS or DATAREF_NOTIFICATIONS feature, this is not allowed");
   } else {
     XPLMEnableFeature(inFeature, inEnable);
   }
@@ -273,26 +275,20 @@ static PyObject *XPLMEnumerateFeaturesFun(PyObject *self, PyObject *args, PyObje
   Py_RETURN_NONE;
 }
 
-void plugins_cleanup(void) {
-  if (! (feDict && PyDict_Check(feDict))) {
-    return;
-  }
-  PyDict_Clear(feDict);
-  Py_DECREF(feDict);
-}
-
 static PyObject *cleanup(PyObject *self, PyObject *args)
 {
   (void) self;
   (void) args;
-  if (! (feDict && PyDict_Check(feDict))) {
-    Py_RETURN_NONE;
+  if (feDict && PyDict_Check(feDict)) {
+    PyDict_Clear(feDict);
+    Py_DECREF(feDict);
+    feDict = Py_None;
   }
-  PyDict_Clear(feDict);
-  Py_DECREF(feDict);
   Py_RETURN_NONE;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 static PyMethodDef XPLMPluginMethods[] = {
   {"getMyID", (PyCFunction)XPLMGetMyIDFun, METH_VARARGS, _getMyID__doc__},
   {"XPLMGetMyID", (PyCFunction)XPLMGetMyIDFun, METH_VARARGS, ""},
@@ -327,6 +323,8 @@ static PyMethodDef XPLMPluginMethods[] = {
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
+#pragma GCC diagnostic pop
+
 
 static struct PyModuleDef XPLMPluginModule = {
   PyModuleDef_HEAD_INIT,
@@ -351,7 +349,7 @@ PyInit_XPLMPlugin(void)
   }
   PyObject *mod = PyModule_Create(&XPLMPluginModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
     PyModule_AddIntConstant(mod, "XPLM_MSG_PLANE_CRASHED", XPLM_MSG_PLANE_CRASHED);
     PyModule_AddIntConstant(mod, "XPLM_MSG_PLANE_LOADED", XPLM_MSG_PLANE_LOADED);
     PyModule_AddIntConstant(mod, "XPLM_MSG_AIRPORT_LOADED", XPLM_MSG_AIRPORT_LOADED);
@@ -375,6 +373,9 @@ PyInit_XPLMPlugin(void)
     PyModule_AddIntConstant(mod, "MSG_ENTERED_VR", XPLM_MSG_ENTERED_VR);
     PyModule_AddIntConstant(mod, "MSG_EXITING_VR", XPLM_MSG_EXITING_VR);
     PyModule_AddIntConstant(mod, "MSG_RELEASE_PLANES", XPLM_MSG_RELEASE_PLANES);
+    PyModule_AddIntConstant(mod, "MSG_FMOD_BANK_LOADED", XPLM_MSG_FMOD_BANK_LOADED);
+    PyModule_AddIntConstant(mod, "MSG_FMOD_BANK_UNLOADING", XPLM_MSG_FMOD_BANK_UNLOADING);
+    PyModule_AddIntConstant(mod, "MSG_DATAREFS_ADDED", XPLM_MSG_DATAREFS_ADDED);
   }
   return mod;
 }

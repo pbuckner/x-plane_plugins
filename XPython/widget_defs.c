@@ -59,7 +59,7 @@ PyInit_XPWidgetDefs(void)
 {
   PyObject *mod = PyModule_Create(&XPWidgetDefsModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
     PyModule_AddIntConstant(mod, "xpProperty_Refcon", xpProperty_Refcon);
     PyModule_AddIntConstant(mod, "xpProperty_Dragging", xpProperty_Dragging);
     PyModule_AddIntConstant(mod, "xpProperty_DragXOff", xpProperty_DragXOff);

@@ -52,7 +52,7 @@ underlying data access system can be rebuilt.
  (i.e, :py:func:`findDataRef`) no sooner than your XPluginEnable
  routine is called, or the first time they are needed in code.
 
-X-Plane publishes well over 1000 datarefs; a complete list may be found in
+X-Plane publishes thousands of datarefs; a complete list may be found in
 the reference section of the SDK online documentation (from the SDK home
 page, choose Documentation https://developer.x-plane.com/datarefs/).
 
@@ -73,6 +73,8 @@ You can get some limited information about a particular dataRef:
 
  * :py:func:`getDataRefTypes`: What underlying data types are supported by this ``dataRef``.
 
+ * :py:func:`getDataRefInfo`: Given a dataRef, retrieve the string ``name``, owning plugin, writability, and type.
+
 You can create your own dataRefs, which makes them available to other plugins / external programs.
 
  1. :py:func:`registerDataAccessor`: Association the string name with a set of callback functions
@@ -87,6 +89,17 @@ and your only access to it is via ``dataRefs``.
     if the data is changed.
 
  2. :py:func:`unshareData`: Remove your notification callback. Perhaps removing final reference to the shared data.
+
+You can retrieve all dataRefs by interating through a full list known by X-Plane.
+
+ 1. :py:func:`countDataRefs` returns the number of currently registered dataRefs, and
+
+ 2. :py:func:`getDataRefsByIndex` returns a list of dataRef based on index number. The use :py:func:`getDataRefInfo` to
+    retrieve information about each dataref.
+
+To support discovery of dataRefs registered after your plugin, a new message :py:data:`MSG_DATAREFS_ADDED` will
+be sent to your plugin whenever a plugin is registered. If interested, you can query for new information
+based on index.
 
 Functions
 ---------
@@ -178,6 +191,56 @@ Functions
     is no way to determine if Type_Data byte arrays are strings or just bytes.
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMGetDataRefTypes>`__: :index:`XPLMGetDataRefTypes`
+
+.. py:function:: getDataRefInfo(dataRef)
+   
+  This XP12 function returns a DataRefInfo object for the provided ``dataRef``.
+  The object has the following members:
+
+   | **name**: the string name of the dataRef
+   | **type**: the OR'd bitfield matching the return from :py:func:`getDataRefType`
+   | **writable**: boolen
+   | **owner**: pluginID of the owning plugin (or 0 if owned by X-Plane).
+
+  >>> dataRef = xp.getDataRefsByIndex()[0]
+  >>> info = xp.getDataRefInfo(dataRef)
+  >>> info.name
+  'sim/aircraft/gear/acf_gear_retract'
+  >>> info.type == xp.getDataRefTypes(dataRef)
+  True
+
+  .. Warning::
+
+     As with other dataRef related routines, this does not do validation of the dataRef; passing a junk value may crash the sim.
+
+  `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMGetDataRefInfo>`__: :index:`XPLMGetDataRefInfo`
+   
+.. py:function:: countDataRefs
+
+  Returns the total number of datarefs that have been registered in X-Plane.
+
+    >>> xp.countDataRefs()
+    6928
+
+  This is similar to the value you'll receive in your XPluginReceiveMessage routine for the :py:data:`MSG_DATAREFS_ADDED` message.
+  
+  `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMCountDataRefs>`__: :index:`XPLMCountDataRefs`
+
+.. py:function:: getDataRefsByIndex(offset=0, count=1)
+
+  Return list of dataRefs. Each dataRef is similar to what is returned by :py:func:`findDataRef`.
+  As a special case, if count is `-1`, a full list is returned starting from ``offset``.
+
+    >>> xp.getDataRefsByIndex(count=3)
+    [<capsule object "datarefRef" at 0x7fa44b4909c0>, <capsule object "datarefRef" at 0x7fa44b940900>,
+     <capsule object "datarefRef" at 0x7fa44b4909c0>]
+
+  .. Warning::
+
+     Requesting dataRefs larger than :py:func:`countDataRefs` will return garbage and should be discarded.
+     Using such results may crash the sim.
+     
+  `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMGetDataRefsByIndex>`__: :index:`XPLMGetDataRefsByIndex`
 
 Data Accessors
 **************

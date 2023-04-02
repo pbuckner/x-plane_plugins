@@ -4,17 +4,18 @@ import re
 import os
 import subprocess
 import webbrowser
-import XPPython
 from XPPython3 import scriptupdate
 from XPPython3 import xp
 from XPPython3.utils import samples
+
+PLUGIN_MODULE_NAME = 4
 
 
 class Config (scriptupdate.Updater):
     Name = "XPPython3 Updater"
     Sig = f"xppython3.{xp.getVersions()[1]}.{sys.version_info.major}.{sys.version_info.minor}"  #{SDK}
     Desc = "Automatic updater for XPPython3 plugin"
-    Version = XPPython.VERSION
+    Version = xp.VERSION
     VersionCheckData = {'product': urllib.parse.quote_plus(Sig),
                         'current': urllib.parse.quote_plus(Version),
                         'platform': sys.platform,
@@ -52,7 +53,7 @@ class PythonInterface(Config):
             try:
                 os.remove(old_logfile)
             except Exception as e:
-                xp.log("Old XPPython3 log file, 'XPPython3.log' still exists: you should remove it: {}".format(e))
+                xp.log(f"Old XPPython3 log file, 'XPPython3.log' still exists: you should remove it: {e}")
 
         self.updatePythonCmdRef = xp.createCommand('xppython3/update', 'Update XPPython3 Plugin')
         xp.registerCommandHandler(self.updatePythonCmdRef, self.updatePython, 1, '')
@@ -89,11 +90,11 @@ class PythonInterface(Config):
         current = self.Version
         beta_version = self.beta_version
         stable_version = self.new_version
-        uptodate, version = self.calc_update(try_beta, current, stable_version, beta_version)
+        uptodate, _version = self.calc_update(try_beta, current, stable_version, beta_version)
         xp.checkMenuItem(xp.findPluginsMenu(), 0, xp.Menu_Checked if not uptodate else xp.Menu_Unchecked)
         xp.setMenuItemName(self.menu, self.updateMenuIdx, self.menu_update_text())
 
-    def menuHandler(self, menuRef, itemRef):
+    def menuHandler(self, _menuRef, itemRef):
         if itemRef == 'samples':
             samples.download()
         elif itemRef == 'update':
@@ -105,7 +106,7 @@ class PythonInterface(Config):
         elif itemRef == 'performance':
             xp.commandOnce(self.togglePerformanceCmdRef)
 
-    def updatePython(self, inCommand, inPhase, inRefcon):
+    def updatePython(self, _inCommand, inPhase, _inRefcon):
         if inPhase == xp.CommandBegin:
             self.check(forceUpgrade=True)
             xp.checkMenuItem(xp.findPluginsMenu(), 0, xp.Menu_Unchecked)
@@ -115,7 +116,7 @@ class PythonInterface(Config):
                 return 0
         return 0
 
-    def togglePerformance(self, inCommand, inPhase, inRefcon):
+    def togglePerformance(self, _inCommand, inPhase, _inRefcon):
         if inPhase == xp.CommandBegin:
             if not self.performanceWindow:
                 self.performanceWindow = self.createPerformanceWindow()
@@ -126,7 +127,7 @@ class PythonInterface(Config):
                 self.performanceWindow = None
         return 0
 
-    def performanceFLCallback(self, *args, **kwargs):
+    def performanceFLCallback(self, *_args, **_kwargs):
         def sum_merge(a, b):
             res = {}
             for plugin in (set(a) | set(b)):
@@ -151,46 +152,47 @@ class PythonInterface(Config):
                 for k, v in self.stats.items():
                     k = str(k) if k is not None else 'All'
                     if k + 'fl' in w:
-                        (left, top, right, bottom) = xp.getWidgetGeometry(w[k + 'customw'])
+                        (_left, top, right, bottom) = xp.getWidgetGeometry(w[k + 'customw'])
                         value = str(int(v['customw'] / maximum))
                         newleft = int(right - xp.measureString(fontID, value))
                         xp.setWidgetGeometry(w[k + 'customw'], newleft, top, right, bottom)
                         xp.setWidgetDescriptor(w[k + 'customw'], value)
 
-                        (left, top, right, bottom) = xp.getWidgetGeometry(w[k + 'draw'])
+                        (_left, top, right, bottom) = xp.getWidgetGeometry(w[k + 'draw'])
                         value = str(int(v['draw'] / maximum))
                         newleft = int(right - xp.measureString(fontID, value))
                         xp.setWidgetGeometry(w[k + 'draw'], newleft, top, right, bottom)
                         xp.setWidgetDescriptor(w[k + 'draw'], value)
 
-                        (left, top, right, bottom) = xp.getWidgetGeometry(w[k + 'fl'])
+                        (_left, top, right, bottom) = xp.getWidgetGeometry(w[k + 'fl'])
                         value = str(int(v['fl'] / maximum))
                         newleft = int(right - xp.measureString(fontID, value))
                         xp.setWidgetGeometry(w[k + 'fl'], newleft, top, right, bottom)
                         xp.setWidgetDescriptor(w[k + 'fl'], value)
 
-                        (left, top, right, bottom) = xp.getWidgetGeometry(w[k + 'pct'])
-                        value = '{:.1f}%'.format(100.0 * (v['customw'] + v['fl'] + v['draw']) / total)
+                        (_left, top, right, bottom) = xp.getWidgetGeometry(w[k + 'pct'])
+                        value = f"{100.0 * (v['customw'] + v['fl'] + v['draw']) / total:.1f}%"
                         newleft = int(right - xp.measureString(fontID, value))
                         xp.setWidgetGeometry(w[k + 'pct'], newleft, top, right, bottom)
                         xp.setWidgetDescriptor(w[k + 'pct'], value)
                 frp = xp.getDataf(self.frame_rate_period_dref)
-                xp.setWidgetDescriptor(w['frvalue'],
-                                       '{:.0f} / {:4.1f} fps'.format(frp * 1000000, 1.0 / frp))
+                xp.setWidgetDescriptor(w['frvalue'], f'{frp * 1000000:.0f} / {1.0 / frp:4.1f} fps')
                 if self.stats[None]['fl'] > 0:
                     sq_frp = frp * frp
-                    xp.setWidgetDescriptor(w['fl_fps'], 'Cost: {:4.1f} + {:4.1f} + {:4.1f} = {:5.2f} fps'.format(
-                        (self.stats[None]['customw'] / (maximum * 1000000.0)) / sq_frp,
-                        (self.stats[None]['draw'] / (maximum * 1000000.0)) / sq_frp,
-                        (self.stats[None]['fl'] / (maximum * 1000000.0)) / sq_frp,
-                        ((self.stats[None]['fl'] + self.stats[None]['draw'] + self.stats[None]['customw']) / (maximum * 1000000.0)) / sq_frp,
-                    ))
+                    t = ((self.stats[None]['fl']
+                          + self.stats[None]['draw']
+                          + self.stats[None]['customw']) / (maximum * 1000000.0)) / sq_frp
+                    xp.setWidgetDescriptor(w['fl_fps'],
+                                           f"Cost: {(self.stats[None]['customw'] / (maximum * 1000000.0)) / sq_frp:4.1f} "
+                                           f"+ {(self.stats[None]['draw'] / (maximum * 1000000.0)) / sq_frp:4.1f} "
+                                           f"+ {(self.stats[None]['fl'] / (maximum * 1000000.0)) / sq_frp:4.1f} "
+                                           f"= {t:5.2f} fps")
                 self.status_idx = 0
             return -1
         else:
             return 0
 
-    def toggleAbout(self, inCommand, inPhase, inRefcon):
+    def toggleAbout(self, _inCommand, inPhase, _inRefcon):
         if inPhase == xp.CommandBegin:
             if not self.aboutWindow:
                 self.aboutWindow = self.createAboutWindow()
@@ -201,7 +203,7 @@ class PythonInterface(Config):
                     xp.showWidget(self.aboutWindow['widgetID'])
         return 0
 
-    def togglePip(self, inCommand, inPhase, inRefcon):
+    def togglePip(self, _inCommand, inPhase, _inRefcon):
         if inPhase == xp.CommandBegin:
             if not self.pipWindow:
                 self.pipWindow = self.createPipWindow()
@@ -239,18 +241,12 @@ class PythonInterface(Config):
     def XPluginEnable(self):
         return 1
 
-    def XPluginDisable(self):
-        return
-
-    def XPluginReceiveMessage(self, inFromWho, inMessage, inParam):
-        return
-
     def createPerformanceWindow(self):
         widgetWindow = {'widgetID': None,
                         'widgets': {}}
         fontID = xp.Font_Proportional
         _w, strHeight, _ignore = xp.getFontDimensions(fontID)
-        data = sorted([x[-1] for x in xp.pythonGetDicts()['plugins'].values()])
+        data = sorted([x[PLUGIN_MODULE_NAME] for x in xp.pythonGetDicts()['plugins'].values()])
         data.append('All')
 
         left = 100
@@ -280,7 +276,8 @@ class PythonInterface(Config):
             label, code, col = k
             strWidth = xp.measureString(fontID, label)
             widgetWindow['widgets']['title' + code] = xp.createWidget(
-                right - col - int(strWidth), top, right - col, bottom, 1, label, 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+                right - col - int(strWidth), top, right - col, bottom,
+                1, label, 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
 
         # widgets for each plugin line
         top -= int(strHeight * 1.5)
@@ -301,15 +298,20 @@ class PythonInterface(Config):
                     k_label = '...' + k_label[-35:]
                     strWidth = int(xp.measureString(fontID, k_label))
             widgetWindow['widgets'][k + 'label'] = xp.createWidget(left + 10, top, left + strWidth, bottom,
-                                                                   1, k_label, 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+                                                                   1, k_label, 0,
+                                                                   widgetWindow['widgetID'], xp.WidgetClass_Caption)
             widgetWindow['widgets'][k + 'customw'] = xp.createWidget(right - 300, top, right - colRight[0], bottom,
-                                                                     1, '', 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+                                                                     1, '', 0,
+                                                                     widgetWindow['widgetID'], xp.WidgetClass_Caption)
             widgetWindow['widgets'][k + 'draw'] = xp.createWidget(right - 300, top, right - colRight[1], bottom,
-                                                                  1, '', 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+                                                                  1, '', 0,
+                                                                  widgetWindow['widgetID'], xp.WidgetClass_Caption)
             widgetWindow['widgets'][k + 'fl'] = xp.createWidget(right - 200, top, right - colRight[2], bottom,
-                                                                1, '', 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+                                                                1, '', 0,
+                                                                widgetWindow['widgetID'], xp.WidgetClass_Caption)
             widgetWindow['widgets'][k + 'pct'] = xp.createWidget(right - 80, top, right - colRight[3], bottom,
-                                                                 1, '', 0, widgetWindow['widgetID'], xp.WidgetClass_Caption)
+                                                                 1, '', 0,
+                                                                 widgetWindow['widgetID'], xp.WidgetClass_Caption)
             top -= strHeight + 5
             bottom = top - strHeight
 
@@ -330,7 +332,7 @@ class PythonInterface(Config):
 
         return widgetWindow
 
-    def performanceWindowCallback(self, inMessage, inWidget, inParam1, inParam2):
+    def performanceWindowCallback(self, inMessage, _inWidget, _inParam1, _inParam2):
         if inMessage == xp.Message_CloseButtonPushed:
             xp.commandOnce(self.togglePerformanceCmdRef)
             return 1
@@ -363,7 +365,7 @@ class PythonInterface(Config):
 
         top = bottom - 8
         bottom = int(top - strHeight)
-        s = 'This is Version {}'.format(XPPython.VERSION)
+        s = f'This is Version {xp.VERSION}'
         strWidth = xp.measureString(fontID, s)
         right = int(left + strWidth)
         xp.createWidget(left, top, right, bottom, 1, s, 0, widgetWindow['widgetID'],
@@ -464,8 +466,8 @@ class PythonInterface(Config):
         uptodate, version = self.calc_update(try_beta, current, stable_version, beta_version)
 
         if uptodate:
-            return "{} {} is up-to-date".format('Beta' if current == beta_version else 'Stable', current)
-        return "Update to {} {}".format('Beta' if version == beta_version else 'Stable', version)
+            return f"{'Beta' if current == beta_version else 'Stable'} {current} is up-to-date"
+        return f"Update to {'Beta' if version == beta_version else 'Stable'} {version}"
 
     def get_currency(self):
         try_beta = self.config['beta']
@@ -475,10 +477,10 @@ class PythonInterface(Config):
 
         uptodate, version = self.calc_update(try_beta, current, stable_version, beta_version)
         if uptodate:
-            return "{} {} is up-to-date".format('Beta' if current == beta_version else 'Stable', current)
-        return "{} {} is available".format('Beta' if version == beta_version else 'Stable', version)
+            return f"{'Beta' if current == beta_version else 'Stable'} {current} is up-to-date"
+        return f"{'Beta' if version == beta_version else 'Stable'} {version} is available"
 
-    def aboutWidgetCallback(self, inMessage, inWidget, inParam1, inParam2):
+    def aboutWidgetCallback(self, inMessage, _inWidget, inParam1, _inParam2):
         if inMessage == xp.Message_CloseButtonPushed:
             xp.hideWidget(self.aboutWindow['widgetID'])
             return 1
@@ -577,7 +579,7 @@ class PythonInterface(Config):
 
         return widgetWindow
 
-    def pipWidgetCallback(self, inMessage, inWidget, inParam1, inParam2):
+    def pipWidgetCallback(self, inMessage, _inWidget, inParam1, _inParam2):
         if inMessage == xp.Message_CloseButtonPushed:
             xp.hideWidget(self.pipWindow['widgetID'])
             return 1
@@ -586,19 +588,20 @@ class PythonInterface(Config):
             if inParam1 == self.pipWindow['widgets']['button']:
                 s = xp.getWidgetDescriptor(self.pipWindow['widgets']['packages'])
                 packages = list(filter(lambda x: x != '', re.split('[, ]+', s)))
-                print("Looking to install packages: {}".format(packages))
+                print(f"Looking to install packages: {packages}")
                 if packages:
-                    xp.setWidgetDescriptor(self.pipWindow['widgets']['error'], "Looking to install packages: {}".format(' '.join(packages)))
+                    xp.setWidgetDescriptor(self.pipWindow['widgets']['error'],
+                                           f"Looking to install packages: {' '.join(packages)}")
                     cmd = [xp.pythonExecutable, '-m', 'pip', 'install', '--user'] + packages
-                    print("Calling pip as: {}".format(' '.join(cmd)))
+                    print(f"Calling pip as: {' '.join(cmd)}")
                     try:
                         xp.setWidgetDescriptor(self.pipWindow['widgets']['error'], "Running pip... please wait.")
                         output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
                         xp.setWidgetDescriptor(self.pipWindow['widgets']['error'], "Execution complete.")
-                        print("From pip:\n{}".format(output.decode('utf-8')))
+                        print(f"From pip:\n{output.decode('utf-8')}")
                         output = output.decode('utf-8').split('\n')
                     except subprocess.CalledProcessError as e:
-                        print("Calling pip failed: [{}]: {}".format(e.returncode, e.output.decode('utf-8')))
+                        print(f"Calling pip failed: [{e.returncode}]: {e.output.decode('utf-8')}")
                         xp.setWidgetDescriptor(self.pipWindow['widgets']['error'], "Failed: Error while executing pip.")
                         output = e.output.decode('utf-8').split('\n')
                     popupWindow('PIP output', output)
@@ -609,7 +612,7 @@ class PythonInterface(Config):
         return 0
 
 
-def popupCallback(inMessage, inWidget, inParam1, inParam2):
+def popupCallback(inMessage, inWidget, _inParam1, _inParam2):
     if inMessage == xp.Message_CloseButtonPushed:
         xp.hideWidget(inWidget)
         return 1

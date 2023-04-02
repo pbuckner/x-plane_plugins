@@ -258,7 +258,7 @@ be called within a draw callback: they *will not* work otherwise.
     For value ``150.925``:
 
  .. table::
-    :align:left
+    :align: left
 
     +---------+------------------------------------+
     |         | Decimals  >>                       |

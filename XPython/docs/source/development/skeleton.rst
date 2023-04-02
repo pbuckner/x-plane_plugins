@@ -1,26 +1,33 @@
+.. py:module:: PythonInterface
+
 Skeleton
 ========
 
-Plugins (C and Python) work by having a standard calling interface:
+Plugins (C and Python) work by having a standard calling interface. For C, it's 5 functions, for Python it's one class ``PythonInterface``
+with five methods:
 
-+--+-------------------------+-----------------------------------------------------------------+
-|1.|``XPluginStart``         | Called by X-Plane at startup, this is called for every plugin   |
-|  |                         | and each plugin returns its signature.                          |
-+--+-------------------------+-----------------------------------------------------------------+
-|2.|``XPluginEnable``        |Once all plugins are started, X-Plane calls each plugin to       |
-|  |                         |register callbacks and other resources.  Each plugin returns 1 or|
-|  |                         |0 indicating it enabled properly.                                |
-+--+-------------------------+-----------------------------------------------------------------+
-|3.|``XPluginReceiveMessage``|While running, X-Plane may send messages to all plugins such as  |
-|  |                         |"PLANE_LOADED" or "ENTERED_VR". Plugins use this call to handle  |
-|  |                         |(or ignore) the message.                                         |
-+--+-------------------------+-----------------------------------------------------------------+
-|4.|``XPluginDisable``       |Called at X-Plane termination so each plugin can unregister any  |
-|  |                         |callbacks and stop "doing work".                                 |
-+--+-------------------------+-----------------------------------------------------------------+
-|5.|``XPluginStop``          |Called after all plugins are disabled so each plugin is able to  |
-|  |                         |save its state, close files, deallocate resources.               |
-+--+-------------------------+-----------------------------------------------------------------+
++--+----------------------------------------------------------------------------+-----------------------------------------------------------------+
+|1.|.. py:function:: XPluginStart(self)                                         | Called by X-Plane at startup, this is called for every plugin   |
+|  |                                                                            | and each plugin returns its signature.                          |
+|  |   Returns three strings                                                    |                                                                 |
++--+----------------------------------------------------------------------------+-----------------------------------------------------------------+
+|2.|.. py:function:: XPluginEnable(self)                                        |Once all plugins are started, X-Plane calls each plugin to       |
+|  |                                                                            |register callbacks and other resources.  Each plugin returns 1 or|
+|  |   Returns int 1 or 0                                                       |0 indicating it enabled properly.                                |
++--+----------------------------------------------------------------------------+-----------------------------------------------------------------+
+|3.|.. py:function:: XPluginReceiveMessage(self, inFromWhom, inMessage, inParam)|While running, X-Plane may send messages to all plugins such as  |
+|  |                                                                            |"PLANE_LOADED" or "ENTERED_VR". Plugins use this call to handle  |
+|  |   No return value                                                          |(or ignore) the message.                                         |
+|  |                                                                            |                                                                 |
++--+----------------------------------------------------------------------------+-----------------------------------------------------------------+
+|4.|.. py:function:: XPluginDisable(self)                                       |Called at X-Plane termination so each plugin can unregister any  |
+|  |                                                                            |callbacks and stop "doing work".                                 |
+|  |   No return value                                                          |                                                                 |
++--+----------------------------------------------------------------------------+-----------------------------------------------------------------+
+|5.|.. py:function:: XPluginStop(self)                                          |Called after all plugins are disabled so each plugin is able to  |
+|  |                                                                            |save its state, close files, deallocate resources.               |
+|  |   No return value                                                          |                                                                 |
++--+----------------------------------------------------------------------------+-----------------------------------------------------------------+
 
 
 

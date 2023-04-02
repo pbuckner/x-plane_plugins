@@ -58,6 +58,14 @@ files from ``samples`` to get the plugin working.
    |                            |                                                        |
    |                            | Uses OpenGL, textures, registerHotKey.                 |
    +----------------------------+--------------------------------------------------------+
+   |PI_FMOD_Advanced.py         | Modelled after Bill Good's xp12-fmod-sdk-demo.         |
+   |                            |                                                        |
+   |                            | Plays a sequence of sound files over-and-over.         |
+   |                            |                                                        |
+   |                            | Use python ctypes module, in combination with          |
+   |                            | getFMODStudio to directly access additional FMOD       |
+   |                            | routines in the FMOD shared library.                   |
+   +----------------------------+--------------------------------------------------------+
    |PI_FMSUtility1.py           | Ported from python2 example. Demonstrates access to    |
    |                            | the FMS. getDisplayFMSEntry, setDisplayFMSEntry,       |
    |                            | getDestinationFMSEntry, setDestinationFMSEntry,        |
@@ -115,7 +123,7 @@ files from ``samples`` to get the plugin working.
    |                            | Draws on the X-Plane map using RegisterMapCreationHook,|
    |                            | OpenGL, drawMapLabel, mapProject, mapUnProject,        |
    |                            | mapScaleMeter.                                         |
-   |                            |                                                        |
+   |                            |                                                        |        
    |                            | To use, you'll also need to copy map-sample-image.png  |
    |                            | from ``PythonPlugins/samples`` into                    |
    |                            | ``Resources/plugins`` folder.                          |
@@ -123,7 +131,7 @@ files from ``samples`` to get the plugin working.
    |PI_MiniPython.py            | In-game python interpreter. Allows you to execute      |
    |                            | most python within context of running X-Plane. Great   |
    |                            | way to test SDK APIs and see what happens. Requires    |
-   |                            | XPListBox.py to be copied also.                        |        
+   |                            | XPListBox.py to be copied also.                        |
    +----------------------------+--------------------------------------------------------+
    |PI_MultiProcess.py          | Demonstrates use of python multiprocessing module.     |
    |                            | Uses xp.pythonExecutable.                              |

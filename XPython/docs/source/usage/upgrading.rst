@@ -4,7 +4,10 @@ Upgrading XPPython3
 ===================
 
 Normally, once you have installed XPPython3, it will automatically inform you if/when
-a new version is available.
+a new version is available by adding a white dot next to the XPPython3 Menu. Then,
+select the "Update to..." menu item to start the update.
+
+   .. image:: /images/xppython3menu.png
 
 Upgrading to XPPython3 version 4 *automatically* is possible only if you've already
 installed v3.1.5 on X-Plane 12 *and* you're using Python v3.10.x.
@@ -34,9 +37,5 @@ If:
 |                                               |ready. You can upgrade by         |
 |                                               |selecting the XPPython3 menu item |
 |                                               |to upgrade.                       |
-|                                               |                                  |
-|                                               |                                  |
-|                                               |                                  |
-|                                               |                                  |
 +-----------------------------------------------+----------------------------------+
   

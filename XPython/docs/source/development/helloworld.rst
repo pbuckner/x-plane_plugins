@@ -106,7 +106,8 @@ CreateWindowEx - simplified
 ***************************
 
 The C API passes parameters as a tuple, similar to how we did it above. It works, but it's error
-prone and not pythonic. Consider the simpler::
+prone and not pythonic. Because python supports keywords and default values, we can
+vastly simplify it to::
 
   def XPluginStart(self):
       self.windowId = xp.createWindowEx(left=50, top=600, bottom=300, right=400,
@@ -114,5 +115,6 @@ prone and not pythonic. Consider the simpler::
                                         draw=self.drawWindowCallback)
       return self.name, self.sig, self.desc
 
+From here on, we'll never use the c-style tuple passing.
 
 See :doc:`hellowidget` for next example.

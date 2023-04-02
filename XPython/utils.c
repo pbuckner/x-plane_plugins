@@ -23,7 +23,9 @@ void pythonDebug(const char *fmt, ...) {
     char *msg;
     va_list ap;
     va_start(ap, fmt);
-    vasprintf(&msg, fmt, ap);
+    if (-1 == vasprintf(&msg, fmt, ap)) {
+      fprintf(pythonLogFile, "Failed to allocation vasprintf memory in pythonDebug\n");
+    }
     va_end(ap);
     fprintf(pythonLogFile, "DEBUG>> %s\n", msg);
     fflush(pythonLogFile);
@@ -103,8 +105,12 @@ void pythonLogException()
       PyObject *vals;
       if (pvalue && ptraceback) {
         vals = PyObject_CallFunctionObjArgs(fmt_exception, ptype, pvalue, ptraceback, NULL);
+      } else if (pvalue) {
+        PyObject *fmt_exception_only = PyObject_GetAttrString(tb_module, "format_exception_only");
+        vals = PyObject_CallFunctionObjArgs(fmt_exception_only, ptype, pvalue, NULL);
+        Py_DECREF(fmt_exception_only);
       } else {
-        vals = PyObject_CallFunctionObjArgs(fmt_exception, ptype, NULL);
+        vals = PyObject_CallFunctionObjArgs(fmt_exception, ptype, pvalue, NULL);
       }
       if (vals == NULL) {
         if(PyErr_Occurred()) {
@@ -304,7 +310,17 @@ void *refToPtr(PyObject *ref, const char *refName)
   if (ref == Py_None || (!strcmp(widgetRefName, refName) && PyLong_Check(ref) && PyLong_AsLong(ref) == 0)){
     return NULL;
   }else{
-    return PyCapsule_GetPointer(ref, refName);
+    void *ptr = PyCapsule_GetPointer(ref, refName);
+    if (pythonDebugs) {
+      PyObject *err = PyErr_Occurred();
+      if(err){
+        pythonLogException();
+        fprintf(pythonLogFile, "Failed to convert '%s' capsule (%s) to pointer\n", refName, objToStr(ref));
+        fflush(pythonLogFile);
+        return NULL;
+      }
+    }
+    return ptr;
   }
 }
 

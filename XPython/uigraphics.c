@@ -139,6 +139,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 static PyMethodDef XPUIGraphicsMethods[] = {
   {"drawWindow", (PyCFunction)XPDrawWindowFun, METH_VARARGS | METH_KEYWORDS, _drawWindow__doc__},
   {"XPDrawWindow", (PyCFunction)XPDrawWindowFun, METH_VARARGS | METH_KEYWORDS, ""},
@@ -157,6 +159,8 @@ static PyMethodDef XPUIGraphicsMethods[] = {
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
+#pragma GCC diagnostic pop
+
 
 
 static struct PyModuleDef XPUIGraphicsModule = {
@@ -179,7 +183,7 @@ PyInit_XPUIGraphics(void)
 {
   PyObject *mod = PyModule_Create(&XPUIGraphicsModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
     PyModule_AddIntConstant(mod, "xpWindow_Help", xpWindow_Help);
     PyModule_AddIntConstant(mod, "xpWindow_MainWindow", xpWindow_MainWindow);
     PyModule_AddIntConstant(mod, "xpWindow_SubWindow", xpWindow_SubWindow);

@@ -329,6 +329,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 static PyMethodDef XPLMGraphicsMethods[] = {
   {"setGraphicsState", (PyCFunction)XPLMSetGraphicsStateFun, METH_VARARGS | METH_KEYWORDS, _setGraphicsState__doc__},
   {"XPLMSetGraphicsState", (PyCFunction)XPLMSetGraphicsStateFun, METH_VARARGS | METH_KEYWORDS, "Sets state of the graphics pipeline."},
@@ -357,6 +359,8 @@ static PyMethodDef XPLMGraphicsMethods[] = {
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
+#pragma GCC diagnostic pop
+
 
 static struct PyModuleDef XPLMGraphicsModule = {
   PyModuleDef_HEAD_INIT,
@@ -378,7 +382,7 @@ PyInit_XPLMGraphics(void)
 {
   PyObject *mod = PyModule_Create(&XPLMGraphicsModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
     PyModule_AddIntConstant(mod, "xplm_Tex_GeneralInterface", xplm_Tex_GeneralInterface);
     PyModule_AddIntConstant(mod, "xplmFont_Basic", xplmFont_Basic);
     PyModule_AddIntConstant(mod, "xplmFont_Proportional", xplmFont_Proportional);

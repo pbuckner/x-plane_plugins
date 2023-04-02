@@ -27,6 +27,7 @@ TARGET=Windows
 TARGET=Windows
 PYDEV310=/c/Program\ Files/Python310
 PYDEV311=/c/Program\ Files/Python311
+PYDEV312=/c/Program\ Files/Python312
 
 all : XPPython310.xpl XPPython311.xpl libpython3.dll.a libpython310.dll.a libpython311.dll.a
 	@echo $^
@@ -41,6 +42,10 @@ libpython310.dll.a : $(PYDEV310)/python310.dll
 libpython311.dll.a : $(PYDEV311)/python311.dll
 	gendef - "$^" > python311.def
 	dlltool -D "$^" -d python311.def -l $@
+
+libpython312.dll.a : $(PYDEV312)/python312.dll
+	gendef - "$^" > python312.def
+	dlltool -D "$^" -d python312.def -l $@
 
 include ../Makefile
 

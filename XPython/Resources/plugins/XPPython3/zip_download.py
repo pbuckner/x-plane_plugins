@@ -54,16 +54,16 @@ class ZipDownload:
     def progressFLCallback(self, *args, **kwargs):
         self.progressWindow.setCaption(self.caption)
         self.progressWindow.setProgress(self.progress)
-        if xp.isWidgetVisible(self.progressWindow):
+        if xp.isWidgetVisible(self.progressWindow.progressWindow):
             return -1
         return 0
-        
+
     def setCaption(self, caption):
         self.caption = caption
-        
+
     def setProgress(self, progress=0):
         self.progress = progress
-    
+
     def _download(self, download_url, cksum=None):
         log('_download started')
 

@@ -33,3 +33,15 @@ def derefCapsule(capsule_type: str, capsule: object) -> int:
 
 sys_log = systemLog
 pythonLog = log
+
+class HotKeyInfo: pass
+class ProbeInfo: pass
+class DataRefInfo: pass
+class WeatherInfo: pass
+class WeatherInfoClouds: pass
+class WeatherInfoWinds: pass
+class PluginInfo: pass
+class NavAidInfo: pass
+class FMSEntryInfo: pass
+class TrackMetrics: pass
+class ModuleMTimes: pass

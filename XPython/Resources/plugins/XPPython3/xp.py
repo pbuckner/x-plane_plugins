@@ -35,6 +35,9 @@ Type_Double = XPLMDataAccess.Type_Double
 Type_FloatArray = XPLMDataAccess.Type_FloatArray
 Type_IntArray = XPLMDataAccess.Type_IntArray
 Type_Data = XPLMDataAccess.Type_Data
+countDataRefs = XPLMDataAccess.countDataRefs
+getDataRefsByIndex = XPLMDataAccess.getDataRefsByIndex
+getDataRefInfo = XPLMDataAccess.getDataRefInfo
 import XPLMDefs
 ShiftFlag = XPLMDefs.ShiftFlag
 OptionAltFlag = XPLMDefs.OptionAltFlag
@@ -384,6 +387,9 @@ MSG_LIVERY_LOADED = XPLMPlugin.MSG_LIVERY_LOADED
 MSG_ENTERED_VR = XPLMPlugin.MSG_ENTERED_VR
 MSG_EXITING_VR = XPLMPlugin.MSG_EXITING_VR
 MSG_RELEASE_PLANES = XPLMPlugin.MSG_RELEASE_PLANES
+MSG_FMOD_BANK_LOADED = XPLMPlugin.MSG_FMOD_BANK_LOADED
+MSG_FMOD_BANK_UNLOADING = XPLMPlugin.MSG_FMOD_BANK_UNLOADING
+MSG_DATAREFS_ADDED = XPLMPlugin.MSG_DATAREFS_ADDED
 MsgPlaneCrashed = XPLMPlugin.MSG_PLANE_CRASHED
 MsgPlaneLoaded = XPLMPlugin.MSG_PLANE_LOADED
 MsgAirportLoaded = XPLMPlugin.MSG_AIRPORT_LOADED
@@ -476,6 +482,17 @@ VERSION = XPPython.VERSION
 PLUGINSPATH = XPPython.PLUGINSPATH
 INTERNALPLUGINSPATH = XPPython.INTERNALPLUGINSPATH
 pythonDebugLevel = XPPython.pythonDebugLevel
+HotKeyInfo = XPPython.HotKeyInfo
+ProbeInfo = XPPython.ProbeInfo
+DataRefInfo = XPPython.DataRefInfo
+WeatherInfo = XPPython.WeatherInfo
+WeatherInfoClouds = XPPython.WeatherInfoClouds
+WeatherInfoWinds = XPPython.WeatherInfoWinds
+PluginInfo = XPPython.PluginInfo
+NavAidInfo = XPPython.NavAidInfo
+FMSEntryInfo = XPPython.FMSEntryInfo
+TrackMetrics = XPPython.TrackMetrics
+ModuleMTimes = XPPython.ModuleMTimes
 import XPStandardWidgets
 WidgetClass_MainWindow = XPStandardWidgets.xpWidgetClass_MainWindow
 WidgetClass_SubWindow = XPStandardWidgets.xpWidgetClass_SubWindow
@@ -682,3 +699,44 @@ defocusKeyboard = XPWidgetUtils.defocusKeyboard
 dragWidget = XPWidgetUtils.dragWidget
 NO_PARENT = XPWidgetUtils.NO_PARENT
 PARAM_PARENT = XPWidgetUtils.PARAM_PARENT
+import XPLMWeather
+getMETARForAirport = XPLMWeather.getMETARForAirport
+getWeatherAtLocation = XPLMWeather.getWeatherAtLocation
+import XPLMSound
+stopAudio = XPLMSound.stopAudio
+playPCMOnBus = XPLMSound.playPCMOnBus
+setAudioCone = XPLMSound.setAudioCone
+setAudioPitch = XPLMSound.setAudioPitch
+setAudioVolume = XPLMSound.setAudioVolume
+setAudioPosition = XPLMSound.setAudioPosition
+setAudioFadeDistance = XPLMSound.setAudioFadeDistance
+getFMODStudio = XPLMSound.getFMODStudio
+getFMODChannelGroup = XPLMSound.getFMODChannelGroup
+AudioRadioCom1 = XPLMSound.AudioRadioCom1
+AudioRadioCom2 = XPLMSound.AudioRadioCom2
+AudioRadioPilot = XPLMSound.AudioRadioPilot
+AudioRadioCopilot = XPLMSound.AudioRadioCopilot
+AudioExteriorAircraft = XPLMSound.AudioExteriorAircraft
+AudioExteriorEnvironment = XPLMSound.AudioExteriorEnvironment
+AudioExteriorUnprocessed = XPLMSound.AudioExteriorUnprocessed
+AudioInterior = XPLMSound.AudioInterior
+AudioUI = XPLMSound.AudioUI
+AudioGround = XPLMSound.AudioGround
+Master = XPLMSound.Master
+MasterBank = XPLMSound.MasterBank
+RadioBank = XPLMSound.RadioBank
+FMOD_OK = XPLMSound.FMOD_OK
+FMOD_SOUND_FORMAT_PCM16 = XPLMSound.FMOD_SOUND_FORMAT_PCM16
+
+import wave
+def playWaveOnBus(wav, loop, audioType, callback=None, refCon=None):
+    data = wav.readframes(wav.getnframes())
+    return playPCMOnBus(data,
+                        (wav.getnframes() * wav.getsampwidth() * wav.getnchannels()),
+                        wav.getsampwidth(),
+                        wav.getframerate(),
+                        wav.getnchannels(),
+                        loop,
+                        audioType,
+                        callback,
+                        refCon)

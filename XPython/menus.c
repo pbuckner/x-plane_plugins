@@ -25,7 +25,7 @@ static PyObject *menuPluginIdxDict; /* plugin -> [list of Laminar menu IDs] */
 static int nextXPLMMenuIdx = 0;
 void clearInstanceMenuItems();
 
-static const char menuIDRef[] = "XPLMMenuIDRef"; 
+static const char menuIDRef[] = "XPLMMenuID"; 
 
 void resetMenus() {nextXPLMMenuIdx = 0;}
 
@@ -630,6 +630,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 static PyMethodDef XPLMMenusMethods[] = {
   {"findPluginsMenu", (PyCFunction)XPLMFindPluginsMenuFun, METH_VARARGS, _findPluginsMenu__doc__},
   {"XPLMFindPluginsMenu", (PyCFunction)XPLMFindPluginsMenuFun, METH_VARARGS, ""},
@@ -660,6 +662,8 @@ static PyMethodDef XPLMMenusMethods[] = {
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
+#pragma GCC diagnostic pop
+
 
 static struct PyModuleDef XPLMMenusModule = {
   PyModuleDef_HEAD_INIT,
@@ -698,7 +702,7 @@ PyInit_XPLMMenus(void)
 
   PyObject *mod = PyModule_Create(&XPLMMenusModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
     PyModule_AddIntConstant(mod, "xplm_Menu_NoCheck", xplm_Menu_NoCheck);
     PyModule_AddIntConstant(mod, "xplm_Menu_Unchecked", xplm_Menu_Unchecked);
     PyModule_AddIntConstant(mod, "xplm_Menu_Checked", xplm_Menu_Checked);

@@ -57,6 +57,6 @@ def unloadObject(XPLMObjectRef):
     return
 
 
-def lookupObjects(path: str, latitude: float, longitude: float,
-                  enumerator: Callable[[str, Any], None], refCon: Union[None, Any] = None) -> int:
+def lookupObjects(path: str, latitude: Union[None, float] = None, longitude: Union[None, float] = None,
+                  enumerator: Union[None, Callable[[str, Any], None]] = None, refCon: Union[None, Any] = None) -> int:
     return int()  # number of objects found

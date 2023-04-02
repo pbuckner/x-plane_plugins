@@ -57,7 +57,7 @@ PyObject *windowIDCapsules;
 const char *windowIDRef = "XPLMWindowIDRef";
 
 static PyObject *hotkeyIDCapsules;
-static const char hotkeyIDRef[] = "XPLMHotkeyIDRef";
+static const char hotkeyIDRef[] = "XPLMHotkeyID";
 
 PyObject *avionicsIDCapsules;
 const char *avionicsIDRef = "XPLMAvionicsIDRef";
@@ -182,7 +182,7 @@ static PyObject *XPLMRegisterAvionicsCallbacksExFun(PyObject *self, PyObject *ar
     Py_INCREF(afterCallback);
   }
   
-  XPLMAvionicsID avionicsId = XPLMRegisterAvionicsCallbacksEx(&params);
+  XPLMAvionicsID avionicsId = XPLMRegisterAvionicsCallbacksEx_ptr(&params);
   PyObject *aID = getPtrRef(avionicsId, avionicsIDCapsules, avionicsIDRef);
   if(!aID){
     PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterAvionicsCallbacksEx failed.\n");
@@ -203,6 +203,12 @@ static PyObject *XPLMUnregisterAvionicsCallbacksFun(PyObject *self, PyObject *ar
   static char *keywords[] = {"avionicsId", NULL};
   (void) self;
   PyObject *aID;
+
+  if(!XPLMUnregisterAvionicsCallbacks_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMUnregisterAvionicsCallbacks is available only in XPLM400 and up.");
+    return NULL;
+  }
+
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &aID)) {
     return NULL;
   }
@@ -211,7 +217,7 @@ static PyObject *XPLMUnregisterAvionicsCallbacksFun(PyObject *self, PyObject *ar
     return NULL;
   }
   XPLMAvionicsID avionicsId = refToPtr(aID, avionicsIDRef);
-  XPLMUnregisterAvionicsCallbacks(avionicsId);
+  XPLMUnregisterAvionicsCallbacks_ptr(avionicsId);
 
   /* and... remove from data structures */
   removePtrRef(avionicsId, avionicsIDCapsules);
@@ -464,9 +470,12 @@ static int handleMouseClick(XPLMWindowID     inWindowID,
   }
   if (!PyLong_Check(pRes)) {
     char *msg;
-    asprintf(&msg, "click() callback [%s] failed to return integer\n.", objToStr(func));
-    PyErr_SetString(PyExc_ValueError, msg);
-    free(msg);
+    if (-1 == asprintf(&msg, "click() callback [%s] failed to return integer\n.", objToStr(func))) {
+      fprintf(pythonLogFile, "Failed to allocate asprintf memory for callback error.\n");
+    } else {
+      PyErr_SetString(PyExc_ValueError, msg);
+      free(msg);
+    }
     return 1;
   }
   int res = (int)PyLong_AsLong(pRes);
@@ -507,9 +516,12 @@ static int handleRightClick(XPLMWindowID     inWindowID,
   }
   if (!PyLong_Check(pRes)) {
     char *msg;
-    asprintf(&msg, "rightClick() callback [%s] failed to return integer\n.", objToStr(func));
-    PyErr_SetString(PyExc_ValueError, msg);
-    free(msg);
+    if (-1 == asprintf(&msg, "rightClick() callback [%s] failed to return integer\n.", objToStr(func))) {
+      fprintf(pythonLogFile, "Failed to allocate asprintf memory for right click callback.\n");
+    } else {
+      PyErr_SetString(PyExc_ValueError, msg);
+      free(msg);
+    }
     return 1;
   }
   int res = (int)PyLong_AsLong(pRes);
@@ -1555,6 +1567,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 }
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 static PyMethodDef XPLMDisplayMethods[] = {
   {"registerDrawCallback", (PyCFunction)XPLMRegisterDrawCallbackFun, METH_VARARGS | METH_KEYWORDS, _registerDrawCallback__doc__},
   {"XPLMRegisterDrawCallback", (PyCFunction)XPLMRegisterDrawCallbackFun, METH_VARARGS | METH_KEYWORDS, ""},
@@ -1644,6 +1658,8 @@ static PyMethodDef XPLMDisplayMethods[] = {
   {"_cleanup", cleanup, METH_VARARGS, "cleanup"},
   {NULL, NULL, 0, NULL}
 };
+#pragma GCC diagnostic pop
+
 
 static struct PyModuleDef XPLMDisplayModule = {
   PyModuleDef_HEAD_INIT,
@@ -1698,7 +1714,7 @@ PyInit_XPLMDisplay(void)
 
   PyObject *mod = PyModule_Create(&XPLMDisplayModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
 #if defined(XPLM_DEPRECATED)
     PyModule_AddIntConstant(mod, "xplm_Phase_FirstScene", xplm_Phase_FirstScene);
     PyModule_AddIntConstant(mod, "xplm_Phase_Terrain", xplm_Phase_Terrain);
@@ -1815,6 +1831,8 @@ PyInit_XPLMDisplay(void)
 
 int genericAvionicsCallback(XPLMDeviceID inDeviceID, int inIsBefore, void *inRefcon)
 {
+  struct timespec all_stop, all_start;
+  clock_gettime(CLOCK_MONOTONIC, &all_start);
   (void) inDeviceID;
   PyObject *pl = PyLong_FromVoidPtr(inRefcon);/*new*/
   PyObject *err = NULL;
@@ -1836,7 +1854,11 @@ int genericAvionicsCallback(XPLMDeviceID inDeviceID, int inIsBefore, void *inRef
   PyObject *refCon = PyTuple_GetItem(tup, AVIONICS_REFCON);/* borrowed */
   PyObject *deviceId = PyTuple_GetItem(tup, AVIONICS_DEVICE);/* borrowed -- and should match inDeviceID, which we ignore */
   PyObject *isBefore = PyLong_FromLong(inIsBefore);/* new */
+  struct timespec stop, start;
+  clock_gettime(CLOCK_MONOTONIC, &start);
   pRes = PyObject_CallFunctionObjArgs(fun, deviceId, isBefore, refCon, NULL);
+  clock_gettime(CLOCK_MONOTONIC, &stop);
+  pluginStats[getPluginIndex(PyTuple_GetItem(tup, AVIONICS_PLUGIN))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   Py_DECREF(isBefore);
 
   if(!pRes){
@@ -1858,6 +1880,9 @@ int genericAvionicsCallback(XPLMDeviceID inDeviceID, int inIsBefore, void *inRef
     pythonLogException();
   }
   Py_XDECREF(pRes);
+
+  clock_gettime(CLOCK_MONOTONIC, &all_stop);
+  pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
 
   return res;
 }

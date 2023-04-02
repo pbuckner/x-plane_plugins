@@ -2,7 +2,7 @@ from typing import Sequence, Tuple, Union
 from xp_hinting import XPLMObjectRef, XPLMInstanceRef
 
 
-def createInstance(obj: XPLMObjectRef, datarefs: Sequence[str]) -> XPLMInstanceRef:
+def createInstance(obj: XPLMObjectRef, datarefs: Union[None, Sequence[str]] = None) -> XPLMInstanceRef:
     return XPLMInstanceRef(0)
 
 

@@ -1,16 +1,18 @@
 .PHONY : clean darwin lin windows sdk
 
 PLUGIN_PATH=Resources/plugins/XPPython3
-XP_SDK=../SDK400
+SDK=400
+XP_SDK=../SDK401
 VERSIONS= 310 311
-XPPYTHONVERSION=4.0.0
+XPPYTHONVERSION=4.1.0b1
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
+FMOD=../FMOD
 #########
 # COMMON opts
 # eventually....:   -DPy_LIMITED_API=0x030a0000
 CFLAGS=-Wall -Wextra -g -fpic -fPIC -fvisibility=hidden -DXPPYTHON3VERSION=\"$(XPPYTHONVERSION)\"
 XPLM_CPPFLAGS = -DXPLM200 -DXPLM210 -DXPLM300 -DXPLM301 -DXPLM302 -DXPLM303 -DXPLM400 \
-                -I$(XP_SDK)/CHeaders -I$(XP_SDK)/CHeaders/XPLM -I$(XP_SDK)/CHeaders/Widgets
+                -I$(XP_SDK)/CHeaders -I$(XP_SDK)/CHeaders/XPLM -I$(XP_SDK)/CHeaders/Widgets -I$(FMOD)/api/core/inc -I$(FMOD)/api/studio/inc
 ZIP=zip
 
 ##########
@@ -21,14 +23,17 @@ ifeq ($(TARGET), Windows)
   # except for the embedded 'version' value
   PYDEV310=/c/Program\ Files/Python310
   PYDEV311=/c/Program\ Files/Python311
+  PYDEV312=/c/Program\ Files/Python312
   PY_CFLAGS = -Wno-unused-result -Wno-pointer-to-int-cast -Wno-cast-function-type -Wsign-compare -Wunreachable-code -fno-common -DNDEBUG -fwrapv -O3 -D_GNU_SOURCE
   PY_LDFLAGS = 
   CFLAGS+= ${PY_CFLAGS} ${XPLM_CPPFLAGS} -DIBM=1 -DAPL=0 -DLIN=0 -I/c/msys64/mingw64/include -I/usr/include
   CFLAGS310=-I${PYDEV310}/include $(CFLAGS) -DPYTHONVERSION=\"3.10\"
   CFLAGS311=-I${PYDEV311}/include $(CFLAGS) -DPYTHONVERSION=\"3.11\"
+  CFLAGS312=-I${PYDEV312}/include $(CFLAGS) -DPYTHONVERSION=\"3.12\"
   LDFLAGS+= -shared -static-libgcc -static-libstdc++ -static -lpthread  ${PY_LDFLAGS} -L/c/msys64/mingw64/lib -ldl -lregex -ltre -lintl -liconv $(XP_SDK)/Libraries/Win/XPLM_64.lib $(XP_SDK)/Libraries/Win/XPWidgets_64.lib
   LDFLAGS310=$(LDFLAGS) -L. -lpython310.dll
   LDFLAGS311=$(LDFLAGS) -L. -lpython311.dll
+  LDFLAGS312=$(LDFLAGS) -L. -lpython312.dll
   PLUGIN_DIR=win_x64
   LD=g++
 endif
@@ -38,9 +43,11 @@ ifeq ($(TARGET), Linux)
   CFLAGS +=  ${XPLM_CPPFLAGS} -DIBM=0 -DAPL=0 -DLIN=1
   CFLAGS310= $(CFLAGS) $(shell python3.10-config --cflags) -DPYTHONVERSION=\"3.10\"
   CFLAGS311= $(CFLAGS) $(shell python3.11-config --cflags) -DPYTHONVERSION=\"3.11\"
+  CFLAGS312= $(CFLAGS) $(shell python3.12-config --cflags) -DPYTHONVERSION=\"3.12\"
   LDFLAGS +=  -shared -fPIC -fpic -ldl -lbsd -g -fvisibility=hidden -Wl,--export-dynamic
   LDFLAGS310 = $(LDFLAGS) $(shell python3.10-config --ldflags) -lpython3.10
   LDFLAGS311 = $(LDFLAGS) $(shell python3.11-config --ldflags) -lpython3.11
+  LDFLAGS312 = $(LDFLAGS) $(shell python3.12-config --ldflags) -lpython3.12
   PLUGIN_DIR=lin_x64
   LD=cc
 endif
@@ -49,9 +56,11 @@ ifeq ($(TARGET), Darwin)
   CFLAGS += ${XPLM_CPPFLAGS} -DIBM=0 -DAPL=1 -DLIN=0
   CFLAGS310=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.10/bin/python3-config --cflags) -DPYTHONVERSION=\"3.10\"
   CFLAGS311=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.11/bin/python3-config --cflags) -DPYTHONVERSION=\"3.11\"
+  CFLAGS312=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.12/bin/python3-config --cflags) -DPYTHONVERSION=\"3.12\"
   LDFLAGS += -shared -fPIC -fpic -ldl -g -fvisibility=hidden -undefined dynamic_lookup
   LDFLAGS310 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.10/bin/python3-config --ldflags) -lpython3.10
   LDFLAGS311 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.11/bin/python3-config --ldflags) -lpython3.11
+  LDFLAGS312 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.12/bin/python3-config --ldflags) -lpython3.12
   PLUGIN_DIR=mac_x64
   LD=cc
 endif
@@ -76,7 +85,10 @@ linux:
 PLUGIN_OBJ = pluginXXX.o defsXXX.o displayXXX.o utilsXXX.o graphicsXXX.o data_accessXXX.o utilitiesXXX.o sceneryXXX.o menusXXX.o \
 	navigationXXX.o pluginsXXX.o planesXXX.o processingXXX.o cameraXXX.o widget_defsXXX.o widgetsXXX.o \
 	standard_widgetsXXX.o uigraphicsXXX.o widgetutilsXXX.o instanceXXX.o mapXXX.o plugin_dlXXX.o sbXXX.o utilsXXX.o xppythonXXX.o \
-	trackMetricsXXX.o manage_instanceXXX.o manage_instancesXXX.o logwriterXXX.o load_modulesXXX.o ini_fileXXX.o
+	soundXXX.o \
+	weatherXXX.o weatherinfo_typeXXX.o weatherinfoclouds_typeXXX.o weatherinfowinds_typeXXX.o \
+	hotkeyinfo_typeXXX.o datarefinfo_typeXXX.o probeinfo_typeXXX.o plugininfo_typeXXX.o navaidinfo_typeXXX.o fmsentryinfo_typeXXX.o \
+	trackmetrics_typeXXX.o manage_instanceXXX.o manage_instancesXXX.o logwriterXXX.o load_modulesXXX.o ini_fileXXX.o
 
 %310.o	: %.c
 ifeq ($(TARGET),Darwin)
@@ -94,6 +106,15 @@ ifeq ($(TARGET),Darwin)
 	touch $@
 else
 	$(CC) -c $(CFLAGS311) $< -o $@
+endif
+
+%312.o	: %.c
+ifeq ($(TARGET),Darwin)
+	$(CC) -target arm64-apple-macos11 -c $(CFLAGS312) $< -o $@.arm
+	$(CC) -target x86_64-apple-macos10.12 -c $(CFLAGS312) $< -o $@.x86
+	touch $@
+else
+	$(CC) -c $(CFLAGS312) $< -o $@
 endif
 
 XPPython310.xpl: $(subst XXX,310,$(PLUGIN_OBJ))
@@ -114,6 +135,15 @@ else
 	$(LD) $^ $(LDFLAGS311) -o $@
 endif
 
+XPPython312.xpl: $(subst XXX,312,$(PLUGIN_OBJ))
+ifeq ($(TARGET), Darwin)
+	$(LD) -target arm64-apple-macos11 $(^:.o=.o.arm) $(LDFLAGS312) -o $@.arm
+	$(LD) -target x86_64-apple-macos10.12 $(^:.o=.o.x86) $(LDFLAGS312) -o $@.x86
+	lipo -create -output $@ $@.arm $@.x86
+else
+	$(LD) $^ $(LDFLAGS312) -o $@
+endif
+
 
 StandardPythonUtils = Resources/plugins/XPPython3/xp.py Resources/plugins/XPPython3/xp_imgui/ Resources/plugins/XPPython3/I_PI_Updater.py Resources/plugins/XPPython3/scriptupdate.py Resources/plugins/XPPython3/scriptconfig.py Resources/plugins/XPPython3/I_PI_FirstTime.py Resources/plugins/XPPython3/zip_download.py Resources/plugins/XPPython3/imgui/core.cp310-win_amd64.pyd
 
@@ -121,6 +151,7 @@ Resources/plugins/xp3%.zip: win/XPPython3%.xpl lin/XPPython3%.xpl mac/XPPython3%
 	# remove old
 	rm -f $@
 	rm -f Resources/plugins/XPPython3/*/*.xpl
+	echo "XPPython3 v$(XPPYTHONVERSION) for $(subst .xpl,,$(subst XPPython3,Python 3.,$(notdir $(filter win/XPP%, $^))))" > Resources/plugins/XPPython3/version.txt
 	# make staging directories
 	mkdir -p Resources/plugins/XPPython3/win_x64
 	mkdir -p Resources/plugins/XPPython3/lin_x64
@@ -145,6 +176,7 @@ Resources/plugins/xp3%.zip: win/XPPython3%.xpl lin/XPPython3%.xpl mac/XPPython3%
 		$(ZIP) $(notdir $@) -u XPPython3/imgui/*.py XPPython3/imgui/integrations/*.py XPPython3/imgui/core*$$v* XPPython3/imgui/internal*$$v* ; \
 		$(ZIP) $(notdir $@) -u XPPython3/utils/*.py ; \
 		$(ZIP) $(notdir $@) -u -r XPPython3/Authori*.app ; \
+		$(ZIP) $(notdir $@) -u XPPython3/version.txt ; \
 		cp $(notdir $@) $(basename $(notdir $@))-win32.zip; \
 		$(ZIP) -d $(basename $(notdir $@))-win32.zip XPPython3/lin_\* XPPython3/mac_\* XPPython3/imgui/core.cpython\*; \
 		cp $(notdir $@) $(basename $(notdir $@))-darwin.zip; \
@@ -166,8 +198,8 @@ install_beta : $(zipfiles)
 	# 3) On the server, execute updatemd5.py <>.zip <version>
 	#    ... the server code will manage -win32, -darwin and -linux variants
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; \
-		./updatemd5.py xp310b.zip "$(XPPYTHONVERSION) - for Python 3.10"; \
-		./updatemd5.py xp311b.zip "$(XPPYTHONVERSION) - for Python 3.11"'
+		./db_updatemd5.py xp310b.zip $(SDK) "$(XPPYTHONVERSION) - for Python 3.10"; \
+		./db_updatemd5.py xp311b.zip $(SDK) "$(XPPYTHONVERSION) - for Python 3.11"'
 
 install_remote : $(zipfiles)
 	@if [ "$(BETA)" -gt "0" ]; then \
@@ -176,8 +208,8 @@ install_remote : $(zipfiles)
 	fi
 	scp Resources/plugins/xp31?{,-darwin,-linux,-win32}.zip pbuck@avnwx.com:/var/www/production/data/x-plane
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; \
-		./updatemd5.py xp310.zip "$(XPPYTHONVERSION) - for Python 3.10"; \
-		./updatemd5.py xp311.zip "$(XPPYTHONVERSION) - for Python 3.11"'
+		./db_updatemd5.py xp310.zip $(SDK) "$(XPPYTHONVERSION) - for Python 3.10"; \
+		./db_updatemd5.py xp311.zip $(SDK) "$(XPPYTHONVERSION) - for Python 3.11"'
 
 install_sdk : sdk
 	$(ZIP) -R examples examples/\*.py

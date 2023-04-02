@@ -1,5 +1,5 @@
-extern PyObject *moduleDict;  /* info -> instance */
-extern PyObject *pluginDict;  /* instance -> info */
+extern PyObject *moduleDict;  /* moduleName -> instance */
+extern PyObject *pluginDict;  /* instance -> info ... [name, signature, descrptions, module, module_name, disabled]*/
 extern PyObject *aircraftPlugins; /* [instance, instance, ] */
 extern PyObject *sceneryPlugins; /* [instance, instance, ] */
 
@@ -8,6 +8,7 @@ extern PyObject *sceneryPlugins; /* [instance, instance, ] */
 #define PLUGIN_DESCRIPTION 2
 #define PLUGIN_MODULE 3
 #define PLUGIN_MODULE_NAME 4
+#define PLUGIN_DISABLED 5
 
 extern void xpy_startInstances(int include_aircraft);
 extern void xpy_startInternalInstances(void);

@@ -22,6 +22,8 @@
 #include "xppython.h"
 #include "ini_file.h"
 
+static int pythonVerbose = 0;
+
 /*************************************
  * Python plugin upgrade for Python 3
  *   Michal        f.josef@email.cz (uglyDwarf on x-plane.org)
@@ -84,8 +86,10 @@ extern PyMODINIT_FUNC PyInit_XPLMPlugin(void);
 extern PyMODINIT_FUNC PyInit_XPLMPlanes(void);
 extern PyMODINIT_FUNC PyInit_XPLMProcessing(void);
 extern PyMODINIT_FUNC PyInit_XPLMCamera(void);
+extern PyMODINIT_FUNC PyInit_XPLMSound(void);
 extern PyMODINIT_FUNC PyInit_XPWidgetDefs(void);
 extern PyMODINIT_FUNC PyInit_XPWidgets(void);
+extern PyMODINIT_FUNC PyInit_XPLMWeather(void);
 extern PyMODINIT_FUNC PyInit_XPStandardWidgets(void);
 extern PyMODINIT_FUNC PyInit_XPUIGraphics(void);
 extern PyMODINIT_FUNC PyInit_XPWidgetUtils(void);
@@ -119,6 +123,8 @@ int initPython(void){
   PyImport_AppendInittab("XPWidgetUtils", PyInit_XPWidgetUtils);
   PyImport_AppendInittab("XPLMInstance", PyInit_XPLMInstance);
   PyImport_AppendInittab("XPLMMap", PyInit_XPLMMap);
+  PyImport_AppendInittab("XPLMWeather", PyInit_XPLMWeather);
+  PyImport_AppendInittab("XPLMSound", PyInit_XPLMSound);
   /* XPythonLogger
      It had to be treated differently from other python modules because we
      wanted it imported first and unloaded last */
@@ -126,7 +132,15 @@ int initPython(void){
   
   /* PyImport_AppendInittab("SandyBarbourUtilities", PyInit_SBU);  -- Python2 stuff, for which there is no xppython3 equivalent */
   
-  Py_Initialize();
+  if (pythonVerbose) {
+    PyConfig config;
+    PyConfig_InitPythonConfig(&config);
+    config.verbose = pythonVerbose;
+    Py_InitializeFromConfig(&config);
+    PyConfig_Clear(&config);
+  } else {
+    Py_Initialize();
+  }
   if(!Py_IsInitialized()){
     fprintf(pythonLogFile, "[XPPython3] Failed to initialize Python.\n");
     fflush(pythonLogFile);
@@ -147,7 +161,9 @@ int initPython(void){
   }
 #endif
 
-  asprintf(&msg, "[XPPython3] Python runtime initialized %d.%d.%d\n", major, minor, micro);
+  if (-1 == asprintf(&msg, "[XPPython3] Python runtime initialized %d.%d.%d\n", major, minor, micro)) {
+    fprintf(pythonLogFile, "Failed to allocate asprintf memory, cannot initialize.\n");
+  }
   XPLMDebugString(msg);
   free(msg);
 
@@ -238,7 +254,7 @@ static int stopPython(void)
   char *mods[] = {"XPLMDefs", "XPLMDisplay", "XPLMGraphics", "XPLMUtilities", "XPLMScenery", "XPLMMenus",
                   "XPLMNavigation", "XPLMPlugin", "XPLMPlanes", "XPLMProcessing", "XPLMCamera", "XPWidgetDefs",
                   "XPWidgets", "XPStandardWidgets", "XPUIGraphics", "XPWidgetUtils", "XPLMInstance",
-                  "XPLMMap", "XPLMDataAccess", /*"SandyBarbourUtilities", */ "XPPython", NULL};
+                  "XPLMMap", "XPLMDataAccess", "XPLMWeather", "XPLMSound", /*"SandyBarbourUtilities", */ "XPPython", NULL};
   char **mod_ptr = mods;
 
   while(*mod_ptr != NULL){
@@ -275,8 +291,7 @@ static int stopPython(void)
 PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
 {
   if (XPLMFindPluginBySignature("sandybarbour.projects.pythoninterface") != XPLM_NO_PLUGIN_ID) {
-    XPLMDebugString("[XPPython3] FATAL ERROR: XPPython3 Detected python2 PythonInterface plugin. These plugins are incompatible\n");
-    return 0;
+    XPLMDebugString("[XPPython3] WARNING: XPPython3 Detected python2 PythonInterface plugin. These plugins have compatibility issues.\n");
   }
 
   pythonLogFile = getLogFile();
@@ -303,6 +318,9 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
     XPLMEnableFeature("XPLM_USE_NATIVE_WIDGET_WINDOWS", 1);
   } else {
     fprintf(pythonLogFile, "[XPPython3] Warning: XPLM_USE_NATIVE_WIDGET_WINDOWS not enabled. Using Legacy windows.\n");
+  }
+  if (XPLMHasFeature("XPLM_WANTS_DATAREF_NOTIFICATIONS")) {
+    XPLMEnableFeature("XPLM_WANTS_DATAREF_NOTIFICATIONS", 1);
   }
 
   handleConfigFile();
@@ -417,15 +435,25 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
 {
   if(xpy3_disabled) return;
 
-  PyObject *pluginInfo, *pluginInstance, *pRes;
+  PyObject *pluginInfo, *pluginInstance, *pRes, *pModuleName;
   Py_ssize_t pos = 0;
   PyObject *param;
   param = PyLong_FromLong((long)inParam);
   pythonDebug("XPPython3 received message, forwarding to all plugins: From: %d, Msg: %ld, inParam: %ld",
               inFromWho, inMessage, (long)inParam);
+  if (inMessage == XPLM_MSG_DATAREFS_ADDED && (long) inParam > 100000) {
+    /* bug -- inParam is sent as pointer to value, rather than value itself. We'll
+       convert to value and send _that_ to python plugins */
+    pythonDebug("...Sending %ld instead\n", *(long*)inParam);
+    param = PyLong_FromLong(*(long*)inParam);
+  }
 
-  while(PyDict_Next(moduleDict, &pos, &pluginInfo, &pluginInstance)){
-    char *moduleName = objToStr(PyTuple_GetItem(pluginInfo, PLUGIN_MODULE_NAME));
+  while(PyDict_Next(moduleDict, &pos, &pModuleName, &pluginInstance)){
+    pluginInfo = PyDict_GetItem(pluginDict, pluginInstance);
+    if (PyList_GetItem(pluginInfo, PLUGIN_DISABLED) == Py_True) {
+      continue;
+    }
+    char *moduleName = objToStr(pModuleName);
     pRes = PyObject_CallMethod(pluginInstance, "XPluginReceiveMessage", "ilO", inFromWho, inMessage, param);
 
     PyObject *err = PyErr_Occurred();
@@ -547,11 +575,15 @@ static FILE *getLogFile(void) {
   char *msg;
   if(fp == NULL){
     fp = stdout;
-    asprintf(&msg, "[XPPython3] Starting %s (compiled: %0x)... Logging to standard out\n",
-             pythonPluginVersion, PY_VERSION_HEX);
+    if (-1 == asprintf(&msg, "[XPPython3] Starting %s (compiled: %0x)... Logging to standard out\n",
+                       pythonPluginVersion, PY_VERSION_HEX)) {
+      fprintf(pythonLogFile, "Failed to allocate asprintf memory, cannot start.\n");
+    }
   } else {
-    asprintf(&msg, "[XPPython3] Starting %s (compiled: %0x)... Logging to %s\n",
-             pythonPluginVersion, PY_VERSION_HEX, logFileName);
+    if (-1 == asprintf(&msg, "[XPPython3] Starting %s (compiled: %0x)... Logging to %s\n",
+                       pythonPluginVersion, PY_VERSION_HEX, logFileName)) {
+      fprintf(pythonLogFile, "Failed to allocate asprintf memory, failed to start.\n");
+    }
   }
   XPLMDebugString(msg);
   free(msg);
@@ -602,7 +634,8 @@ static void handleConfigFile(void) {  /* Find and handle config.ini file */
   pythonDebugs = xpy_config_get_int("[Main].debug");
   pythonWarnings = xpy_config_get_int("[Main].warning");
 #ifndef Py_LIMITED_API
-  Py_VerboseFlag = xpy_config_get_int("[Main].py_verbose");/* 0= off, 1= each file as loaded, 2= each file that is checked when searching for module */
+  pythonVerbose = xpy_config_get_int("[Main].py_verbose");/* 0= off, 1= each file as loaded, 2= each file that is checked when searching for module */
+  /* Py_VerboseFlag = xpy_config_get_int("[Main].py_verbose"); 0= off, 1= each file as loaded, 2= each file that is checked when searching for module */
 #endif
   pythonFlushLog = xpy_config_get_int("[Main].flush_log");/* 0= off, 1= on */
   pythonDebug("Read config file: %s", xpy_ini_file);

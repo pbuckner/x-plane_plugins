@@ -296,6 +296,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 static PyMethodDef XPLMNavigationMethods[] = {
   {"getFirstNavAid", (PyCFunction)XPLMGetFirstNavAidFun, METH_VARARGS, _getFirstNavAid__doc__},
   {"XPLMGetFirstNavAid", (PyCFunction)XPLMGetFirstNavAidFun, METH_VARARGS, ""},
@@ -334,6 +336,8 @@ static PyMethodDef XPLMNavigationMethods[] = {
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
+#pragma GCC diagnostic pop
+
 
 static struct PyModuleDef XPLMNavigationModule = {
   PyModuleDef_HEAD_INIT,
@@ -355,7 +359,7 @@ PyInit_XPLMNavigation(void)
 {
   PyObject *mod = PyModule_Create(&XPLMNavigationModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
     PyModule_AddIntConstant(mod, "xplm_Nav_Unknown", xplm_Nav_Unknown);
     PyModule_AddIntConstant(mod, "xplm_Nav_Airport", xplm_Nav_Airport);
     PyModule_AddIntConstant(mod, "xplm_Nav_NDB", xplm_Nav_NDB);

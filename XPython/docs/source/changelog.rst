@@ -3,7 +3,7 @@ Change Log
 
 .. Note::
 
-   With X-Plane 12, the new SDK is likly to be updated a few more times. This
+   With X-Plane 12, the new SDK is likely to be updated a few more times. This
    will require updates to XPPython3 which I hope to keep to a minimum.
 
 
@@ -12,11 +12,62 @@ Known Bugs
 
  None (prove me wrong!)
 
+4.1.0 (2-Apr-2023)
+------------------
+
+:New Features:
+   * **Weather Module** SDK400 introduced XPLMWeather which provides :py:func:`xp.getMETARForAirport`
+     and :py:func:`xp.getWeatherAtLocation`.
+
+   * **Sound Module** SDK400 introduced XPLMSound which provides the ability to easily
+     play 3d sound using :py:func:`xp.playPCMOnBus` and related functions.
+
+   * **DataRef Query** functions added by SDK400. :py:func:`xp.countDataRefs`, :py:func:`xp.getDataRefsByIndex`,
+     and :py:func:`xp.getDataRefInfo`.
+
+   * **Avionics Draw** times now contribute XPPython3 performance calculation. Time
+     spent within avionics draw callbacks is added to the "Drawing Misc." time. See
+     :doc:`/usage/performance`.
+
+   * **SDK401** supported. X-Plane SDK400 had a c-compiler compatibility issue which has been
+     fixed in SDK401 -- there was no additional functionality in this SDK version.
+     
+     |
+        
+:Improvements:
+   * **Authorize XPL** script changed slightly to update the XPL file found in same
+     folder hierarchy as the script. Previously, it relied on the location of the
+     script with the same script id. Unfortunately, if you had multiple copies of
+     the script on your computer, click on *one* of the copies might actually
+     execute in the folder of a *different* copy.
+
+   * **Disabled means disabled**. If you disable your python plugin (perhaps by
+     returning zero in response the the XPluginEnable request.) We'll no longer
+     forward messages to you, or attempt to disable your plugin when reloading or
+     shutting down. However, if you reload all plugins, we'll attempt to re-enable
+     your plugin.
+     
+   * **CommandCallback error processing** improved: if you write a CommandCallback which
+     fails to return required 0 or 1, we'll report the error more clearly.
+
+   * **Internal Python Dicts** changed. ``modules`` dict now uses module name as the key
+     instead of plugin info tuple. This allows us the change plugin information dynamically.
+     PyCapsule names have been changed to match their original C datatype.
+     
+     |
+
+:Fixes:
+   * Changed python2 compatibility check. Formerly, if we discovered PythonInterface (python2)
+     plugin running, we would block loading XPPython3 plugin, to avoid compatibility issues.
+     It appears PythonInterface and XPPython3 can run together under Windows. On other platforms
+     it appears to fail. Rather than stopping XPPython3, we now just issue a warning (and you're on
+     your own!)
+     
 4.0.0 (2-Jan-2023)
 ------------------
 :Note:
    * Supports Python 3.10 and 3.11 **only**. Please upgrade your python
-     installation. We'll likely add 3.12 once it's fully released.
+     installation. We'll likely add 3.12 once it's fully released (scheduled for late 2023)
 
    * XPPython3 v3.1.5 is the *final* release for X-Plane 11.
 
@@ -69,7 +120,7 @@ Known Bugs
      If encrypted python is important to you, use Cython and generate per-platform binary files.
 
    * **Fixed download bug** in ``zip_download.py``. This was not an issue with X-Plane 11, but
-     X-Plane 12 is more senstive about access from non-main threads. The download routines (used
+     X-Plane 12 is more sensitive about access from non-main threads. The download routines (used
      to update XPPython3) used a child thread to write to the popup dialog box to indicated
      download status. This worked with X-Plane 11, but failed with X-Plane 12. An alternative
      implementation is provided which works for both.
@@ -129,7 +180,7 @@ Known Bugs
 :Fixes:
    * Python updater script sometimes failed to successful download updated software.
      If your software is "stuck" and not updating, *delete* XPPython3 folder, and
-     reinstall by downloading the lastest version. See :doc:`/usage/older_python`
+     reinstall by downloading the latest version. See :doc:`/usage/older_python`
      and get the version which matches your version of Python.
 
 3.1.1 (7-Dec-2021)
@@ -317,7 +368,7 @@ Known Bugs
 
 :Fixes:
 
-  * Fixed problems with :py:func:`XPLMDataAccess.XPLMRegisterDataAccessor`. When accessing a data item which
+  * Fixed problems with :py:func:`xp.registerDataAccessor`. When accessing a data item which
     had not yet been defined, sim would crash. Incorrect logic caused accessing data arrays
     to return incorrect values. Now tested with `DataRefEditor plugin <http://www.xsquawkbox.net/xpsdk/mediawiki/DataRefEditor>`_.
     Documentation has been updated to better describe use of accessors.
@@ -356,8 +407,8 @@ Known Bugs
  * On startup, log may include ``Couldn't find the callback list for widget ID <> for message 15``. This appears
    to be harmless. This was due to newly created CustomWidgets not passing the initial "Accept_Parent" message
    correctly.
- * :py:data:`XPWidgetDefs.xpMsg_MouseWheel` message incorrectly processed
-   during :py:func:`XPWidgetUtils.XPUSelectIfNeeded`, which would result in an
+ * :py:data:`xp.Msg_MouseWheel` message incorrectly processed
+   during :py:func:`xp.selectIfNeeded`, which would result in an
    error message being sent to XPPython3Log.txt. This has been corrected.
 
 3.0.2 (29-Sep-2020)

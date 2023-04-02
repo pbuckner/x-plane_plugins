@@ -16,8 +16,8 @@ intptr_t mapCreateCntr;
 PyObject *mapLayerIDCapsules;
 PyObject *mapProjectionCapsule;
 
-static const char layerIDRefName[] = "LayerIdRef";
-static const char projectionRefName[] = "ProjectionRef";
+static const char layerIDRefName[] = "XPLMMapLayerID";
+static const char projectionRefName[] = "XPLMMapProjectionID";
 
 
 static inline void mapCallback(int inCallbackIndex, XPLMMapLayerID inLayer, const float *inMapBoundsLeftTopRightBottom, float zoomRatio,
@@ -570,6 +570,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 static PyMethodDef XPLMMapMethods[] = {
   {"createMapLayer", (PyCFunction)XPLMCreateMapLayerFun, METH_VARARGS | METH_KEYWORDS, _createMapLayer__doc__},
   {"XPLMCreateMapLayer", (PyCFunction)XPLMCreateMapLayerFun, METH_VARARGS | METH_KEYWORDS, ""},
@@ -594,6 +596,8 @@ static PyMethodDef XPLMMapMethods[] = {
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
+#pragma GCC diagnostic pop
+
 
 static struct PyModuleDef XPLMMapModule = {
   PyModuleDef_HEAD_INIT,
@@ -632,7 +636,7 @@ PyInit_XPLMMap(void)
 
   PyObject *mod = PyModule_Create(&XPLMMapModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (xppython3@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
     PyModule_AddIntConstant(mod, "xplm_MapStyle_VFR_Sectional", xplm_MapStyle_VFR_Sectional);
     PyModule_AddIntConstant(mod, "xplm_MapStyle_IFR_LowEnroute", xplm_MapStyle_IFR_LowEnroute);
     PyModule_AddIntConstant(mod, "xplm_MapStyle_IFR_HighEnroute", xplm_MapStyle_IFR_HighEnroute);

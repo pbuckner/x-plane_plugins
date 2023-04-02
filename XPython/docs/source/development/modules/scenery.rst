@@ -118,8 +118,15 @@ will return the height of a 0 MSL sphere.
   >>> info = xp.probeTerrainXYZ(probeRef, x, y, z)
   >>> info
   <xppython3.ProbeInfo object at 0x7f9c34564220>
-  >>> print(f"AGL is {(y - info.locationY) * 3.28084}")
-  AGL is 1004.0637
+  >>> print(f"AGL is {(y - info.locationY) * 3.28084}ft")
+  AGL is 1004.0637ft
+
+  Similarly, if you want to find the height of the surface, you need to convert the
+  ``locationY`` from OpenGL back to world coordinates:
+
+  >>> info = xp.probeTerrainXYZ(probeRef, x, y, z)
+  >>> print(f"Surface is {xp.localToWorld(info.locationX, info.locationY, info.locationZ)[2] * 3.28084}ft MSL")
+  Surface is 12.3445ft MSL
   
   +------------------------------------+------------------------------------+
   |Probe Result Value                  |Meaning                             |

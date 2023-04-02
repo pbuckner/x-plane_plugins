@@ -4,6 +4,7 @@
 #include <sys/time.h>
 #include <stdbool.h>
 #include <XPLM/XPLMDefs.h>
+#include <XPLM/XPLMDataAccess.h>
 #include <XPLM/XPLMProcessing.h>
 #include <XPLM/XPLMScenery.h>
 #include <XPLM/XPLMMenus.h>
@@ -11,6 +12,8 @@
 #include <XPLM/XPLMMap.h>
 #include <XPLM/XPLMDisplay.h>
 #include <XPLM/XPLMPlanes.h>
+#include <XPLM/XPLMWeather.h>
+#include <XPLM/XPLMSound.h>
 #include <Widgets/XPWidgetDefs.h>
 #include <Widgets/XPWidgets.h>
 
@@ -63,6 +66,24 @@ extern typeof(XPLMWindowIsInVR) *XPLMWindowIsInVR_ptr;
 //XPLM_400
 extern typeof(XPLMRegisterAvionicsCallbacksEx) *XPLMRegisterAvionicsCallbacksEx_ptr;
 extern typeof(XPLMUnregisterAvionicsCallbacks) *XPLMUnregisterAvionicsCallbacks_ptr;
+extern typeof(XPLMCountDataRefs) *XPLMCountDataRefs_ptr;
+extern typeof(XPLMGetDataRefsByIndex) *XPLMGetDataRefsByIndex_ptr;
+extern typeof(XPLMGetDataRefInfo) *XPLMGetDataRefInfo_ptr;
+extern typeof(XPLMGetMETARForAirport) *XPLMGetMETARForAirport_ptr;
+extern typeof(XPLMGetWeatherAtLocation) *XPLMGetWeatherAtLocation_ptr;
+
+#define PLUGIN_DLL(x) extern typeof(x) *x##_ptr
+#if defined(_FMOD_COMMON_H)
+PLUGIN_DLL(XPLMGetFMODStudio);
+PLUGIN_DLL(XPLMGetFMODChannelGroup);
+#endif
+PLUGIN_DLL(XPLMPlayPCMOnBus);
+PLUGIN_DLL(XPLMStopAudio);
+PLUGIN_DLL(XPLMSetAudioPosition);
+PLUGIN_DLL(XPLMSetAudioFadeDistance);
+PLUGIN_DLL(XPLMSetAudioPitch);
+PLUGIN_DLL(XPLMSetAudioVolume);
+PLUGIN_DLL(XPLMSetAudioCone);
 
 bool loadSDKFunctions(void);
 

@@ -9,8 +9,10 @@ To use::
 
 This API provides access to the X-Plane Sound (FMOD) and requires at least X-Plane 12.04.
 
-Load a sound file and set playing parameters using :py:func:`playPCMOnBus` or :py:func:`playWaveOnBus`. The result
-is an FMOD channel, with which you can:
+There are two approaches to using FMOD. X-Plane provides a basic interface to a few underlying FMOD
+routines.
+This allows you to load a sound file and set playing parameters using :py:func:`playPCMOnBus`
+or :py:func:`playWaveOnBus`. The result is an FMOD channel, with which you can:
 
   * Locate the sound in 3d space with :py:func:`setAudioPosition`.
 
@@ -22,9 +24,14 @@ is an FMOD channel, with which you can:
 
   * Stop a playing sound :py:func:`stopAudio`
 
-These sound functions are sufficient for basic FMOD behaviors. An alternative interface provides lower-level
-access to FMODStudio and ChannelGroups (not support yet via python).
+These sound functions are sufficient for basic FMOD behaviors.
 
+An alternative interface provides lower-level
+access to FMODStudio and FMODChannelGroups. This requires (from python) the heavy use of ``ctypes`` (See below).
+
+
+Basic FMOD interface
+--------------------
 
 .. py:function:: playPCMOnBus(audioBuffer, bufferSize, soundFormat, freqHz, numChannels, loop=0, audioType=8, callback=None, refCon=None)
 
@@ -232,7 +239,7 @@ access to FMODStudio and ChannelGroups (not support yet via python).
 
   The following example sets a cone with the source set by :py:func:`setAudioPosition`. The cone opens to the northeast
   and is 45 degrees wide. Within the cone, the volume is 100% (subject to fade). Outside of the cone, but within 180 degrees,
-  the sound is 50% (subject to fade). "Behind" the code there is no sound.
+  the sound is 50% (subject to fade). "Behind" the cone there is no sound.
 
   >>> w = wave.open('Resources/sounds/alert/seatbelt.wav')
   >>> channel = xp.playWaveOnBus(w, loop=1, audioType=7)
@@ -292,3 +299,74 @@ independently of the others.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMAudioBus/>`__ :index:`XPLMAudioBus`
  
+Advanced FMOD interface
+-----------------------
+
+X-Plane provides two functions to gain access to the underlying FMOD interface. Use these results
+to access additional FMOD functionality not otherwise supported via the interface.
+
+.. note:: This gets you into the murky world of Python ``ctypes``, which is an exceptionally quick
+          way to crash the simulator. The trade-off is you can do most anything.
+          
+.. py:function:: getFMODStudio()
+
+  Retrieve handle (PyCapsule) to FMOD_STUDIO_SYSTEM, allowing you to load/process
+  whatever else you need.
+
+  >>> xp.getFMODStudio()
+  <capsule object "FMOD_STUDIO_SYSTEM" at 0x122231>
+
+  `Official SDK <https://developer.x-plane.com/sdk/XPLMSound/#XPLMGetFMODStudio>`__ :index:`XPLMGetFMODStudio`
+
+.. py:function:: getFMODChannelGroup(audioType)
+
+  Returns handle (PyCapsule) to the FMOD_CHANNELGROUP with the given index (one of
+  :ref:`XPLMAudioBus`.)
+
+  >>> xp.getFMODChannelGroup(xp.AudioUI)
+  <capsule object "FMOD_CHANNELGROUP" at 0x1721231>
+
+  `Official SDK <https://developer.x-plane.com/sdk/XPLMSound/#XPLMGetFMODChannelGroup>`__ :index:`XPLMGetFMODChannelGroup`
+
+Python Capsules are opaque handles. Normally this is fine as we handle
+translations between capsules and C-language pointers transparent. However,
+because you'll want to use the underlying *pointer* to access unsupported FMOD routines
+you'll need to extract the pointer from the capsule:
+
+   >>> import ctypes
+   >>> def PyCapsule_GetPointer(capsule, name):
+   ...    # convenience function to get a void * out of a python capsule
+   ...    ctypes.pythonapi.PyCapsule_GetPointer.restype = ctypes.c_void_p
+   ...    ctypes.pythonapi.PyCapsule_GetPointer.argtypes = [ctypes.py_object, ctypes.c_char_p]
+   ...    # cast it to c_void_p as otherwise it's an 'int'
+   ...    return ctypes.c_void_p(ctypes.pythonapi.PyCapsule_GetPointer(capsule, name.encode('utf-8')))
+   ...
+   >>> PyCapsule_GetPointer(xp.getFMODStudio(), "FMOD_STUDIO_SYSTEM")
+   c_void_p(2096927)
+
+Next, you'll need to load the FMOD dynamic libraries (this is basic ``ctypes`` functionality). This
+is platform specific *and* you need to load the exact filename. For example:
+
+   >>> import platform
+   >>> if platform.system() == 'Darwin':
+   ...     studio_dll = ctypes.cdll.LoadLibrary('libfmodstudio.dylib')
+   ...     fmod_dll = ctypes.cdll.LoadLibrary('libfmod.dylib')
+   ... elif platform.system() == 'Windows':
+   ...     studio_dll = ctypes.windll.LoadLibrary('fmodstudio')
+   ...     fmod_dll = ctypes.windll.LoadLibrary('fmod')
+   ... elif platform.system() == 'Linux':
+   ...     studio_dll = ctypes.cdll.LoadLibrary('libfmodstudio.so.13')
+   ...     fmod_dll = ctypes.cdll.LoadLibrary('libfmod.so.13')
+   ...
+
+Then, you can using ctypes to access other C-language functions, such as FMOD_Studio_System_GetCoreSystem().
+
+   >>> studioObj = xp.getFMODStudio()
+   >>> studio_ptr = PyCapsule_GetPointer(studioObj, "FMOD_STUDIO_SYSTEM")
+   >>> coreSystem = ctypes.c_void_p()
+   >>> studio_dll.FMOD_Studio_System_GetCoreSystem(studio_ptr, ctypes.byref(coreSystem))
+   0
+   >>> coreSystem
+   c_void_p(1404993998824)
+   
+See the ``PI_FMOD_Advanced.py`` in :doc:`../samples`.

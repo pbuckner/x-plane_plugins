@@ -3,7 +3,6 @@ XPython/SDK400/
 XPython/SDK401/
 XPython/Resources/plugins/xp*-*.zip
 XPython/Resources/plugins/xp*b.zip
-XPython/Resources/plugins/xp31*.zip
 XPython/mac/*.arm
 XPython/mac/*.x86
 XPython/mac/*.o

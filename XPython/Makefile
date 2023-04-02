@@ -1,10 +1,10 @@
 .PHONY : clean darwin lin windows sdk
 
 PLUGIN_PATH=Resources/plugins/XPPython3
-SDK=401
-XP_SDK=../SDK$(SDK)
+SDK=400
+XP_SDK=../SDK401
 VERSIONS= 310 311
-XPPYTHONVERSION=4.1.0d
+XPPYTHONVERSION=4.1.0b1
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
 FMOD=../FMOD
 #########

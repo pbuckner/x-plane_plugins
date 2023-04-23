@@ -41,18 +41,18 @@ To stop receiving data, use send ``USEL`` command with the same list of integers
 
    Therefore, you'll need to *also* set the Internet options using :doc:`ISE4 <ise4>` or :doc:`ISE6 <ise4>`.
    
-DATA* Response
---------------
+DATA Response
+-------------
 
 The result of the ``DSEL`` command will be a simple data structure sent to the IP / Port set by :doc:`ISE4 <ise4>` or :doc:`ISE6 <ise4>`.
 (Let me say that again -- the data is sent to the **set** [#how]_ IP / Port, *not* returned to the same port which made the ``DSEL`` request.)
 
 :Receive:
 
-   The received packet will start with ``DATA*``, followed by 9 floats.::
+   The received packet will start with ``DATA``, followed by 9 floats.::
 
-     header, index, *vals = struct.unpack('<5sf8f', data)
-     assert header == 'DATA*'
+     header, index, *vals = struct.unpack('<4xf8f', data)
+     assert header == 'DATA'
   
    ``index`` is a float, but represents the (integer) index you requested with ``DSEL``. That way you know *which dataset* the
    data values correspond to.

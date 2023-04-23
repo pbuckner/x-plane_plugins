@@ -26,10 +26,10 @@ until you *unsubscribe* from it.
    the request (that's how you'll know which dataref this is) and a single
    floating point value *regardless of which dataref you're requesting*.::
 
-     (header,         # 'RREF,'
+     (header,         # 'RREF'
       idx,            # integer, matching what you sent
       value           # single floating point value
-      ) = struct.unpack('<5sif', data)
+      ) = struct.unpack('<4xsif', data)
 
    Note the received packet may contain multiple <index><value> pairs, see example below.
    
@@ -64,8 +64,8 @@ The code might look like::
   
   # 2) Block, waiting to receive a packet
   data, addr = sock.recvfrom(2048)
-  header = data[0:5]
-  if header[0:5] != b'RREF,':
+  header = data[0:4]
+  if header[0:4] != b'RREF':
       raise ValueError("Unknown packet")
 
   # 3) Unpack the data:
@@ -122,7 +122,7 @@ For performance reasons, X-Plane may send multiple dataref results in a single U
 to be prepared for this::
 
   data, addr = sock.recvfrom(2048)
-  values = data[5:]                  # skipping over 'RREF,' header, get _all_ values
+  values = data[5:]                  # skipping over 'RREFx' header, get _all_ values
   num_values = int(len(values) / 8)  # Each dataref is 8 bytes long (index + value)
   for i in range(num_values):
       dref_info = data[(5 + 8 * i):(5 + 8 * (i + 1))]  # extract the 8 byte segment

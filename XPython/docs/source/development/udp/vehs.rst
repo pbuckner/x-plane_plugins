@@ -1,20 +1,14 @@
-VEHX - Drive X-Planes Visuals
-+++++++++++++++++++++++++++++
+VEHS - Drive X-Planes Visuals Single
+++++++++++++++++++++++++++++++++++++
 
-Perhaps you have a great flight model, but a bad visual system, so now you want to drive
-X-Plane as a visual system.
-
-Using the VEHX command, you can set the location and attitude of every plane. Note that
-once you use this, you've also disabled the physics of the aircraft, so you'll need to
-continue to drive all movement.
-
-If you want to move the aircraft once without disabling the physics, use :doc:`vehs`.
+This is just like the :doc:`vehx`, but it does not stop the X-Plane flight model: it
+allows you to move the place one time... Then the flight model continues to run
+from the new location/orientation, and the physics is not disabled.
 
 :Send:
-   Stream of packets with ``VEHX`` command. Each packet will be acted upon immediately
-   by X-Plane.::
+   Send single packet with ``VEHS`` command::
 
-     msg = struct.pack('<4sxidddfff', b'VEHX',
+     msg = struct.pack('<4sxidddfff', b'VEHS',
                        p,              # The index of the airplane you want to control.
                        dat_lat,        # latitude, in degrees
                        dat_lon,        # longitude, in degrees

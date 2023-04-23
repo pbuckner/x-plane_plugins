@@ -182,22 +182,25 @@ X-Plane UDP Summary
   +-----------------------------+--------------------------------------------+
   |           :doc:`soun`       | SOUN<freq><vol><path>                      |
   +-----------------------------+--------------------------------------------+
+  |           :doc:`vehs`       | VEHS <plane><lat><log><elev>               |
+  |                             |      <psi><theta><ph>                      |
+  +-----------------------------+--------------------------------------------+
   |           :doc:`vehx`       | VEHX <plane><lat><log><elev>               |
   |                             |      <psi><theta><ph>                      |
   +-----------------------------+--------------------------------------------+
-
+  
 *RECEIVE*
 
   +-------+----------------------------+-----------------------------------------+
   | Cmd   | In response to             | Structure                               |
   +=======+============================+=========================================+
-  | DATA* |                :doc:`dsel` | DATA*<index><val1><val2>...<val8>       |
+  | DATA  |                :doc:`dsel` | DATA <index><val1><val2>...<val8>       |
   +-------+----------------------------+-----------------------------------------+
   | FLIR  |                :doc:`flir` | *(Deprecated since 11.41)*              |
   +-------+----------------------------+-----------------------------------------+
-  | RADR5 |                :doc:`radr` | RADR5<lon><lat><level><height>          |
+  | RADR  |                :doc:`radr` | RADR <lon><lat><level><height>          |
   +-------+----------------------------+-----------------------------------------+
-  | RPOS4 |                :doc:`rpos` | RPOS4 <lon><lat><elev><agl><theta><psi> |
+  | RPOS  |                :doc:`rpos` | RPOS <lon><lat><elev><agl><theta><psi>  |
   |       |                            | <phi><vx><vy><vz><P><Q><R>              |
   +-------+----------------------------+-----------------------------------------+
   | RREF  |                :doc:`rref` | RREF <index><value><index><value>...    |
@@ -212,6 +215,7 @@ X-Plane UDP Summary
    acpr
    alrt
    cmnd
+   data
    dref
    dsel
    fail
@@ -229,3 +233,4 @@ X-Plane UDP Summary
    shut
    soun
    vehx
+   vehs

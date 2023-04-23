@@ -8,6 +8,8 @@ Using the VEHX command, you can set the location and attitude of every plane. No
 once you use this, you've also disabled the physics of the aircraft, so you'll need to
 continue to drive all movement.
 
+If you want to move the aircraft once without disabling the physics, use :doc:`vehs`.
+
 :Send:
    Stream of packets with ``VEHX`` command. Each packet will be acted upon immediately
    by X-Plane.::

@@ -2,7 +2,7 @@ ISE4/ISE6 - Set Network Parameters
 ++++++++++++++++++++++++++++++++++++
 
 This sets "Network Configuration" found on the Data Output page of X-Plane, and informs X-Plane
-the destination IP and port for bulk data. (See :doc:`DATA* <dsel>` for bulk data info.)
+the destination IP and port for bulk data. (See :doc:`dsel` for bulk data info.)
 
 :Send:
 

@@ -25,11 +25,8 @@ FLIR.
 
   .. Note::
 
-     X-Plane 11.55 (at least) **does not send FLIR data**. This appears to be completely broken.
+     X-Plane 11.55 and X-Plane 12 **do not send FLIR data**. This command has been de-commissioned.
 
-     A bug has been filed with Laminar Research: 2021-Sep-3.
-
-     Unconfirmed reports indicate this interface was remove after X-Plane 11.41.
 
 .. toctree::
    :maxdepth: 1

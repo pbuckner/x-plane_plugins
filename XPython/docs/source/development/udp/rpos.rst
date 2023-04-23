@@ -23,7 +23,7 @@ RPOS - Request Aircraft Position
 
  Single packet with position data::
 
-     (header,          # 'RPOS4'
+     (header,          # 'RPOS'
       dat_lon,	       # float longitude of the aircraft in X-Plane of course, in degrees
       dat_lat,	       # float latitude
       dat_ele,	       # float elevation above sea level in meters
@@ -37,12 +37,7 @@ RPOS - Request Aircraft Position
       Prad,            # float roll rate in radians per second
       Qrad,            # float pitch rate in radians per second
       Rrad,            # float yaw rate in radians per second
-      ) = struct.unpack("<5sdddffffffffff", packet)
+      ) = struct.unpack("<4xdddffffffffff", packet)
     
-.. Note::
-
-    X-Plane 11.55 (at least) documentation indicates the first five bytes are ``RPOS\x00``.
-    In reality, ``RPOS4`` is sent (without a null).
-
 .. toctree::
    :maxdepth: 1

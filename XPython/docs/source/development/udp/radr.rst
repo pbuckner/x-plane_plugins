@@ -16,23 +16,43 @@ RADR - Weather Radar
 
 ----
 
+Received data differs for XP11 and XP12:
+
+X-Plane 11
+----------
+
 :Receive:
 
    Single packet with radar data::
 
-     (header,       # == 'RADR5'
+     (header,       # == 'RADR'
       lon,          # float longitude of radar point
       lat,          # float latitude
       storm_level,  # precipitation level, 0 to 100
       storm_height  # storm tops in meters MSL
-      ) = struct.unpack("<5sffBf", packet)
+      ) = struct.unpack("<4xffBf", packet)
 
 .. Note::
 
-    X-Plane 11.55 (at least) documentation indicates the first five bytes received are ``RADR\x00``.
-    In reality, ``RADR5`` is sent (without a null).
-    Additionally, documentation indicates 4-byte ``float storm_level_0_100`` whereas it is
+    X-Plane 11.55 (at least) documentation indicates 4-byte ``float storm_level_0_100`` whereas it is
     actually a single unsigned char.
+
+
+X-Plane 12
+----------
+
+:Receive:
+
+   Single packet with radar data::
+
+     (header,       # == 'RADR'
+      lon,          # float longitude of radar point
+      lat,          # float latitude
+      bases_meters, # float cloud bases in meters MSL
+      tops_meters,  # float cloud tops in meters MSL
+      clouds ratio, # float ratio, clouds present in the lat and lon
+      precip_ratio  # float ratio, precipitation present at this lat and lon
+      ) = struct.unpack("<4xffffff", packet)
     
 .. toctree::
    :maxdepth: 1

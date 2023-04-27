@@ -67,7 +67,7 @@ XPWidgetClass is from :py:mod:`XPStandardWidgets` or a new class you created.
 
 For example, the following tuple consists of four widget definitions. The result
 will be four widgets, two of which (#0 and #2) will be Main Windows, rooted to X-Plane,
-a two caption widets: #1 is a child of Main Window 1, and #3 is a child of Main Window 2::
+a two caption widgets: #1 is a child of Main Window 1, and #3 is a child of Main Window 2::
 
   widgetDefs = (
                 (100, 500, 400, 300,
@@ -180,18 +180,53 @@ managers can be called from a widget function or attached to a widget later, usi
 
     >>> widgetID1 = xp.createWidget(400, 200, 600, 100, 1, "Widget 1", 1, 0, xp.WidgetClass_MainWindow)
     >>> subwidgetID1 = xp.createWidget(410, 180, 450, 165, 1, "Caption", 0, widgetID1, xp.WidgetClass_Caption)
-    >>> xp.addWidgetCallback(widgetID2, xp.fixedLayout)
+    >>> xp.addWidgetCallback(widgetID1, xp.fixedLayout)
 
-    .. note:: Honestly, I can't create a useful demonstration of this "Layout Manager" -- perhaps it is
-              already encorporated into the existing MainWindow widget, as the positions of child widgets
-              change / don't change identically with and without this callback.
+    The above explanation comes from the Laminar documents. As described, this does not appear to be useful, as
+    the behavior doesn't seem to change. However, there is a good use case for this.
 
+    If you have a hierarchy of widgets and use the mouse to move the top window, the window moves properly and the
+    *immediate* child widgets of the top window are also moved properly. However, second generation child widgets
+    do not get moved (the message does not cascade down the widget hierarchy).
+
+    For example, say you're implementing a type of tabbed popup, where clicking on "Tab1" exposes a subwindow ("Tab1Contents"),
+    and clicking on "Tab2" exposes a different subwindow ("Tab2Contents").
+
+    .. image:: /images/tabbed-widget.png
+
+    You widget hierarchy may look like::
+
+      <Main-Window>/
+      ├─── <Tab1-Button>
+      ├─── <Tab2-Button>
+      ├─── <Tab1Contents-Subwindow>
+      |    ├─── <Item 1-0 Label>
+      |    ├─── <Item 1-0 Text>
+      |    ├───   ...
+      |    ├─── <Item 1-4 Label>
+      |    └─── <Item 1-4 Text>
+      └─── <Tab2Contents-Subwindow>
+           ├─── <Item 2-0 Label>
+           ├─── <Item 2-0 Text>
+           ├───   ...
+           ├─── <Item 2-4 Label>
+           └─── <Item 2-4 Text>
+    
+    Your *Main-Window* widget callback handles button clicks, and window moves & moving the window will properly
+    reposition the two Buttons and the two Subwindows (that is, the four immediate child widgets).
+    However, the Item labels & text input fields will not be moved.
+
+    To fix, add the ``fixedLayout`` callback to the two Subwindows, and this callback will correctly move the items::
+
+      xp.addWidgetCallback(subWindow1Widget, xp.fixedLayout)
+      xp.addWidgetCallback(subWindow2Widget, xp.fixedLayout)
+    
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgetUtils/#XPUFixedLayout>`__ :index:`XPUFixedLayout`              
 
 Widget Procedure Behaviors
 --------------------------
 
-These widget behaviour functions add other useful behaviors to widgets. These functions cannot
+These widget behavior functions add other useful behaviors to widgets. These functions cannot
 be attached to a widget (e.g., :py:func:`addWidgetCallback`); they must be called from *your widget callback* function.
 
 .. py:function:: selectIfNeeded(message, widgetID, param1, param2, eatClick) -> int:

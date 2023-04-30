@@ -173,7 +173,7 @@ files from ``samples`` to get the plugin working.
    |PI_TabbedWidget.py          | Simple widget example, where we use two buttons        |
    |                            | ("tabs") to select between two panels of data          |
    |                            | inputs. Uses a hierarchy of widgets, fixedLayout widget|
-   |                            | utility, widget messaging, and setting properties.q    |
+   |                            | utility, widget messaging, and setting properties.     |
    +----------------------------+--------------------------------------------------------+
    |PI_TCASOverride.py          | This plugin creates four traffic targets that will fly |
    |                            | circles around the users' plane. These traffic targets |

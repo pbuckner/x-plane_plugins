@@ -220,6 +220,8 @@ managers can be called from a widget function or attached to a widget later, usi
 
       xp.addWidgetCallback(subWindow1Widget, xp.fixedLayout)
       xp.addWidgetCallback(subWindow2Widget, xp.fixedLayout)
+
+    A working example of this tabbed plugin is available in ``PI_TabbedWidget.py`` as part of :doc:`/development/samples`.
     
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgetUtils/#XPUFixedLayout>`__ :index:`XPUFixedLayout`              
 

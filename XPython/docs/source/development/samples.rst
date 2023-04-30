@@ -58,7 +58,7 @@ files from ``samples`` to get the plugin working.
    |                            |                                                        |
    |                            | Uses OpenGL, textures, registerHotKey.                 |
    +----------------------------+--------------------------------------------------------+
-   |PI_FMOD_Advanced.py         | Modeled after Bill Good's xp12-fmod-sdk-demo.         |
+   |PI_FMOD_Advanced.py         | Modeled after Bill Good's xp12-fmod-sdk-demo.          |
    |                            |                                                        |
    |                            | Plays a sequence of sound files over-and-over.         |
    |                            |                                                        |

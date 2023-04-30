@@ -58,7 +58,7 @@ files from ``samples`` to get the plugin working.
    |                            |                                                        |
    |                            | Uses OpenGL, textures, registerHotKey.                 |
    +----------------------------+--------------------------------------------------------+
-   |PI_FMOD_Advanced.py         | Modelled after Bill Good's xp12-fmod-sdk-demo.         |
+   |PI_FMOD_Advanced.py         | Modeled after Bill Good's xp12-fmod-sdk-demo.         |
    |                            |                                                        |
    |                            | Plays a sequence of sound files over-and-over.         |
    |                            |                                                        |
@@ -169,6 +169,11 @@ files from ``samples`` to get the plugin working.
    |PI_SimData1.py              | Ported from python2. Demonstrates how to interact with |
    |                            | X-Plane by reading and writing data. Uses createMenu,  |
    |                            | appendMenuItem, findDataRef, getDatai and setDatai.    |
+   +----------------------------+--------------------------------------------------------+
+   |PI_TabbedWidget.py          | Simple widget example, where we use two buttons        |
+   |                            | ("tabs") to select between two panels of data          |
+   |                            | inputs. Uses a hierarchy of widgets, fixedLayout widget|
+   |                            | utility, widget messaging, and setting properties.q    |
    +----------------------------+--------------------------------------------------------+
    |PI_TCASOverride.py          | This plugin creates four traffic targets that will fly |
    |                            | circles around the users' plane. These traffic targets |

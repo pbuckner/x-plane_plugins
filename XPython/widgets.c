@@ -11,6 +11,7 @@
 #include <Widgets/XPStandardWidgets.h>
 #include "plugin_dl.h"
 #include "utils.h"
+#include "widgetutils.h"
 #include "xppython.h"
 
 static PyObject *widgetCallbackDict;
@@ -307,23 +308,8 @@ static PyObject *XPSendMessageToWidgetFun(PyObject *self, PyObject *args, PyObje
   }
   XPWidgetID inWidget = refToPtr(widget, widgetRefName);
   intptr_t inParam1;
-  if (PyCapsule_CheckExact(param1)) {
-    inParam1 = (intptr_t) PyCapsule_GetPointer(param1, PyCapsule_GetName(param1));
-  } else if (param1 == Py_None) {
-    inParam1 = 0;
-  } else {
-    inParam1 = PyLong_AsLong(param1);
-  }
-
   intptr_t inParam2;
-  if (PyCapsule_CheckExact(param2)) {
-    inParam2 = (intptr_t) PyCapsule_GetPointer(param1, PyCapsule_GetName(param2));
-  } else if (param2 == Py_None) {
-    inParam2 = 0;
-  } else {
-    inParam2 = PyLong_AsLong(param2);
-  }
-
+  convertMessagePythonToC(inMessage, widget, param1, param2, &inWidget, &inParam1, &inParam2);
   int res = XPSendMessageToWidget(inWidget, inMessage, inMode, inParam1, inParam2);
   return PyLong_FromLong(res);
 }

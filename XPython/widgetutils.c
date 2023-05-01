@@ -10,8 +10,7 @@
 #include <Widgets/XPWidgetUtils.h>
 #include <Widgets/XPStandardWidgets.h>
 #include "utils.h"
-
-static void convertMessagePythonToC();
+#include "widgetutils.h"
 
 My_DOCSTR(_createWidgets__doc__, "createWidgets", "widgetDefs, parentID=None",
           "This does not work in X-Plane.");
@@ -134,7 +133,7 @@ static PyObject *XPUFixedLayoutFun(PyObject *self, PyObject *args, PyObject *kwa
   return ret;
 }
 
-static void convertMessagePythonToC(XPWidgetMessage msg, PyObject *widget, PyObject *param1, PyObject *param2,
+void convertMessagePythonToC(XPWidgetMessage msg, PyObject *widget, PyObject *param1, PyObject *param2,
                                     XPWidgetID *widget_ptr, intptr_t *param1_ptr, intptr_t *param2_ptr)
 {
   /* generically: */
@@ -176,7 +175,7 @@ static void convertMessagePythonToC(XPWidgetMessage msg, PyObject *widget, PyObj
 
   case xpMsg_Reshape:
     /* param1 =  getPtrRef((void *)inParam1, widgetIDCapsules, widgetRefName); */
-    *param1_ptr = (intptr_t) PyCapsule_GetPointer(param1, widgetRefName);
+    *param1_ptr = (intptr_t) refToPtr(param1, widgetRefName);/*PyCapsule_GetPointer(param1, widgetRefName);*/
 
     /* wChange = (XPWidgetGeometryChange_t *)inParam2; */
     /* param2 = Py_BuildValue("(iiii)", wChange->dx, wChange->dy, */
@@ -198,8 +197,7 @@ static void convertMessagePythonToC(XPWidgetMessage msg, PyObject *widget, PyObj
   case xpMsg_PushButtonPressed:
   case xpMsg_ButtonStateChanged:
   case xpMsg_ScrollBarSliderPositionChanged:
-    /* param1 =  getPtrRef((void *)inParam1, widgetIDCapsules, widgetRefName); */
-    *param1_ptr = (intptr_t) PyCapsule_GetPointer(param1, widgetRefName);
+    *param1_ptr = (intptr_t) refToPtr(param1, widgetRefName);
     *param2_ptr = PyLong_AsLong(param2);
     break;
     

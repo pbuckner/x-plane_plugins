@@ -307,7 +307,11 @@ PyObject *getPtrRef(void *ptr, PyObject *dict, const char *refName)
 void *refToPtr(PyObject *ref, const char *refName)
 {
   /* XPLMWidgetID can be 0, refering to underlying X-Plane window, need to keep that */
-  if (ref == Py_None || (!strcmp(widgetRefName, refName) && PyLong_Check(ref) && PyLong_AsLong(ref) == 0)){
+  if (ref == Py_None) return NULL;
+  if (refName == NULL) {
+    refName = PyCapsule_GetName(ref);
+  }
+  if (!strcmp(widgetRefName, refName) && PyLong_Check(ref) && PyLong_AsLong(ref) == 0) {
     return NULL;
   }else{
     void *ptr = PyCapsule_GetPointer(ref, refName);

@@ -24,14 +24,14 @@ to send information to a remote port::
 
   sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
   msg = myMakeMsg()
-  sock.send_to(msg, (X_PLANE_IP, UDP_PORT))
+  sock.sendto(msg, (X_PLANE_IP, UDP_PORT))
 
 Receiving information is similarly simple::
 
   data, addr = sock.recvfrom(2048)
   handleData(data)
 
-The more difficult part is working this ``send_to()`` and ``recvfrom()`` into a working program
+The more difficult part is working this ``sendto()`` and ``recvfrom()`` into a working program
 so you don't get confused while interleaving sends and receives. (You can put the receiver in a
 python thread. See example in :doc:`rref`.)
 

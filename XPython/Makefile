@@ -4,7 +4,7 @@ PLUGIN_PATH=Resources/plugins/XPPython3
 SDK=400
 XP_SDK=../SDK401
 VERSIONS= 310 311
-XPPYTHONVERSION=4.1.0b1
+XPPYTHONVERSION=4.1.1a2
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
 FMOD=../FMOD
 #########

@@ -1823,6 +1823,25 @@ PyInit_XPLMDisplay(void)
     PyModule_AddIntConstant(mod, "Device_Primus_MFD_3", xplm_device_Primus_MFD_3);
     PyModule_AddIntConstant(mod, "Device_Primus_RMU_1", xplm_device_Primus_RMU_1);
     PyModule_AddIntConstant(mod, "Device_Primus_RMU_2", xplm_device_Primus_RMU_2);
+#else
+    PyModule_AddIntConstant(mod, "Device_GNS430_1", -1);
+    PyModule_AddIntConstant(mod, "Device_GNS430_2", -1);
+    PyModule_AddIntConstant(mod, "Device_GNS530_1", -1);
+    PyModule_AddIntConstant(mod, "Device_GNS530_2", -1);
+    PyModule_AddIntConstant(mod, "Device_CDU739_1", -1);
+    PyModule_AddIntConstant(mod, "Device_CDU739_2", -1);
+    PyModule_AddIntConstant(mod, "Device_G1000_PFD_1", -1);
+    PyModule_AddIntConstant(mod, "Device_G1000_PFD_2", -1);
+    PyModule_AddIntConstant(mod, "Device_G1000_MFD", -1);
+    PyModule_AddIntConstant(mod, "Device_CDU815_1", -1);
+    PyModule_AddIntConstant(mod, "Device_CDU815_2", -1);
+    PyModule_AddIntConstant(mod, "Device_Primus_PFD_1", -1);
+    PyModule_AddIntConstant(mod, "Device_Primus_PFD_2", -1);
+    PyModule_AddIntConstant(mod, "Device_Primus_MFD_1", -1);
+    PyModule_AddIntConstant(mod, "Device_Primus_MFD_2", -1);
+    PyModule_AddIntConstant(mod, "Device_Primus_MFD_3", -1);
+    PyModule_AddIntConstant(mod, "Device_Primus_RMU_1", -1);
+    PyModule_AddIntConstant(mod, "Device_Primus_RMU_2", -1);
 #endif
   }
 

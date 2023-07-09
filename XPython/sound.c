@@ -457,6 +457,7 @@ PyInit_XPLMSound(void)
   PyObject *mod = PyModule_Create(&XPLMSoundModule);
   if(mod){
     PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
+#if defined(XPLM400)
     PyModule_AddIntConstant(mod, "AudioRadioCom1", xplm_AudioRadioCom1);
     PyModule_AddIntConstant(mod, "AudioRadioCom2", xplm_AudioRadioCom2);
     PyModule_AddIntConstant(mod, "AudioRadioPilot", xplm_AudioRadioPilot);
@@ -472,6 +473,23 @@ PyInit_XPLMSound(void)
     PyModule_AddIntConstant(mod, "RadioBank", xplm_RadioBank);
     PyModule_AddIntConstant(mod, "FMOD_OK", FMOD_OK);
     PyModule_AddIntConstant(mod, "FMOD_SOUND_FORMAT_PCM16", FMOD_SOUND_FORMAT_PCM16);
+#else
+    PyModule_AddIntConstant(mod, "AudioRadioCom1", -1);
+    PyModule_AddIntConstant(mod, "AudioRadioCom2", -1);
+    PyModule_AddIntConstant(mod, "AudioRadioPilot", -1);
+    PyModule_AddIntConstant(mod, "AudioRadioCopilot", -1);
+    PyModule_AddIntConstant(mod, "AudioExteriorAircraft", -1);
+    PyModule_AddIntConstant(mod, "AudioExteriorEnvironment", -1);
+    PyModule_AddIntConstant(mod, "AudioExteriorUnprocessed", -1);
+    PyModule_AddIntConstant(mod, "AudioInterior", -1);
+    PyModule_AddIntConstant(mod, "AudioUI", -1);
+    PyModule_AddIntConstant(mod, "AudioGround", -1);
+    PyModule_AddIntConstant(mod, "Master", -1);
+    PyModule_AddIntConstant(mod, "MasterBank", -1);
+    PyModule_AddIntConstant(mod, "RadioBank", -1);
+    PyModule_AddIntConstant(mod, "FMOD_OK", -1);
+    PyModule_AddIntConstant(mod, "FMOD_SOUND_FORMAT_PCM16", -1);
+#endif
   }
   return mod;
 }

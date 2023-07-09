@@ -57,7 +57,7 @@ static PyObject *XPLMGetWeatherAtLocationFun(PyObject *self, PyObject *args, PyO
   }
   XPLMWeatherInfo_t out_info;
   out_info.structSize = sizeof(XPLMWeatherInfo_t);
-  int ret = XPLMGetWeatherAtLocation(latitude, longitude, altitude_m, &out_info);
+  int ret = XPLMGetWeatherAtLocation_ptr(latitude, longitude, altitude_m, &out_info);
   if (ret == 0) {
     Py_RETURN_NONE;
   }

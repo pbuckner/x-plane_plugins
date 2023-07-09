@@ -12,6 +12,20 @@ Known Bugs
 
  None (prove me wrong!)
 
+4.1.1 (BETA)
+------------
+
+:Improvements:
+   * **Mini Python** debugger window now auto-scrolls on input (in case you'd been viewing history)
+     and "remembers" and reloads into history previous commands. This allows you easily repeat
+     commands from one session to the next as the debugger's history recall spans sessions.
+
+     |
+     
+:Fixes:
+   * Incorrectly converted AcceptParent widget message when using :py:func:`xp.fixedLayout` (this is rare).
+     Updated documention for this function as well.
+
 4.1.0 (2-Apr-2023)
 ------------------
 

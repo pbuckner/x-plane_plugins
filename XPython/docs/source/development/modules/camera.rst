@@ -69,7 +69,7 @@ Functions
 
         .. note:: Laminar says *position* list values are undefined on input, so you should call :py:func:`readCameraPosition`
                   and update the position accordingly. (In practice, it appears *position* is initialized
-                  with the correct information.)
+                  with the correct information, but this `is not guaranteed`.)
 
                   *Do not* create a **new** *position* list, you need to update the container provided, so the
                   calling function has the same pointer to the data structure:

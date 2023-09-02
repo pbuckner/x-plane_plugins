@@ -350,6 +350,10 @@ On startup, you'll see::
  to the XPPython3 plugin will be forward to **all** python plugins. Only enabled plugins with
  a message receive function receive the message.
 
+ This message is synchronous: the receiving plugin's ``XPLMPluginReceiveMessage()``
+ (or python :py:func:`XPluginReceiveMessage <PythonInterface.XPluginReceiveMessage>`)
+ routine is immediately called.
+
  Plugins can define their own *message* values.
 
  *param* is message-dependent and should be None, a string, or an integer.

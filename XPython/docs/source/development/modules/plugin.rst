@@ -350,9 +350,22 @@ On startup, you'll see::
  to the XPPython3 plugin will be forward to **all** python plugins. Only enabled plugins with
  a message receive function receive the message.
 
- This message is synchronous: the receiving plugin's ``XPLMPluginReceiveMessage()``
- (or python :py:func:`XPluginReceiveMessage <PythonInterface.XPluginReceiveMessage>`)
- routine is immediately called.
+ .. Note:: This message is synchronous: the receiving plugin's ``XPLMPluginReceiveMessage()``
+   (or python :py:func:`XPluginReceiveMessage <PythonInterface.XPluginReceiveMessage>`)
+   routine is immediately called.
+
+   As Ben notes, you **do** have to worry about killing the sim's FPS or hanging it. Everyone's waiting
+   on your handler... As a *protocol designer,* plugin authors should avoid expecting synchronous XPLM
+   message returns unless the queries are *very* cheap.
+
+   Note also, that if you call::
+
+      def myReceiveMessage(sender, msg, param):
+          if msg == Messages.WhatIsYourIQ:
+              xp.sendMessageToPlugin(sender, 42)
+
+   Because the call is synchronous, you (the caller) will "receive" the reply before your sending
+   function appears to have completed.
 
  Plugins can define their own *message* values.
 

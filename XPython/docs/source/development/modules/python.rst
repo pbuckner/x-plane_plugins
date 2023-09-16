@@ -47,7 +47,7 @@ Functions
 .. py:function:: sys_log(s)
 
  Print string into X-Plane System log file, ``Log.txt``, appending a newline.
- The log *is* flushed after each write. (``sys_log`` is an aliase of ``systemLog``).
+ The log *is* flushed after each write. (``sys_log`` is an alias of ``systemLog``).
 
  Your str is prefixed with ``[XP3: <module>]`` to help user understand the message
  context. Please, write to System Log only when you need to alert the user

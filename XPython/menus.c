@@ -35,10 +35,10 @@ static void menuHandler(void * menuRefCon, void * inItemRef)
   if(PyErr_Occurred()) pythonLogException();
   PyObject *menuCallbackInfo = PyDict_GetItem(menuDict, pID);
   if(PyErr_Occurred()) pythonLogException();
-  // fprintf(pythonLogFile, "Handling menu item: %s\n", objToStr(menuCallbackInfo));
+  // pythonLog("Handling menu item: %s\n", objToStr(menuCallbackInfo));
   Py_DECREF(pID);
   if(menuCallbackInfo == NULL){
-    fprintf(pythonLogFile, "Unknown callback requested in menuHandler(%p).\n", menuRefCon);
+    pythonLog("Unknown callback requested in menuHandler(%p).\n", menuRefCon);
     return;
   }
 
@@ -91,17 +91,17 @@ static PyObject *XPLMCreateMenuFun(PyObject *self, PyObject *args, PyObject *kwa
     return NULL;
   }
   PyObject *pluginSelf = get_pluginSelf();
-  // fprintf(pythonLogFile, "Creating menu for plugin self: %s, parent is: %s\n", objToStr(pluginSelf), objToStr(parentMenu));
+  // pythonLog("Creating menu for plugin self: %s, parent is: %s\n", objToStr(pluginSelf), objToStr(parentMenu));
   if (refToPtr(parentMenu, menuIDRef) == XPLMFindPluginsMenu()) {
     idxList = PyDict_GetItem(menuPluginIdxDict, pluginSelf);
     if (! idxList) {
       Py_DECREF(pluginSelf);
-      // fprintf(pythonLogFile, "XPLMCreateMenu, no menu items exist.\n");
+      // pythonLog("XPLMCreateMenu, no menu items exist.\n");
       PyErr_SetString(PyExc_IndexError, "list index out of range");
       Py_RETURN_NONE;
     }
     PyObject *xplmIndex = PyList_GetItem(idxList, inParentItem);  // throws IndexError
-    // fprintf(pythonLogFile, " Index %d -> %ld\n", inParentItem, PyLong_AsLong(xplmIndex));
+    // pythonLog(" Index %d -> %ld\n", inParentItem, PyLong_AsLong(xplmIndex));
     inParentItem = PyLong_AsLong(xplmIndex);
   }
   if (inName == NULL && parentMenu == Py_None) {
@@ -131,7 +131,7 @@ static PyObject *XPLMCreateMenuFun(PyObject *self, PyObject *args, PyObject *kwa
     }
     PyList_Append(idxList, PyLong_FromLong(nextXPLMMenuIdx));
     PyDict_SetItem(menuPluginIdxDict, pluginSelf, idxList);
-    // fprintf(pythonLogFile, "Create menu's idx is not provided, but next is [%d] (we don't return this)\n", nextXPLMMenuIdx);
+    // pythonLog("Create menu's idx is not provided, but next is [%d] (we don't return this)\n", nextXPLMMenuIdx);
     nextXPLMMenuIdx++;
   }
   Py_DECREF(pluginSelf);
@@ -156,7 +156,7 @@ static PyObject *XPLMDestroyMenuFun(PyObject *self, PyObject *args, PyObject *kw
   }
   PyObject *menuRef = PyDict_GetItem(menuRefDict, menuID);
   if(!menuRef){
-    fprintf(pythonLogFile, "Unknown menuID passed to XPLMDestroyMenu, ignored.\n");
+    pythonLog("Unknown menuID passed to XPLMDestroyMenu, ignored.\n");
   } else {
     PyDict_DelItem(menuDict, menuRef);
     PyDict_DelItem(menuRefDict, menuID);
@@ -181,12 +181,12 @@ static PyObject *XPLMClearAllMenuItemsFun(PyObject *self, PyObject *args, PyObje
     return NULL;
   }
   if (menuID == Py_None || refToPtr(menuID, menuIDRef) == XPLMFindPluginsMenu()) {
-    // fprintf(pythonLogFile, "Clearing top level\n");
+    // pythonLog("Clearing top level\n");
     PyObject *pluginSelf = get_pluginSelf();
     clearInstanceMenuItems(pluginSelf);
     Py_DECREF(pluginSelf);
   } else {
-    // fprintf(pythonLogFile, "Clearing item from menu: %s\n", objToStr(menuID));
+    // pythonLog("Clearing item from menu: %s\n", objToStr(menuID));
     XPLMClearAllMenuItems(refToPtr(menuID, menuIDRef));
   }
 
@@ -303,7 +303,7 @@ static PyObject *XPLMAppendMenuItemFun(PyObject *self, PyObject *args, PyObject 
   int res = XPLMAppendMenuItem(inMenu, inItemName, inItemRef, 0);
 
   if (inMenu == XPLMFindPluginsMenu()) {
-    // fprintf(pythonLogFile, "Appending to PluginsMenus: [%d], next: [%d]\n", res, nextXPLMMenuIdx);
+    // pythonLog("Appending to PluginsMenus: [%d], next: [%d]\n", res, nextXPLMMenuIdx);
     PyObject *pluginSelf = get_pluginSelf();
     PyObject *idxList = PyDict_GetItem(menuPluginIdxDict, pluginSelf);
     if (! idxList) {
@@ -347,7 +347,7 @@ static PyObject *XPLMAppendMenuItemWithCommandFun(PyObject *self, PyObject *args
   XPLMCommandRef inCommandToExecute = (XPLMCommandRef)refToPtr(commandToExecute, commandRefName);
   int res = XPLMAppendMenuItemWithCommand_ptr(inMenu, inItemName, inCommandToExecute);
   if (inMenu == XPLMFindPluginsMenu()) {
-    // fprintf(pythonLogFile, "Appending with Command to PluginsMenus: [%d], next: [%d]\n", res, nextXPLMMenuIdx);
+    // pythonLog("Appending with Command to PluginsMenus: [%d], next: [%d]\n", res, nextXPLMMenuIdx);
     PyObject *pluginSelf = get_pluginSelf();
     PyObject *idxList = PyDict_GetItem(menuPluginIdxDict, pluginSelf);
     if (! idxList) {
@@ -388,7 +388,7 @@ static PyObject *XPLMAppendMenuSeparatorFun(PyObject *self, PyObject *args, PyOb
 #endif  
 
   if (inMenu == XPLMFindPluginsMenu()) {
-    // fprintf(pythonLogFile, "Appending Separator to PluginsMenus: [%d], next: [%d]\n", ret, nextXPLMMenuIdx);
+    // pythonLog("Appending Separator to PluginsMenus: [%d], next: [%d]\n", ret, nextXPLMMenuIdx);
     PyObject *pluginSelf = get_pluginSelf();
     PyObject *idxList = PyDict_GetItem(menuPluginIdxDict, pluginSelf);
     if (! idxList) {
@@ -425,14 +425,14 @@ static PyObject *XPLMSetMenuItemNameFun(PyObject *self, PyObject *args, PyObject
     PyObject *idxList = PyDict_GetItem(menuPluginIdxDict, pluginSelf);
     if (! idxList) {
       Py_DECREF(pluginSelf);
-      // fprintf(pythonLogFile, "XPLMSetMenuItemName, no menu items exist.\n");
+      // pythonLog("XPLMSetMenuItemName, no menu items exist.\n");
       PyErr_SetString(PyExc_IndexError, "list index out of range");
       Py_RETURN_NONE;
     }
     Py_DECREF(pluginSelf);
 
     PyObject *xplmIndex = PyList_GetItem(idxList, inIndex);  // throws IndexError
-    //fprintf(pythonLogFile, " Index %d -> %ld\n", inIndex, PyLong_AsLong(xplmIndex));
+    // pythonLog(" Index %d -> %ld\n", inIndex, PyLong_AsLong(xplmIndex));
     XPLMSetMenuItemName(inMenu, PyLong_AsLong(xplmIndex), inItemName, 0);
   } else {
     XPLMSetMenuItemName(inMenu, inIndex, inItemName, 0);
@@ -463,14 +463,14 @@ static PyObject *XPLMCheckMenuItemFun(PyObject *self, PyObject *args, PyObject *
     PyObject *idxList = PyDict_GetItem(menuPluginIdxDict, pluginSelf);
     if (! idxList) {
       Py_DECREF(pluginSelf);
-      // fprintf(pythonLogFile, "XPLMCheckMenuItem, no menu items exist.\n");
+      // pythonLog("XPLMCheckMenuItem, no menu items exist.\n");
       PyErr_SetString(PyExc_IndexError, "list index out of range");
       Py_RETURN_NONE;
     }
     Py_DECREF(pluginSelf);
 
     PyObject *xplmIndex = PyList_GetItem(idxList, inIndex);  // throws IndexError
-    //fprintf(pythonLogFile, " Index %d -> %ld\n", inIndex, PyLong_AsLong(xplmIndex));
+    // pythonLog(" Index %d -> %ld\n", inIndex, PyLong_AsLong(xplmIndex));
     XPLMCheckMenuItem(inMenu, PyLong_AsLong(xplmIndex), inCheck);
   } else {
     XPLMCheckMenuItem(inMenu, inIndex, inCheck);
@@ -501,15 +501,15 @@ static PyObject *XPLMCheckMenuItemStateFun(PyObject *self, PyObject *args, PyObj
     PyObject *idxList = PyDict_GetItem(menuPluginIdxDict, pluginSelf);
     if (! idxList) {
       Py_DECREF(pluginSelf);
-      // fprintf(pythonLogFile, "XPLMCheckMenuItemState, no menu items exist.\n");
+      // pythonLog("XPLMCheckMenuItemState, no menu items exist.\n");
       PyErr_SetString(PyExc_IndexError, "list index out of range");
       Py_RETURN_NONE;
     }
     Py_DECREF(pluginSelf);
 
     PyObject *xplmIndex = PyList_GetItem(idxList, inIndex);  // throws IndexError
-    //fprintf(pythonLogFile, " Index %d -> %ld\n", inIndex, PyLong_AsLong(xplmIndex));
-    //fflush(pythonLogFile);
+    // pythonLog(" Index %d -> %ld\n", inIndex, PyLong_AsLong(xplmIndex));
+    // pythonLogFlush();
     XPLMCheckMenuItemState(inMenu, PyLong_AsLong(xplmIndex), &outCheck);
   } else {
     XPLMCheckMenuItemState(inMenu, inIndex, &outCheck);
@@ -537,15 +537,15 @@ static PyObject *XPLMEnableMenuItemFun(PyObject *self, PyObject *args, PyObject 
     PyObject *idxList = PyDict_GetItem(menuPluginIdxDict, pluginSelf);
     if (! idxList) {
       Py_DECREF(pluginSelf);
-      // fprintf(pythonLogFile, "XPLMEnableMenuItem, no menu items exist.\n");
+      // pythonLog("XPLMEnableMenuItem, no menu items exist.\n");
       PyErr_SetString(PyExc_IndexError, "list index out of range");
       Py_RETURN_NONE;
     }
     Py_DECREF(pluginSelf);
 
     PyObject *xplmIndex = PyList_GetItem(idxList, inIndex);  // throws IndexError
-    //fprintf(pythonLogFile, " Index %d -> %ld\n", inIndex, PyLong_AsLong(xplmIndex));
-    //fflush(pythonLogFile);
+    // pythonLog(" Index %d -> %ld\n", inIndex, PyLong_AsLong(xplmIndex));
+    // pythonLogFlush();
     XPLMEnableMenuItem(inMenu, PyLong_AsLong(xplmIndex), enabled);
   } else {
     XPLMEnableMenuItem(inMenu, inIndex, enabled);
@@ -576,7 +576,7 @@ static PyObject *XPLMRemoveMenuItemFun(PyObject *self, PyObject *args, PyObject 
     PyObject *idxList = PyDict_GetItem(menuPluginIdxDict, pluginSelf);
     if (! idxList) {
       Py_DECREF(pluginSelf);
-      // fprintf(pythonLogFile, "XPLMRemoveMenuItem, no menu items exist.\n");
+      // pythonLog("XPLMRemoveMenuItem, no menu items exist.\n");
       PyErr_SetString(PyExc_IndexError, "list index out of range");
       Py_RETURN_NONE;
     }
@@ -584,12 +584,12 @@ static PyObject *XPLMRemoveMenuItemFun(PyObject *self, PyObject *args, PyObject 
     PyObject *xplmIndex = PyList_GetItem(idxList, inIndex);  // throws IndexError
     
     if (!xplmIndex) {
-      // fprintf(pythonLogFile, "Bad result from PyListGetItem()\n");
+      // pythonLog("Bad result from PyListGetItem()\n");
       Py_DECREF(pluginSelf);
       pythonLogException();
       Py_RETURN_NONE;
     }
-    //fprintf(pythonLogFile, " Index %d -> %ld\n", inIndex, PyLong_AsLong(xplmIndex));
+    // pythonLog(" Index %d -> %ld\n", inIndex, PyLong_AsLong(xplmIndex));
     XPLMRemoveMenuItem_ptr(inMenu, PyLong_AsLong(xplmIndex));
     nextXPLMMenuIdx--;
 

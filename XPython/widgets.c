@@ -83,7 +83,7 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
        If not xpMsg_Create, write error.
      */
     if (inMessage != xpMsg_Create && inMessage != xpMsg_AcceptParent) {
-      fprintf(pythonLogFile, "Couldn't find the callback list for widget ID %p. for message %d\n", inWidget, inMessage);
+      pythonLog("Couldn't find the callback list for widget ID %p. for message %d\n", inWidget, inMessage);
     }
     Py_DECREF(widget);
     Py_DECREF(param1);
@@ -112,7 +112,7 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
       // clock_gettime(CLOCK_MONOTONIC, &stop);
       Py_DECREF(inMessageObj);
       if(!resObj || resObj == Py_None){
-        fprintf(pythonLogFile, "[%s] Widget Callback function %s did not return a value\n", objToStr(pluginSelf), objToStr(callback));
+        pythonLog("[%s] Widget Callback function %s did not return a value\n", objToStr(pluginSelf), objToStr(callback));
         break;
       }
       res = PyLong_AsLong(resObj);
@@ -613,7 +613,7 @@ static PyObject *XPSetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject
     XPSetWidgetProperty(refToPtr(widget, widgetRefName), inProperty, value == Py_None ? 0: PyLong_AsLong(value));
     PyObject *err = PyErr_Occurred();
     if(err){
-      fprintf(pythonLogFile, "Error trying to set widget property %d with value %s\n", inProperty, objToStr(value));
+      pythonLog("Error trying to set widget property %d with value %s\n", inProperty, objToStr(value));
     }
   }
   Py_RETURN_NONE;

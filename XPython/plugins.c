@@ -173,7 +173,7 @@ static PyObject *XPLMSendMessageToPluginFun(PyObject *self, PyObject *args, PyOb
     XPLMSendMessageToPlugin(inPluginID, inMessage, msgParam);
     free(msgParam);
   } else {
-    fprintf(pythonLogFile, "Unknown data type %s for XPLMSendMessageToPlugin(... inParam). Cannot convert\n", objToStr(PyObject_Type(inParam)));
+    pythonLog("Unknown data type %s for XPLMSendMessageToPlugin(... inParam). Cannot convert\n", objToStr(PyObject_Type(inParam)));
   }
   Py_RETURN_NONE;
 }

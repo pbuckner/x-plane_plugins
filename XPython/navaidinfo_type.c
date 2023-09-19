@@ -156,7 +156,7 @@ static PyObject *NavAidInfo_str(NavAidInfoObject *obj) {
   }
   
   if (-1 == asprintf_ret) {
-    fprintf(pythonLogFile, "Failed to allocate asprintf memory. Failing navaid info.\n");
+    pythonLog("Failed to allocate asprintf memory. Failing navaid info.\n");
   }
 
   PyObject *ret = PyUnicode_FromFormat("%S (%S) %s %s",

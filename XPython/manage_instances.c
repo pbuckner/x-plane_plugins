@@ -50,7 +50,7 @@ void xpy_startAircraftPlugins()
   char outPath[1024];
   XPLMGetNthAircraftModel(0, outFileName, outPath);
   if (!strlen(outPath)) {
-    fprintf(pythonLogFile, "No user aircraft selected, skipping startAircraftPlugins()\n");
+    pythonLog("No user aircraft selected, skipping startAircraftPlugins()\n");
     return;
   }
   char *tmp = strrchr(outPath, '/');
@@ -58,7 +58,7 @@ void xpy_startAircraftPlugins()
   // pythonDebug("Will look for Aircraft PI files in %s/plugins/PythonPlugins\n", outPath);
   char *plugins_path;
   if (-1 == asprintf(&plugins_path, "%s/plugins/PythonPlugins", outPath)) {
-    fprintf(pythonLogFile, "Failed to allocate memory with asprintf. Unable to start.\n");
+    pythonLog("Failed to allocate memory with asprintf. Unable to start.\n");
   }
 
   /* 'Aircraft' has to be in syspath, and get aircraft_path_rel*/
@@ -80,8 +80,8 @@ void xpy_startAircraftPlugins()
   
   PyObject *package = PyDict_GetItemString(localsDict, "package");
   if (package == NULL) {
-    fprintf(pythonLogFile, "[XPPython3] Failed to load aircraft package. Likely missing or bad xp.py, %p\n", package);
-    fflush(pythonLogFile);
+    pythonLog("[XPPython3] Failed to load aircraft package. Likely missing or bad xp.py, %p\n", package);
+    pythonLogFlush();
   }
   if(PyErr_Occurred()) {
     pythonLogException();
@@ -131,8 +131,8 @@ void xpy_startSceneryPlugins()
   
   PyObject *packages = PyDict_GetItemString(localsDict, "packages");
   if (packages == NULL) {
-    fprintf(pythonLogFile, "[XPPython3] Failed to load scenery packages. Likely missing or bad xp.py, %p\n", packages);
-    fflush(pythonLogFile);
+    pythonLog("[XPPython3] Failed to load scenery packages. Likely missing or bad xp.py, %p\n", packages);
+    pythonLogFlush();
   }
   if(PyErr_Occurred()) {
     pythonLogException();
@@ -153,7 +153,7 @@ void xpy_startSceneryPlugins()
     while((packageInfo = PyIter_Next(iterator))) {
       char *path = objToStr(PyList_GetItem(packageInfo, MODULE_PATH));
       char *package = objToStr(PyList_GetItem(packageInfo, MODULE_PACKAGE));
-      // fprintf(pythonLogFile, "path: %s, package: %s\n", path, package);
+      // pythonLog("path: %s, package: %s\n", path, package);
       xpy_loadModules(path, package, "^PI_.*\\.py$", sceneryPlugins);
       free(path);
       free(package);
@@ -194,7 +194,7 @@ void xpy_enableInstances() {
       PyList_SetItem(pluginInfo, PLUGIN_DISABLED, Py_True);
     }; 
   }
-  fflush(pythonLogFile);
+  pythonLogFlush();
   pythonDebug("  ENABLED Global Plugins");
 
   xpy_enableSceneryPlugins();
@@ -218,7 +218,7 @@ void xpy_enableInstances() {
   } else {
     // pythonDebug("(No existing user aircraft on startup.)");
   }
-  fflush(pythonLogFile);
+  pythonLogFlush();
 }
 
 static void enablePluginList(PyObject *pluginList)

@@ -48,7 +48,7 @@ static float flightLoopCallback(float inElapsedSinceLastCall, float inElapsedTim
   Py_DECREF(counterObj);
   if(err){
     pythonLogException();
-    fprintf(pythonLogFile, "[%s]: %s Error occured during the flightLoop callback (inRefcon = %p), disabling:\n",
+    pythonLog("[%s]: %s Error occured during the flightLoop callback (inRefcon = %p), disabling:\n",
             objToStr(PyTuple_GetItem(callbackInfo, 0)),
             objToStr(PyTuple_GetItem(callbackInfo, 1)),
             inRefcon);
@@ -58,7 +58,7 @@ static float flightLoopCallback(float inElapsedSinceLastCall, float inElapsedTim
   } else if (PyLong_Check(res)) {
     tmp = PyLong_AsDouble(res);
   } else {
-    fprintf(pythonLogFile, "[%s]: %s Error occured during the flightLoop callback (inRefcon = %p), disabling: Bad return value '%s'\n",
+    pythonLog("[%s]: %s Error occured during the flightLoop callback (inRefcon = %p), disabling: Bad return value '%s'\n",
             objToStr(PyTuple_GetItem(callbackInfo, 0)),
             objToStr(PyTuple_GetItem(callbackInfo, 1)),
             inRefcon,
@@ -93,7 +93,7 @@ static float flightLoopCallback(float inElapsedSinceLastCall, float inElapsedTim
 /*   for (long x = 1; x <= (long) flCntr; x++) { */
 /*     int y = 0; */
 /*     for (; y < maxY; y++) { */
-/*       /\* fprintf(pythonLogFile, "   results[%d]: %s, flInfo[%ld]: %s -- ", *\/ */
+/*       /\* pythonLog("   results[%d]: %s, flInfo[%ld]: %s -- ", *\/ */
 /*       /\*         y, *\/ */
 /*       /\*         results[y].name, *\/ */
 /*       /\*         x, *\/ */
@@ -108,16 +108,16 @@ static float flightLoopCallback(float inElapsedSinceLastCall, float inElapsedTim
 /*       results[maxY].time = flInfo[x].time; */
 /*       maxY++; */
 /*     } */
-/*     /\* fprintf(pythonLogFile, "  @ %s: %ld usec \n", *\/ */
+/*     /\* pythonLog("  @ %s: %ld usec \n", *\/ */
 /*     /\*         flInfo[x].name, flInfo[x].time); *\/ */
 /*     flInfo[x].time = 0; */
 /*   } */
   
-/*   fprintf(pythonLogFile, "-\n   all: %ld usec\n", flInfo[0].time); */
+/*   pythonLog("-\n   all: %ld usec\n", flInfo[0].time); */
 /*   flInfo[0].time = 0; */
 /*   for (int y = 0; y < maxY; y++) { */
 /*     if (results[y].time) { */
-/*       fprintf(pythonLogFile, "   %s: %ld usec \n", */
+/*       pythonLog("   %s: %ld usec \n", */
 /*               results[y].name, */
 /*               results[y].time */
 /*               ); */
@@ -207,7 +207,7 @@ static PyObject *XPLMUnregisterFlightLoopCallbackFun(PyObject *self, PyObject *a
     Py_DECREF(revId);
     Py_DECREF(refconAddr);
     Py_DECREF(pluginSelf);
-    fprintf(pythonLogFile, "[%s] Couldn't find the id of the requested callback for %s with refCon %s.\n",
+    pythonLog("[%s] Couldn't find the id of the requested callback for %s with refCon %s.\n",
             objToStr(pluginSelf), objToStr(callback), objToStr(refcon));
     Py_RETURN_NONE;
   }

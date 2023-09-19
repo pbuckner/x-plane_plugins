@@ -329,7 +329,7 @@ static int commandCallback(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, v
   Py_DECREF(arg2);
   PyObject *err = PyErr_Occurred();
   if(err){
-    fprintf(pythonLogFile, "Error in CommandCallback [%s] %s\n",
+    pythonLog("Error in CommandCallback [%s] %s\n",
             objToStr(PyTuple_GetItem(pCbk, CALLBACK_PLUGIN)),
             objToStr(PyTuple_GetItem(pCbk, CALLBACK_METHOD)));
     /* pass error back up */
@@ -340,7 +340,7 @@ static int commandCallback(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, v
     return 0;
   }
   if (!(oRes && PyLong_Check(oRes))) {
-    fprintf(pythonLogFile, "[%s] %s CommandCallback returned '%s' rather than an integer.\n",
+    pythonLog("[%s] %s CommandCallback returned '%s' rather than an integer.\n",
             objToStr(PyTuple_GetItem(pCbk, CALLBACK_PLUGIN)),
             objToStr(PyTuple_GetItem(pCbk, CALLBACK_METHOD)),
             objToStr(oRes));
@@ -488,7 +488,7 @@ static PyObject *XPLMUnregisterCommandHandlerFun(PyObject *self, PyObject *args,
   PyObject *refcon = PyDict_GetItem(commandRefcons, key);  /* borrowed ref */
 
   if (refcon == NULL) {
-    fprintf(pythonLogFile, "unregisterCommandHandler could not find command handler for %s\n", objToStr(key));
+    pythonLog("unregisterCommandHandler could not find command handler for %s\n", objToStr(key));
     Py_RETURN_NONE;
   }
   XPLMUnregisterCommandHandler(refToPtr(inCommand, commandRefName), commandCallback,

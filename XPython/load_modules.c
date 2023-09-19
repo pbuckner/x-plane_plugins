@@ -16,8 +16,8 @@ void xpy_loadModules(const char *path, const char *package, const char *pattern,
   DIR *dir = opendir(path);
   PyObject *pluginInstance;
   if(dir == NULL){
-    fprintf(pythonLogFile, "[XPPython3] Scanning for plugins in '%s': directory not found.\n", path);
-    fflush(pythonLogFile);
+    pythonLog("[XPPython3] Scanning for plugins in '%s': directory not found.\n", path);
+    pythonLogFlush();
     return;
   }
   struct dirent *de;
@@ -45,7 +45,7 @@ void xpy_loadModules(const char *path, const char *package, const char *pattern,
               PyList_Append(pluginList, pluginInstance);
             }
           } else {
-            fprintf(pythonLogFile, "[XPPython3] Failed to load pluginInstance for '%s'\n", pkgModName);
+            pythonLog("[XPPython3] Failed to load pluginInstance for '%s'\n", pkgModName);
           }
           free(pkgModName);
         }
@@ -98,7 +98,7 @@ static PyObject *loadPIClass(const char *fname)
         PyObject *pluginInstance = PyObject_CallObject(pClass, NULL);
         if (PyErr_Occurred()){
           pythonLogException();
-          fprintf(pythonLogFile, "[XPPython3] Problem loading PythonInterface object in %s.\n", fname);
+          pythonLog("[XPPython3] Problem loading PythonInterface object in %s.\n", fname);
           return NULL;
         }
         Py_DECREF(pClass);
@@ -109,14 +109,14 @@ static PyObject *loadPIClass(const char *fname)
         pythonDebug(" . Failed to get callable PythonInterface class");
         Py_DECREF(pName);
         Py_DECREF(pModule);
-        fprintf(pythonLogFile, "[XPPython3] Problem getting PythonInterface class in %s.\n", fname);
+        pythonLog("[XPPython3] Problem getting PythonInterface class in %s.\n", fname);
       }
     } else {
       Py_DECREF(pName);
-      fprintf(pythonLogFile, "[XPPython3] Problem importing module for %s.\n", fname);
+      pythonLog("[XPPython3] Problem importing module for %s.\n", fname);
     }
   } else {
-    fprintf(pythonLogFile, "[XPPython3] Problem decoding the filename %s.\n", fname);
+    pythonLog("[XPPython3] Problem decoding the filename %s.\n", fname);
   }
   if(PyErr_Occurred()) {
     pythonLogException();

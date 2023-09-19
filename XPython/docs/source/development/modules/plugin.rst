@@ -336,7 +336,7 @@ On startup, you'll see::
 
   .. Warning:: This appears to be broken in 12.04r3. You'll get the message, but the value
                of ``param`` is not the new count of dataRefs: it appears to be a pointer to the
-               value, rather than the value itself. Bug XPD-13931
+               value, rather than the value itself. Bug `XPD-13931 <https://developer.x-plane.com/x-plane-bug-database/?issue=XPD-13931>`_
                filed with Laminar 11-March-2023.
 
   .. Note:: To work around XPD-13931, we'll automatically convert the pointer value to the

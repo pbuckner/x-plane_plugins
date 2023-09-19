@@ -4,9 +4,12 @@
 #include <sys/time.h>
 #include <string.h>
 #include <stdarg.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include "utils.h"
+#include "ini_file.h"
+#include <XPLM/XPLMUtilities.h>
 
 const char *objRefName = "XPLMObjectRef";
 const char *commandRefName = "XPLMCommandRef";
@@ -14,9 +17,105 @@ const char *widgetRefName = "XPLMWidgetID";
 
 int pythonWarnings = 1;  /* 1= issue warnings, 0= do not */
 int pythonDebugs = 0; /* 1= issue DEBUG messages, 0= do not */
+int pythonFlushLog = 0; /* 1= flush python log after every wrinte, 0= buffer writes */
 
+FILE *pythonLog_fp = NULL;
 
 PyObject *get_pythonline();
+
+void setLogFile(void) {
+  /* Log file name is (in order of preference):
+     1) environment variable: XPPYTHON3_LOG
+     2) config file value: xppython3.ini [Main].log_file_name
+     3) compiled default: XPPython3Log.txt
+     * If value is 'Log.txt' (exactly) we'll send messages via XPLMDebugMessage()
+       to Log.txt.
+     * If _set_ value is null (XPPTHON3_LOG=, or [Main].log_file_name=),
+       OR we cannot find/open the file.
+       We'll use stdout
+
+     File Preservation is:
+     1) environment variable: XPPYTHON3_PRESERVE (if defined, it's true)
+     2) config file value: xppython3.ini [Main].log_file_preserve (any non-zero value is true)
+     3) compiled default: False
+
+     If we cannot open log file, it is set to stdout
+  */
+  
+  static char *ENV_logFileVar = "XPPYTHON3_LOG";  // set this environment to override logFileName
+  static char *ENV_logPreserve = "XPPYTHON3_PRESERVE";  // DO NOT truncate XPPython log on startup. If set, we preserve, if unset, we truncate
+  static char *logFileName = "XPPython3Log.txt";
+  char *log;
+  pythonFlushLog = xpy_config_get_int("[Main].flush_log");/* 0= off, 1= on */
+  log = xpy_config_get("[Main].log_file_name");
+  if (log != NULL) {
+    logFileName = log;
+  }
+  log = getenv(ENV_logFileVar);
+  if(log != NULL){
+    logFileName = log;
+  }
+  
+  char *msg;
+  int preserve = 0;
+  if (0 == strcmp(logFileName, "Log.txt")) {     /* Special case, combine python log an Log.txt */
+    pythonLog_fp = NULL;
+  } else { /* Not 'Log.txt'... -- try to open provided logFileName */
+    preserve = getenv(ENV_logPreserve) != NULL || xpy_config_get_int("[Main].log_file_preserve") != 0;
+    pythonLog_fp = fopen(logFileName, preserve ? "a" : "w");
+    if(pythonLog_fp == NULL) {
+      preserve = 0;
+      pythonLog_fp = stdout;
+      logFileName = "standard out";
+    }
+  }
+
+  if (-1 == asprintf(&msg, "[XPPython3] Starting %s (compiled: %0x)... Logging to %s%s\n",
+                     pythonPluginVersion, PY_VERSION_HEX, logFileName, preserve ? '+' : '')) {
+    pythonLog("Failed to allocate asprintf memory, failed to start.\n");
+  }
+  XPLMDebugString(msg);
+  free(msg);
+}
+
+
+void pythonLogClose(void) {
+  if (pythonLog_fp) {
+    fclose(pythonLog_fp);
+  } /* else... we're writing to DebugString, which is already flushed each time */
+}
+  
+void pythonLogFlush(void) {
+  if (pythonLog_fp) {
+    fflush(pythonLog_fp);
+  } /* else... we're writing to DebugString, which is already flushed each time */
+}
+
+void pythonLog(const char *fmt, ...) {
+  /* (you should include terminating newline!) */
+    char *msg;
+    va_list ap;
+    va_start(ap, fmt);
+    if (-1 == vasprintf(&msg, fmt, ap)) {
+      msg = "Failed to allocation vasprintf memory in pythonDebug\n";
+      if (pythonLog_fp) {
+        fprintf(pythonLog_fp, "%s", msg);
+        if (pythonFlushLog) {
+          fflush(pythonLog_fp);
+        }
+      } else {
+        XPLMDebugString(msg);
+      }
+      return;
+    }
+    va_end(ap);
+    if (pythonLog_fp) {
+      fprintf(pythonLog_fp, "%s", msg);
+    } else {
+      XPLMDebugString(msg);
+    }
+    free(msg);
+}
 
 void pythonDebug(const char *fmt, ...) {
   if (pythonDebugs) {
@@ -24,11 +123,12 @@ void pythonDebug(const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     if (-1 == vasprintf(&msg, fmt, ap)) {
-      fprintf(pythonLogFile, "Failed to allocation vasprintf memory in pythonDebug\n");
+      msg = "Failed to allocation vasprintf memory in pythonDebug\n";
+      pythonLog("%s", msg);
+      return;
     }
     va_end(ap);
-    fprintf(pythonLogFile, "DEBUG>> %s\n", msg);
-    fflush(pythonLogFile);
+    pythonLog("DEBUG>> %s\n", msg);
     free(msg);
   }
 }
@@ -36,8 +136,7 @@ void pythonDebug(const char *fmt, ...) {
 void pythonLogWarning(const char *msg) {
   if (pythonWarnings) {
     PyObject *python_line = get_pythonline();
-    fprintf(pythonLogFile, "WARNING>> %s: %s\n", objToStr(python_line), msg);
-    fflush(pythonLogFile);
+    pythonLog("WARNING>> %s: %s\n", objToStr(python_line), msg);
   }
 }
 
@@ -60,7 +159,7 @@ char * objDebug(PyObject *item) {
     
     PyObject *err = PyErr_Occurred();
     if(err){
-      fprintf(pythonLogFile, "[XPPython3] Error occured during objToStr\n");
+      pythonLog("[XPPython3] Error occured during objToStr\n");
       pythonLogException();
       return strdup("<Error>");
     }
@@ -114,7 +213,7 @@ void pythonLogException()
       }
       if (vals == NULL) {
         if(PyErr_Occurred()) {
-          fprintf(pythonLogFile, "[XPPython3] Unable to format exception\n");
+          pythonLog("[XPPython3] Unable to format exception\n");
           PyErr_Print();
         }
       } else {
@@ -129,7 +228,7 @@ void pythonLogException()
         PyObject *tb_string = PyDict_GetItemString(localsDict, "ret"); /* borrowed */
         char *foo = objToStr(tb_string);
         Py_DECREF(localsDict);
-        fprintf(pythonLogFile, "%s\n", foo);
+        pythonLog( "%s\n", foo);
         free(foo);
         full_traceback = 1;
         Py_DECREF(vals);
@@ -141,10 +240,10 @@ void pythonLogException()
   if (!full_traceback) {
     /* Failed to print full traceback. Print what we can. */
     foo = objToStr(ptype);
-    fprintf(pythonLogFile, "EXCEPTION>> [%s] type: %s\n", module_name, foo);
+    pythonLog("EXCEPTION>> [%s] type: %s\n", module_name, foo);
     free(foo);
     foo = objToStr(pvalue);
-    fprintf(pythonLogFile, "EXCEPTION>> [%s] value: %s\n", module_name, foo);
+    pythonLog("EXCEPTION>> [%s] value: %s\n", module_name, foo);
     free(foo);
   }
 
@@ -153,7 +252,6 @@ void pythonLogException()
   Py_XDECREF(ptraceback);
   Py_XDECREF(module);
   free(module_name);
-  fflush(pythonLogFile);
 }
 
 char * objToStr(PyObject *item) {
@@ -163,7 +261,7 @@ char * objToStr(PyObject *item) {
 
   PyObject *err = PyErr_Occurred();
   if(err){
-    fprintf(pythonLogFile, "[XPPython3] Error occured during objToStr\n");
+    pythonLog("[XPPython3] Error occured during objToStr\n");
     pythonLogException();
     return strdup("<Error>");
   }
@@ -319,8 +417,7 @@ void *refToPtr(PyObject *ref, const char *refName)
       PyObject *err = PyErr_Occurred();
       if(err){
         pythonLogException();
-        fprintf(pythonLogFile, "Failed to convert '%s' capsule (%s) to pointer\n", refName, objToStr(ref));
-        fflush(pythonLogFile);
+        pythonLog("Failed to convert '%s' capsule (%s) to pointer\n", refName, objToStr(ref));
         return NULL;
       }
     }

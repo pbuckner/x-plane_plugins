@@ -71,7 +71,7 @@ void setLogFile(void) {
   }
 
   if (-1 == asprintf(&msg, "[XPPython3] Starting %s (compiled: %0x)... Logging to %s%s\n",
-                     pythonPluginVersion, PY_VERSION_HEX, logFileName, preserve ? '+' : '')) {
+                     pythonPluginVersion, PY_VERSION_HEX, logFileName, preserve ? "+" : "")) {
     pythonLog("Failed to allocate asprintf memory, failed to start.\n");
   }
   XPLMDebugString(msg);

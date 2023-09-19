@@ -14,7 +14,6 @@
 PyObject *xppythonDicts = NULL, *xppythonCapsules = NULL;
 PyObject *PythonModuleMTimes = NULL;
 extern const char *pythonPluginVersion, *pythonPluginsPath, *pythonInternalPluginsPath;
-int pythonFlushLog = 0;
 static PyObject *getExecutable(void);
 
 PluginStats pluginStats[512];
@@ -147,14 +146,14 @@ static PyObject *XPPythonLogFun(PyObject *self, PyObject *args)
   } else {
     if (strlen(inString)) {
       char *moduleName = get_moduleName();
-      fprintf(pythonLogFile, "[%s] %s\n", moduleName, inString);
+      pythonLog("[%s] %s\n", moduleName, inString);
       free(moduleName);
     } else {
       flush = 1;
     }
   }
   if (flush || pythonFlushLog) {
-      fflush(pythonLogFile);
+    pythonLogFlush();
   }
   Py_RETURN_NONE;
 }
@@ -174,7 +173,7 @@ static PyObject *XPSystemLogFun(PyObject *self, PyObject *args)
       char *moduleName = get_moduleName();
       char *msg;
       if (-1 == asprintf(&msg, "[XP3: %s] %s\n", moduleName, inString)) {
-        fprintf(pythonLogFile, "Failed to allocate memory for asprintf syslog.\n");
+        pythonLog("Failed to allocate memory for asprintf syslog.\n");
       } else {
         XPLMDebugString(msg);
         free(msg);
@@ -212,12 +211,9 @@ static PyObject *XPPythonDerefCapsuleFun(PyObject *self, PyObject *args)
   if(!PyArg_ParseTuple(args, "sO", &capsule_type, &capsule)) {
     return NULL;
   }
-  /* fprintf(pythonLogFile, "Capsule Name: %s\n", PyCapsule_GetName(capsule)); */
-  /* fflush(pythonLogFile); */
-  /* fprintf(pythonLogFile, "Capsule Context: %p\n", PyCapsule_GetContext(capsule)); */
-  /* fflush(pythonLogFile); */
-  /* fprintf(pythonLogFile, "Capsule Pointer: %p\n", PyCapsule_GetPointer(capsule, capsule_type)); */
-  /* fflush(pythonLogFile); */
+  /* pythonLog("Capsule Name: %s\n", PyCapsule_GetName(capsule)); */
+  /* pythonLog("Capsule Context: %p\n", PyCapsule_GetContext(capsule)); */
+  /* pythonLog("Capsule Pointer: %p\n", PyCapsule_GetPointer(capsule, capsule_type)); */
 
   return PyLong_FromVoidPtr(PyCapsule_GetPointer(capsule, capsule_type));
 }

@@ -2,8 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-char xpy_ini_file[512] = "xppython3.ini";
-extern FILE *pythonLogFile;
+char xpy_ini_file[512] = "xppython3.ini";  /* by design, this will get changed to include full path in handleConfigFile() */
 
 char *xpy_config_get(char *item)
 {
@@ -37,7 +36,11 @@ char *xpy_config_get(char *item)
       while(tok) {
         int found_name=0;
         if (!found_name && 0 == strcmp(tok, name)) {
-          return strtok(NULL, " :=");
+          /* If name is found, but value not, return '' instead of NULL */
+          char empty_str[] = "";
+          char *v = strtok(NULL, " :=");
+          fclose(fp);
+          return strdup(v ? v : empty_str);
         }
         tok = strtok(NULL, " =:");
       }

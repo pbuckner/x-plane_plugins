@@ -113,7 +113,7 @@ void xpy_startSceneryPlugins()
                "packages = []\n"
                "with open(os.path.join(xp.getSystemPath() + 'Custom Scenery', 'scenery_packs.ini'), 'r') as fp:\n"
                "    for idx, line in enumerate(fp.readlines()):\n"
-               "        m = re.match('SCENERY_PACK[\\s]+(.+)/', line)\n"
+               "        m = re.match(r'SCENERY_PACK[\\s]+(.+)/', line)\n"
                "        if not m:\n"
                "            continue\n"
                "        scenery_package_directory = m.group(1)\n"

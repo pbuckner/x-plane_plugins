@@ -12,8 +12,8 @@ Known Bugs
 
  None (prove me wrong!)
 
-4.1.1 (BETA)
-------------
+4.1.1 (12-Oct-2023)
+-------------------
 
 :New Features:
    * **Python 3.12 Support**. XPPython3 now supports python versions 3.10, 3.11, and 3.12. You may

@@ -15,12 +15,36 @@ Known Bugs
 4.1.1 (BETA)
 ------------
 
+:New Features:
+   * **Python 3.12 Support**. XPPython3 now supports python versions 3.10, 3.11, and 3.12. You may
+     use any version. Python version 3.12 is internally faster than earlier versions of python but
+     I have no tests to confirm any advantage within the context of X-Plane. For new installations, use
+     3.12. There is no need to upgrade your current installation.
+
+   * **Python IMGUI Update**. Current versions of ImGui (version 2.0+) now correctly handle
+     contexts in a way compatible with X-Plane. Therefore, XPPython3 *no longer includes* a copy
+     of the python imgui module.
+
+     .. note::
+        If you are *upgrading* from a previous version of XPPython3, you *should* delete the XPPython3/imgui
+        directory, as it is no longer required. However, you (and users of your plugin) *will* need to install
+        the standard python imgui module::
+
+          $ rm -rf XPPython3/imgui
+          $ pip3 install imgui
+        
+    |
+
 :Improvements:
    * **Mini Python** debugger window now auto-scrolls on input (in case you'd been viewing history)
      and "remembers" and reloads into history previous commands. This allows you easily repeat
      commands from one session to the next as the debugger's history recall spans sessions.
 
-     |
+   * **Plugin Reload** will now skip checking for updated versions. It will check on X-Plane startup only.
+     This is primarily to aid python developers, allowing them to quickly reload plugins (saving a few seconds
+     each time.)
+     
+    |
      
 :Fixes:
    * Incorrectly converted AcceptParent widget message when using :py:func:`xp.fixedLayout` (this is rare).

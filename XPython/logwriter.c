@@ -12,8 +12,8 @@ static PyObject *logWriterWrite(PyObject *self, PyObject *args)
     return NULL;
   }
   //printf("%s", msg);
-  fprintf(pythonLogFile, "%s", msg);
-  fflush(pythonLogFile);
+  pythonLog("%s", msg);
+  pythonLogFlush();
   Py_RETURN_NONE;
 }
 
@@ -21,7 +21,7 @@ static PyObject *logWriterFlush(PyObject *self, PyObject *args)
 {
   (void) self;
   (void) args;
-  fflush(pythonLogFile);
+  pythonLogFlush();
   Py_RETURN_NONE;
 }
 

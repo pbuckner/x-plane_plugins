@@ -67,7 +67,7 @@ static PyObject *WeatherInfoClouds_str(WeatherInfoCloudsObject *obj) {
   char *msg = NULL;
   if (-1 == asprintf(&msg, "<WeatherInfoClouds object> %.1f (%.0f%%) from %.1fm to %.1fm",
                      obj->cloud_type, 100.0 * obj->coverage, obj->alt_base, obj->alt_top)) {
-    fprintf(pythonLogFile, "Failed to allocate asprintf memory for WeatherInfoClouds.\n");
+    pythonLog("Failed to allocate asprintf memory for WeatherInfoClouds.\n");
     return (PyObject *)obj;
   }
   PyObject *ret = PyUnicode_FromString(msg);

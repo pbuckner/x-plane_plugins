@@ -351,7 +351,7 @@ static PyObject *XPLMGetDatavfFun(PyObject *self, PyObject *args, PyObject *kwar
     if(inMax > 0){
       outValues = (float *)malloc(inMax * sizeof(float));
     }else{
-      fprintf(pythonLogFile, "getdatavf count value must be positive\n");
+      pythonLog("getdatavf count value must be positive\n");
       PyErr_SetString(PyExc_RuntimeError, "getDatavf count value must be positive.");
       return NULL;
     }
@@ -374,7 +374,7 @@ static PyObject *XPLMGetDatavfFun(PyObject *self, PyObject *args, PyObject *kwar
   }
   PyObject *err = PyErr_Occurred();
   if(err) {
-    fprintf(pythonLogFile, "Error has already occurred in getDatavf: %s\n", objToStr(err));
+    pythonLog("Error has already occurred in getDatavf: %s\n", objToStr(err));
   }
   return PyLong_FromLong(res);
 }
@@ -643,7 +643,7 @@ static int getDatai(void *inRefcon)
   PyObject *pCbks = PyDict_GetItemWithError(accessorDict, pID);
   Py_DECREF(pID);
   if(pCbks == NULL){
-    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to getDatai (%p).\n", inRefcon);
+    pythonLog("dataAccessor refCon passed to getDatai (%p).\n", inRefcon);
     return -1;
   }
   PyObject *oFun = PyTuple_GetItem(pCbks, READINT);
@@ -689,7 +689,7 @@ static void setDatai(void *inRefcon, int inValue)
   PyObject *pCbks = PyDict_GetItemWithError(accessorDict, pID);
   Py_DECREF(pID);
   if(pCbks == NULL){
-    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to setDatai (%p).\n", inRefcon);
+    pythonLog("Unknown dataAccessor refCon passed to setDatai (%p).\n", inRefcon);
     return;
   }
   PyObject *oFun = PyTuple_GetItem(pCbks, WRITEINT);
@@ -714,7 +714,7 @@ static float getDataf(void *inRefcon)
   PyObject *pCbks = PyDict_GetItemWithError(accessorDict, pID);
   Py_DECREF(pID);
   if(pCbks == NULL){
-    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to getDataf (%p).\n", inRefcon);
+    pythonLog("Unknown dataAccessor refCon passed to getDataf (%p).\n", inRefcon);
     return -1;
   }
   PyObject *oFun = PyTuple_GetItem(pCbks, READFLOAT);
@@ -748,7 +748,7 @@ static void setDataf(void *inRefcon, float inValue)
   PyObject *pCbks = PyDict_GetItemWithError(accessorDict, pID);
   Py_DECREF(pID);
   if(pCbks == NULL){
-    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to setDataf (%p).\n", inRefcon);
+    pythonLog("Unknown dataAccessor refCon passed to setDataf (%p).\n", inRefcon);
     return;
   }
   PyObject *oFun = PyTuple_GetItem(pCbks, WRITEFLOAT);
@@ -770,7 +770,7 @@ static double getDatad(void *inRefcon)
   PyObject *pCbks = PyDict_GetItemWithError(accessorDict, pID);
   Py_DECREF(pID);
   if(pCbks == NULL){
-    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to getDatad (%p).\n", inRefcon);
+    pythonLog("Unknown dataAccessor refCon passed to getDatad (%p).\n", inRefcon);
     return -1;
   }
   PyObject *oFun = PyTuple_GetItem(pCbks, READDOUBLE);
@@ -804,7 +804,7 @@ static void setDatad(void *inRefcon, double inValue)
   PyObject *pCbks = PyDict_GetItemWithError(accessorDict, pID);
   Py_DECREF(pID);
   if(pCbks == NULL){
-    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to setDatad (%p).\n", inRefcon);
+    pythonLog("Unknown dataAccessor refCon passed to setDatad (%p).\n", inRefcon);
     return;
   }
   PyObject *oFun = PyTuple_GetItem(pCbks, WRITEDOUBLE);
@@ -825,7 +825,7 @@ static int getDatavi(void *inRefcon, int *outValues, int inOffset, int inMax)
   PyObject *pCbks = PyDict_GetItemWithError(accessorDict, pID);
   Py_DECREF(pID);
   if(pCbks == NULL){
-    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to getDatavi (%p).\n", inRefcon);
+    pythonLog("Unknown dataAccessor refCon passed to getDatavi (%p).\n", inRefcon);
     return -1;
   }
   PyObject *oFun = PyTuple_GetItem(pCbks, READINTARRAY);
@@ -843,7 +843,7 @@ static int getDatavi(void *inRefcon, int *outValues, int inOffset, int inMax)
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, outValuesObj, oArg2, oArg3, NULL);
   PyObject *err = PyErr_Occurred();
   if(err) {
-    fprintf(pythonLogFile, "[%s] getDatavi callback %s failed with %s.\n",
+    pythonLog("[%s] getDatavi callback %s failed with %s.\n",
             objToStr(PyTuple_GetItem(pCbks, PLUGINSELF)),
             objToStr(oFun),
             objToStr(err));
@@ -891,7 +891,7 @@ static void setDatavi(void *inRefcon, int *inValues, int inOffset, int inCount)
   PyObject *pCbks = PyDict_GetItemWithError(accessorDict, pID);
   Py_DECREF(pID);
   if(pCbks == NULL){
-    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to setDatavi (%p).\n", inRefcon);
+    pythonLog("Unknown dataAccessor refCon passed to setDatavi (%p).\n", inRefcon);
     return;
   }
   PyObject *inValuesObj = PyList_New(0);
@@ -936,7 +936,7 @@ static int getDatavf(void *inRefcon, float *outValues, int inOffset, int inMax)
   PyObject *pCbks = PyDict_GetItemWithError(accessorDict, pID);
   Py_DECREF(pID);
   if(pCbks == NULL){
-    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to getDatavf (%p).\n", inRefcon);
+    pythonLog("Unknown dataAccessor refCon passed to getDatavf (%p).\n", inRefcon);
     return -1;
   }
   PyObject *oFun = PyTuple_GetItem(pCbks, READFLOATARRAY);
@@ -954,7 +954,7 @@ static int getDatavf(void *inRefcon, float *outValues, int inOffset, int inMax)
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, outValuesObj, oArg2, oArg3, NULL);
   PyObject *err = PyErr_Occurred();
   if(err) {
-    fprintf(pythonLogFile, "[%s] getDatavf callback %s failed with %s.\n",
+    pythonLog("[%s] getDatavf callback %s failed with %s.\n",
             objToStr(PyTuple_GetItem(pCbks, PLUGINSELF)),
             objToStr(oFun),
             objToStr(err));
@@ -987,7 +987,7 @@ static int getDatavf(void *inRefcon, float *outValues, int inOffset, int inMax)
         PyObject *item = PyList_GetItem(outValuesObj, i);  /* GetItem borrows */
         err = PyErr_Occurred();
         if (err){
-          fprintf(pythonLogFile, "Failed to get #%d from returned values\n", i);
+          pythonLog("Failed to get #%d from returned values\n", i);
           return i;
         }
         if (item == 0 || item == NULL || item == Py_None) {
@@ -1008,7 +1008,7 @@ static void setDatavf(void *inRefcon, float *inValues, int inOffset, int inCount
   PyObject *pCbks = PyDict_GetItemWithError(accessorDict, pID);
   Py_DECREF(pID);
   if(pCbks == NULL){
-    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to setDatavf (%p).\n", inRefcon);
+    pythonLog("Unknown dataAccessor refCon passed to setDatavf (%p).\n", inRefcon);
     return;
   }
   PyObject *inValuesObj = PyList_New(0);
@@ -1053,7 +1053,7 @@ static int getDatab(void *inRefcon, void *outValue, int inOffset, int inMax)
   PyObject *pCbks = PyDict_GetItemWithError(accessorDict, pID);
   Py_DECREF(pID);
   if(pCbks == NULL){
-    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to getDatab (%p).\n", inRefcon);
+    pythonLog("Unknown dataAccessor refCon passed to getDatab (%p).\n", inRefcon);
     return -1;
   }
 
@@ -1071,7 +1071,7 @@ static int getDatab(void *inRefcon, void *outValue, int inOffset, int inMax)
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, outValuesObj, oArg2, oArg3, NULL);
   PyObject *err = PyErr_Occurred();
   if(err) {
-    fprintf(pythonLogFile, "[%s] getDatab callback %s failed with %s.\n",
+    pythonLog("[%s] getDatab callback %s failed with %s.\n",
             objToStr(PyTuple_GetItem(pCbks, PLUGINSELF)),
             objToStr(oFun),
             objToStr(err));
@@ -1125,7 +1125,7 @@ static void setDatab(void *inRefcon, void *inValue, int inOffset, int inCount)
   PyObject *pCbks = PyDict_GetItemWithError(accessorDict, pID);
   Py_DECREF(pID);
   if(pCbks == NULL){
-    fprintf(pythonLogFile, "Unknown dataAccessor refCon passed to setDatab (%p).\n", inRefcon);
+    pythonLog("Unknown dataAccessor refCon passed to setDatab (%p).\n", inRefcon);
     return;
   }
   PyObject *inValuesObj = PyList_New(0);
@@ -1300,8 +1300,8 @@ static void dataChanged(void *inRefcon)
     sprintf(msg, "[%s] Error in dataChanged callback %s",
             objToStr(PyTuple_GetItem(sharedObj, 0)),  /* pluginself */
             objToStr(callbackFun));
-    fprintf(pythonLogFile, "%s\n", msg);
-    fflush(pythonLogFile);
+    pythonLog("%s\n", msg);
+    pythonLogFlush();
     PyErr_SetString(err, msg);
     return;
   }

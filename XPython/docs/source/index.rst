@@ -11,8 +11,8 @@ This is XPPython3 version 4.
 
 * **X-Plane 12**
 
-* **Python3 only**: Python3.11 is recommended. Note that you will have to use the correct version of this
-  plugin to match the version of python installed on your system. We currently support python3.10 and python3.11.
+* **Python3 only**: Python3.12 is recommended. Note that you will have to use the correct version of this
+  plugin to match the version of python installed on your system. We currently support python3.10, python3.11, and python3.12.
 
 .. note::
 

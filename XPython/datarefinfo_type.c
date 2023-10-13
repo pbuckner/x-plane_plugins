@@ -119,7 +119,7 @@ PyDataRefInfo_New(const char *name, int type, int writable, int owner)
 {
   PyObject *argsList = Py_BuildValue("siii", name, type, writable, owner);
   if (PyErr_Occurred() || ! argsList) {
-    fprintf(pythonLogFile, "Failed to create DataRefInfo args list\n");
+    pythonLog("Failed to create DataRefInfo args list\n");
     Py_RETURN_NONE;
   }
   PyObject *obj = PyObject_CallObject((PyObject *) &DataRefInfoType, argsList);

@@ -10,8 +10,7 @@
 #include <Widgets/XPWidgetUtils.h>
 #include <Widgets/XPStandardWidgets.h>
 #include "utils.h"
-
-static void convertMessagePythonToC();
+#include "widgetutils.h"
 
 My_DOCSTR(_createWidgets__doc__, "createWidgets", "widgetDefs, parentID=None",
           "This does not work in X-Plane.");
@@ -48,7 +47,7 @@ static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args, PyObject *k
   XPWidgetCreate_t *defs = malloc(sizeof(XPWidgetCreate_t) * inCount);
 
   if((defs == NULL) || (ioWidgets == NULL)){
-    fprintf(pythonLogFile, "createWidgets, trying to create %d widgets, Out of memory\n", inCount);
+    pythonLog("createWidgets, trying to create %d widgets, Out of memory\n", inCount);
     return Py_None;
   }
 
@@ -61,7 +60,7 @@ static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args, PyObject *k
       if (-1 == asprintf(&msg, "createWidgets, widgetDefs list, definition #%d contains %lld elements, it must contain 9.\n",
                          i+1,
                          (long long)PySequence_Length(defListItem))) {
-        fprintf(pythonLogFile, "Failed to allocate asprintf memory. Create Widgets failed.\n");
+        pythonLog("Failed to allocate asprintf memory. Create Widgets failed.\n");
       }
       PyErr_SetString(PyExc_ValueError , msg);
       free(msg);
@@ -134,7 +133,7 @@ static PyObject *XPUFixedLayoutFun(PyObject *self, PyObject *args, PyObject *kwa
   return ret;
 }
 
-static void convertMessagePythonToC(XPWidgetMessage msg, PyObject *widget, PyObject *param1, PyObject *param2,
+void convertMessagePythonToC(XPWidgetMessage msg, PyObject *widget, PyObject *param1, PyObject *param2,
                                     XPWidgetID *widget_ptr, intptr_t *param1_ptr, intptr_t *param2_ptr)
 {
   /* generically: */
@@ -176,7 +175,7 @@ static void convertMessagePythonToC(XPWidgetMessage msg, PyObject *widget, PyObj
 
   case xpMsg_Reshape:
     /* param1 =  getPtrRef((void *)inParam1, widgetIDCapsules, widgetRefName); */
-    *param1_ptr = (intptr_t) PyCapsule_GetPointer(param1, widgetRefName);
+    *param1_ptr = (intptr_t) refToPtr(param1, widgetRefName);/*PyCapsule_GetPointer(param1, widgetRefName);*/
 
     /* wChange = (XPWidgetGeometryChange_t *)inParam2; */
     /* param2 = Py_BuildValue("(iiii)", wChange->dx, wChange->dy, */
@@ -198,8 +197,7 @@ static void convertMessagePythonToC(XPWidgetMessage msg, PyObject *widget, PyObj
   case xpMsg_PushButtonPressed:
   case xpMsg_ButtonStateChanged:
   case xpMsg_ScrollBarSliderPositionChanged:
-    /* param1 =  getPtrRef((void *)inParam1, widgetIDCapsules, widgetRefName); */
-    *param1_ptr = (intptr_t) PyCapsule_GetPointer(param1, widgetRefName);
+    *param1_ptr = (intptr_t) refToPtr(param1, widgetRefName);
     *param2_ptr = PyLong_AsLong(param2);
     break;
     
@@ -234,7 +232,7 @@ static PyObject *XPUSelectIfNeededFun(PyObject *self, PyObject *args, PyObject *
   int inEatClick=1;
   PyObject *widget = NULL, *param1 = NULL, *param2 = NULL;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iOOO|i", keywords, &inMessage, &widget, &param1, &param2, &inEatClick)){
-    fprintf(pythonLogFile, "Failed to parse tuple in selectIfNeeded()\n");
+    pythonLog("Failed to parse tuple in selectIfNeeded()\n");
     return NULL;
   }
 
@@ -270,7 +268,7 @@ static PyObject *XPUSelectIfNeededFun(PyObject *self, PyObject *args, PyObject *
       mouseState.button = PyLong_AsLong(PySequence_GetItem(param1, 2));
       mouseState.delta = PyLong_AsLong(PySequence_GetItem(param1, 3));
     } else {
-      fprintf(pythonLogFile, "Don't know what param1 is for message %d: %s ", inMessage, Py_TYPE(param1)->tp_name);
+      pythonLog("Don't know what param1 is for message %d: %s ", inMessage, Py_TYPE(param1)->tp_name);
     }
     inParam1 = (intptr_t) &mouseState;
     inParam2 = PyLong_AsLong(param2);

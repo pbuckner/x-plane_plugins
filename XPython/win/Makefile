@@ -29,7 +29,7 @@ PYDEV310=/c/Program\ Files/Python310
 PYDEV311=/c/Program\ Files/Python311
 PYDEV312=/c/Program\ Files/Python312
 
-all : XPPython310.xpl XPPython311.xpl libpython3.dll.a libpython310.dll.a libpython311.dll.a
+all : XPPython310.xpl XPPython311.xpl XPPython312.xpl libpython3.dll.a libpython310.dll.a libpython311.dll.a libpython312.dll.a
 	@echo $^
 
 # Note if you add a new version of python, you may need to manually call make libpython<>.dll.a as

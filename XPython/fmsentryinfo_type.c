@@ -121,7 +121,7 @@ static PyObject *FMSEntryInfo_str(FMSEntryInfoObject *obj) {
   }
   PyObject *ret;
   if (-1==asprintf(&floats, "(%.3f, %.3f) @%d'", obj->lat, obj->lon, obj->altitude)) {
-    fprintf(pythonLogFile, "Failed to allocate memory for asprintf, FMSEntryInfo\n");
+    pythonLog("Failed to allocate memory for asprintf, FMSEntryInfo\n");
   }
   if (obj->type == xplm_Nav_LatLon) {
     ret = PyUnicode_FromFormat("%s: %s", navAidType, floats);

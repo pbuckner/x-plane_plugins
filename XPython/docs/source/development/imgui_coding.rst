@@ -34,22 +34,25 @@ because ``show_demo_window()`` merely calls the C++ method.
 You can copy & paste this directly into the :doc:`/development/debugger`::
 
  >>> from XPPython3 import xp_imgui
- >>> from XPPython3 import imgui
+ >>> import imgui
  >>> def drawWindow(windowID, refCon):
  ...     imgui.show_demo_window()
  ...
  >>> window = xp_imgui.Window(draw=drawWindow, visible=1)
 
 
-However, we've also included the file ``testwindow.py`` under ``XPPython3/imgui`` which
-is work-in-progress rewriting the C++ method fully in python [#F1]_. Look at the python file to see
+For additional reference, pyimgui source (not included) has a ``testwindow.py`` file which
+includes python examples of the full interface. You can get a copy
+from `pyimgui github <https://github.com/pyimgui/pyimgui/blob/master/doc/examples/testwindow.py>`_.
+
+Look at this python file to see
 the actual set of pyimgui calls you can make (e.g., ``imgui.radio_button``, ``imgui.slider_float``).
 refer to `pyimgui's documentation <https://pyimgui.readthedocs.io/en/latest/index.html>`_, especially
 `pyimgui.core <https://pyimgui.readthedocs.io/en/latest/reference/imgui.core.html>`_.
 
  >>> from XPPython3 import xp_imgui
- >>> from XPPython3 import imgui
- >>> from XPPython3.imgui import testwindow
+ >>> import imgui
+ >>> import testwindow  # (you need to download this from github)
  >>> def drawWindow(windowID, refCon):
  ...     testwindow.show_test_window()
  ...
@@ -69,20 +72,26 @@ To run standalone, do this:
 
      $ python3 -m pip install pyopengl pyglet
 
-#. Run sample ``imgui_pyglet.py`` from ``Resources/plugins/PythonPlugins/samples``,
-   picking up pyimgui from ``Resources/plugins/XPPython3``::
+#. Run sample ``imgui_pyglet.py`` from ``Resources/plugins/PythonPlugins/samples``::
 
      $ cd Resources/plugins/PythonPlugins/samples
-     $ PYTHONPATH=<XP>/Resources/plugins/XPPython3
-     $ export PYTHONPATH
      $ python3 imgui_pyglet.py
 
 You can make changes within imgui_pyglet, updating the ``update()`` function to experiment
-with different ImGui functionaliy.
+with different ImGui functionality.
 
 .. image:: /images/imgui_plot.gif
 
-----
+Note *<sigh>*, if you're using python 3.12 and pyglet, there is a bug in the imgui pyglet integration.
+This does not affect X-Plane, but will cause the above example to fail. You can fix this
+by changing :code:`imgui/integrations/pyglet.py`. Remove the deprecated::
 
-.. [#F1] Normally, this test file is shipped as part of the imgui python distribution. I've included
-         it here for convenience, and corrected a few minor bugs.
+  from distutils.version import LooseVersion
+
+and change line::
+
+  if LooseVersion(pyglet.version) < LooseVersion('2.0'):
+
+to::  
+
+  if int(pyglet.version.split('.')[0]) < 2:

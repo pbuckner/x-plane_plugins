@@ -4,14 +4,14 @@ import re
 import os
 import subprocess
 import webbrowser
-from XPPython3 import scriptupdate
-from XPPython3 import xp
-from XPPython3.utils import samples
+from . import scriptupdate
+from . import xp
+from .utils import samples
 
 PLUGIN_MODULE_NAME = 4
 
 
-class Config (scriptupdate.Updater):
+class MyConfig (scriptupdate.Updater):
     Name = "XPPython3 Updater"
     Sig = f"xppython3.{xp.getVersions()[1]}.{sys.version_info.major}.{sys.version_info.minor}"  #{SDK}
     Desc = "Automatic updater for XPPython3 plugin"
@@ -30,7 +30,7 @@ class Config (scriptupdate.Updater):
     internal = True
 
 
-class PythonInterface(Config):
+class PythonInterface(MyConfig):
 
     def __init__(self):
         self.menu = None
@@ -466,7 +466,7 @@ class PythonInterface(Config):
         uptodate, version = self.calc_update(try_beta, current, stable_version, beta_version)
 
         if uptodate:
-            return f"{'Beta' if current == beta_version else 'Stable'} {current} is up-to-date"
+            return f"{'Stable' if current == stable_version else 'Beta'} {current} is up-to-date"
         return f"Update to {'Beta' if version == beta_version else 'Stable'} {version}"
 
     def get_currency(self):
@@ -477,7 +477,7 @@ class PythonInterface(Config):
 
         uptodate, version = self.calc_update(try_beta, current, stable_version, beta_version)
         if uptodate:
-            return f"{'Beta' if current == beta_version else 'Stable'} {current} is up-to-date"
+            return f"{'Stable' if current == stable_version else 'Beta'} {current} is up-to-date"
         return f"{'Beta' if version == beta_version else 'Stable'} {version} is available"
 
     def aboutWidgetCallback(self, inMessage, _inWidget, inParam1, _inParam2):

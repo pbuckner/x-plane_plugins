@@ -72,7 +72,7 @@ static PyObject *WeatherInfoWinds_str(WeatherInfoWindsObject *obj) {
   char *msg = NULL;
   if (-1 == asprintf(&msg, "<WeatherInfoWinds object> %03.0f@%.0f at %.1fm MSL",
                      obj->direction, obj->speed * 1.94384, obj->alt_msl)) {
-    fprintf(pythonLogFile, "Failed to allocate asprintf memory for WeatherInfoWinds.\n");
+    pythonLog("Failed to allocate asprintf memory for WeatherInfoWinds.\n");
     return (PyObject *)obj;
   }
   PyObject *ret = PyUnicode_FromString(msg);

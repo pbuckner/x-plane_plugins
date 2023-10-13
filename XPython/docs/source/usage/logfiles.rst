@@ -40,7 +40,9 @@ If XPPython3 cannot load, you'll see an error in this log file.
 
 Python messages go to :code:`<XP>/XPPython3Log.txt` [#F1]_. You can change location of this logfile
 by setting environment variable :code:`XPPYTHON3_LOG`. Log is re-written each time [#F2]_. If you want to preserve
-the contents of the logfile, set environment variable :code:`XPPYTHON3_PRESERVE`.
+the contents of the logfile, set environment variable :code:`XPPYTHON3_PRESERVE`.  Optionally, these
+values can be set in the initialization file, see :doc:`/development/xppython3.ini`. (The final location
+of the logging file will be indicated in ``Log.txt`` which will indicated the name of the file on python startup.)
 
 If you've changed the log file environment variable, the new log file will be indicated in the
 message in :code:`Log.txt` file (above). If the python log file cannot be opened,

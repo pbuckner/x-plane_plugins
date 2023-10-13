@@ -19,7 +19,7 @@ Installation
 
 Four steps:
 
-1. **Download and install Python 3.11.x**
+1. **Download and install Python 3.12.x**
 
   + https://www.python.org/downloads/
 
@@ -27,7 +27,7 @@ Four steps:
 
      Do not use Python 3.11.1 on Windows. It has a loading bug and will not work.
 
-     Version 3.10.x is okay, 3.11.0 is okay, 3.11.2+ is okay.
+     Version 3.10.x is okay, 3.11.0 is okay, 3.11.2+ is okay, 3.12.x is okay.
 
   **For Windows**
     select "Add Python x.x to PATH" (*PLEASE*. This is the single most common error!)
@@ -54,6 +54,8 @@ Four steps:
 
   Select zipfile based on the version of python you are using:
 
+  +-------------------+----------------------------------------------------------------------------------------------------------------+
+  | For Python 3.12.x |`xp312.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xp312.zip>`_       |
   +-------------------+----------------------------------------------------------------------------------------------------------------+
   | For Python 3.11.x |`xp311.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xp311.zip>`_       |
   +-------------------+----------------------------------------------------------------------------------------------------------------+

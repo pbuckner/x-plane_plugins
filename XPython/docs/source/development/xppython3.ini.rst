@@ -5,12 +5,15 @@ We support an optional file which can be used to alter some internal behavior
 of XPPython3.
 
 You may create the file ``<XP>/Output/preferences/xppython3.ini``. We use the ``Main``
-section indicator and support a few flags. Missing values are set to zero. For example::
+section indicator and support a few flags. Missing values are evaluated as being set to zero where
+appropriate. For example::
 
   [Main]
   debug = 0
   flush_log = 1
   py_verbose = 0
+  log_file_name = MyLogFile.txt
+  log_file_preserve = 0
 
 Flags are:
 
@@ -38,3 +41,17 @@ Flags are:
   Recommend keeping this off unless you just cannot get your plugin loaded, or it appears to be
   loading the "wrong" file. This generates a *lot* of log entries.
 
+* **log_file_name**: This sets the value for the *python* log file. The default value is ``XPPython3Log.txt``,
+  which will be located in the X-Plane root directory, next to ``Log.txt``. If you set this to
+  a bad value (illegal file, file with incorrect permissions, etc.), python information will be sent to standard output.
+  If you set this value to exactly ``Log.txt``, python information will be added directly to X-Plane's
+  ``Log.txt`` file. This has the advantage of adding python output to the built-in X-Plane Dev Console (with
+  the disadvantage of interspersing python information with all the other X-Plane logging messages.)
+  This parameter is identical to the ``XPPYTHON3_LOG`` environment variable. The environment variable, if
+  defined, has precedence.
+
+* **log_file_preserve**: This controls if the python log file is preserved between invocations. Set to "1"
+  and the file is preserved. Set to "0", or not set, and the python log file is truncated on startup.
+  This parameter is identical to the ``XPPYTHON3_PRESERVE`` environment variable. The environment variable, if
+  defined, has precedence. Note that the environment variable is "true" if it is set to *any* value, including 0.
+  If you do not which this behavior be sure to unset the environment variable.

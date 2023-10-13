@@ -10,9 +10,9 @@ extern PyObject *widgetIDCapsules;
 extern PyObject *windowIDCapsules;
 extern PyObject *xppythonDicts;
 extern PyObject *xppythonCapsules;
-extern FILE *pythonLogFile;
 extern int pythonDebugs;
 extern int pythonWarnings;
+extern int pythonFlushLog;
 
 void dbg(const char *msg);
 float getFloatFromTuple(PyObject *seq, Py_ssize_t i);
@@ -29,7 +29,12 @@ char *objToStr(PyObject *item);
 char *objDebug(PyObject *item);
 void pythonLogWarning(const char *msg);
 void pythonDebug(const char *fmt, ...);
+void setLogFile(void);
+void pythonLog(const char *fmt, ...);
+void pythonLogFlush(void);
+void pythonLogClose(void);
 
+extern const char *pythonPluginVersion;
 extern const char *pythonPluginsPath;
 extern const char *pythonInternalPluginsPath;
 void MyPyRun_String(const char *str, int start, PyObject *globals, PyObject *locals);

@@ -6,18 +6,25 @@ which is wrapped by the `pyimgui module <https://pyimgui.readthedocs.io/en/lates
 
 If you're not familiar with **ImGui**, read about the C++ library, and the python module using the links above.
 
-.. note:: To support XPPython3 and X-Plane, we've provided a developer version of python imgui wrapper
-          as part of standard XPPython3 installation in XPPython3/imgui folder. You will not need to install
-          the pyimgui package: You *will* need to include that version of imgui in your code::
+.. note:: Earlier versions of XPPython3  provided a developer version of python imgui wrapper
+          as part of standard XPPython3 installation in XPPython3/imgui folder. This is no longer
+          required, now that pyimgui version 2.0.0 has been made generally available. If you
+          may need to change your plugin's import, if you had explicitly imported the module
+          as::
 
             from XPPython3 import imgui
+
+          change to::
+
+            import imgui
 
 Installation
 ------------
 Our version of imgui requires OpenGL, so everyone (you and all users of your plugin) will need to install
 OpenGL. See :doc:`/development/opengl` for details.
 
-There is nothing else you need to install.
+You will also have to install the standard version of imgui using pip. Note that imgui installation runs a compiler
+and can take a few minutes to install.
 
 Test Plugin
 -----------
@@ -55,7 +62,6 @@ Next, :doc:`imgui_plugin`
 
 ----
 
-.. [#F1] Well, kind-of. The generally available pyimgui package is version 1.4.1 which supports imgui librarion v. 1.65.
-         It has bugs making it incompatible with X-Plane. Fortunately, XPPython3 includes a copy of the developer
-         version of pyimgui 2.0.0 which sucpports imgui library v. 1.82.
+.. [#F1] You'll need at least version 2.0.0 of pyimgui. Earlier versions of the python module had errors making them
+         incompatible with X-Plane.
 

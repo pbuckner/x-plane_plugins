@@ -28,11 +28,14 @@ Known Bugs
      .. note::
         If you are *upgrading* from a previous version of XPPython3, you *should* delete the XPPython3/imgui
         directory, as it is no longer required. However, you (and users of your plugin) *will* need to install
-        the standard python imgui module::
+        the standard python :code:`imgui` module::
 
           $ rm -rf XPPython3/imgui
           $ pip3 install imgui
         
+        Caution: You *do* still need the :code:`xp_imgui` module found under XPPython3. This is required to integrate
+        python imgui and X-Plane!
+
     |
 
 :Improvements:

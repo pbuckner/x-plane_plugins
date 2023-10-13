@@ -16,8 +16,9 @@ try:
 except ImportError:
     print("[XPPython3] OpenGL not found. Use XPPython3 Pip Package Installer to install 'PyOpenGL' package and restart.")
     raise
-from XPPython3 import imgui
-from XPPython3.imgui.integrations.opengl import FixedPipelineRenderer
+import imgui
+from imgui.integrations.opengl import FixedPipelineRenderer
+    
 from XPPython3 import xp
 
 

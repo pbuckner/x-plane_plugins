@@ -48,11 +48,10 @@ Imports
 .......
 To use imgui, you'll need to add two imports::
 
-   from XPPython3 import imgui
+   import imgui
    from XPPython3 import xp_imgui
 
-The first import provides ImGui drawing routines. You need to use the version of ImGui under XPPython3.
-Importing it in this fashion from XPPython3 will guard against possibly loading one from the python site-libraries.
+The first import provides ImGui drawing routines.
 
 The second import provides an X-Plane compatible interface by creating a window into which you will be
 able to draw.
@@ -63,7 +62,7 @@ Simple Example
 You can copy & paste this directly into the :doc:`/development/debugger`:
 
 >>> from XPPython3 import xp_imgui
->>> from XPPython3 import imgui
+>>> import imgui
 >>> def drawWindow(windowID, refCon):
 ...     imgui.button(refCon)
 ...

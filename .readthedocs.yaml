@@ -4,5 +4,5 @@ build:
   tools:
     python: "3.11"
 sphinx:
-  configuration: docs/source/conf.py
+  configuration: XPython/docs/source/conf.py
   

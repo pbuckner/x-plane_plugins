@@ -3,8 +3,8 @@
 PLUGIN_PATH=Resources/plugins/XPPython3
 SDK=400
 XP_SDK=../SDK401
-VERSIONS= 310 311
-XPPYTHONVERSION=4.1.1a2
+VERSIONS= 310 311 312
+XPPYTHONVERSION=4.1.1a5
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
 FMOD=../FMOD
 #########
@@ -145,7 +145,7 @@ else
 endif
 
 
-StandardPythonUtils = Resources/plugins/XPPython3/xp.py Resources/plugins/XPPython3/xp_imgui/ Resources/plugins/XPPython3/I_PI_Updater.py Resources/plugins/XPPython3/scriptupdate.py Resources/plugins/XPPython3/scriptconfig.py Resources/plugins/XPPython3/I_PI_FirstTime.py Resources/plugins/XPPython3/zip_download.py Resources/plugins/XPPython3/imgui/core.cp310-win_amd64.pyd
+StandardPythonUtils = Resources/plugins/XPPython3/xp.py Resources/plugins/XPPython3/xp_imgui/ Resources/plugins/XPPython3/I_PI_Updater.py Resources/plugins/XPPython3/scriptupdate.py Resources/plugins/XPPython3/scriptconfig.py Resources/plugins/XPPython3/I_PI_FirstTime.py Resources/plugins/XPPython3/zip_download.py
 
 Resources/plugins/xp3%.zip: win/XPPython3%.xpl lin/XPPython3%.xpl mac/XPPython3%.xpl $(StandardPythonUtils)
 	# remove old
@@ -161,7 +161,7 @@ Resources/plugins/xp3%.zip: win/XPPython3%.xpl lin/XPPython3%.xpl mac/XPPython3%
 	cp $(filter mac/%, $^) Resources/plugins/XPPython3/mac_x64/XPPython3.xpl
 	cp $(filter lin/%, $^) Resources/plugins/XPPython3/lin_x64/XPPython3.xpl
 	# 1) Create full zip file (e.g., xp3X.zip)
-	# 2) Update that file with imgui stuff
+	# 2) Update that file with imgui stuff -- NO LONGER NEEDED
 	# 3) for win, mac, lin
 	#    a) duplicate zip
 	#    b) delete from zip 'other' architecture file to reduce size
@@ -173,12 +173,11 @@ Resources/plugins/xp3%.zip: win/XPPython3%.xpl lin/XPPython3%.xpl mac/XPPython3%
 	cd Resources/plugins; \
 		$(ZIP) $(notdir $@) -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md XPPython3/xp_imgui/\*.py; \
 		v=`echo $(notdir $@) | sed  's/xp\([0-9]*\).zip/\1/'`; \
-		$(ZIP) $(notdir $@) -u XPPython3/imgui/*.py XPPython3/imgui/integrations/*.py XPPython3/imgui/core*$$v* XPPython3/imgui/internal*$$v* ; \
 		$(ZIP) $(notdir $@) -u XPPython3/utils/*.py ; \
 		$(ZIP) $(notdir $@) -u -r XPPython3/Authori*.app ; \
 		$(ZIP) $(notdir $@) -u XPPython3/version.txt ; \
 		cp $(notdir $@) $(basename $(notdir $@))-win32.zip; \
-		$(ZIP) -d $(basename $(notdir $@))-win32.zip XPPython3/lin_\* XPPython3/mac_\* XPPython3/imgui/core.cpython\*; \
+		$(ZIP) -d $(basename $(notdir $@))-win32.zip XPPython3/lin_\* XPPython3/mac_\*; \
 		cp $(notdir $@) $(basename $(notdir $@))-darwin.zip; \
 		$(ZIP) -d $(basename $(notdir $@))-darwin.zip XPPython3/lin_\* XPPython3/win_\* \*.pyd \*-gnu.so; \
 		cp $(notdir $@) $(basename $(notdir $@))-linux.zip; \
@@ -199,7 +198,8 @@ install_beta : $(zipfiles)
 	#    ... the server code will manage -win32, -darwin and -linux variants
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; \
 		./db_updatemd5.py xp310b.zip $(SDK) "$(XPPYTHONVERSION) - for Python 3.10"; \
-		./db_updatemd5.py xp311b.zip $(SDK) "$(XPPYTHONVERSION) - for Python 3.11"'
+		./db_updatemd5.py xp311b.zip $(SDK) "$(XPPYTHONVERSION) - for Python 3.11"; \
+		./db_updatemd5.py xp312b.zip $(SDK) "$(XPPYTHONVERSION) - for Python 3.12"'
 
 install_remote : $(zipfiles)
 	@if [ "$(BETA)" -gt "0" ]; then \
@@ -209,7 +209,8 @@ install_remote : $(zipfiles)
 	scp Resources/plugins/xp31?{,-darwin,-linux,-win32}.zip pbuck@avnwx.com:/var/www/production/data/x-plane
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; \
 		./db_updatemd5.py xp310.zip $(SDK) "$(XPPYTHONVERSION) - for Python 3.10"; \
-		./db_updatemd5.py xp311.zip $(SDK) "$(XPPYTHONVERSION) - for Python 3.11"'
+		./db_updatemd5.py xp311.zip $(SDK) "$(XPPYTHONVERSION) - for Python 3.11"; \
+		./db_updatemd5.py xp312.zip $(SDK) "$(XPPYTHONVERSION) - for Python 3.12"'
 
 install_sdk : sdk
 	$(ZIP) -R examples examples/\*.py

@@ -3,8 +3,9 @@ build:
   os: "ubuntu-22.04"
   tools:
     python: "3.11"
-      install:
-        requirements: XPython/docs/source/doc_requirements.txt
+python:
+  install:
+    - requirements: XPython/docs/source/doc_requirements.txt
 sphinx:
   configuration: XPython/docs/source/conf.py
   

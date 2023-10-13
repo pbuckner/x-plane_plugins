@@ -36,6 +36,11 @@ Known Bugs
         Caution: You *do* still need the :code:`xp_imgui` module found under XPPython3. This is required to integrate
         python imgui and X-Plane!
 
+   * **Logging Flexibility**. You can now specify python logging information in the 
+     :doc:`/development/xppython3.ini` :code:`xppython3.ini`. This allows you to (among other things) redirect XPPython3 output to
+     X-Plane's Log.txt, which will result in the information also being visible in the X-Plane Dev
+     Console. See :doc:`/development/xppython3.ini` for more information.
+
     |
 
 :Improvements:
@@ -46,6 +51,11 @@ Known Bugs
    * **Plugin Reload** will now skip checking for updated versions. It will check on X-Plane startup only.
      This is primarily to aid python developers, allowing them to quickly reload plugins (saving a few seconds
      each time.)
+
+   * **Tentative Support for X-Plane 11**: This is not fully tested, but changes have been made to the
+     loading code which *should* permit this and future versions of XPPython3 to run on X-Plane 11. Though
+     few, if any, new features are available to XP11 users, this would mean Python version 3.12+ would
+     be usable for X-Plane 11.
      
     |
      

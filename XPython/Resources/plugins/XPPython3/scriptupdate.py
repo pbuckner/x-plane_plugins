@@ -85,12 +85,14 @@ class Updater(Config):
         │{
         │  "<plugin1 signature>": {
         │         "upgrade":      "<optional instructions written to log. "See documentation" if not provided>",
-        │         "autoUpgrade":  "<optional boolean: Can this be auto upgraded, or is user confirmation required? (false if not provided)>",
+        │         "autoUpgrade":  "<optional boolean: Can this be auto upgraded, or is user confirmation required?"
+        |                         "(false if not provided)>",
         │         "version":  "<required stable version string>",
         │         "download": "<required full URL to file to download for stable version>",
         │         "cksum":    "<required md5sum cksum of file to be downloaded>",
         │         "beta_version":  "<optional beta or pre-release version string>",
-        │         "beta_download": "<optional full URL to file to download for beta version. Required if beta_version is provided>",
+        │         "beta_download": "<optional full URL to file to download for beta version. "
+        |                          "Required if beta_version is provided>",
         │         "beta_cksum":    "<optional md5sum cksum of beta file. Required if beta_version is provided>",
         │  },
         │  "<plugin2.signature>": {
@@ -115,14 +117,17 @@ class Updater(Config):
           if available. Otherwise, betas are ignored. (See documentation of Version for format of numbers)
     """
     def __init__(self):
-        self.initial_progress_msg = "Updating {} Plugin".format(self.Name)
+        self.initial_progress_msg = f"Updating {self.Name} Plugin"
         self.final_progress_msg = "Upgrade complete.\nRestart X-Plane to load new version."
         super(Updater, self).__init__()
         self.download_path = os.path.join(xp.getSystemPath(), 'Resources', 'Downloads', self.Sig)
         self.install_path = os.path.join(xp.getSystemPath(), self.plugin_path)
         self.new_version = '<Error>'
         self.beta_version = '<Error>'
-        self.check()
+        if xp.getCycleNumber() == 0:
+            self.check()
+        else:
+            xp.log(f"*** Cyclenumber is {xp.getCycleNumber()=}, skipping update checking")
         self.json_info = {}
 
     def check(self, forceUpgrade=False):
@@ -135,10 +140,10 @@ class Updater(Config):
             try:
                 ret = urlopen(self.VersionCheckURL + ('&beta=y' if self.config.get('beta', False) else ''), data=data)
                 if ret.getcode() != 200:
-                    xp.sys_log("Failed to get {}, returned code: {}".format(self.VersionCheckURL, ret.getcode()))
+                    xp.sys_log(f"Failed to get {self.VersionCheckURL}, returned code: {ret.getcode()}")
                     return
             except URLError as e:
-                xp.log("URLError is {}".format(e))
+                xp.log(f"URLError is {e}")
                 try:
                     if ((isinstance(e.reason, SSLCertVerificationError)
                          and e.reason.reason == 'CERTIFICATE_VERIFY_FAILED'
@@ -154,17 +159,19 @@ class Updater(Config):
                 xp.log("Internet connection error, cannot check version. Will check next time.")
                 return
             except Exception as e:
-                xp.log("Failed with urllib: {}".format(e))
+                xp.log(f"Failed with urllib: {e}")
                 return
             try:
                 data = ret.read()
+                ret.close()
+                del ret
             except Exception as e:
-                xp.log("Failed reading result: {}".format(e))
+                xp.log(f"Failed reading result: {e}")
                 return
             try:
                 self.json_info = json.loads(data)
             except Exception as e:
-                xp.log("Failed converting to json: {}".format(e))
+                xp.log(f"Failed converting to json: {e}")
                 return
             try:
                 info = self.json_info[self.Sig]
@@ -175,7 +182,7 @@ class Updater(Config):
                     else:
                         raise
                 except KeyError as e:
-                    xp.log("Failed to find key: {}".format(e))
+                    xp.log(f"Failed to find key: {e}")
                     return
 
             try:
@@ -192,7 +199,7 @@ class Updater(Config):
             update_which = None if uptodate else ('beta' if version == self.beta_version else 'release')
 
             if update_which:
-                xp.sys_log(">>>>> A new version is available: v.{} -> v.{}.".format(self.Version, version))
+                xp.sys_log(f">>>>> A new version is available: v.{self.Version} -> v.{version}.")
                 if forceUpgrade or (info.get('autoUpgrade', False) and self.config and self.config.get('autoUpgrade', False)):
                     xp.sys_log(">>>>> Automatically upgrading")
                     z = ZipDownload()
@@ -206,9 +213,10 @@ class Updater(Config):
                     else:
                         z.get_zipfile(info['beta_download'], info.get('beta_cksum', None))
                 else:
-                    xp.sys_log(">>>>> To upgrade: {}".format(info.get('upgrade', 'See documentation')))
+                    xp.sys_log(f">>>>> To upgrade: {info.get('upgrade', 'See documentation')}")
             else:
-                xp.log("Version is up to date")
+                xp.log(f"Version is up to date")
+                xp.sys_log(f"Version is up to date")
 
     @staticmethod
     def calc_update(try_beta, current_version, stable_version, beta_version):

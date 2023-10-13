@@ -34,6 +34,7 @@ class ZipDownload:
         self.progressWindow = None
         self.caption = ''
         self.progress = 0
+        self.flightLoopID = None
 
     def get_zipfile(self, download_url, cksum=None):
         num_captions = max(2, len(self.initial_progress_msg.split('\n')), len(self.final_progress_msg.split('\n')))
@@ -51,7 +52,7 @@ class ZipDownload:
         self.progressWindow.show()
         self.update_thread.start()
 
-    def progressFLCallback(self, *args, **kwargs):
+    def progressFLCallback(self, *_args, **_kwargs):
         self.progressWindow.setCaption(self.caption)
         self.progressWindow.setProgress(self.progress)
         if xp.isWidgetVisible(self.progressWindow.progressWindow):
@@ -71,9 +72,9 @@ class ZipDownload:
             if total > 0:
                 p = (chunk * maxChunk) / total
                 self.setProgress(p)
-                self.setCaption("Downloading [{:2.0%}]".format(p))
+                self.setCaption(f"Downloading [{p:2.0%}]")
             else:
-                self.setCaption("Downloading [{}]...".format(self.counter))
+                self.setCaption(f"Downloading [{self.counter}]...")
             self.counter += 1
 
         if self.install_path is None:

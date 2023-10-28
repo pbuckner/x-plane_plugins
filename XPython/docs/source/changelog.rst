@@ -12,6 +12,16 @@ Known Bugs
 
  None (prove me wrong!)
 
+4.1.2 (31-Oct-2023)
+-------------------
+:Fixes:
+   * **Corrected** :py:func:`xp.getWeatherAtLocation` **error detection**. See linked documentation for details.
+     Previously XPPython3 interpreted a zero return from XPLMGetWeatherAtLocation() as an error
+     indicator. Apparently this is not the case, so we now detect error returns differently. We still
+     return ``WeatherInfo`` object on success and ``None`` on failure: the good news is times when
+     we *thought* there were failures we'll now indicate as success. Your code or usage shouldn't change.
+ 
+
 4.1.1 (12-Oct-2023)
 -------------------
 

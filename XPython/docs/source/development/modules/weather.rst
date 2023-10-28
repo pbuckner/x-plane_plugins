@@ -43,12 +43,37 @@ This API provides access to the X-Plane enhanced weather system and requires at 
   
   Returns ``None`` on error or out-of-region.
 
+  .. note::
+
+     The above information is from Laminar's documentation. It needs to be, um, *clarified*.
+
+     * It appears to work fine world-wide, with latitudes +/- 90 degrees and longitudes +/- 180 degrees.
+       Using values outside that range will result in a ``None`` return value.
+
+     * The ``WeatherInfo.detail_found`` attribute, on a successful return, is the *actual*
+       return value from X-Plane's XPLMGetWeatherAtLocation() call. This, I'm told,
+       indicates "if detail weather is found", where *detail weather* refers to the
+       existence of a METAR within about 50 miles of the queried location. It is **not**
+       a success/failure return value of the actual WeatherInfo object.
+
+       What to do with this ``detail_found`` value? Beats me. It won't tell you which METAR
+       is nearby, or which of multiple nearby METARs are used perhaps to alter the world-wide
+       GRIB weather data. Bug Report has been filed requesting clarification.
+
+     Because ``detail_found`` does not indicate success or failure, XPPython3 uses
+     a flag to attempt to detect if data is valid. (We set an internal data structure
+     temperature to -10000.0 degrees and if post-query it is still -10000.0, we assume
+     data was not successfully obtained, and return ``None``.)
+
+     Please, if any of this makes sense to you let me know!
+
   On success, returns a WeatherInfo object:
 
   >>> help(xp.WeatherInfo)
   class WeatherInfo(builtin.object)
   |  ----------------------------------
   |  Data descriptors defined here:
+  |  detail_found:     actual return value from X-Plane XPLMGetWeatherAtLocation()
   |  temperature_alt:  temperature at altitude (Celsius)
   |  dewpoint_alt:     dewpoint at altitude (Celsius)
   |  pressure_alt:     pressure at altitude (Pascals)

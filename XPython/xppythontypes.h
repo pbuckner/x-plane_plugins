@@ -8,7 +8,7 @@ extern PyObject *PyFMSEntryInfo_New(int type, char *navAidID, int ref, int altit
 extern PyObject *PyPluginInfo_New(char *name, char *filePath, char *signature, char *description);
 extern PyObject *PyProbeInfo_New(int result, float locationX, float locationY, float locationZ, float normalX, float normalY, float normalZ, float velocityX, float velocityY, float velocityZ, int is_wet);
 extern PyObject *PyDataRefInfo_New(const char *name, int type, int writable, int owner);
-extern PyObject *PyWeatherInfo_New(float temperature_alt, float dewpoint_alt, float pressure_alt, float precip_rate_alt,
+extern PyObject *PyWeatherInfo_New(int detail_found, float temperature_alt, float dewpoint_alt, float pressure_alt, float precip_rate_alt,
                                    float wind_dir_alt, float wind_spd_alt, float turbulence_alt,
                                    float wave_height, float wave_length, int wave_dir, float wave_speed,
                                    float visibility, float precip_rate, float thermal_climb, float pressure_sl,

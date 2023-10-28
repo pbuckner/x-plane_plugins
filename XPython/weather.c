@@ -38,7 +38,7 @@ static PyObject *XPLMGetMETARForAirportFun(PyObject *self, PyObject *args, PyObj
 
 My_DOCSTR(_getWeatherAtLocation__doc__, "getWeatherAtLocation", "latitude, longitude, altitude_m",
           "Returns current weather conditions at given location.\n"
-          "Note that this does not work world-wide, only within the surrounding region.\n"
+          "Note this appears to work world-wide.\n"
           "\n"
           "Returns WeatherInfo object if detailed weather is found, None otherwise. This call\n"
           "is not intended to be used per-frame.");
@@ -57,10 +57,12 @@ static PyObject *XPLMGetWeatherAtLocationFun(PyObject *self, PyObject *args, PyO
   }
   XPLMWeatherInfo_t out_info;
   out_info.structSize = sizeof(XPLMWeatherInfo_t);
+  out_info.temperature_alt = -10000.0; /* set a bad value & use that to check success/failure of return */
   int ret = XPLMGetWeatherAtLocation_ptr(latitude, longitude, altitude_m, &out_info);
-  if (ret == 0) {
+  if (out_info.temperature_alt == -10000.0) {
     Py_RETURN_NONE;
   }
+
   PyObject *cloud_layers = PyList_New(0);
   for (int i=0; i<3; i++) {
     PyObject *layer = PyWeatherInfoClouds_New(out_info.cloud_layers[i].cloud_type,
@@ -80,7 +82,7 @@ static PyObject *XPLMGetWeatherAtLocationFun(PyObject *self, PyObject *args, PyO
                                               
     PyList_Append(wind_layers, layer);
   }
-  return PyWeatherInfo_New(out_info.temperature_alt, out_info.dewpoint_alt, out_info.pressure_alt, out_info.precip_rate_alt,
+  return PyWeatherInfo_New(ret, out_info.temperature_alt, out_info.dewpoint_alt, out_info.pressure_alt, out_info.precip_rate_alt,
                            out_info.wind_dir_alt, out_info.wind_spd_alt, out_info.turbulence_alt, out_info.wave_height,
                            out_info.wave_length, out_info.wave_dir, out_info.wave_speed, out_info.visibility, out_info.precip_rate,
                            out_info.thermal_climb, out_info.pressure_sl, wind_layers, cloud_layers);

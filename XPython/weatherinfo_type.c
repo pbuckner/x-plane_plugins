@@ -6,6 +6,7 @@
 /* WeatherInfo Type */
 typedef struct {
   PyObject_HEAD
+  int detail_found;
   float temperature_alt;
   float dewpoint_alt;
   float pressure_alt;
@@ -63,11 +64,13 @@ WeatherInfo_dealloc(WeatherInfoObject *self)
 static int
 WeatherInfo_init(WeatherInfoObject *self, PyObject *args, PyObject *kwds)
 {
-  static char *kwlist[] = {"temperature_alt", "dewpoint_alt", "pressure_alt", "precip_rate_alt",
+  static char *kwlist[] = {"detail_found",
+                           "temperature_alt", "dewpoint_alt", "pressure_alt", "precip_rate_alt",
                            "wind_dir_alt", "wind_spd_alt", "turbulence_alt", "wave_height",
                            "wave_length", "wave_dir", "wave_speed", "visibility",
                            "precip_rate", "thermal_climb", "pressure_sl", "wind_layers", "cloud_layers", NULL};
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "fffffffffifffffOO", kwlist,
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "ifffffffffifffffOO", kwlist,
+                                   &self->detail_found,
                                    &self->temperature_alt, &self->dewpoint_alt, &self->pressure_alt, &self->precip_rate_alt,
                                    &self->wind_dir_alt, &self->wind_spd_alt, &self->turbulence_alt, &self->wave_height,
                                    &self->wave_length, &self->wave_dir, &self->wave_speed, &self->visibility,
@@ -78,6 +81,8 @@ WeatherInfo_init(WeatherInfoObject *self, PyObject *args, PyObject *kwds)
 }
 
 static PyMemberDef WeatherInfo_members[] = {
+  {"detail_found", T_INT, offsetof(WeatherInfoObject, detail_found), 0,
+   "Return value from XPLMGetWeatherAtLocation(), 1=\"detailed weather found\""},
   {"temperature_alt", T_FLOAT, offsetof(WeatherInfoObject, temperature_alt), 0, "Temperature at altitude (Celsius)"},
   {"dewpoint_alt", T_FLOAT, offsetof(WeatherInfoObject, dewpoint_alt), 0, "Dewpoint at altitude (Celsius)"},
   {"pressure_alt", T_FLOAT, offsetof(WeatherInfoObject, pressure_alt), 0, "Pressure at altitude (Pascals)"},
@@ -131,12 +136,12 @@ WeatherInfoType = {
 };
 
 PyObject *
-PyWeatherInfo_New(float temperature_alt, float dewpoint_alt, float pressure_alt, float precip_rate_alt,
+PyWeatherInfo_New(int detail_found, float temperature_alt, float dewpoint_alt, float pressure_alt, float precip_rate_alt,
                   float wind_dir_alt, float wind_spd_alt, float turbulence_alt, float wave_height,
                   float wave_length, int wave_dir, float wave_speed, float visibility, float precip_rate,
                   float thermal_climb, float pressure_sl, PyObject *wind_layers, PyObject *cloud_layers)
 {
-  PyObject *argsList = Py_BuildValue("fffffffffifffffOO", temperature_alt, dewpoint_alt, pressure_alt, precip_rate_alt,
+  PyObject *argsList = Py_BuildValue("ifffffffffifffffOO", detail_found, temperature_alt, dewpoint_alt, pressure_alt, precip_rate_alt,
                                      wind_dir_alt, wind_spd_alt, turbulence_alt, wave_height, wave_length,
                                      wave_dir, wave_speed, visibility, precip_rate, thermal_climb, pressure_sl, wind_layers, cloud_layers);
   PyObject *obj = PyObject_CallObject((PyObject *) &WeatherInfoType, argsList);

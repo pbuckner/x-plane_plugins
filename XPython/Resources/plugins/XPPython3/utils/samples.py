@@ -1,5 +1,5 @@
 import os
-import xp
+from XPPython3 import xp
 from XPPython3.zip_download import ZipDownload
 
 

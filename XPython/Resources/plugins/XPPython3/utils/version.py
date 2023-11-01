@@ -67,6 +67,14 @@ class Version:
             stacklevel=2,
         )
 
+    def parse(self, vstring):
+        # abstract
+        pass
+
+    def _cmp(self, other):
+        # abstract
+        pass
+
     def __repr__(self):
         return "{} ('{}')".format(self.__class__.__name__, str(self))
 

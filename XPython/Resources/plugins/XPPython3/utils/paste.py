@@ -26,10 +26,10 @@ def win_paste():
     def clipboard(hwnd):
         t = time.time() + 0.5
         success = False
-        OpenClipboard = ctypes.windll.user32.OpenClipboard
+        OpenClipboard = ctypes.windll.user32.OpenClipboard  # type: ignore
         OpenClipboard.argtypes = [HWND]
         OpenClipboard.restype = BOOL
-        CloseClipboard = ctypes.windll.user32.CloseClipboard
+        CloseClipboard = ctypes.windll.user32.CloseClipboard  # type: ignore
         CloseClipboard.argtypes = []
         CloseClipboard.restype = BOOL
 
@@ -48,7 +48,7 @@ def win_paste():
             CloseClipboard()
 
     CF_UNICODE_TEXT = 13
-    GetClipboardData = ctypes.windll.user32.GetClipboardData
+    GetClipboardData = ctypes.windll.user32.GetClipboardData  # type: ignore
     GetClipboardData.argtypes = [UINT]
     GetClipboardData.restype = HANDLE
 

@@ -1,3 +1,18 @@
+from typing import NewType, Tuple, Union, Optional
+XPLMWidgetID = NewType('XPLMWidgetID', int)
+XPLMWindowID = NewType('XPLMWindowID', int)
+XPLMCommandRef = NewType('XPLMCommandRef', int)
+XPLMMenuID = NewType('XPLMMenuID', int)
+XPLMProbeRef = NewType('XPLMProbeRef', int)
+XPLMObjectRef = NewType('XPLMObjectRef', int)
+XPLMNavRef = NewType('XPLMNavRef', int)
+XPLMMapLayerID = NewType('XPLMMapLayerID', int)
+XPLMMapProjectionID = NewType('XPLMMapProjectionID', int)
+XPLMFlightLoopID = NewType('XPLMFlightLoopID', int)
+XPLMInstanceRef = NewType('XPLMInstanceRef', int)
+XPLMAudioBus = NewType('XPLMAudioBus', int)
+FMOD_STUDIO_SYSTEM = NewType('FMOD_STUDIO_SYSTEM', object)
+FMOD_CHANNELGROUP = NewType('FMOD_CHANNELGROUP', object)
 import XPLMCamera
 controlCamera = XPLMCamera.controlCamera
 dontControlCamera = XPLMCamera.dontControlCamera
@@ -685,6 +700,7 @@ getWidgetDescriptor = XPWidgets.getWidgetDescriptor
 getWidgetUnderlyingWindow = XPWidgets.getWidgetUnderlyingWindow
 setWidgetProperty = XPWidgets.setWidgetProperty
 getWidgetProperty = XPWidgets.getWidgetProperty
+deleteWidgetProperty = XPWidgets.deleteWidgetProperty
 setKeyboardFocus = XPWidgets.setKeyboardFocus
 loseKeyboardFocus = XPWidgets.loseKeyboardFocus
 getWidgetWithFocus = XPWidgets.getWidgetWithFocus

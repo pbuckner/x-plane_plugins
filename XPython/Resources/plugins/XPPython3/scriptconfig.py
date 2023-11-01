@@ -3,16 +3,13 @@ import ssl
 import sys
 import pickle
 
-import XPLMUtilities
-import XPLMProcessing
-import XPPython
-import xp
+from XPPython3 import xp
 
 Name = ''
 
 
 def log(s):
-    elapsedTime = XPLMProcessing.XPLMGetElapsedTime()
+    elapsedTime = xp.getElapsedTime()
     hours = int(elapsedTime / 3600)
     minutes = int(elapsedTime / 60) % 60
     seconds = elapsedTime % 60
@@ -20,11 +17,11 @@ def log(s):
 
 
 def system_log(s):
-    elapsedTime = XPLMProcessing.XPLMGetElapsedTime()
+    elapsedTime = xp.getElapsedTime()
     hours = int(elapsedTime / 3600)
     minutes = int(elapsedTime / 60) % 60
     seconds = elapsedTime % 60
-    XPLMUtilities.XPLMDebugString('{:d}:{:02d}:{:06.3f} [{:s}] {:s}\n'.format(hours, minutes, seconds, Name, s))
+    xp.debugString('{:d}:{:02d}:{:06.3f} [{:s}] {:s}\n'.format(hours, minutes, seconds, Name, s))
     log(s)
 
 
@@ -42,7 +39,7 @@ class Config(object):
         Name = self.Name
         self.new_version = None
 
-        self.plugin_path = os.path.join(XPPython.INTERNALPLUGINSPATH, '..') if self.internal else XPPython.PLUGINSPATH
+        self.plugin_path = os.path.join(xp.INTERNALPLUGINSPATH, '..') if self.internal else xp.PLUGINSPATH
 
         system_log('+++++ {} v{} +++++'.format(self.Name, self.Version))
         system_log("Python version is {}.{}.{} / OpenSSL is {}".format(sys.version_info.major,
@@ -53,7 +50,7 @@ class Config(object):
         self.config = dict(self.defaults)
 
         if self.ConfigFilename and self.ConfigFilename != 'example.pkl':
-            self.filename = os.path.join(XPPython.INTERNALPLUGINSPATH if self.internal else XPPython.PLUGINSPATH, self.ConfigFilename)
+            self.filename = os.path.join(xp.INTERNALPLUGINSPATH if self.internal else xp.PLUGINSPATH, self.ConfigFilename)
             try:
                 with open(self.filename, 'rb') as fp:
                     self.config.update(pickle.load(fp))

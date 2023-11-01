@@ -242,6 +242,11 @@ Functions
     not normally run, and this may adversely affect performance, so do not
     leave error callbacks installed in shipping plugins.
 
+    Error callbacks can be defined for *each "real" plugin*, but as all XPPython3 python plugins
+    appear as a single plugin to X-Plane, there can be *only one error callback* for all
+    XPPython3 plugins. Additional calls to :py:func:`setErrorCallback` will replace the previous
+    callback with the new callback (for all XPPython3 plugins).
+    
     >>> def MyCallback(msg):
     ...   xp.log(msg)
     ...
@@ -249,7 +254,7 @@ Functions
     
     .. note:: We *automatically* enable a standard error callback on BETA builds
               of XPPython3, and will enable this same callback on released builds
-              if you enable ``debug`` in the preferences file. See :doc:`xppython3.ini`_.
+              if you enable ``debug`` in the preferences file. See :doc:`/development/xppython3.ini`.
 
               This standard callback prints the error to the python log. You do
               not need to call ``setErrorCallback`` for this feature.

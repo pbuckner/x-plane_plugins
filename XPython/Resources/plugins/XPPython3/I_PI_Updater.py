@@ -1,13 +1,22 @@
+from typing import Union, TypedDict
+import threading
+import queue
 import sys
 import urllib
 import re
 import os
 import subprocess
 import webbrowser
-from . import scriptupdate
-from . import xp
-from .utils import samples
+from XPPython3 import scriptupdate
+from XPPython3 import xp
+from XPPython3.utils import samples
+from XPPython3.XPListBox import XPCreateListBox
+from XPPython3.ui.popups import Popup, ScrollingPopup
 
+class MyWidgetWindow(TypedDict):
+    widgetID: Union[xp.XPLMWidgetID, None]
+    widgets: dict
+    
 PLUGIN_MODULE_NAME = 4
 
 
@@ -42,7 +51,7 @@ class PythonInterface(MyConfig):
         self.aboutWindow = None
         self.performanceWindow = None
         self.status_idx = 0
-        self.stats = []
+        self.stats = {}
         self.updateMenuIdx = None
         self.frame_rate_period_dref = xp.findDataRef('sim/time/framerate_period')
         super(PythonInterface, self).__init__()
@@ -242,8 +251,8 @@ class PythonInterface(MyConfig):
         return 1
 
     def createPerformanceWindow(self):
-        widgetWindow = {'widgetID': None,
-                        'widgets': {}}
+        widgetWindow: MyWidgetWindow = {'widgetID': None,
+                                        'widgets': {}}
         fontID = xp.Font_Proportional
         _w, strHeight, _ignore = xp.getFontDimensions(fontID)
         data = sorted([x[PLUGIN_MODULE_NAME] for x in xp.pythonGetDicts()['plugins'].values()])
@@ -339,8 +348,8 @@ class PythonInterface(MyConfig):
         return 0
 
     def createAboutWindow(self):
-        widgetWindow = {'widgetID': None,
-                        'widgets': {}}
+        widgetWindow: MyWidgetWindow = {'widgetID': None,
+                                        'widgets': {}}
         left = 100
         top = 300
         width = 525
@@ -514,8 +523,8 @@ class PythonInterface(MyConfig):
         return 0
 
     def createPipWindow(self):
-        widgetWindow = {'widgetID': None,
-                        'widgets': {}}
+        widgetWindow : MyWidgetWindow = {'widgetID': None,
+                                         'widgets': {}}
         box_left = 100
         box_right = 500
         top = 300
@@ -584,70 +593,56 @@ class PythonInterface(MyConfig):
             xp.hideWidget(self.pipWindow['widgetID'])
             return 1
 
-        if inMessage == xp.Msg_PushButtonPressed:
-            if inParam1 == self.pipWindow['widgets']['button']:
-                s = xp.getWidgetDescriptor(self.pipWindow['widgets']['packages'])
-                packages = list(filter(lambda x: x != '', re.split('[, ]+', s)))
-                print(f"Looking to install packages: {packages}")
-                if packages:
-                    xp.setWidgetDescriptor(self.pipWindow['widgets']['error'],
-                                           f"Looking to install packages: {' '.join(packages)}")
-                    cmd = [xp.pythonExecutable, '-m', 'pip', 'install', '--user'] + packages
-                    print(f"Calling pip as: {' '.join(cmd)}")
-                    try:
-                        xp.setWidgetDescriptor(self.pipWindow['widgets']['error'], "Running pip... please wait.")
-                        output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
-                        xp.setWidgetDescriptor(self.pipWindow['widgets']['error'], "Execution complete.")
-                        print(f"From pip:\n{output.decode('utf-8')}")
-                        output = output.decode('utf-8').split('\n')
-                    except subprocess.CalledProcessError as e:
-                        print(f"Calling pip failed: [{e.returncode}]: {e.output.decode('utf-8')}")
-                        xp.setWidgetDescriptor(self.pipWindow['widgets']['error'], "Failed: Error while executing pip.")
-                        output = e.output.decode('utf-8').split('\n')
-                    popupWindow('PIP output', output)
+        execute = False
+        if any([inMessage == xp.Msg_KeyPress and inParam1[2] == xp.VK_RETURN and inParam1[1] & xp.DownFlag,
+                inMessage == xp.Msg_PushButtonPressed and inParam1 == self.pipWindow['widgets']['button']]):    
+            s = xp.getWidgetDescriptor(self.pipWindow['widgets']['packages'])
+            packages = list(filter(lambda x: x != '', re.split('[, ]+', s)))
+            xp.log(f"Looking to install packages: {packages}")
+            if packages:
+                xp.setWidgetDescriptor(self.pipWindow['widgets']['error'],
+                                       f"Looking to install packages: {' '.join(packages)}")
+                cmd = [xp.pythonExecutable, '-m', 'pip', 'install', '--user'] + packages
+                self.startPipCall(cmd)
 
-                xp.setWidgetDescriptor(self.pipWindow['widgets']['packages'], '')
+            xp.setWidgetDescriptor(self.pipWindow['widgets']['packages'], '')
             return 1
 
         return 0
 
+    def startPipCall(self, cmd):
+        self.pip_output_popup = ScrollingPopup("PIP Output", 100, 400, 600, 100)
+        self.q : queue.Queue = queue.Queue()
+        t = threading.Thread(name="pip", target=pip, args=[cmd, self.q])
+        t.start()
+        self.pipWindowLoopID = xp.createFlightLoop(self.pipWindowLoop, refCon=self.q)
+        xp.scheduleFlightLoop(self.pipWindowLoopID, -1)
 
-def popupCallback(inMessage, inWidget, _inParam1, _inParam2):
-    if inMessage == xp.Message_CloseButtonPushed:
-        xp.hideWidget(inWidget)
-        return 1
-    return 0
+    def pipWindowLoop(self, since, elapsed, counter, q):
+        try:
+            line = q.get_nowait()
+            if line == '[DONE]':
+                self.pip_output_popup.add(" -- [Completed] --")
+                for i in self.pip_output_popup.get_data():
+                    xp.log(f"PIP>> {i}")
+                self.pip_output_popup.add("This information has been added to XPPython3 log file.")
+                return 0
+            self.pip_output_popup.add(line)
+        except queue.Empty:
+            pass
+        return -10  # Check again in 10 frames
 
-
-def popupWindow(title, lines):
-    """
-    Simple popup window with title & closebuttons, and multiple lines displayed
-    Window is _sized_to_fit_ all lines, without scrolling.
-    So do not use this if a line is going to be wider than the screen,
-    or if there are so many lines it won't fit vertically. I do not error check.
-    """
-    fontID = xp.Font_Proportional
-    _w, strHeight, _ignore = xp.getFontDimensions(fontID)
-
-    left = 100
-    bottom = 400
-    top = bottom + 25
-    widest = 10
-    for line in lines:
-        top += strHeight + 4
-        widest = max(widest, xp.measureString(fontID, line.strip()))
-
-    main = xp.createWidget(left, top, int(left + widest + 10), bottom,
-                           1, title, 1, 0, xp.WidgetClass_MainWindow)
-    xp.setWidgetProperty(main, xp.Property_MainWindowHasCloseBoxes, 1)
-    xp.addWidgetCallback(main, popupCallback)
-
-    left += 4
-    top -= 20
-    for line in lines:
-        bottom = top - strHeight
-        right = int(left + xp.measureString(fontID, line.strip()))
-        xp.createWidget(left, top, right, bottom,
-                        1, line.strip(), 0, main,
-                        xp.WidgetClass_Caption)
-        top -= strHeight + 4
+def pip(cmd, q):
+    xp.log(f"Doing {' '.join(cmd)}")
+    q.put(f"$ {' '.join(cmd)}")
+    with subprocess.Popen(cmd,
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.STDOUT,
+                          bufsize=1,
+                          universal_newlines=True) as sub:
+        for line in sub.stdout:
+            if line[-1] == '\n':
+                line = line[:-1]
+            q.put(line)
+    xp.log("All done")
+    q.put('[DONE]')

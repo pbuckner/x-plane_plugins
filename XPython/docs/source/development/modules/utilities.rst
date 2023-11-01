@@ -247,7 +247,12 @@ Functions
     ...
     >>> xp.setErrorCallback(MyCallback)
     
-    .. note:: This seems more geared toward C programming than python.
+    .. note:: We *automatically* enable a standard error callback on BETA builds
+              of XPPython3, and will enable this same callback on released builds
+              if you enable ``debug`` in the preferences file. See :doc:`xppython3.ini`_.
+
+              This standard callback prints the error to the python log. You do
+              not need to call ``setErrorCallback`` for this feature.
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMSetErrorCallback>`__ :index:`XPLMSetErrorCallback`
 

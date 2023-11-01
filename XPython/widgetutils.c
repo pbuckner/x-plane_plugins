@@ -136,6 +136,7 @@ static PyObject *XPUFixedLayoutFun(PyObject *self, PyObject *args, PyObject *kwa
 void convertMessagePythonToC(XPWidgetMessage msg, PyObject *widget, PyObject *param1, PyObject *param2,
                                     XPWidgetID *widget_ptr, intptr_t *param1_ptr, intptr_t *param2_ptr)
 {
+  errCheck("prior convertMesssagePythonToC");
   /* generically: */
   *widget_ptr = refToPtr(widget, widgetRefName);
 
@@ -203,19 +204,18 @@ void convertMessagePythonToC(XPWidgetMessage msg, PyObject *widget, PyObject *pa
     
   case xpMsg_PropertyChanged:
     *param1_ptr = PyLong_AsLong(param1);
-    if (*param1_ptr >= xpProperty_UserStart) {
-      // use inParam2 -- it's already python
-      /* param2 = (PyObject*)inParam2; */
-      *param2_ptr = (intptr_t)param2;
-    } else {
-      *param2_ptr = PyLong_AsLong(param2);
-    }
+    // use inParam2 -- it's already python
+    /* param2 = (PyObject*)inParam2; */
+    *param2_ptr = *param1_ptr >= xpProperty_UserStart ? (intptr_t)param2 : PyLong_AsLong(param2);
+    errCheck("Failed to convert param2 pointer for msg %d", msg);
     break;
   default:
-    *param1_ptr = PyLong_AsLong(param1);
-    *param2_ptr = PyLong_AsLong(param2);
+    *param1_ptr = PyLong_Check(param1) ? PyLong_AsLong(param1) : (intptr_t) param1;
+    *param2_ptr = PyLong_Check(param2) ? PyLong_AsLong(param2) : (intptr_t) param2;
+    errCheck("Failed to convert param pointers for msg %d", msg);
     break;
   }
+  errCheck("end convertMesssagePythonToC");
 }
 
 My_DOCSTR(_selectIfNeeded__doc__, "selectIfNeeded", "message, widgetID, param1, param2, eatClick=1",

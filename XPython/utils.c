@@ -118,6 +118,7 @@ void pythonLog(const char *fmt, ...) {
 }
 
 void pythonDebug(const char *fmt, ...) {
+  /* DO NOT include terminating new line */
   if (pythonDebugs) {
     char *msg;
     va_list ap;
@@ -134,6 +135,7 @@ void pythonDebug(const char *fmt, ...) {
 }
 
 void pythonLogWarning(const char *msg) {
+  /* DO NOT include terminating new line */
   if (pythonWarnings) {
     PyObject *python_line = get_pythonline();
     pythonLog("WARNING>> %s: %s\n", objToStr(python_line), msg);
@@ -255,6 +257,7 @@ void pythonLogException()
 }
 
 char * objToStr(PyObject *item) {
+  errCheck("prior objToStr");
   // returns char * pointer to something in heap
   PyObject *pyAsStr = PyObject_Str(item); // new object
   PyObject *pyBytes = PyUnicode_AsEncodedString(pyAsStr, "utf-8", "replace"); // new object
@@ -269,6 +272,7 @@ char * objToStr(PyObject *item) {
   res = strdup(res); // allocated on heap
   Py_DECREF(pyAsStr);
   Py_DECREF(pyBytes);
+  errCheck("end objToStr");
   return res;
 }
   
@@ -378,61 +382,86 @@ PyObject *get_pythonline() {
 // Can be used where no callbacks are involved in passing the capsule
 PyObject *getPtrRefOneshot(void *ptr, const char *refName)
 {
-  if(ptr){
-    return PyCapsule_New(ptr, refName, NULL);
-  }else{
+  if(!ptr){
     Py_RETURN_NONE;
   }
+  errCheck("prior getPtrRefOneshot: %s", refName);
+  PyObject *ret = PyCapsule_New(ptr, refName, NULL);
+  errCheck("end getPtrRefOneShot");
+  return ret;
 }
 
 PyObject *getPtrRef(void *ptr, PyObject *dict, const char *refName)
 {
+  /* converts a 'C' pointer to a Capsule reference of <refName> type,
+     IF, pointer has been convereted before, we return the given Capsule.
+     ELSE, we create a new capsule, storing info in dict, for later retrieval.
+  */
   if(!ptr){
     Py_RETURN_NONE;
   }
   // Check if the refernece is known
+  errCheck("prior getPtrRef %s", refName);
   PyObject *key = PyLong_FromVoidPtr(ptr);
+#if ERRCHECK
+  PyObject *tuple = PyDict_GetItem(dict, key);
+  PyObject *res = tuple == NULL ? NULL : PyTuple_GetItem(tuple, 0);
+#else
   PyObject *res = PyDict_GetItem(dict, key);
+#endif
   if(res == NULL){
     // New ref, register it
     res = getPtrRefOneshot(ptr, refName);
+    char *res_s = objToStr(res);
+    pythonLog("  (registering %s for %p)\n", res_s, ptr);
+    free(res_s);
+#if ERRCHECK
+    PyObject *tuple = PyTuple_Pack(2, res, get_module());
+    PyDict_SetItem(dict, key, tuple);
+#else
     PyDict_SetItem(dict, key, res);
+#endif
   }
   Py_INCREF(res);
+  errCheck("end getPtrRef");
   return res;
 }
 
 void *refToPtr(PyObject *ref, const char *refName)
 {
+  errCheck("prior refToPtr %s", refName);
   /* XPLMWidgetID can be 0, refering to underlying X-Plane window, need to keep that */
   if (ref == Py_None) return NULL;
   if (refName == NULL) {
     refName = PyCapsule_GetName(ref);
+    errCheck("Bad PyCapsule_GetName()");
   }
   if (!strcmp(widgetRefName, refName) && PyLong_Check(ref) && PyLong_AsLong(ref) == 0) {
     return NULL;
-  }else{
-    void *ptr = PyCapsule_GetPointer(ref, refName);
-    if (pythonDebugs) {
-      PyObject *err = PyErr_Occurred();
-      if(err){
-        pythonLogException();
-        pythonLog("Failed to convert '%s' capsule (%s) to pointer\n", refName, objToStr(ref));
-        return NULL;
-      }
-    }
-    return ptr;
   }
+  void *ptr = PyCapsule_GetPointer(ref, refName);
+  if (pythonDebugs) {
+    PyObject *err = PyErr_Occurred();
+    if(err){
+      pythonLogException();
+      pythonDebug("Failed to convert '%s' capsule (%s) to pointer\n", refName, objToStr(ref));
+      return NULL;
+    }
+  }
+  errCheck("end refToPtr");
+  return ptr;
 }
 
 void removePtrRef(void *ptr, PyObject *dict)
 {
+  errCheck("prior removePtrRef");
   if(!ptr){
     return;
   }
   PyObject *key = PyLong_FromVoidPtr(ptr);
   PyDict_DelItem(dict, key);
   Py_DECREF(key);
+  errCheck("end removePtrRef");
 }
 
 /* char *get_module(PyThreadState *tstate) { */
@@ -480,4 +509,23 @@ void MyPyRun_String(const char *str, int start, PyObject *globals, PyObject *loc
   PyObject *codeObj = Py_CompileString(str, "<input>", start);
   PyEval_EvalCode(codeObj, globals, locals);
   Py_DECREF(codeObj);
+}
+
+void errCheck_f(const char *fmt, ...) {
+  /* (you should NOT include terminating new line!) */
+  char *msg;
+  va_list ap;
+  PyObject *err = PyErr_Occurred();
+  if (err) {
+    va_start(ap, fmt);
+    if (-1 == vasprintf(&msg, fmt, ap)) {
+      msg = "Failed to allocation vasprintf memory in errCheck\n";
+      pythonLog(msg);
+      return;
+    }
+    va_end(ap);
+
+    pythonLog("%s\n", msg);
+    pythonLogException();
+  }
 }

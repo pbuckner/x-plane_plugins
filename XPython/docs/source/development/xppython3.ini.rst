@@ -21,6 +21,9 @@ Flags are:
   and provide more detailed warning messages which may help pin-point plugin coding
   errors. "0" is do not print.
 
+  When this feature is enabled, We also enable the built-in X-Plane error callback, which performs
+  additional run-time error checking and will forward these errors to the python log.
+
   Recommend keeping this off unless you either don't appear to be able to load your python plugin, or
   your plugin crashes yet the printed exception isn't detailed enough. Otherwise, this options puts
   a lot of extra noise in the XPPython3Log.txt file, which may make it harder to debug your code.

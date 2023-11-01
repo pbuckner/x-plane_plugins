@@ -1,5 +1,5 @@
 from typing import Union, Callable, Any
-from xp_hinting import XPLMMenuID, XPLMCommandRef
+from XPPython3.xp import XPLMMenuID, XPLMCommandRef
 
 Menu_NoCheck = 0
 Menu_Unchecked = 1

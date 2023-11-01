@@ -1,5 +1,5 @@
 from typing import Union, Literal, Union
-from xp_hinting import XPLMNavRef
+from XPPython3.xp import XPLMNavRef
 Nav_Unknown = 0
 Nav_Airport = 1
 Nav_NDB = 2

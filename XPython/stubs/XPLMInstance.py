@@ -1,5 +1,5 @@
 from typing import Sequence, Tuple, Union
-from xp_hinting import XPLMObjectRef, XPLMInstanceRef
+from XPPython3.xp import XPLMInstanceRef, XPLMObjectRef
 
 
 def createInstance(obj: XPLMObjectRef, datarefs: Union[None, Sequence[str]] = None) -> XPLMInstanceRef:

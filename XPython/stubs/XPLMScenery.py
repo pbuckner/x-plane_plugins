@@ -1,5 +1,5 @@
 from typing import Any, Union, Callable
-from xp_hinting import XPLMProbeRef, XPLMObjectRef
+from XPPython3.xp import XPLMProbeRef, XPLMObjectRef
 
 ProbeY = 0
 ProbeHitTerrain = 0

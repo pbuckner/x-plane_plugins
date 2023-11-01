@@ -1,5 +1,5 @@
 from typing import Tuple, Sequence, Callable, Union, Any
-from xp_hinting import XPLMCommandRef
+from XPPython3.xp import XPLMCommandRef
 
 Host_Unknown = 0
 Host_XPlane = 1

@@ -1,4 +1,4 @@
-from xp_hinting import *
+from XPPython3.xp import XPLMWidgetID, XPLMWindowID
 from typing import Callable, NewType, Any, Union, Literal, Tuple
 
 def createWidget(left: int, top: int, right: int, bottom: int,
@@ -93,8 +93,8 @@ def getWidgetDescriptor(widgetID: XPLMWidgetID) -> str:
     return str()
 
 
-def getWidgetUnderlyingWindow(widgetID: XPLMWidgetID) -> Union[None, XPWindowID]:
-    return XPWindowID(0)  # XPWindowID
+def getWidgetUnderlyingWindow(widgetID: XPLMWidgetID) -> Union[None, XPLMWindowID]:
+    return XPLMWindowID(0)
 
 
 def setWidgetProperty(widgetID: XPLMWidgetID, propertyID: int, value: Any = None) -> None:
@@ -103,6 +103,9 @@ def setWidgetProperty(widgetID: XPLMWidgetID, propertyID: int, value: Any = None
 
 def getWidgetProperty(widgetID: XPLMWidgetID, propertyID: int, exists: Union[None, Literal[-1], list] = -1) -> Any:
     return Any  # pointer to property
+
+def deleteWidgetProperty(widgetID: XPLMWidgetID, propertyID: int) -> Union[bool, None]:
+    return bool()  # delete successful
 
 
 def setKeyboardFocus(widgetID: XPLMWidgetID) ->  Union[Literal[0], XPLMWidgetID]:

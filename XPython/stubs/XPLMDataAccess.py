@@ -1,4 +1,3 @@
-from xp_hinting import *
 from typing import Callable, NewType, Any, Union, List
 # XPLMDataTypeID bitfield is used to identify the type of data:
 Type_Unknown = 0  #: Data of a type the current XPLM doesn't do.

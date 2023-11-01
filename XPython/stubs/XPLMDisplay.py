@@ -1,5 +1,5 @@
 from typing import Tuple, Callable, Union, Any
-from xp_hinting import XPWindowID
+from XPPython3.xp import XPLMWindowID
 Phase_Modern3D = 31
 Phase_FirstCockpit = 35
 Phase_Panel = 40
@@ -77,19 +77,19 @@ def createWindowEx(left: int = 100,
                    right: int = 200,
                    bottom: int = 100,
                    visible: int = 0,
-                   draw: Union[None, Callable[[XPWindowID, Any], None]] = None,
-                   click: Union[None, Callable[[XPWindowID, int, int, int, Any], int]] = None,
-                   key: Union[None, Callable[[XPWindowID, int, int, int, Any, int], None]] = None,
-                   cursor: Union[None, Callable[[XPWindowID, int, int, Any], int]] = None,
-                   wheel: Union[None, Callable[[XPWindowID, int, int, int, int, Any], int]] = None,
+                   draw: Union[None, Callable[[XPLMWindowID, Any], None]] = None,
+                   click: Union[None, Callable[[XPLMWindowID, int, int, int, Any], int]] = None,
+                   key: Union[None, Callable[[XPLMWindowID, int, int, int, Any, int], None]] = None,
+                   cursor: Union[None, Callable[[XPLMWindowID, int, int, Any], int]] = None,
+                   wheel: Union[None, Callable[[XPLMWindowID, int, int, int, int, Any], int]] = None,
                    refCon: Any = None,
                    decoration: int = WindowDecorationRoundRectangle,
                    layer: int = WindowLayerFloatingWindows,
-                   rightClick: Union[None, Callable[[XPWindowID, int, int, int, Any], int]] = None) -> XPWindowID:
-    return XPWindowID(0)
+                   rightClick: Union[None, Callable[[XPLMWindowID, int, int, int, Any], int]] = None) -> XPLMWindowID:
+    return XPLMWindowID(0)
 
 
-def destroyWindow(windowID: XPWindowID) -> None:
+def destroyWindow(windowID: XPLMWindowID) -> None:
     return
 
 
@@ -113,84 +113,84 @@ def getMouseLocationGlobal() -> Tuple[int, int]:
     return int(), int()  # x, y
 
 
-def getWindowGeometry(windowID: XPWindowID) -> Tuple[int, int, int, int]:
+def getWindowGeometry(windowID: XPLMWindowID) -> Tuple[int, int, int, int]:
     return int(), int(), int(), int()  # left, top, right, bottom
 
 
-def setWindowGeometry(windowID: XPWindowID, left: int, top: int, right: int, bottom: int) -> None:
+def setWindowGeometry(windowID: XPLMWindowID, left: int, top: int, right: int, bottom: int) -> None:
     return
 
 
-def getWindowGeometryOS(windowID: XPWindowID) -> Tuple[int, int, int, int]:
+def getWindowGeometryOS(windowID: XPLMWindowID) -> Tuple[int, int, int, int]:
     return int(), int(), int(), int()  # left, top, right, bottm
 
 
-def setWindowGeometryOS(windowID: XPWindowID, left: int, top: int, right: int, bottom: int) -> None:
+def setWindowGeometryOS(windowID: XPLMWindowID, left: int, top: int, right: int, bottom: int) -> None:
     return
 
 
-def getWindowGeometryVR(windowID: XPWindowID) -> Tuple[int, int]:
+def getWindowGeometryVR(windowID: XPLMWindowID) -> Tuple[int, int]:
     return int(), int()  # widthBoxels, heightBoxels
 
 
-def setWindowGeometryVR(windowID: XPWindowID, width: int, height: int) -> None:
+def setWindowGeometryVR(windowID: XPLMWindowID, width: int, height: int) -> None:
     return
 
 
-def getWindowIsVisible(windowID: XPWindowID) -> int:
+def getWindowIsVisible(windowID: XPLMWindowID) -> int:
     return int()  # 1=visible
 
 
-def setWindowIsVisible(windowID: XPWindowID, visible: int = 1) -> None:
+def setWindowIsVisible(windowID: XPLMWindowID, visible: int = 1) -> None:
     return
 
 
-def windowIsPoppedOut(windowID: XPWindowID) -> int:
+def windowIsPoppedOut(windowID: XPLMWindowID) -> int:
     return int()  # 1=True
 
 
-def windowIsInVR(windowID: XPWindowID) -> int:
+def windowIsInVR(windowID: XPLMWindowID) -> int:
     return int()  # 1=True
 
 
-def setWindowGravity(windowID: XPWindowID, left: float, top: float, right: float, bottom: float) -> None:
+def setWindowGravity(windowID: XPLMWindowID, left: float, top: float, right: float, bottom: float) -> None:
     return
 
 
-def setWindowResizingLimits(windowID: XPWindowID, minWidth: int = 0, minHeight: int = 0,
+def setWindowResizingLimits(windowID: XPLMWindowID, minWidth: int = 0, minHeight: int = 0,
                             maxWidth: int = 10000, maxHeight: int = 10000) -> None:
     return
 
 
-def setWindowPositioningMode(windowID: XPWindowID, mode: int, index: int = -1) -> None:
+def setWindowPositioningMode(windowID: XPLMWindowID, mode: int, index: int = -1) -> None:
     return
 
 
-def setWindowTitle(windowID: XPWindowID, title: str) -> None:
+def setWindowTitle(windowID: XPLMWindowID, title: str) -> None:
     return
 
 
-def getWindowRefCon(windowID: XPWindowID) -> Any:
+def getWindowRefCon(windowID: XPLMWindowID) -> Any:
     return Any  # refcon
 
 
-def setWindowRefCon(windowID: XPWindowID, refCon: Any) -> None:
+def setWindowRefCon(windowID: XPLMWindowID, refCon: Any) -> None:
     return
 
 
-def takeKeyboardFocus(windowID: XPWindowID) -> None:
+def takeKeyboardFocus(windowID: XPLMWindowID) -> None:
     return
 
 
-def hasKeyboardFocus(windowID: XPWindowID) -> int:
+def hasKeyboardFocus(windowID: XPLMWindowID) -> int:
     return int()  # 1=window has focus;
 
 
-def bringWindowToFront(windowID: XPWindowID) -> None:
+def bringWindowToFront(windowID: XPLMWindowID) -> None:
     return
 
 
-def isWindowInFront(windowID: XPWindowID) -> int:
+def isWindowInFront(windowID: XPLMWindowID) -> int:
     return int()  # 1=True
 
 

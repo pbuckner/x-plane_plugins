@@ -1,5 +1,5 @@
 from typing import Callable, Any
-from xp_hinting import XPLMFlightLoopID
+from XPPython3.xp import XPLMFlightLoopID
 FlightLoop_Phase_BeforeFlightModel = 0
 FlightLoop_Phase_AfterFlightModel = 1
 

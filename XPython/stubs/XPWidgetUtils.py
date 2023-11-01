@@ -1,5 +1,5 @@
 from typing import Any
-from xp_hinting import XPLMWidgetID
+from XPPython3.xp import XPLMWidgetID
 
 NO_PARENT    = -1
 PARAM_PARENT = -2

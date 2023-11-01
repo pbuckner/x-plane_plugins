@@ -1,5 +1,5 @@
 from typing import Any, Union, Callable, Tuple
-from xp_hinting import XPLMMapLayerID, XPLMMapProjectionID
+from XPPython3.xp import XPLMMapLayerID, XPLMMapProjectionID
 
 MapStyle_VFR_Sectional = 0
 MapStyle_IFR_LowEnroute = 1

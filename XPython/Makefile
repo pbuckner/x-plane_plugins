@@ -4,7 +4,7 @@ PLUGIN_PATH=Resources/plugins/XPPython3
 SDK=400
 XP_SDK=../SDK401
 VERSIONS= 310 311 312
-XPPYTHONVERSION=4.1.1
+XPPYTHONVERSION=4.1.2a
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
 FMOD=../FMOD
 #########
@@ -13,6 +13,12 @@ FMOD=../FMOD
 CFLAGS=-Wall -Wextra -g -fpic -fPIC -fvisibility=hidden -DXPPYTHON3VERSION=\"$(XPPYTHONVERSION)\"
 XPLM_CPPFLAGS = -DXPLM200 -DXPLM210 -DXPLM300 -DXPLM301 -DXPLM302 -DXPLM303 -DXPLM400 \
                 -I$(XP_SDK)/CHeaders -I$(XP_SDK)/CHeaders/XPLM -I$(XP_SDK)/CHeaders/Widgets -I$(FMOD)/api/core/inc -I$(FMOD)/api/studio/inc
+# "BETA" make errCheck() function execute. Otherwise it is removed during compilation
+ifeq ($(BETA), "0")
+  CFLAGS+= -DERRCHECK=0
+else
+  CFLAGS+= -DERRCHECK=1
+endif
 ZIP=zip
 
 ##########
@@ -63,6 +69,12 @@ ifeq ($(TARGET), Darwin)
   LDFLAGS312 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.12/bin/python3-config --ldflags) -lpython3.12
   PLUGIN_DIR=mac_x64
   LD=cc
+endif
+
+ifneq ($(BETA), 0)
+  CFLAGS310 += -O0
+  CFLAGS311 += -O0
+  CFLAGS312 += -O0
 endif
 
 #########

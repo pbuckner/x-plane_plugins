@@ -582,6 +582,33 @@ static PyObject *XPGetWidgetUnderlyingWindowFun(PyObject *self, PyObject *args, 
   return getPtrRef(res, windowIDCapsules, windowIDRef);
 }
 
+
+My_DOCSTR(_deleteWidgetProperty__doc__, "deleteWidgetProperty", "widgetID, propertyID",
+          "Deletes widget property (XPPython3 command only). True on success.");
+static PyObject *XPDeleteWidgetPropertyFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"widgetID", "propertyID", NULL};
+  (void) self;
+  PyObject *widget;
+  int property;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi", keywords, &widget, &property)) {
+    return NULL;
+  }
+  if (property >= xpProperty_UserStart) {
+    PyObject *key = Py_BuildValue("(Oi)", widget, property);
+    int contains = PyDict_Contains(widgetPropertyDict, key);
+    if (1 == contains) {
+      if(0 != PyDict_DelItem(widgetPropertyDict, key)) {
+        errCheck("Failed to delete property from widgetPropertyDict");
+      }
+      return Py_True;
+    }
+    // pythonLog("widgetPropertyDict does not contain key %s\n", objToStr(key));
+    Py_DECREF(key);
+  }
+  return Py_False;
+}
+
 My_DOCSTR(_setWidgetProperty__doc__, "setWidgetProperty", "widgetID, propertyID, value=None",
           "Set widget property to value");
 static PyObject *XPSetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -836,6 +863,7 @@ static PyMethodDef XPWidgetsMethods[] = {
   {"XPSetWidgetProperty", (PyCFunction)XPSetWidgetPropertyFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"getWidgetProperty", (PyCFunction)XPGetWidgetPropertyFun, METH_VARARGS | METH_KEYWORDS, _getWidgetProperty__doc__},
   {"XPGetWidgetProperty", (PyCFunction)XPGetWidgetPropertyFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"deleteWidgetProperty", (PyCFunction)XPDeleteWidgetPropertyFun, METH_VARARGS | METH_KEYWORDS, _deleteWidgetProperty__doc__},
   {"setKeyboardFocus", (PyCFunction)XPSetKeyboardFocusFun, METH_VARARGS | METH_KEYWORDS, _setKeyboardFocus__doc__},
   {"XPSetKeyboardFocus", (PyCFunction)XPSetKeyboardFocusFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"loseKeyboardFocus", (PyCFunction)XPLoseKeyboardFocusFun, METH_VARARGS | METH_KEYWORDS, _loseKeyboardFocus__doc__},

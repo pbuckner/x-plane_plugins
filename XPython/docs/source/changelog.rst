@@ -12,15 +12,43 @@ Known Bugs
 
  None (prove me wrong!)
 
-4.1.2 (31-Oct-2023)
+4.1.2 (BETA)
 -------------------
+:New Features:
+   * **Delete (Custom) widget properties** using :py:func:`xp.deleteWidgetProperty`. Though strictly not
+     necessary, this function mirrors :py:func:`xp.addWidgetProperty`. If you've added a property to
+     a widget, that property's space is not normally freed up when the widget is deleted. For simple
+     properties (e.g., integers), this is minor. XPListBox, however, allocates a large data-structure to
+     hold information about the contents of the scrolling list. This function can be called *prior to widget destruction*
+     to de-allocate this property memory. There is no Laminar equivalent functionality.
+     
 :Fixes:
    * **Corrected** :py:func:`xp.getWeatherAtLocation` **error detection**. See linked documentation for details.
      Previously XPPython3 interpreted a zero return from XPLMGetWeatherAtLocation() as an error
      indicator. Apparently this is not the case, so we now detect error returns differently. We still
      return ``WeatherInfo`` object on success and ``None`` on failure: the good news is times when
      we *thought* there were failures we'll now indicate as success. Your code or usage shouldn't change.
- 
+     (`XPD-14674 <https://developer.x-plane.com/x-plane-bug-database/?issue=XPD-14674>`_)
+     
+     |
+
+:Improvements:
+   * **Improved Pip Package Installer**. When using the built-it Pip Package Installer, the output from Pip is
+     now displayed in real-time in a scrolling window. Contents of the window (i.e., pip output) are also
+     automatically added to the python log. (Also, pressing the Enter key on the pip package installer window
+     will start the installation -- no need to click the "Install" button.)
+     
+   * **Updated Stub Files** with full type-hinting for all SDK functions are available as a separate download. Their use
+     is documented in :doc:`/development/stubs`.
+     
+   * **Cleanup up python code** under XPPython3 folder. Mostly to better support type-hinting.
+
+   * **Enable XPLMSetErrorCallback** for beta releases or if you've enabled ``debug``
+     in :doc:`/development/xppython3.ini`. This performs additional run-time error checking, with output
+     sent to python log.
+
+   * **Improved conversion of widget message parameters**. Some *custom* widget messages were not being
+     convereted correctly between C and Python implementations.
 
 4.1.1 (12-Oct-2023)
 -------------------

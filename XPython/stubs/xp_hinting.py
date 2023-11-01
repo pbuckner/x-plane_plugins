@@ -10,4 +10,6 @@ XPLMMapLayerID = NewType('XPLMMapLayerID', int)
 XPLMMapProjectionID = NewType('XPLMMapProjectionID', int)
 XPLMFlightLoopID = NewType('XPLMFlightLoopID', int)
 XPLMInstanceRef = NewType('XPLMInstanceRef', int)
-
+XPLMAudioBus = NewType('XPLMAudioBus', int)
+FMOD_STUDIO_SYSTEM = NewType('FMOD_STUDIO_SYSTEM', object)
+FMOD_CHANNELGROUP = NewType('FMOD_CHANNELGROUP', object)

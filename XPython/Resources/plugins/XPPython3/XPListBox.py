@@ -9,6 +9,7 @@ except ImportError:
     print("[XPPython3] OpenGL not found. Use XPPython3 Pip Package Installer to install 'PyOpenGL' package and restart.")
     HIGHLITE = False
 
+from typing import List
 from XPPython3 import xp
 
 # To use:
@@ -90,8 +91,23 @@ class XPListBox(object):
 
     def destroy(self):
         if self.widgetID:
+            for propID in range(Prop.ListBoxCurrentItem, Prop.ListBoxScrollBarSlop + 1):
+                xp.deleteWidgetProperty(self.widgetID, propID)
+                    
             xp.destroyWidget(self.widgetID, 1)
 
+    def get_data(self):
+        # Should be {'Items': [], 'Lefts': [], 'Rights': []}
+        data = xp.getWidgetProperty(self.widgetID, Prop.ListBoxData, None)
+        unwrapped = None
+        for item, wrap in zip(data['Items'], data['Wraps']):
+            if unwrapped is None:
+                unwrapped = ['', ]
+            unwrapped[-1] += item
+            if not wrap:
+                unwrapped.append('')
+        return unwrapped[:-1]
+        
     def add(self, s):
         xp.setWidgetDescriptor(self.widgetID, s)
         xp.setWidgetProperty(self.widgetID, Prop.ListBoxAddItem, 1)
@@ -122,7 +138,7 @@ class XPListBox(object):
         listbox_item_height = int(fontHeight * 1.2)
 
         if message == xp.Msg_Create:
-            listBoxDataObj = {'Items': [], 'Lefts': [], 'Rights': []}
+            listBoxDataObj = {'Items': [], 'Lefts': [], 'Rights': [], 'Wraps': []}
             descriptor = xp.getWidgetDescriptor(widget)
             self.listBoxFillWithData(listBoxDataObj, descriptor, (right - (left + self.leftPad) - 20))
             xp.setWidgetProperty(widget, Prop.ListBoxData, listBoxDataObj)
@@ -160,9 +176,10 @@ class XPListBox(object):
                 if xp.measureString(xp.Font_Basic, descriptor) > (right - (left + self.leftPad) - 20):
                     charsPer = int((right - (left + self.leftPad) - 20) / fontWidth)
                     for x in range(0, len(descriptor), charsPer):
-                        self.listBoxAddItem(listBoxDataObj, descriptor[x:x + charsPer], (right - (left + self.leftPad) - 20))
+                        self.listBoxAddItem(listBoxDataObj, descriptor[x:x + charsPer], (right - (left + self.leftPad) - 20),
+                                            x + charsPer < len(descriptor))
                 else:
-                    self.listBoxAddItem(listBoxDataObj, descriptor, (right - (left + self.leftPad) - 20))
+                    self.listBoxAddItem(listBoxDataObj, descriptor, (right - (left + self.leftPad) - 20), False)
 
                 scrollbarMax = len(listBoxDataObj['Items'])
                 sliderPosition = scrollbarMax
@@ -396,26 +413,31 @@ class XPListBox(object):
             data['Items'].append(item)
             data['Lefts'].append(0)
             data['Rights'].append(width)
+            data['Wraps'].append(False)
 
-    def listBoxAddItem(self, data, buff, width):
+    def listBoxAddItem(self, data, buff, width, wrap):
         data['Items'].append(buff)
         data['Lefts'].append(0)
         data['Rights'].append(width)
+        data['Wraps'].append(wrap)
 
     def listBoxClear(self, data):
         data['Items'] = []
         data['Lefts'] = []
         data['Rights'] = []
+        data['Wraps'] = []
 
     def listBoxInsertItem(self, data, buff, width, item):
         data['Items'].insert(item, buff)
         data['Lefts'].insert(item, 0)
         data['Rights'].insert(item, width)
+        data['Wraps'].insert(item, False)
 
     def listBoxDeleteItem(self, data, item):
         data['Items'].pop(item)
         data['Lefts'].pop(item)
         data['Rights'].pop(item)
+        data['Wraps'].pop(item)
 
 
 def XPCreateListBox(left, top, right, bottom, visible, container):
@@ -480,7 +502,7 @@ def SetupAmbientColor(inColorID, immediate=False):
         for n in range(XP_Color.Count):
             gColorRefs.append(xp.findDataRef(kXPlaneColorNames[n]))
 
-    target = []
+    target: List[float] = []
     xp.getDatavf(gColorRefs[inColorID], target, 0, 3)
 
     # If the user passed NULL, set the color now using the alpha level.

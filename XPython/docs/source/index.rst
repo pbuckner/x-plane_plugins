@@ -16,8 +16,10 @@ This is XPPython3 version 4.
 
 .. note::
 
-   For **X-Plane 11** or other versions of python, you must use an earlier
-   version of this plugin: `XPPython3 Version 3.1.5 <https://xppython3.rtfd.io/en/3.1.5/>`_.
+   For **X-Plane 11** or other versions of python, you should use an earlier
+   version of this plugin: `XPPython3 Version 3.1.5 <https://xppython3.rtfd.io/en/3.1.5/>`_,
+   you *may* try using this **Version 4.x** with X-Plane 11: it appears to work with the older
+   version of X-Plane, but this is not fully tested.
 
 See :doc:`usage/installation_plugin` to install the plugin.
 

@@ -96,6 +96,12 @@ extern PyMODINIT_FUNC PyInit_XPLMMap(void);
 extern PyMODINIT_FUNC PyInit_XPPython(void);
 extern PyMODINIT_FUNC PyInit_XPythonLogWriter(void);
 
+static void
+debugErrorCallback(const char *inMessage) {
+  pythonLog("[XPPython3] Error Callback: %s\n", inMessage);
+  pythonLogFlush();
+};
+
 int initPython(void){
   /* Initalize Python and internal modules
    * return 0: success, otherwise: fail... all failures are fatal */
@@ -185,6 +191,11 @@ int initPython(void){
   PyDict_SetItemString(xppythonDicts, "plugins", pluginDict);
   PyDict_SetItemString(xppythonDicts, "modules", moduleDict);
 
+  if (ERRCHECK || pythonDebugs) {
+    /* if beta/ERRCHECK or if user has enabled pythonDebugs, set a defaut ErrorCallback */
+    pythonLog("Enabling XP Error Callback -- XP SDK API errors will be directed to python log\n");
+    XPLMSetErrorCallback(debugErrorCallback);
+  }
   return 0;
 }
 
@@ -221,17 +232,53 @@ static int stopPython(void)
   xpy_stopInstances();
 
   if (pythonDebugs) {
+    /* Print out currently "undeleted" objects... ideally, these would be cleaned up by the owing python plugins
+       This is output only -- we're not deleting them here.
+     */
+    pythonLog("Undeleted items: begin vvvvv\n");
     char *dicts [] = {"plugins", "modules", "accessors", "drefs", "sharedDrefs", "drawCallbacks",
       "drawCallbackIDs", "keySniffCallbacks", "windows", "hotkeys", "hotkeyIDs", "mapCreates", "mapRefs", "maps",
       "menus", "menuRefs", "menuPluginIdx", "errCallbacks", "commandCallbacks", "commandRefcons",
       "widgetCallbacks", "widgetProperties", NULL};
     char **dict_ptr = dicts;
     while(*dict_ptr != NULL) {
-      if (PyDict_Size(PyDict_GetItemString(xppythonDicts, *dict_ptr))) {
-        pythonDebug("{%s}: %s", *dict_ptr, objDebug(PyDict_GetItemString(xppythonDicts, *dict_ptr)));
+      PyObject *dict = PyDict_GetItemString(xppythonDicts, *dict_ptr); // borrowed
+      if (PyDict_Size(dict)) {
+        pythonLog("{%s}: [%d]\n", *dict_ptr, PyDict_Size(dict));
+        Py_ssize_t pos = 0;
+        PyObject *key,  *value;
+        while(PyDict_Next(dict, &pos, &key, &value)){
+          char *key_s = objToStr(key);
+          char *value_s = objToStr(value);
+          if (! strcmp(*dict_ptr, "widgetProperties") ) {
+#if ERRCHECK
+            /* widgetProperites key is Tuple<capsule, propID> */
+            PyObject *capsule = PyTuple_GetItem(key, 0);
+            /* widgetIDCapsules is <PyLong *ptr> : (<capsule> <module>)
+               So we have to iterate through all items to find the module */
+            Py_ssize_t capsule_pos = 0;
+            PyObject *capsule_key, *capsule_value;
+            PyObject *module = NULL;
+            while(PyDict_Next(widgetIDCapsules, &capsule_pos, &capsule_key, &capsule_value)) {
+              if (capsule == PyTuple_GetItem(capsule_value, 0)) {
+                module = PyTuple_GetItem(capsule_value, 1);
+                break;
+              }
+            }
+            pythonLog("  %s / %s:%s%s\n", key_s, objToStr(module), strlen(value_s) > 10 ? "\n    " : " ", value_s);
+#else
+            pythonLog("  %s:%s %s\n", key_s, strlen(value_s) > 10 ? "\n    " : " ", value_s);
+#endif            
+          } else {
+            pythonLog("  %s:%s %s\n", key_s, strlen(value_s) > 10 ? "\n    " : " ", value_s);
+          }
+          free(key_s);
+          free(value_s);
+        }
       }
       ++dict_ptr;
     }
+    pythonLog("Undeleted items: end   ^^^^\n");
   }
               
   XPLMClearAllMenuItems(XPLMFindPluginsMenu());
@@ -301,11 +348,9 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
 
   setLogFile();
 
-  char *c_time_string;
   SymStartTime = time(NULL);
-  c_time_string = ctime(&SymStartTime);
-
-  pythonLog("[%s] Version %s Started -- %s\n", pythonPluginName, pythonPluginVersion, c_time_string);
+  
+  pythonLog("[%s] Version %s Started -- %s\n", pythonPluginName, pythonPluginVersion, ctime(&SymStartTime));
 
   if (loadPythonLibrary() == -1) {return 0;}
 
@@ -349,12 +394,9 @@ PLUGIN_API void XPluginStop(void)
   /* if(allErrorsEncountered){ */
   /*   pythonLog("Total errors encountered: %d\n", allErrorsEncountered); */
   /* } */
-  char *c_time_string;
-  time_t current_time;
-  current_time = time(NULL);
-  c_time_string = ctime(&current_time);
 
-  pythonLog("[%s] Stopped. %s\n", pythonPluginName, c_time_string);
+  time_t current_time = time(NULL);
+  pythonLog("[%s] Stopped. %s\n", pythonPluginName, ctime(&current_time));
   pythonLogClose();
 }
 
@@ -381,11 +423,8 @@ static int commandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, vo
     }
   }else if(inCommand == reloadScripts){
     if (! xpy3_disabled) {
-      char *c_time_string;
-      time_t current_time;
-      current_time = time(NULL);
-      c_time_string = ctime(&current_time);
-      pythonLog("[XPPython3] Reloading Scripts.======= %s\n", c_time_string);
+      time_t current_time = time(NULL);
+      pythonLog("[XPPython3] Reloading Scripts.======= %s\n", ctime(&current_time));
       pythonLog("[XPPython3] Reload -- 1) Disable existing scripts.=======\n");
       xpy_disableInstances();/* Internal, PythonPlugins, scenery, aircraft */
       pythonLog("[XPPython3] Reload -- 2) Stop existing scripts.=======\n");
@@ -442,7 +481,7 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
   if (inMessage == XPLM_MSG_DATAREFS_ADDED && (long) inParam > 100000) {
     /* bug -- inParam is sent as pointer to value, rather than value itself. We'll
        convert to value and send _that_ to python plugins */
-    pythonDebug("...Sending %ld instead\n", *(long*)inParam);
+    pythonDebug("...Sending %ld instead", *(long*)inParam);
     param = PyLong_FromLong(*(long*)inParam);
   }
 

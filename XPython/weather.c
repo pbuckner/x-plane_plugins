@@ -1,5 +1,6 @@
 #define _GNU_SOURCE 1
 #include <Python.h>
+#include <math.h>
 #include <XPLM/XPLMWeather.h>
 #include <XPLM/XPLMDefs.h>
 #include "xppythontypes.h"
@@ -57,9 +58,9 @@ static PyObject *XPLMGetWeatherAtLocationFun(PyObject *self, PyObject *args, PyO
   }
   XPLMWeatherInfo_t out_info;
   out_info.structSize = sizeof(XPLMWeatherInfo_t);
-  out_info.temperature_alt = -10000.0; /* set a bad value & use that to check success/failure of return */
+  out_info.temperature_alt = NAN;  /* set a bad value & use that to check success/failure of return */
   int ret = XPLMGetWeatherAtLocation_ptr(latitude, longitude, altitude_m, &out_info);
-  if (out_info.temperature_alt == -10000.0) {
+  if (isnan(out_info.temperature_alt)) {
     Py_RETURN_NONE;
   }
 

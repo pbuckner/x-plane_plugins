@@ -68,7 +68,7 @@ html_theme_options = {
     'issues_url': '/en/latest/usage/getting_support.html',
     'collapsiblesidebar': True,
     'versionhash': {'latest': 'v4.1.1',
-                    'beta': 'v4.1.1 BETA',
+                    'beta': 'v4.1.2 BETA',
                     '3.1.5': 'v3.1.5'}
 }
 html_sidebars = {

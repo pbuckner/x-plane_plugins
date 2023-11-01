@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Union, Tuple
-import xp
-from xp_hinting import XPLMWidgetID, XPWindowID, XPLMCommandRef, XPLMMenuID, XPLMProbeRef, XPLMObjectRef, XPLMNavRef, XPLMMapLayerID, XPLMMapProjectionID
+from XPPython3 import xp
+from XPPython3.xp import XPLMWidgetID, XPLMWindowID, XPLMCommandRef, XPLMMenuID, XPLMProbeRef, XPLMObjectRef, XPLMNavRef, XPLMMapLayerID, XPLMMapProjectionID
 a = xp.createWidget(0, 0, 0, 0, 0, "foobar", 0, 0, 0)
 b = xp.createWidget(0, 0, 0, 0, 0, "foobar", 0, a, 0)
 xp.destroyWidget(b)
@@ -161,7 +161,7 @@ xp.isCameraBeingControlled()
 xp.readCameraPosition()
 
 # XPLMDisplay
-windowID = XPWindowID(0)
+windowID = XPLMWindowID(0)
 
 
 def drawCallback(phase:int, after: int, refCon: Any) -> int:
@@ -172,27 +172,27 @@ xp.registerDrawCallback(drawCallback, 0, 0, refCon)
 xp.unregisterDrawCallback(drawCallback, 0, 0, refCon)
 
 
-def drawWindowCallback(windowID: XPWindowID, refCon: Any) -> None:
+def drawWindowCallback(windowID: XPLMWindowID, refCon: Any) -> None:
     return
 
 
-def clickWindowCallback(windowID: XPWindowID, x: int, y: int, status: int, refCon: Any) -> int:
+def clickWindowCallback(windowID: XPLMWindowID, x: int, y: int, status: int, refCon: Any) -> int:
     return int()
 
 
-def keyWindowCallback(windowID: XPWindowID, key: int, flags: int, vKey: int, refCon: Any, losingFocus: int) -> None:
+def keyWindowCallback(windowID: XPLMWindowID, key: int, flags: int, vKey: int, refCon: Any, losingFocus: int) -> None:
     return
 
 
-def cursorWindowCallback(windowID: XPWindowID, x: int, y: int, refCon: Any) -> int:
+def cursorWindowCallback(windowID: XPLMWindowID, x: int, y: int, refCon: Any) -> int:
     return int()
 
 
-def wheelWindowCallback(windowID: XPWindowID, x: int, y: int, wheel: int, clicks: int, refCon: Any) -> int:
+def wheelWindowCallback(windowID: XPLMWindowID, x: int, y: int, wheel: int, clicks: int, refCon: Any) -> int:
     return int()
 
 
-def rightWindowCallback(windowID: XPWindowID, x: int, y: int, status: int, refCon: Any) -> int:
+def rightWindowCallback(windowID: XPLMWindowID, x: int, y: int, status: int, refCon: Any) -> int:
     return int()
 
 

@@ -14,14 +14,6 @@ Known Bugs
 
 4.1.2 (BETA)
 -------------------
-:New Features:
-   * **Delete (Custom) widget properties** using :py:func:`xp.deleteWidgetProperty`. Though strictly not
-     necessary, this function mirrors :py:func:`xp.addWidgetProperty`. If you've added a property to
-     a widget, that property's space is not normally freed up when the widget is deleted. For simple
-     properties (e.g., integers), this is minor. XPListBox, however, allocates a large data-structure to
-     hold information about the contents of the scrolling list. This function can be called *prior to widget destruction*
-     to de-allocate this property memory. There is no Laminar equivalent functionality.
-     
 :Fixes:
    * **Corrected** :py:func:`xp.getWeatherAtLocation` **error detection**. See linked documentation for details.
      Previously XPPython3 interpreted a zero return from XPLMGetWeatherAtLocation() as an error

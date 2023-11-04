@@ -2,19 +2,24 @@
 #include <Python.h>
 #include <sys/time.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMCamera.h>
 #include "utils.h"
 
 static intptr_t camCntr;
 static PyObject *camDict;
+#define CAMERA_PLUGIN_MODULE_NAME 0
+#define CAMERA_HOW_LONG 1
+#define CAMERA_CALLBACK 2
+#define CAMERA_REFCON 3
 
 
 static int cameraControl(XPLMCameraPosition_t *outCameraPosition, int inIsLosingControl, void *inRefcon)
 {
-  PyObject *ref = PyLong_FromVoidPtr(inRefcon);
-  PyObject *callbackInfo = PyDict_GetItem(camDict, ref);
+  PyObject *err;
+  errCheck("error before cameraControl");
+  PyObject *ref = PyLong_FromVoidPtr(inRefcon); // new
+  PyObject *callbackInfo = PyDict_GetItem(camDict, ref); // borrowed
   Py_DECREF(ref);
   if(callbackInfo == NULL){
     printf("Couldn't find cameraControl callback with id = %p.", inRefcon); 
@@ -36,18 +41,22 @@ static int cameraControl(XPLMCameraPosition_t *outCameraPosition, int inIsLosing
     Py_INCREF(pos);
   }
 
-  PyObject *fun = PyTuple_GetItem(callbackInfo, 2);
+
+  set_moduleName(PyTuple_GetItem(callbackInfo, CAMERA_PLUGIN_MODULE_NAME));
+  PyObject *fun = PyTuple_GetItem(callbackInfo, CAMERA_CALLBACK);
   PyObject *lc = PyLong_FromLong(inIsLosingControl);
-  PyObject *refcon = PyTuple_GetItem(callbackInfo, 3);
-  PyObject *resObj = PyObject_CallFunctionObjArgs(fun, pos, lc, refcon, NULL);
+  PyObject *refcon = PyTuple_GetItem(callbackInfo, CAMERA_REFCON);
+  PyObject *resObj = PyObject_CallFunctionObjArgs(fun, pos, lc, refcon, NULL);  // new
   Py_DECREF(lc);
-  PyObject *err = PyErr_Occurred();
+
+  err = PyErr_Occurred();
   char msg[1024];
   if(err){
+    Py_XDECREF(resObj); // in case we got None
     Py_DECREF(pos);
-    sprintf(msg, "Error in camera callback [%s] %s",
-            objToStr(PyTuple_GetItem(callbackInfo, 0)),
-            objToStr(fun));
+    char *s = objToStr(fun);
+    sprintf(msg, "Error in camera callback [%s] %s", CurrentPythonModuleName, s);
+    free(s);
     PyErr_SetString(err, msg);
     pythonLogException();
     return 0;
@@ -61,7 +70,7 @@ static int cameraControl(XPLMCameraPosition_t *outCameraPosition, int inIsLosing
     }
 
     for(int i = 0; i < 7; ++i){
-      elem = PyList_GetItem(pos, i);
+      elem = PyList_GetItem(pos, i); // borrowed
       switch(i){
         case 0:
           outCameraPosition->x = PyFloat_AsDouble(elem);
@@ -89,7 +98,8 @@ static int cameraControl(XPLMCameraPosition_t *outCameraPosition, int inIsLosing
   }
   Py_DECREF(pos);
   int res = PyLong_AsLong(resObj);
-  Py_DECREF(resObj);
+  Py_XDECREF(resObj);
+  errCheck("error at end of cameraControl");
   return res;
 }
 
@@ -108,31 +118,29 @@ My_DOCSTR(_controlCamera__doc__, "controlCamera", "howLong=ControlCameraUntilVie
 static PyObject *XPLMControlCameraFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void) self;
+  errCheck("before ControlCamera");
   int inHowLong = xplm_ControlCameraUntilViewChanges;
-  PyObject *pluginSelf = Py_None;
   PyObject *controlFunc = Py_None;
   PyObject *refcon = Py_None;
   static char *keywords[] = {"howLong", "controlFunc", "refCon", NULL};
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|iOO", keywords, &pluginSelf, &inHowLong, &controlFunc, &refcon)){
-    PyErr_Clear();
-    if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|iOO", keywords, &inHowLong, &controlFunc, &refcon)){
-      return NULL;
-    }
-  } else {
-    pythonLogWarning("'self' deprecated as first parameter of XPLMControlCamera");
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|iOO", keywords, &inHowLong, &controlFunc, &refcon)){
+    return NULL;
   }
+
   if (controlFunc == Py_None) {
+    Py_DECREF(controlFunc);
+    Py_DECREF(refcon);
     PyErr_SetString(PyExc_ValueError, "Expected non-null value for func in controlCamera()\n");
     Py_RETURN_NONE;
   }
-  pluginSelf = get_pluginSelf();
   void *inRefcon = (void *)++camCntr;
   PyObject *refconObj = PyLong_FromVoidPtr(inRefcon);
-  PyObject *argsObj = Py_BuildValue("(OiOO)", pluginSelf, inHowLong, controlFunc, refcon);
+  PyObject *argsObj = Py_BuildValue("(siOO)", CurrentPythonModuleName, inHowLong, controlFunc, refcon);
+
   PyDict_SetItem(camDict, refconObj, argsObj);
   Py_DECREF(argsObj);
-  XPLMControlCamera(inHowLong, cameraControl, inRefcon);
   Py_DECREF(refconObj);
+  XPLMControlCamera(inHowLong, cameraControl, inRefcon);
   Py_RETURN_NONE;
 }
 
@@ -173,41 +181,9 @@ static PyObject *XPLMReadCameraPositionFun(PyObject *self, PyObject *args)
 {
   (void) self;
   (void) args;
-  PyObject *resArray = PyList_New(0);
-
   XPLMCameraPosition_t pos;
   XPLMReadCameraPosition(&pos);
-
-  PyObject *tmp;
-  tmp = PyFloat_FromDouble(pos.x);
-  PyList_Append(resArray, tmp);
-  Py_DECREF(tmp);
-  
-  tmp = PyFloat_FromDouble(pos.y);
-  PyList_Append(resArray, tmp);
-  Py_DECREF(tmp);
-  
-  tmp = PyFloat_FromDouble(pos.z);
-  PyList_Append(resArray, tmp);
-  Py_DECREF(tmp);
-  
-  tmp = PyFloat_FromDouble(pos.pitch);
-  PyList_Append(resArray, tmp);
-  Py_DECREF(tmp);
-  
-  tmp = PyFloat_FromDouble(pos.heading);
-  PyList_Append(resArray, tmp);
-  Py_DECREF(tmp);
-  
-  tmp = PyFloat_FromDouble(pos.roll);
-  PyList_Append(resArray, tmp);
-  Py_DECREF(tmp);
-  
-  tmp = PyFloat_FromDouble(pos.zoom);
-  PyList_Append(resArray, tmp);
-  Py_DECREF(tmp);
-
-  return resArray;
+  return Py_BuildValue("(ddddddd)", pos.x, pos.y, pos.z, pos.pitch, pos.heading, pos.roll, pos.zoom);
 }
 
 static PyObject *cleanup(PyObject *self, PyObject *args)

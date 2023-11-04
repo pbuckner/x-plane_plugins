@@ -2,7 +2,6 @@
 #include <Python.h>
 #include <sys/time.h>
 #include <stdio.h>
-#include <stdbool.h>
 
 #include <XPLM/XPLMDefs.h>
 #include <Widgets/XPWidgetDefs.h>
@@ -136,7 +135,6 @@ static PyObject *XPUFixedLayoutFun(PyObject *self, PyObject *args, PyObject *kwa
 void convertMessagePythonToC(XPWidgetMessage msg, PyObject *widget, PyObject *param1, PyObject *param2,
                                     XPWidgetID *widget_ptr, intptr_t *param1_ptr, intptr_t *param2_ptr)
 {
-  errCheck("prior convertMesssagePythonToC");
   /* generically: */
   *widget_ptr = refToPtr(widget, widgetRefName);
 
@@ -204,14 +202,13 @@ void convertMessagePythonToC(XPWidgetMessage msg, PyObject *widget, PyObject *pa
     
   case xpMsg_PropertyChanged:
     *param1_ptr = PyLong_AsLong(param1);
-    // use inParam2 -- it's already python
-    /* param2 = (PyObject*)inParam2; */
+    // use inParam2 -- it's already python, if Property > UserStart
     *param2_ptr = *param1_ptr >= xpProperty_UserStart ? (intptr_t)param2 : PyLong_AsLong(param2);
     errCheck("Failed to convert param2 pointer for msg %d", msg);
     break;
   default:
-    *param1_ptr = PyLong_Check(param1) ? PyLong_AsLong(param1) : (intptr_t) param1;
-    *param2_ptr = PyLong_Check(param2) ? PyLong_AsLong(param2) : (intptr_t) param2;
+    *param1_ptr = PyCapsule_CheckExact(param1) ? (intptr_t) refToPtr(param1, NULL) : PyLong_AsLong(param1);
+    *param2_ptr = PyCapsule_CheckExact(param2) ? (intptr_t) refToPtr(param2, NULL) : PyLong_AsLong(param2);
     errCheck("Failed to convert param pointers for msg %d", msg);
     break;
   }
@@ -224,6 +221,7 @@ My_DOCSTR(_selectIfNeeded__doc__, "selectIfNeeded", "message, widgetID, param1, 
           "Seems completely useless with X-Plane 11.55+");
 static PyObject *XPUSelectIfNeededFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  errCheck("prior selectIfNeeded");
   static char *keywords[] = {"message", "widgetID", "param1", "param2", "eatClick", NULL};
   (void) self;
   XPWidgetMessage inMessage;
@@ -244,7 +242,7 @@ static PyObject *XPUSelectIfNeededFun(PyObject *self, PyObject *args, PyObject *
      to their int form. This is the reverse of widgetCallback() in widgets.c
    */
   inWidget = refToPtr(widget, widgetRefName);
- 
+  errCheck("selectifneeded inWidget");
   XPKeyState_t keyState;
   XPMouseState_t mouseState;
   XPWidgetGeometryChange_t wChange;
@@ -308,7 +306,9 @@ static PyObject *XPUSelectIfNeededFun(PyObject *self, PyObject *args, PyObject *
     break;
   }
   
+  errCheck("selectIfNeeded before XPU()");
   res = XPUSelectIfNeeded(inMessage, inWidget, inParam1, inParam2, inEatClick);
+  errCheck("end selectIfNeeded ");
   return PyLong_FromLong(res);
 }
 

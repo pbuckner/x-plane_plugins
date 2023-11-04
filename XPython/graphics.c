@@ -3,7 +3,6 @@
 #include <sys/time.h>
 #include <stdio.h>
 #include <math.h>
-#include <stdbool.h>
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMGraphics.h>
 #include "utils.h"

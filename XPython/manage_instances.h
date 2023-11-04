@@ -1,7 +1,8 @@
-extern PyObject *moduleDict;  /* moduleName -> instance */
-extern PyObject *pluginDict;  /* instance -> info ... [name, signature, descrptions, module, module_name, disabled]*/
-extern PyObject *aircraftPlugins; /* [instance, instance, ] */
-extern PyObject *sceneryPlugins; /* [instance, instance, ] */
+#include <Python.h>
+extern PyObject *XPY3moduleDict;  /* moduleName -> instance */
+extern PyObject *XPY3pluginDict;  /* instance -> info ... [name, signature, descrptions, module, module_name, disabled]*/
+extern PyObject *XPY3aircraftPlugins; /* [instance, instance, ] */
+extern PyObject *XPY3sceneryPlugins; /* [instance, instance, ] */
 
 #define PLUGIN_NAME 0
 #define PLUGIN_SIGNATURE 1

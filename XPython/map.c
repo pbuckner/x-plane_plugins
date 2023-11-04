@@ -2,16 +2,31 @@
 #include <Python.h>
 #include <sys/time.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMMap.h>
 #include "plugin_dl.h"
 #include "utils.h"
 
-static PyObject *mapDict;
+static PyObject *mapDict;  // key is index (mapCntr)... which we'll get as refCon in call
+#define MAP_TYPE 0
+#define MAP_LAYER 1
+#define MAP_DELETE 2
+#define MAP_PREP 3
+#define MAP_DRAW 4
+#define MAP_ICON 5
+#define MAP_LABEL 6
+#define MAP_TOGGLE 7
+#define MAP_NAME 8
+#define MAP_REFCON 9
+#define MAP_MODULE_NAME 10
 intptr_t mapCntr;
+
 static PyObject *mapRefDict;
 static PyObject *mapCreateDict;
+#define MAPCREATE_CALLBACK 0
+#define MAPCREATE_REFCON 1
+#define MAPCREATE_MODULE_NAME 2
+
 intptr_t mapCreateCntr;
 PyObject *mapLayerIDCapsules;
 PyObject *mapProjectionCapsule;
@@ -20,33 +35,40 @@ static const char layerIDRefName[] = "XPLMMapLayerID";
 static const char projectionRefName[] = "XPLMMapProjectionID";
 
 
-static inline void mapCallback(int inCallbackIndex, XPLMMapLayerID inLayer, const float *inMapBoundsLeftTopRightBottom, float zoomRatio,
+static inline void mapCallback(int whichCallback, XPLMMapLayerID inLayer, const float *inMapBoundsLeftTopRightBottom, float zoomRatio,
                         float mapUnitsPerUserInterfaceUnit, XPLMMapStyle mapStyle, XPLMMapProjectionID projection,
                         void *inRefcon)
 {
   PyObject *layerObj, *boundsObj, *refconObj, *callback;
-  PyObject *ref = PyLong_FromVoidPtr(inRefcon);
-  PyObject *callbackInfo = PyDict_GetItem(mapDict, ref);
-  Py_DECREF(ref);
+  PyObject *pRefCon = PyLong_FromVoidPtr(inRefcon);
+  PyObject *callbackInfo = PyDict_GetItem(mapDict, pRefCon);
+  Py_DECREF(pRefCon);
   if(callbackInfo == NULL){
     printf("Couldn't find map callback with id = %p.", inRefcon); 
     return;
   }
 
-  callback = PyTuple_GetItem(callbackInfo, inCallbackIndex);
+  set_moduleName(PyTuple_GetItem(callbackInfo, MAP_MODULE_NAME));
+
+  if (whichCallback < MAP_DRAW || whichCallback > MAP_LABEL) {
+    pythonLog("mapCallback called with bad index %d\n", whichCallback);
+    return;
+  }
+
+  callback = PyTuple_GetItem(callbackInfo, whichCallback);
   if (callback == Py_None) {
     return;
   }
   layerObj = getPtrRef(inLayer, mapLayerIDCapsules, layerIDRefName);
   mapProjectionCapsule = getPtrRefOneshot(projection, projectionRefName);
-  refconObj = PyTuple_GetItem(callbackInfo, 9);
+  refconObj = PyTuple_GetItem(callbackInfo, MAP_REFCON);
   
   boundsObj = PyTuple_New(4);
   //Steals the ref!
-  PyTuple_SET_ITEM(boundsObj, 0, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[0]));
-  PyTuple_SET_ITEM(boundsObj, 1, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[1]));
-  PyTuple_SET_ITEM(boundsObj, 2, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[2]));
-  PyTuple_SET_ITEM(boundsObj, 3, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[3]));
+  PyTuple_SetItem(boundsObj, 0, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[0]));
+  PyTuple_SetItem(boundsObj, 1, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[1]));
+  PyTuple_SetItem(boundsObj, 2, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[2]));
+  PyTuple_SetItem(boundsObj, 3, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[3]));
 
   PyObject *zoomRatioObj = PyFloat_FromDouble(zoomRatio);
   PyObject *mapUnitsPerUserInterfaceUnitObj = PyFloat_FromDouble(mapUnitsPerUserInterfaceUnit);
@@ -79,20 +101,21 @@ static inline void mapPrepareCacheCallback(XPLMMapLayerID inLayer, const float *
   if(callbackInfo == NULL){
     return;
   }
-
-  callback = PyTuple_GetItem(callbackInfo, 3);
+  callback = PyTuple_GetItem(callbackInfo, MAP_PREP);
   if (callback == Py_None) {
     return;
   }
+  set_moduleName(PyTuple_GetItem(callbackInfo, MAP_MODULE_NAME));
+
   layerObj = getPtrRef(inLayer, mapLayerIDCapsules, layerIDRefName);
   mapProjectionCapsule = getPtrRefOneshot(projection, projectionRefName);
-  refconObj = PyTuple_GetItem(callbackInfo, 9);
+  refconObj = PyTuple_GetItem(callbackInfo, MAP_REFCON);
   
   boundsObj = PyTuple_New(4);
-  PyTuple_SET_ITEM(boundsObj, 0, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[0]));
-  PyTuple_SET_ITEM(boundsObj, 1, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[1]));
-  PyTuple_SET_ITEM(boundsObj, 2, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[2]));
-  PyTuple_SET_ITEM(boundsObj, 3, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[3]));
+  PyTuple_SetItem(boundsObj, 0, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[0]));
+  PyTuple_SetItem(boundsObj, 1, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[1]));
+  PyTuple_SetItem(boundsObj, 2, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[2]));
+  PyTuple_SetItem(boundsObj, 3, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[3]));
 
   PyObject *pRes = PyObject_CallFunctionObjArgs(callback, layerObj, boundsObj, mapProjectionCapsule, refconObj, NULL);
   if(!pRes){
@@ -120,13 +143,15 @@ static inline void mapWillBeDeletedCallback(XPLMMapLayerID inLayer, void *inRefc
     return;
   }
 
-  callback = PyTuple_GetItem(callbackInfo, 2);
+  callback = PyTuple_GetItem(callbackInfo, MAP_DELETE);
   if (callback == Py_None) {
     return;
   }
 
+  set_moduleName(PyTuple_GetItem(callbackInfo, MAP_MODULE_NAME));
+
   layerObj = getPtrRef(inLayer, mapLayerIDCapsules, layerIDRefName);
-  refconObj = PyTuple_GetItem(callbackInfo, 9);
+  refconObj = PyTuple_GetItem(callbackInfo, MAP_REFCON);
   
   PyObject *pRes = PyObject_CallFunctionObjArgs(callback, layerObj, refconObj, NULL);
   if(!pRes){
@@ -151,8 +176,9 @@ static inline void mapCreatedCallback(const char *mapType, void *inRefcon)
     return;
   }
   mapTypeObj = PyUnicode_DecodeUTF8(mapType, strlen(mapType), NULL);
-  callback = PyTuple_GetItem(callbackInfo, 0);
-  refconObj = PyTuple_GetItem(callbackInfo, 1);
+  callback = PyTuple_GetItem(callbackInfo, MAPCREATE_CALLBACK);
+  refconObj = PyTuple_GetItem(callbackInfo, MAPCREATE_REFCON);
+  set_moduleName(PyTuple_GetItem(callbackInfo, MAPCREATE_MODULE_NAME));
   
   PyObject *pRes = PyObject_CallFunctionObjArgs(callback, mapTypeObj, refconObj, NULL);
   if(!pRes){
@@ -170,7 +196,7 @@ static void mapDrawingCallback(XPLMMapLayerID inLayer, const float *inMapBoundsL
                         float mapUnitsPerUserInterfaceUnit, XPLMMapStyle mapStyle, XPLMMapProjectionID projection,
                         void *inRefcon)
 {
-  mapCallback(4, inLayer, inMapBoundsLeftTopRightBottom, zoomRatio,
+  mapCallback(MAP_DRAW, inLayer, inMapBoundsLeftTopRightBottom, zoomRatio,
               mapUnitsPerUserInterfaceUnit, mapStyle, projection, inRefcon);
 }
 
@@ -178,7 +204,7 @@ static void mapIconDrawingCallback(XPLMMapLayerID inLayer, const float *inMapBou
                         float mapUnitsPerUserInterfaceUnit, XPLMMapStyle mapStyle, XPLMMapProjectionID projection,
                         void *inRefcon)
 {
-  mapCallback(5, inLayer, inMapBoundsLeftTopRightBottom, zoomRatio,
+  mapCallback(MAP_ICON, inLayer, inMapBoundsLeftTopRightBottom, zoomRatio,
               mapUnitsPerUserInterfaceUnit, mapStyle, projection, inRefcon);
 }
 
@@ -186,7 +212,7 @@ static void mapLabelDrawingCallback(XPLMMapLayerID inLayer, const float *inMapBo
                         float mapUnitsPerUserInterfaceUnit, XPLMMapStyle mapStyle, XPLMMapProjectionID projection,
                         void *inRefcon)
 {
-  mapCallback(6, inLayer, inMapBoundsLeftTopRightBottom, zoomRatio,
+  mapCallback(MAP_LABEL, inLayer, inMapBoundsLeftTopRightBottom, zoomRatio,
               mapUnitsPerUserInterfaceUnit, mapStyle, projection, inRefcon);
 }
 
@@ -224,7 +250,7 @@ static PyObject *XPLMCreateMapLayerFun(PyObject *self, PyObject *args, PyObject 
     map = firstObj;
   }
 
-  void *ref = (void *)++mapCntr;
+  void *mapRefCon = (void *)++mapCntr;
   XPLMCreateMapLayer_t inParams;
   inParams.structSize = sizeof(inParams);
   PyObject *tmpObjMap;
@@ -239,12 +265,13 @@ static PyObject *XPLMCreateMapLayerFun(PyObject *self, PyObject *args, PyObject 
     if (name == Py_None) {
       name = PyUnicode_DecodeUTF8("", 0, NULL);
     }
-    paramsTuple = Py_BuildValue("(OiOOOOOiOO)", map, layerType, delete, prep, draw, icon, label, showToggle, name, refCon);
+    paramsTuple = Py_BuildValue("(sOiOOOOOiOO)", CurrentPythonModuleName, map, layerType, delete, prep, draw, icon, label, showToggle, name, refCon);
   } else {
-    paramsTuple = PySequence_Tuple(paramsObj);
+    PyObject *tmp = Py_BuildValue("[s]", CurrentPythonModuleName);
+    paramsTuple = PySequence_Tuple(PySequence_Concat(tmp, paramsObj));
   }
 
-  tmpObjMap = PyUnicode_AsUTF8String(PyTuple_GetItem(paramsTuple, 0));
+  tmpObjMap = PyUnicode_AsUTF8String(PyTuple_GetItem(paramsTuple, MAP_TYPE));
   tmpMap = PyBytes_AsString(tmpObjMap);
   
   if (PyErr_Occurred()) {
@@ -253,10 +280,10 @@ static PyObject *XPLMCreateMapLayerFun(PyObject *self, PyObject *args, PyObject 
     return NULL;
   }
   inParams.mapToCreateLayerIn = tmpMap;
-  inParams.layerType = PyLong_AsLong(PyTuple_GetItem(paramsTuple, 1));
-  inParams.showUiToggle = PyLong_AsLong(PyTuple_GetItem(paramsTuple, 7));
+  inParams.layerType = PyLong_AsLong(PyTuple_GetItem(paramsTuple, MAP_LAYER));
+  inParams.showUiToggle = PyLong_AsLong(PyTuple_GetItem(paramsTuple, MAP_TOGGLE));
   
-  tmpObjLayerName = PyUnicode_AsUTF8String(PyTuple_GetItem(paramsTuple, 8));
+  tmpObjLayerName = PyUnicode_AsUTF8String(PyTuple_GetItem(paramsTuple, MAP_NAME));
   tmpLayerName = PyBytes_AsString(tmpObjLayerName);
   
   if (PyErr_Occurred()) {
@@ -266,7 +293,7 @@ static PyObject *XPLMCreateMapLayerFun(PyObject *self, PyObject *args, PyObject 
     return NULL;
   }
 
-  inParams.refcon = ref;
+  inParams.refcon = mapRefCon;
   inParams.layerName = tmpLayerName;
   inParams.mapToCreateLayerIn = tmpMap;
   inParams.willBeDeletedCallback = mapWillBeDeletedCallback;
@@ -279,25 +306,25 @@ static PyObject *XPLMCreateMapLayerFun(PyObject *self, PyObject *args, PyObject 
    * XPLMCreateMapLayer() will immediately call prep_cache, so
    * make sure we set mapDict prior to call.
    */
-  PyObject *refObj = PyLong_FromVoidPtr(ref);
+  PyObject *pMapRefCon = PyLong_FromVoidPtr(mapRefCon);
 
-  PyDict_SetItem(mapDict, refObj, paramsTuple);
+  PyDict_SetItem(mapDict, pMapRefCon, paramsTuple);
 
   XPLMMapLayerID res = XPLMCreateMapLayer_ptr(&inParams);
   if(!res){
-    PyDict_DelItem(mapDict, refObj);
-    Py_DECREF(refObj);
+    PyDict_DelItem(mapDict, pMapRefCon);
+    Py_DECREF(pMapRefCon);
     Py_DECREF(tmpObjMap);
     Py_DECREF(tmpObjLayerName);
     Py_DECREF(paramsTuple);
     return NULL;
   }
   PyObject *resObj = getPtrRef(res, mapLayerIDCapsules, layerIDRefName);
-  PyDict_SetItem(mapRefDict, resObj, refObj);
+  PyDict_SetItem(mapRefDict, resObj, pMapRefCon);
   Py_DECREF(tmpObjMap);
   Py_DECREF(tmpObjLayerName);
   Py_DECREF(paramsTuple);
-  Py_DECREF(refObj);
+  Py_DECREF(pMapRefCon);
   return resObj;
 }
 
@@ -320,8 +347,8 @@ static PyObject *XPLMDestroyMapLayerFun(PyObject *self, PyObject *args, PyObject
   XPLMMapLayerID inLayer = refToPtr(layer, layerIDRefName);
   int res = XPLMDestroyMapLayer_ptr(inLayer);
   if(res){
-    PyObject *ref = PyDict_GetItem(mapRefDict, layer);
-    PyDict_DelItem(mapDict, ref);
+    PyObject *pRefCon = PyDict_GetItem(mapRefDict, layer);
+    PyDict_DelItem(mapDict, pRefCon);
     PyDict_DelItem(mapRefDict, layer);
     removePtrRef(inLayer, mapLayerIDCapsules);
   }
@@ -346,7 +373,7 @@ static PyObject *XPLMRegisterMapCreationHookFun(PyObject *self, PyObject *args, 
     return NULL;
   }
 
-  PyObject *argObj = Py_BuildValue("(OO)", callback, inRefCon);
+  PyObject *argObj = Py_BuildValue("(OOs)", callback, inRefCon, CurrentPythonModuleName);
 
   void *refcon = (void *)++mapCreateCntr;
   PyObject *refconObj = PyLong_FromVoidPtr(refcon);
@@ -620,19 +647,19 @@ PyInit_XPLMMap(void)
   if(!(mapCreateDict = PyDict_New())){
     return NULL;
   }
-  PyDict_SetItemString(xppythonDicts, "mapCreates", mapCreateDict);
+  PyDict_SetItemString(XPY3pythonDicts, "mapCreates", mapCreateDict);
   if(!(mapRefDict = PyDict_New())){
     return NULL;
   }
-  PyDict_SetItemString(xppythonDicts, "mapRefs", mapRefDict);
+  PyDict_SetItemString(XPY3pythonDicts, "mapRefs", mapRefDict);
   if(!(mapDict = PyDict_New())){
     return NULL;
   }
-  PyDict_SetItemString(xppythonDicts, "maps", mapDict);
+  PyDict_SetItemString(XPY3pythonDicts, "maps", mapDict);
   if(!(mapLayerIDCapsules = PyDict_New())){
     return NULL;
   }
-  PyDict_SetItemString(xppythonCapsules, layerIDRefName, mapLayerIDCapsules);
+  PyDict_SetItemString(XPY3pythonCapsules, layerIDRefName, mapLayerIDCapsules);
 
   PyObject *mod = PyModule_Create(&XPLMMapModule);
   if(mod){

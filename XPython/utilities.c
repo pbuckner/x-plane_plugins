@@ -2,36 +2,35 @@
 #include <Python.h>
 #include <sys/time.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMUtilities.h>
 #include "utils.h"
 
-PyObject *errCallbacks;
-PyObject *commandCallbackDict;  // "(OOOiO)", pluginSelf, inCommand, inHandler, inBefore, inRefcon
+PyObject *errCallbacks;  // Key is str(moduleName), value is callback
+
+PyObject *commandCallbackDict;  // "(sOOiO)", module_name, inCommand, inHandler, inBefore, inRefcon
 /* key is integer we pass as the refcon back to X-Plane with a generate callback(),
    so we know which method we should call
 */
-#define CALLBACK_PLUGIN 0
-#define CALLBACK_CAPSULE 1
-#define CALLBACK_METHOD 2
-#define CALLBACK_BEFORE 3
-#define CALLBACK_REFCON 4
+#define COMMAND_CAPSULE 0
+#define COMMAND_METHOD 1
+#define COMMAND_BEFORE 2
+#define COMMAND_REFCON 3
+#define COMMAND_MODULE_NAME 4
 
 PyObject *commandRefcons;
 PyObject *commandCapsules;
 intptr_t commandCallbackCntr;
-
-void clearInstanceCommands(PyObject *pluginSelf);
 
 static void error_callback(const char *inMessage)
 {
   //TODO: send the error only to the active plugin?
   // for now, pass to all registered
   Py_ssize_t cnt = 0;
-  PyObject *pKey = NULL, *pVal = NULL;
+  PyObject *moduleName = NULL, *pVal = NULL;
   PyObject *msg = PyUnicode_DecodeUTF8(inMessage, strlen(inMessage), NULL);
-  while(PyDict_Next(errCallbacks, &cnt, &pKey, &pVal)){
+  while(PyDict_Next(errCallbacks, &cnt, &moduleName, &pVal)){
+    set_moduleName(moduleName);
     PyObject *oRes = PyObject_CallFunctionObjArgs(pVal, msg, NULL);
     PyObject *err = PyErr_Occurred();
     if(err){
@@ -244,14 +243,11 @@ static PyObject *XPLMSetErrorCallbackFun(PyObject *self, PyObject *args, PyObjec
     XPLMSetErrorCallback(error_callback);
   }
 
-  PyObject *pluginSelf;
   PyObject *callback;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &callback)) {
     return NULL;
   }
-  pluginSelf = get_pluginSelf();
-  PyDict_SetItem(errCallbacks, pluginSelf, callback);
-  Py_DECREF(pluginSelf);
+  PyDict_SetItem(errCallbacks, PyUnicode_FromString(CurrentPythonModuleName), callback);
   
   Py_RETURN_NONE;
 }
@@ -321,17 +317,18 @@ static int commandCallback(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, v
     printf("Received unknown commandCallback refCon (%p).\n", inRefcon);
     return -1;
   }
+  set_moduleName(PyTuple_GetItem(pCbk, COMMAND_MODULE_NAME));
 
   PyObject *arg1 = getPtrRef(inCommand, commandCapsules, commandRefName);
   PyObject *arg2 = PyLong_FromLong(inPhase);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(PyTuple_GetItem(pCbk, CALLBACK_METHOD), arg1, arg2, PyTuple_GetItem(pCbk, CALLBACK_REFCON), NULL);
+  PyObject *oRes = PyObject_CallFunctionObjArgs(PyTuple_GetItem(pCbk, COMMAND_METHOD), arg1, arg2, PyTuple_GetItem(pCbk, COMMAND_REFCON), NULL);
   Py_DECREF(arg1);
   Py_DECREF(arg2);
   PyObject *err = PyErr_Occurred();
   if(err){
-    pythonLog("Error in CommandCallback [%s] %s\n",
-            objToStr(PyTuple_GetItem(pCbk, CALLBACK_PLUGIN)),
-            objToStr(PyTuple_GetItem(pCbk, CALLBACK_METHOD)));
+    char *s2 = objToStr(PyTuple_GetItem(pCbk, COMMAND_METHOD)) ;
+    pythonLog("Error in CommandCallback [%s] %s\n", CurrentPythonModuleName, s2);
+    free(s2);
     /* pass error back up */
     /* 
        PyErr_SetString(err, msg);
@@ -340,10 +337,11 @@ static int commandCallback(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, v
     return 0;
   }
   if (!(oRes && PyLong_Check(oRes))) {
-    pythonLog("[%s] %s CommandCallback returned '%s' rather than an integer.\n",
-            objToStr(PyTuple_GetItem(pCbk, CALLBACK_PLUGIN)),
-            objToStr(PyTuple_GetItem(pCbk, CALLBACK_METHOD)),
-            objToStr(oRes));
+    char *s2 = objToStr(PyTuple_GetItem(pCbk, COMMAND_METHOD));
+    char *s3 = objToStr(oRes); 
+    pythonLog("[%s] %s CommandCallback returned '%s' rather than an integer.\n", CurrentPythonModuleName, s2, s3);
+    free(s2);
+    free(s3);
     return 1;  /* return '1' to allow X-Plane to continue processing */
   }
   int res = PyLong_AsLong(oRes);
@@ -440,11 +438,9 @@ static PyObject *XPLMRegisterCommandHandlerFun(PyObject *self, PyObject *args, P
   PyObject *inHandler;
   int inBefore=1;
   PyObject *inRefcon=Py_None;
-  PyObject *pluginSelf;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|iO", keywords, &inCommand, &inHandler, &inBefore, &inRefcon)) {
     return NULL;
   }
-  pluginSelf = get_pluginSelf();
   intptr_t refcon = commandCallbackCntr++;
   XPLMRegisterCommandHandler(refToPtr(inCommand, commandRefName), commandCallback, inBefore, (void *)refcon);
 
@@ -459,7 +455,7 @@ static PyObject *XPLMRegisterCommandHandlerFun(PyObject *self, PyObject *args, P
   PyObject *rc = PyLong_FromVoidPtr((void *)refcon);
   PyDict_SetItem(commandRefcons, key, rc);
 
-  PyObject *argsObj = Py_BuildValue( "(OOOiO)", pluginSelf, inCommand, inHandler, inBefore, inRefcon);
+  PyObject *argsObj = Py_BuildValue( "(OOiOs)", inCommand, inHandler, inBefore, inRefcon, CurrentPythonModuleName);
   PyDict_SetItem(commandCallbackDict, rc, argsObj);
   Py_DECREF(argsObj);
   Py_DECREF(rc);
@@ -488,44 +484,46 @@ static PyObject *XPLMUnregisterCommandHandlerFun(PyObject *self, PyObject *args,
   PyObject *refcon = PyDict_GetItem(commandRefcons, key);  /* borrowed ref */
 
   if (refcon == NULL) {
-    pythonLog("unregisterCommandHandler could not find command handler for %s\n", objToStr(key));
+    char *s = objToStr(key);
+    pythonLog("unregisterCommandHandler could not find command handler for %s\n", s);
+    free(s);
     Py_RETURN_NONE;
   }
   XPLMUnregisterCommandHandler(refToPtr(inCommand, commandRefName), commandCallback,
                                inBefore, PyLong_AsVoidPtr(refcon));
   if(PyDict_DelItem(commandRefcons, key)){
-    printf("XPLMUnregisterCommandHandler: couldn't remove refcon.\n");
+    pythonLog("XPLMUnregisterCommandHandler: couldn't remove refcon.\n");
   }
   Py_DECREF(inrefcon_ptr);
   Py_DECREF(bv);
   Py_DECREF(key);
   if(PyDict_DelItem(commandCallbackDict, refcon)){
-    printf("XPLMUnregisterCommandHandler: couldn't remove command handler.\n");
+    pythonLog("XPLMUnregisterCommandHandler: couldn't remove command handler from callback dict.\n");
   }
   Py_RETURN_NONE;
 }
 
-void clearInstanceCommands(PyObject *pluginSelf)
+void clearInstanceCommands(PyObject *module_name_p)
 {
   PyObject *key, *value;
   Py_ssize_t pos = 0;
-  pythonDebug("%*s Clearing commands for [%s]", 6, " ", objDebug(pluginSelf));
+  pythonDebug("%*s Clearing commands for [%s]", 6, " ", objDebug(module_name_p));
   int count = 0;
   while (PyDict_Next(commandCallbackDict, &pos, &key, &value)) {
-    PyObject *commandPlugin = PyTuple_GetItem(value, CALLBACK_PLUGIN);
-    if (PyObject_RichCompareBool(commandPlugin, pluginSelf, Py_EQ)) {
+    PyObject *commandPlugin = PyTuple_GetItem(value, COMMAND_MODULE_NAME);
+    if (PyObject_RichCompareBool(commandPlugin, module_name_p, Py_EQ)) {
       count ++;
       intptr_t refcon = PyLong_AsLong(key);
-      pythonDebug("%*s Removing command handler for [%ld] [%s]", 8, " ", refcon, objDebug(PyTuple_GetItem(value, CALLBACK_PLUGIN)));
-      XPLMUnregisterCommandHandler(refToPtr(PyTuple_GetItem(value, CALLBACK_CAPSULE), commandRefName),
+      pythonDebug("%*s Removing command handler for [%ld] [%s]", 8, " ", refcon, objDebug(PyTuple_GetItem(value, COMMAND_MODULE_NAME)));
+      XPLMUnregisterCommandHandler(refToPtr(PyTuple_GetItem(value, COMMAND_CAPSULE), commandRefName),
                                    commandCallback,
-                                   PyLong_AsLong(PyTuple_GetItem(value, CALLBACK_BEFORE)),
+                                   PyLong_AsLong(PyTuple_GetItem(value, COMMAND_BEFORE)),
                                    (void *)refcon);
 
       PyDict_DelItem(commandCallbackDict, key);
     }
   }
-  pythonDebug("%*s Cleared %d commands for [%s]", 8, " ", count, objDebug(pluginSelf));
+  pythonDebug("%*s Cleared %d commands for [%s]", 8, " ", count, objDebug(module_name_p));
 }
 
 static PyObject *cleanup(PyObject *self, PyObject *args)
@@ -617,19 +615,19 @@ PyInit_XPLMUtilities(void)
   if(!(errCallbacks = PyDict_New())){
     return NULL;
   }
-  PyDict_SetItemString(xppythonDicts, "errCallbacks", errCallbacks);
+  PyDict_SetItemString(XPY3pythonDicts, "errCallbacks", errCallbacks);
   if(!(commandCallbackDict = PyDict_New())){
     return NULL;
   }
-  PyDict_SetItemString(xppythonDicts, "commandCallbacks", commandCallbackDict);
+  PyDict_SetItemString(XPY3pythonDicts, "commandCallbacks", commandCallbackDict);
   if(!(commandRefcons = PyDict_New())){
     return NULL;
   }
-  PyDict_SetItemString(xppythonDicts, "commandRefcons", commandRefcons);
+  PyDict_SetItemString(XPY3pythonDicts, "commandRefcons", commandRefcons);
   if(!(commandCapsules = PyDict_New())){
     return NULL;
   }
-  PyDict_SetItemString(xppythonCapsules, commandRefName, commandCapsules);
+  PyDict_SetItemString(XPY3pythonCapsules, commandRefName, commandCapsules);
 
   PyObject *mod = PyModule_Create(&XPLMUtilitiesModule);
   if(mod){

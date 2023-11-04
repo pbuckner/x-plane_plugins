@@ -39,9 +39,10 @@ static PyObject *XPLMGetMETARForAirportFun(PyObject *self, PyObject *args, PyObj
 
 My_DOCSTR(_getWeatherAtLocation__doc__, "getWeatherAtLocation", "latitude, longitude, altitude_m",
           "Returns current weather conditions at given location.\n"
-          "Note this appears to work world-wide.\n"
+          "Note this appears to work world-wide, though accuracy suffers with distance from current\n"
+          "position.\n"
           "\n"
-          "Returns WeatherInfo object if detailed weather is found, None otherwise. This call\n"
+          "Returns WeatherInfo object on success, None otherwise. This call\n"
           "is not intended to be used per-frame.");
 static PyObject *XPLMGetWeatherAtLocationFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {

@@ -62,7 +62,7 @@ static PyObject *loadPIClass(const char *fname)
 /* Load "PythonInterface" class in provided file (fname)
  * and call XPluginStart
  * 
- * Updates moduleDict and pluginDict with informaiton about
+ * Updates XPY3moduleDict and XPpluginDict with informaiton about
  * loaded plugin.
  *
  * Returns pluginInstance on success (or NULL)
@@ -71,29 +71,32 @@ static PyObject *loadPIClass(const char *fname)
   int already_loaded = 0;
   PyObject *err;
   pythonDebug(" . Loading class in '%s'", fname);
-  PyObject *pName = PyUnicode_DecodeFSDefault(fname);
-  if (pName) {
+  PyObject *module_name_p = PyUnicode_DecodeFSDefault(fname);
+  if (module_name_p) {
+    set_moduleName(module_name_p);
     PyObject *sys_modules = PySys_GetObject("modules"); /* borrowed */
-    already_loaded = (PyDict_Contains(sys_modules, pName) == 1);
-    PyObject *pModule1 = PyImport_Import(pName); /* returns new reference */
+    already_loaded = (PyDict_Contains(sys_modules, module_name_p) == 1);
+    PyObject *module_p = PyImport_Import(module_name_p); /* returns new reference */
     err = PyErr_Occurred();
     if (err){
       pythonLogException();
       pythonDebug("Error occured during import of %s", fname);
-      pythonDebug("%s\n^^^^", objToStr(err));
+      char *s = objToStr(err);
+      pythonDebug("%s\n^^^^", s);
+      free(s);
     }
-    if (pModule1) {
-      PyObject *pModule;
+    if (module_p) {
+      PyObject *module2_p;
       if (already_loaded) {
-        pModule = PyImport_ReloadModule(pModule1);
-        pythonDebug(" . Module reloaded '%s'", objDebug(pModule));
-        Py_DECREF(pModule1);
+        module2_p = PyImport_ReloadModule(module_p);
+        pythonDebug(" . Module reloaded '%s'", objDebug(module2_p));
+        Py_DECREF(module_p);
       } else {
-        pythonDebug(" . Module loaded '%s'", objDebug(pModule1));
-        pModule = pModule1;
+        pythonDebug(" . Module loaded '%s'", objDebug(module_p));
+        module2_p = module_p;
       }
         
-      PyObject *pClass = PyObject_GetAttrString(pModule, "PythonInterface");
+      PyObject *pClass = PyObject_GetAttrString(module2_p, "PythonInterface");
       if (pClass && PyCallable_Check(pClass)) {
         PyObject *pluginInstance = PyObject_CallObject(pClass, NULL);
         if (PyErr_Occurred()){
@@ -103,16 +106,16 @@ static PyObject *loadPIClass(const char *fname)
         }
         Py_DECREF(pClass);
         if (pluginInstance) {
-          return xpy_startInstance(pName, pModule, pluginInstance) ? pluginInstance : NULL;
+          return xpy_startInstance(module_name_p, module2_p, pluginInstance) ? pluginInstance : NULL;
         }
       } else {
         pythonDebug(" . Failed to get callable PythonInterface class");
-        Py_DECREF(pName);
-        Py_DECREF(pModule);
+        Py_DECREF(module_name_p);
+        Py_DECREF(module2_p);
         pythonLog("[XPPython3] Problem getting PythonInterface class in %s.\n", fname);
       }
     } else {
-      Py_DECREF(pName);
+      Py_DECREF(module_name_p);
       pythonLog("[XPPython3] Problem importing module for %s.\n", fname);
     }
   } else {

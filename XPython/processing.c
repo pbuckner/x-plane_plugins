@@ -2,7 +2,6 @@
 #include <Python.h>
 #include <sys/time.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMProcessing.h>
 #include "plugin_dl.h"
@@ -10,13 +9,18 @@
 #include "xppython.h"
 
 static intptr_t flCntr;
-static PyObject *flDict;  /* {flCntr: ([0]pluginSelf, [1]callback, [2]refCon)} */
-static PyObject *flRevDict; /*{(pluginSelf, callback, refConAddr): flCntr }*/
+static PyObject *flDict;  /* {flCntr: ([0]pluginSelf, [1]callback, [2]refCon, [3]moduleName)} */
+#define FLIGHTLOOP_CALLBACK 0
+#define FLIGHTLOOP_REFCON 1
+#define FLIGHTLOOP_MODULE_NAME 2
+
+static PyObject *flRevDict; /*{(moduleName, callback, refConAddr): flCntr }*/
 
 static const char flIDRef[] = "XPLMFlightLoopID";
 static float flightLoopCallback(float inElapsedSinceLastCall, float inElapsedTimeSinceLastFlightLoop, 
                                 int counter, void * inRefcon)
 {
+  errCheck("prior flightLoop");
   struct timespec all_stop, all_start;
   clock_gettime(CLOCK_MONOTONIC, &all_start);
 
@@ -27,6 +31,7 @@ static float flightLoopCallback(float inElapsedSinceLastCall, float inElapsedTim
     printf("Unknown flightLoop callback requested! (inRefcon = %p)\n", inRefcon);
     return 0.0;
   }
+  errCheck("post callbackInfo");
   PyObject *inElapsedSinceLastCallObj = PyFloat_FromDouble(inElapsedSinceLastCall);
   PyObject *inElapsedTimeSinceLastFlightLoopObj = PyFloat_FromDouble(inElapsedTimeSinceLastFlightLoop);
   PyObject *counterObj = PyLong_FromLong(counter);
@@ -34,11 +39,16 @@ static float flightLoopCallback(float inElapsedSinceLastCall, float inElapsedTim
   /* vvvvvvvvvvvvvvvvv */
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
-  PyObject *res = PyObject_CallFunctionObjArgs(PyTuple_GetItem(callbackInfo, 1), inElapsedSinceLastCallObj,
+  errCheck("before set_moduleName");
+
+  set_moduleName(PyTuple_GetItem(callbackInfo, FLIGHTLOOP_MODULE_NAME));
+
+  errCheck("after set_moduleName");
+  PyObject *res = PyObject_CallFunctionObjArgs(PyTuple_GetItem(callbackInfo, FLIGHTLOOP_CALLBACK), inElapsedSinceLastCallObj,
                                                inElapsedTimeSinceLastFlightLoopObj, counterObj,
-                                               PyTuple_GetItem(callbackInfo, 2), NULL);
+                                               PyTuple_GetItem(callbackInfo, FLIGHTLOOP_REFCON), NULL);
   clock_gettime(CLOCK_MONOTONIC, &stop);
-  pluginStats[getPluginIndex(PyTuple_GetItem(callbackInfo, 0))].fl_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+  pluginStats[getPluginIndex(PyTuple_GetItem(callbackInfo, FLIGHTLOOP_MODULE_NAME))].fl_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   /* ^^^^^^^^^^^^^^^^^ */
   
   float tmp;
@@ -48,28 +58,32 @@ static float flightLoopCallback(float inElapsedSinceLastCall, float inElapsedTim
   Py_DECREF(counterObj);
   if(err){
     pythonLogException();
+    char *s = objToStr(PyTuple_GetItem(callbackInfo, FLIGHTLOOP_CALLBACK));
     pythonLog("[%s]: %s Error occured during the flightLoop callback (inRefcon = %p), disabling:\n",
-            objToStr(PyTuple_GetItem(callbackInfo, 0)),
-            objToStr(PyTuple_GetItem(callbackInfo, 1)),
-            inRefcon);
+              CurrentPythonModuleName, s, inRefcon);
+    free(s);
+    errCheck("opps, trying to log error failed");
     tmp = 0.0f;
   } else if (PyFloat_Check(res)) {
     tmp = PyFloat_AsDouble(res);
   } else if (PyLong_Check(res)) {
     tmp = PyLong_AsDouble(res);
   } else {
+    char *s = objToStr(PyTuple_GetItem(callbackInfo, FLIGHTLOOP_CALLBACK));
+    char *s2 = objToStr(res); 
     pythonLog("[%s]: %s Error occured during the flightLoop callback (inRefcon = %p), disabling: Bad return value '%s'\n",
-            objToStr(PyTuple_GetItem(callbackInfo, 0)),
-            objToStr(PyTuple_GetItem(callbackInfo, 1)),
-            inRefcon,
-            objToStr(res));
+              CurrentPythonModuleName, s, inRefcon, s2);
+    free(s);
+    free(s2);
+    errCheck("opps, trying to log 'else' error failed");
     tmp = 0.0f;
   }
   Py_XDECREF(res);
 
+  errCheck("end flight loop");
   clock_gettime(CLOCK_MONOTONIC, &all_stop);
   pluginStats[0].fl_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
-
+  errCheck("after second stats");
   return tmp;
 }
 
@@ -167,12 +181,12 @@ static PyObject *XPLMRegisterFlightLoopCallbackFun(PyObject* self, PyObject *arg
     return NULL;
   }
 
-  PyObject *pluginSelf = get_pluginSelf();
+  PyObject *pluginSelf = get_moduleName_p();
 
   void *flDictKey = (void *)++flCntr;
   PyObject *flDictKeyObj = PyLong_FromVoidPtr(flDictKey);
 
-  PyObject *argObj = Py_BuildValue("(OOO)", pluginSelf, callback, refCon);
+  PyObject *argObj = Py_BuildValue("(OOs)", callback, refCon, CurrentPythonModuleName);
   PyDict_SetItem(flDict, flDictKeyObj, argObj);
   Py_DECREF(argObj);
 
@@ -199,7 +213,7 @@ static PyObject *XPLMUnregisterFlightLoopCallbackFun(PyObject *self, PyObject *a
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O", keywords, &callback, &refcon)) {
     return NULL;
   }
-  pluginSelf = get_pluginSelf();
+  pluginSelf = get_moduleName_p();
   PyObject *refconAddr = PyLong_FromVoidPtr(refcon);
   PyObject *revId = Py_BuildValue("(OOO)", pluginSelf, callback, refconAddr);
   PyObject *id = PyDict_GetItem(flRevDict, revId);
@@ -207,8 +221,13 @@ static PyObject *XPLMUnregisterFlightLoopCallbackFun(PyObject *self, PyObject *a
     Py_DECREF(revId);
     Py_DECREF(refconAddr);
     Py_DECREF(pluginSelf);
-    pythonLog("[%s] Couldn't find the id of the requested callback for %s with refCon %s.\n",
-            objToStr(pluginSelf), objToStr(callback), objToStr(refcon));
+    char *s = objToStr(pluginSelf);
+    char *s2 = objToStr(callback);
+    char *s3 = objToStr(refcon);
+    pythonLog("[%s] Couldn't find the id of the requested callback for %s with refCon %s.\n", s, s2, s3);
+    free(s);
+    free(s2);
+    free(s3);
     Py_RETURN_NONE;
   }
   PyDict_DelItem(flRevDict, revId);
@@ -228,17 +247,15 @@ static PyObject *XPLMSetFlightLoopCallbackIntervalFun(PyObject *self, PyObject *
 {
   static char *keywords[] = {"callback", "interval", "relativeToNow", "refCon", NULL};
   (void)self;
-  PyObject *pluginSelf, *callback, *refcon=Py_None;
+  PyObject *callback, *refcon=Py_None;
   float inInterval=0.0;
   int inRelativeToNow=1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|fiO", keywords, &callback, &inInterval, &inRelativeToNow, &refcon)) {
     return NULL;
   }
-  pluginSelf = get_pluginSelf();
   PyObject *refconAddr = PyLong_FromVoidPtr(refcon);
-  PyObject *revId = Py_BuildValue("(OOO)", pluginSelf, callback, refconAddr);
+  PyObject *revId = Py_BuildValue("(sOO)", CurrentPythonModuleName, callback, refconAddr);
   PyObject *id = PyDict_GetItem(flRevDict, revId);
-  Py_DECREF(pluginSelf);
   Py_DECREF(revId);
   Py_DECREF(refconAddr);
   if(id == NULL){
@@ -273,7 +290,6 @@ static PyObject *XPLMCreateFlightLoopFun(PyObject* self, PyObject *args, PyObjec
     return NULL;
   }
 
-  PyObject *pluginSelf = get_pluginSelf();
   XPLMCreateFlightLoop_t fl;
   fl.structSize = sizeof(fl);
 
@@ -294,7 +310,7 @@ static PyObject *XPLMCreateFlightLoopFun(PyObject* self, PyObject *args, PyObjec
   
   XPLMFlightLoopID flightLoopID = XPLMCreateFlightLoop_ptr(&fl);
 
-  PyObject *argObj = Py_BuildValue("(OOO)", pluginSelf, callback, refCon);
+  PyObject *argObj = Py_BuildValue("(OOs)", callback, refCon, CurrentPythonModuleName);
   PyDict_SetItem(flDict, flDictKeyObj, argObj);
   Py_DECREF(argObj);
 

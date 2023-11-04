@@ -2,7 +2,6 @@
 #include <Python.h>
 #include <sys/time.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMScenery.h>
 #include "utils.h"
@@ -147,6 +146,10 @@ static PyObject *XPLMLoadObjectFun(PyObject *self, PyObject *args, PyObject *kwa
 
 
 static PyObject *loaderDict;
+#define LOADER_PATH 0
+#define LOADER_CALLBACK 1
+#define LOADER_REFCON 2
+#define LOADER_MODULE_NAME 3
 static intptr_t loaderCntr;
 
 static void objectLoaded(XPLMObjectRef inObject, void *inRefcon)
@@ -158,8 +161,9 @@ static void objectLoaded(XPLMObjectRef inObject, void *inRefcon)
     printf("Unknown callback requested in objectLoaded(%p).\n", inRefcon);
     return;
   }
-  PyObject *res = PyObject_CallFunctionObjArgs(PyTuple_GetItem(loaderCallbackInfo, 1),
-                                           object, PyTuple_GetItem(loaderCallbackInfo, 2), NULL);
+  set_moduleName(PyTuple_GetItem(loaderCallbackInfo, LOADER_MODULE_NAME));
+  PyObject *res = PyObject_CallFunctionObjArgs(PyTuple_GetItem(loaderCallbackInfo, LOADER_CALLBACK),
+                                           object, PyTuple_GetItem(loaderCallbackInfo, LOADER_REFCON), NULL);
   PyObject *err = PyErr_Occurred();
   if(err){
     printf("Error occured during the objectLoaded callback(inRefcon = %p):\n", inRefcon);
@@ -193,7 +197,7 @@ static PyObject *XPLMLoadObjectAsyncFun(PyObject *self, PyObject *args, PyObject
     return NULL;
   }
 
-  PyObject *argsObj = Py_BuildValue("(sOO)", inPath, callback, inRefcon);
+  PyObject *argsObj = Py_BuildValue("(sOOs)", inPath, callback, inRefcon, CurrentPythonModuleName);
 
   void *refcon = (void *)++loaderCntr;
   PyObject *key = PyLong_FromVoidPtr(refcon);
@@ -223,6 +227,13 @@ static PyObject *XPLMUnloadObjectFun(PyObject *self, PyObject *args, PyObject *k
 }
 
 static PyObject *libEnumDict;
+#define LIBRARY_PLUGIN 0
+#define LIBRARY_PATH 1
+#define LIBRARY_LATITUDE 2
+#define LIBRARY_LONGITUDE 3
+#define LIBRARY_CALLBACK 4
+#define LIBRARY_REFCON 5
+#define LIBRARY_MODULE_NAME 6
 static intptr_t libEnumCntr;
 
 static void libraryEnumerator(const char *inFilePath, void *inRef)
@@ -234,8 +245,9 @@ static void libraryEnumerator(const char *inFilePath, void *inRef)
     printf("Unknown callback requested from libraryEnumerator(%p).\n", inRef);
     return;
   }
-  PyObject *res = PyObject_CallFunction(PySequence_GetItem(libEnumCallbackInfo, 4), "(sO)",
-                                           inFilePath, PySequence_GetItem(libEnumCallbackInfo, 5));
+  set_moduleName(PyTuple_GetItem(libEnumCallbackInfo, LIBRARY_MODULE_NAME));
+  PyObject *res = PyObject_CallFunction(PyTuple_GetItem(libEnumCallbackInfo, LIBRARY_CALLBACK), "(sO)",
+                                        inFilePath, PyTuple_GetItem(libEnumCallbackInfo, LIBRARY_REFCON));
   Py_XDECREF(res);
 }
 
@@ -262,11 +274,11 @@ static PyObject *XPLMLookupObjectsFun(PyObject *self, PyObject *args, PyObject *
     return NULL;
   }
 
-  pluginSelf = get_pluginSelf();
+  pluginSelf = get_moduleName_p();
   void *myRef = (void *)++libEnumCntr;
   PyObject *refObj = PyLong_FromVoidPtr(myRef);
   
-  PyObject *argsObj = Py_BuildValue("(OsffOO)", pluginSelf, inPath, inLatitude, inLongitude, enumerator, ref);
+  PyObject *argsObj = Py_BuildValue("(OsffOOs)", pluginSelf, inPath, inLatitude, inLongitude, enumerator, ref, CurrentPythonModuleName);
   PyDict_SetItem(libEnumDict, refObj, argsObj);
   Py_DECREF(argsObj);
   Py_XDECREF(refObj);

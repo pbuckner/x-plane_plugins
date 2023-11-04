@@ -2,7 +2,6 @@
 #include <Python.h>
 #include <sys/time.h>
 #include <stdio.h>
-#include <stdbool.h>
 
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMDisplay.h>
@@ -14,19 +13,29 @@
 #include "widgetutils.h"
 #include "xppython.h"
 
-static PyObject *widgetCallbackDict;
-static PyObject *widgetPropertyDict;
+static PyObject *widgetCallbackDict; // _key_ is widget, value = callbackList
+#define WIDGET_CALLBACK 0
+#define WIDGET_MODULE_NAME 1
+
+static PyObject *widgetPropertyDict; // _key_ is (Widget, Property), _value_ is PyObject*
+#define WIDGETPROPERTY_WIDGET 0
+#define WIDGETPROPERTY_PROPERTY 1
+
 static void clearChildrenXPWidgetData(PyObject *widget);
 static void clearXPWidgetData(PyObject *widget);
 PyObject *widgetIDCapsules;
 
 int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inParam1, intptr_t inParam2)
 {
+  PyObject *err;
+  errCheck("Error prior to widgetCallback");
   // struct timespec stop, start;
   struct timespec all_stop, all_start;
   clock_gettime(CLOCK_MONOTONIC, &all_start);
 
   PyObject *widget = getPtrRef(inWidget, widgetIDCapsules, widgetRefName);
+  errCheck("Error after getPtrRef");
+  
   PyObject *param1, *param2;
   XPKeyState_t *keyState;
   XPMouseState_t *mouseState;
@@ -76,6 +85,8 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
     break;
   }
 
+  errCheck("Error after message parse for msg %d", inMessage);
+  
   PyObject *callbackList = PyDict_GetItem(widgetCallbackDict, widget);
   if(callbackList == NULL){
     /* we'll get an xpMsg_Create that we can't handle from a CustomWidget (because the widgetCallbackDict
@@ -88,16 +99,26 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
     Py_DECREF(widget);
     Py_DECREF(param1);
     Py_DECREF(param2);
+    err = PyErr_Occurred();
+    if(err){
+      pythonLog("Error after message where no callbackList for msg %d\n", inMessage);
+      pythonLogException();
+    }
     return 0;
   }
 
   Py_ssize_t i;
   int res;
   PyObject *callback;
-  PyObject *pluginSelf = get_pluginSelf();
   for(i = 0; i < PyList_Size(callbackList); ++i){
-    callback = PyTuple_GetItem(PyList_GetItem(callbackList, i), 0);
-    pluginSelf = PyTuple_GetItem(PyList_GetItem(callbackList, i), 1);
+    err = PyErr_Occurred();
+    if(err){
+      pythonLog("Error in widget callbacklist [%d] for msg %d\n", i, inMessage);
+      pythonLogException();
+    }
+  
+    callback = PyTuple_GetItem(PyList_GetItem(callbackList, i), WIDGET_CALLBACK);
+    set_moduleName(PyTuple_GetItem(PyList_GetItem(callbackList, i), WIDGET_MODULE_NAME));
     //Have to differentiate between python callbacks and "binary" function callbacks
     // (like the ones returned by XPGetWidgetClassFunc)
     if(PyLong_Check(callback)){
@@ -112,7 +133,9 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
       // clock_gettime(CLOCK_MONOTONIC, &stop);
       Py_DECREF(inMessageObj);
       if(!resObj || resObj == Py_None){
-        pythonLog("[%s] Widget Callback function %s did not return a value\n", objToStr(pluginSelf), objToStr(callback));
+        char *s2 = objToStr(callback);
+        pythonLog("[%s] Widget Callback function %s did not return a value\n", CurrentPythonModuleName, s2);
+        free(s2);
         break;
       }
       res = PyLong_AsLong(resObj);
@@ -125,6 +148,12 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
       break;
     }
     //pluginStats[getPluginIndex(pluginSelf)].customw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+  }
+
+  err = PyErr_Occurred();
+  if(err){
+    pythonLog("Error in widget post callbacklist for msg %d\n", inMessage);
+    pythonLogException();
   }
 
   if(inMessage == xpMsg_Destroy){
@@ -141,8 +170,15 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
      callback execution misses much of what the custom widget actually processes. Sadly
      it appears we cannot match what Laminar is collecting internally.
   */
-  pluginStats[getPluginIndex(pluginSelf)].customw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
+  PyObject *module_name_p = PyUnicode_FromString(CurrentPythonModuleName);
+  pluginStats[getPluginIndex(module_name_p)].customw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
+  Py_DECREF(module_name_p);
   pluginStats[0].customw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
+  err = PyErr_Occurred();
+  if(err){
+    pythonLog("Error add end of widget callback for msg %d\n", inMessage);
+    pythonLogException();
+  }
   return res;
 }
 
@@ -165,6 +201,7 @@ My_DOCSTR(_createWidget__doc__, "createWidget", "left, top, right, bottom, visib
           );
 static PyObject *XPCreateWidgetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  errCheck("prior createWidget");
   static char *keywords[] = {"left", "top", "right", "bottom", "visible", "descriptor", "isRoot", "container", "widgetClass", NULL};
   (void) self;
   int inLeft, inTop, inRight, inBottom, inVisible, inIsRoot;
@@ -186,7 +223,9 @@ static PyObject *XPCreateWidgetFun(PyObject *self, PyObject *args, PyObject *kwa
   }
 
   XPWidgetID res = XPCreateWidget(inLeft, inTop, inRight, inBottom, inVisible, inDescriptor, inIsRoot, inContainer, inClass);
-  return getPtrRef(res, widgetIDCapsules, widgetRefName);
+  PyObject *ret = getPtrRef(res, widgetIDCapsules, widgetRefName);
+  errCheck("end createWidget");
+  return ret;
 }
 
 My_DOCSTR(_createCustomWidget__doc__, "createCustomWidget", "left, top, right, bottom, visible, descriptor, isRoot, container, callback",
@@ -203,6 +242,7 @@ static PyObject *XPCreateCustomWidgetFun(PyObject *self, PyObject *args, PyObjec
   const char *inDescriptor;
   PyObject *container;
   PyObject *inCallback;
+  errCheck("error at start of CreateCustomWidget");
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiiiisiOO", keywords, &inLeft, &inTop, &inRight, &inBottom, &inVisible, &inDescriptor,
                        &inIsRoot, &container, &inCallback)){
     return NULL;
@@ -226,15 +266,15 @@ static PyObject *XPCreateCustomWidgetFun(PyObject *self, PyObject *args, PyObjec
                                         inContainer, widgetCallback);
   PyObject *resObj = getPtrRef(res, widgetIDCapsules, widgetRefName);
   PyObject *callbackList = PyList_New(0);
-  PyObject *tup = PyTuple_New(2);
-  PyTuple_SetItem(tup, 0, inCallback); /* PyTuple_SetItem() steals a reference, so we don't need to Py_DECREF */
+  PyObject *tup = Py_BuildValue("(Os)", inCallback, CurrentPythonModuleName);
   Py_INCREF(inCallback);
-  PyTuple_SetItem(tup, 1, get_pluginSelf());
   PyList_Insert(callbackList, 0, tup);
   Py_DECREF(tup);
   PyDict_SetItem(widgetCallbackDict, resObj, callbackList);
+  errCheck("error near end of CreateCustomWidget");
   XPSendMessageToWidget(res, xpMsg_Create, xpMode_Direct, 0, 0);
   XPSendMessageToWidget(res, xpMsg_AcceptParent, xpMode_Direct, (intptr_t)inContainer, 0);
+  errCheck("error at end of CreateCustomWidget");
   return resObj;
 }
 
@@ -283,8 +323,8 @@ static void clearXPWidgetData(PyObject *widget) {
   PyObject *key_iterator = PyObject_GetIter(keys); /*new*/
   PyObject *key;
   while ((key = PyIter_Next(key_iterator))) {/*new*/
-    if (PyObject_RichCompareBool(PyTuple_GetItem(key, 0), widget, Py_EQ)) {/*tuple borrowed*/
-      pythonDebug("   deleting widget property: %s", objDebug(PyTuple_GetItem(key, 1)));
+    if (PyObject_RichCompareBool(PyTuple_GetItem(key, WIDGETPROPERTY_WIDGET), widget, Py_EQ)) {/*tuple borrowed*/
+      pythonDebug("   deleting widget property: %s", objDebug(PyTuple_GetItem(key, WIDGETPROPERTY_PROPERTY)));
       PyDict_DelItem(widgetPropertyDict, key);
     }
     Py_DECREF(key);
@@ -299,18 +339,24 @@ My_DOCSTR(_sendMessageToWidget__doc__, "sendMessageToWidget", "widgetID, message
           "dispatchMode default is Mode_UpChain");
 static PyObject *XPSendMessageToWidgetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  errCheck("prior sendMessageToWidget");
   static char *keywords[] = {"widgetID", "message", "dispatchMode", "param1", "param2", NULL};
   (void) self;
   PyObject *widget, *param1=Py_None, *param2=Py_None;
   int inMessage, inMode=1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi|iOO", keywords, &widget, &inMessage, &inMode, &param1, &param2)){
+    errCheck("Failed to parse tuple sendMessage");
     return NULL;
   }
+  errCheck("sendMessage post parse");
   XPWidgetID inWidget = refToPtr(widget, widgetRefName);
   intptr_t inParam1;
   intptr_t inParam2;
+  errCheck("before convertMessage");
   convertMessagePythonToC(inMessage, widget, param1, param2, &inWidget, &inParam1, &inParam2);
+  errCheck("after convertMessage");
   int res = XPSendMessageToWidget(inWidget, inMessage, inMode, inParam1, inParam2);
+  errCheck("end sendMessageToWidget");
   return PyLong_FromLong(res);
 }
 
@@ -532,6 +578,7 @@ My_DOCSTR(_setWidgetDescriptor__doc__, "setWidgetDescriptor", "widgetID, descrip
           "Set widget's descriptor string");
 static PyObject *XPSetWidgetDescriptorFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  errCheck("Prior setwidgetdescriptor");
   static char *keywords[] = {"widgetID", "descriptor", NULL};
   (void) self;
   PyObject *widget;
@@ -540,6 +587,7 @@ static PyObject *XPSetWidgetDescriptorFun(PyObject *self, PyObject *args, PyObje
     return NULL;
   }
   XPSetWidgetDescriptor(refToPtr(widget, widgetRefName), inDescriptor);
+  errCheck("end setwidgetdescriptor");
   Py_RETURN_NONE;
 }
 
@@ -547,6 +595,7 @@ My_DOCSTR(_getWidgetDescriptor__doc__, "getWidgetDescriptor", "widgetID",
           "Returns widget's descriptor string");
 static PyObject *XPGetWidgetDescriptorFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  errCheck("prior getWidgetDescriptor");
   static char *keywords[] = {"widgetID", NULL};
   (void) self;
   PyObject *widget;
@@ -561,6 +610,7 @@ static PyObject *XPGetWidgetDescriptorFun(PyObject *self, PyObject *args, PyObje
     printf("Warning: xppython descriptor for widget exceeds buffer size\n");
   }
   buffer[res] = '\0';
+  errCheck("end getWidgetDescriptor");
   return PyUnicode_FromString(buffer);
 }
 
@@ -583,32 +633,6 @@ static PyObject *XPGetWidgetUnderlyingWindowFun(PyObject *self, PyObject *args, 
 }
 
 
-My_DOCSTR(_deleteWidgetProperty__doc__, "deleteWidgetProperty", "widgetID, propertyID",
-          "Deletes widget property (XPPython3 command only). True on success.");
-static PyObject *XPDeleteWidgetPropertyFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {"widgetID", "propertyID", NULL};
-  (void) self;
-  PyObject *widget;
-  int property;
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi", keywords, &widget, &property)) {
-    return NULL;
-  }
-  if (property >= xpProperty_UserStart) {
-    PyObject *key = Py_BuildValue("(Oi)", widget, property);
-    int contains = PyDict_Contains(widgetPropertyDict, key);
-    if (1 == contains) {
-      if(0 != PyDict_DelItem(widgetPropertyDict, key)) {
-        errCheck("Failed to delete property from widgetPropertyDict");
-      }
-      return Py_True;
-    }
-    // pythonLog("widgetPropertyDict does not contain key %s\n", objToStr(key));
-    Py_DECREF(key);
-  }
-  return Py_False;
-}
-
 My_DOCSTR(_setWidgetProperty__doc__, "setWidgetProperty", "widgetID, propertyID, value=None",
           "Set widget property to value");
 static PyObject *XPSetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -617,15 +641,19 @@ static PyObject *XPSetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject
   (void) self;
   PyObject *widget, *value=Py_None;
   int property;
+  PyObject *err;
+  errCheck("Error prior to  start of setWidgetProperty");
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi|O", keywords, &widget, &property, &value)){
+    errCheck("Failed to parse setWidgetProperty");
     return NULL;
   }
   XPWidgetPropertyID inProperty = property;
   if (property >= xpProperty_UserStart) {
     PyObject *key = Py_BuildValue("(Oi)", widget, property);
-
+    errCheck("Failed to build setWidgetProperty");
     PyObject *prevValueObj = PyDict_GetItem(widgetPropertyDict, key);
     PyDict_SetItem(widgetPropertyDict, key, value);
+    Py_INCREF(value);
 
     int comparison = 0; /* false */
     if (prevValueObj != NULL) {
@@ -635,14 +663,18 @@ static PyObject *XPSetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject
     if (comparison == 0) {
       /* not found, or they're different */
       XPSendMessageToWidget(refToPtr(widget, widgetRefName), xpMsg_PropertyChanged, xpMode_Direct, property, (intptr_t) value);
+      errCheck("after comparison == 0 setwidgetproperty");
     }
   } else {
     XPSetWidgetProperty(refToPtr(widget, widgetRefName), inProperty, value == Py_None ? 0: PyLong_AsLong(value));
-    PyObject *err = PyErr_Occurred();
+    err = PyErr_Occurred();
     if(err){
-      pythonLog("Error trying to set widget property %d with value %s\n", inProperty, objToStr(value));
+      char *s = objToStr(value);
+      pythonLog("Error trying to set widget property %d with value %s\n", inProperty, s);
+      free(s);
     }
   }
+  errCheck("Error prior to  start of setWidgetProperty");
   Py_RETURN_NONE;
 }
 
@@ -660,6 +692,12 @@ static PyObject *XPGetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject
   PyObject *widget, *exists=Py_None;
   int property;
   int exception_on_error = 0;
+  PyObject *err;
+  err = PyErr_Occurred();
+  if (err) {
+    pythonLog("error prior to getWidgetProperty\n");
+    pythonLogException();
+  }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OiO", keywords, &widget, &property, &exists)){
     PyErr_Clear();
 
@@ -699,6 +737,11 @@ static PyObject *XPGetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject
     Py_DECREF(e);
   }
   
+  err = PyErr_Occurred();
+  if (err) {
+    pythonLog("error at end of getWidgetProperty\n");
+    pythonLogException();
+  }
   return resObj;
 }
 
@@ -757,31 +800,23 @@ static PyObject *XPAddWidgetCallbackFun(PyObject *self, PyObject *args, PyObject
 {
   static char *keywords[] = {"widget", "callback", NULL};
   (void) self;
-  PyObject *widget, *callback, *pluginSelf;
+  PyObject *widget, *callback;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO", keywords, &widget, &callback)){
     return NULL;
   }
   PyObject *callbackList = PyDict_GetItem(widgetCallbackDict, widget);
-  pluginSelf = get_pluginSelf();
+  PyObject *tup = Py_BuildValue("(Os)", callback, CurrentPythonModuleName);
+  Py_INCREF(callback);
   if(callbackList == NULL){
     callbackList = PyList_New(0);
-    PyObject *tup = PyTuple_New(2);
-    PyTuple_SetItem(tup, 0, callback);
-    Py_INCREF(callback);
-    PyTuple_SetItem(tup, 1, pluginSelf);
     PyList_Append(callbackList, tup);
-    Py_DECREF(tup);
     PyDict_SetItem(widgetCallbackDict, widget, callbackList);
     //register only the first time
     XPAddWidgetCallback(refToPtr(widget, widgetRefName), widgetCallback);
   }else{
-    PyObject *tup = PyTuple_New(2);
-    PyTuple_SetItem(tup, 0, callback);
-    Py_INCREF(callback);
-    PyTuple_SetItem(tup, 1, pluginSelf);
     PyList_Insert(callbackList, 0, tup);
-    Py_DECREF(tup);
   }
+  Py_DECREF(tup);
   Py_RETURN_NONE;
 }
 
@@ -863,7 +898,6 @@ static PyMethodDef XPWidgetsMethods[] = {
   {"XPSetWidgetProperty", (PyCFunction)XPSetWidgetPropertyFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"getWidgetProperty", (PyCFunction)XPGetWidgetPropertyFun, METH_VARARGS | METH_KEYWORDS, _getWidgetProperty__doc__},
   {"XPGetWidgetProperty", (PyCFunction)XPGetWidgetPropertyFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"deleteWidgetProperty", (PyCFunction)XPDeleteWidgetPropertyFun, METH_VARARGS | METH_KEYWORDS, _deleteWidgetProperty__doc__},
   {"setKeyboardFocus", (PyCFunction)XPSetKeyboardFocusFun, METH_VARARGS | METH_KEYWORDS, _setKeyboardFocus__doc__},
   {"XPSetKeyboardFocus", (PyCFunction)XPSetKeyboardFocusFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"loseKeyboardFocus", (PyCFunction)XPLoseKeyboardFocusFun, METH_VARARGS | METH_KEYWORDS, _loseKeyboardFocus__doc__},
@@ -900,15 +934,15 @@ PyInit_XPWidgets(void)
   if(!(widgetCallbackDict = PyDict_New())){
     return NULL;
   }
-  PyDict_SetItemString(xppythonDicts, "widgetCallbacks", widgetCallbackDict);
+  PyDict_SetItemString(XPY3pythonDicts, "widgetCallbacks", widgetCallbackDict);
   if(!(widgetPropertyDict = PyDict_New())){
     return NULL;
   }
-  PyDict_SetItemString(xppythonDicts, "widgetProperties", widgetPropertyDict);
+  PyDict_SetItemString(XPY3pythonDicts, "widgetProperties", widgetPropertyDict);
   if(!(widgetIDCapsules = PyDict_New())){
     return NULL;
   }
-  PyDict_SetItemString(xppythonCapsules, widgetRefName, widgetIDCapsules);
+  PyDict_SetItemString(XPY3pythonCapsules, widgetRefName, widgetIDCapsules);
   PyObject *mod = PyModule_Create(&XPWidgetsModule);
   if(mod){
     PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");

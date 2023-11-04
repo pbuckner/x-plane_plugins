@@ -1,4 +1,5 @@
 #ifndef UTILS__H
+#include <Python.h>
 #define UTILS__H
 
 #define My_DOCSTR(name,method,parms,str) static const char name[] = method"($module, /, "parms")\n--\n\n"str
@@ -8,11 +9,13 @@ extern const char *widgetRefName;
 extern const char *windowIDRef;
 extern PyObject *widgetIDCapsules;
 extern PyObject *windowIDCapsules;
-extern PyObject *xppythonDicts;
-extern PyObject *xppythonCapsules;
+extern PyObject *XPY3pythonDicts;
+extern PyObject *XPY3pythonCapsules;
 extern int pythonDebugs;
 extern int pythonWarnings;
 extern int pythonFlushLog;
+extern int pythonCapsuleRegistration;
+extern char CurrentPythonModuleName[];
 
 void dbg(const char *msg);
 float getFloatFromTuple(PyObject *seq, Py_ssize_t i);
@@ -23,8 +26,8 @@ PyObject *getPtrRef(void *ptr, PyObject *dict, const char *refName);
 PyObject *getPtrRefOneshot(void *ptr, const char *refName);
 void *refToPtr(PyObject *ref, const char *refName);
 void removePtrRef(void *ptr, PyObject *dict);
-char *get_moduleName();
-PyObject *get_pluginSelf();
+void set_moduleName(PyObject *);
+PyObject *get_moduleName_p();
 char *objToStr(PyObject *item);
 char *objDebug(PyObject *item);
 void pythonLogWarning(const char *msg);

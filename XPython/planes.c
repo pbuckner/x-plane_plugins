@@ -2,7 +2,6 @@
 #include <Python.h>
 #include <sys/time.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMPlanes.h>
 #include "utils.h"
@@ -10,6 +9,11 @@
 
 static intptr_t availableCntr;
 static PyObject *availableDict;
+#define AVAILABLE_PLUGIN 0
+#define AVAILABLE_AIRCRAFT 1
+#define AVAILABLE_CALLBACK 2
+#define AVAILABLE_REFCON 3
+#define AVAILABLE_MODULE_NAME 4
 
 My_DOCSTR(_setUsersAircraft__doc__, "setUsersAircraft", "path",
           "Change the user's aircraft and reinitialize.\n"
@@ -106,9 +110,10 @@ void planesAvailable(void *inRefcon)
     printf("Unknown callback (%p) requested in planesAvailable.", inRefcon);
     return;
   }
-  PyObject *func = PyTuple_GetItem(callback, 2);
+  PyObject *func = PyTuple_GetItem(callback, AVAILABLE_CALLBACK);
   if (func == Py_None) return;
-  PyObject *res = PyObject_CallFunctionObjArgs(func, PyTuple_GetItem(callback, 3), NULL);
+  set_moduleName(PyTuple_GetItem(callback, AVAILABLE_MODULE_NAME));
+  PyObject *res = PyObject_CallFunctionObjArgs(func, PyTuple_GetItem(callback, AVAILABLE_REFCON), NULL);
   PyObject *err = PyErr_Occurred();
   if(err){
     printf("Error occured during the planesAvailable callback(inRefcon = %p):\n", inRefcon);
@@ -130,11 +135,11 @@ static PyObject *XPLMAcquirePlanesFun(PyObject *self, PyObject *args, PyObject *
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOO", keywords, &aircraft, &inCallback, &inRefcon)){
     return NULL;
   }
-  pluginSelf = get_pluginSelf();
+  pluginSelf = get_moduleName_p();
   int res;
   void *refcon = (void*)++availableCntr;
   PyObject *refObj = PyLong_FromVoidPtr(refcon);
-  PyObject *argsObj = Py_BuildValue( "(OOOO)", pluginSelf, aircraft, inCallback, inRefcon);
+  PyObject *argsObj = Py_BuildValue( "(OOOOs)", pluginSelf, aircraft, inCallback, inRefcon, CurrentPythonModuleName);
   PyDict_SetItem(availableDict, refObj, argsObj);
   Py_DECREF(argsObj);
   Py_DECREF(refObj);

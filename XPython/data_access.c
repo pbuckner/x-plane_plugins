@@ -2,7 +2,6 @@
 #include <Python.h>
 #include <sys/time.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <string.h>
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMDataAccess.h>
@@ -17,12 +16,19 @@ static PyObject *accessorDict;
 static PyObject *drefDict;
 static intptr_t accessorCntr;
 static PyObject *sharedDict;
+#define SHARED_PLUGIN 0
+#define SHARED_DATA_NAME 1
+#define SHARED_DATA_TYPE 2
+#define SHARED_CALLBACK 3
+#define SHARED_REFCON 4
+#define SHARED_MODULE_NAME 5
+
 static intptr_t sharedCntr;
 
 static const char dataRefName[] = "XPLMDataRef";
 
 /* accessorDict args */
-#define PLUGINSELF 0
+#define DATA_MODULE_NAME 0
 #define DATANAME 1
 #define DATATYPE 2
 #define ISWRITABLE 3
@@ -374,7 +380,9 @@ static PyObject *XPLMGetDatavfFun(PyObject *self, PyObject *args, PyObject *kwar
   }
   PyObject *err = PyErr_Occurred();
   if(err) {
-    pythonLog("Error has already occurred in getDatavf: %s\n", objToStr(err));
+    char *s = objToStr(err);
+    pythonLog("Error has already occurred in getDatavf: %s\n", s);
+    free(s);
   }
   return PyLong_FromLong(res);
 }
@@ -630,9 +638,12 @@ static PyObject *XPLMSetDatasFun(PyObject *self, PyObject *args, PyObject *kwarg
     bufferSize = inCount;
   }
   buffer = malloc(bufferSize);
-  inValue = PyUnicode_AsUTF8AndSize(inValueObj, NULL); /* docs say I'm not responsible for de-allocation of inValue */
+
+  inValue = objToStr(inValueObj);
+  //inValue = PyUnicode_AsUTF8AndSize(inValueObj, NULL); /* docs say I'm not responsible for de-allocation of inValue */
   strncpy(buffer, inValue, bufferSize);
   XPLMSetDatab(inDataRef, (void *)buffer, inOffset, bufferSize);
+  free((void *)inValue);
   free(buffer);
   Py_RETURN_NONE;
 }
@@ -648,6 +659,7 @@ static int getDatai(void *inRefcon)
   }
   PyObject *oFun = PyTuple_GetItem(pCbks, READINT);
   PyObject *oArg = PyTuple_GetItem(pCbks, READREFCON);
+  set_moduleName(PyTuple_GetItem(pCbks, DATA_MODULE_NAME));
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg, NULL);
 
   if(PyErr_Occurred()) {
@@ -675,9 +687,9 @@ static int getDatai(void *inRefcon)
     /* we report this error, because the 'error' is we can't convert
        the results, but the function itself appeared to execute without error */
     char msg[1024];
-    sprintf(msg, "[%s] getDatai callback %s failed to return a int / long",
-            objToStr(PyTuple_GetItem(pCbks, PLUGINSELF)),
-            objToStr(oFun));
+    char *s = objToStr(oFun);
+    sprintf(msg, "[%s] getDatai callback %s failed to return a int / long", CurrentPythonModuleName, s);
+    free(s);
     PyErr_SetString(err, msg);
   }
   return res;
@@ -695,6 +707,7 @@ static void setDatai(void *inRefcon, int inValue)
   PyObject *oFun = PyTuple_GetItem(pCbks, WRITEINT);
   PyObject *oArg1 = PyTuple_GetItem(pCbks, WRITEREFCON);
   PyObject *oArg2 = PyLong_FromLong(inValue);
+  set_moduleName(PyTuple_GetItem(pCbks, DATA_MODULE_NAME));
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, oArg2, NULL);
 
   if(PyErr_Occurred()){
@@ -719,6 +732,7 @@ static float getDataf(void *inRefcon)
   }
   PyObject *oFun = PyTuple_GetItem(pCbks, READFLOAT);
   PyObject *oArg1 = PyTuple_GetItem(pCbks, READREFCON);
+  set_moduleName(PyTuple_GetItem(pCbks, DATA_MODULE_NAME));
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, NULL);
 
   if(PyErr_Occurred()) {
@@ -734,9 +748,9 @@ static float getDataf(void *inRefcon)
   PyObject *err = PyErr_Occurred();
   if(err) {
     char msg[1024];
-    sprintf(msg, "[%s] getDataf callback %s failed to return a float",
-            objToStr(PyTuple_GetItem(pCbks, PLUGINSELF)),
-            objToStr(oFun));
+    char *s = objToStr(oFun);
+    sprintf(msg, "[%s] getDataf callback %s failed to return a float", CurrentPythonModuleName, s);
+    free(s);
     PyErr_SetString(err, msg);
   }
   return res;
@@ -754,6 +768,7 @@ static void setDataf(void *inRefcon, float inValue)
   PyObject *oFun = PyTuple_GetItem(pCbks, WRITEFLOAT);
   PyObject *oArg1 = PyTuple_GetItem(pCbks, WRITEREFCON);
   PyObject *oArg2 = PyFloat_FromDouble((double)inValue);
+  set_moduleName(PyTuple_GetItem(pCbks, DATA_MODULE_NAME));
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, oArg2, NULL);
 
   if(PyErr_Occurred()){
@@ -775,6 +790,7 @@ static double getDatad(void *inRefcon)
   }
   PyObject *oFun = PyTuple_GetItem(pCbks, READDOUBLE);
   PyObject *oArg = PyTuple_GetItem(pCbks, READREFCON);
+  set_moduleName(PyTuple_GetItem(pCbks, DATA_MODULE_NAME));
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg, NULL);
 
   if(PyErr_Occurred()) {
@@ -790,9 +806,9 @@ static double getDatad(void *inRefcon)
   PyObject *err = PyErr_Occurred();
   if(err){
     char msg[1024];
-    sprintf(msg, "[%s] getDatad callback %s failed to return a float",
-            objToStr(PyTuple_GetItem(pCbks, PLUGINSELF)),
-            objToStr(oFun));
+    char *s = objToStr(oFun);
+    sprintf(msg, "[%s] getDatad callback %s failed to return a float", CurrentPythonModuleName, s);
+    free(s);
     PyErr_SetString(err, msg);
   }
   return res;
@@ -810,6 +826,7 @@ static void setDatad(void *inRefcon, double inValue)
   PyObject *oFun = PyTuple_GetItem(pCbks, WRITEDOUBLE);
   PyObject *oArg1 = PyTuple_GetItem(pCbks, WRITEREFCON);
   PyObject *oArg2 = PyFloat_FromDouble(inValue);
+  set_moduleName(PyTuple_GetItem(pCbks, DATA_MODULE_NAME));
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, oArg2, NULL);
   if(PyErr_Occurred()){
     return;
@@ -840,13 +857,15 @@ static int getDatavi(void *inRefcon, int *outValues, int inOffset, int inMax)
     Py_INCREF(outValuesObj);
   }
 
+  set_moduleName(PyTuple_GetItem(pCbks, DATA_MODULE_NAME));
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, outValuesObj, oArg2, oArg3, NULL);
   PyObject *err = PyErr_Occurred();
   if(err) {
-    pythonLog("[%s] getDatavi callback %s failed with %s.\n",
-            objToStr(PyTuple_GetItem(pCbks, PLUGINSELF)),
-            objToStr(oFun),
-            objToStr(err));
+    char *s = objToStr(oFun);
+    char *s2 = objToStr(err);
+    pythonLog("[%s] getDatavi callback %s failed with %s.\n", CurrentPythonModuleName, s, s2);
+    free(s);
+    free(s2);
     pythonLogException(); /* because if we don't clear it here, it will get reported by the "next"
                              python call, which is likely completely unrelated to this error (because
                              this is being executed in a callback.
@@ -865,9 +884,9 @@ static int getDatavi(void *inRefcon, int *outValues, int inOffset, int inMax)
   err = PyErr_Occurred();
   if (err) {
     char msg[1024];
-    sprintf(msg, "[%s] getDatadvi callback %s failed to return an int",
-            objToStr(PyTuple_GetItem(pCbks, PLUGINSELF)),
-            objToStr(oFun));
+    char *s = objToStr(oFun);
+    sprintf(msg, "[%s] getDatadvi callback %s failed to return an int", CurrentPythonModuleName, s);
+    free(s);
     PyErr_SetString(err, msg);
   } else {
     if(outValuesObj != Py_None){
@@ -901,11 +920,12 @@ static void setDatavi(void *inRefcon, int *inValues, int inOffset, int inCount)
     Py_DECREF(tmp);
   }
   PyObject *err = PyErr_Occurred();
+  set_moduleName(PyTuple_GetItem(pCbks, DATA_MODULE_NAME));
   if(err){
     char msg[1024];
-    sprintf(msg, "[%s] setDatavi error getting input longs: %s",
-            objToStr(PyTuple_GetItem(pCbks, PLUGINSELF)),
-            objToStr(PyTuple_GetItem(pCbks, WRITEINTARRAY)));
+    char *s = objToStr(PyTuple_GetItem(pCbks, WRITEINTARRAY));
+    sprintf(msg, "[%s] setDatavi error getting input longs: %s", CurrentPythonModuleName, s);
+    free(s);
     PyErr_SetString(err, msg);
     return;
   }
@@ -951,13 +971,15 @@ static int getDatavf(void *inRefcon, float *outValues, int inOffset, int inMax)
     Py_INCREF(outValuesObj);
   }
 
+  set_moduleName(PyTuple_GetItem(pCbks, DATA_MODULE_NAME));
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, outValuesObj, oArg2, oArg3, NULL);
   PyObject *err = PyErr_Occurred();
   if(err) {
-    pythonLog("[%s] getDatavf callback %s failed with %s.\n",
-            objToStr(PyTuple_GetItem(pCbks, PLUGINSELF)),
-            objToStr(oFun),
-            objToStr(err));
+    char *s = objToStr(oFun);
+    char *s2 = objToStr(err);
+    pythonLog("[%s] getDatavf callback %s failed with %s.\n", CurrentPythonModuleName, s, s2);
+    free(s);
+    free(s2);
     pythonLogException(); /* because if we don't clear it here, it will get reported by the "next"
                              python call, which is likely completely unrelated to this error (because
                              this is being executed in a callback.
@@ -977,9 +999,9 @@ static int getDatavf(void *inRefcon, float *outValues, int inOffset, int inMax)
   err = PyErr_Occurred();
   if(err) {
     char msg[1024];
-    sprintf(msg, "[%s] getDatavf callback %s failed to get length of data",
-            objToStr(PyTuple_GetItem(pCbks, PLUGINSELF)),
-            objToStr(oFun));
+    char *s2 = objToStr(oFun);
+    sprintf(msg, "[%s] getDatavf callback %s failed to get length of data", CurrentPythonModuleName, s2);
+    free(s2);
     PyErr_SetString(err, msg);
   } else {
     if(outValuesObj != Py_None){
@@ -1020,9 +1042,9 @@ static void setDatavf(void *inRefcon, float *inValues, int inOffset, int inCount
   PyObject *err = PyErr_Occurred();
   if(err){
     char msg[1024];
-    sprintf(msg, "[%s] setDatavf error getting input floats %s",
-            objToStr(PyTuple_GetItem(pCbks, PLUGINSELF)),
-            objToStr(PyTuple_GetItem(pCbks, WRITEFLOATARRAY)));
+    char *s2 = objToStr(PyTuple_GetItem(pCbks, WRITEFLOATARRAY));
+    sprintf(msg, "[%s] setDatavf error getting input floats %s", CurrentPythonModuleName, s2);
+    free(s2);
     PyErr_SetString(err, msg);
     return;
   }
@@ -1034,6 +1056,7 @@ static void setDatavf(void *inRefcon, float *inValues, int inOffset, int inCount
   if(PyErr_Occurred()) {
     return;
   }
+  set_moduleName(PyTuple_GetItem(pCbks, DATA_MODULE_NAME));
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, inValuesObj, oArg2, oArg3, NULL);
   Py_DECREF(oArg2);
   Py_DECREF(oArg3);
@@ -1068,13 +1091,15 @@ static int getDatab(void *inRefcon, void *outValue, int inOffset, int inMax)
     outValuesObj = Py_None;
     Py_INCREF(outValuesObj);
   }
+  set_moduleName(PyTuple_GetItem(pCbks, DATA_MODULE_NAME));
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, outValuesObj, oArg2, oArg3, NULL);
   PyObject *err = PyErr_Occurred();
   if(err) {
-    pythonLog("[%s] getDatab callback %s failed with %s.\n",
-            objToStr(PyTuple_GetItem(pCbks, PLUGINSELF)),
-            objToStr(oFun),
-            objToStr(err));
+    char *s = objToStr(oFun);
+    char *s2 = objToStr(err);
+    pythonLog("[%s] getDatab callback %s failed with %s.\n", CurrentPythonModuleName, s, s2);
+    free(s);
+    free(s2);
     pythonLogException(); /* because if we don't clear it here, it will get reported by the "next"
                              python call, which is likely completely unrelated to this error (because
                              this is being executed in a callback.
@@ -1094,9 +1119,8 @@ static int getDatab(void *inRefcon, void *outValue, int inOffset, int inMax)
   err = PyErr_Occurred();
   if(err){
     char msg[1024];
-    sprintf(msg, "[%s] getData callback %s failed to get length of data",
-            objToStr(PyTuple_GetItem(pCbks, PLUGINSELF)),
-            objToStr(oFun));
+    char *s = objToStr(oFun);
+    sprintf(msg, "[%s] getData callback %s failed to get length of data", CurrentPythonModuleName, s);
     PyErr_SetString(err, msg);
   } else {
     if(outValuesObj != Py_None){
@@ -1106,9 +1130,9 @@ static int getDatab(void *inRefcon, void *outValue, int inOffset, int inMax)
         err = PyErr_Occurred();
         if(err){
           char msg[1024];
-          sprintf(msg, "[%s] getDatab callback %s failed to return valid data",
-                  objToStr(PyTuple_GetItem(pCbks, PLUGINSELF)),
-                  objToStr(oFun));
+          char *s = objToStr(oFun);
+          sprintf(msg, "[%s] getDatab callback %s failed to return valid data", CurrentPythonModuleName, s);
+          free(s);
           PyErr_SetString(err, msg);
           return 0;
         }
@@ -1123,6 +1147,7 @@ static void setDatab(void *inRefcon, void *inValue, int inOffset, int inCount)
 {
   PyObject *pID = PyLong_FromVoidPtr(inRefcon);
   PyObject *pCbks = PyDict_GetItemWithError(accessorDict, pID);
+  set_moduleName(PyTuple_GetItem(pCbks, DATA_MODULE_NAME));
   Py_DECREF(pID);
   if(pCbks == NULL){
     pythonLog("Unknown dataAccessor refCon passed to setDatab (%p).\n", inRefcon);
@@ -1138,9 +1163,9 @@ static void setDatab(void *inRefcon, void *inValue, int inOffset, int inCount)
   PyObject *err = PyErr_Occurred();
   if(err){
     char msg[1024];
-    sprintf(msg, "[%s] setDatab error getting input data %s",
-            objToStr(PyTuple_GetItem(pCbks, PLUGINSELF)),
-            objToStr(PyTuple_GetItem(pCbks, WRITEDATA)));
+    char *s = objToStr(PyTuple_GetItem(pCbks, WRITEDATA));
+    sprintf(msg, "[%s] setDatab error getting input data %s", CurrentPythonModuleName, s);
+    free(s);
     PyErr_SetString(err, msg);
     return;
   }
@@ -1187,7 +1212,6 @@ static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args, PyO
 {
   static char *keywords[] = {"name", "dataType", "writable", "readInt", "writeInt", "readFloat", "writeFloat", "readDouble", "writeDouble", "readIntArray", "writeIntArray", "readFloatArray", "writeFloatArray", "readData", "writeData", "readRefCon", "writeRefCon", NULL};
   (void)self;
-  PyObject *pluginSelf;
   const char *inDataName;
   int inDataType=xplmType_Unknown, inIsWritable=-1;
   PyObject *ri=Py_None, *wi=Py_None, *rf=Py_None, *wf=Py_None, *rd=Py_None, *wd=Py_None, *rai=Py_None, *wai=Py_None, *raf=Py_None,
@@ -1196,7 +1220,6 @@ static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args, PyO
                                   &ri, &wi, &rf, &wf, &rd, &wd, &rai, &wai, &raf, &waf, &rab, &wab, &rRef, &wRef)) {
     return NULL;
   }
-  pluginSelf = get_pluginSelf();
   if (inIsWritable == -1) {
     inIsWritable = (wi != Py_None || wf != Py_None || wd != Py_None || wai != Py_None || waf != Py_None) ? 1 : 0;
   }
@@ -1227,7 +1250,8 @@ static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args, PyO
                                           getDatab,   setDatab,
                                           refcon,     refcon);
 
-  PyObject *argsObj = Py_BuildValue("(OsiiOOOOOOOOOOOOOO)", pluginSelf, inDataName, inDataType, inIsWritable,
+  PyObject *argsObj = Py_BuildValue("(ssiiOOOOOOOOOOOOOO)", CurrentPythonModuleName,
+                                    inDataName, inDataType, inIsWritable,
                                     ri, wi, rf, wf, rd, wd, rai, wai, raf, waf, rab, wab, rRef, wRef);
   if(PyDict_SetItem(accessorDict, refconObj, argsObj) != 0){
     Py_RETURN_NONE;
@@ -1245,12 +1269,12 @@ static PyObject *XPLMUnregisterDataAccessorFun(PyObject *self, PyObject *args, P
 {
   static char *keywords[] = {"accessor", NULL};
   (void)self;
-  PyObject *pluginSelf;
   PyObject *drefObj;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &drefObj)) {
     return NULL;
   }
-  pluginSelf = get_pluginSelf();
+  PyObject *pluginSelf;
+  pluginSelf = get_moduleName_p();
   PyObject *refconObj = PyDict_GetItemWithError(drefDict, drefObj);
   if(refconObj == NULL){
     Py_DECREF(pluginSelf);
@@ -1291,15 +1315,18 @@ static void dataChanged(void *inRefcon)
     printf("Shared data callback called with wrong inRefcon: %p\n", inRefcon);
     return;
   }
-  PyObject *callbackFun = PyTuple_GetItem(sharedObj, 3);
-  PyObject *arg = PyTuple_GetItem(sharedObj, 4);
+  PyObject *callbackFun = PyTuple_GetItem(sharedObj, SHARED_CALLBACK);
+  PyObject *arg = PyTuple_GetItem(sharedObj, SHARED_REFCON);
+  set_moduleName(PyTuple_GetItem(sharedObj, SHARED_MODULE_NAME));
   PyObject *oRes = PyObject_CallFunctionObjArgs(callbackFun, arg, NULL);
   PyObject *err = PyErr_Occurred();
   if(err){
     char msg[1024];
-    sprintf(msg, "[%s] Error in dataChanged callback %s",
-            objToStr(PyTuple_GetItem(sharedObj, 0)),  /* pluginself */
-            objToStr(callbackFun));
+    char *s = objToStr(PyTuple_GetItem(sharedObj, SHARED_PLUGIN)); 
+    char *s2 = objToStr(callbackFun);
+    sprintf(msg, "[%s] Error in dataChanged callback %s", s, s2);
+    free(s);
+    free(s2);
     pythonLog("%s\n", msg);
     pythonLogFlush();
     PyErr_SetString(err, msg);
@@ -1326,7 +1353,7 @@ static PyObject *XPLMShareDataFun(PyObject *self, PyObject *args, PyObject *kwar
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "si|OO", keywords, &inDataName, &inDataType, &inNotificationFunc, &inNotificationRefcon)) {
     return NULL;
   }
-  pluginSelf = get_pluginSelf();
+  pluginSelf = get_moduleName_p();
   void *refcon = (void *)sharedCntr++;
   int res = XPLMShareData(inDataName, inDataType, dataChanged, refcon);
   if(res != 1){
@@ -1337,7 +1364,7 @@ static PyObject *XPLMShareDataFun(PyObject *self, PyObject *args, PyObject *kwar
     pythonLogException();
     return NULL;
   }
-  PyObject *argsObj = Py_BuildValue("(OsiOO)", pluginSelf, inDataName, inDataType, inNotificationFunc, inNotificationRefcon);
+  PyObject *argsObj = Py_BuildValue("(OsiOOs)", pluginSelf, inDataName, inDataType, inNotificationFunc, inNotificationRefcon, CurrentPythonModuleName);
   if (!argsObj || PyErr_Occurred()) {
     pythonLogException();
     return NULL;
@@ -1464,18 +1491,18 @@ static PyObject *XPLMUnshareDataFun(PyObject *self, PyObject *args, PyObject *kw
     return NULL;
   }
     
-  pluginSelf = get_pluginSelf();
+  pluginSelf = get_moduleName_p();
   PyObject *inDataNameObj, *target, *inDataNameUTF8Obj;
   char *dict_inDataName;
   target = NULL;
   while(PyDict_Next(sharedDict, &cnt, &pKey, &pVal)){
     // only look for things this plugin is sharing...
-    if (PyObject_RichCompareBool(pluginSelf, PyTuple_GetItem(pVal, 0), Py_NE)){
+    if (PyObject_RichCompareBool(pluginSelf, PyTuple_GetItem(pVal, SHARED_PLUGIN), Py_NE)){
       continue;
     }
 
     // Look for inDataName match
-    inDataNameObj = PyTuple_GetItem(pVal, 1);
+    inDataNameObj = PyTuple_GetItem(pVal, SHARED_DATA_NAME);
     inDataNameUTF8Obj = PyUnicode_AsUTF8String(inDataNameObj);
     dict_inDataName = PyBytes_AsString(inDataNameUTF8Obj);
     if (PyErr_Occurred()) {
@@ -1489,16 +1516,24 @@ static PyObject *XPLMUnshareDataFun(PyObject *self, PyObject *args, PyObject *kw
       continue;
     }
     Py_DECREF(inDataNameUTF8Obj);
-    if(PyLong_AsLong(PyTuple_GetItem(pVal, 2)) != inDataType){
+    if(PyLong_AsLong(PyTuple_GetItem(pVal, SHARED_DATA_TYPE)) != inDataType){
       /* printf("in data types do not match %d - %d\n", (int)PyLong_AsLong(PyTuple_GetItem(pVal, 2)), inDataType);*/
       continue;
     }
-    if(PyTuple_GetItem(pVal, 3) != callbackObj){
-      /* printf("callbckObject do not match %s - %s\n", objToStr(PyTuple_GetItem(pVal, 3)), objToStr(callbackObj)); */
+    if(PyTuple_GetItem(pVal, SHARED_CALLBACK) != callbackObj){
+      /* char *s = objToStr(PyTuple_GetItem(pVal, 3)); */
+      /* char *s2 = objToStr(callbackObj); */
+      /* printf("callbckObject do not match %s - %s\n", s, s2); */
+      /* free(s); */
+      /* free(s2); */
       continue;
     }
-    if(PyTuple_GetItem(pVal, 4) != refconObj){
-      /* printf("refconObj do not match %s - %s\n", objToStr(PyTuple_GetItem(pVal, 4)), objToStr(refconObj));*/
+    if(PyTuple_GetItem(pVal, SHARED_REFCON) != refconObj){
+      /* char *s = objToStr(PyTuple_GetItem(pVal, 4)); */
+      /* char *s2 = objToStr(refconObj); */
+      /* printf("refconObj do not match %s - %s\n", s, s2);*/
+      /* free(s); */
+      /* free(s2); */
       continue;
     }
     target = pKey;
@@ -1611,16 +1646,16 @@ PyInit_XPLMDataAccess(void)
     if(!(accessorDict = PyDict_New())){
       return NULL;
     }
-    PyDict_SetItemString(xppythonDicts, "accessors", accessorDict);
+    PyDict_SetItemString(XPY3pythonDicts, "accessors", accessorDict);
     if(!(drefDict = PyDict_New())){
       return NULL;
     }
-    PyDict_SetItemString(xppythonDicts, "drefs", drefDict);
+    PyDict_SetItemString(XPY3pythonDicts, "drefs", drefDict);
     if(!(sharedDict = PyDict_New())){
       return NULL;
     }
     PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
-    PyDict_SetItemString(xppythonDicts, "sharedDrefs", sharedDict);
+    PyDict_SetItemString(XPY3pythonDicts, "sharedDrefs", sharedDict);
     PyModule_AddIntConstant(mod, "xplmType_Unknown", xplmType_Unknown);
     PyModule_AddIntConstant(mod, "xplmType_Int", xplmType_Int);
     PyModule_AddIntConstant(mod, "xplmType_Float", xplmType_Float);

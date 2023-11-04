@@ -1,12 +1,13 @@
 #define _GNU_SOURCE 1
 #include <Python.h>
+#include <assert.h>
+#include <execinfo.h>
 #include <frameobject.h>
 #include <sys/time.h>
 #include <string.h>
 #include <stdarg.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include "utils.h"
 #include "ini_file.h"
 #include <XPLM/XPLMUtilities.h>
@@ -15,10 +16,13 @@ const char *objRefName = "XPLMObjectRef";
 const char *commandRefName = "XPLMCommandRef";
 const char *widgetRefName = "XPLMWidgetID";
 
+char CurrentPythonModuleName[512] = "Main";
+
+void c_backtrace();
 int pythonWarnings = 1;  /* 1= issue warnings, 0= do not */
 int pythonDebugs = 0; /* 1= issue DEBUG messages, 0= do not */
 int pythonFlushLog = 0; /* 1= flush python log after every wrinte, 0= buffer writes */
-
+int pythonCapsuleRegistration = 0;  /* 1= log registration of all capsules (REQUIRES ERRCHECK) */
 FILE *pythonLog_fp = NULL;
 
 PyObject *get_pythonline();
@@ -111,6 +115,7 @@ void pythonLog(const char *fmt, ...) {
     va_end(ap);
     if (pythonLog_fp) {
       fprintf(pythonLog_fp, "%s", msg);
+      pythonLogFlush();
     } else {
       XPLMDebugString(msg);
     }
@@ -118,7 +123,6 @@ void pythonLog(const char *fmt, ...) {
 }
 
 void pythonDebug(const char *fmt, ...) {
-  /* DO NOT include terminating new line */
   if (pythonDebugs) {
     char *msg;
     va_list ap;
@@ -135,10 +139,11 @@ void pythonDebug(const char *fmt, ...) {
 }
 
 void pythonLogWarning(const char *msg) {
-  /* DO NOT include terminating new line */
   if (pythonWarnings) {
     PyObject *python_line = get_pythonline();
-    pythonLog("WARNING>> %s: %s\n", objToStr(python_line), msg);
+    char *s = objToStr(python_line);
+    pythonLog("WARNING>> %s: %s\n", s, msg);
+    free(s);
   }
 }
 
@@ -191,8 +196,7 @@ void pythonLogException()
     PyException_SetTraceback(pvalue, ptraceback);
   }
 
-  PyObject *module = get_pluginSelf();
-  char *module_name = get_moduleName();
+  PyObject *module = get_moduleName_p();
 
   /* First, attempt to fully format exception with traceback
      If the _fails_ then we'll print the Exception type & value below.
@@ -207,10 +211,12 @@ void pythonLogException()
       if (pvalue && ptraceback) {
         vals = PyObject_CallFunctionObjArgs(fmt_exception, ptype, pvalue, ptraceback, NULL);
       } else if (pvalue) {
+        pythonDebug("(logging exception without traceback)\n");
         PyObject *fmt_exception_only = PyObject_GetAttrString(tb_module, "format_exception_only");
         vals = PyObject_CallFunctionObjArgs(fmt_exception_only, ptype, pvalue, NULL);
         Py_DECREF(fmt_exception_only);
       } else {
+        pythonDebug("(logging exception without traceback or pvalue)\n");
         vals = PyObject_CallFunctionObjArgs(fmt_exception, ptype, pvalue, NULL);
       }
       if (vals == NULL) {
@@ -219,19 +225,20 @@ void pythonLogException()
           PyErr_Print();
         }
       } else {
+        pythonDebug("vals is %s\n", objDebug(vals));
         PyObject *localsDict = PyDict_New();
         PyDict_SetItemString(localsDict, "__builtins__", PyEval_GetBuiltins()); 
         PyDict_SetItemString(localsDict, "vals", vals);
         PyDict_SetItemString(localsDict, "module", module);
-        PyRun_String("ret = []\n"
-                     "[ret.extend(x.split('\\n')) for x in vals]\n"
-                     "ret = '\\n'.join(['EXCEPTION>> [{}] {}'.format(module or 'Main', x) for x in ret])\n",
-                     Py_file_input, localsDict, localsDict);
+        MyPyRun_String("ret = []\n"
+                       "[ret.extend(x.split('\\n')) for x in vals]\n"
+                       "ret = '\\n'.join(['EXCEPTION>> [{}] {}'.format(module or 'Main', x) for x in ret])\n",
+                       Py_file_input, localsDict, localsDict);
         PyObject *tb_string = PyDict_GetItemString(localsDict, "ret"); /* borrowed */
-        char *foo = objToStr(tb_string);
+        char *s = objToStr(tb_string);
         Py_DECREF(localsDict);
-        pythonLog( "%s\n", foo);
-        free(foo);
+        pythonLog( "%s\n", s);
+        free(s);
         full_traceback = 1;
         Py_DECREF(vals);
       }
@@ -242,18 +249,19 @@ void pythonLogException()
   if (!full_traceback) {
     /* Failed to print full traceback. Print what we can. */
     foo = objToStr(ptype);
-    pythonLog("EXCEPTION>> [%s] type: %s\n", module_name, foo);
+    pythonLog("EXCEPTION>> [%s] type: %s\n", CurrentPythonModuleName, foo);
     free(foo);
     foo = objToStr(pvalue);
-    pythonLog("EXCEPTION>> [%s] value: %s\n", module_name, foo);
+    pythonLog("EXCEPTION>> [%s] value: %s\n", CurrentPythonModuleName, foo);
     free(foo);
   }
+
+  c_backtrace();
 
   Py_XDECREF(ptype);
   Py_XDECREF(pvalue);
   Py_XDECREF(ptraceback);
   Py_XDECREF(module);
-  free(module_name);
 }
 
 char * objToStr(PyObject *item) {
@@ -286,51 +294,20 @@ long getLongFromTuple(PyObject *seq, Py_ssize_t i)
   return PyLong_AsLong(PyTuple_GetItem(seq, i)); /* PyTuple_GetItem borrows */
 }
 
-PyObject *get_module() {
-  PyGILState_STATE gilState = PyGILState_Ensure();
-  PyThreadState *tstate = PyThreadState_Get();
-  PyFrameObject *last_frame = NULL, *frame = NULL;
-  PyObject *moduleName = Py_None;
-  
-#if Py_LIMITED_API || PY_VERSION_HEX >= 0x030b0000
-  if (NULL != tstate && NULL != PyThreadState_GetFrame(tstate)) {
-    frame = PyThreadState_GetFrame(tstate);
-    while (NULL != frame) {
-      last_frame = frame;
-      frame = PyFrame_GetBack(frame);
-    }
-  }
-  if (last_frame) {
-    moduleName = PyDict_GetItemString(PyFrame_GetGlobals(last_frame), "__name__");
-  }
-#else
-  if (NULL != tstate && NULL != tstate->frame) {
-    frame = tstate->frame;
-    while (NULL != frame) {
-      last_frame = frame;
-      frame = frame->f_back;
-    }
-  }
-  if (last_frame) {
-    moduleName = PyDict_GetItemString(last_frame->f_globals, "__name__");
-  }
-#endif
-  PyGILState_Release(gilState);
-  return moduleName;
-}
-  
-char *get_moduleName() {
-  PyObject *module = get_module();
-  if (Py_None == module) { 
-    return strdup("Main");
-  }
-  return objToStr(module);
-}
-  
-PyObject *get_pluginSelf() {
-  return get_module();
+void set_moduleName(PyObject *name) {
+  /* takes Python String */
+  char *tmp = objToStr(name);
+  strcpy(CurrentPythonModuleName, tmp);
+  free(tmp);
 }
 
+PyObject *get_moduleName_p() {
+  PyObject *pModule = PyUnicode_FromString(CurrentPythonModuleName);
+  Py_INCREF(pModule);
+  return pModule;
+}
+
+#if !defined(Py_LIMITED_API)
 PyObject *get_pythonline() {
   // returns heap-allocated PyObject (or Py_RETURN_NONE)
   PyGILState_STATE gilState = PyGILState_Ensure();
@@ -375,6 +352,7 @@ PyObject *get_pythonline() {
   free(last_filename);
   Py_RETURN_NONE;
 }
+#endif
 
 // To avoid Python code messing with raw pointers (when passed
 //   in using PyLong_FromVoidPtr), these are hidden in the capsules.
@@ -412,11 +390,15 @@ PyObject *getPtrRef(void *ptr, PyObject *dict, const char *refName)
   if(res == NULL){
     // New ref, register it
     res = getPtrRefOneshot(ptr, refName);
-    char *res_s = objToStr(res);
-    pythonLog("  (registering %s for %p)\n", res_s, ptr);
-    free(res_s);
 #if ERRCHECK
-    PyObject *tuple = PyTuple_Pack(2, res, get_module());
+    if (pythonCapsuleRegistration) {
+      char *res_s = objToStr(res);
+      pythonLog("  (registering %s for %p)\n", res_s, ptr);
+      free(res_s);
+    }
+#endif
+#if ERRCHECK
+    PyObject *tuple = PyTuple_Pack(2, res, get_moduleName_p());
     PyDict_SetItem(dict, key, tuple);
 #else
     PyDict_SetItem(dict, key, res);
@@ -439,12 +421,15 @@ void *refToPtr(PyObject *ref, const char *refName)
   if (!strcmp(widgetRefName, refName) && PyLong_Check(ref) && PyLong_AsLong(ref) == 0) {
     return NULL;
   }
+
   void *ptr = PyCapsule_GetPointer(ref, refName);
   if (pythonDebugs) {
     PyObject *err = PyErr_Occurred();
     if(err){
       pythonLogException();
-      pythonDebug("Failed to convert '%s' capsule (%s) to pointer\n", refName, objToStr(ref));
+      char *s = objToStr(ref);
+      pythonDebug("Failed to convert '%s' capsule (%s) to pointer\n", refName, s);
+      free(s);
       return NULL;
     }
   }
@@ -511,6 +496,17 @@ void MyPyRun_String(const char *str, int start, PyObject *globals, PyObject *loc
   Py_DECREF(codeObj);
 }
 
+void c_backtrace() {
+  void *callstack[128];
+  int i, frames = backtrace(callstack, 128);
+  char ** strs = backtrace_symbols(callstack, frames);
+  for (i = 0; i < frames; ++i) {
+    printf("%s\n", strs[i]);
+  }
+  free(strs);
+  assert (1 == 2);
+}
+
 void errCheck_f(const char *fmt, ...) {
   /* (you should NOT include terminating new line!) */
   char *msg;
@@ -524,7 +520,7 @@ void errCheck_f(const char *fmt, ...) {
       return;
     }
     va_end(ap);
-
+    
     pythonLog("%s\n", msg);
     pythonLogException();
   }

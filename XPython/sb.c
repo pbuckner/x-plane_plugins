@@ -2,7 +2,6 @@
 #include <Python.h>
 #include <sys/time.h>
 #include <stdio.h>
-#include <stdbool.h>
 
 static PyObject *SandyBarbourDisplayFun(PyObject *self, PyObject *args)
 {

@@ -9,7 +9,10 @@
 static const char fmodChannelRefName[] = "FMOD_CHANNEL";
 
 static intptr_t callbackCntr;
-static PyObject *callbackDict;
+static PyObject *soundCallbackDict;
+#define SOUND_CALLBACK 0
+#define SOUND_REFCON 1
+#define SOUND_MODULE_NAME 2
 static void soundCallback(void *inRefcon, FMOD_RESULT status);
   
 /* See also https://qa.fmod.com/t/how-to-use-fmod-from-a-python-script/12293/2 */
@@ -19,8 +22,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 {
   (void) self;
   (void) args;
-  PyDict_Clear(callbackDict);
-  Py_DECREF(callbackDict);
+  PyDict_Clear(soundCallbackDict);
+  Py_DECREF(soundCallbackDict);
   Py_RETURN_NONE;
 }
 
@@ -143,10 +146,10 @@ static PyObject *XPLMPlayPCMOnBusFun(PyObject *self, PyObject *args, PyObject *k
     callback = soundCallback;
     inRefcon = (void *)++callbackCntr;
     PyObject *refconObj = PyLong_FromVoidPtr(inRefcon);
-    PyObject *argsObj = Py_BuildValue("(OO)", callbackObj, inRefConObj);
+    PyObject *argsObj = Py_BuildValue("(OOs)", callbackObj, inRefConObj, CurrentPythonModuleName);
     /* Add to dictionary, key is the unique value well "receive" as refcon on callback
        value is the actual refcon, which will pass back.*/
-    PyDict_SetItem(callbackDict, refconObj, argsObj);
+    PyDict_SetItem(soundCallbackDict, refconObj, argsObj);
   }
     
   FMOD_CHANNEL *fmod_channel = XPLMPlayPCMOnBus_ptr(audioBuffer,
@@ -158,18 +161,19 @@ static PyObject *XPLMPlayPCMOnBusFun(PyObject *self, PyObject *args, PyObject *k
 static void soundCallback(void *inRefcon, FMOD_RESULT status)
 {
   PyObject *ref = PyLong_FromVoidPtr(inRefcon);
-  PyObject *callbackInfo = PyDict_GetItem(callbackDict, ref); /* borrowed */
+  PyObject *callbackInfo = PyDict_GetItem(soundCallbackDict, ref); /* borrowed */
   if(callbackInfo == NULL){
     Py_DECREF(ref);
     pythonLog("Couldn't find sound callback with id = %p.\n", inRefcon); 
     return;
   }
 
-  PyDict_DelItem(callbackDict, ref); // because it'll get called only once by XP!
+  PyDict_DelItem(soundCallbackDict, ref); // because it'll get called only once by XP!
   Py_DECREF(ref);
 
-  PyObject *fun = PyTuple_GetItem(callbackInfo, 0);  /* borrowed */
-  PyObject *refCon = PyTuple_GetItem(callbackInfo, 1);  /* borrowed */
+  set_moduleName(PyTuple_GetItem(callbackInfo, SOUND_MODULE_NAME));
+  PyObject *fun = PyTuple_GetItem(callbackInfo, SOUND_CALLBACK);  /* borrowed */
+  PyObject *refCon = PyTuple_GetItem(callbackInfo, SOUND_REFCON);  /* borrowed */
   PyObject_CallFunctionObjArgs(fun, refCon, PyLong_FromLong(status), NULL);
 }
 
@@ -451,7 +455,7 @@ static struct PyModuleDef XPLMSoundModule = {
 PyMODINIT_FUNC
 PyInit_XPLMSound(void)
 {
-  if(!(callbackDict = PyDict_New())){
+  if(!(soundCallbackDict = PyDict_New())){
     return NULL;
   }
   PyObject *mod = PyModule_Create(&XPLMSoundModule);

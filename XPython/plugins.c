@@ -2,7 +2,6 @@
 #include <Python.h>
 #include <sys/time.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMPlugin.h>
 #include "utils.h"
@@ -158,6 +157,12 @@ static PyObject *XPLMSendMessageToPluginFun(PyObject *self, PyObject *args, PyOb
   long inPluginID;
   long inMessage;
   PyObject* inParam = Py_None;
+  PyObject *err;
+  err = PyErr_Occurred();
+  if (err) {
+    pythonLog("Error prior to send message to plugin\n");
+    pythonLogException();
+  }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ll|O", keywords, &inPluginID, &inMessage, &inParam)){
     return NULL;
   }
@@ -173,7 +178,14 @@ static PyObject *XPLMSendMessageToPluginFun(PyObject *self, PyObject *args, PyOb
     XPLMSendMessageToPlugin(inPluginID, inMessage, msgParam);
     free(msgParam);
   } else {
-    pythonLog("Unknown data type %s for XPLMSendMessageToPlugin(... inParam). Cannot convert\n", objToStr(PyObject_Type(inParam)));
+    char *s = objToStr(PyObject_Type(inParam));
+    pythonLog("Unknown data type %s for XPLMSendMessageToPlugin(... inParam). Cannot convert\n", s);
+    free(s);
+  }
+  err = PyErr_Occurred();
+  if (err) {
+    pythonLog("Error at end of send message to plugin\n");
+    pythonLogException();
   }
   Py_RETURN_NONE;
 }
@@ -226,6 +238,10 @@ static PyObject *XPLMEnableFeatureFun(PyObject *self, PyObject *args, PyObject *
 }
 
 static PyObject *feDict;
+#define FEATURE_CALLBACK 0
+#define FEATURE_REFCON 1
+#define FEATURE_MODULE_NAME 2
+
 static intptr_t feCntr;
 
 static void featureEnumerator(const char *inFeature, void *inRef)
@@ -237,9 +253,10 @@ static void featureEnumerator(const char *inFeature, void *inRef)
     printf("Unknown feature enumeration callback requested! (inFeature = '%s' inRef = %p)\n", inFeature, inRef);
     return;
   }
+  set_moduleName(PyTuple_GetItem(callbackInfo, FEATURE_MODULE_NAME));
   PyObject *inFeatureObj = PyUnicode_FromString(inFeature);
-  PyObject *res = PyObject_CallFunctionObjArgs(PyTuple_GetItem(callbackInfo, 1),
-                                        inFeatureObj, PyTuple_GetItem(callbackInfo, 2), NULL);
+  PyObject *res = PyObject_CallFunctionObjArgs(PyTuple_GetItem(callbackInfo, FEATURE_CALLBACK),
+                                        inFeatureObj, PyTuple_GetItem(callbackInfo, FEATURE_REFCON), NULL);
   PyObject *err = PyErr_Occurred();
   Py_DECREF(inFeatureObj);
   if(err){
@@ -260,13 +277,10 @@ static PyObject *XPLMEnumerateFeaturesFun(PyObject *self, PyObject *args, PyObje
   (void) self;
   PyObject *fun;
   PyObject *refCon=Py_None;
-  PyObject *pluginSelf;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O", keywords, &fun, &refCon)) {
     return NULL;
   }
-  pluginSelf = get_pluginSelf();
-
-  PyObject *argsObj = Py_BuildValue("(OOO)", pluginSelf, fun, refCon);
+  PyObject *argsObj = Py_BuildValue("(OOs)", fun, refCon, CurrentPythonModuleName);
   PyObject *key = PyLong_FromLong(feCntr++);
   void *inRef = PyLong_AsVoidPtr(key);
   PyDict_SetItem(feDict, key, argsObj);

@@ -2,7 +2,6 @@
 #include <Python.h>
 #include <sys/time.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include "plugin_dl.h"
 #include "utils.h"
 #include <XPLM/XPLMDefs.h>

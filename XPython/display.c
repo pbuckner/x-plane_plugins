@@ -2,7 +2,6 @@
 #include <Python.h>
 #include <sys/time.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMDisplay.h>
 #include "utils.h"
@@ -12,8 +11,8 @@
 
 static PyObject *drawCallbackDict;
 static intptr_t drawCallbackCntr;
-#define DRAW_PLUGIN 0
-#define DRAW_CALLBACK 1  
+#define DRAW_MODULE_NAME 0
+#define DRAW_CALLBACK 1 
 #define DRAW_PHASE 2
 #define DRAW_BEFORE 3
 #define DRAW_REFCON 4  
@@ -21,14 +20,14 @@ static PyObject *drawCallbackIDDict;
 
 static PyObject *keySniffCallbackDict;
 static intptr_t keySniffCallbackCntr;
-#define KEYSNIFF_PLUGIN 0
+#define KEYSNIFF_MODULE_NAME 0
 #define KEYSNIFF_CALLBACK 1
 #define KEYSNIFF_BEFORE 2
 #define KEYSNIFF_REFCON 3
 
 static PyObject *avionicsCallbacksDict; // key is PyLong(avionicsCallbacksCntr)
 static intptr_t avionicsCallbacksCntr;
-#define AVIONICS_PLUGIN 0
+#define AVIONICS_MODULE_NAME 0
 #define AVIONICS_DEVICE 1
 #define AVIONICS_BEFORE 2
 #define AVIONICS_AFTER  3
@@ -43,12 +42,13 @@ static PyObject *windowDict;
 #define WINDOW_CURSOR 3
 #define WINDOW_WHEEL 4
 #define WINDOW_RIGHTCLICK 5
-#define WINDOW_PLUGIN 6
+#define WINDOW_MODULE_NAME 6
 
 static PyObject *hotkeyDict;
 static intptr_t hotkeyCntr;
 #define HOTKEY_CALLBACK 0
 #define HOTKEY_REFCON 1
+#define HOTKEY_MODULE_NAME 2
 static PyObject *hotkeyIDDict;
 
 static PyObject *monitorBndsCallback;
@@ -66,6 +66,7 @@ const char *avionicsIDRef = "XPLMAvionicsIDRef";
 static void receiveMonitorBounds(int inMonitorIndex, int inLeftBx, int inTopBx,
                                        int inRightBx, int inBottomBx, void *refcon)
 {
+  errCheck("Before receiveMonitorBounds");
   PyObject *pRes = PyObject_CallFunction(monitorBndsCallback, "(iiiiiO)", inMonitorIndex,
                                          inLeftBx, inTopBx, inRightBx, inBottomBx, (PyObject*)refcon);
   if (PyErr_Occurred()) {
@@ -87,9 +88,9 @@ My_DOCSTR(_registerDrawCallback__doc__, "registerDrawCallback", "draw, phase=xpl
           "\nRegistration returns 1 on success, 0 otherwise.");
 static PyObject *XPLMRegisterDrawCallbackFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  errCheck("Before registerDrawCallback");
   static char *keywords[] = {"draw", "phase", "after", "refCon", NULL};
   (void) self;
-  PyObject *pluginSelf;
   PyObject *callback;
   int inPhase = xplm_Phase_Window;
   int inWantsBefore = 0;
@@ -97,14 +98,13 @@ static PyObject *XPLMRegisterDrawCallbackFun(PyObject *self, PyObject *args, PyO
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|iiO", keywords, &callback, &inPhase, &inWantsBefore, &refcon)){
     return NULL;
   }
-  pluginSelf = get_pluginSelf();
   PyObject *idx = PyLong_FromLong(++drawCallbackCntr);
   if(!idx){
     PyErr_SetString(PyExc_RuntimeError ,"Couldn't create long for drawCallbackCntr.\n");
     return NULL;
   }
 
-  PyObject *argObj = Py_BuildValue("(OOiiO)", pluginSelf, callback, inPhase, inWantsBefore, refcon);
+  PyObject *argObj = Py_BuildValue("(sOiiO)", CurrentPythonModuleName, callback, inPhase, inWantsBefore, refcon);
   PyDict_SetItem(drawCallbackDict, idx, argObj);
   Py_DECREF(argObj);
   PyObject *tmp = PyLong_FromVoidPtr(refcon);
@@ -117,6 +117,7 @@ static PyObject *XPLMRegisterDrawCallbackFun(PyObject *self, PyObject *args, PyO
     PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterDrawCallback failed.\n");
     return NULL;
   }
+  errCheck("end of registerDrawCallback");
   return PyLong_FromLong(res);
 }
 
@@ -157,13 +158,12 @@ static PyObject *XPLMRegisterAvionicsCallbacksExFun(PyObject *self, PyObject *ar
     PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterAviationCallbacksEx: Both before and after callbacks cannot be None.");
     return NULL;
   }
-  PyObject *pluginSelf = get_pluginSelf();
   PyObject *idx = PyLong_FromLong(++avionicsCallbacksCntr);
   if(!idx){
     PyErr_SetString(PyExc_RuntimeError ,"Couldn't create long.\n");
     return NULL;
   }
-  PyObject *argObj = Py_BuildValue("OiOOO", pluginSelf, deviceId, beforeCallback, afterCallback, refcon);
+  PyObject *argObj = Py_BuildValue("siOOO", CurrentPythonModuleName, deviceId, beforeCallback, afterCallback, refcon);
   PyDict_SetItem(avionicsCallbacksDict, idx, argObj);
   Py_DECREF(idx);
   Py_DECREF(argObj);
@@ -241,23 +241,22 @@ My_DOCSTR(_registerKeySniffer__doc__, "registerKeySniffer", "sniffer, before=0, 
           "\nrefCon will be passed to your sniffer callback.");
 static PyObject *XPLMRegisterKeySnifferFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  errCheck("before registerKeySniffer");
   static char *keywords[] = {"sniffer", "before", "refCon", NULL};
   (void) self;
-  PyObject *pluginSelf, *callback, *refcon = Py_None;
+  PyObject *callback, *refcon = Py_None;
   int inBeforeWindows=0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|iO", keywords, &callback, &inBeforeWindows, &refcon)) {
     return NULL;
   }
     
-  pluginSelf = get_pluginSelf();
-
   PyObject *idx = PyLong_FromLong(++keySniffCallbackCntr);
   if(!idx){
     PyErr_SetString(PyExc_RuntimeError ,"Couldn't create long.\n");
     return NULL;
   }
 
-  PyObject *argObj = Py_BuildValue("(OOiO)", pluginSelf, callback, inBeforeWindows, refcon);
+  PyObject *argObj = Py_BuildValue("(sOiO)", CurrentPythonModuleName, callback, inBeforeWindows, refcon);
   PyDict_SetItem(keySniffCallbackDict, idx, argObj);
   Py_DECREF(idx);
   Py_DECREF(argObj);
@@ -266,6 +265,7 @@ static PyObject *XPLMRegisterKeySnifferFun(PyObject *self, PyObject *args, PyObj
     PyErr_SetString(PyExc_RuntimeError ,"registerKeySniffer failed.\n");
     return NULL;
   }
+  errCheck("at end registerKeySniffer");
   return PyLong_FromLong(res);
 }
 
@@ -314,18 +314,17 @@ static PyObject *XPLMUnregisterKeySnifferFun(PyObject *self, PyObject *args, PyO
 {
   static char *keywords[] = {"sniffer", "before", "refCon", NULL};
   (void) self;
-  PyObject *pluginSelf, *callback, *refcon = Py_None;
+  PyObject *callback, *refcon = Py_None;
   int inBeforeWindows = 0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|iO", keywords, &callback, &inBeforeWindows, &refcon)) {
     return NULL;
   }
 
-  pluginSelf = get_pluginSelf();
   PyObject *pKey = NULL, *pVal = NULL;
   PyObject *toDelete = NULL;
   Py_ssize_t pos = 0;
   int res = -1;
-  PyObject *argObj = Py_BuildValue("OOiO", pluginSelf, callback, inBeforeWindows, refcon);
+  PyObject *argObj = Py_BuildValue("sOiO", CurrentPythonModuleName, callback, inBeforeWindows, refcon);
   while(PyDict_Next(keySniffCallbackDict, &pos, &pKey, &pVal)){
     if(PyObject_RichCompareBool(pVal, argObj, Py_EQ)){
       toDelete = pKey;
@@ -333,7 +332,6 @@ static PyObject *XPLMUnregisterKeySnifferFun(PyObject *self, PyObject *args, PyO
     }
   }
   Py_DECREF(argObj);
-  Py_DECREF(pluginSelf);
   if(toDelete){
     res = XPLMUnregisterKeySniffer(XPLMKeySnifferCallback, 
                                    inBeforeWindows, PyLong_AsVoidPtr(toDelete));
@@ -352,6 +350,7 @@ static PyObject *XPLMUnregisterKeySnifferFun(PyObject *self, PyObject *args, PyO
 static void drawWindow(XPLMWindowID  inWindowID,
                 void         *inRefcon)
 {
+  errCheck("prior drawWindow");
   struct timespec all_stop, all_start;
   clock_gettime(CLOCK_MONOTONIC, &all_start);
   PyObject *pID = getPtrRef(inWindowID, windowIDCapsules, windowIDRef);
@@ -364,9 +363,10 @@ static void drawWindow(XPLMWindowID  inWindowID,
   if (func != Py_None) {
     struct timespec stop, start;
     clock_gettime(CLOCK_MONOTONIC, &start);
+    set_moduleName(PyTuple_GetItem(pCbks, WINDOW_MODULE_NAME));
     PyObject *oRes = PyObject_CallFunctionObjArgs(func, pID, inRefcon, NULL);
     clock_gettime(CLOCK_MONOTONIC, &stop);
-    pluginStats[getPluginIndex(PyTuple_GetItem(pCbks, WINDOW_PLUGIN))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+    pluginStats[getPluginIndex(PyTuple_GetItem(pCbks, WINDOW_MODULE_NAME))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
 
     if(PyErr_Occurred()) {
       pythonLogException();
@@ -374,6 +374,7 @@ static void drawWindow(XPLMWindowID  inWindowID,
     Py_XDECREF(oRes);
   }
   Py_DECREF(pID);
+  errCheck("end drawWindow");
   clock_gettime(CLOCK_MONOTONIC, &all_stop);
   pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
 }
@@ -385,6 +386,7 @@ static void handleKey(XPLMWindowID  inWindowID,
                void         *inRefcon,
                int           losingFocus)
 {
+  errCheck("prior handleKey");
   if (losingFocus) {
     /* If losing focus, X-Plane sends the _receiving_ windowID, rather than "self", the _losing_
      * windowID. Bug reported 10/22/2021. 
@@ -412,9 +414,12 @@ static void handleKey(XPLMWindowID  inWindowID,
          Filed with Laminar 18-May-2020 as XPD-10834
       */
       XPLMDebugString("NULL window passed to handleKey. Ignoring\n");
+      errCheck("no callback, losing focus, handleKey");
       return;
     }
-    sprintf(msg, "Unknown window passed to handleKey (%p) [%ld] -- losingFocus is %d. pID is %s\n", inWindowID, (long)inWindowID, losingFocus, objToStr(pID));
+    char *s = objToStr(pID);
+    sprintf(msg, "Unknown window passed to handleKey (%p) [%ld] -- losingFocus is %d. pID is %s\n", inWindowID, (long)inWindowID, losingFocus, s);
+    free(s);
     pythonLog("%s", msg);
     return;
   }
@@ -422,17 +427,17 @@ static void handleKey(XPLMWindowID  inWindowID,
   PyObject *arg2 = PyLong_FromLong(inFlags);
   PyObject *arg3 = PyLong_FromLong((unsigned int)inVirtualKey);
   PyObject *arg4 = PyLong_FromLong(losingFocus);
-  // printf("Calling handleKey callback. inWindowID = %p, pPID = %s, losingFocus = %d\n", inWindowID, objToStr(pID), losingFocus);
+  /* char *s = objToStr(pID); */
+  /* printf("Calling handleKey callback. inWindowID = %p, pPID = %s, losingFocus = %d\n", inWindowID, s, losingFocus); */
+  /* free(s); */
+  set_moduleName(PyTuple_GetItem(pCbks, WINDOW_MODULE_NAME));
   PyObject *oRes = PyObject_CallFunctionObjArgs(PyTuple_GetItem(pCbks, WINDOW_KEY), pID, arg1, arg2, arg3, inRefcon, arg4, NULL);
   Py_XDECREF(arg1);
   Py_XDECREF(arg2);
   Py_XDECREF(arg3);
   Py_XDECREF(arg4);
   Py_XDECREF(oRes);
-  PyObject *err = PyErr_Occurred();
-  if(err){
-    pythonLogException();
-  }
+  errCheck("end handleKey");
   Py_DECREF(pID);
 }
 
@@ -442,6 +447,7 @@ static int handleMouseClick(XPLMWindowID     inWindowID,
                      XPLMMouseStatus  inMouse,
                      void            *inRefcon)
 {
+  errCheck("prior handleMouseClick");
   (void) inRefcon;
   PyObject *pID = getPtrRef(inWindowID, windowIDCapsules, windowIDRef);
   PyObject *pCbks = PyDict_GetItem(windowDict, pID);
@@ -450,8 +456,10 @@ static int handleMouseClick(XPLMWindowID     inWindowID,
     return 1;
   }
   PyObject *func = PyTuple_GetItem(pCbks, WINDOW_CLICK);  /* borrowed */
+  set_moduleName(PyTuple_GetItem(pCbks, WINDOW_MODULE_NAME));
   if (func == Py_None) {
     /* consume click */
+    errCheck("no func handleMouseClick");
     return 1;
   }
 
@@ -470,16 +478,19 @@ static int handleMouseClick(XPLMWindowID     inWindowID,
   }
   if (!PyLong_Check(pRes)) {
     char *msg;
-    if (-1 == asprintf(&msg, "click() callback [%s] failed to return integer\n.", objToStr(func))) {
+    char *s = objToStr(func);
+    if (-1 == asprintf(&msg, "click() callback [%s] failed to return integer\n.", s)) {
       pythonLog("Failed to allocate asprintf memory for callback error.\n");
     } else {
       PyErr_SetString(PyExc_ValueError, msg);
       free(msg);
     }
+    free(s);
     return 1;
   }
   int res = (int)PyLong_AsLong(pRes);
   Py_DECREF(pRes);
+  errCheck("end handleMouseClick");
   return res;
 }
 
@@ -489,6 +500,7 @@ static int handleRightClick(XPLMWindowID     inWindowID,
                      XPLMMouseStatus  inMouse,
                      void            *inRefcon)
 {
+  errCheck("prior handleRightClick");
   (void) inRefcon;
   PyObject *pID = getPtrRef(inWindowID, windowIDCapsules, windowIDRef);
   PyObject *pCbks = PyDict_GetItem(windowDict, pID);
@@ -497,6 +509,7 @@ static int handleRightClick(XPLMWindowID     inWindowID,
     return 1;
   }
   PyObject *func = PyTuple_GetItem(pCbks, WINDOW_RIGHTCLICK);
+  set_moduleName(PyTuple_GetItem(pCbks, WINDOW_MODULE_NAME));
   if (func == Py_None) {
     return 1; /* consume click in window */
   }
@@ -516,16 +529,19 @@ static int handleRightClick(XPLMWindowID     inWindowID,
   }
   if (!PyLong_Check(pRes)) {
     char *msg;
-    if (-1 == asprintf(&msg, "rightClick() callback [%s] failed to return integer\n.", objToStr(func))) {
+    char *s = objToStr(func);
+    if (-1 == asprintf(&msg, "rightClick() callback [%s] failed to return integer\n.", s)) {
       pythonLog("Failed to allocate asprintf memory for right click callback.\n");
     } else {
       PyErr_SetString(PyExc_ValueError, msg);
       free(msg);
     }
+    free(s);
     return 1;
   }
   int res = (int)PyLong_AsLong(pRes);
   Py_DECREF(pRes);
+  errCheck("end handleRightClick");
   return res;
 }
 
@@ -534,6 +550,7 @@ static XPLMCursorStatus handleCursor(XPLMWindowID  inWindowID,
                               int           y,
                               void         *inRefcon)
 {
+  errCheck("prior handleCursor");
   (void) inRefcon;
   PyObject *pID = getPtrRef(inWindowID, windowIDCapsules, windowIDRef);
   PyObject *pCbks = PyDict_GetItem(windowDict, pID);
@@ -542,6 +559,7 @@ static XPLMCursorStatus handleCursor(XPLMWindowID  inWindowID,
     return 0;
   }
   PyObject *cbk = PyTuple_GetItem(pCbks, WINDOW_CURSOR);
+  set_moduleName(PyTuple_GetItem(pCbks, WINDOW_MODULE_NAME));
   if((cbk == NULL) || (cbk == Py_None)){
     return 0;
   }
@@ -558,6 +576,7 @@ static XPLMCursorStatus handleCursor(XPLMWindowID  inWindowID,
   }
   int res = (int)PyLong_AsLong(pRes);
   Py_DECREF(pRes);
+  errCheck("end handleCursor");
   return res;
 }
 
@@ -568,6 +587,7 @@ static int handleMouseWheel(XPLMWindowID  inWindowID,
                      int           clicks,
                      void         *inRefcon)
 {
+  errCheck("prior handleMouseWheel");
   (void) inRefcon;
   PyObject *pID = getPtrRef(inWindowID, windowIDCapsules, windowIDRef);
   PyObject *pCbks = PyDict_GetItem(windowDict, pID);
@@ -576,6 +596,7 @@ static int handleMouseWheel(XPLMWindowID  inWindowID,
     return 1;
   }
   PyObject *cbk = PyTuple_GetItem(pCbks, WINDOW_WHEEL);
+  set_moduleName(PyTuple_GetItem(pCbks, WINDOW_MODULE_NAME));
   if((cbk == NULL) || (cbk == Py_None)){
     return 1;
   }
@@ -596,6 +617,7 @@ static int handleMouseWheel(XPLMWindowID  inWindowID,
   }
   int res = (int)PyLong_AsLong(pRes);
   Py_DECREF(pRes);
+  errCheck("end handleMouseWheel");
   return res;
 }
 
@@ -616,9 +638,9 @@ My_DOCSTR(_createWindowEx__doc__, "createWindowEx", "left=100, top=200, right=20
                                                                                        
 static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  errCheck("prior CreateWindowEx");
   static char *keywords[] = {"left", "top", "right", "bottom", "visible", "draw", "click", "key", "cursor", "wheel", "refCon", "decoration", "layer", "rightClick", NULL};
   (void) self;
-  PyObject *pluginSelf = get_pluginSelf();
   PyObject *firstObj=Py_None;
   int left=100, right=200, top=200, bottom=100;
   int visible=0;
@@ -716,7 +738,7 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
   
   Py_INCREF(params.refcon);
 
-  PyObject *cbkTuple = Py_BuildValue("(OOOOOOO)", draw, click, key, cursor, wheel, rightClick, pluginSelf);
+  PyObject *cbkTuple = Py_BuildValue("(OOOOOOs)", draw, click, key, cursor, wheel, rightClick, CurrentPythonModuleName);
   params.drawWindowFunc = drawWindow;
   params.handleMouseClickFunc = handleMouseClick;
   params.handleKeyFunc = handleKey;
@@ -732,6 +754,7 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
   PyObject *pID = getPtrRef(id, windowIDCapsules, windowIDRef);
   PyDict_SetItem(windowDict, pID, cbkTuple);
   Py_DECREF(cbkTuple);
+  errCheck("end createWindowEx");
   return pID;
 }
 
@@ -739,6 +762,7 @@ My_DOCSTR(_createWindow__doc__, "createWindow", "left=100, top=200, right=200, b
           "(Deprecated do not use)");
 static PyObject *XPLMCreateWindowFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  errCheck("prior createWindow");
   static char *keywords[] = {"left", "top", "right", "bottom", "visible", "draw", "key", "mouse", "refCon", NULL};
   (void) self;
   PyObject *drawCallback=Py_None, *keyCallback=Py_None, *mouseCallback=Py_None, *refcon=Py_None;
@@ -760,6 +784,7 @@ static PyObject *XPLMCreateWindowFun(PyObject *self, PyObject *args, PyObject *k
   PyObject *pID = getPtrRef(id, windowIDCapsules, windowIDRef);
   PyDict_SetItem(windowDict, pID, cbkTuple);
   Py_DECREF(cbkTuple);
+  errCheck("end createWindow");
   return pID;
 }
 
@@ -1370,6 +1395,7 @@ static PyObject *XPLMIsWindowInFrontFun(PyObject *self, PyObject *args, PyObject
 
 void hotkeyCallback(void *inRefcon)
 {
+  errCheck("prior hotkeyCallback");
   PyObject *pRefcon = PyLong_FromVoidPtr(inRefcon);
   PyObject *pCbk = PyDict_GetItem(hotkeyDict, pRefcon);
   Py_DECREF(pRefcon);
@@ -1377,12 +1403,15 @@ void hotkeyCallback(void *inRefcon)
     printf("Unknown refcon passed to hotkeyCallback (%p).\n", inRefcon);
     return;
   }
+  set_moduleName(PyTuple_GetItem(pCbk, HOTKEY_MODULE_NAME));
   PyObject *res = PyObject_CallFunctionObjArgs(PyTuple_GetItem(pCbk, HOTKEY_CALLBACK), PyTuple_GetItem(pCbk, HOTKEY_REFCON), NULL);
   PyObject *err = PyErr_Occurred();
-  Py_XDECREF(res);  // in case hotkey doesn't happent to return anything
   if(err){
+    pythonDebug("exception in hotkey callback\n");
     pythonLogException();
   }
+  Py_XDECREF(res);  // in case hotkey doesn't happent to return anything
+  errCheck("end hotkeyCallback");
 }
 
 My_DOCSTR(_registerHotKey__doc__, "registerHotKey", "vkey, flags=0, description=\"\", hotKey=None, refCon=None",
@@ -1392,6 +1421,7 @@ My_DOCSTR(_registerHotKey__doc__, "registerHotKey", "vkey, flags=0, description=
           "Registration returns a hotKeyID, which can be used with unregisterHotKey()");
 static PyObject *XPLMRegisterHotKeyFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  errCheck("prior registerHotKey");
   static char *keywords[] = {"vkey", "flags", "description", "hotKey", "refCon", NULL};
   (void) self;
   PyObject *inCallback = Py_None, *refcon = Py_None;
@@ -1405,22 +1435,29 @@ static PyObject *XPLMRegisterHotKeyFun(PyObject *self, PyObject *args, PyObject 
     PyErr_SetString(PyExc_ValueError ,"hotKey() not callable.\n");
     return NULL;
   }
-  hkTuple = Py_BuildValue("(OO)", inCallback, refcon);
+  hkTuple = Py_BuildValue("(OOs)", inCallback, refcon, CurrentPythonModuleName);
   if(!hkTuple){
     PyErr_SetString(PyExc_RuntimeError ,"registerHotKey couldn't build value.\n");
     return NULL;
   }
 
   void *inRefcon = (void *)++hotkeyCntr;
-  PyObject *pRefcon = PyLong_FromVoidPtr(inRefcon);
+  PyObject *pRefcon = PyLong_FromVoidPtr(inRefcon);  // new
   //Store the callback and original refcon
-  PyDict_SetItem(hotkeyDict, pRefcon, hkTuple);
+  PyDict_SetItem(hotkeyDict, pRefcon, hkTuple); // does not steal reference to hkTuple
 
   XPLMHotKeyID id = XPLMRegisterHotKey(inVirtualKey, inFlags, inDescription, hotkeyCallback, inRefcon);
   PyObject *pId = getPtrRef(id, hotkeyIDCapsules, hotkeyIDRef);
   //Allows me to identify my unique refcon based on hotkey id 
-  PyDict_SetItem(hotkeyIDDict, pId, pRefcon);
+  PyDict_SetItem(hotkeyIDDict, pId, pRefcon);  // does not steal reference
   Py_DECREF(pRefcon);
+
+  errCheck("end registerHotKey");
+  PyObject *err = PyErr_Occurred();
+  if (err) {
+    pythonDebug("Error at end of registerHotKey\n");
+    pythonLogException();
+  }
   return pId;
 } 
 
@@ -1680,37 +1717,37 @@ PyMODINIT_FUNC
 PyInit_XPLMDisplay(void)
 {
   if(!(avionicsCallbacksDict = PyDict_New())){return NULL;}
-  PyDict_SetItemString(xppythonDicts, "avionicsCallbacks", avionicsCallbacksDict);
+  PyDict_SetItemString(XPY3pythonDicts, "avionicsCallbacks", avionicsCallbacksDict);
 
   if(!(avionicsCallbacksIDDict = PyDict_New())){return NULL;}
-  PyDict_SetItemString(xppythonDicts, "avionicsIDs", avionicsCallbacksIDDict);
+  PyDict_SetItemString(XPY3pythonDicts, "avionicsIDs", avionicsCallbacksIDDict);
 
   if(!(drawCallbackDict = PyDict_New())){return NULL;}
-  PyDict_SetItemString(xppythonDicts, "drawCallbacks", drawCallbackDict);
+  PyDict_SetItemString(XPY3pythonDicts, "drawCallbacks", drawCallbackDict);
 
   if(!(drawCallbackIDDict = PyDict_New())){return NULL;}
-  PyDict_SetItemString(xppythonDicts, "drawCallbackIDs", drawCallbackIDDict);
+  PyDict_SetItemString(XPY3pythonDicts, "drawCallbackIDs", drawCallbackIDDict);
 
   if(!(keySniffCallbackDict = PyDict_New())){return NULL;}
-  PyDict_SetItemString(xppythonDicts, "keySniffCallbacks", keySniffCallbackDict);
+  PyDict_SetItemString(XPY3pythonDicts, "keySniffCallbacks", keySniffCallbackDict);
 
   if(!(windowDict = PyDict_New())){return NULL;}
-  PyDict_SetItemString(xppythonDicts, "windows", windowDict);
+  PyDict_SetItemString(XPY3pythonDicts, "windows", windowDict);
 
   if(!(hotkeyDict = PyDict_New())){return NULL;}
-  PyDict_SetItemString(xppythonDicts, "hotkeys", hotkeyDict);
+  PyDict_SetItemString(XPY3pythonDicts, "hotkeys", hotkeyDict);
 
   if(!(hotkeyIDDict = PyDict_New())){return NULL;}
-  PyDict_SetItemString(xppythonDicts, "hotkeyIDs", hotkeyIDDict);
+  PyDict_SetItemString(XPY3pythonDicts, "hotkeyIDs", hotkeyIDDict);
 
   if(!(windowIDCapsules = PyDict_New())){return NULL;}
-  PyDict_SetItemString(xppythonCapsules, windowIDRef, windowIDCapsules);
+  PyDict_SetItemString(XPY3pythonCapsules, windowIDRef, windowIDCapsules);
 
   if(!(hotkeyIDCapsules = PyDict_New())){return NULL;}
-  PyDict_SetItemString(xppythonCapsules, hotkeyIDRef, hotkeyIDCapsules);
+  PyDict_SetItemString(XPY3pythonCapsules, hotkeyIDRef, hotkeyIDCapsules);
 
   if(!(avionicsIDCapsules = PyDict_New())){return NULL;}
-  PyDict_SetItemString(xppythonCapsules, avionicsIDRef, avionicsIDCapsules);
+  PyDict_SetItemString(XPY3pythonCapsules, avionicsIDRef, avionicsIDCapsules);
 
   PyObject *mod = PyModule_Create(&XPLMDisplayModule);
   if(mod){
@@ -1872,22 +1909,27 @@ int genericAvionicsCallback(XPLMDeviceID inDeviceID, int inIsBefore, void *inRef
   PyObject *fun = PyTuple_GetItem(tup, inIsBefore ? AVIONICS_BEFORE : AVIONICS_AFTER); /* borrowed */
   PyObject *refCon = PyTuple_GetItem(tup, AVIONICS_REFCON);/* borrowed */
   PyObject *deviceId = PyTuple_GetItem(tup, AVIONICS_DEVICE);/* borrowed -- and should match inDeviceID, which we ignore */
+  set_moduleName(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME));
   PyObject *isBefore = PyLong_FromLong(inIsBefore);/* new */
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
   pRes = PyObject_CallFunctionObjArgs(fun, deviceId, isBefore, refCon, NULL);
   clock_gettime(CLOCK_MONOTONIC, &stop);
-  pluginStats[getPluginIndex(PyTuple_GetItem(tup, AVIONICS_PLUGIN))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+  pluginStats[getPluginIndex(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   Py_DECREF(isBefore);
 
   if(!pRes){
-    pythonLog("[%s] Avionics Draw callback %s failed.\n", objToStr(PyTuple_GetItem(tup, AVIONICS_PLUGIN)), objToStr(fun));
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Avionics Draw callback %s failed.\n", CurrentPythonModuleName, s2);
+    free(s2);
     goto cleanup;
   }
   if (inIsBefore) {
     if(!PyLong_Check(pRes)){
       /* _before_ callbacks should return 1 or 0  -- _after_ callback returns are ignored */
-      pythonLog("[%s] Avionics Draw callback %s returned a wrong type.\n", objToStr(PyTuple_GetItem(tup, AVIONICS_PLUGIN)), objToStr(fun));
+      char *s2 = objToStr(fun);
+      pythonLog("[%s] Avionics Draw callback %s returned a wrong type.\n", CurrentPythonModuleName, s2);
+      free(s2);
       goto cleanup;
     }
     res = (int)PyLong_AsLong(pRes);
@@ -1929,6 +1971,7 @@ int XPLMDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
   }
   fun =    PyTuple_GetItem(tup, DRAW_CALLBACK);
   refcon = PyTuple_GetItem(tup, DRAW_REFCON);
+  set_moduleName(PyTuple_GetItem(tup, DRAW_MODULE_NAME));
   PyObject *inPhaseObj = PyLong_FromLong(inPhase);
   PyObject *inIsBeforeObj = PyLong_FromLong(inIsBefore);
 
@@ -1936,16 +1979,24 @@ int XPLMDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
   clock_gettime(CLOCK_MONOTONIC, &start);
   pRes = PyObject_CallFunctionObjArgs(fun, inPhaseObj, inIsBeforeObj, refcon, NULL);
   clock_gettime(CLOCK_MONOTONIC, &stop);
-  pluginStats[getPluginIndex(PyTuple_GetItem(tup, DRAW_PLUGIN))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+  pluginStats[getPluginIndex(PyTuple_GetItem(tup, DRAW_MODULE_NAME))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
 
   Py_DECREF(inPhaseObj);
   Py_DECREF(inIsBeforeObj);
   if(!pRes){
-    pythonLog("[%s] Draw callback %s failed.\n", objToStr(PyTuple_GetItem(tup, DRAW_PLUGIN)), objToStr(fun));
+    char *s = objToStr(PyTuple_GetItem(tup, DRAW_MODULE_NAME));
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Draw callback %s failed.\n", s, s2);
+    free(s);
+    free(s2);
     goto cleanup;
   }
   if(!PyLong_Check(pRes)){
-    pythonLog("[%s] Draw callback %s returned a wrong type.\n", objToStr(PyTuple_GetItem(tup, DRAW_PLUGIN)), objToStr(fun));
+    char *s = objToStr(PyTuple_GetItem(tup, DRAW_MODULE_NAME));
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Draw callback %s returned a wrong type.\n", s, s2);
+    free(s);
+    free(s2);
     goto cleanup;
   }
   res = (int)PyLong_AsLong(pRes);
@@ -1987,16 +2038,21 @@ int XPLMKeySnifferCallback(char inChar, XPLMKeyFlags inFlags, char inVirtualKey,
   PyObject *inFlagsObj = PyLong_FromLong(inFlags);
   PyObject *inVirtualKeyObj = PyLong_FromLong((unsigned int)inVirtualKey);
   refcon = PyTuple_GetItem(tup, KEYSNIFF_REFCON);
+  set_moduleName(PyTuple_GetItem(tup, KEYSNIFF_MODULE_NAME));
   pRes = PyObject_CallFunctionObjArgs(fun, inCharObj, inFlagsObj, inVirtualKeyObj, refcon, NULL);
   Py_DECREF(inCharObj);
   Py_DECREF(inFlagsObj);
   Py_DECREF(inVirtualKeyObj);
   if(!pRes){
-    pythonLog("[%s] Key sniffer callback %s failed.\n", objToStr(PyTuple_GetItem(tup, KEYSNIFF_PLUGIN)), objToStr(fun));
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Key sniffer callback %s failed.\n", CurrentPythonModuleName, s2);
+    free(s2);
     goto cleanup;
   }
   if(!PyLong_Check(pRes)){
-    pythonLog("[%s] Key sniffer callback %s returned a wrong type.\n", objToStr(PyTuple_GetItem(tup, KEYSNIFF_PLUGIN)), objToStr(fun));
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Key sniffer callback %s returned a wrong type.\n", CurrentPythonModuleName, s2);
+    free(s2);
     goto cleanup;
   }
   res = (int)PyLong_AsLong(pRes);

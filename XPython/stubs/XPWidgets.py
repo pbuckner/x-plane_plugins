@@ -104,10 +104,6 @@ def setWidgetProperty(widgetID: XPLMWidgetID, propertyID: int, value: Any = None
 def getWidgetProperty(widgetID: XPLMWidgetID, propertyID: int, exists: Union[None, Literal[-1], list] = -1) -> Any:
     return Any  # pointer to property
 
-def deleteWidgetProperty(widgetID: XPLMWidgetID, propertyID: int) -> Union[bool, None]:
-    return bool()  # delete successful
-
-
 def setKeyboardFocus(widgetID: XPLMWidgetID) ->  Union[Literal[0], XPLMWidgetID]:
     return XPLMWidgetID(0)  # XPWidgetID of widget with focus or 0 for X-Plane
 

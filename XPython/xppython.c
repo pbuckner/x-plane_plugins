@@ -2,7 +2,6 @@
 #include <Python.h>
 #include <sys/time.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <structmember.h>
 #include "xppythontypes.h"
 #include <XPLM/XPLMUtilities.h>
@@ -11,7 +10,7 @@
 #include "xppython.h"
 #include "manage_instance.h"
 
-PyObject *xppythonDicts = NULL, *xppythonCapsules = NULL;
+PyObject *XPY3pythonDicts = NULL, *XPY3pythonCapsules = NULL;
 PyObject *PythonModuleMTimes = NULL;
 extern const char *pythonPluginVersion, *pythonPluginsPath, *pythonInternalPluginsPath;
 static PyObject *getExecutable(void);
@@ -29,11 +28,13 @@ int getPluginIndex(PyObject *pluginInstance)
     numPlugins++;
   }
   for (int i = 0; i < numPlugins; i++) {
-    if(pluginStats[i].pluginInstance == pluginInstance) {
+    if(pluginStats[i].pluginInstance != NULL && PyObject_RichCompareBool(pluginStats[i].pluginInstance, pluginInstance, Py_EQ)) {
       return i;
     }
   }
+
   pluginStats[numPlugins].pluginInstance = pluginInstance;
+  Py_INCREF(pluginInstance);
   pluginStats[numPlugins].fl_time = pluginStats[numPlugins].customw_time = pluginStats[numPlugins].draw_time = 0;
   return numPlugins++;
 }
@@ -128,8 +129,8 @@ static PyObject *XPPythonGetDictsFun(PyObject *self, PyObject *args)
 {
   (void) self;
   (void) args;
-  Py_INCREF(xppythonDicts);
-  return xppythonDicts;
+  Py_INCREF(XPY3pythonDicts);
+  return XPY3pythonDicts;
 }
 
 My_DOCSTR(_pythonLog__doc__, "log", "",
@@ -145,9 +146,7 @@ static PyObject *XPPythonLogFun(PyObject *self, PyObject *args)
     flush = 1;
   } else {
     if (strlen(inString)) {
-      char *moduleName = get_moduleName();
-      pythonLog("[%s] %s\n", moduleName, inString);
-      free(moduleName);
+      pythonLog("[%s] %s\n", CurrentPythonModuleName, inString);
     } else {
       flush = 1;
     }
@@ -170,15 +169,13 @@ static PyObject *XPSystemLogFun(PyObject *self, PyObject *args)
     PyErr_Clear();
   } else {
     if (strlen(inString)) {
-      char *moduleName = get_moduleName();
       char *msg;
-      if (-1 == asprintf(&msg, "[XP3: %s] %s\n", moduleName, inString)) {
+      if (-1 == asprintf(&msg, "[XP3: %s] %s\n", CurrentPythonModuleName, inString)) {
         pythonLog("Failed to allocate memory for asprintf syslog.\n");
       } else {
         XPLMDebugString(msg);
         free(msg);
       }
-      free(moduleName);
     } else {
       /* DebugString already, always flushes, so ignore empty prints */
     }
@@ -194,8 +191,8 @@ static PyObject *XPPythonGetCapsulesFun(PyObject *self, PyObject *args)
 {
   (void) self;
   (void) args;
-  Py_INCREF(xppythonCapsules);
-  return xppythonCapsules;
+  Py_INCREF(XPY3pythonCapsules);
+  return XPY3pythonCapsules;
 }
 
 My_DOCSTR(_derefCapsule__doc__, "derefCapsule", "capsule_type, capsule",
@@ -222,8 +219,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 {
   (void) self;
   (void) args;
-  PyDict_Clear(xppythonCapsules);
-  Py_DECREF(xppythonCapsules);
+  PyDict_Clear(XPY3pythonCapsules);
+  Py_DECREF(XPY3pythonCapsules);
   Py_RETURN_NONE;
 }
 
@@ -255,7 +252,7 @@ static struct PyModuleDef XPPythonModule = {
   PyModuleDef_HEAD_INIT,
   "XPPython",
   "XPPython3 documentation: \n"
-  "   https://xppython3.rtfd.io/en/stable/development/modules/kpython.html",
+  "   https://xppython3.rtfd.io/en/stable/development/modules/xpython.html",
   -1,
   XPPythonMethods,
   NULL,

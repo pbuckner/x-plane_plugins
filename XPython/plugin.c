@@ -22,7 +22,9 @@
 #include "xppython.h"
 #include "ini_file.h"
 
+#if !defined(Py_LIMITED_API)
 static int pythonVerbose = 0;
+#endif
 
 /*************************************
  * Python plugin upgrade for Python 3
@@ -135,6 +137,9 @@ int initPython(void){
   
   /* PyImport_AppendInittab("SandyBarbourUtilities", PyInit_SBU);  -- Python2 stuff, for which there is no xppython3 equivalent */
   
+#if defined(Py_LIMITED_API)
+  Py_Initialize();
+#else
   if (pythonVerbose) {
     PyConfig config;
     PyConfig_InitPythonConfig(&config);
@@ -144,6 +149,7 @@ int initPython(void){
   } else {
     Py_Initialize();
   }
+#endif
   if(!Py_IsInitialized()){
     pythonLog("[XPPython3] Failed to initialize Python.\n");
     pythonLogFlush();
@@ -168,7 +174,7 @@ int initPython(void){
     pythonLog("Failed to allocate asprintf memory, cannot initialize.\n");
   }
   XPLMDebugString(msg);
-  free(msg);
+  if (msg) free(msg);
 
   loggerModuleObj = PyImport_ImportModule("XPythonLogger");
 
@@ -176,20 +182,20 @@ int initPython(void){
   /***********************
    * Init internal dictionaries
    */
-  xppythonDicts = PyDict_New();
-  xppythonCapsules = PyDict_New();
-  moduleDict = PyDict_New();
-  pluginDict = PyDict_New();
-  aircraftPlugins = PyList_New(0);
-  sceneryPlugins = PyList_New(0);
+  XPY3pythonDicts = PyDict_New();
+  XPY3pythonCapsules = PyDict_New();
+  XPY3moduleDict = PyDict_New();
+  XPY3pluginDict = PyDict_New();
+  XPY3aircraftPlugins = PyList_New(0);
+  XPY3sceneryPlugins = PyList_New(0);
 
-  if (! (xppythonDicts || xppythonCapsules || moduleDict || pluginDict || aircraftPlugins || sceneryPlugins)) {
+  if (! (XPY3pythonDicts || XPY3pythonCapsules || XPY3moduleDict || XPY3pluginDict || XPY3aircraftPlugins || XPY3sceneryPlugins)) {
     pythonLog("[XPPython3] Failed to allocate internal data structures. Fatal Error.\n");
     return -1;
   }
 
-  PyDict_SetItemString(xppythonDicts, "plugins", pluginDict);
-  PyDict_SetItemString(xppythonDicts, "modules", moduleDict);
+  PyDict_SetItemString(XPY3pythonDicts, "plugins", XPY3pluginDict);
+  PyDict_SetItemString(XPY3pythonDicts, "modules", XPY3moduleDict);
 
   if (ERRCHECK || pythonDebugs) {
     /* if beta/ERRCHECK or if user has enabled pythonDebugs, set a defaut ErrorCallback */
@@ -242,7 +248,7 @@ static int stopPython(void)
       "widgetCallbacks", "widgetProperties", NULL};
     char **dict_ptr = dicts;
     while(*dict_ptr != NULL) {
-      PyObject *dict = PyDict_GetItemString(xppythonDicts, *dict_ptr); // borrowed
+      PyObject *dict = PyDict_GetItemString(XPY3pythonDicts, *dict_ptr); // borrowed
       if (PyDict_Size(dict)) {
         pythonLog("{%s}: [%d]\n", *dict_ptr, PyDict_Size(dict));
         Py_ssize_t pos = 0;
@@ -265,7 +271,9 @@ static int stopPython(void)
                 break;
               }
             }
-            pythonLog("  %s / %s:%s%s\n", key_s, objToStr(module), strlen(value_s) > 10 ? "\n    " : " ", value_s);
+            char *module_s = objToStr(module);
+            pythonLog("  %s / %s:%s%s\n", key_s, module_s, strlen(value_s) > 10 ? "\n    " : " ", value_s);
+            free(module_s);
 #else
             pythonLog("  %s:%s %s\n", key_s, strlen(value_s) > 10 ? "\n    " : " ", value_s);
 #endif            
@@ -283,16 +291,16 @@ static int stopPython(void)
               
   XPLMClearAllMenuItems(XPLMFindPluginsMenu());
 
-  PyDict_Clear(moduleDict);
-  PyDict_Clear(pluginDict);
-  PyList_SetSlice(aircraftPlugins, 0, PyList_Size(aircraftPlugins), NULL);
-  PyList_SetSlice(sceneryPlugins, 0, PyList_Size(sceneryPlugins), NULL);
+  PyDict_Clear(XPY3moduleDict);
+  PyDict_Clear(XPY3pluginDict);
+  PyList_SetSlice(XPY3aircraftPlugins, 0, PyList_Size(XPY3aircraftPlugins), NULL);
+  PyList_SetSlice(XPY3sceneryPlugins, 0, PyList_Size(XPY3sceneryPlugins), NULL);
 
-  PyDict_DelItemString(xppythonDicts, "modules");
-  PyDict_DelItemString(xppythonDicts, "plugins");
+  PyDict_DelItemString(XPY3pythonDicts, "modules");
+  PyDict_DelItemString(XPY3pythonDicts, "plugins");
 
-  Py_DECREF(moduleDict);
-  Py_DECREF(pluginDict);
+  Py_DECREF(XPY3moduleDict);
+  Py_DECREF(XPY3pluginDict);
   
   // Invoke cleanup method of all built-in modules
   char *mods[] = {"XPLMDefs", "XPLMDisplay", "XPLMGraphics", "XPLMUtilities", "XPLMScenery", "XPLMMenus",
@@ -311,6 +319,7 @@ static int stopPython(void)
     }
       
     if(mod){
+      set_moduleName(PyUnicode_FromString(*mod_ptr));
       PyObject *pRes = PyObject_CallMethod(mod, "_cleanup", NULL);
       if (PyErr_Occurred() ) {
         pythonLog("[XPPython3] Failed during cleanup of internal module %s\n", *mod_ptr);
@@ -475,28 +484,30 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
   PyObject *pluginInfo, *pluginInstance, *pRes, *pModuleName;
   Py_ssize_t pos = 0;
   PyObject *param;
+  errCheck("receiveMessage start");
   param = PyLong_FromLong((long)inParam);
   pythonDebug("XPPython3 received message, forwarding to all plugins: From: %d, Msg: %ld, inParam: %ld",
               inFromWho, inMessage, (long)inParam);
   if (inMessage == XPLM_MSG_DATAREFS_ADDED && (long) inParam > 100000) {
     /* bug -- inParam is sent as pointer to value, rather than value itself. We'll
        convert to value and send _that_ to python plugins */
-    pythonDebug("...Sending %ld instead", *(long*)inParam);
+    pythonDebug("...Sending %ld instead. See bug XPD-13931\n", *(long*)inParam);
     param = PyLong_FromLong(*(long*)inParam);
   }
 
-  while(PyDict_Next(moduleDict, &pos, &pModuleName, &pluginInstance)){
-    pluginInfo = PyDict_GetItem(pluginDict, pluginInstance);
+  while(PyDict_Next(XPY3moduleDict, &pos, &pModuleName, &pluginInstance)){
+    pluginInfo = PyDict_GetItem(XPY3pluginDict, pluginInstance);
     if (PyList_GetItem(pluginInfo, PLUGIN_DISABLED) == Py_True) {
       continue;
     }
-    char *moduleName = objToStr(pModuleName);
+    set_moduleName(pModuleName);
+    errCheck("before sending to XPluginReceiveMessage");
     pRes = PyObject_CallMethod(pluginInstance, "XPluginReceiveMessage", "ilO", inFromWho, inMessage, param);
 
     PyObject *err = PyErr_Occurred();
     if (err) {
       if (PyObject_HasAttrString(pluginInstance, "XPluginReceiveMessage")) {
-        pythonLog("[%s] Error occured during the XPluginReceiveMessage call:\n", moduleName);
+        pythonLog("[%s] Error occured during the XPluginReceiveMessage call:\n", CurrentPythonModuleName);
         pythonLogException();
       } else {
         /* ignore error, if XPluginReceiveMessage is not defined in the PythonInterface class */
@@ -504,12 +515,14 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
       }
     } else {
       if (pRes != Py_None) {
-        pythonLog("[%s] XPluginReceiveMessage returned '%s' rather than None. Value ignored\n", moduleName, objToStr(pRes));
+        char *s = objToStr(pRes);
+        pythonLog("[%s] XPluginReceiveMessage returned '%s' rather than None. Value ignored\n", CurrentPythonModuleName, s);
+        free(s);
       }
       Py_DECREF(pRes);
     }
-    free(moduleName);
   }
+  errCheck("before sending all XPluginReceiveMessage");
   if (inMessage == XPLM_MSG_SCENERY_LOADED && XPLMGetCycleNumber() != 0){
     /* we'll get SCENERY_LOADED with Cycle# = 0 on startup, but we'll have already loaded the 
        scenery plugins (this matches XP behavior). We ignore if cycle == 0, because we don't want
@@ -527,6 +540,7 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
     xpy_disableAircraftPlugins();
     xpy_stopAircraftPlugins();
   }
+  errCheck("finish sending all XPluginReceiveMessage");
   Py_DECREF(param);
 }
 
@@ -598,25 +612,25 @@ static void setSysPath(void) {
 
   char x_plane_dir[512];
   XPLMGetSystemPath(x_plane_dir);
-  xPlaneDirObj = PyUnicode_DecodeUTF8(x_plane_dir, strlen(x_plane_dir), NULL);
+  xPlaneDirObj = PyUnicode_FromString(x_plane_dir);  // new
 
   /* Resources/plugins */
-  pathStrObj = PyUnicode_DecodeUTF8(pythonPluginsPath, (strrchr(pythonPluginsPath, '/') - pythonPluginsPath), NULL);
-  absolutePathStrObj = PyUnicode_Concat(xPlaneDirObj, pathStrObj);
+  pathStrObj = PyUnicode_DecodeUTF8(pythonPluginsPath, (strrchr(pythonPluginsPath, '/') - pythonPluginsPath), NULL); // new
+  absolutePathStrObj = PyUnicode_Concat(xPlaneDirObj, pathStrObj);  // new
   PyList_Insert(path, 0, absolutePathStrObj);
   Py_DECREF(pathStrObj);
   Py_DECREF(absolutePathStrObj);
 
   /* Resources/plugins/XPPython3 */
-  pathStrObj = PyUnicode_DecodeUTF8(pythonInternalPluginsPath, strlen(pythonInternalPluginsPath), NULL);
-  absolutePathStrObj = PyUnicode_Concat(xPlaneDirObj, pathStrObj);
+  pathStrObj = PyUnicode_DecodeUTF8(pythonInternalPluginsPath, strlen(pythonInternalPluginsPath), NULL); // new
+  absolutePathStrObj = PyUnicode_Concat(xPlaneDirObj, pathStrObj);  // new
   PyList_Insert(path, 0, absolutePathStrObj);
   Py_DECREF(pathStrObj);
   Py_DECREF(absolutePathStrObj);
 
   /* Resources/plugins/PythonPlugins */
-  pathStrObj = PyUnicode_DecodeUTF8(pythonPluginsPath, strlen(pythonPluginsPath), NULL);
-  absolutePathStrObj = PyUnicode_Concat(xPlaneDirObj, pathStrObj);
+  pathStrObj = PyUnicode_DecodeUTF8(pythonPluginsPath, strlen(pythonPluginsPath), NULL); // new
+  absolutePathStrObj = PyUnicode_Concat(xPlaneDirObj, pathStrObj);  // new
   PyList_Insert(path, 0, absolutePathStrObj);
   Py_DECREF(pathStrObj);
   Py_DECREF(absolutePathStrObj);
@@ -635,11 +649,11 @@ static void handleConfigFile(void) {  /* Find and handle config.ini file */
 #endif
   pythonDebugs = xpy_config_get_int("[Main].debug");
   pythonWarnings = xpy_config_get_int("[Main].warning");
-#ifndef Py_LIMITED_API
+#if !defined(Py_LIMITED_API)
   pythonVerbose = xpy_config_get_int("[Main].py_verbose");/* 0= off, 1= each file as loaded, 2= each file that is checked when searching for module */
-  /* Py_VerboseFlag = xpy_config_get_int("[Main].py_verbose"); 0= off, 1= each file as loaded, 2= each file that is checked when searching for module */
 #endif
   pythonDebug("Read config file: %s", xpy_ini_file);
+  pythonCapsuleRegistration = xpy_config_get_int("[Main].capsule_registrations");  /* 0= off, 1= log every Capsule registration */
 }
 
 static void initMtimes(void) {
@@ -648,20 +662,20 @@ static void initMtimes(void) {
   PyObject *localsDict = PyDict_New();
   PyDict_SetItemString(localsDict, "__builtins__", PyEval_GetBuiltins());
   PyDict_SetItemString(localsDict, "mtimes", PythonModuleMTimes);
-  PyRun_String("import sys\n"
-               "import os\n"
-               "import importlib\n"
-               "for mod in list(sys.modules.values()):\n"
-               "  if mod and hasattr(mod, '__file__') and mod.__file__:\n"
-               "    try:\n"
-               "      mtime = os.stat(mod.__file__).st_mtime\n"
-               "    except (OSError, IOError) as e:\n"
-               "      continue\n"
-               "    if mod.__file__.endswith('.pyc') and os.path.exists(mod.__file__[:-1]):\n"
-               "      mtime = max(mtime, os.stat(mod.__file__[:-1]).st_mtime)\n"
-               "    if mod not in mtimes:\n"
-               "      mtimes [mod] = mtime\n",
-               Py_file_input, localsDict, localsDict);
+  MyPyRun_String("import sys\n"
+                 "import os\n"
+                 "import importlib\n"
+                 "for mod in list(sys.modules.values()):\n"
+                 "  if mod and hasattr(mod, '__file__') and mod.__file__:\n"
+                 "    try:\n"
+                 "      mtime = os.stat(mod.__file__).st_mtime\n"
+                 "    except (OSError, IOError) as e:\n"
+                 "      continue\n"
+                 "    if mod.__file__.endswith('.pyc') and os.path.exists(mod.__file__[:-1]):\n"
+                 "      mtime = max(mtime, os.stat(mod.__file__[:-1]).st_mtime)\n"
+                 "    if mod not in mtimes:\n"
+                 "      mtimes [mod] = mtime\n",
+                 Py_file_input, localsDict, localsDict);
   Py_DECREF(localsDict);
 }
 
@@ -674,36 +688,36 @@ static void reloadSysModules(void) {
    *                   do we reload it anyway? Py_True
    */
   PyDict_SetItemString(localsDict, "reload_unknown", Py_True);
-  PyRun_String("import sys\n"
-               "import os\n"
-               "import importlib\n"
-               "result = []\n"
-               "for mod in list(sys.modules.values()):\n"
-               "  if mod and hasattr(mod, '__file__') and mod.__file__:\n" /* some don't have __file__, some __file__ are None */
-               "    try:\n"
-               "      mtime = os.stat(mod.__file__).st_mtime\n"  /* if it's simple foo.py */
-               "    except (OSError, IOError) as e:\n"
-               "      result.append(f'Opps for {mod.__file__}: {e}')\n"
-               "      continue\n"
-               "    if mod.__file__.endswith('.pyc') and os.path.exists(mod.__file__[:-1]):\n"  /* if there is (also) a pyc */
-               "      mtime = max(mtime, os.stat(mod.__file__[:-1]).st_mtime)\n"
-               "    if (not reload_unknown and mod not in mtimes) or (mtime <= sym_start and mod not in mtimes):\n"
-               "      mtimes [mod] = mtime\n"
-               "    elif (reload_unknown and not mod in mtimes and mtime > sym_start)  or mtimes[mod] < mtime:\n"
-               "      mtimes[mod] = mtime\n"
-               "      if hasattr(mod, '__spec__') and hasattr(mod.__spec__, 'origin') and mod.__spec__.origin in ('frozen', 'builtin'):\n"
-               "        continue\n"
-               "      try:\n"
-               "        result.append(mod.__file__)\n"
-               "        importlib.reload(mod)\n"
-               "        mtimes[mod] = mtime\n"
-               "      except ImportError:\n"
-               "        result.append(f'>> Failed to reload {mod.__file__}')\n"
-               "        pass\n"
-               "      except Exception as e:\n"
-               "        result.append(f'>> Failed reloading {mod.__file__}: {e}')\n"
-               "result = '\\n  > '.join(result)\n",
-               Py_file_input, localsDict, localsDict);
+  MyPyRun_String("import sys\n"
+                 "import os\n"
+                 "import importlib\n"
+                 "result = []\n"
+                 "for mod in list(sys.modules.values()):\n"
+                 "  if mod and hasattr(mod, '__file__') and mod.__file__:\n" /* some don't have __file__, some __file__ are None */
+                 "    try:\n"
+                 "      mtime = os.stat(mod.__file__).st_mtime\n"  /* if it's simple foo.py */
+                 "    except (OSError, IOError) as e:\n"
+                 "      result.append(f'Opps for {mod.__file__}: {e}')\n"
+                 "      continue\n"
+                 "    if mod.__file__.endswith('.pyc') and os.path.exists(mod.__file__[:-1]):\n"  /* if there is (also) a pyc */
+                 "      mtime = max(mtime, os.stat(mod.__file__[:-1]).st_mtime)\n"
+                 "    if (not reload_unknown and mod not in mtimes) or (mtime <= sym_start and mod not in mtimes):\n"
+                 "      mtimes [mod] = mtime\n"
+                 "    elif (reload_unknown and not mod in mtimes and mtime > sym_start)  or mtimes[mod] < mtime:\n"
+                 "      mtimes[mod] = mtime\n"
+                 "      if hasattr(mod, '__spec__') and hasattr(mod.__spec__, 'origin') and mod.__spec__.origin in ('frozen', 'builtin'):\n"
+                 "        continue\n"
+                 "      try:\n"
+                 "        result.append(mod.__file__)\n"
+                 "        importlib.reload(mod)\n"
+                 "        mtimes[mod] = mtime\n"
+                 "      except ImportError:\n"
+                 "        result.append(f'>> Failed to reload {mod.__file__}')\n"
+                 "        pass\n"
+                 "      except Exception as e:\n"
+                 "        result.append(f'>> Failed reloading {mod.__file__}: {e}')\n"
+                 "result = '\\n  > '.join(result)\n",
+                 Py_file_input, localsDict, localsDict);
   PyObject *result = PyDict_GetItemString(localsDict, "result");
   PyObject *err = PyErr_Occurred();
   if (err) {
@@ -711,7 +725,9 @@ static void reloadSysModules(void) {
     pythonLogException();
   }
   if (PyUnicode_GetLength(result) > 2) {
-    pythonLog(" Module(s) reloaded:  \n  > %s\n", objToStr(result));
+    char *s = objToStr(result);
+    pythonLog(" Module(s) reloaded:  \n  > %s\n", s);
+    free(s);
   }
   Py_DECREF(localsDict);
 }

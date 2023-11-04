@@ -700,7 +700,6 @@ getWidgetDescriptor = XPWidgets.getWidgetDescriptor
 getWidgetUnderlyingWindow = XPWidgets.getWidgetUnderlyingWindow
 setWidgetProperty = XPWidgets.setWidgetProperty
 getWidgetProperty = XPWidgets.getWidgetProperty
-deleteWidgetProperty = XPWidgets.deleteWidgetProperty
 setKeyboardFocus = XPWidgets.setKeyboardFocus
 loseKeyboardFocus = XPWidgets.loseKeyboardFocus
 getWidgetWithFocus = XPWidgets.getWidgetWithFocus

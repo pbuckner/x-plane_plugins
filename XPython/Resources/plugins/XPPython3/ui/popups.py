@@ -17,10 +17,10 @@ class ScrollingPopup(XPListBox):
         xp.addWidgetCallback(self.mainWindowID, self.popupCallback)
         super().__init__(left, top-20, right+2, bottom, 1, '', self.mainWindowID)
 
-    @staticmethod
-    def popupCallback(inMessage, inWidget, _inParam1, _inParam2):
+    def popupCallback(self, inMessage, inWidget, _inParam1, _inParam2):
         if inMessage == xp.Message_CloseButtonPushed:
             xp.hideWidget(inWidget)  # i.e., self.mainWindowID
+            self.destroy()  # destroys the scrolling bits from XPListBox
             xp.destroyWidget(inWidget)
             return 1
         return 0

@@ -183,9 +183,10 @@ Resources/plugins/xp3%.zip: win/XPPython3%.xpl lin/XPPython3%.xpl mac/XPPython3%
 	#     xp36-linux.zip 
 	#     xp36-darwin.zip 
 	cd Resources/plugins; \
-		$(ZIP) $(notdir $@) -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md XPPython3/xp_imgui/\*.py; \
-		v=`echo $(notdir $@) | sed  's/xp\([0-9]*\).zip/\1/'`; \
+		$(ZIP) $(notdir $@) -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md; \
 		$(ZIP) $(notdir $@) -u XPPython3/utils/*.py ; \
+		$(ZIP) $(notdir $@) -u XPPython3/xp_imgui/*.py ; \
+		$(ZIP) $(notdir $@) -u XPPython3/ui/*.py ; \
 		$(ZIP) $(notdir $@) -u -r XPPython3/Authori*.app ; \
 		$(ZIP) $(notdir $@) -u XPPython3/version.txt ; \
 		cp $(notdir $@) $(basename $(notdir $@))-win32.zip; \

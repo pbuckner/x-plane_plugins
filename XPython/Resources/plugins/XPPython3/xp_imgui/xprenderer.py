@@ -23,6 +23,7 @@ from XPPython3 import xp
 
 
 class XPRenderer(FixedPipelineRenderer):
+    _font_texture: int
 
     def refresh_font_texture(self):
         # NOTE: as copied from integrations.opengl, but change glGenTextures() to xp.generateTextureNumbers()

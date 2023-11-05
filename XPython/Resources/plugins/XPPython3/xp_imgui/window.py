@@ -46,7 +46,7 @@ except ImportError:
     print("[XPPython3] OpenGL not found. Use XPPython3 Pip Package Installer to install 'pyopengl' package and restart.")
     raise
 
-import imgui
+import imgui  # type: ignore
 from XPPython3 import xp
 from .xprenderer import XPRenderer
 
@@ -129,13 +129,13 @@ class Window:
 
         # Here, we create the XP window, but pass to it "our" callbacks (e.g., self.drawWindow, self.handleMouseClick)
         # "Our" callbacks will do whatever they need to do and then call the user-provided callbacks
-        imguiCreateWindow_t = [self.createWindow_t.left, self.createWindow_t.top, self.createWindow_t.right, self.createWindow_t.bottom,
-                               self.createWindow_t.visible,
-                               self.imguiDrawWindow, self.imguiHandleMouseClick, self.imguiHandleKey,
-                               self.imguiHandleCursor, self.imguiHandleMouseWheel, self.createWindow_t.refcon,
-                               self.createWindow_t.decorateAsFloatingWindow, self.createWindow_t.layer,
-                               self.imguiHandleRightClick]
-        self.windowID = xp.createWindowEx(imguiCreateWindow_t)
+        self.windowID = xp.createWindowEx(
+            self.createWindow_t.left, self.createWindow_t.top, self.createWindow_t.right, self.createWindow_t.bottom,
+            self.createWindow_t.visible,
+            self.imguiDrawWindow, self.imguiHandleMouseClick, self.imguiHandleKey,
+            self.imguiHandleCursor, self.imguiHandleMouseWheel, self.createWindow_t.refcon,
+            self.createWindow_t.decorateAsFloatingWindow, self.createWindow_t.layer,
+            self.imguiHandleRightClick)
         xp.bringWindowToFront(self.windowID)
 
     def delete(self):

@@ -1,7 +1,9 @@
 #define _GNU_SOURCE 1
 #include <Python.h>
 #include <assert.h>
+#if LIN || APL
 #include <execinfo.h>
+#endif
 #include <frameobject.h>
 #include <sys/time.h>
 #include <string.h>
@@ -497,6 +499,7 @@ void MyPyRun_String(const char *str, int start, PyObject *globals, PyObject *loc
 }
 
 void c_backtrace() {
+#if LIN || APL
   void *callstack[128];
   int i, frames = backtrace(callstack, 128);
   char ** strs = backtrace_symbols(callstack, frames);
@@ -505,6 +508,7 @@ void c_backtrace() {
   }
   free(strs);
   assert (1 == 2);
+#endif
 }
 
 void errCheck_f(const char *fmt, ...) {

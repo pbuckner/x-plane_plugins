@@ -91,9 +91,6 @@ class XPListBox(object):
 
     def destroy(self):
         if self.widgetID:
-            for propID in range(Prop.ListBoxCurrentItem, Prop.ListBoxScrollBarSlop + 1):
-                xp.deleteWidgetProperty(self.widgetID, propID)
-                    
             xp.destroyWidget(self.widgetID, 1)
 
     def get_data(self):

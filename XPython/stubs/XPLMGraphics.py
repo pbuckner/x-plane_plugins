@@ -4,7 +4,7 @@ Font_Proportional = 18
 
 
 def setGraphicsState(fog: int = 0, numberTexUnits: int = 0, lighting: int = 0, alphaTesting: int = 0,
-                     alphBlending: int = 0, depthTesting: int = 0, depthWriting: int = 0) -> None:
+                     alphaBlending: int = 0, depthTesting: int = 0, depthWriting: int = 0) -> None:
     return
 
 

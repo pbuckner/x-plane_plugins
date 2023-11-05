@@ -105,7 +105,26 @@ You get an eror message in a Log file complaining about SSL CERTIFICATES:
     :width: 50%
 
          
-On All Platforms
+----
+
+On Linux
+========
+
+    Some distros, apparently, don't contain one or more of the "other" libraries we require. For example Arch distro (for
+    one user) didn't include ``libbsd`` shared library. If you *don't see anything* in your Log.txt file post installation
+    of XPPython3, check the linked shared objects and install any that are missing::
+
+      $ ldd XPPython3.xpl
+          linux-vdso.so.1 (0x00007ffe8d3d)
+          libbsd.so.0 => /lib/x86_64-linux-gnu/libbsd.so.0 (0x00007ffed38d)
+          libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007fed3f8d)
+          libpython3.12.so.1.0 => /lib/x86_64-linux-gnu/libpython3.12.so.1.0 (0x00007fed3f8d)
+          libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fed3f8d)
+          libmd.so.0 => /lib/x86_64-linux-gnu/libmd.so.0 (0x00007fed3f8d)
+          /lib64/ld-linux-x86-64.so.2 (0x00007fed3f8d)
+          libz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007fed3f8d)
+          libexpat.so.1 => /lib/x86_64-linux-gnu/libexpat.so.1 (0x00007fed3f8d)
+      
 
 
 ----

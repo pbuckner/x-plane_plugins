@@ -11,6 +11,7 @@
 #include "plugin_dl.h"
 #include "utils.h"
 #include "widgetutils.h"
+#include "widgets.h"
 #include "xppython.h"
 
 static PyObject *widgetCallbackDict; // _key_ is widget, value = callbackList
@@ -20,6 +21,33 @@ static PyObject *widgetCallbackDict; // _key_ is widget, value = callbackList
 static PyObject *widgetPropertyDict; // _key_ is (Widget, Property), _value_ is PyObject*
 #define WIDGETPROPERTY_WIDGET 0
 #define WIDGETPROPERTY_PROPERTY 1
+
+void resetWidgets(void) {
+  PyObject *keys = PyDict_Keys(widgetIDCapsules);
+  PyObject *iterator = PyObject_GetIter(keys); /* new */
+  PyObject *capsuleDictKey;
+  while((capsuleDictKey = PyIter_Next(iterator))) {  /* new */
+    PyObject *capsuleInfo = PyDict_GetItem(widgetIDCapsules, capsuleDictKey);
+    PyObject *capsule = capsuleInfo;
+    char *moduleName = "";
+#if ERRCHECK
+    capsule = PyTuple_GetItem(capsuleInfo, 0);
+    moduleName = objToStr(PyTuple_GetItem(capsuleInfo, 1));
+#endif    
+    char *s1 = objToStr(capsule);
+    pythonLog("[XPPython3] Reload --      %s  %s\n", moduleName, s1);
+    free(s1);
+#if ERRCHECK
+    free(moduleName);
+#endif
+    XPDestroyWidget(refToPtr(capsule, widgetRefName), 0);
+    Py_DECREF(capsuleDictKey);
+  }
+  Py_DECREF(iterator);
+  Py_XDECREF(keys);
+  PyDict_Clear(widgetCallbackDict);
+  PyDict_Clear(widgetPropertyDict);
+}
 
 static void clearChildrenXPWidgetData(PyObject *widget);
 static void clearXPWidgetData(PyObject *widget);

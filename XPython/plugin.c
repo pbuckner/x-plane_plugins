@@ -14,7 +14,6 @@
 #include <bsd/string.h>
 #endif
 
-#include "menus.h"
 #include "utils.h"
 #include "plugin_dl.h"
 #include "manage_instances.h"
@@ -244,12 +243,12 @@ static int stopPython(void)
     pythonLog("Undeleted items: begin vvvvv\n");
     char *dicts [] = {"plugins", "modules", "accessors", "drefs", "sharedDrefs", "drawCallbacks",
       "drawCallbackIDs", "keySniffCallbacks", "windows", "hotkeys", "hotkeyIDs", "mapCreates", "mapRefs", "maps",
-      "menus", "menuRefs", "menuPluginIdx", "errCallbacks", "commandCallbacks", "commandRefcons",
+      "menus", "menuRefs", "menuPluginIdx", "errCallbacks", "commandCallbacks", "commandRevDict",
       "widgetCallbacks", "widgetProperties", NULL};
     char **dict_ptr = dicts;
     while(*dict_ptr != NULL) {
       PyObject *dict = PyDict_GetItemString(XPY3pythonDicts, *dict_ptr); // borrowed
-      if (PyDict_Size(dict)) {
+      if (PyDict_Size(dict) > 0) {
         pythonLog("{%s}: [%d]\n", *dict_ptr, PyDict_Size(dict));
         Py_ssize_t pos = 0;
         PyObject *key,  *value;
@@ -438,8 +437,8 @@ static int commandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, vo
       xpy_disableInstances();/* Internal, PythonPlugins, scenery, aircraft */
       pythonLog("[XPPython3] Reload -- 2) Stop existing scripts.=======\n");
       xpy_stopInstances();   /* Internal, PythonPlugins, scenery, aircraft */
-      pythonLog("[XPPython3] Reload -- 3) Reset Menu.=======\n");
-      resetMenus();
+      pythonLog("[XPPython3] Reload -- 3) Reset Menu, callbacks and datastructures.=======\n");
+      resetInternals();
       pythonLog("[XPPython3] Reload -- 4) Reload Config file.=======\n");
       handleConfigFile();
       pythonLog("[XPPython3] Reload -- 5) Determine changed python modules.=======\n");

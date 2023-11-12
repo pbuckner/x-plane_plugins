@@ -8,16 +8,15 @@
 #include "plugin_dl.h"
 
 static intptr_t menuRefConCntr;
-static PyObject *menuDict; // (internal) menuRefCon -> "(OsOiOO)", pluginSelf, inName, parentMenu, inParentItem, pythonHandler, menuRef);
+static PyObject *menuDict; // (internal) menuRefCon -> "(sOiOOs)", inName, parentMenu, inParentItem, pythonHandler, menuRef, moduleName);
 static PyObject *menuRefDict;  // menuCapsule -> (internal) menuRefCon, key into menuDict
 
-#define MENU_PLUGINSELF 0
-#define MENU_NAME 1
-#define MENU_PARENT_ID 2
-#define MENU_PARENT_ITEM 3
-#define MENU_CALLBACK 4
-#define MENU_REFCON 5
-#define MENU_PLUGIN_MODULE_NAME 6
+#define MENU_NAME 0
+#define MENU_PARENT_ID 1
+#define MENU_PARENT_ITEM 2
+#define MENU_CALLBACK 3
+#define MENU_REFCON 4
+#define MENU_MODULE_NAME 5
 
 static PyObject *menuIDCapsules;  /* XPLMMenuIDRef */
 static PyObject *menuPluginIdxDict; /* plugin -> [list of Laminar menu IDs] */
@@ -27,7 +26,22 @@ void clearInstanceMenuItems();
 
 static const char menuIDRef[] = "XPLMMenuID"; 
 
-void resetMenus() {nextXPLMMenuIdx = 0;}
+void resetMenus() {
+  /* NOTE: stopping an instance, which is done (also) on reload
+     calls xpy_cleanUpInstance, which already clears menus
+     clears menuPluginIdxDict, menuDict, and menuRefDict
+  */
+  nextXPLMMenuIdx = 0;
+  if (PyDict_Size(menuPluginIdxDict) > 0) {
+    pythonLog("OOPS, menuPluginDict is %d\n", PyDict_Size(menuPluginIdxDict));
+  }
+  if (PyDict_Size(menuDict) > 0) {
+    pythonLog("OOPS, menuDict is %d\n", PyDict_Size(menuDict));
+  }
+  if (PyDict_Size(menuRefDict) > 0) {
+    pythonLog("OOPS, menuRefDict is %d\n", PyDict_Size(menuRefDict));
+  }
+}
 
 static void menuHandler(void * menuRefCon, void * inItemRef)
 {
@@ -43,7 +57,7 @@ static void menuHandler(void * menuRefCon, void * inItemRef)
     return;
   }
 
-  set_moduleName(PyTuple_GetItem(menuCallbackInfo, MENU_PLUGIN_MODULE_NAME));
+  set_moduleName(PyTuple_GetItem(menuCallbackInfo, MENU_MODULE_NAME));
   PyObject *res = PyObject_CallFunctionObjArgs(PyTuple_GetItem(menuCallbackInfo, MENU_CALLBACK),
                                         PyTuple_GetItem(menuCallbackInfo, MENU_REFCON), (PyObject*)inItemRef, NULL);
   errCheck("end menuHandler");
@@ -115,7 +129,7 @@ static PyObject *XPLMCreateMenuFun(PyObject *self, PyObject *args, PyObject *kwa
     inName = CurrentPythonModuleName;
   }
   
-  PyObject *argsObj = Py_BuildValue( "(OsOiOOs)", pluginSelf, inName, parentMenu, inParentItem, pythonHandler, menuRef, CurrentPythonModuleName);
+  PyObject *argsObj = Py_BuildValue( "(sOiOOs)", inName, parentMenu, inParentItem, pythonHandler, menuRef, CurrentPythonModuleName);
 
   void *menuRefCon = (void *)++menuRefConCntr;
   menuRef = PyLong_FromVoidPtr(menuRefCon);
@@ -262,7 +276,7 @@ void clearInstanceMenuItems(PyObject *pluginSelf) {
   PyObject *md_key;
   while ((md_key = PyIter_Next(md_key_iterator))) {/*new*/
     PyObject *md_value = PyDict_GetItem(menuDict, md_key); /*borrowed*/
-    if (PyTuple_GetItem(md_value, MENU_PLUGINSELF) == pluginSelf) {/*borrowed*/
+    if (PyTuple_GetItem(md_value, MENU_MODULE_NAME) == pluginSelf) {/*borrowed*/
       pythonDebug("%*s, Found menu[] for plugin, %s", 10, " ", objDebug(PyTuple_GetItem(md_value, MENU_NAME)));
       PyObject *mrd_keys = PyDict_Keys(menuRefDict); /*new*/
       PyObject *mrd_key_iterator = PyObject_GetIter(mrd_keys);/*new*/

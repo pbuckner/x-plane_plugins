@@ -27,6 +27,9 @@ int pythonFlushLog = 0; /* 1= flush python log after every wrinte, 0= buffer wri
 int pythonCapsuleRegistration = 0;  /* 1= log registration of all capsules (REQUIRES ERRCHECK) */
 FILE *pythonLog_fp = NULL;
 
+#define CAPSULE_CAPSULE 0
+#define CAPSULE_MODULE 1
+
 PyObject *get_pythonline();
 
 void setLogFile(void) {
@@ -286,16 +289,6 @@ char * objToStr(PyObject *item) {
   return res;
 }
   
-float getFloatFromTuple(PyObject *seq, Py_ssize_t i)
-{
-  return PyFloat_AsDouble(PyTuple_GetItem(seq, i)); /* PyTuple_GetItem borrows */
-}
-
-long getLongFromTuple(PyObject *seq, Py_ssize_t i)
-{
-  return PyLong_AsLong(PyTuple_GetItem(seq, i)); /* PyTuple_GetItem borrows */
-}
-
 void set_moduleName(PyObject *name) {
   /* takes Python String */
   char *tmp = objToStr(name);
@@ -384,10 +377,10 @@ PyObject *getPtrRef(void *ptr, PyObject *dict, const char *refName)
   errCheck("prior getPtrRef %s", refName);
   PyObject *key = PyLong_FromVoidPtr(ptr);
 #if ERRCHECK
-  PyObject *tuple = PyDict_GetItem(dict, key);
-  PyObject *res = tuple == NULL ? NULL : PyTuple_GetItem(tuple, 0);
+  PyObject *tuple = PyDict_GetItemWithError(dict, key); /* borrowed, NULL w/out exception, if not found */
+  PyObject *res = tuple == NULL ? NULL : PyTuple_GetItem(tuple, CAPSULE_CAPSULE);
 #else
-  PyObject *res = PyDict_GetItem(dict, key);
+  PyObject *res = PyDict_GetItemWithError(dict, key); /* borrowed */
 #endif
   if(res == NULL){
     // New ref, register it
@@ -500,6 +493,7 @@ void MyPyRun_String(const char *str, int start, PyObject *globals, PyObject *loc
 
 void c_backtrace() {
 #if LIN || APL
+  printf("Backtrace due to python exception:\n");
   void *callstack[128];
   int i, frames = backtrace(callstack, 128);
   char ** strs = backtrace_symbols(callstack, frames);

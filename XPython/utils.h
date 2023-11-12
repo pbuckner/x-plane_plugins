@@ -18,8 +18,6 @@ extern int pythonCapsuleRegistration;
 extern char CurrentPythonModuleName[];
 
 void dbg(const char *msg);
-float getFloatFromTuple(PyObject *seq, Py_ssize_t i);
-long getLongFromTuple(PyObject *seq, Py_ssize_t i);
 void pythonLogException(void);
 
 PyObject *getPtrRef(void *ptr, PyObject *dict, const char *refName);

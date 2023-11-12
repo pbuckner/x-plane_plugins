@@ -11,4 +11,5 @@ typedef struct {
 extern PyObject *PythonModuleMTimes;
 extern PluginStats pluginStats[];
 int getPluginIndex(PyObject *);
+void resetInternals();
 #endif

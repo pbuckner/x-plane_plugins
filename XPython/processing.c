@@ -7,28 +7,81 @@
 #include "plugin_dl.h"
 #include "utils.h"
 #include "xppython.h"
+#include "processing.h"
 
 static intptr_t flCntr;
-static PyObject *flDict;  /* {flCntr: ([0]pluginSelf, [1]callback, [2]refCon, [3]moduleName)} */
+/* the 'key' to flDict, we use as the refCon for genericFlightLoopCallback function.
+   When genericFlightLoopCallback function is _called_ by X-Plane, we:
+   1) take provided refCon
+   2) lookup info in flDict to get "real" callback & refcon
+*/
+   
+static PyObject *flDict;  /* {
+                               flCntr1: ([0]callback, [1]refCon, [2]moduleName, [3]type),
+                               flCntr2: ([0]callback, [1]refCon, [2]moduleName, [3]type),
+                             } */
 #define FLIGHTLOOP_CALLBACK 0
 #define FLIGHTLOOP_REFCON 1
 #define FLIGHTLOOP_MODULE_NAME 2
+#define FLIGHTLOOP_TYPE 3  /*  0 == "old style -- Register/Unregister/SetFlightLoopCallbackInterval" 
+                               1 == "new style -- Create/Schedule/Destroy;*/
 
-static PyObject *flRevDict; /*{(moduleName, callback, refConAddr): flCntr }*/
+static PyObject *flRevDict; /*{
+                               ([0]callback, [1]refCon, [2]moduleName): flCntr1 (key into flDict),  # type == 0
+                               <Capsule XPLMFlightLoopID> x:            flCntr2 (key into flDict),  # type == 1
+                              }*/
+#define FLIGHTLOOP_REV_CALLBACK 0
+#define FLIGHTLOOP_REV_REFCON 1
+#define FLIGHTLOOP_REV_MODULE_NAME 2
 
 static const char flIDRef[] = "XPLMFlightLoopID";
-static float flightLoopCallback(float inElapsedSinceLastCall, float inElapsedTimeSinceLastFlightLoop, 
+static float genericFlightLoopCallback(float inElapsedSinceLastCall, float inElapsedTimeSinceLastFlightLoop, 
+                                       int counter, void * inRefcon);
+
+void resetFlightLoops()
+{
+  /* flDict & flRevDict:
+   * unregisters all flight loops by going through flDict
+   * Then, at the end, clears both dicts
+   */
+  PyObject *keys = PyDict_Keys(flRevDict);  /* new */
+  PyObject *iterator = PyObject_GetIter(keys); /* new */
+  PyObject *flRevDictKey;
+  while((flRevDictKey = PyIter_Next(iterator))) {  /* new */
+    PyObject *flDictKey = PyDict_GetItem(flRevDict, flRevDictKey); /* key into flDict */ /* borrowed */
+    PyObject *flInfo = PyDict_GetItem(flDict, flDictKey); /* borrowed */
+
+    char *s = objToStr(PyTuple_GetItem(flInfo, FLIGHTLOOP_MODULE_NAME)); /* borrowed */
+    pythonLog("[XPPython3] Reload --     (%s)\n", s);
+    free(s);
+    PyObject *flightloop_type = PyTuple_GetItem(flInfo, FLIGHTLOOP_TYPE);  /* borrowed */
+    int fl_type = PyLong_AsLong(flightloop_type);
+
+    if(fl_type == 0) {
+      XPLMUnregisterFlightLoopCallback(genericFlightLoopCallback, PyLong_AsVoidPtr(flDictKey));
+    } else {
+      XPLMDestroyFlightLoop(refToPtr(flRevDictKey, "XPLMFlightLoopID"));
+    }
+    Py_DECREF(flRevDictKey);
+  }
+  Py_DECREF(keys);
+  Py_DECREF(iterator);
+  PyDict_Clear(flDict);
+  PyDict_Clear(flRevDict);
+}
+
+static float genericFlightLoopCallback(float inElapsedSinceLastCall, float inElapsedTimeSinceLastFlightLoop, 
                                 int counter, void * inRefcon)
 {
   errCheck("prior flightLoop");
   struct timespec all_stop, all_start;
   clock_gettime(CLOCK_MONOTONIC, &all_start);
 
-  PyObject *key = PyLong_FromVoidPtr(inRefcon);
-  PyObject *callbackInfo = PyDict_GetItem(flDict, key);
-  Py_XDECREF(key);
-  if(callbackInfo == NULL){
-    printf("Unknown flightLoop callback requested! (inRefcon = %p)\n", inRefcon);
+  PyObject *flDictKey = PyLong_FromVoidPtr(inRefcon);
+  PyObject *flInfo = PyDict_GetItem(flDict, flDictKey);
+  Py_XDECREF(flDictKey);
+  if(flInfo == NULL){
+    pythonDebug("Unknown flightLoop callback requested! (inRefcon = %p). Disabling it.\n", inRefcon);
     return 0.0;
   }
   errCheck("post callbackInfo");
@@ -41,14 +94,14 @@ static float flightLoopCallback(float inElapsedSinceLastCall, float inElapsedTim
   clock_gettime(CLOCK_MONOTONIC, &start);
   errCheck("before set_moduleName");
 
-  set_moduleName(PyTuple_GetItem(callbackInfo, FLIGHTLOOP_MODULE_NAME));
+  set_moduleName(PyTuple_GetItem(flInfo, FLIGHTLOOP_MODULE_NAME));
 
   errCheck("after set_moduleName");
-  PyObject *res = PyObject_CallFunctionObjArgs(PyTuple_GetItem(callbackInfo, FLIGHTLOOP_CALLBACK), inElapsedSinceLastCallObj,
+  PyObject *res = PyObject_CallFunctionObjArgs(PyTuple_GetItem(flInfo, FLIGHTLOOP_CALLBACK), inElapsedSinceLastCallObj,
                                                inElapsedTimeSinceLastFlightLoopObj, counterObj,
-                                               PyTuple_GetItem(callbackInfo, FLIGHTLOOP_REFCON), NULL);
+                                               PyTuple_GetItem(flInfo, FLIGHTLOOP_REFCON), NULL);
   clock_gettime(CLOCK_MONOTONIC, &stop);
-  pluginStats[getPluginIndex(PyTuple_GetItem(callbackInfo, FLIGHTLOOP_MODULE_NAME))].fl_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+  pluginStats[getPluginIndex(PyTuple_GetItem(flInfo, FLIGHTLOOP_MODULE_NAME))].fl_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   /* ^^^^^^^^^^^^^^^^^ */
   
   float tmp;
@@ -58,7 +111,7 @@ static float flightLoopCallback(float inElapsedSinceLastCall, float inElapsedTim
   Py_DECREF(counterObj);
   if(err){
     pythonLogException();
-    char *s = objToStr(PyTuple_GetItem(callbackInfo, FLIGHTLOOP_CALLBACK));
+    char *s = objToStr(PyTuple_GetItem(flInfo, FLIGHTLOOP_CALLBACK));
     pythonLog("[%s]: %s Error occured during the flightLoop callback (inRefcon = %p), disabling:\n",
               CurrentPythonModuleName, s, inRefcon);
     free(s);
@@ -69,7 +122,7 @@ static float flightLoopCallback(float inElapsedSinceLastCall, float inElapsedTim
   } else if (PyLong_Check(res)) {
     tmp = PyLong_AsDouble(res);
   } else {
-    char *s = objToStr(PyTuple_GetItem(callbackInfo, FLIGHTLOOP_CALLBACK));
+    char *s = objToStr(PyTuple_GetItem(flInfo, FLIGHTLOOP_CALLBACK));
     char *s2 = objToStr(res); 
     pythonLog("[%s]: %s Error occured during the flightLoop callback (inRefcon = %p), disabling: Bad return value '%s'\n",
               CurrentPythonModuleName, s, inRefcon, s2);
@@ -172,6 +225,15 @@ My_DOCSTR(_registerFlightLoopCallback__doc__, "registerFlightLoopCallback", "cal
           "Callback function gets (lastCall, elapsedTime, counter, refCon)");
 static PyObject *XPLMRegisterFlightLoopCallbackFun(PyObject* self, PyObject *args, PyObject *kwargs)
 {
+  /* We're provided a python callback and (possibly) a refCon. We "know" the python module
+     We'll register genericFlightLoopCallback, but instead of provided refCon, we pass
+     in unique integer value which is the flDict key.
+
+     Because we'll need to unregister it, we need to store the provided information
+     into flRevDict-- the key to that dict as (callback, refCon, moduleName) with
+     the value being the flDict key.. the unique integer created from flCntr.
+   */
+
   static char *keywords[] = {"callback", "interval", "refCon", NULL};
   (void)self;
   PyObject *callback=Py_None, *refCon=Py_None;
@@ -181,23 +243,19 @@ static PyObject *XPLMRegisterFlightLoopCallbackFun(PyObject* self, PyObject *arg
     return NULL;
   }
 
-  PyObject *pluginSelf = get_moduleName_p();
+  void *uniqueInt = (void *)++flCntr;
+  PyObject *flDictKey = PyLong_FromVoidPtr(uniqueInt);
 
-  void *flDictKey = (void *)++flCntr;
-  PyObject *flDictKeyObj = PyLong_FromVoidPtr(flDictKey);
+  PyObject *flInfo = Py_BuildValue("(OOsi)", callback, refCon, CurrentPythonModuleName, 0);
+  PyDict_SetItem(flDict, flDictKey, flInfo);
+  Py_DECREF(flInfo);
 
-  PyObject *argObj = Py_BuildValue("(OOs)", callback, refCon, CurrentPythonModuleName);
-  PyDict_SetItem(flDict, flDictKeyObj, argObj);
-  Py_DECREF(argObj);
+  PyObject *flRevDictKey = Py_BuildValue("(OOs)", callback, refCon, CurrentPythonModuleName);
+  PyDict_SetItem(flRevDict, flRevDictKey, flDictKey);
 
-  PyObject *refConAddr = PyLong_FromVoidPtr(refCon);
-  PyObject *reverseId = Py_BuildValue("(OOO)", pluginSelf, callback, refConAddr);
-  PyDict_SetItem(flRevDict, reverseId, flDictKeyObj);
-
-  Py_DECREF(flDictKeyObj);
-  Py_DECREF(refConAddr);
-  Py_DECREF(reverseId);
-  XPLMRegisterFlightLoopCallback(flightLoopCallback, interval, flDictKey);
+  Py_DECREF(flDictKey);
+  Py_DECREF(flRevDictKey);
+  XPLMRegisterFlightLoopCallback(genericFlightLoopCallback, interval, uniqueInt);
   Py_RETURN_NONE;
 }
 
@@ -207,35 +265,32 @@ My_DOCSTR(_unregisterFlightLoopCallback__doc__, "unregisterFlightLoopCallback", 
           "Input must match that provided to registerFlightLoopCallback().");
 static PyObject *XPLMUnregisterFlightLoopCallbackFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  /* We get python callback and refcon and we "know" python module
+     1) Lookup tuple(callback, refcon, module) in flRevDict to get key into flDict
+     2) Lookup info in flDict
+     3) We unregister genericFlightLoopCallback, with refCon (which is unique flDict key)
+  */
   static char *keywords[] = {"callback", "refCon", NULL};
   (void)self;
-  PyObject *pluginSelf, *callback, *refcon=Py_None;
+  PyObject *callback, *refcon=Py_None;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O", keywords, &callback, &refcon)) {
     return NULL;
   }
-  pluginSelf = get_moduleName_p();
-  PyObject *refconAddr = PyLong_FromVoidPtr(refcon);
-  PyObject *revId = Py_BuildValue("(OOO)", pluginSelf, callback, refconAddr);
-  PyObject *id = PyDict_GetItem(flRevDict, revId);
-  if(id == NULL){
-    Py_DECREF(revId);
-    Py_DECREF(refconAddr);
-    Py_DECREF(pluginSelf);
-    char *s = objToStr(pluginSelf);
+  PyObject *flRevDictKey = Py_BuildValue("(OOs)", callback, refcon, CurrentPythonModuleName);
+  PyObject *flDictKey = PyDict_GetItem(flRevDict, flRevDictKey);
+  if(flDictKey == NULL){
+    Py_DECREF(flRevDictKey);
     char *s2 = objToStr(callback);
     char *s3 = objToStr(refcon);
-    pythonLog("[%s] Couldn't find the id of the requested callback for %s with refCon %s.\n", s, s2, s3);
-    free(s);
+    pythonLog("[%s] Couldn't find the id of the requested callback for %s with refCon %s.\n", CurrentPythonModuleName, s2, s3);
     free(s2);
     free(s3);
     Py_RETURN_NONE;
   }
-  PyDict_DelItem(flRevDict, revId);
-  XPLMUnregisterFlightLoopCallback(flightLoopCallback, PyLong_AsVoidPtr(id));
-  PyDict_DelItem(flDict, id);
-  Py_DECREF(revId);
-  Py_DECREF(refconAddr);
-  Py_DECREF(pluginSelf);
+  PyDict_DelItem(flRevDict, flRevDictKey);
+  XPLMUnregisterFlightLoopCallback(genericFlightLoopCallback, PyLong_AsVoidPtr(flDictKey));
+  PyDict_DelItem(flDict, flDictKey);
+  Py_DECREF(flRevDictKey);
   Py_RETURN_NONE;
 }
 
@@ -253,16 +308,15 @@ static PyObject *XPLMSetFlightLoopCallbackIntervalFun(PyObject *self, PyObject *
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|fiO", keywords, &callback, &inInterval, &inRelativeToNow, &refcon)) {
     return NULL;
   }
-  PyObject *refconAddr = PyLong_FromVoidPtr(refcon);
-  PyObject *revId = Py_BuildValue("(sOO)", CurrentPythonModuleName, callback, refconAddr);
-  PyObject *id = PyDict_GetItem(flRevDict, revId);
-  Py_DECREF(revId);
-  Py_DECREF(refconAddr);
-  if(id == NULL){
+  PyObject *flRevDictKey = Py_BuildValue("(OOs)", callback, refcon, CurrentPythonModuleName);
+  PyObject *flDictKey = PyDict_GetItem(flRevDict, flRevDictKey);
+  Py_DECREF(flRevDictKey);
+  if(flDictKey == NULL){
     printf("Couldn't find the id of the requested callback.\n");
     return NULL;
   }
-  XPLMSetFlightLoopCallbackInterval(flightLoopCallback, inInterval, inRelativeToNow, PyLong_AsVoidPtr(id));
+  XPLMSetFlightLoopCallbackInterval(genericFlightLoopCallback, inInterval, inRelativeToNow, PyLong_AsVoidPtr(flDictKey));
+  Py_DECREF(flDictKey);
   Py_RETURN_NONE;
 }
 
@@ -303,14 +357,14 @@ static PyObject *XPLMCreateFlightLoopFun(PyObject* self, PyObject *args, PyObjec
     /* refCon set with parseTuple */
   }
 
-  fl.callbackFunc = flightLoopCallback;
+  fl.callbackFunc = genericFlightLoopCallback;
   void *flDictKey = (void *)++flCntr;
   PyObject *flDictKeyObj = PyLong_FromVoidPtr(flDictKey);
   fl.refcon = flDictKey;
   
   XPLMFlightLoopID flightLoopID = XPLMCreateFlightLoop_ptr(&fl);
 
-  PyObject *argObj = Py_BuildValue("(OOs)", callback, refCon, CurrentPythonModuleName);
+  PyObject *argObj = Py_BuildValue("(OOsi)", callback, refCon, CurrentPythonModuleName, 1);
   PyDict_SetItem(flDict, flDictKeyObj, argObj);
   Py_DECREF(argObj);
 

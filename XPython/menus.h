@@ -1,4 +1,4 @@
 #ifndef MENUS__H
 #define MENUS__H
-void resetMenus();
+void resetMenus(void);
 #endif

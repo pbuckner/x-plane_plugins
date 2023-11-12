@@ -6,6 +6,7 @@
 #include <XPLM/XPLMDisplay.h>
 #include "utils.h"
 #include "plugin_dl.h"
+#include "display.h"
 #include "xppythontypes.h"
 #include "xppython.h"
 
@@ -17,6 +18,7 @@ static intptr_t drawCallbackCntr;
 #define DRAW_BEFORE 3
 #define DRAW_REFCON 4  
 static PyObject *drawCallbackIDDict;
+static int genericDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon);
 
 static PyObject *keySniffCallbackDict;
 static intptr_t keySniffCallbackCntr;
@@ -24,6 +26,7 @@ static intptr_t keySniffCallbackCntr;
 #define KEYSNIFF_CALLBACK 1
 #define KEYSNIFF_BEFORE 2
 #define KEYSNIFF_REFCON 3
+static int genericKeySnifferCallback(char inChar, XPLMKeyFlags inFlags, char inVirtualKey, void *inRefcon);
 
 static PyObject *avionicsCallbacksDict; // key is PyLong(avionicsCallbacksCntr)
 static intptr_t avionicsCallbacksCntr;
@@ -63,6 +66,53 @@ PyObject *avionicsIDCapsules;
 const char *avionicsIDRef = "XPLMAvionicsIDRef";
 
 
+void resetDrawCallbacks(void) {
+  PyObject *key, *tuple;
+  Py_ssize_t pos = 0;
+  while(PyDict_Next(drawCallbackDict, &pos, &key, &tuple)) {
+    char *moduleName = objToStr(PyTuple_GetItem(tuple, DRAW_MODULE_NAME));
+    char *callback = objToStr(PyTuple_GetItem(tuple, DRAW_CALLBACK));
+    pythonLog("[XPPython3] Reload --     %s - (%s)\n", moduleName, callback);
+
+    XPLMUnregisterDrawCallback(genericDrawCallback,
+                               PyLong_AsLong(PyTuple_GetItem(tuple, DRAW_PHASE)),
+                               PyLong_AsLong(PyTuple_GetItem(tuple, DRAW_BEFORE)),
+                               (void *)PyLong_AsLong(key));
+    free(moduleName);
+    free(callback);
+  }
+  PyDict_Clear(drawCallbackDict);
+  PyDict_Clear(drawCallbackIDDict);
+}
+
+void resetKeySniffCallbacks(void) {
+  PyObject *key, *tuple;
+  Py_ssize_t pos = 0;
+  while(PyDict_Next(keySniffCallbackDict, &pos, &key, &tuple)) {
+    char *moduleName = objToStr(PyTuple_GetItem(tuple, KEYSNIFF_MODULE_NAME));
+    char *callback = objToStr(PyTuple_GetItem(tuple, KEYSNIFF_CALLBACK));
+    pythonLog("[XPPython3] Reload --     %s - (%s)\n", moduleName, callback);
+    free(moduleName);
+    free(callback);
+    XPLMUnregisterKeySniffer(genericKeySnifferCallback,
+                             PyLong_AsLong(PyTuple_GetItem(tuple, KEYSNIFF_BEFORE)),
+                             (void *)PyLong_AsLong(key));
+  }
+  PyDict_Clear(keySniffCallbackDict);
+}
+
+void resetWindows(void) {
+  PyObject *key, *tuple;
+  Py_ssize_t pos = 0;
+  while(PyDict_Next(windowDict, &pos, &key, &tuple)) {
+    char *s = objToStr(PyTuple_GetItem(tuple, WINDOW_MODULE_NAME)); /* borrowed */
+    pythonLog("[XPPython3] Reload --     (%s)\n", s);
+    free(s);
+    XPLMDestroyWindow(refToPtr(key, windowIDRef));
+  }
+  PyDict_Clear(windowDict);
+}
+
 static void receiveMonitorBounds(int inMonitorIndex, int inLeftBx, int inTopBx,
                                        int inRightBx, int inBottomBx, void *refcon)
 {
@@ -74,9 +124,6 @@ static void receiveMonitorBounds(int inMonitorIndex, int inLeftBx, int inTopBx,
   }
   Py_DECREF(pRes);
 }
-
-int XPLMDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon);
-int XPLMKeySnifferCallback(char inChar, XPLMKeyFlags inFlags, char inVirtualKey, void *inRefCon);
 
 My_DOCSTR(_registerDrawCallback__doc__, "registerDrawCallback", "draw, phase=xplm_Phase_Window, after=0, refCon=None",
           "Registers  low-level drawing callback.\n"
@@ -112,7 +159,7 @@ static PyObject *XPLMRegisterDrawCallbackFun(PyObject *self, PyObject *args, PyO
   Py_DECREF(tmp);
   
   Py_DECREF(idx);
-  int res = XPLMRegisterDrawCallback(XPLMDrawCallback, inPhase, inWantsBefore, (void *)drawCallbackCntr);
+  int res = XPLMRegisterDrawCallback(genericDrawCallback, inPhase, inWantsBefore, (void *)drawCallbackCntr);
   if(!res){
     PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterDrawCallback failed.\n");
     return NULL;
@@ -260,7 +307,7 @@ static PyObject *XPLMRegisterKeySnifferFun(PyObject *self, PyObject *args, PyObj
   PyDict_SetItem(keySniffCallbackDict, idx, argObj);
   Py_DECREF(idx);
   Py_DECREF(argObj);
-  int res = XPLMRegisterKeySniffer(XPLMKeySnifferCallback, inBeforeWindows, (void *)keySniffCallbackCntr);
+  int res = XPLMRegisterKeySniffer(genericKeySnifferCallback, inBeforeWindows, (void *)keySniffCallbackCntr);
   if(!res){
     PyErr_SetString(PyExc_RuntimeError ,"registerKeySniffer failed.\n");
     return NULL;
@@ -291,7 +338,7 @@ static PyObject *XPLMUnregisterDrawCallbackFun(PyObject *self, PyObject *args, P
     Py_DECREF(pyRefcon);
     return NULL;
   }
-  int res = XPLMUnregisterDrawCallback(XPLMDrawCallback, inPhase,
+  int res = XPLMUnregisterDrawCallback(genericDrawCallback, inPhase,
                                        inWantsBefore, PyLong_AsVoidPtr(pID));
   PyDict_DelItem(drawCallbackIDDict, pyRefcon);
   PyDict_DelItem(drawCallbackDict, pID);
@@ -333,7 +380,7 @@ static PyObject *XPLMUnregisterKeySnifferFun(PyObject *self, PyObject *args, PyO
   }
   Py_DECREF(argObj);
   if(toDelete){
-    res = XPLMUnregisterKeySniffer(XPLMKeySnifferCallback, 
+    res = XPLMUnregisterKeySniffer(genericKeySnifferCallback, 
                                    inBeforeWindows, PyLong_AsVoidPtr(toDelete));
     PyDict_DelItem(keySniffCallbackDict, toDelete);
   }
@@ -673,13 +720,13 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
   params.structSize = sizeof(params);
   if (paramsObj != Py_None){
     PyObject *paramsTuple = PySequence_Tuple(paramsObj);
-    params.left = getLongFromTuple(paramsTuple, 0);
-    params.top = getLongFromTuple(paramsTuple, 1);
-    params.right = getLongFromTuple(paramsTuple, 2);
-    params.bottom = getLongFromTuple(paramsTuple, 3);
-    params.visible = getLongFromTuple(paramsTuple, 4);
-    params.decorateAsFloatingWindow = getLongFromTuple(paramsTuple, 11);
-    params.layer = getLongFromTuple(paramsTuple, 12);
+    params.left = PyLong_AsLong(PyTuple_GetItem(paramsTuple, 0));
+    params.top = PyLong_AsLong(PyTuple_GetItem(paramsTuple, 1));
+    params.right = PyLong_AsLong(PyTuple_GetItem(paramsTuple, 2));
+    params.bottom = PyLong_AsLong(PyTuple_GetItem(paramsTuple, 3));
+    params.visible = PyLong_AsLong(PyTuple_GetItem(paramsTuple, 4));
+    params.decorateAsFloatingWindow = PyLong_AsLong(PyTuple_GetItem(paramsTuple, 11));
+    params.layer = PyLong_AsLong(PyTuple_GetItem(paramsTuple, 12));
     params.refcon = PyTuple_GetItem(paramsTuple, 10);
     
     draw = PyTuple_GetItem(paramsTuple, 5);
@@ -1948,7 +1995,7 @@ int genericAvionicsCallback(XPLMDeviceID inDeviceID, int inIsBefore, void *inRef
   return res;
 }
 
-int XPLMDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
+static int genericDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
 {
   struct timespec all_stop, all_start;
   clock_gettime(CLOCK_MONOTONIC, &all_start);
@@ -1992,14 +2039,18 @@ int XPLMDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
     goto cleanup;
   }
   if(!PyLong_Check(pRes)){
-    char *s = objToStr(PyTuple_GetItem(tup, DRAW_MODULE_NAME));
-    char *s2 = objToStr(fun);
-    pythonLog("[%s] Draw callback %s returned a wrong type.\n", s, s2);
-    free(s);
-    free(s2);
-    goto cleanup;
+    if (inIsBefore) {
+      char *s = objToStr(PyTuple_GetItem(tup, DRAW_MODULE_NAME));
+      char *s2 = objToStr(fun);
+      pythonLog("[%s] Draw callback %s returned a wrong type.\n", s, s2);
+      free(s);
+      free(s2);
+      goto cleanup;
+    }
+    res = 0; /* if not inIsBefore, X-Plane  ignores return value & so do we */
+  } else {
+    res = (int)PyLong_AsLong(pRes);
   }
-  res = (int)PyLong_AsLong(pRes);
 
  cleanup:
   err = PyErr_Occurred();
@@ -2014,7 +2065,7 @@ int XPLMDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
   return res;
 }
 
-int XPLMKeySnifferCallback(char inChar, XPLMKeyFlags inFlags, char inVirtualKey, void *inRefcon)
+int genericKeySnifferCallback(char inChar, XPLMKeyFlags inFlags, char inVirtualKey, void *inRefcon)
 {
   PyObject *pl = NULL, *fun = NULL, *refcon = NULL, *pRes = NULL, *err = NULL;
   PyObject *tup;

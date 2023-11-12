@@ -8,17 +8,17 @@
 #include "utils.h"
 
 static PyObject *mapDict;  // key is index (mapCntr)... which we'll get as refCon in call
-#define MAP_TYPE 0
-#define MAP_LAYER 1
-#define MAP_DELETE 2
-#define MAP_PREP 3
-#define MAP_DRAW 4
-#define MAP_ICON 5
-#define MAP_LABEL 6
-#define MAP_TOGGLE 7
-#define MAP_NAME 8
-#define MAP_REFCON 9
-#define MAP_MODULE_NAME 10
+#define MAP_MODULE_NAME 0
+#define MAP_TYPE 1
+#define MAP_LAYER 2
+#define MAP_DELETE 3
+#define MAP_PREP 4
+#define MAP_DRAW 5
+#define MAP_ICON 6
+#define MAP_LABEL 7
+#define MAP_TOGGLE 8
+#define MAP_NAME 9
+#define MAP_REFCON 10
 intptr_t mapCntr;
 
 static PyObject *mapRefDict;
@@ -241,10 +241,24 @@ static PyObject *XPLMCreateMapLayerFun(PyObject *self, PyObject *args, PyObject 
   if (firstObj == Py_None) {
     ;
   } else if (PySequence_Check(firstObj)) {
-    paramsObj = firstObj;
-    if (PySequence_Length(paramsObj) != 10) {
-      PyErr_SetString(PyExc_AttributeError, "createMapLayer tuple did not contain 10 values.\n");
-      return NULL;
+    /* First items is sequence... BUT, first item could be mapType which is a string... which is a sequence
+     * So, IF the first item is a sequence, we check to see if element #1 of THAT sequence is
+     * an integer... If it is, then this appears to be a single-argument call, where a
+     * list of values is passed (with integer 'layerType' is passed as element #1)
+     * If _not_ integer, we assume first element is mapType (... a string).
+     */
+    if (PySequence_Length(firstObj) > 2) {
+      PyObject *item = PySequence_GetItem(firstObj, 1);
+      if (PyLong_Check(item)) {
+        paramsObj = firstObj;
+        if (PySequence_Length(paramsObj) != 10) {
+          PyErr_SetString(PyExc_AttributeError, "createMapLayer tuple did not contain 10 values.\n");
+          return NULL;
+        }
+      }
+      Py_XDECREF(item);
+    } else {
+      map = firstObj;
     }
   } else {
     map = firstObj;
@@ -267,8 +281,13 @@ static PyObject *XPLMCreateMapLayerFun(PyObject *self, PyObject *args, PyObject 
     }
     paramsTuple = Py_BuildValue("(sOiOOOOOiOO)", CurrentPythonModuleName, map, layerType, delete, prep, draw, icon, label, showToggle, name, refCon);
   } else {
+    PyObject *paramsList = PySequence_List(paramsObj);
     PyObject *tmp = Py_BuildValue("[s]", CurrentPythonModuleName);
-    paramsTuple = PySequence_Tuple(PySequence_Concat(tmp, paramsObj));
+    PyObject *concat = PySequence_Concat(tmp, paramsList);
+    Py_DECREF(tmp);
+    Py_DECREF(paramsList);
+    paramsTuple = PySequence_Tuple(concat);
+    Py_DECREF(concat);
   }
 
   tmpObjMap = PyUnicode_AsUTF8String(PyTuple_GetItem(paramsTuple, MAP_TYPE));

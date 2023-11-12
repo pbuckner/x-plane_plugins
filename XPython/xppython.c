@@ -6,7 +6,12 @@
 #include "xppythontypes.h"
 #include <XPLM/XPLMUtilities.h>
 #include <XPLM/XPLMNavigation.h>
+#include "menus.h"
+#include "display.h"
+#include "processing.h"
 #include "utils.h"
+#include "utilities.h"
+#include "widgets.h"
 #include "xppython.h"
 #include "manage_instance.h"
 
@@ -213,6 +218,45 @@ static PyObject *XPPythonDerefCapsuleFun(PyObject *self, PyObject *args)
   /* pythonLog("Capsule Pointer: %p\n", PyCapsule_GetPointer(capsule, capsule_type)); */
 
   return PyLong_FromVoidPtr(PyCapsule_GetPointer(capsule, capsule_type));
+}
+
+static void resetCapsules() {
+  PyObject *keys = PyDict_Keys(XPY3pythonCapsules);
+  PyObject *iterator = PyObject_GetIter(keys);
+  PyObject *key;
+  while((key = PyIter_Next(iterator))) {
+    PyObject *item = PyDict_GetItem(XPY3pythonCapsules, key); /* borrowed */
+    int size = PyDict_Size(item);
+    if (size > 0) {
+      char *s = objToStr(key);
+      pythonLog("[XPPython3] Reload --     %d %s Capsules\n", size, s);
+      free(s);
+    }
+    PyDict_Clear(item);
+    Py_DECREF(key);
+  }
+  Py_XDECREF(iterator);
+  Py_DECREF(keys);
+  PyDict_Clear(XPY3pythonCapsules);
+}
+
+void resetInternals() {
+  pythonLog("[XPPython3] Reload --   a) Reset Menu\n");
+  resetMenus();
+  pythonLog("[XPPython3] Reload --   b) Cancel FlightLoops\n");
+  resetFlightLoops();
+  pythonLog("[XPPython3] Reload --   c) Remove Windows\n");
+  resetWindows();
+  pythonLog("[XPPython3] Reload --   d) Remove Commands\n");
+  resetCommands();
+  pythonLog("[XPPython3] Reload --   e) Remove Widgets\n");
+  resetWidgets();
+  pythonLog("[XPPython3] Reload --   f) Remove Direct Draw callbacks\n");
+  resetDrawCallbacks();
+  pythonLog("[XPPython3] Reload --   g) Remove KeySniff callbacks\n");
+  resetKeySniffCallbacks();
+  pythonLog("[XPPython3] Reload --   x) Clear Capsules\n");
+  resetCapsules();
 }
 
 static PyObject *cleanup(PyObject *self, PyObject *args)

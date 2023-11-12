@@ -86,11 +86,11 @@ def setDatavf(dataRef: int, values: list, offset: int = 0, count: int = -1) -> N
     return
 
 
-def getDatab(dataRef: int, values: Union[list, None], offset: int = 0, count: int = -1) -> int:
+def getDatab(dataRef: int, values: Union[List, bytes, None], offset: int = 0, count: int = -1) -> int:
     return int()  # of items
 
 
-def setDatab(dataRef: int, values: list, offset: int = 0, count: int = -1) -> None:
+def setDatab(dataRef: int, values: Union[List, bytes, None], offset: int = 0, count: int = -1) -> None:
     return
 
 

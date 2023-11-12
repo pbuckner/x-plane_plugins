@@ -6,61 +6,36 @@ Menu_Unchecked = 1
 Menu_Checked = 2
 
 
-def findPluginsMenu() -> XPLMMenuID:
-    return XPLMMenuID(0)
+def findPluginsMenu() -> XPLMMenuID: ...
 
-
-def findAircraftMenu() -> XPLMMenuID:
-    return XPLMMenuID(0)
-
+def findAircraftMenu() -> XPLMMenuID: ...
 
 def createMenu(name: Union[None, str] = None,
                    parentMenuID: Union[None, XPLMMenuID] = None,
                    parentItem: int = 0,
                    handler: Union[None, Callable[[Any, Any], None]] = None,
-                   refCon: Union[None, Any] = None) -> XPLMMenuID:
-    return XPLMMenuID(0)
+                   refCon: Union[None, Any] = None) -> XPLMMenuID: ...
 
+def destroyMenu(menuID: XPLMMenuID) -> None: ...
 
-def destroyMenu(menuID: XPLMMenuID) -> None:
-    return
+def clearAllMenuItems(menuID: XPLMMenuID) -> None: ...
 
-
-def clearAllMenuItems(menuID: XPLMMenuID) -> None:
-    return
-
-
-def appendMenuItem(menuID: Union[None, XPLMMenuID] = None, name: str = 'Item', refCon: Union[None, Any] = None) -> int:
-    return int()  # menu idx
-
+def appendMenuItem(menuID: Union[None, XPLMMenuID] = None, name: str = 'Item', refCon: Union[None, Any] = None) -> int: ...
 
 def appendMenuItemWithCommand(menuID: Union[None, XPLMMenuID] = None,
                                   name: str = "Command",
-                                  commandRef: Union[None, XPLMCommandRef] = None) -> int:
-    return int()  # menu idx
+                                  commandRef: Union[None, XPLMCommandRef] = None) -> int: ...
 
-
-def appendMenuSeparator(menuID: Union[None, XPLMMenuID] = None) -> None:
-    return
-
+def appendMenuSeparator(menuID: Union[None, XPLMMenuID] = None) -> None: ...
 
 def setMenuItemName(menuID: Union[None, XPLMMenuID] = None,
-                        index: int = 0, name: str = "New Name") -> None:
-    return
-
+                        index: int = 0, name: str = "New Name") -> None: ...
 
 def checkMenuItem(menuID: Union[None, XPLMMenuID] = None,
-                      index: int = 0, checked: int = 2) -> None:
-    return
+                      index: int = 0, checked: int = 2) -> None: ...
 
+def checkMenuItemState(menuID: Union[None, XPLMMenuID] = None, index: int = 0) -> int: ...
 
-def checkMenuItemState(menuID: Union[None, XPLMMenuID] = None, index: int = 0) -> int:
-    return int()
+def enableMenuItem(menuID: Union[None, XPLMMenuID] = None, index: int = 0, enabled: int = 1) -> None: ...
 
-
-def enableMenuItem(menuID: Union[None, XPLMMenuID] = None, index: int = 0, enabled: int = 1) -> None:
-    return
-
-
-def removeMenuItem(menuID: Union[None, XPLMMenuID] = None, index: int = 0) -> None:
-    return
+def removeMenuItem(menuID: Union[None, XPLMMenuID] = None, index: int = 0) -> None: ...

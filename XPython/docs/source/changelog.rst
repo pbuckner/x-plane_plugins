@@ -22,6 +22,10 @@ Known Bugs
      we *thought* there were failures we'll now indicate as success. Your code or usage shouldn't change.
      (`XPD-14674 <https://developer.x-plane.com/x-plane-bug-database/?issue=XPD-14674>`_)
      
+   * **createMapLayer alternate API fixed**. This function can take either a list of parameters, or a
+     single parameter, itself being a tuple of values. The former API could fail to create a map layer
+     under particular circumstances. This has been fixed. (:py:func:`xp.createMapLayer`)
+
      |
 
 :Improvements:
@@ -35,12 +39,20 @@ Known Bugs
      
    * **Cleanup up python code** under XPPython3 folder. Mostly to better support type-hinting.
 
+   * **Add "reset" code for reload**. XPPython3 maintains a lot of internal dictionaries to handle callbacks
+     and other functionality. If you forget to destroy windows or widgets, or unregister callbacks *and* you
+     attempt to reload your python plugin (perhaps you're debugging your plugin and it failed to properly
+     execute), then X-Plane may execute your callbacks more than once: once for the initial registration &
+     again with your reloaded registration. We now reset all menus, callbacks, windows, hotkeys, keysniffers and other
+     resources so your reloaded plugin can execute without left-over callbacks. (This is a non-issue if
+     you don't *reload* your python plugins.)
+     
    * **Enable XPLMSetErrorCallback** for beta releases or if you've enabled ``debug``
      in :doc:`/development/xppython3.ini`. This performs additional run-time error checking, with output
      sent to python log.
 
    * **Improved conversion of widget message parameters**. Some *custom* widget messages were not being
-     convereted correctly between C and Python implementations.
+     converted correctly between C and Python implementations.
 
 4.1.1 (12-Oct-2023)
 -------------------
@@ -91,7 +103,7 @@ Known Bugs
      
 :Fixes:
    * Incorrectly converted AcceptParent widget message when using :py:func:`xp.fixedLayout` (this is rare).
-     Updated documention for this function as well.
+     Updated documentation for this function as well.
 
 4.1.0 (2-Apr-2023)
 ------------------

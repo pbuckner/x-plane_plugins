@@ -293,12 +293,16 @@ Avionics Drawing Functions
 
   .. image:: /images/avionics_draw_g1000.png
 
+  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMRegisterAvionicsCallbacksEx>`__ :index:`XPLMRegisterAvionicsCallbacksEx`
+
 .. py:function:: unregisterAvionicsCallbacks(avionicsID)
 
  Unregisters specified avionics callbacks.
 
  >>> xp.unregisterAvionicsCallbacks(avionicsID)
  
+  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMUnregisterAvionicsCallbacks>`__ :index:`XPLMUnregisterAvionicsCallbacks`
+
 Device IDs
 **********
 

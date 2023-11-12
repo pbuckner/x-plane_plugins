@@ -10,8 +10,6 @@
 #include "xppythontypes.h"
 #include "plugin_dl.h"
 
-//static PyObject *rwCallbackDict;
-//static intptr_t rwCallbackCntr;
 static PyObject *accessorDict;
 static PyObject *drefDict;
 static intptr_t accessorCntr;

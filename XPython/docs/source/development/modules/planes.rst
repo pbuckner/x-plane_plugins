@@ -93,7 +93,7 @@ Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMGetNthAircraftModel>`__ :index:`XPLMGetNthAircraftModel`
 
-.. py:function::  acquirePlanes(aircraft=None, callable=None, object=None)
+.. py:function::  acquirePlanes(aircraft=None, callable=None, refCon=none)
 
  Grants your plugin exclusive access to the aircraft.  It
  returns 1 if you gain access, 0 if you do not.

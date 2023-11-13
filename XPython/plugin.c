@@ -242,13 +242,13 @@ static int stopPython(void)
      */
     pythonLog("Undeleted items: begin vvvvv\n");
     char *dicts [] = {"plugins", "modules", "accessors", "drefs", "sharedDrefs", "drawCallbacks",
-      "drawCallbackIDs", "keySniffCallbacks", "windows", "hotkeys", "hotkeyIDs", "mapCreates", "mapRefs", "maps",
+      "keySniffCallbacks", "windows", "hotkeys", "hotkeyIDs", "mapCreates", "mapRefs", "maps",
       "menus", "menuRefs", "menuPluginIdx", "errCallbacks", "commandCallbacks", "commandRevDict",
       "widgetCallbacks", "widgetProperties", NULL};
     char **dict_ptr = dicts;
     while(*dict_ptr != NULL) {
       PyObject *dict = PyDict_GetItemString(XPY3pythonDicts, *dict_ptr); // borrowed
-      if (PyDict_Size(dict) > 0) {
+      if (PyDict_Size(dict)) {
         pythonLog("{%s}: [%d]\n", *dict_ptr, PyDict_Size(dict));
         Py_ssize_t pos = 0;
         PyObject *key,  *value;

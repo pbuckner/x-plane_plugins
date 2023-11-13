@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMCamera.h>
+#include "camera.h"
 #include "utils.h"
 
 static intptr_t camCntr;
@@ -14,7 +15,21 @@ static PyObject *camDict;
 #define CAMERA_REFCON 3
 
 
-static int cameraControl(XPLMCameraPosition_t *outCameraPosition, int inIsLosingControl, void *inRefcon)
+void resetCamera(void) {
+/* we don't 'reset' camera control on reload.
+   Camera is controlled only by the most resent call to XPLMControlCamera.
+   Previous controlCamera callbacks are removed.
+ */
+  XPLMCameraControlDuration duration = -1;
+  if (XPLMIsCameraBeingControlled(&duration)) {
+    if (duration > 0) {
+      pythonLog("[XPPython3] Reset --      Releasing camera\n");
+      XPLMDontControlCamera();
+    }
+  }
+  PyDict_Clear(camDict);
+}
+static int genericCameraControl(XPLMCameraPosition_t *outCameraPosition, int inIsLosingControl, void *inRefcon)
 {
   PyObject *err;
   errCheck("error before cameraControl");
@@ -140,7 +155,7 @@ static PyObject *XPLMControlCameraFun(PyObject *self, PyObject *args, PyObject *
   PyDict_SetItem(camDict, refconObj, argsObj);
   Py_DECREF(argsObj);
   Py_DECREF(refconObj);
-  XPLMControlCamera(inHowLong, cameraControl, inRefcon);
+  XPLMControlCamera(inHowLong, genericCameraControl, inRefcon);
   Py_RETURN_NONE;
 }
 

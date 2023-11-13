@@ -35,7 +35,7 @@ void resetWidgets(void) {
     moduleName = objToStr(PyTuple_GetItem(capsuleInfo, 1));
 #endif    
     char *s1 = objToStr(capsule);
-    pythonLog("[XPPython3] Reload --      %s  %s\n", moduleName, s1);
+    pythonLog("[XPPython3] Reset --      %s  %s\n", moduleName, s1);
     free(s1);
 #if ERRCHECK
     free(moduleName);
@@ -45,6 +45,7 @@ void resetWidgets(void) {
   }
   Py_DECREF(iterator);
   Py_XDECREF(keys);
+  PyDict_Clear(widgetIDCapsules);
   PyDict_Clear(widgetCallbackDict);
   PyDict_Clear(widgetPropertyDict);
 }

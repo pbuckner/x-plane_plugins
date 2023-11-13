@@ -52,7 +52,7 @@ void resetFlightLoops()
     PyObject *flInfo = PyDict_GetItem(flDict, flDictKey); /* borrowed */
 
     char *s = objToStr(PyTuple_GetItem(flInfo, FLIGHTLOOP_MODULE_NAME)); /* borrowed */
-    pythonLog("[XPPython3] Reload --     (%s)\n", s);
+    pythonLog("[XPPython3] Reset --     (%s)\n", s);
     free(s);
     PyObject *flightloop_type = PyTuple_GetItem(flInfo, FLIGHTLOOP_TYPE);  /* borrowed */
     int fl_type = PyLong_AsLong(flightloop_type);

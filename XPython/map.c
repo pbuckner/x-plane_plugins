@@ -6,8 +6,12 @@
 #include <XPLM/XPLMMap.h>
 #include "plugin_dl.h"
 #include "utils.h"
+#include "map.h"
 
-static PyObject *mapDict;  // key is index (mapCntr)... which we'll get as refCon in call
+static PyObject *mapDict;  /* {
+                                mapDictKey1: [0] module, [1] type ...,
+                                mapDictKey2: [0] module, [1] type ...,
+                              } */
 #define MAP_MODULE_NAME 0
 #define MAP_TYPE 1
 #define MAP_LAYER 2
@@ -21,8 +25,18 @@ static PyObject *mapDict;  // key is index (mapCntr)... which we'll get as refCo
 #define MAP_REFCON 10
 intptr_t mapCntr;
 
-static PyObject *mapRefDict;
-static PyObject *mapCreateDict;
+static PyObject *mapRefDict; /* {
+                                  <mapLayerIDCapsule1> : mapDictKey1
+                                  <mapLayerIDCapsule2> : mapDictKey2,
+                                }
+                             */
+
+
+static PyObject *mapCreateDict; /* {
+                                     mapCreateCntr1: [0]callback, [1]refCon, [2]module,
+                                     mapCreateCntr2: [0]callback, [1]refCon, [2]module,
+                                   } */
+
 #define MAPCREATE_CALLBACK 0
 #define MAPCREATE_REFCON 1
 #define MAPCREATE_MODULE_NAME 2
@@ -35,6 +49,24 @@ static const char layerIDRefName[] = "XPLMMapLayerID";
 static const char projectionRefName[] = "XPLMMapProjectionID";
 
 
+void resetMap(void) {
+  PyObject *key, *tuple;
+  Py_ssize_t pos = 0;
+  while(PyDict_Next(mapDict, &pos, &key, &tuple)) {
+    char *moduleName = objToStr(PyTuple_GetItem(tuple, MAP_MODULE_NAME));
+    char *layerName = objToStr(PyTuple_GetItem(tuple, MAP_NAME));
+    XPLMMapLayerID inLayer = PyLong_AsVoidPtr(key);
+    XPLMDestroyMapLayer(inLayer);
+    pythonLog("[XPPython3] Reset --     %s - (%s)\n", moduleName, layerName);
+    free(moduleName);
+    free(layerName);
+  }
+  PyDict_Clear(mapDict);
+  PyDict_Clear(mapCreateDict);
+  PyDict_Clear(mapRefDict);
+  
+}
+
 static inline void mapCallback(int whichCallback, XPLMMapLayerID inLayer, const float *inMapBoundsLeftTopRightBottom, float zoomRatio,
                         float mapUnitsPerUserInterfaceUnit, XPLMMapStyle mapStyle, XPLMMapProjectionID projection,
                         void *inRefcon)
@@ -44,7 +76,8 @@ static inline void mapCallback(int whichCallback, XPLMMapLayerID inLayer, const 
   PyObject *callbackInfo = PyDict_GetItem(mapDict, pRefCon);
   Py_DECREF(pRefCon);
   if(callbackInfo == NULL){
-    printf("Couldn't find map callback with id = %p.", inRefcon); 
+    printf("Couldn't find map callback with id = %p., destroying it insted", inRefcon); 
+    XPLMDestroyMapLayer(inLayer);
     return;
   }
 
@@ -264,7 +297,6 @@ static PyObject *XPLMCreateMapLayerFun(PyObject *self, PyObject *args, PyObject 
     map = firstObj;
   }
 
-  void *mapRefCon = (void *)++mapCntr;
   XPLMCreateMapLayer_t inParams;
   inParams.structSize = sizeof(inParams);
   PyObject *tmpObjMap;
@@ -312,7 +344,7 @@ static PyObject *XPLMCreateMapLayerFun(PyObject *self, PyObject *args, PyObject 
     return NULL;
   }
 
-  inParams.refcon = mapRefCon;
+  inParams.refcon = (void *)++mapCntr;
   inParams.layerName = tmpLayerName;
   inParams.mapToCreateLayerIn = tmpMap;
   inParams.willBeDeletedCallback = mapWillBeDeletedCallback;
@@ -325,26 +357,34 @@ static PyObject *XPLMCreateMapLayerFun(PyObject *self, PyObject *args, PyObject 
    * XPLMCreateMapLayer() will immediately call prep_cache, so
    * make sure we set mapDict prior to call.
    */
-  PyObject *pMapRefCon = PyLong_FromVoidPtr(mapRefCon);
+  PyObject *mapDictKey = PyLong_FromVoidPtr(inParams.refcon);
 
-  PyDict_SetItem(mapDict, pMapRefCon, paramsTuple);
+  PyDict_SetItem(mapDict, mapDictKey, paramsTuple);
 
-  XPLMMapLayerID res = XPLMCreateMapLayer_ptr(&inParams);
-  if(!res){
-    PyDict_DelItem(mapDict, pMapRefCon);
-    Py_DECREF(pMapRefCon);
+  XPLMMapLayerID mapLayerID = XPLMCreateMapLayer_ptr(&inParams);
+  if(!mapLayerID){
+    char msg[1024];
+    if (!XPLMMapExists(inParams.mapToCreateLayerIn)) {
+      sprintf(msg, "Map [%s] does not (yet) exist.\n", inParams.mapToCreateLayerIn);
+      PyErr_SetString(PyExc_RuntimeError, msg);
+    } else {
+      sprintf(msg, "Unknown map creation error.\n");
+      PyErr_SetString(PyExc_ValueError, msg);
+    }
+    PyDict_DelItem(mapDict, mapDictKey);
+    Py_DECREF(mapDictKey);
     Py_DECREF(tmpObjMap);
     Py_DECREF(tmpObjLayerName);
     Py_DECREF(paramsTuple);
     return NULL;
   }
-  PyObject *resObj = getPtrRef(res, mapLayerIDCapsules, layerIDRefName);
-  PyDict_SetItem(mapRefDict, resObj, pMapRefCon);
+  PyObject *mapLayerCapsule = getPtrRef(mapLayerID, mapLayerIDCapsules, layerIDRefName);
+  PyDict_SetItem(mapRefDict, mapLayerCapsule, mapDictKey);
   Py_DECREF(tmpObjMap);
   Py_DECREF(tmpObjLayerName);
   Py_DECREF(paramsTuple);
-  Py_DECREF(pMapRefCon);
-  return resObj;
+  Py_DECREF(mapDictKey);
+  return mapLayerCapsule;
 }
 
 My_DOCSTR(_destroyMapLayer__doc__, "destroyMapLayer", "layerID",

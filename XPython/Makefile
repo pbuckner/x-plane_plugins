@@ -5,7 +5,7 @@ SDK=400
 XP_SDK=../SDK401
 VERSIONS= 310 311 312
 # python versions are like 4.1.1 -> 4.1.2a1 -> 4.1.2a2 -> 4.1.2b1 -> 4.1.2 (letter is [ab], cannot end with letter)
-XPPYTHONVERSION=4.1.2a2
+XPPYTHONVERSION=4.1.2a3
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
 FMOD=../FMOD
 #########

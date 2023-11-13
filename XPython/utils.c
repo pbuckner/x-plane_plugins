@@ -388,7 +388,7 @@ PyObject *getPtrRef(void *ptr, PyObject *dict, const char *refName)
 #if ERRCHECK
     if (pythonCapsuleRegistration) {
       char *res_s = objToStr(res);
-      pythonLog("  (registering %s for %p)\n", res_s, ptr);
+      pythonLog("  (%s registering %s for %p)\n", CurrentPythonModuleName, res_s, ptr);
       free(res_s);
     }
 #endif

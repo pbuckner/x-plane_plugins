@@ -3,4 +3,6 @@
 void resetWindows(void);
 void resetDrawCallbacks(void);
 void resetKeySniffCallbacks(void);
+void resetHotKeyCallbacks(void);
+void resetAvionicsCallbacks(void);
 #endif

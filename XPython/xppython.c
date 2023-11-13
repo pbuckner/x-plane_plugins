@@ -10,6 +10,8 @@
 #include "display.h"
 #include "processing.h"
 #include "utils.h"
+#include "camera.h"
+#include "map.h"
 #include "utilities.h"
 #include "widgets.h"
 #include "xppython.h"
@@ -229,7 +231,7 @@ static void resetCapsules() {
     int size = PyDict_Size(item);
     if (size > 0) {
       char *s = objToStr(key);
-      pythonLog("[XPPython3] Reload --     %d %s Capsules\n", size, s);
+      pythonLog("[XPPython3] Reset --     %d %s Capsules\n", size, s);
       free(s);
     }
     PyDict_Clear(item);
@@ -241,21 +243,34 @@ static void resetCapsules() {
 }
 
 void resetInternals() {
-  pythonLog("[XPPython3] Reload --   a) Reset Menu\n");
+  pythonLog("[XPPython3] Reset --   a) Clear Menus\n");
   resetMenus();
-  pythonLog("[XPPython3] Reload --   b) Cancel FlightLoops\n");
+  pythonLog("[XPPython3] Reset --   b) Cancel FlightLoops\n");
   resetFlightLoops();
-  pythonLog("[XPPython3] Reload --   c) Remove Windows\n");
+  pythonLog("[XPPython3] Reset --   c) Remove Windows\n");
   resetWindows();
-  pythonLog("[XPPython3] Reload --   d) Remove Commands\n");
+  pythonLog("[XPPython3] Reset --   d) Remove Commands\n");
   resetCommands();
-  pythonLog("[XPPython3] Reload --   e) Remove Widgets\n");
+  pythonLog("[XPPython3] Reset --   e) Remove Widgets\n");
   resetWidgets();
-  pythonLog("[XPPython3] Reload --   f) Remove Direct Draw callbacks\n");
+  pythonLog("[XPPython3] Reset --   f) Remove Direct Draw callbacks\n");
+  errCheck("pre drawCallbacks");
   resetDrawCallbacks();
-  pythonLog("[XPPython3] Reload --   g) Remove KeySniff callbacks\n");
+  errCheck("post drawCallbacks");
+  pythonLog("[XPPython3] Reset --   g) Remove KeySniff callbacks\n");
   resetKeySniffCallbacks();
-  pythonLog("[XPPython3] Reload --   x) Clear Capsules\n");
+  pythonLog("[XPPython3] Reset --   h) Remove HotKey callbacks\n");
+  resetHotKeyCallbacks();
+  errCheck("post resetHotKey");
+  pythonLog("[XPPython3] Reset --   i) Remove Avionics callbacks\n");
+  errCheck("pre resetAvionicsKey");
+  resetAvionicsCallbacks();
+  pythonLog("[XPPython3] Reset --   j) Release Camera\n");
+  errCheck("pre camera");
+  resetCamera();
+  pythonLog("[XPPython3] Reset --   k) Reset Map\n");
+  resetMap();
+  pythonLog("[XPPython3] Reset --   x) Clear Capsules\n");
   resetCapsules();
 }
 

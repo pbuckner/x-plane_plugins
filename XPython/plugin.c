@@ -39,6 +39,7 @@ static int pythonVerbose = 0;
  */
 const char *pythonPluginsPath = "Resources/plugins/PythonPlugins";
 const char *pythonInternalPluginsPath = "Resources/plugins/XPPython3";
+const char *pythonInternalHooksPath =   "Resources/plugins/XPPython3/hooks";
 
 static const char *pythonPluginName = "XPPython3";
 const char *pythonPluginVersion = XPPYTHON3VERSION " - for Python " PYTHONVERSION;
@@ -198,7 +199,7 @@ int initPython(void){
 
   if (ERRCHECK || pythonDebugs) {
     /* if beta/ERRCHECK or if user has enabled pythonDebugs, set a defaut ErrorCallback */
-    pythonLog("Enabling XP Error Callback -- XP SDK API errors will be directed to python log\n");
+    pythonLog("[XPPython3] Enabling XP Error Callback -- XP SDK API errors will be directed to python log\n");
     XPLMSetErrorCallback(debugErrorCallback);
   }
   return 0;
@@ -244,7 +245,7 @@ static int stopPython(void)
     char *dicts [] = {"plugins", "modules", "accessors", "drefs", "sharedDrefs", "drawCallbacks",
       "keySniffCallbacks", "windows", "hotkeys", "hotkeyIDs", "mapCreates", "mapRefs", "maps",
       "menus", "menuRefs", "menuPluginIdx", "errCallbacks", "commandCallbacks", "commandRevDict",
-      "widgetCallbacks", "widgetProperties", NULL};
+      "widgetCallbacks", "widgetProperties", "flightLoops", "flightLoopIDs", NULL};
     char **dict_ptr = dicts;
     while(*dict_ptr != NULL) {
       PyObject *dict = PyDict_GetItemString(XPY3pythonDicts, *dict_ptr); // borrowed
@@ -491,7 +492,12 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
     /* bug -- inParam is sent as pointer to value, rather than value itself. We'll
        convert to value and send _that_ to python plugins */
     pythonDebug("...Sending %ld instead. See bug XPD-13931\n", *(long*)inParam);
-    param = PyLong_FromLong(*(long*)inParam);
+    if (*(long*)inParam > 100000) {
+      pythonLog("Totally bogus value sent with XPLM_MSG_DATAREFS_ADDED (%ld). See bug XPD-13931\n", (long)inParam);
+      /* ... passing original value for param -- what else can I do?  */
+    } else {
+      param = PyLong_FromLong(*(long*)inParam);
+    }
   }
 
   while(PyDict_Next(XPY3moduleDict, &pos, &pModuleName, &pluginInstance)){
@@ -679,6 +685,16 @@ static void initMtimes(void) {
 }
 
 static void reloadSysModules(void) {
+  char filename[1024];
+  strcpy(filename, pythonInternalHooksPath);
+  strcat(filename, "/");
+  strcat(filename, "xp_reloader.py");
+  FILE *fp = fopen(filename, "rb");  /* python says, use binary mode so newlines work */
+  if (!fp) {
+    pythonLog("Cannot find reloader script in %s\n", filename);
+    return;
+  }
+
   PyObject *localsDict = PyDict_New();
   PyDict_SetItemString(localsDict, "__builtins__", PyEval_GetBuiltins());
   PyDict_SetItemString(localsDict, "mtimes", PythonModuleMTimes);
@@ -686,37 +702,11 @@ static void reloadSysModules(void) {
   /* reload_unknown... if sys.modules has a module for which we don't know the mtime,
    *                   do we reload it anyway? Py_True
    */
+  strcpy(CurrentPythonModuleName, "XPPython3");
   PyDict_SetItemString(localsDict, "reload_unknown", Py_True);
-  MyPyRun_String("import sys\n"
-                 "import os\n"
-                 "import importlib\n"
-                 "result = []\n"
-                 "for mod in list(sys.modules.values()):\n"
-                 "  if mod and hasattr(mod, '__file__') and mod.__file__:\n" /* some don't have __file__, some __file__ are None */
-                 "    try:\n"
-                 "      mtime = os.stat(mod.__file__).st_mtime\n"  /* if it's simple foo.py */
-                 "    except (OSError, IOError) as e:\n"
-                 "      result.append(f'Opps for {mod.__file__}: {e}')\n"
-                 "      continue\n"
-                 "    if mod.__file__.endswith('.pyc') and os.path.exists(mod.__file__[:-1]):\n"  /* if there is (also) a pyc */
-                 "      mtime = max(mtime, os.stat(mod.__file__[:-1]).st_mtime)\n"
-                 "    if (not reload_unknown and mod not in mtimes) or (mtime <= sym_start and mod not in mtimes):\n"
-                 "      mtimes [mod] = mtime\n"
-                 "    elif (reload_unknown and not mod in mtimes and mtime > sym_start)  or mtimes[mod] < mtime:\n"
-                 "      mtimes[mod] = mtime\n"
-                 "      if hasattr(mod, '__spec__') and hasattr(mod.__spec__, 'origin') and mod.__spec__.origin in ('frozen', 'builtin'):\n"
-                 "        continue\n"
-                 "      try:\n"
-                 "        result.append(mod.__file__)\n"
-                 "        importlib.reload(mod)\n"
-                 "        mtimes[mod] = mtime\n"
-                 "      except ImportError:\n"
-                 "        result.append(f'>> Failed to reload {mod.__file__}')\n"
-                 "        pass\n"
-                 "      except Exception as e:\n"
-                 "        result.append(f'>> Failed reloading {mod.__file__}: {e}')\n"
-                 "result = '\\n  > '.join(result)\n",
-                 Py_file_input, localsDict, localsDict);
+
+  MyPyRun_File(fp, "xp_reloader.py", Py_file_input, localsDict, localsDict);
+  fclose(fp);
   PyObject *result = PyDict_GetItemString(localsDict, "result");
   PyObject *err = PyErr_Occurred();
   if (err) {

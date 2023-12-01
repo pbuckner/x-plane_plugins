@@ -11,6 +11,8 @@
 #include "processing.h"
 #include "utils.h"
 #include "camera.h"
+#include "data_access.h"
+#include "instance.h"
 #include "map.h"
 #include "utilities.h"
 #include "widgets.h"
@@ -270,6 +272,21 @@ void resetInternals() {
   resetCamera();
   pythonLog("[XPPython3] Reset --   k) Reset Map\n");
   resetMap();
+  /* resetPlanes -- do something with 'acquirePlanes?'
+     doesn't seem to matter... yet. On reload,
+     plugin is able to re-acquire plane & I haven't quite
+     figured out a way to break it... so don't do anything
+
+     TODO: keep pointer to _current_python_plugin_ which has
+     acquired planes -- other python plugins which attempt
+     to acquire, return 0(?), ... allowing callback to
+     occur for 'other' python plugins?
+  */
+  pythonLog("[XPPython3] Reset --   l) Reset registered datarefs\n");
+  resetDataRefs();
+  pythonLog("[XPPython3] Reset --   m) Reset Instanced Objects\n");
+  resetInstances();
+
   pythonLog("[XPPython3] Reset --   x) Clear Capsules\n");
   resetCapsules();
 }

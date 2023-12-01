@@ -112,6 +112,9 @@ void resetHotKeyCallbacks(void) {
 }
 
 void resetAvionicsCallbacks(void) {
+  if(!XPLMUnregisterAvionicsCallbacks_ptr){
+    return;
+  }
   PyObject *avIDCapsule, *avDictKey;
   Py_ssize_t pos = 0;
   errCheck("prior resetAvionicsCallbacks");
@@ -121,7 +124,7 @@ void resetAvionicsCallbacks(void) {
     char *callback_before = objToStr(PyTuple_GetItem(tuple, AVIONICS_BEFORE));
     char *callback_after = objToStr(PyTuple_GetItem(tuple, AVIONICS_AFTER));
     XPLMAvionicsID avionicsId = refToPtr(avIDCapsule, avionicsIDRef);
-    XPLMUnregisterAvionicsCallbacks(avionicsId);
+    XPLMUnregisterAvionicsCallbacks_ptr(avionicsId);
     errCheck("after XPLMUnregisterAvioniccCallbacks in reset");
     pythonLog("[XPPython3] Reset --     %s - (%s)\n", moduleName, callback_before, callback_after);
     free(moduleName);
@@ -162,7 +165,7 @@ void resetKeySniffCallbacks(void) {
     free(callback);
     XPLMUnregisterKeySniffer(genericKeySnifferCallback,
                              PyLong_AsLong(PyTuple_GetItem(tuple, KEYSNIFF_BEFORE)),
-                             (void *)PyLong_AsLong(key));
+                             PyLong_AsVoidPtr(key));
   }
   PyDict_Clear(keySniffCallbackDict);
 }
@@ -219,7 +222,6 @@ static PyObject *XPLMRegisterDrawCallbackFun(PyObject *self, PyObject *args, PyO
 
   PyObject *argObj = Py_BuildValue("(sOiiO)", CurrentPythonModuleName, callback, inPhase, inWantsBefore, refcon);
   PyDict_SetItem(drawCallbackDict, idx, argObj);
-  //PyDict_SetItem(drawCallbackRevDict, argObj, idx);
   Py_DECREF(argObj);
   Py_DECREF(idx);
   int res = XPLMRegisterDrawCallback(genericDrawCallback, inPhase, inWantsBefore, (void *)drawCallbackCntr);
@@ -401,7 +403,7 @@ static PyObject *XPLMUnregisterDrawCallbackFun(PyObject *self, PyObject *args, P
   PyObject *item;
   PyObject *key;
   PyObject *value;
-  XPLM_API int res = -1;
+  int res = -1;
   while((item = PyIter_Next(iterator))) {  /* new */
     key = PyTuple_GetItem(item, 0);        /* borrowed */
     value = PyTuple_GetItem(item, 1);      /* borrowed */
@@ -1843,9 +1845,6 @@ PyInit_XPLMDisplay(void)
 
   if(!(drawCallbackDict = PyDict_New())){return NULL;}
   PyDict_SetItemString(XPY3pythonDicts, "drawCallbacks", drawCallbackDict);
-
-  /* if(!(drawCallbackIDDict = PyDict_New())){return NULL;} */
-  /* PyDict_SetItemString(XPY3pythonDicts, "drawCallbackIDs", drawCallbackIDDict); */
 
   if(!(keySniffCallbackDict = PyDict_New())){return NULL;}
   PyDict_SetItemString(XPY3pythonDicts, "keySniffCallbacks", keySniffCallbackDict);

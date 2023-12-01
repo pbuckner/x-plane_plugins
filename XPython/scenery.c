@@ -8,6 +8,17 @@
 #include "plugin_dl.h"
 #include "xppythontypes.h"
 
+static PyObject *loaderDict; /* {
+                                   <loaderCntr1>: ([0]path, [1]callback, [2]refcon, [3]module),
+                                } */
+#define LOADER_PATH 0
+#define LOADER_CALLBACK 1
+#define LOADER_REFCON 2
+#define LOADER_MODULE_NAME 3
+static intptr_t loaderCntr;
+static void genericObjectLoaded(XPLMObjectRef inObject, void *inRefcon);
+
+
 static const char probeName[] = "XPLMProbeRef";
 
 My_DOCSTR(_createProbe__doc__, "createProbe", "probeType=0",
@@ -145,18 +156,11 @@ static PyObject *XPLMLoadObjectFun(PyObject *self, PyObject *args, PyObject *kwa
 
 
 
-static PyObject *loaderDict;
-#define LOADER_PATH 0
-#define LOADER_CALLBACK 1
-#define LOADER_REFCON 2
-#define LOADER_MODULE_NAME 3
-static intptr_t loaderCntr;
-
-static void objectLoaded(XPLMObjectRef inObject, void *inRefcon)
+static void genericObjectLoaded(XPLMObjectRef inObject, void *inRefcon)
 {
   PyObject *object = getPtrRefOneshot(inObject, objRefName);
-  PyObject *pID = PyLong_FromVoidPtr(inRefcon);
-  PyObject *loaderCallbackInfo = PyDict_GetItem(loaderDict, pID);
+  PyObject *loaderDictKey = PyLong_FromVoidPtr(inRefcon);
+  PyObject *loaderCallbackInfo = PyDict_GetItem(loaderDict, loaderDictKey);
   if(loaderCallbackInfo == NULL){
     printf("Unknown callback requested in objectLoaded(%p).\n", inRefcon);
     return;
@@ -171,8 +175,8 @@ static void objectLoaded(XPLMObjectRef inObject, void *inRefcon)
   }else{
     Py_DECREF(res);
   }
-  PyDict_DelItem(loaderDict, pID);
-  Py_DECREF(pID);
+  PyDict_DelItem(loaderDict, loaderDictKey);
+  Py_DECREF(loaderDictKey);
   Py_DECREF(object);
 }
 
@@ -203,7 +207,7 @@ static PyObject *XPLMLoadObjectAsyncFun(PyObject *self, PyObject *args, PyObject
   PyObject *key = PyLong_FromVoidPtr(refcon);
   PyDict_SetItem(loaderDict, key, argsObj);
   Py_DECREF(key);
-  XPLMLoadObjectAsync_ptr(inPath, objectLoaded, refcon); /* path, callback, refcon */
+  XPLMLoadObjectAsync_ptr(inPath, genericObjectLoaded, refcon); /* path, callback, refcon */
   Py_DECREF(argsObj);
   Py_RETURN_NONE;
 }

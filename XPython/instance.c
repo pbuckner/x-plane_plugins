@@ -7,9 +7,24 @@
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMScenery.h>
 #include <XPLM/XPLMInstance.h>
+#include "instance.h"
 
 
 static const char instanceRefName[] = "XPLMInstanceRef";
+static PyObject *instanceRefCapsules;
+
+void resetInstances(void) {
+  /* loaded instances need to be destroyed */
+  PyObject *key, *value;
+  Py_ssize_t pos = 0;
+  while(PyDict_Next(instanceRefCapsules, &pos, &key, &value)) {
+    char *s = objToStr(value);
+    pythonLog("[XPPython3] Reset --     %s\n", s);
+    free(s);
+    XPLMDestroyInstance(PyLong_AsVoidPtr(key));
+  }
+  PyDict_Clear(instanceRefCapsules);
+}
 
 My_DOCSTR(_createInstance__doc__, "createInstance", "obj, dataRefs=None",
           "Create Instance for object retrieved by loadObject() or loadObjectAsync().\n"
@@ -63,7 +78,7 @@ static PyObject *XPLMCreateInstanceFun(PyObject *self, PyObject *args, PyObject 
 
   XPLMInstanceRef res = XPLMCreateInstance_ptr(inObj, datarefs);
   free(datarefs);
-  return getPtrRefOneshot(res, instanceRefName);
+  return getPtrRef(res, instanceRefCapsules, instanceRefName);
 }
 
 My_DOCSTR(_destroyInstance__doc__, "destroyInstance", "instance",
@@ -82,6 +97,7 @@ static PyObject *XPLMDestroyInstanceFun(PyObject *self, PyObject *args, PyObject
     return NULL;
   }
   XPLMDestroyInstance_ptr(refToPtr(instance, instanceRefName));
+  removePtrRef(refToPtr(instance, instanceRefName), instanceRefCapsules);
   Py_RETURN_NONE;
 }
 
@@ -136,6 +152,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 {
   (void) self;
   (void) args;
+  PyDict_Clear(instanceRefCapsules);
+  Py_DECREF(instanceRefCapsules);
   Py_RETURN_NONE;
 }
 
@@ -176,9 +194,8 @@ PyInit_XPLMInstance(void)
   if(mod) {
     PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
   }
+  if(!(instanceRefCapsules = PyDict_New())){return NULL;}
+  PyDict_SetItemString(XPY3pythonCapsules, instanceRefName, instanceRefCapsules);
   return mod;
 }
-
-
-
 

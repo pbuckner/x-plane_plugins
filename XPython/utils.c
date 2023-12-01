@@ -378,30 +378,30 @@ PyObject *getPtrRef(void *ptr, PyObject *dict, const char *refName)
   PyObject *key = PyLong_FromVoidPtr(ptr);
 #if ERRCHECK
   PyObject *tuple = PyDict_GetItemWithError(dict, key); /* borrowed, NULL w/out exception, if not found */
-  PyObject *res = tuple == NULL ? NULL : PyTuple_GetItem(tuple, CAPSULE_CAPSULE);
+  PyObject *capsule = tuple == NULL ? NULL : PyTuple_GetItem(tuple, CAPSULE_CAPSULE);
 #else
-  PyObject *res = PyDict_GetItemWithError(dict, key); /* borrowed */
+  PyObject *capsule = PyDict_GetItemWithError(dict, key); /* borrowed */
 #endif
-  if(res == NULL){
+  if(capsule == NULL){
     // New ref, register it
-    res = getPtrRefOneshot(ptr, refName);
+    capsule = getPtrRefOneshot(ptr, refName);
 #if ERRCHECK
     if (pythonCapsuleRegistration) {
-      char *res_s = objToStr(res);
+      char *res_s = objToStr(capsule);
       pythonLog("  (%s registering %s for %p)\n", CurrentPythonModuleName, res_s, ptr);
       free(res_s);
     }
 #endif
 #if ERRCHECK
-    PyObject *tuple = PyTuple_Pack(2, res, get_moduleName_p());
+    PyObject *tuple = PyTuple_Pack(2, capsule, get_moduleName_p());
     PyDict_SetItem(dict, key, tuple);
 #else
-    PyDict_SetItem(dict, key, res);
+    PyDict_SetItem(dict, key, capsule);
 #endif
   }
-  Py_INCREF(res);
+  Py_INCREF(capsule);
   errCheck("end getPtrRef");
-  return res;
+  return capsule;
 }
 
 void *refToPtr(PyObject *ref, const char *refName)
@@ -424,6 +424,9 @@ void *refToPtr(PyObject *ref, const char *refName)
       pythonLogException();
       char *s = objToStr(ref);
       pythonDebug("Failed to convert '%s' capsule (%s) to pointer\n", refName, s);
+      char msg[1024];
+      sprintf(msg, "Failed to convert '%s' capsule (%s) to pointer\n", refName, s);
+      PyErr_SetString(PyExc_ValueError , msg);
       free(s);
       return NULL;
     }
@@ -489,6 +492,25 @@ void MyPyRun_String(const char *str, int start, PyObject *globals, PyObject *loc
   PyObject *codeObj = Py_CompileString(str, "<input>", start);
   PyEval_EvalCode(codeObj, globals, locals);
   Py_DECREF(codeObj);
+}
+
+void MyPyRun_File(FILE *fp, const char *filename, int start, PyObject *globals, PyObject *locals) {
+  (void) filename;  /* ?? */
+  char *buffer = 0;
+  long length;
+  if(fp) {
+    fseek(fp, 0, SEEK_END);
+    length = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    buffer = malloc(length+1);
+    if (buffer) {
+      fread(buffer, 1, length, fp);
+      buffer[length] = '\0';
+    }
+    if (buffer) {
+      MyPyRun_String(buffer, start, globals, locals);
+    }
+  }
 }
 
 void c_backtrace() {

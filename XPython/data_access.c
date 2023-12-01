@@ -10,21 +10,27 @@
 #include "xppythontypes.h"
 #include "plugin_dl.h"
 
-static PyObject *accessorDict;
-static PyObject *drefDict;
-static intptr_t accessorCntr;
 static PyObject *sharedDict;
-#define SHARED_PLUGIN 0
-#define SHARED_DATA_NAME 1
-#define SHARED_DATA_TYPE 2
-#define SHARED_CALLBACK 3
-#define SHARED_REFCON 4
-#define SHARED_MODULE_NAME 5
+#define SHARED_DATA_NAME 0
+#define SHARED_DATA_TYPE 1
+#define SHARED_CALLBACK 2
+#define SHARED_REFCON 3
+#define SHARED_MODULE_NAME 4
+static void genericSharedDataChanged(void *inRefcon);
 
 static intptr_t sharedCntr;
 
 static const char dataRefName[] = "XPLMDataRef";
 
+static PyObject *drefDict;  /* {
+                                 <DataRef Capsule1> : <accessorDictKey1>
+                                 <DataRef Capsule2> : <accessorDictKey2>
+                               } */
+static PyObject *accessorDict;  /* {
+                                     <accessorCntr1>: ([0] module, [1]...,
+                                     <accessorCntr2>: ([0] module, [1]...,
+                                   } */
+static intptr_t accessorCntr;
 /* accessorDict args */
 #define DATA_MODULE_NAME 0
 #define DATANAME 1
@@ -44,6 +50,42 @@ static const char dataRefName[] = "XPLMDataRef";
 #define WRITEDATA 15
 #define READREFCON 16
 #define WRITEREFCON 17
+
+void resetDataRefs(void) {
+  PyObject *dataRef, *accessorDictKey;
+  Py_ssize_t pos = 0;
+  while(PyDict_Next(drefDict, &pos, &dataRef, &accessorDictKey)) {
+    PyObject *tuple = PyDict_GetItem(accessorDict, accessorDictKey);
+    char *moduleName = objToStr(PyTuple_GetItem(tuple, DATA_MODULE_NAME));
+    char *data_name = objToStr(PyTuple_GetItem(tuple, DATANAME));
+    XPLMUnregisterDataAccessor((XPLMDataRef) refToPtr(dataRef, dataRefName));
+    pythonLog("[XPPython3] Reset --     %s - (%s)\n", moduleName, data_name);
+    free(moduleName);
+    free(data_name);
+  }
+  errCheck("post while resetdataref");
+  PyDict_Clear(drefDict);
+  PyDict_Clear(accessorDict);
+  errCheck("post reset dataref");
+
+  PyObject *key, *tuple;
+  pos = 0;
+  while(PyDict_Next(sharedDict, &pos, &key, &tuple)) {
+    PyObject *name_p = PyTuple_GetItem(tuple, SHARED_DATA_NAME);
+    char *data_name = objToStr(name_p);
+    PyObject *dataType_p = PyTuple_GetItem(tuple, SHARED_DATA_TYPE);
+    char *moduleName = objToStr(PyTuple_GetItem(tuple, SHARED_MODULE_NAME));
+    pythonLog("[XPPython3] Reset --     %s - shared (%s)\n", moduleName, data_name);
+    int ret = XPLMUnshareData(data_name, PyLong_AsLong(dataType_p), genericSharedDataChanged, PyLong_AsVoidPtr(key));
+    if (!ret) {
+      pythonLog("***** failed to find data to unshare!!\n");
+    }
+    free(moduleName);
+    free(data_name);
+  }
+  errCheck("post while reset shared data");
+  PyDict_Clear(sharedDict);
+}
 
 static inline XPLMDataRef drefFromObj(PyObject *obj)
 {
@@ -1234,7 +1276,7 @@ static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args, PyO
   }
 
   void *refcon = (void *)accessorCntr++;
-  PyObject *refconObj = PyLong_FromVoidPtr(refcon);
+  PyObject *accessorDictKey = PyLong_FromVoidPtr(refcon);
 
   XPLMDataRef res = XPLMRegisterDataAccessor(
                                           inDataName,
@@ -1251,14 +1293,14 @@ static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args, PyO
   PyObject *argsObj = Py_BuildValue("(ssiiOOOOOOOOOOOOOO)", CurrentPythonModuleName,
                                     inDataName, inDataType, inIsWritable,
                                     ri, wi, rf, wf, rd, wd, rai, wai, raf, waf, rab, wab, rRef, wRef);
-  if(PyDict_SetItem(accessorDict, refconObj, argsObj) != 0){
+  if(PyDict_SetItem(accessorDict, accessorDictKey, argsObj) != 0){
     Py_RETURN_NONE;
   }
   Py_DECREF(argsObj);
-  PyObject *resObj = getPtrRefOneshot(res, dataRefName);
-  PyDict_SetItem(drefDict, resObj, refconObj);
-  Py_DECREF(refconObj);
-  return resObj;
+  PyObject *dataRefCapsule = getPtrRefOneshot(res, dataRefName);
+  PyDict_SetItem(drefDict, dataRefCapsule, accessorDictKey);
+  Py_DECREF(accessorDictKey);
+  return dataRefCapsule;
 }
 
 My_DOCSTR(_unregisterDataAccessor__doc__, "unregisterDataAccessor", "accessor",
@@ -1304,7 +1346,7 @@ static PyObject *XPLMUnregisterDataAccessorFun(PyObject *self, PyObject *args, P
   Py_RETURN_NONE;
 }
 
-static void dataChanged(void *inRefcon)
+static void genericSharedDataChanged(void *inRefcon)
 {
   PyObject *refconObj = PyLong_FromVoidPtr(inRefcon);
   PyObject *sharedObj = PyDict_GetItemWithError(sharedDict, refconObj);
@@ -1320,9 +1362,9 @@ static void dataChanged(void *inRefcon)
   PyObject *err = PyErr_Occurred();
   if(err){
     char msg[1024];
-    char *s = objToStr(PyTuple_GetItem(sharedObj, SHARED_PLUGIN)); 
+    char *s = objToStr(PyTuple_GetItem(sharedObj, SHARED_MODULE_NAME)); 
     char *s2 = objToStr(callbackFun);
-    sprintf(msg, "[%s] Error in dataChanged callback %s", s, s2);
+    sprintf(msg, "[%s] Error in genericSharedDataChanged callback %s", s, s2);
     free(s);
     free(s2);
     pythonLog("%s\n", msg);
@@ -1344,32 +1386,30 @@ static PyObject *XPLMShareDataFun(PyObject *self, PyObject *args, PyObject *kwar
 {
   static char *keywords[] = {"name", "dataType", "dataChanged", "refCon", NULL};
   (void) self;
-  PyObject *pluginSelf;
   const char *inDataName;
   XPLMDataTypeID inDataType = xplmType_Unknown;
   PyObject *inNotificationFunc=Py_None, *inNotificationRefcon=Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "si|OO", keywords, &inDataName, &inDataType, &inNotificationFunc, &inNotificationRefcon)) {
     return NULL;
   }
-  pluginSelf = get_moduleName_p();
   void *refcon = (void *)sharedCntr++;
-  int res = XPLMShareData(inDataName, inDataType, dataChanged, refcon);
+  int res = XPLMShareData(inDataName, inDataType, genericSharedDataChanged, refcon);
   if(res != 1){
     return PyLong_FromLong(res);
   }
-  PyObject *refconObj =  PyLong_FromVoidPtr(refcon);
+  PyObject *sharedDictKey =  PyLong_FromVoidPtr(refcon);
   if(PyErr_Occurred()) {
     pythonLogException();
     return NULL;
   }
-  PyObject *argsObj = Py_BuildValue("(OsiOOs)", pluginSelf, inDataName, inDataType, inNotificationFunc, inNotificationRefcon, CurrentPythonModuleName);
+  PyObject *argsObj = Py_BuildValue("(siOOs)", inDataName, inDataType, inNotificationFunc, inNotificationRefcon, CurrentPythonModuleName);
   if (!argsObj || PyErr_Occurred()) {
     pythonLogException();
     return NULL;
   }
-  PyDict_SetItem(sharedDict,refconObj, argsObj);
+  PyDict_SetItem(sharedDict, sharedDictKey, argsObj);
   Py_DECREF(argsObj);
-  Py_DECREF(refconObj);
+  Py_DECREF(sharedDictKey);
   return PyLong_FromLong(res);
 }
 
@@ -1495,7 +1535,7 @@ static PyObject *XPLMUnshareDataFun(PyObject *self, PyObject *args, PyObject *kw
   target = NULL;
   while(PyDict_Next(sharedDict, &cnt, &pKey, &pVal)){
     // only look for things this plugin is sharing...
-    if (PyObject_RichCompareBool(pluginSelf, PyTuple_GetItem(pVal, SHARED_PLUGIN), Py_NE)){
+    if (PyObject_RichCompareBool(pluginSelf, PyTuple_GetItem(pVal, SHARED_MODULE_NAME), Py_NE)){
       continue;
     }
 
@@ -1540,7 +1580,7 @@ static PyObject *XPLMUnshareDataFun(PyObject *self, PyObject *args, PyObject *kw
   Py_DECREF(pluginSelf);
   if(target){
     // Found and deleting unshared
-    int res = XPLMUnshareData(inDataName, inDataType, dataChanged, PyLong_AsVoidPtr(target));
+    int res = XPLMUnshareData(inDataName, inDataType, genericSharedDataChanged, PyLong_AsVoidPtr(target));
     PyDict_DelItem(sharedDict, target);
     return PyLong_FromLong(res);
   }else{

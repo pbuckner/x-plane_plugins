@@ -39,6 +39,7 @@ extern const char *pythonPluginVersion;
 extern const char *pythonPluginsPath;
 extern const char *pythonInternalPluginsPath;
 void MyPyRun_String(const char *str, int start, PyObject *globals, PyObject *locals);
+void MyPyRun_File(FILE *fp, const char *filename, int start, PyObject *globals, PyObject *locals);
 void errCheck_f(const char *fmt, ...);
 #define errCheck(fmt, ...) do { if (ERRCHECK) errCheck_f(fmt, ##__VA_ARGS__); } while(0)
 #endif

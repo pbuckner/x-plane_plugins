@@ -1,16 +1,10 @@
 from typing import Sequence, Tuple, Union
 from XPPython3.xp import XPLMInstanceRef, XPLMObjectRef
 
+def createInstance(obj: XPLMObjectRef, dataRefs: Union[None, Sequence[str]] = None) -> XPLMInstanceRef: ...
 
-def createInstance(obj: XPLMObjectRef, datarefs: Union[None, Sequence[str]] = None) -> XPLMInstanceRef:
-    return XPLMInstanceRef(0)
-
-
-def destroyInstance(instance: XPLMInstanceRef) -> None:
-    return
-
+def destroyInstance(instance: XPLMInstanceRef) -> None: ...
 
 def instanceSetPosition(instance: XPLMInstanceRef,
                         position: Tuple[float, float, float, float, float, float],
-                        data: Union[None, Sequence[float]] = None):
-    return
+                        data: Union[None, Sequence[float]] = None) -> None: ...

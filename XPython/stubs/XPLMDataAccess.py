@@ -155,8 +155,8 @@ def registerDataAccessor(name: str, dataType: int = 0, writable: int = -1,
                          writeFloatArray: Union[None, Callable[[Any, list, int, int], None]] = None,
                          readData: Union[None, Callable[[Any, Union[list, None], int, int], int]] = None,
                          writeData: Union[None, Callable[[Any, list, int, int], None]] = None,
-                         readRefcon: Any = None,
-                         writeRefcon: Any = None) -> int:
+                         readRefCon: Any = None,
+                         writeRefCon: Any = None) -> int:
     return int()  # XPLMDataRef
 
 

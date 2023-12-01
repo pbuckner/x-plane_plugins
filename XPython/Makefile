@@ -184,7 +184,7 @@ Resources/plugins/xp3%.zip: win/XPPython3%.xpl lin/XPPython3%.xpl mac/XPPython3%
 	#     xp36-linux.zip 
 	#     xp36-darwin.zip 
 	cd Resources/plugins; \
-		$(ZIP) $(notdir $@) -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/\*.py \*.md; \
+		$(ZIP) $(notdir $@) -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/.firstTimeComplete XPPython3/\*.py \*.md; \
 		$(ZIP) $(notdir $@) -u XPPython3/utils/*.py ; \
 		$(ZIP) $(notdir $@) -u XPPython3/hooks/*.py ; \
 		$(ZIP) $(notdir $@) -u XPPython3/xp_imgui/*.py ; \

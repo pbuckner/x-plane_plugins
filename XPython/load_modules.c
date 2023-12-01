@@ -87,7 +87,7 @@ static PyObject *loadPIClass(const char *fname)
     }
     if (module_p) {
       PyObject *module2_p;
-      char *s = NULL;
+      char *s;
       if (already_loaded) {
         module2_p = PyImport_ReloadModule(module_p);
         s = objDebug(module2_p);
@@ -98,7 +98,7 @@ static PyObject *loadPIClass(const char *fname)
         pythonDebug("loaded '%s'", s);
         module2_p = module_p;
       }
-      if(s) free(s); /* because if not debug, objDebug() doesn't allocate */
+      if (pythonDebugs) free(s); /* because if not debug, objDebug() doesn't allocate */
         
       PyObject *pClass = PyObject_GetAttrString(module2_p, "PythonInterface");
       if (pClass && PyCallable_Check(pClass)) {

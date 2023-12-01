@@ -9,7 +9,7 @@ try:
     from ssl import SSLCertVerificationError  # py 3.7+
 except ImportError:
     from ssl import CertificateError as SSLCertVerificationError  # py < 3.7, py2
-import XPPython3.xp as xp
+from XPPython3 import xp
 from XPPython3.XPProgressWindow import XPProgressWindow
 
 log = xp.sys_log

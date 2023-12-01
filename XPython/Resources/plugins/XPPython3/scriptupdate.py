@@ -15,7 +15,7 @@ try:
 except ImportError:
     from ssl import CertificateError as SSLCertVerificationError  # py < 3.7, py2
 
-import XPPython3.xp as xp
+from XPPython3 import xp
 from XPPython3.scriptconfig import Config
 from XPPython3.zip_download import ZipDownload
 from XPPython3.utils.version import StrictVersion

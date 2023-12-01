@@ -58,7 +58,7 @@ void resetFlightLoops()
   Py_ssize_t pos = 0;
   while(PyDict_Next(flDict, &pos, &pKey, &pValue)){
     char *s = objToStr(PyTuple_GetItem(pValue, FLIGHTLOOP_MODULE_NAME)); /* borrowed */
-    pythonLog("[XPPython3] Reset --     (%s)\n", s);
+    pythonDebug("     Reset --     (%s)", s);
     free(s);
     if(PyLong_AsLong(PyTuple_GetItem(pValue, FLIGHTLOOP_TYPE)) == 0) {
       XPLMUnregisterFlightLoopCallback(genericFlightLoopCallback, PyLong_AsVoidPtr(pKey));

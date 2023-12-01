@@ -57,7 +57,7 @@ void resetMap(void) {
     char *layerName = objToStr(PyTuple_GetItem(tuple, MAP_NAME));
     XPLMMapLayerID inLayer = PyLong_AsVoidPtr(key);
     XPLMDestroyMapLayer(inLayer);
-    pythonLog("[XPPython3] Reset --     %s - (%s)\n", moduleName, layerName);
+    pythonDebug("     Reset --     %s - (%s)", moduleName, layerName);
     free(moduleName);
     free(layerName);
   }

@@ -59,7 +59,7 @@ void resetDataRefs(void) {
     char *moduleName = objToStr(PyTuple_GetItem(tuple, DATA_MODULE_NAME));
     char *data_name = objToStr(PyTuple_GetItem(tuple, DATANAME));
     XPLMUnregisterDataAccessor((XPLMDataRef) refToPtr(dataRef, dataRefName));
-    pythonLog("[XPPython3] Reset --     %s - (%s)\n", moduleName, data_name);
+    pythonDebug("     Reset --     %s - (%s)", moduleName, data_name);
     free(moduleName);
     free(data_name);
   }
@@ -75,7 +75,7 @@ void resetDataRefs(void) {
     char *data_name = objToStr(name_p);
     PyObject *dataType_p = PyTuple_GetItem(tuple, SHARED_DATA_TYPE);
     char *moduleName = objToStr(PyTuple_GetItem(tuple, SHARED_MODULE_NAME));
-    pythonLog("[XPPython3] Reset --     %s - shared (%s)\n", moduleName, data_name);
+    pythonDebug("          Reset --     %s - shared (%s)\n", moduleName, data_name);
     int ret = XPLMUnshareData(data_name, PyLong_AsLong(dataType_p), genericSharedDataChanged, PyLong_AsVoidPtr(key));
     if (!ret) {
       pythonLog("***** failed to find data to unshare!!\n");

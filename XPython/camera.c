@@ -23,7 +23,7 @@ void resetCamera(void) {
   XPLMCameraControlDuration duration = -1;
   if (XPLMIsCameraBeingControlled(&duration)) {
     if (duration > 0) {
-      pythonLog("[XPPython3] Reset --      Releasing camera\n");
+      pythonDebug("     Reset --      Releasing camera");
       XPLMDontControlCamera();
     }
   }

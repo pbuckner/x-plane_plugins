@@ -233,7 +233,7 @@ static void resetCapsules() {
     int size = PyDict_Size(item);
     if (size > 0) {
       char *s = objToStr(key);
-      pythonLog("[XPPython3] Reset --     %d %s Capsules\n", size, s);
+      pythonDebug("     Reset --     %d %s Capsules", size, s);
       free(s);
     }
     PyDict_Clear(item);
@@ -245,32 +245,32 @@ static void resetCapsules() {
 }
 
 void resetInternals() {
-  pythonLog("[XPPython3] Reset --   a) Clear Menus\n");
+  pythonDebug("     Reset --   a) Clear Menus");
   resetMenus();
-  pythonLog("[XPPython3] Reset --   b) Cancel FlightLoops\n");
+  pythonDebug("     Reset --   b) Cancel FlightLoops");
   resetFlightLoops();
-  pythonLog("[XPPython3] Reset --   c) Remove Windows\n");
+  pythonDebug("     Reset --   c) Remove Windows");
   resetWindows();
-  pythonLog("[XPPython3] Reset --   d) Remove Commands\n");
+  pythonDebug("     Reset --   d) Remove Commands");
   resetCommands();
-  pythonLog("[XPPython3] Reset --   e) Remove Widgets\n");
+  pythonDebug("     Reset --   e) Remove Widgets");
   resetWidgets();
-  pythonLog("[XPPython3] Reset --   f) Remove Direct Draw callbacks\n");
+  pythonDebug("     Reset --   f) Remove Direct Draw callbacks");
   errCheck("pre drawCallbacks");
   resetDrawCallbacks();
   errCheck("post drawCallbacks");
-  pythonLog("[XPPython3] Reset --   g) Remove KeySniff callbacks\n");
+  pythonDebug("     Reset --   g) Remove KeySniff callbacks");
   resetKeySniffCallbacks();
-  pythonLog("[XPPython3] Reset --   h) Remove HotKey callbacks\n");
+  pythonDebug("     Reset --   h) Remove HotKey callbacks");
   resetHotKeyCallbacks();
   errCheck("post resetHotKey");
-  pythonLog("[XPPython3] Reset --   i) Remove Avionics callbacks\n");
+  pythonDebug("     Reset --   i) Remove Avionics callbacks");
   errCheck("pre resetAvionicsKey");
   resetAvionicsCallbacks();
-  pythonLog("[XPPython3] Reset --   j) Release Camera\n");
+  pythonDebug("     Reset --   j) Release Camera");
   errCheck("pre camera");
   resetCamera();
-  pythonLog("[XPPython3] Reset --   k) Reset Map\n");
+  pythonDebug("     Reset --   k) Reset Map");
   resetMap();
   /* resetPlanes -- do something with 'acquirePlanes?'
      doesn't seem to matter... yet. On reload,
@@ -282,12 +282,12 @@ void resetInternals() {
      to acquire, return 0(?), ... allowing callback to
      occur for 'other' python plugins?
   */
-  pythonLog("[XPPython3] Reset --   l) Reset registered datarefs\n");
+  pythonDebug("     Reset --   l) Reset registered datarefs");
   resetDataRefs();
-  pythonLog("[XPPython3] Reset --   m) Reset Instanced Objects\n");
+  pythonDebug("     Reset --   m) Reset Instanced Objects");
   resetInstances();
 
-  pythonLog("[XPPython3] Reset --   x) Clear Capsules\n");
+  pythonDebug("     Reset --   x) Clear Capsules");
   resetCapsules();
 }
 

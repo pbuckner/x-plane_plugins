@@ -35,7 +35,7 @@ void resetWidgets(void) {
     moduleName = objToStr(PyTuple_GetItem(capsuleInfo, 1));
 #endif    
     char *s1 = objToStr(capsule);
-    pythonLog("[XPPython3] Reset --      %s  %s\n", moduleName, s1);
+    pythonDebug("     Reset --      %s  %s", moduleName, s1);
     free(s1);
 #if ERRCHECK
     free(moduleName);

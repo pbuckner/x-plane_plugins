@@ -19,7 +19,7 @@ void resetInstances(void) {
   Py_ssize_t pos = 0;
   while(PyDict_Next(instanceRefCapsules, &pos, &key, &value)) {
     char *s = objToStr(value);
-    pythonLog("[XPPython3] Reset --     %s\n", s);
+    pythonDebug("     Reset --     %s", s);
     free(s);
     XPLMDestroyInstance(PyLong_AsVoidPtr(key));
   }

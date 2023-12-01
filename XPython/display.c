@@ -101,7 +101,7 @@ void resetHotKeyCallbacks(void) {
     char *moduleName = objToStr(PyTuple_GetItem(tuple, HOTKEY_MODULE_NAME));
     char *callback = objToStr(PyTuple_GetItem(tuple, HOTKEY_CALLBACK));
     XPLMUnregisterHotKey((XPLMHotKeyID) refToPtr(hotkeyID, hotkeyIDRef));
-    pythonLog("[XPPython3] Reset --     %s - (%s)\n", moduleName, callback);
+    pythonDebug("     Reset --     %s - (%s)", moduleName, callback);
     free(moduleName);
     free(callback);
   }
@@ -126,7 +126,7 @@ void resetAvionicsCallbacks(void) {
     XPLMAvionicsID avionicsId = refToPtr(avIDCapsule, avionicsIDRef);
     XPLMUnregisterAvionicsCallbacks_ptr(avionicsId);
     errCheck("after XPLMUnregisterAvioniccCallbacks in reset");
-    pythonLog("[XPPython3] Reset --     %s - (%s)\n", moduleName, callback_before, callback_after);
+    pythonDebug("     Reset --     %s - (%s)", moduleName, callback_before, callback_after);
     free(moduleName);
     free(callback_before);
     free(callback_after);
@@ -141,7 +141,7 @@ void resetDrawCallbacks(void) {
   while(PyDict_Next(drawCallbackDict, &pos, &key, &tuple)) {
     char *moduleName = objToStr(PyTuple_GetItem(tuple, DRAW_MODULE_NAME));
     char *callback = objToStr(PyTuple_GetItem(tuple, DRAW_CALLBACK));
-    pythonLog("[XPPython3] Reset --     %s - (%s)\n", moduleName, callback);
+    pythonDebug("     Reset --     %s - (%s)", moduleName, callback);
 
     XPLMUnregisterDrawCallback(genericDrawCallback,
                                PyLong_AsLong(PyTuple_GetItem(tuple, DRAW_PHASE)),
@@ -160,7 +160,7 @@ void resetKeySniffCallbacks(void) {
   while(PyDict_Next(keySniffCallbackDict, &pos, &key, &tuple)) {
     char *moduleName = objToStr(PyTuple_GetItem(tuple, KEYSNIFF_MODULE_NAME));
     char *callback = objToStr(PyTuple_GetItem(tuple, KEYSNIFF_CALLBACK));
-    pythonLog("[XPPython3] Reset --     %s - (%s)\n", moduleName, callback);
+    pythonDebug("     Reset --     %s - (%s)", moduleName, callback);
     free(moduleName);
     free(callback);
     XPLMUnregisterKeySniffer(genericKeySnifferCallback,
@@ -175,7 +175,7 @@ void resetWindows(void) {
   Py_ssize_t pos = 0;
   while(PyDict_Next(windowDict, &pos, &key, &tuple)) {
     char *s = objToStr(PyTuple_GetItem(tuple, WINDOW_MODULE_NAME)); /* borrowed */
-    pythonLog("[XPPython3] Reset --     (%s)\n", s);
+    pythonDebug("     Reset --     (%s)", s);
     free(s);
     XPLMDestroyWindow(refToPtr(key, windowIDRef));
   }

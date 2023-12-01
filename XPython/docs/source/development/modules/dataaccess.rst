@@ -405,7 +405,7 @@ Set Array
  >>> xp.getDatavf(dataRef)
  8
 
-(Note for XP11 there are 8 elements, as shown here. XP12 has 16 values.)
+ (Note for XP11 there are 8 elements, as shown here. XP12 has 16 values.)
  
  >>> values = []
  >>> xp.getDatavf(dataRef, values)
@@ -730,6 +730,8 @@ Registration
  >>> xp.getDataf(dataRef)
  43.0
 
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMRegisterDataAccessor>`__: :index:`XPLMRegisterDataAccessor`
+
 .. py:function:: unregisterDataAccessor(accessor)
 
     Use this routine to unregister any data accessors you may have registered with
@@ -741,6 +743,7 @@ Registration
     plugins to find your data reference once and use it for their entire time
     of operation.
 
+    `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMUnregisterDataAccessor>`__: :index:`XPLMUnregisterDataAccessor`
 
 Callbacks
 +++++++++

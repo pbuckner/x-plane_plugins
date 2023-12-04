@@ -110,7 +110,7 @@ static float genericFlightLoopCallback(float inElapsedSinceLastCall, float inEla
   if(err){
     pythonLogException();
     char *s = objToStr(PyTuple_GetItem(flInfo, FLIGHTLOOP_CALLBACK));
-    pythonLog("[%s]: %s Error occured during the flightLoop callback (inRefcon = %p), disabling:\n",
+    pythonLog("[%s]: %s Error occured during the flightLoop callback (inRefcon = %p), disabling:",
               CurrentPythonModuleName, s, inRefcon);
     free(s);
     errCheck("opps, trying to log error failed");
@@ -122,7 +122,7 @@ static float genericFlightLoopCallback(float inElapsedSinceLastCall, float inEla
   } else {
     char *s = objToStr(PyTuple_GetItem(flInfo, FLIGHTLOOP_CALLBACK));
     char *s2 = objToStr(res); 
-    pythonLog("[%s]: %s Error occured during the flightLoop callback (inRefcon = %p), disabling: Bad return value '%s'\n",
+    pythonLog("[%s]: %s Error occured during the flightLoop callback (inRefcon = %p), disabling: Bad return value '%s'",
               CurrentPythonModuleName, s, inRefcon, s2);
     free(s);
     free(s2);
@@ -137,59 +137,6 @@ static float genericFlightLoopCallback(float inElapsedSinceLastCall, float inEla
   errCheck("after second stats");
   return tmp;
 }
-
-/* static float flightLoopStats(float inElapsedSinceLastCall, float inElapsedTimeSinceLastFlightLoop, */
-/*                              int counter, void *inRefcon) */
-/* { */
-/*   (void) inElapsedSinceLastCall; */
-/*   (void) inElapsedTimeSinceLastFlightLoop; */
-/*   (void) counter; */
-/*   (void) inRefcon; */
-/*   struct foobar { */
-/*     char *name; */
-/*     long time; */
-/*   }; */
-/*   struct foobar results[512]; */
-/*   int maxY = 0; */
-/*   for (int y = 0; y < flCntr; y++) { */
-/*     results[y].name = NULL; */
-/*     results[y].time = 0; */
-/*   } */
-/*   for (long x = 1; x <= (long) flCntr; x++) { */
-/*     int y = 0; */
-/*     for (; y < maxY; y++) { */
-/*       /\* pythonLog("   results[%d]: %s, flInfo[%ld]: %s -- ", *\/ */
-/*       /\*         y, *\/ */
-/*       /\*         results[y].name, *\/ */
-/*       /\*         x, *\/ */
-/*       /\*         flInfo[x].name); *\/ */
-/*       if (0 == strcmp(results[y].name, flInfo[x].name)) { */
-/*         results[y].time += flInfo[x].time; */
-/*         break; */
-/*       } */
-/*     } */
-/*     if (y == maxY) { */
-/*       results[maxY].name = flInfo[x].name; */
-/*       results[maxY].time = flInfo[x].time; */
-/*       maxY++; */
-/*     } */
-/*     /\* pythonLog("  @ %s: %ld usec \n", *\/ */
-/*     /\*         flInfo[x].name, flInfo[x].time); *\/ */
-/*     flInfo[x].time = 0; */
-/*   } */
-  
-/*   pythonLog("-\n   all: %ld usec\n", flInfo[0].time); */
-/*   flInfo[0].time = 0; */
-/*   for (int y = 0; y < maxY; y++) { */
-/*     if (results[y].time) { */
-/*       pythonLog("   %s: %ld usec \n", */
-/*               results[y].name, */
-/*               results[y].time */
-/*               ); */
-/*     } */
-/*   } */
-/*   return -1.0; */
-/* } */
 
 My_DOCSTR(_getElapsedTime__doc__, "getElapsedTime", "",
           "Return elapsed time since sim started.");

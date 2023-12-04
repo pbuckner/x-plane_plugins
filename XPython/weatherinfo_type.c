@@ -109,7 +109,7 @@ static PyObject *WeatherInfo_str(WeatherInfoObject *obj) {
                      obj->temperature_alt, obj->dewpoint_alt,
                      obj->wind_dir_alt, obj->wind_spd_alt * 1.94384,
                      obj->pressure_sl / 100.0)) {
-    pythonLog("Failed to allocate asprintf memory for WeatherInfo.\n");
+    pythonLog("Failed to allocate asprintf memory for WeatherInfo.");
     return (PyObject *)obj;
   }
   PyObject *ret = PyUnicode_FromString(msg);

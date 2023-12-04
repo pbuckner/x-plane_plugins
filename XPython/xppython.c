@@ -155,7 +155,7 @@ static PyObject *XPPythonLogFun(PyObject *self, PyObject *args)
     flush = 1;
   } else {
     if (strlen(inString)) {
-      pythonLog("[%s] %s\n", CurrentPythonModuleName, inString);
+      pythonLog("[%s] %s", CurrentPythonModuleName, inString);
     } else {
       flush = 1;
     }
@@ -180,7 +180,7 @@ static PyObject *XPSystemLogFun(PyObject *self, PyObject *args)
     if (strlen(inString)) {
       char *msg;
       if (-1 == asprintf(&msg, "[XP3: %s] %s\n", CurrentPythonModuleName, inString)) {
-        pythonLog("Failed to allocate memory for asprintf syslog.\n");
+        pythonLog("Failed to allocate memory for asprintf syslog.");
       } else {
         XPLMDebugString(msg);
         free(msg);
@@ -217,9 +217,9 @@ static PyObject *XPPythonDerefCapsuleFun(PyObject *self, PyObject *args)
   if(!PyArg_ParseTuple(args, "sO", &capsule_type, &capsule)) {
     return NULL;
   }
-  /* pythonLog("Capsule Name: %s\n", PyCapsule_GetName(capsule)); */
-  /* pythonLog("Capsule Context: %p\n", PyCapsule_GetContext(capsule)); */
-  /* pythonLog("Capsule Pointer: %p\n", PyCapsule_GetPointer(capsule, capsule_type)); */
+  /* pythonLog("Capsule Name: %s", PyCapsule_GetName(capsule)); */
+  /* pythonLog("Capsule Context: %p", PyCapsule_GetContext(capsule)); */
+  /* pythonLog("Capsule Pointer: %p", PyCapsule_GetPointer(capsule, capsule_type)); */
 
   return PyLong_FromVoidPtr(PyCapsule_GetPointer(capsule, capsule_type));
 }

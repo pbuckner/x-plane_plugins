@@ -160,7 +160,7 @@ static PyObject *XPLMSendMessageToPluginFun(PyObject *self, PyObject *args, PyOb
   PyObject *err;
   err = PyErr_Occurred();
   if (err) {
-    pythonLog("Error prior to send message to plugin\n");
+    pythonLog("Error prior to send message to plugin");
     pythonLogException();
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ll|O", keywords, &inPluginID, &inMessage, &inParam)){
@@ -179,12 +179,12 @@ static PyObject *XPLMSendMessageToPluginFun(PyObject *self, PyObject *args, PyOb
     free(msgParam);
   } else {
     char *s = objToStr(PyObject_Type(inParam));
-    pythonLog("Unknown data type %s for XPLMSendMessageToPlugin(... inParam). Cannot convert\n", s);
+    pythonLog("Unknown data type %s for XPLMSendMessageToPlugin(... inParam). Cannot convert", s);
     free(s);
   }
   err = PyErr_Occurred();
   if (err) {
-    pythonLog("Error at end of send message to plugin\n");
+    pythonLog("Error at end of send message to plugin");
     pythonLogException();
   }
   Py_RETURN_NONE;

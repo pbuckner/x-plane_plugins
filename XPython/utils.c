@@ -81,7 +81,7 @@ void setLogFile(void) {
 
   if (-1 == asprintf(&msg, "[XPPython3] Starting %s (compiled: %0x)... Logging to %s%s\n",
                      pythonPluginVersion, PY_VERSION_HEX, logFileName, preserve ? "+" : "")) {
-    pythonLog("Failed to allocate asprintf memory, failed to start.\n");
+    pythonLog("Failed to allocate asprintf memory, failed to start.");
   }
   XPLMDebugString(msg);
   free(msg);
@@ -101,44 +101,47 @@ void pythonLogFlush(void) {
 }
 
 void pythonLog(const char *fmt, ...) {
-  /* (you should include terminating newline!) */
+  /* do not include terminating newline */
     char *msg;
     va_list ap;
     va_start(ap, fmt);
     if (-1 == vasprintf(&msg, fmt, ap)) {
-      msg = "Failed to allocation vasprintf memory in pythonDebug\n";
+      msg = "Failed to allocation vasprintf memory in pythonDebug";
       if (pythonLog_fp) {
-        fprintf(pythonLog_fp, "%s", msg);
+        fprintf(pythonLog_fp, "%s\n", msg);
         if (pythonFlushLog) {
           fflush(pythonLog_fp);
         }
       } else {
         XPLMDebugString(msg);
+        XPLMDebugString("\n");
       }
       return;
     }
     va_end(ap);
     if (pythonLog_fp) {
-      fprintf(pythonLog_fp, "%s", msg);
+      fprintf(pythonLog_fp, "%s\n", msg);
       pythonLogFlush();
     } else {
       XPLMDebugString(msg);
+      XPLMDebugString("\n");
     }
     free(msg);
 }
 
 void pythonDebug(const char *fmt, ...) {
+  /* do not include terminating newline */
   if (pythonDebugs) {
     char *msg;
     va_list ap;
     va_start(ap, fmt);
     if (-1 == vasprintf(&msg, fmt, ap)) {
-      msg = "Failed to allocation vasprintf memory in pythonDebug\n";
+      msg = "Failed to allocation vasprintf memory in pythonDebug";
       pythonLog("%s", msg);
       return;
     }
     va_end(ap);
-    pythonLog("DEBUG>> %s\n", msg);
+    pythonLog("DEBUG>> %s", msg);
     free(msg);
   }
 }
@@ -147,7 +150,7 @@ void pythonLogWarning(const char *msg) {
   if (pythonWarnings) {
     PyObject *python_line = get_pythonline();
     char *s = objToStr(python_line);
-    pythonLog("WARNING>> %s: %s\n", s, msg);
+    pythonLog("WARNING>> %s: %s", s, msg);
     free(s);
   }
 }
@@ -171,7 +174,7 @@ char * objDebug(PyObject *item) {
     
     PyObject *err = PyErr_Occurred();
     if(err){
-      pythonLog("[XPPython3] Error occured during objToStr\n");
+      pythonLog("[XPPython3] Error occured during objToStr");
       pythonLogException();
       return strdup("<Error>");
     }
@@ -226,11 +229,10 @@ void pythonLogException()
       }
       if (vals == NULL) {
         if(PyErr_Occurred()) {
-          pythonLog("[XPPython3] Unable to format exception\n");
+          pythonLog("[XPPython3] Unable to format exception");
           PyErr_Print();
         }
       } else {
-        pythonDebug("vals is %s\n", objDebug(vals));
         PyObject *localsDict = PyDict_New();
         PyDict_SetItemString(localsDict, "__builtins__", PyEval_GetBuiltins()); 
         PyDict_SetItemString(localsDict, "vals", vals);
@@ -242,7 +244,7 @@ void pythonLogException()
         PyObject *tb_string = PyDict_GetItemString(localsDict, "ret"); /* borrowed */
         char *s = objToStr(tb_string);
         Py_DECREF(localsDict);
-        pythonLog( "%s\n", s);
+        pythonLog( "%s", s);
         free(s);
         full_traceback = 1;
         Py_DECREF(vals);
@@ -254,10 +256,10 @@ void pythonLogException()
   if (!full_traceback) {
     /* Failed to print full traceback. Print what we can. */
     foo = objToStr(ptype);
-    pythonLog("EXCEPTION>> [%s] type: %s\n", CurrentPythonModuleName, foo);
+    pythonLog("EXCEPTION>> [%s] type: %s", CurrentPythonModuleName, foo);
     free(foo);
     foo = objToStr(pvalue);
-    pythonLog("EXCEPTION>> [%s] value: %s\n", CurrentPythonModuleName, foo);
+    pythonLog("EXCEPTION>> [%s] value: %s", CurrentPythonModuleName, foo);
     free(foo);
   }
 
@@ -277,7 +279,7 @@ char * objToStr(PyObject *item) {
 
   PyObject *err = PyErr_Occurred();
   if(err){
-    pythonLog("[XPPython3] Error occured during objToStr\n");
+    pythonLog("[XPPython3] Error occured during objToStr");
     pythonLogException();
     return strdup("<Error>");
   }
@@ -388,7 +390,7 @@ PyObject *getPtrRef(void *ptr, PyObject *dict, const char *refName)
 #if ERRCHECK
     if (pythonCapsuleRegistration) {
       char *res_s = objToStr(capsule);
-      pythonLog("  (%s registering %s for %p)\n", CurrentPythonModuleName, res_s, ptr);
+      pythonLog("  (%s registering %s for %p)", CurrentPythonModuleName, res_s, ptr);
       free(res_s);
     }
 #endif
@@ -535,13 +537,13 @@ void errCheck_f(const char *fmt, ...) {
   if (err) {
     va_start(ap, fmt);
     if (-1 == vasprintf(&msg, fmt, ap)) {
-      msg = "Failed to allocation vasprintf memory in errCheck\n";
+      msg = "Failed to allocation vasprintf memory in errCheck";
       pythonLog(msg);
       return;
     }
     va_end(ap);
     
-    pythonLog("%s\n", msg);
+    pythonLog("%s", msg);
     pythonLogException();
   }
 }

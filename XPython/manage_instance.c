@@ -19,7 +19,7 @@ int xpy_startInstance(PyObject *module_name_p, PyObject *pModule, PyObject* plug
   PyObject *err = PyErr_Occurred();
   if (err) {
     pythonLogException();
-    pythonLog("[%s] Failed to start, error in XPluginStart\n", CurrentPythonModuleName);
+    pythonLog("[%s] Failed to start, error in XPluginStart", CurrentPythonModuleName);
     return 0;
   }
 
@@ -34,10 +34,10 @@ int xpy_startInstance(PyObject *module_name_p, PyObject *pModule, PyObject* plug
       PyObject *u2 = PyUnicode_AsUTF8String(PyTuple_GetItem(pRes, PLUGIN_SIGNATURE));
       PyObject *u3 = PyUnicode_AsUTF8String(PyTuple_GetItem(pRes, PLUGIN_DESCRIPTION));
       if(u1 && u2 && u3){
-        pythonLog("[XPPython3] %s initialized.\n", CurrentPythonModuleName);
-        pythonLog("[XPPython3]  Name: %s\n", PyBytes_AsString(u1));
-        pythonLog("[XPPython3]  Sig:  %s\n", PyBytes_AsString(u2));
-        pythonLog("[XPPython3]  Desc: %s\n", PyBytes_AsString(u3));
+        pythonLog("[XPPython3] %s initialized.", CurrentPythonModuleName);
+        pythonLog("[XPPython3]  Name: %s", PyBytes_AsString(u1));
+        pythonLog("[XPPython3]  Sig:  %s", PyBytes_AsString(u2));
+        pythonLog("[XPPython3]  Desc: %s", PyBytes_AsString(u3));
         pythonLogFlush();
         Py_DECREF(u1);
         Py_DECREF(u2);
@@ -46,14 +46,14 @@ int xpy_startInstance(PyObject *module_name_p, PyObject *pModule, PyObject* plug
         updatePluginDict(module_name_p, pModule, pRes, pluginInstance);
         return 1;
       } else {
-        pythonLog("[XPPython3] Failed to decode start information in %s\n", CurrentPythonModuleName);
+        pythonLog("[XPPython3] Failed to decode start information in %s", CurrentPythonModuleName);
       }
     } else {
       Py_DECREF(pRes);
       pythonLog("[XPPython3] Unable to start plugin in file %s: XPluginStart did not return Name, Sig, and Desc.", CurrentPythonModuleName);
     }
   } else {
-    pythonLog("[%s] XPluginStart returned NULL\n", CurrentPythonModuleName); // NULL is error, Py_None is void, we're looking for a tuple[3]
+    pythonLog("[%s] XPluginStart returned NULL", CurrentPythonModuleName); // NULL is error, Py_None is void, we're looking for a tuple[3]
   }
   if(PyErr_Occurred()) {
     pythonLogException();
@@ -90,7 +90,7 @@ void updatePluginDict(PyObject *module_name_p, PyObject *pModule, PyObject *pRes
   Py_INCREF(pluginInfo);
   PyDict_SetItem(XPY3pluginDict, pluginInstance, pluginInfo);
   if(PyErr_Occurred()) {
-    pythonLog("Error while updating plugin dict\n");
+    pythonLog("Error while updating plugin dict");
     pythonLogException();
   }
 }
@@ -111,7 +111,7 @@ void xpy_reloadInstance(PyObject *signature) {
   PyObject *pluginInfo = getPluginInfo(signature);
   if (!pluginInfo) {
     char *s = objToStr(signature);
-    pythonLog("[XPPython3] Could not find plugin for signature: %s\n", s);
+    pythonLog("[XPPython3] Could not find plugin for signature: %s", s);
     free(s);
     return;
   }
@@ -138,7 +138,7 @@ void xpy_reloadInstance(PyObject *signature) {
   if (err) {
     pythonLogException();
     char *s = objToStr(moduleName);
-    pythonLog("[XPPython3] Failed to reload module '%s'\n", s);
+    pythonLog("[XPPython3] Failed to reload module '%s'", s);
     free(s);
     return;
   }
@@ -150,7 +150,7 @@ void xpy_reloadInstance(PyObject *signature) {
     Py_DECREF(pClass);
     if (!pluginInstance) {
       char *s = objToStr(moduleName);
-      pythonLog("[XPPython3] Cannot restart plugin '%s'.\n", s);
+      pythonLog("[XPPython3] Cannot restart plugin '%s'.", s);
       free(s);
       if (PyErr_Occurred()) {
         pythonLogException();
@@ -192,13 +192,13 @@ int xpy_enableInstance(PyObject *moduleName, PyObject *pluginInstance) {
 
   if(PyErr_Occurred()) {
     pythonLogException();
-    pythonLog("[XPPython3] Error occured during call to %s XPluginEnable\n", CurrentPythonModuleName);
+    pythonLog("[XPPython3] Error occured during call to %s XPluginEnable", CurrentPythonModuleName);
     return 0;
   }
 
   if(!(pRes && PyLong_Check(pRes))){
     char *s = objToStr(pRes);
-    pythonLog("[XPPython3] %s XPluginEnable returned '%s' rather than an integer.\n", CurrentPythonModuleName, s);
+    pythonLog("[XPPython3] %s XPluginEnable returned '%s' rather than an integer.", CurrentPythonModuleName, s);
     free(s);
   } else {
     pythonDebug("    %s XPluginEnable returned %ld", CurrentPythonModuleName, PyLong_AsLong(pRes));
@@ -206,7 +206,7 @@ int xpy_enableInstance(PyObject *moduleName, PyObject *pluginInstance) {
 
   int ret = PyLong_AsLong(pRes) > 0 ? 1 : 0;
   if (ret == 0) {
-    pythonLog("[XPPython3] %s not enabled.\n", CurrentPythonModuleName);
+    pythonLog("[XPPython3] %s not enabled.", CurrentPythonModuleName);
   }
   Py_DECREF(pRes);
   return ret;
@@ -222,7 +222,7 @@ void xpy_disableInstance(PyObject *moduleName, PyObject *pluginInstance) {
   if (err) {
     if (PyObject_HasAttrString(pluginInstance, "XPluginDisable")) {
       pythonLogException();
-      pythonLog("[XPPython3] Error occured during call to %s XPluginDisable\n", CurrentPythonModuleName);
+      pythonLog("[XPPython3] Error occured during call to %s XPluginDisable", CurrentPythonModuleName);
     } else {
       pythonDebug("  (no XPluginDisable for %s module)", CurrentPythonModuleName);
       /* ignore error, if XPluginDisable is not defined in the PythonInterface class */
@@ -245,7 +245,7 @@ void xpy_stopInstance(PyObject *moduleName, PyObject *pluginInstance) {
     if (err) {
       pythonLogException();
       char *s = objToStr(moduleName);
-      pythonLog("[XPPython3] Error occurred during call to %s XPluginStop\n", s);
+      pythonLog("[XPPython3] Error occurred during call to %s XPluginStop", s);
       free(s);
     }
     if (pRes != Py_None && pRes != NULL) {
@@ -264,7 +264,7 @@ void xpy_cleanUpInstance(PyObject *moduleName, PyObject *pluginInstance) {
   if (err) {
     pythonLogException();
     char *s = objToStr(pluginInstance);
-    pythonLog("[XPPython3] Error getting pluginInfo for %s\n", s);
+    pythonLog("[XPPython3] Error getting pluginInfo for %s", s);
     free(s);
     return;
   }
@@ -273,14 +273,14 @@ void xpy_cleanUpInstance(PyObject *moduleName, PyObject *pluginInstance) {
   err = PyErr_Occurred();
   if (err) {
     pythonLogException();
-    pythonLog("[XPPython3] Error after clearning menus for %s\n", CurrentPythonModuleName);
+    pythonLog("[XPPython3] Error after clearning menus for %s", CurrentPythonModuleName);
     return;
   }
   clearInstanceCommands(moduleName);
   err = PyErr_Occurred();
   if (err) {
     pythonLogException();
-    pythonLog("[XPPython3] Error after clearning commands for %s\n", CurrentPythonModuleName);
+    pythonLog("[XPPython3] Error after clearning commands for %s", CurrentPythonModuleName);
     return;
   }
   if (PyDict_Contains(XPY3pluginDict, pluginInstance)) {
@@ -288,11 +288,11 @@ void xpy_cleanUpInstance(PyObject *moduleName, PyObject *pluginInstance) {
     err = PyErr_Occurred();
     if (err) {
       pythonLogException();
-      pythonLog("[XPPython3] Error after deleting %s from XPpluginDict.\n", CurrentPythonModuleName);
+      pythonLog("[XPPython3] Error after deleting %s from XPpluginDict.", CurrentPythonModuleName);
       return;
     }
   } else {
-    pythonLog("[XPPython3] Plugin is not in plugindict! %s\n", CurrentPythonModuleName);
+    pythonLog("[XPPython3] Plugin is not in plugindict! %s", CurrentPythonModuleName);
   }
   if (PyDict_Contains(XPY3moduleDict, moduleName)) {
     PyDict_DelItem(XPY3moduleDict, moduleName);
@@ -302,6 +302,6 @@ void xpy_cleanUpInstance(PyObject *moduleName, PyObject *pluginInstance) {
   err = PyErr_Occurred();
   if (err) {
     pythonLogException();
-    pythonLog("[XPPython3] Error inside cleanUpInstance() for %s\n", CurrentPythonModuleName);
+    pythonLog("[XPPython3] Error inside cleanUpInstance() for %s", CurrentPythonModuleName);
   }
 }

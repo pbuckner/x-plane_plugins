@@ -348,7 +348,7 @@ static int genericCommandCallback(XPLMCommandRef inCommand, XPLMCommandPhase inP
   PyObject *err = PyErr_Occurred();
   if(err){
     char *s2 = objToStr(PyTuple_GetItem(pCbk, COMMAND_CALLBACK)) ;
-    pythonLog("Error in CommandCallback [%s] %s\n", CurrentPythonModuleName, s2);
+    pythonLog("Error in CommandCallback [%s] %s", CurrentPythonModuleName, s2);
     free(s2);
     /* pass error back up */
     /* 
@@ -360,7 +360,7 @@ static int genericCommandCallback(XPLMCommandRef inCommand, XPLMCommandPhase inP
   if (!(oRes && PyLong_Check(oRes))) {
     char *s2 = objToStr(PyTuple_GetItem(pCbk, COMMAND_CALLBACK));
     char *s3 = objToStr(oRes); 
-    pythonLog("[%s] %s CommandCallback returned '%s' rather than an integer.\n", CurrentPythonModuleName, s2, s3);
+    pythonLog("[%s] %s CommandCallback returned '%s' rather than an integer.", CurrentPythonModuleName, s2, s3);
     free(s2);
     free(s3);
     return 1;  /* return '1' to allow X-Plane to continue processing */
@@ -503,19 +503,19 @@ static PyObject *XPLMUnregisterCommandHandlerFun(PyObject *self, PyObject *args,
 
   if (refcon == NULL) {
     char *s = objToStr(key);
-    pythonLog("unregisterCommandHandler could not find command handler for %s\n", s);
+    pythonLog("unregisterCommandHandler could not find command handler for %s", s);
     free(s);
     Py_RETURN_NONE;
   }
   XPLMUnregisterCommandHandler(refToPtr(inCommand, commandRefName), genericCommandCallback,
                                inBefore, PyLong_AsVoidPtr(refcon));
   if(PyDict_DelItem(commandRevDict, key)){
-    pythonLog("XPLMUnregisterCommandHandler: couldn't remove refcon.\n");
+    pythonLog("XPLMUnregisterCommandHandler: couldn't remove refcon.");
   }
   Py_DECREF(bv);
   Py_DECREF(key);
   if(PyDict_DelItem(commandCallbackDict, refcon)){
-    pythonLog("XPLMUnregisterCommandHandler: couldn't remove command handler from callback dict.\n");
+    pythonLog("XPLMUnregisterCommandHandler: couldn't remove command handler from callback dict.");
   }
   Py_RETURN_NONE;
 }

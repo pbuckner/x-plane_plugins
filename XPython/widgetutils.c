@@ -35,7 +35,7 @@ static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args, PyObject *k
     
   inCount = PySequence_Length(widgetDefs);
   if (inCount <= 0) {
-    return Py_None;
+    Py_RETURN_NONE;
   }
   XPWidgetID inParamParent = 0;
   if (paramParent != Py_None) {
@@ -46,8 +46,8 @@ static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args, PyObject *k
   XPWidgetCreate_t *defs = malloc(sizeof(XPWidgetCreate_t) * inCount);
 
   if((defs == NULL) || (ioWidgets == NULL)){
-    pythonLog("createWidgets, trying to create %d widgets, Out of memory\n", inCount);
-    return Py_None;
+    pythonLog("createWidgets, trying to create %d widgets, Out of memory", inCount);
+    Py_RETURN_NONE;
   }
 
   int i;
@@ -59,13 +59,13 @@ static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args, PyObject *k
       if (-1 == asprintf(&msg, "createWidgets, widgetDefs list, definition #%d contains %lld elements, it must contain 9.\n",
                          i+1,
                          (long long)PySequence_Length(defListItem))) {
-        pythonLog("Failed to allocate asprintf memory. Create Widgets failed.\n");
+        pythonLog("Failed to allocate asprintf memory. Create Widgets failed.");
       }
       PyErr_SetString(PyExc_ValueError , msg);
       free(msg);
       free(ioWidgets);
       free(defs);
-      return Py_None;
+      Py_RETURN_NONE;
     }
     defs[i].left = PyLong_AsLong(PySequence_GetItem(defListItem, 0));
     defs[i].top = PyLong_AsLong(PySequence_GetItem(defListItem, 2));
@@ -230,7 +230,7 @@ static PyObject *XPUSelectIfNeededFun(PyObject *self, PyObject *args, PyObject *
   int inEatClick=1;
   PyObject *widget = NULL, *param1 = NULL, *param2 = NULL;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iOOO|i", keywords, &inMessage, &widget, &param1, &param2, &inEatClick)){
-    pythonLog("Failed to parse tuple in selectIfNeeded()\n");
+    pythonLog("Failed to parse tuple in selectIfNeeded()");
     return NULL;
   }
 

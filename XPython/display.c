@@ -335,7 +335,7 @@ static PyObject *XPLMUnregisterAvionicsCallbacksFun(PyObject *self, PyObject *ar
   Py_DECREF(avIDCapsule);
   removePtrRef(avionicsId, avionicsIDCapsules);
 
-  return Py_None;
+  Py_RETURN_NONE;
 }
           
 
@@ -418,7 +418,7 @@ static PyObject *XPLMUnregisterDrawCallbackFun(PyObject *self, PyObject *args, P
     PyDict_DelItem(drawCallbackDict, key);
   } else {
     char *s = objToStr(callback);
-    pythonLog("Failed to find drawCallback entry for %s %s\n", CurrentPythonModuleName, s);
+    pythonLog("Failed to find drawCallback entry for %s %s", CurrentPythonModuleName, s);
     free(s);
   }
   errCheck("after XPLMUnregisterDrawCallback");
@@ -476,7 +476,7 @@ static void drawWindow(XPLMWindowID  inWindowID,
   PyObject *pID = getPtrRef(inWindowID, windowIDCapsules, windowIDRef);
   PyObject *pCbks = PyDict_GetItem(windowDict, pID);
   if(pCbks == NULL){
-    printf("Unknown window passed to drawWindow (%p).\n", inWindowID);
+    printf("Unknown window passed to drawWindow (%p).", inWindowID);
     return;
   }
   PyObject *func = PyTuple_GetItem(pCbks, WINDOW_DRAW);
@@ -600,7 +600,7 @@ static int handleMouseClick(XPLMWindowID     inWindowID,
     char *msg;
     char *s = objToStr(func);
     if (-1 == asprintf(&msg, "click() callback [%s] failed to return integer\n.", s)) {
-      pythonLog("Failed to allocate asprintf memory for callback error.\n");
+      pythonLog("Failed to allocate asprintf memory for callback error.");
     } else {
       PyErr_SetString(PyExc_ValueError, msg);
       free(msg);
@@ -651,7 +651,7 @@ static int handleRightClick(XPLMWindowID     inWindowID,
     char *msg;
     char *s = objToStr(func);
     if (-1 == asprintf(&msg, "rightClick() callback [%s] failed to return integer\n.", s)) {
-      pythonLog("Failed to allocate asprintf memory for right click callback.\n");
+      pythonLog("Failed to allocate asprintf memory for right click callback.");
     } else {
       PyErr_SetString(PyExc_ValueError, msg);
       free(msg);
@@ -2013,14 +2013,14 @@ static int genericAvionicsCallback(XPLMDeviceID inDeviceID, int inIsBefore, void
   PyObject *pRes = NULL;
   int res = 0;
   if (pl == NULL) {
-    pythonLog("avionicsDrawCallback, can't create PyLong.\n");
+    pythonLog("avionicsDrawCallback, can't create PyLong.");
     goto cleanup;
   }
 
   PyObject *tup = PyDict_GetItem(avionicsCallbacksDict, pl); /*borrowed*/
   Py_DECREF(pl);
   if (!tup) {
-    pythonLog("avionicsDrawCallback, got unknown inRefcon(%p)!\n", inRefcon);
+    pythonLog("avionicsDrawCallback, got unknown inRefcon(%p)!", inRefcon);
     goto cleanup;
   }
 
@@ -2038,7 +2038,7 @@ static int genericAvionicsCallback(XPLMDeviceID inDeviceID, int inIsBefore, void
 
   if(!pRes){
     char *s2 = objToStr(fun);
-    pythonLog("[%s] Avionics Draw callback %s failed.\n", CurrentPythonModuleName, s2);
+    pythonLog("[%s] Avionics Draw callback %s failed.", CurrentPythonModuleName, s2);
     free(s2);
     goto cleanup;
   }
@@ -2046,7 +2046,7 @@ static int genericAvionicsCallback(XPLMDeviceID inDeviceID, int inIsBefore, void
     if(!PyLong_Check(pRes)){
       /* _before_ callbacks should return 1 or 0  -- _after_ callback returns are ignored */
       char *s2 = objToStr(fun);
-      pythonLog("[%s] Avionics Draw callback %s returned a wrong type ('before' callbacks must return int).\n", CurrentPythonModuleName, s2);
+      pythonLog("[%s] Avionics Draw callback %s returned a wrong type ('before' callbacks must return int).", CurrentPythonModuleName, s2);
       free(s2);
       goto cleanup;
     }
@@ -2076,7 +2076,7 @@ static int genericDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *i
   int res = 1;
   pl = PyLong_FromVoidPtr(inRefcon);
   if(pl == NULL){
-    pythonLog("drawCallback, can't create PyLong.\n");
+    pythonLog("drawCallback, can't create PyLong.");
     goto cleanup;
   }else{
     tup = PyDict_GetItem(drawCallbackDict, pl);
@@ -2084,7 +2084,7 @@ static int genericDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *i
   }
 
   if(!tup){
-    pythonLog("drawCallback, got unknown inRefcon (%p)!\n", inRefcon);
+    pythonLog("drawCallback, got unknown inRefcon (%p)!", inRefcon);
     goto cleanup;
   }
   fun =    PyTuple_GetItem(tup, DRAW_CALLBACK);
@@ -2104,7 +2104,7 @@ static int genericDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *i
   if(!pRes){
     char *s = objToStr(PyTuple_GetItem(tup, DRAW_MODULE_NAME));
     char *s2 = objToStr(fun);
-    pythonLog("[%s] Draw callback %s failed.\n", s, s2);
+    pythonLog("[%s] Draw callback %s failed.", s, s2);
     free(s);
     free(s2);
     goto cleanup;
@@ -2113,7 +2113,7 @@ static int genericDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *i
     if (inIsBefore) {
       char *s = objToStr(PyTuple_GetItem(tup, DRAW_MODULE_NAME));
       char *s2 = objToStr(fun);
-      pythonLog("[%s] Draw callback %s returned a wrong type.\n", s, s2);
+      pythonLog("[%s] Draw callback %s returned a wrong type.", s, s2);
       free(s);
       free(s2);
       goto cleanup;
@@ -2144,7 +2144,7 @@ int genericKeySnifferCallback(char inChar, XPLMKeyFlags inFlags, char inVirtualK
 
   pl = PyLong_FromVoidPtr(inRefcon);
   if(pl == NULL){
-    pythonLog("keySnifferCallback, can't create PyLong.\n");
+    pythonLog("keySnifferCallback, can't create PyLong.");
     goto cleanup;
   }else{
     tup = PyDict_GetItem(keySniffCallbackDict, pl);
@@ -2152,7 +2152,7 @@ int genericKeySnifferCallback(char inChar, XPLMKeyFlags inFlags, char inVirtualK
   }
 
   if(!tup){
-    pythonLog("keySninfferCallback, got unknown inRefcon (%p)!\n", inRefcon);
+    pythonLog("keySninfferCallback, got unknown inRefcon (%p)!", inRefcon);
     goto cleanup;
   }
   fun =    PyTuple_GetItem(tup, KEYSNIFF_CALLBACK);
@@ -2167,13 +2167,13 @@ int genericKeySnifferCallback(char inChar, XPLMKeyFlags inFlags, char inVirtualK
   Py_DECREF(inVirtualKeyObj);
   if(!pRes){
     char *s2 = objToStr(fun);
-    pythonLog("[%s] Key sniffer callback %s failed.\n", CurrentPythonModuleName, s2);
+    pythonLog("[%s] Key sniffer callback %s failed.", CurrentPythonModuleName, s2);
     free(s2);
     goto cleanup;
   }
   if(!PyLong_Check(pRes)){
     char *s2 = objToStr(fun);
-    pythonLog("[%s] Key sniffer callback %s returned a wrong type.\n", CurrentPythonModuleName, s2);
+    pythonLog("[%s] Key sniffer callback %s returned a wrong type.", CurrentPythonModuleName, s2);
     free(s2);
     goto cleanup;
   }

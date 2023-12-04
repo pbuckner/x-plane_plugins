@@ -50,7 +50,7 @@ void xpy_startAircraftPlugins()
   char outPath[1024];
   XPLMGetNthAircraftModel(0, outFileName, outPath);
   if (!strlen(outPath)) {
-    pythonLog("No user aircraft selected, skipping startAircraftPlugins()\n");
+    pythonLog("No user aircraft selected, skipping startAircraftPlugins()");
     return;
   }
   char *tmp = strrchr(outPath, '/');
@@ -58,7 +58,7 @@ void xpy_startAircraftPlugins()
   // pythonDebug("Will look for Aircraft PI files in %s/plugins/PythonPlugins\n", outPath);
   char *plugins_path;
   if (-1 == asprintf(&plugins_path, "%s/plugins/PythonPlugins", outPath)) {
-    pythonLog("Failed to allocate memory with asprintf. Unable to start.\n");
+    pythonLog("Failed to allocate memory with asprintf. Unable to start.");
   }
 
   /* 'Aircraft' has to be in syspath, and get aircraft_path_rel*/
@@ -80,7 +80,7 @@ void xpy_startAircraftPlugins()
   
   PyObject *package = PyDict_GetItemString(localsDict, "package");
   if (package == NULL) {
-    pythonLog("[XPPython3] Failed to load aircraft package. Likely missing or bad xp.py, %p\n", package);
+    pythonLog("[XPPython3] Failed to load aircraft package. Likely missing or bad xp.py, %p", package);
     pythonLogFlush();
   }
   if(PyErr_Occurred()) {
@@ -131,7 +131,7 @@ void xpy_startSceneryPlugins()
   
   PyObject *packages = PyDict_GetItemString(localsDict, "packages");
   if (packages == NULL) {
-    pythonLog("[XPPython3] Failed to load scenery packages. Likely missing or bad xp.py, %p\n", packages);
+    pythonLog("[XPPython3] Failed to load scenery packages. Likely missing or bad xp.py, %p", packages);
     pythonLogFlush();
   }
   if(PyErr_Occurred()) {
@@ -153,7 +153,7 @@ void xpy_startSceneryPlugins()
     while((packageInfo = PyIter_Next(iterator))) {
       char *path = objToStr(PyList_GetItem(packageInfo, MODULE_PATH));
       char *package = objToStr(PyList_GetItem(packageInfo, MODULE_PACKAGE));
-      // pythonLog("path: %s, package: %s\n", path, package);
+      // pythonLog("path: %s, package: %s", path, package);
       xpy_loadModules(path, package, "^PI_[^.]*\\.py$", XPY3sceneryPlugins);
       free(path);
       free(package);

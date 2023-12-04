@@ -84,7 +84,7 @@ static inline void mapCallback(int whichCallback, XPLMMapLayerID inLayer, const 
   set_moduleName(PyTuple_GetItem(callbackInfo, MAP_MODULE_NAME));
 
   if (whichCallback < MAP_DRAW || whichCallback > MAP_LABEL) {
-    pythonLog("mapCallback called with bad index %d\n", whichCallback);
+    pythonLog("mapCallback called with bad index %d", whichCallback);
     return;
   }
 

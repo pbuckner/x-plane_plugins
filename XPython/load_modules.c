@@ -16,7 +16,7 @@ void xpy_loadModules(const char *path, const char *package, const char *pattern,
   DIR *dir = opendir(path);
   PyObject *pluginInstance;
   if(dir == NULL){
-    pythonLog("[XPPython3] Scanning for plugins in '%s': directory not found.\n", path);
+    pythonLog("[XPPython3] Scanning for plugins in '%s': directory not found.", path);
     pythonLogFlush();
     return;
   }
@@ -45,7 +45,7 @@ void xpy_loadModules(const char *path, const char *package, const char *pattern,
               PyList_Append(pluginList, pluginInstance);
             }
           } else {
-            pythonLog("[XPPython3] Failed to load pluginInstance for '%s'\n", pkgModName);
+            pythonLog("[XPPython3] Failed to load pluginInstance for '%s'", pkgModName);
           }
           free(pkgModName);
         }
@@ -105,7 +105,7 @@ static PyObject *loadPIClass(const char *fname)
         PyObject *pluginInstance = PyObject_CallObject(pClass, NULL);
         if (PyErr_Occurred()){
           pythonLogException();
-          pythonLog("[XPPython3] Problem loading PythonInterface object in %s.\n", fname);
+          pythonLog("[XPPython3] Problem loading PythonInterface object in %s.", fname);
           return NULL;
         }
         Py_DECREF(pClass);
@@ -116,14 +116,14 @@ static PyObject *loadPIClass(const char *fname)
         pythonDebug(" . Failed to get callable PythonInterface class");
         Py_DECREF(module_name_p);
         Py_DECREF(module2_p);
-        pythonLog("[XPPython3] Problem getting PythonInterface class in %s.\n", fname);
+        pythonLog("[XPPython3] Problem getting PythonInterface class in %s.", fname);
       }
     } else {
       Py_DECREF(module_name_p);
-      pythonLog("[XPPython3] Problem importing module for %s.\n", fname);
+      pythonLog("[XPPython3] Problem importing module for %s.", fname);
     }
   } else {
-    pythonLog("[XPPython3] Problem decoding the filename %s.\n", fname);
+    pythonLog("[XPPython3] Problem decoding the filename %s.", fname);
   }
   if(PyErr_Occurred()) {
     pythonLogException();

@@ -133,7 +133,7 @@ static PyObject *XPLMPlayPCMOnBusFun(PyObject *self, PyObject *args, PyObject *k
   }
 
   if (!PyBytes_Check(audioBufferObj)) {
-    pythonLog("Passed in audiobuffer not correct type\n");
+    pythonLog("Passed in audiobuffer not correct type");
     Py_RETURN_NONE;
   }
 
@@ -164,7 +164,7 @@ static void soundCallback(void *inRefcon, FMOD_RESULT status)
   PyObject *callbackInfo = PyDict_GetItem(soundCallbackDict, ref); /* borrowed */
   if(callbackInfo == NULL){
     Py_DECREF(ref);
-    pythonLog("Couldn't find sound callback with id = %p.\n", inRefcon); 
+    pythonLog("Couldn't find sound callback with id = %p.", inRefcon); 
     return;
   }
 
@@ -223,12 +223,12 @@ static PyObject *XPLMSetAudioPositionFun(PyObject *self, PyObject *args, PyObjec
   }
 
   if (!PySequence_Check(position_obj)) {
-    pythonLog("Expected List object for position\n");
+    pythonLog("Expected List object for position");
     PyErr_SetString(PyExc_ValueError, "XPLMSetAudioPosition 'position' parameter is not a list.");
     return NULL;
   }
   if (PySequence_Size(position_obj) != 3) {
-    pythonLog("Expected position to be of length 3, instead it is %ld\n", (long)PySequence_Size(position_obj));
+    pythonLog("Expected position to be of length 3, instead it is %ld", (long)PySequence_Size(position_obj));
     PyErr_SetString(PyExc_ValueError, "XPLMSetAudioPosition 'position' not length 3.");
     return NULL;
   }
@@ -377,12 +377,12 @@ static PyObject *XPLMSetAudioConeFun(PyObject *self, PyObject *args, PyObject *k
   FMOD_VECTOR orientation;
   if (orientation_obj != Py_None) {
     if (!PySequence_Check(orientation_obj)) {
-      pythonLog("Expected List object for orientation\n");
+      pythonLog("Expected List object for orientation");
       PyErr_SetString(PyExc_ValueError, "XPLMSetAudioCone 'orientation' parameter is not a list.");
       return NULL;
     }
     if (PySequence_Size(orientation_obj) != 3) {
-      pythonLog("Expected orientation to be of length 3, instead it is %ld\n", (long)PySequence_Size(orientation_obj));
+      pythonLog("Expected orientation to be of length 3, instead it is %ld", (long)PySequence_Size(orientation_obj));
       PyErr_SetString(PyExc_ValueError, "XPLMSetAudioCone 'orientation' not length 3.");
       return NULL;
     }

@@ -88,7 +88,10 @@ different values for *map*.
 
 Your layer's lifetime will be determined by the lifetime of the map it is
 created in. If the map is destroyed (on the X-Plane side), your layer will
-be too, and you'll receive a callback to your ``deleteLayer()``.
+be too, and you'll receive a callback to your ``deleteLayer()``. (This is
+deceptive because X-Plane 12 does not *ever* destroy the map -- not even on
+program exit. Your callback *will* be called if someone calls ``deleteLayer()`` on
+your layer.)
 
 You can only create a layer *after* the map has been created (by X-Plane). You
 can check to see if it exists (:py:func:`mapExists`) and register to be notified
@@ -263,7 +266,8 @@ when it is created (:py:func:`registerMapCreationHook`).
 
      This does not trigger when your map *layer* is disabled by the user, nor
      when the map window itself is closed. For X-Plane 11.50+ it appears to
-     occur only when the sim is exited.
+     occur only when the sim is exited. For X-Plane 12 it appears to occur
+     only when :py:func:`destroyMapLayer` is called (and not at program exit).
      
 
  On success, a :py:func:`createMapLayer` returns a layerID. Most common failure occurs when the map you specified in *map* does not exist

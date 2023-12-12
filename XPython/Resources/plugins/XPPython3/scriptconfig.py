@@ -13,7 +13,7 @@ def log(s):
     hours = int(elapsedTime / 3600)
     minutes = int(elapsedTime / 60) % 60
     seconds = elapsedTime % 60
-    print('{:d}:{:02d}:{:06.3f} [{:s}] {:s}'.format(hours, minutes, seconds, Name, s))
+    xp.log('{:d}:{:02d}:{:06.3f} [{:s}] {:s}'.format(hours, minutes, seconds, Name, s))
 
 
 def system_log(s):

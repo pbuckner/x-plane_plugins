@@ -196,14 +196,14 @@ static void receiveMonitorBounds(int inMonitorIndex, int inLeftBx, int inTopBx,
 
 My_DOCSTR(_registerDrawCallback__doc__, "registerDrawCallback",
           "draw, phase=Phase_Window, after=0, refCon=None",
-          "draw:Callable[[XPLMDrawingPhase, int, Any], None], phase:XPLMDrawingPhase=Phase_Window, after:int=0, refCon:Any=None",
+          "draw:Callable[[XPLMDrawingPhase, int, Any], None | int], phase:XPLMDrawingPhase=Phase_Window, after:int=0, refCon:Any=None",
           "int",
           "Registers  low-level drawing callback.\n"
           "\n"
           "The after parameter indicates you want to be called before (0) or after (1) phase.\n"
           "draw() callback function takes three parameters (phase, after, refCon), returning \n"
-          "0 to suppress further X-Plane drawing in the phase, or 1 to allow X-Plane to finish\n"
-          "(Callback's value is ignored if after=1.\n"
+          "0 to suppress further X-Plane drawing in the phase, or 1 to allow X-Plane to finish.\n"
+          "(Callback's value is ignored if after=1).\n"
           "\nRegistration returns 1 on success, 0 otherwise.");
 static PyObject *XPLMRegisterDrawCallbackFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {

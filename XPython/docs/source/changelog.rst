@@ -14,6 +14,12 @@ Known Bugs
 
 4.1.2 (BETA)
 -------------------
+:New Features:
+   * **Type Hinting and \*.pyi files**. Doc strings and type hinting for all SDK functions are generated
+     from code. We've removed the "stub" files which were previously shipped and have now included this
+     information in (standard) ``*.pyi`` files, included with the standard XPPython3 distribution. See
+     updated use in :doc:`/development/stubs`.
+     
 :Fixes:
    * **Corrected** :py:func:`xp.getWeatherAtLocation` **error detection**. See linked documentation for details.
      Previously XPPython3 interpreted a zero return from XPLMGetWeatherAtLocation() as an error
@@ -29,13 +35,13 @@ Known Bugs
      |
 
 :Improvements:
+   * **FirstTime loader** is now called on first installation of XPPython3 *and when you upgrade* XPPython3.
+     This allows us to clean out files from XPPython3 folder on upgrade.
+
    * **Improved Pip Package Installer**. When using the built-it Pip Package Installer, the output from Pip is
      now displayed in real-time in a scrolling window. Contents of the window (i.e., pip output) are also
      automatically added to the python log. (Also, pressing the Enter key on the pip package installer window
      will start the installation -- no need to click the "Install" button.)
-     
-   * **Updated Stub Files** with full type-hinting for all SDK functions are available as a separate download. Their use
-     is documented in :doc:`/development/stubs`.
      
    * **Cleanup up python code** under XPPython3 folder. Mostly to better support type-hinting.
 

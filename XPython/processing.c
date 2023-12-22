@@ -170,7 +170,7 @@ My_DOCSTR(_registerFlightLoopCallback__doc__, "registerFlightLoopCallback",
           "callback, interval=0.0, refCon=None",
           "callback:Callable[[float, float, int, Any], float], interval:float=0.0, refCon:Any=None",
           "None",
-          "Register flight look callback.\n"
+          "Register flight loop callback.\n"
           "\n"
           "interval indicates when you'll be called next:\n"
           "  0= deactivate \n"

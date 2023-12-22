@@ -1,49 +1,70 @@
+from typing import Union
+import shutil
 import os
+import re
+import platform
 from XPPython3 import xp
 from XPPython3.utils import samples
+from XPPython3.scriptupdate import Version
 
 
 class PythonInterface:
     def __init__(self):
-        # If this file exists, we'll do nothing.
+        # touch_file stores most recently _executed_ version, which may differ from newly installed version
         self.touch_file = os.path.normpath(os.path.join(xp.getSystemPath(), xp.INTERNALPLUGINSPATH, '.firstTimeComplete'))
+        self.version_file = os.path.normpath(os.path.join(xp.getSystemPath(), xp.INTERNALPLUGINSPATH, 'version.txt'))
 
     def XPluginStart(self):
         return 'FirstTime', 'xppython3.firstTime', 'Performs tasks which should be run "first time" for XPPython3 plugin'
 
     def XPluginEnable(self):
         # Register flight loop, but set to zero to disable (this way, we know it exists and
-        # can unconditionally unregister it in XPluginDisable). "Enable" the flight loop, only if touchfile does not exist.
-        xp.registerFlightLoopCallback(self.flightLoopCallback, 0, self.touch_file)
-        if os.path.exists(self.touch_file):
-            return 0
-        xp.setFlightLoopCallbackInterval(self.flightLoopCallback, -1, 1, self.touch_file)
+        # can unconditionally unregister it in XPluginDisable). "Enable" the flight loop, only if touchfile does not exist or is old.
+        self.flID = xp.createFlightLoop(self.flightLoopCallback)
+        self.current_version = Version(xp.VERSION)
+        touch_version = get_version(self.touch_file)
+        if self.current_version > touch_version:
+            xp.log(f"Current is {self.current_version} and touchfile is {touch_version}")
+            xp.scheduleFlightLoop(self.flID, -1)
         return 1
 
     def flightLoopCallback(self, sinceLastCall, sinceLastFlightLoop, counter, refcon):
         # we do work within a flight loop so we can display progress / results
         # in a window. The flight loop callback is not enabled & nothing is done if the touch_file exists.
         self.firstTime(forceCopySamples=True)
-        with open(self.touch_file, 'w') as fp:
-            fp.write(' ')
+        with open(self.touch_file, 'w', encoding="UTF-8") as fp:
+            fp.write(f'{self.current_version}\n')
         # execute only once
         return 0
 
-    def XPluginReceiveMessage(self, inFromWho, inMessage, inParam):
-        return
-
     def XPluginDisable(self):
-        xp.unregisterFlightLoopCallback(self.flightLoopCallback, self.touch_file)
-
-    def XPluginStop(self):
-        pass
+        xp.destroyFlightLoop(self.flID)
 
     def firstTime(self, forceCopySamples=False):
         # 1) Create PythonPlugins if not already exists
         pluginsPath = os.path.normpath(os.path.join(xp.getSystemPath(), xp.PLUGINSPATH))
         if not os.path.exists(pluginsPath):
-            xp.log("Making directory for 3rd party python plugins: {}".format(pluginsPath))
+            xp.log(f"Making directory for 3rd party python plugins: {pluginsPath}")
             os.makedirs(pluginsPath)
 
+        # 2) Download current set of samples
         samples.download()
+
+        # 3) Delete local XPPython3/imgui directory, if exists (was used in older releases)
+        imgui_dir = os.path.normpath(os.path.join(xp.getSystemPath(), xp.INTERNALPLUGINSPATH, "imgui"))
+        if os.path.exists(imgui_dir):
+            xp.log("Found, and removing old XPPython3/imgui directory")
+            shutil.rmtree(imgui_dir)
+        
         return
+
+def get_version(filename) -> Version:
+    """
+        return Version instance from contents of file (or Version(0.0))
+    """
+    try:
+        with open(filename, "r", encoding="UTF-8") as fp:
+            content = fp.read().replace('XPPython3', '')
+            return Version(content)
+    except:
+        return Version(None)

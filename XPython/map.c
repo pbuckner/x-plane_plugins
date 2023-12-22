@@ -249,7 +249,19 @@ static void mapLabelDrawingCallback(XPLMMapLayerID inLayer, const float *inMapBo
               mapUnitsPerUserInterfaceUnit, mapStyle, projection, inRefcon);
 }
 
-My_DOCSTR(_createMapLayer__doc__, "createMapLayer", "mapType=MAP_USER_INTERFACE, layerType=MapLayer_Markings, delete=None, prep=None, draw=None, icon=None, label=None, showToggle=1, name=\"\", refCon=None",
+My_DOCSTR(_createMapLayer__doc__, "createMapLayer",
+          "mapType=MAP_USER_INTERFACE, layerType=MapLayer_Markings, delete=None, prep=None, draw=None, icon=None, label=None, showToggle=1, name='', refCon=None",
+          "mapType:str=MAP_USER_INTERFACE, "
+          "layerType:XPLMMapLayerType=MapLayer_Markings, "
+          "delete:Optional[Callable[[XPLMMapLayerID, Any], None]]=None, "
+          "prep:Optional[Callable[[XPLMMapLayerID, float, XPLMMapProjectionID, Any], None]]=None, "
+          "draw:Optional[Callable[[XPLMMapLayerID, float, float, float, XPLMMapStyle, XPLMMapProjectionID, Any], None]]=None, "
+          "icon:Optional[Callable[[XPLMMapLayerID, float, float, float, XPLMMapStyle, XPLMMapProjectionID, Any], None]]=None, "
+          "label:Optional[Callable[[XPLMMapLayerID, float, float, float, XPLMMapStyle, XPLMMapProjectionID, Any], None]]=None, "
+          "showToggle:int=1, "
+          "name:str='', "
+          "refCon:Any=None",
+          "XPLMMapLayerID",
           "Returns layerID of newly created map layer, setting callbacks.\n"
           "\n"
           "If map does not currently exist, returns 0.");
@@ -387,7 +399,10 @@ static PyObject *XPLMCreateMapLayerFun(PyObject *self, PyObject *args, PyObject 
   return mapLayerCapsule;
 }
 
-My_DOCSTR(_destroyMapLayer__doc__, "destroyMapLayer", "layerID",
+My_DOCSTR(_destroyMapLayer__doc__, "destroyMapLayer",
+          "layerID",
+          "layerID:XPLMMapLayerID",
+          "int",
           "Destroys map layer given by layerID.");
 static PyObject *XPLMDestroyMapLayerFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -415,7 +430,10 @@ static PyObject *XPLMDestroyMapLayerFun(PyObject *self, PyObject *args, PyObject
   return PyLong_FromLong(res);
 }
 
-My_DOCSTR(_registerMapCreationHook__doc__, "registerMapCreationHook", "mapCreated, refCon=None",
+My_DOCSTR(_registerMapCreationHook__doc__, "registerMapCreationHook",
+          "mapCreated, refCon=None",
+          "mapCreated:Callable[[str, Any], None], refCon:Any=None",
+          "None",
           "Registers mapCreated() callback to notify you when a map is created.\n"
           "\n"
           "Callback gets two parameters: (mapType, refCon)");
@@ -443,7 +461,10 @@ static PyObject *XPLMRegisterMapCreationHookFun(PyObject *self, PyObject *args, 
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_mapExists__doc__, "mapExists", "mapType",
+My_DOCSTR(_mapExists__doc__, "mapExists",
+          "mapType",
+          "mapType:str",
+          "int",
           "Returns 1 if mapType exists, 0 otherwise."
           "\n"
           "mapType is either xp.MAP_USER_INTERFACE or xp.MAP_IOS");
@@ -464,7 +485,10 @@ static PyObject *XPLMMapExistsFun(PyObject *self, PyObject *args, PyObject *kwar
   return PyLong_FromLong(res);
 }
 
-My_DOCSTR(_drawMapIconFromSheet__doc__, "drawMapIconFromSheet", "layerID, png, s, t, ds, dt, x, y, orientation, rotationDegrees, mapWidth",
+My_DOCSTR(_drawMapIconFromSheet__doc__, "drawMapIconFromSheet",
+          "layerID, png, s, t, ds, dt, x, y, orientation, rotationDegrees, mapWidth",
+          "layerID:XPLMMapLayerID, png:str, s:int, t:int, ds:int, dt:int, x:float, y:float, orientation:XPLMMapOrientation, rotationDegrees:float, mapWidth:float",
+          "None",
           "Draws icon into map layer.\n"
           "\n"
           "Only valid within iconLayer() callback.");
@@ -492,7 +516,10 @@ static PyObject *XPLMDrawMapIconFromSheetFun(PyObject *self, PyObject *args, PyO
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_drawMapLabel__doc__, "drawMapLabel", "layerID, text, x, y, orientation, rotationDegrees",
+My_DOCSTR(_drawMapLabel__doc__, "drawMapLabel",
+          "layerID, text, x, y, orientation, rotationDegrees",
+          "layerID:XPLMMapLayerID, text:str, x:float, y:float, orientation:XPLMMapOrientation, rotationDegrees:float",
+          "None",
           "Draws label within map layer.\n"
           "\n"
           "Only valid within labelLayer() callback.");
@@ -518,7 +545,10 @@ static PyObject *XPLMDrawMapLabelFun(PyObject *self, PyObject *args, PyObject *k
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_mapProject__doc__, "mapProject", "projection, latitude, longitude",
+My_DOCSTR(_mapProject__doc__, "mapProject",
+          "projection, latitude, longitude",
+          "projection:XPLMMapProjectionID, latitude:float, longitude:float",
+          "None | tuple[float, float]",
           "Returns map layer (x, y) for given latitude, longitude.\n"
           "\n"
           "Only valid within map layer callbacks.");
@@ -545,7 +575,7 @@ static PyObject *XPLMMapProjectFun(PyObject *self, PyObject *args, PyObject *kwa
   float x, y;
   XPLMMapProject_ptr(projection, latitude, longitude, &x, &y);
   if (returnValues) {
-    return Py_BuildValue("ff", x, y);
+    return Py_BuildValue("(ff)", x, y);
   }
   pythonLogWarning("XPLMMapProject no longer require final (x, y) parameters");
 
@@ -557,7 +587,10 @@ static PyObject *XPLMMapProjectFun(PyObject *self, PyObject *args, PyObject *kwa
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_mapUnproject__doc__, "mapUnproject", "projection, x, y",
+My_DOCSTR(_mapUnproject__doc__, "mapUnproject",
+          "projection, x, y",
+          "projection:XPLMMapProjectionID, x:float, y:float",
+          "None | tuple[int, int]",
           "Returns latitude, longitude for given map coordinates.\n"
           "\n"
           "Only valid within map layer callbacks.");
@@ -585,7 +618,7 @@ static PyObject *XPLMMapUnprojectFun(PyObject *self, PyObject *args, PyObject *k
   double longitude, latitude;
   XPLMMapUnproject_ptr(projection, mapX, mapY, &latitude, &longitude);
   if (returnValues) 
-    return Py_BuildValue("dd", latitude, longitude);
+    return Py_BuildValue("(dd)", latitude, longitude);
   pythonLogWarning("XPLMMapUnproject no longer requires final latitude, longitude parameters.");
   if (outLatitude != Py_None)
     PyList_Append(outLatitude, PyFloat_FromDouble(latitude));
@@ -595,8 +628,11 @@ static PyObject *XPLMMapUnprojectFun(PyObject *self, PyObject *args, PyObject *k
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_mapScaleMeter__doc__, "mapScaleMeter", "projection, x, y",
-          "Returns number of units for \"one meter\" using current projection.\n"
+My_DOCSTR(_mapScaleMeter__doc__, "mapScaleMeter",
+          "projection, x, y",
+          "projection:XPLMMapProjectionID, x:float, y:float",
+          "float",
+          "Returns number of units for 'one meter' using current projection.\n"
           "\n"
           "Only valid within map layer callbacks.");
 static PyObject *XPLMMapScaleMeterFun(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -618,7 +654,10 @@ static PyObject *XPLMMapScaleMeterFun(PyObject *self, PyObject *args, PyObject *
   return PyFloat_FromDouble(res);
 }
 
-My_DOCSTR(_mapGetNorthHeading__doc__, "mapGetNorthHeading", "projection, x, y",
+My_DOCSTR(_mapGetNorthHeading__doc__, "mapGetNorthHeading",
+          "projection, x, y",
+          "projection:XPLMMapProjectionID, x:float, y:float",
+          "float",
           "Returns mapping angle for map projection at point.\n"
           "\n"
           "Only valid within map layer callbacks.");
@@ -722,26 +761,26 @@ PyInit_XPLMMap(void)
 
   PyObject *mod = PyModule_Create(&XPLMMapModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
-    PyModule_AddIntConstant(mod, "xplm_MapStyle_VFR_Sectional", xplm_MapStyle_VFR_Sectional);
-    PyModule_AddIntConstant(mod, "xplm_MapStyle_IFR_LowEnroute", xplm_MapStyle_IFR_LowEnroute);
-    PyModule_AddIntConstant(mod, "xplm_MapStyle_IFR_HighEnroute", xplm_MapStyle_IFR_HighEnroute);
-    PyModule_AddIntConstant(mod, "xplm_MapLayer_Fill", xplm_MapLayer_Fill);
-    PyModule_AddIntConstant(mod, "xplm_MapLayer_Markings", xplm_MapLayer_Markings);
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
+    PyModule_AddIntConstant(mod, "xplm_MapStyle_VFR_Sectional", xplm_MapStyle_VFR_Sectional); // XPLMMapStyle
+    PyModule_AddIntConstant(mod, "xplm_MapStyle_IFR_LowEnroute", xplm_MapStyle_IFR_LowEnroute); // XPLMMapStyle
+    PyModule_AddIntConstant(mod, "xplm_MapStyle_IFR_HighEnroute", xplm_MapStyle_IFR_HighEnroute); // XPLMMapStyle
+    PyModule_AddIntConstant(mod, "xplm_MapLayer_Fill", xplm_MapLayer_Fill); // XPLMMapLayerType
+    PyModule_AddIntConstant(mod, "xplm_MapLayer_Markings", xplm_MapLayer_Markings); // XPLMMapLayerType
     PyModule_AddStringConstant(mod, "XPLM_MAP_USER_INTERFACE", XPLM_MAP_USER_INTERFACE);
     PyModule_AddStringConstant(mod, "XPLM_MAP_IOS", XPLM_MAP_IOS);
-    PyModule_AddIntConstant(mod, "xplm_MapOrientation_Map", xplm_MapOrientation_Map);
-    PyModule_AddIntConstant(mod, "xplm_MapOrientation_UI", xplm_MapOrientation_UI);
+    PyModule_AddIntConstant(mod, "xplm_MapOrientation_Map", xplm_MapOrientation_Map); // XPLMMapOrientation
+    PyModule_AddIntConstant(mod, "xplm_MapOrientation_UI", xplm_MapOrientation_UI); // XPLMMapOrientation
 
-    PyModule_AddIntConstant(mod, "MapStyle_VFR_Sectional", xplm_MapStyle_VFR_Sectional);
-    PyModule_AddIntConstant(mod, "MapStyle_IFR_LowEnroute", xplm_MapStyle_IFR_LowEnroute);
-    PyModule_AddIntConstant(mod, "MapStyle_IFR_HighEnroute", xplm_MapStyle_IFR_HighEnroute);
-    PyModule_AddIntConstant(mod, "MapLayer_Fill", xplm_MapLayer_Fill);
-    PyModule_AddIntConstant(mod, "MapLayer_Markings", xplm_MapLayer_Markings);
+    PyModule_AddIntConstant(mod, "MapStyle_VFR_Sectional", xplm_MapStyle_VFR_Sectional); // XPLMMapStyle
+    PyModule_AddIntConstant(mod, "MapStyle_IFR_LowEnroute", xplm_MapStyle_IFR_LowEnroute); // XPLMMapStyle
+    PyModule_AddIntConstant(mod, "MapStyle_IFR_HighEnroute", xplm_MapStyle_IFR_HighEnroute); // XPLMMapStyle
+    PyModule_AddIntConstant(mod, "MapLayer_Fill", xplm_MapLayer_Fill); // XPLMMapLayerType
+    PyModule_AddIntConstant(mod, "MapLayer_Markings", xplm_MapLayer_Markings); // XPLMMapLayerType
     PyModule_AddStringConstant(mod, "MAP_USER_INTERFACE", XPLM_MAP_USER_INTERFACE);
     PyModule_AddStringConstant(mod, "MAP_IOS", XPLM_MAP_IOS);
-    PyModule_AddIntConstant(mod, "MapOrientation_Map", xplm_MapOrientation_Map);
-    PyModule_AddIntConstant(mod, "MapOrientation_UI", xplm_MapOrientation_UI);
+    PyModule_AddIntConstant(mod, "MapOrientation_Map", xplm_MapOrientation_Map); // XPLMMapOrientation
+    PyModule_AddIntConstant(mod, "MapOrientation_UI", xplm_MapOrientation_UI); // XPLMMapOrientation
   }
   return mod;
 }

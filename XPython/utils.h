@@ -2,7 +2,7 @@
 #include <Python.h>
 #define UTILS__H
 
-#define My_DOCSTR(name,method,parms,str) static const char name[] = method"($module, /, "parms")\n--\n\n"str
+#define My_DOCSTR(name,method,parms,params_doc,return,str) static const char name[] = method"($module, /, "parms")\n--\n\n"str
 extern const char *objRefName;
 extern const char *commandRefName;
 extern const char *widgetRefName;

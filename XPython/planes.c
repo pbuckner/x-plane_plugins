@@ -15,7 +15,10 @@ static PyObject *availableDict;
 #define AVAILABLE_REFCON 3
 #define AVAILABLE_MODULE_NAME 4
 
-My_DOCSTR(_setUsersAircraft__doc__, "setUsersAircraft", "path",
+My_DOCSTR(_setUsersAircraft__doc__, "setUsersAircraft",
+          "path",
+          "path:str",
+          "None",
           "Change the user's aircraft and reinitialize.\n"
           "\n"
           "path is either relative X-Plane root, or fully qualified,\n"
@@ -32,7 +35,10 @@ static PyObject *XPLMSetUsersAircraftFun(PyObject *self, PyObject *args, PyObjec
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_placeUserAtAirport__doc__, "placeUserAtAirport", "code",
+My_DOCSTR(_placeUserAtAirport__doc__, "placeUserAtAirport",
+          "code",
+          "code:str",
+          "None",
           "Place user at given airport, specified by ICAO code.\n"
           "\n"
           "Invalid airport code will crash the sim.");
@@ -48,7 +54,10 @@ static PyObject *XPLMPlaceUserAtAirportFun(PyObject *self, PyObject *args, PyObj
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_placeUserAtLocation__doc__, "placeUserAtLocation", "latitude, longitude, elevation, heading, speed",
+My_DOCSTR(_placeUserAtLocation__doc__, "placeUserAtLocation",
+          "latitude, longitude, elevation, heading, speed",
+          "latitude:float, longitude:float, elevation:float, heading:float, speed:float",
+          "None",
           "Place user aircraft at location with engines running.\n"
           "\n"
           "elevation is meters, heading is True, speed is meters per second");
@@ -71,7 +80,10 @@ static PyObject *XPLMPlaceUserAtLocationFun(PyObject *self, PyObject *args, PyOb
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_countAircraft__doc__, "countAircraft", "",
+My_DOCSTR(_countAircraft__doc__, "countAircraft",
+          "",
+          "",
+          "tuple[int, int, XPLMPluginID]",
           "Return tuple of (#a/c configured, #a/c active, pluginID of controlling plugin");
 static PyObject *XPLMCountAircraftFun(PyObject *self, PyObject *args)
 {
@@ -84,7 +96,10 @@ static PyObject *XPLMCountAircraftFun(PyObject *self, PyObject *args)
   return Py_BuildValue("(iii)", outTotalAircraft, outActiveAircraft, outController);
 }
 
-My_DOCSTR(_getNthAircraftModel__doc__, "getNthAircraftModel", "index",
+My_DOCSTR(_getNthAircraftModel__doc__, "getNthAircraftModel",
+          "index",
+          "index:int",
+          "tuple[str, str]",
           "Return (filename, fullPath) of aircraft at index");
 static PyObject *XPLMGetNthAircraftModelFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -122,7 +137,10 @@ void planesAvailable(void *inRefcon)
   Py_XDECREF(res);
 }
 
-My_DOCSTR(_acquirePlanes__doc__, "acquirePlanes", "aircraft=None, callback=None, refCon=None",
+My_DOCSTR(_acquirePlanes__doc__, "acquirePlanes",
+          "aircraft=None, callback=None, refCon=None",
+          "aircraft:Optional[Sequence[str]]=None, callback:Optional[Callable[[Any], None]]=None, refCon:Any=None",
+          "int",
           "Get exclusive access to aircraft.\n"
           "\n"
           "1 on success, 0 otherwise. You callback will be called\n"
@@ -183,7 +201,10 @@ static PyObject *XPLMAcquirePlanesFun(PyObject *self, PyObject *args, PyObject *
 
 
 
-My_DOCSTR(_releasePlanes__doc__, "releasePlanes", "",
+My_DOCSTR(_releasePlanes__doc__, "releasePlanes",
+          "",
+          "",
+          "None",
           "Release all planes, acquired using acquirePlanes().");
 static PyObject *XPLMReleasePlanesFun(PyObject *self, PyObject *args)
 {
@@ -193,7 +214,10 @@ static PyObject *XPLMReleasePlanesFun(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_setActiveAircraftCount__doc__, "setActiveAircraftCount", "count",
+My_DOCSTR(_setActiveAircraftCount__doc__, "setActiveAircraftCount",
+          "count",
+          "count:int",
+          "None",
           "Set number of active planes.\n"
           "\n"
           "Only sets up to number of available planes. You must\n"
@@ -211,7 +235,10 @@ static PyObject *XPLMSetActiveAircraftCountFun(PyObject *self, PyObject *args, P
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_setAircraftModel__doc__, "setAircraftModel", "index, path",
+My_DOCSTR(_setAircraftModel__doc__, "setAircraftModel",
+          "index, path",
+          "index:int, path:str",
+          "None",
           "Load aircraft model into index. (Do not use index=0)\n"
           "\n"
           "Path is absolute, or relative to X-Plane root.");
@@ -228,7 +255,10 @@ static PyObject *XPLMSetAircraftModelFun(PyObject *self, PyObject *args, PyObjec
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_disableAIForPlane__doc__, "disableAIForPlane", "index",
+My_DOCSTR(_disableAIForPlane__doc__, "disableAIForPlane",
+          "index",
+          "index:int",
+          "None",
           "Turn off AI for given airplane.\n"
           "\n"
           "Plane will continue to draw, but will not move itself.");
@@ -314,7 +344,7 @@ PyInit_XPLMPlanes(void)
   }
   PyObject *mod = PyModule_Create(&XPLMPlanesModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
     PyModule_AddIntConstant(mod, "XPLM_USER_AIRCRAFT", XPLM_USER_AIRCRAFT);
     PyModule_AddIntConstant(mod, "USER_AIRCRAFT", XPLM_USER_AIRCRAFT);
   }

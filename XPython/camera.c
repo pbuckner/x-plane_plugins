@@ -118,7 +118,12 @@ static int genericCameraControl(XPLMCameraPosition_t *outCameraPosition, int inI
   return res;
 }
 
-My_DOCSTR(_controlCamera__doc__, "controlCamera", "howLong=ControlCameraUntilViewChanges, controlFunc=None, refCon=None",
+My_DOCSTR(_controlCamera__doc__, "controlCamera",
+          "howLong=ControlCameraUntilViewChanges, controlFunc=None,refCon=None",
+          "howLong:int=ControlCameraUntilViewChanges,"
+          "controlFunc:Optional[Callable[[list[float], int, Any], int]]=None,"
+          "refCon:Any=None",
+          "None",
           "Reposition camera on next drawing cycle.\n"
           "  howLong: 1 = until view changes\n"
           "           2 = forever\n"
@@ -159,7 +164,11 @@ static PyObject *XPLMControlCameraFun(PyObject *self, PyObject *args, PyObject *
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_dontControlCamera__doc__, "dontControlCamera", "", "Release control of camera.");
+My_DOCSTR(_dontControlCamera__doc__, "dontControlCamera",
+          "",
+          "",
+          "None",
+          "Release control of camera.");
 static PyObject *XPLMDontControlCameraFun(PyObject *self, PyObject *args)
 {
   (void) self;
@@ -168,7 +177,10 @@ static PyObject *XPLMDontControlCameraFun(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_isCameraBeingControlled__doc__, "isCameraBeingControlled", "",
+My_DOCSTR(_isCameraBeingControlled__doc__, "isCameraBeingControlled",
+          "",
+          "",
+          "tuple[int, int]",
           "Returns two integer tuple. (isBeingControlled, howLong).\n\n"
           "isBeingControlled is 1 when camera is being controlled, 0 otherwise.\n"
           "howLong is\n"
@@ -184,8 +196,11 @@ static PyObject *XPLMIsCameraBeingControlledFun(PyObject *self, PyObject *args)
   return Py_BuildValue("(ii)", res, dur);
 }
 
-My_DOCSTR(_readCameraPosition__doc__, "readCameraPosition", "",
-          "Returns list of seven floats:\n"
+My_DOCSTR(_readCameraPosition__doc__, "readCameraPosition",
+          "",
+          "",
+          "tuple[float, float, float, float, float, float, float]",
+          "Returns tuple of seven floats:\n"
           " Index   Value   Meaning\n"
           " 0,1,2  x,y,z    Camera's position in OpenGL coordinates\n"
           " 3      pitch    In degrees, 0.0 is flat, positive for nose up.\n"
@@ -250,11 +265,11 @@ PyInit_XPLMCamera(void)
   }
   PyObject *mod = PyModule_Create(&XPLMCameraModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
-    PyModule_AddIntConstant(mod, "ControlCameraUntilViewChanges", xplm_ControlCameraUntilViewChanges);
-    PyModule_AddIntConstant(mod, "xplm_ControlCameraUntilViewChanges", xplm_ControlCameraUntilViewChanges);
-    PyModule_AddIntConstant(mod, "ControlCameraForever", xplm_ControlCameraForever);
-    PyModule_AddIntConstant(mod, "xplm_ControlCameraForever", xplm_ControlCameraForever);
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
+    PyModule_AddIntConstant(mod, "ControlCameraUntilViewChanges", xplm_ControlCameraUntilViewChanges); //XPLMCameraControlDuration
+    PyModule_AddIntConstant(mod, "xplm_ControlCameraUntilViewChanges", xplm_ControlCameraUntilViewChanges); //XPLMCameraControlDuration
+    PyModule_AddIntConstant(mod, "ControlCameraForever", xplm_ControlCameraForever); //XPLMCameraControlDuration
+    PyModule_AddIntConstant(mod, "xplm_ControlCameraForever", xplm_ControlCameraForever); //XPLMCameraControlDuration
   }
 
   return mod;

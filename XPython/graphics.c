@@ -8,7 +8,10 @@
 #include "utils.h"
 
 
-My_DOCSTR(_setGraphicsState__doc__, "setGraphicsState", "fog=0, numberTexUnits=0, lighting=0, alphaTesting=0, alphaBlending=0, depthTesting=0, depthWriting=0",
+My_DOCSTR(_setGraphicsState__doc__, "setGraphicsState",
+          "fog=0, numberTexUnits=0, lighting=0, alphaTesting=0, alphaBlending=0, depthTesting=0, depthWriting=0",
+          "fog:int=0, numberTexUnits:int=0, lighting:int=0, alphaTesting:int=0, alphaBlending:int=0, depthTesting:int=0, depthWriting:int=0",
+          "None",
           "Change OpenGL's graphics state.\n"
           "\n"
           "Use instead of any glEnable / glDisable calls.");
@@ -36,7 +39,10 @@ static PyObject *XPLMSetGraphicsStateFun(PyObject *self, PyObject *args, PyObjec
   Py_RETURN_NONE;
 } 
 
-My_DOCSTR(_bindTexture2d__doc__, "bindTexture2d", "textureID, textureUnit",
+My_DOCSTR(_bindTexture2d__doc__, "bindTexture2d",
+          "textureID, textureUnit",
+          "textureID:int, textureUnit:int",
+          "None",
           "Changes currently bound OpenGL texture.\n"
           "\n"
           "Use instead of glBindTexture(GL_TEXTURE_2D, ...)");
@@ -55,7 +61,10 @@ static PyObject *XPLMBindTexture2dFun(PyObject *self, PyObject *args, PyObject *
   Py_RETURN_NONE;
 } 
 
-My_DOCSTR(_generateTextureNumbers__doc__, "generateTextureNumbers", "count",
+My_DOCSTR(_generateTextureNumbers__doc__, "generateTextureNumbers",
+          "count=1",
+          "count:int=1",
+          "None | list[int]",
           "Generate number of textures for a plugin.\n"
           "\n"
           "Returns list of numbers.");
@@ -101,7 +110,10 @@ static PyObject *XPLMGenerateTextureNumbersFun(PyObject *self, PyObject *args, P
   Py_RETURN_NONE;
 } 
 
-My_DOCSTR(_worldToLocal__doc__, "worldToLocal", "lat, lon, alt=0",
+My_DOCSTR(_worldToLocal__doc__, "worldToLocal",
+          "lat, lon, alt=0",
+          "lat:float, lon:float, alt:float=0.0",
+          "tuple[float, float, float]",
           "Convert Lat/Lon/Alt to local scene coordinates (x, y, z)\n"
           "\n"
           "Latitude and longitude are decimal degrees, altitude is meters MSL.\n"
@@ -126,7 +138,10 @@ static PyObject *XPLMWorldToLocalFun(PyObject *self, PyObject *args, PyObject *k
   return res;
 }
 
-My_DOCSTR(_localToWorld__doc__, "localToWorld", "x, y z",
+My_DOCSTR(_localToWorld__doc__, "localToWorld",
+          "x, y, z",
+          "x:float, y:float, z:float",
+          "tuple[float, float, float]",
           "Convert local scene coordinates (x, y, z) into (lat, lon, alt)\n"
           "\n"
           "Latitude and longitude are decimal degrees, altitude is meters MSL.");
@@ -150,7 +165,10 @@ static PyObject *XPLMLocalToWorldFun(PyObject *self, PyObject *args, PyObject *k
   return res;
 }
 
-My_DOCSTR(_drawTranslucentDarkBox__doc__, "drawTranslucentDarkBox", "left, top, right, bottom",
+My_DOCSTR(_drawTranslucentDarkBox__doc__, "drawTranslucentDarkBox",
+          "left, top, right, bottom",
+          "left:int, top:int, right:int, bottom:int",
+          "None",
           "Draw translucent dark box at location.");
 static PyObject *XPLMDrawTranslucentDarkBoxFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -168,7 +186,12 @@ static PyObject *XPLMDrawTranslucentDarkBoxFun(PyObject *self, PyObject *args, P
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_drawString__doc__, "drawString", "rgb=(1., 1., 1.), x=0, y=0, value=\"\", wordWrapWidth=None, fontID=18",
+My_DOCSTR(_drawString__doc__, "drawString",
+          "rgb=(1., 1., 1.), x=0, y=0, value='', wordWrapWidth=None, fontID=Font_Proportional",
+          "rgb:Sequence[float]=(1., 1., 1.), "
+          "x:int=0, y:int=0, value:str='', "
+          "wordWrapWidth:Optional[int]=None, fontID:XPLMFontID=Font_Proportional",
+          "None",
           "Draw a string at location (x, y)\n"
           "\n"
           "Default color is white (1., 1., 1.)");
@@ -214,7 +237,10 @@ static PyObject *XPLMDrawStringFun(PyObject *self, PyObject *args, PyObject *kwa
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_drawNumber__doc__, "drawNumber", "rgb=(1., 1., 1.), x=0, y=0, value=0.0, digits=-1, decimals=0, showSign=1, fontID=18",
+My_DOCSTR(_drawNumber__doc__, "drawNumber",
+          "rgb=(1., 1., 1.), x=0, y=0, value=0.0, digits=-1, decimals=0, showSign=1, fontID=18",
+          "rgb:Sequence[float]=(1., 1., 1.), x:int=0, y:int=0, value:float=0.0, digits:int=-1, decimals:int=0, showSign:int=1, fontID:XPLMFontID=Font_Proportional",
+          "None",
           "Draw a number at location (x, y)\n"
           "\n"
           "Default color is white (1., 1., 1.)");
@@ -261,7 +287,10 @@ static PyObject *XPLMDrawNumberFun(PyObject *self, PyObject *args, PyObject *kwa
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_getFontDimensions__doc__, "getFontDimensions", "fontID",
+My_DOCSTR(_getFontDimensions__doc__, "getFontDimensions",
+          "fontID",
+          "fontID:XPLMFontID",
+          "None | tuple[int, int, int]",
           "Get information about font\n"
           "\n"
           "Returns (width, height, digitsOnly). Proportional fonts\n"
@@ -297,7 +326,10 @@ static PyObject *XPLMGetFontDimensionsFun(PyObject *self, PyObject *args, PyObje
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_measureString__doc__, "measureString", "fontID, string",
+My_DOCSTR(_measureString__doc__, "measureString",
+          "fontID, string",
+          "fontID:XPLMFontID, string:str",
+          "float",
           "Returns floating point width of string, with indicated font.");
 static PyObject *XPLMMeasureStringFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -381,13 +413,13 @@ PyInit_XPLMGraphics(void)
 {
   PyObject *mod = PyModule_Create(&XPLMGraphicsModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
-    PyModule_AddIntConstant(mod, "xplm_Tex_GeneralInterface", xplm_Tex_GeneralInterface);
-    PyModule_AddIntConstant(mod, "xplmFont_Basic", xplmFont_Basic);
-    PyModule_AddIntConstant(mod, "xplmFont_Proportional", xplmFont_Proportional);
-    PyModule_AddIntConstant(mod, "Tex_GeneralInterface", xplm_Tex_GeneralInterface);
-    PyModule_AddIntConstant(mod, "Font_Basic", xplmFont_Basic);
-    PyModule_AddIntConstant(mod, "Font_Proportional", xplmFont_Proportional);
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
+    PyModule_AddIntConstant(mod, "xplm_Tex_GeneralInterface", xplm_Tex_GeneralInterface); // XPLMTextureID
+    PyModule_AddIntConstant(mod, "xplmFont_Basic", xplmFont_Basic); // XPLMFontID
+    PyModule_AddIntConstant(mod, "xplmFont_Proportional", xplmFont_Proportional); // XPLMFontID
+    PyModule_AddIntConstant(mod, "Tex_GeneralInterface", xplm_Tex_GeneralInterface); // XPLMTextureID
+    PyModule_AddIntConstant(mod, "Font_Basic", xplmFont_Basic); // XPLMFontID
+    PyModule_AddIntConstant(mod, "Font_Proportional", xplmFont_Proportional); // XPLMFontID
   }
 
   return mod;

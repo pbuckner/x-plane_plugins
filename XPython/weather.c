@@ -14,7 +14,10 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_getMETARForAirport__doc__, "getMETARForAirport", "airport_id",
+My_DOCSTR(_getMETARForAirport__doc__, "getMETARForAirport",
+          "airport_id",
+          "airport_id:str",
+          "str",
           "Returns 'last known' METAR report for given airport.\n"
           "\n"
           "Note the actual weather may have evolved significantly since\n"
@@ -37,7 +40,10 @@ static PyObject *XPLMGetMETARForAirportFun(PyObject *self, PyObject *args, PyObj
   return PyUnicode_DecodeUTF8((char *)&outMetar, strlen((char*)&outMetar), NULL);
 }
 
-My_DOCSTR(_getWeatherAtLocation__doc__, "getWeatherAtLocation", "latitude, longitude, altitude_m",
+My_DOCSTR(_getWeatherAtLocation__doc__, "getWeatherAtLocation",
+          "latitude, longitude, altitude_m",
+          "latitude:float, longitude:float, altitude_m:float",
+          "None | XPLMWeatherInfo_t",
           "Returns current weather conditions at given location.\n"
           "Note this appears to work world-wide, though accuracy suffers with distance from current\n"
           "position.\n"
@@ -123,7 +129,7 @@ PyInit_XPLMWeather(void)
 {
   PyObject *mod = PyModule_Create(&XPLMWeatherModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
   }
   return mod;
 }

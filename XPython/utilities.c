@@ -64,8 +64,11 @@ static void error_callback(const char *inMessage)
 }
 
 
-My_DOCSTR(_speakString__doc__, "speakString", "string",
-          "Display string in translucent overaly and speak string");
+My_DOCSTR(_speakString__doc__, "speakString",
+          "string",
+          "string:str",
+          "None",
+          "Display string in translucent overlay and speak string");
 static PyObject *XPLMSpeakStringFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   static char *keywords[] = {"string", NULL};
@@ -78,7 +81,10 @@ static PyObject *XPLMSpeakStringFun(PyObject *self, PyObject *args, PyObject *kw
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_getVirtualKeyDescription__doc__, "getVirtualKeyDescription", "vKey",
+My_DOCSTR(_getVirtualKeyDescription__doc__, "getVirtualKeyDescription",
+          "vKey",
+          "vKey:int",
+          "str",
           "Return human-readable string describing virtual key");
 static PyObject *XPLMGetVirtualKeyDescriptionFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -92,7 +98,10 @@ static PyObject *XPLMGetVirtualKeyDescriptionFun(PyObject *self, PyObject *args,
   return PyUnicode_DecodeUTF8(res, strlen(res), NULL);
 }
 
-My_DOCSTR(_reloadScenery__doc__, "reloadScenery", "",
+My_DOCSTR(_reloadScenery__doc__, "reloadScenery",
+          "",
+          "",
+          "None",
           "Reload current set of scenery");
 static PyObject *XPLMReloadSceneryFun(PyObject *self, PyObject *args)
 {
@@ -102,7 +111,10 @@ static PyObject *XPLMReloadSceneryFun(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_getSystemPath__doc__, "getSystemPath", "",
+My_DOCSTR(_getSystemPath__doc__, "getSystemPath",
+          "",
+          "",
+          "str",
           "Return full page to X-Plane folder, with trailing '/'");
 static PyObject *XPLMGetSystemPathFun(PyObject *self, PyObject *args)
 {
@@ -114,7 +126,10 @@ static PyObject *XPLMGetSystemPathFun(PyObject *self, PyObject *args)
   return PyUnicode_DecodeUTF8(outSystemPath, strlen(outSystemPath), NULL);
 }
 
-My_DOCSTR(_getPrefsPath__doc__, "getPrefsPath", "",
+My_DOCSTR(_getPrefsPath__doc__, "getPrefsPath",
+          "",
+          "",
+          "str",
           "Get path the *file* within X-Plane's preferences directory.");
 static PyObject *XPLMGetPrefsPathFun(PyObject *self, PyObject *args)
 {
@@ -126,7 +141,10 @@ static PyObject *XPLMGetPrefsPathFun(PyObject *self, PyObject *args)
   return PyUnicode_DecodeUTF8(outPrefsPath, strlen(outPrefsPath), NULL);
 }
 
-My_DOCSTR(_getDirectorySeparator__doc__, "getDirectorySeparator", "",
+My_DOCSTR(_getDirectorySeparator__doc__, "getDirectorySeparator",
+          "",
+          "",
+          "str",
           "Get string used for directory separator for the current platform.\n"
           "\n"
           "Don't use this, use python os.path.join() related routines.");
@@ -141,7 +159,10 @@ static PyObject *XPLMGetDirectorySeparatorFun(PyObject *self, PyObject *args)
 }
 
 
-My_DOCSTR(_extractFileAndPath__doc__, "extractFileAndPath", "fullPath",
+My_DOCSTR(_extractFileAndPath__doc__, "extractFileAndPath",
+          "fullPath",
+          "fullPath:str",
+          "tuple[str, str]",
           "Given a full path, separate path from file\n"
           "\n"
           "Don't use this, use os.path routines instead");
@@ -161,7 +182,10 @@ static PyObject *XPLMExtractFileAndPathFun(PyObject *self, PyObject *args, PyObj
   return resObj;
 }
 
-My_DOCSTR(_getDirectoryContents__doc__, "getDirectoryContents", "dir, firstReturn=0, bufSize=2048, maxFiles=100",
+My_DOCSTR(_getDirectoryContents__doc__, "getDirectoryContents",
+          "dir, firstReturn=0, bufSize=2048, maxFiles=100",
+          "dir:str, firstReturn:int=0, bufSize:int=2048, maxFiles:int=100",
+          "tuple[int, list[str], int]",
           "Get contents (files and subdirectories) of directory\n"
           "\n"
           "Don't use this, use python os.walk() or glob.glob() instead.");
@@ -203,7 +227,10 @@ static PyObject *XPLMGetDirectoryContentsFun(PyObject *self, PyObject *args, PyO
   return retObj;
 }
 
-My_DOCSTR(_getVersions__doc__, "getVersions", "",
+My_DOCSTR(_getVersions__doc__, "getVersions",
+          "",
+          "",
+          "tuple[int, int, int]",
           "Return tuple with (X-Plane, XPLM SDK, and hostID)\n"
           "\n"
           "Host ID is either XPlane=1 or Unknown=0");
@@ -219,7 +246,10 @@ static PyObject *XPLMGetVersionsFun(PyObject *self, PyObject *args)
   return Py_BuildValue("(iii)", outXPlaneVersion, outXPLMVersion, (int)outHostID);
 }
 
-My_DOCSTR(_getLanguage__doc__, "getLanguage", "",
+My_DOCSTR(_getLanguage__doc__, "getLanguage",
+          "",
+          "",
+          "int",
           "Return language code the sim is running in.");
 static PyObject *XPLMGetLanguageFun(PyObject *self, PyObject *args)
 {
@@ -231,7 +261,10 @@ static PyObject *XPLMGetLanguageFun(PyObject *self, PyObject *args)
   return PyLong_FromLong(res);
 }
 
-My_DOCSTR(_debugString__doc__, "debugString", "string",
+My_DOCSTR(_debugString__doc__, "debugString",
+          "string",
+          "string:str",
+          "None",
           "Write string to 'Log.txt' file, with immediate buffer flush\n"
           "\n"
           "Use xp.systemLog() instead, to add newline and prefix with your\n"
@@ -251,7 +284,10 @@ static PyObject *XPLMDebugStringFun(PyObject *self, PyObject *args, PyObject *kw
 
 //Assumption:
 // Single error reporting callback per PI_* plugin!
-My_DOCSTR(_setErrorCallback__doc__, "setErrorCallback", "callback",
+My_DOCSTR(_setErrorCallback__doc__, "setErrorCallback",
+          "callback",
+          "callback:Callable[[str], None]",
+          "None",
           "Install error-reporting callback for your plugin\n"
           "\n"
           "Likely not useful for python debugging.");
@@ -273,7 +309,10 @@ static PyObject *XPLMSetErrorCallbackFun(PyObject *self, PyObject *args, PyObjec
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_findSymbol__doc__, "findSymbol", "symbol",
+My_DOCSTR(_findSymbol__doc__, "findSymbol",
+          "symbol",
+          "symbol:str",
+          "int",
           "Find C-API symbol. See documentation.");
 static PyObject *XPLMFindSymbolFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -287,7 +326,10 @@ static PyObject *XPLMFindSymbolFun(PyObject *self, PyObject *args, PyObject *kwa
   return PyLong_FromVoidPtr(XPLMFindSymbol(inString));
 }
 
-My_DOCSTR(_loadDataFile__doc__, "loadDataFile", "fileType, path",
+My_DOCSTR(_loadDataFile__doc__, "loadDataFile",
+          "fileType, path",
+          "fileType:XPLMDataFileType, path:str",
+          "int",
           "Load data file given by path\n"
           "\n"
           "fileType is:\n"
@@ -308,7 +350,10 @@ static PyObject *XPLMLoadDataFileFun(PyObject *self, PyObject *args, PyObject *k
   return PyLong_FromLong(res);
 }
 
-My_DOCSTR(_saveDataFile__doc__, "saveDataFile", "fileType, path",
+My_DOCSTR(_saveDataFile__doc__, "saveDataFile",
+          "fileType, path",
+          "fileType:XPLMDataFileType, path:str",
+          "int",
           "Saves data file to disk.\n"
           "\n"
           "fileType is:\n"
@@ -370,7 +415,10 @@ static int genericCommandCallback(XPLMCommandRef inCommand, XPLMCommandPhase inP
   return res;
 }
 
-My_DOCSTR(_findCommand__doc__, "findCommand", "name",
+My_DOCSTR(_findCommand__doc__, "findCommand",
+          "name",
+          "name:str",
+          "XPLMCommandRef",
           "Return commandRef for named command or None");
 static PyObject *XPLMFindCommandFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -384,7 +432,10 @@ static PyObject *XPLMFindCommandFun(PyObject *self, PyObject *args, PyObject *kw
   return getPtrRef(res, commandCapsules, commandRefName);
 }
 
-My_DOCSTR(_commandBegin__doc__, "commandBegin", "commandRef",
+My_DOCSTR(_commandBegin__doc__, "commandBegin",
+          "commandRef",
+          "commandRef:XPLMCommandRef",
+          "None",
           "Start execution of command specified by commandRef");
 static PyObject *XPLMCommandBeginFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -398,7 +449,10 @@ static PyObject *XPLMCommandBeginFun(PyObject *self, PyObject *args, PyObject *k
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_commandEnd__doc__, "commandEnd", "commandRef",
+My_DOCSTR(_commandEnd__doc__, "commandEnd",
+          "commandRef",
+          "commandRef:XPLMCommandRef",
+          "None",
           "Ends execution of command specified by commandRef");
 static PyObject *XPLMCommandEndFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -412,7 +466,10 @@ static PyObject *XPLMCommandEndFun(PyObject *self, PyObject *args, PyObject *kwa
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_commandOnce__doc__, "commandOnce", "commandRef",
+My_DOCSTR(_commandOnce__doc__, "commandOnce",
+          "commandRef",
+          "commandRef:XPLMCommandRef",
+          "None",
           "Executes given commandRef, doing both CommandBegin and CommandEnd");
 static PyObject *XPLMCommandOnceFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -426,7 +483,10 @@ static PyObject *XPLMCommandOnceFun(PyObject *self, PyObject *args, PyObject *kw
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_createCommand__doc__, "createCommand", "name, description=None",
+My_DOCSTR(_createCommand__doc__, "createCommand",
+          "name, description=None",
+          "name:str, description:Optional[str]=None",
+          "XPLMCommandRef",
           "Create a named command: You'll still need to registerCommandHandler()");
 static PyObject *XPLMCreateCommandFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -444,7 +504,10 @@ static PyObject *XPLMCreateCommandFun(PyObject *self, PyObject *args, PyObject *
   return getPtrRef(res, commandCapsules, commandRefName);
 }
 
-My_DOCSTR(_registerCommandHandler__doc__, "registerCommandHandler", "commandRef, callback, before=1, refCon=None",
+My_DOCSTR(_registerCommandHandler__doc__, "registerCommandHandler",
+          "commandRef, callback, before=1, refCon=None",
+          "commandRef:XPLMCommandRef, callback:Callable[[XPLMCommandRef, XPLMCommandPhase, Any], int], before:int=1, refCon:Any=None",
+          "None",
           "Register a callback for given commandRef\n"
           "\n"
           "command callback is (commandRef, phase, refCon) and should return 0\n"
@@ -484,7 +547,10 @@ static PyObject *XPLMRegisterCommandHandlerFun(PyObject *self, PyObject *args, P
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_unregisterCommandHandler__doc__, "unregisterCommandHandler", "commandRef, callback, before=1, refCon=None",
+My_DOCSTR(_unregisterCommandHandler__doc__, "unregisterCommandHandler",
+          "commandRef, callback, before=1, refCon=None",
+          "commandRef:XPLMCommandRef, callback:Callable[[XPLMCommandRef, XPLMCommandPhase, Any], int], before:int=1, refCon:Any=None",
+          "None",
           "Unregister commandRef. Parameters must match those provided with registerCommandHandler()");
 static PyObject *XPLMUnregisterCommandHandlerFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -654,80 +720,46 @@ PyInit_XPLMUtilities(void)
 
   PyObject *mod = PyModule_Create(&XPLMUtilitiesModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
-    /*
-     * XPLMHostApplicationID
-     * 
-     * The plug-in system is based on Austin's cross-platform OpenGL framework and 
-     * could theoretically be adapted to  run in other apps like WorldMaker.  The 
-     * plug-in system also runs against a test harness for internal development 
-     * and could be adapted to another flight sim (in theory at least).  So an ID 
-     * is providing allowing plug-ins to  indentify what app they are running 
-     * under.                                                                      
-     *
-     */
-    PyModule_AddIntConstant(mod, "xplm_Host_Unknown", xplm_Host_Unknown);
-    PyModule_AddIntConstant(mod, "xplm_Host_XPlane", xplm_Host_XPlane);
-    PyModule_AddIntConstant(mod, "Host_Unknown", xplm_Host_Unknown);
-    PyModule_AddIntConstant(mod, "Host_XPlane", xplm_Host_XPlane);
-    /*
-     * XPLMLanguageCode
-     * 
-     * These enums define what language the sim is running in.  These enumerations 
-     * do not imply that the sim can or does run in all of these languages; they 
-     * simply provide a known encoding in the event that a given sim version is 
-     * localized to a certain language.                                            
-     *
-     */
-    PyModule_AddIntConstant(mod, "xplm_Language_Unknown", xplm_Language_Unknown);
-    PyModule_AddIntConstant(mod, "xplm_Language_English", xplm_Language_English);
-    PyModule_AddIntConstant(mod, "xplm_Language_French", xplm_Language_French);
-    PyModule_AddIntConstant(mod, "xplm_Language_German", xplm_Language_German);
-    PyModule_AddIntConstant(mod, "xplm_Language_Italian", xplm_Language_Italian);
-    PyModule_AddIntConstant(mod, "xplm_Language_Spanish", xplm_Language_Spanish);
-    PyModule_AddIntConstant(mod, "xplm_Language_Korean", xplm_Language_Korean);
-    PyModule_AddIntConstant(mod, "xplm_Language_Russian", xplm_Language_Russian);
-    PyModule_AddIntConstant(mod, "xplm_Language_Greek", xplm_Language_Greek);
-    PyModule_AddIntConstant(mod, "xplm_Language_Japanese", xplm_Language_Japanese);
-    PyModule_AddIntConstant(mod, "Language_Unknown", xplm_Language_Unknown);
-    PyModule_AddIntConstant(mod, "Language_English", xplm_Language_English);
-    PyModule_AddIntConstant(mod, "Language_French", xplm_Language_French);
-    PyModule_AddIntConstant(mod, "Language_German", xplm_Language_German);
-    PyModule_AddIntConstant(mod, "Language_Italian", xplm_Language_Italian);
-    PyModule_AddIntConstant(mod, "Language_Spanish", xplm_Language_Spanish);
-    PyModule_AddIntConstant(mod, "Language_Korean", xplm_Language_Korean);
-    PyModule_AddIntConstant(mod, "Language_Russian", xplm_Language_Russian);
-    PyModule_AddIntConstant(mod, "Language_Greek", xplm_Language_Greek);
-    PyModule_AddIntConstant(mod, "Language_Japanese", xplm_Language_Japanese);
-    PyModule_AddIntConstant(mod, "xplm_Language_Chinese", xplm_Language_Chinese);
-    PyModule_AddIntConstant(mod, "Language_Chinese", xplm_Language_Chinese);
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
+    PyModule_AddIntConstant(mod, "xplm_Host_Unknown", xplm_Host_Unknown); // XPLMHostApplicationID
+    PyModule_AddIntConstant(mod, "xplm_Host_XPlane", xplm_Host_XPlane); // XPLMHostApplicationID
+    PyModule_AddIntConstant(mod, "Host_Unknown", xplm_Host_Unknown); // XPLMHostApplicationID
+    PyModule_AddIntConstant(mod, "Host_XPlane", xplm_Host_XPlane); // XPLMHostApplicationID
 
-    /*
-     * XPLMDataFileType
-     * 
-     * These enums define types of data files you can load or unload using the 
-     * SDK.                                                                        
-     *
-     */
-    PyModule_AddIntConstant(mod, "xplm_DataFile_Situation", xplm_DataFile_Situation);
-    PyModule_AddIntConstant(mod, "xplm_DataFile_ReplayMovie", xplm_DataFile_ReplayMovie);
+    PyModule_AddIntConstant(mod, "xplm_Language_Unknown", xplm_Language_Unknown); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "xplm_Language_English", xplm_Language_English); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "xplm_Language_French", xplm_Language_French); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "xplm_Language_German", xplm_Language_German); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "xplm_Language_Italian", xplm_Language_Italian); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "xplm_Language_Spanish", xplm_Language_Spanish); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "xplm_Language_Korean", xplm_Language_Korean); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "xplm_Language_Russian", xplm_Language_Russian); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "xplm_Language_Greek", xplm_Language_Greek); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "xplm_Language_Japanese", xplm_Language_Japanese); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_Unknown", xplm_Language_Unknown); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_English", xplm_Language_English); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_French", xplm_Language_French); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_German", xplm_Language_German); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_Italian", xplm_Language_Italian); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_Spanish", xplm_Language_Spanish); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_Korean", xplm_Language_Korean); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_Russian", xplm_Language_Russian); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_Greek", xplm_Language_Greek); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_Japanese", xplm_Language_Japanese); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "xplm_Language_Chinese", xplm_Language_Chinese); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_Chinese", xplm_Language_Chinese); // XPLMLanguageCode
 
-    PyModule_AddIntConstant(mod, "DataFile_Situation", xplm_DataFile_Situation);
-    PyModule_AddIntConstant(mod, "DataFile_ReplayMovie", xplm_DataFile_ReplayMovie);
+    PyModule_AddIntConstant(mod, "xplm_DataFile_Situation", xplm_DataFile_Situation); // XPLMDataFileType
+    PyModule_AddIntConstant(mod, "xplm_DataFile_ReplayMovie", xplm_DataFile_ReplayMovie); // XPLMDataFileType
+    PyModule_AddIntConstant(mod, "DataFile_Situation", xplm_DataFile_Situation); // XPLMDataFileType
+    PyModule_AddIntConstant(mod, "DataFile_ReplayMovie", xplm_DataFile_ReplayMovie); // XPLMDataFileType
     
-    /*
-     * XPLMCommandPhase
-     * 
-     * The phases of a command.                                                    
-     *
-     */
-    PyModule_AddIntConstant(mod, "xplm_CommandBegin", xplm_CommandBegin);
-    PyModule_AddIntConstant(mod, "xplm_CommandContinue", xplm_CommandContinue);
-    PyModule_AddIntConstant(mod, "xplm_CommandEnd", xplm_CommandEnd);
-
-    PyModule_AddIntConstant(mod, "CommandBegin", xplm_CommandBegin);
-    PyModule_AddIntConstant(mod, "CommandContinue", xplm_CommandContinue);
-    PyModule_AddIntConstant(mod, "CommandEnd", xplm_CommandEnd);
+    PyModule_AddIntConstant(mod, "xplm_CommandBegin", xplm_CommandBegin); // XPLMCommandPhase
+    PyModule_AddIntConstant(mod, "xplm_CommandContinue", xplm_CommandContinue); // XPLMCommandPhase
+    PyModule_AddIntConstant(mod, "xplm_CommandEnd", xplm_CommandEnd); // XPLMCommandPhase
+    PyModule_AddIntConstant(mod, "CommandBegin", xplm_CommandBegin); // XPLMCommandPhase
+    PyModule_AddIntConstant(mod, "CommandContinue", xplm_CommandContinue); // XPLMCommandPhase
+    PyModule_AddIntConstant(mod, "CommandEnd", xplm_CommandEnd); // XPLMCommandPhase
 
   }
 

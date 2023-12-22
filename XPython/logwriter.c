@@ -62,7 +62,7 @@ PyInit_XPythonLogWriter(void)
 {
   PyObject *mod = PyModule_Create(&XPythonLogWriterModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
     PySys_SetObject("stdout", mod);
     PySys_SetObject("stderr", mod);
   }

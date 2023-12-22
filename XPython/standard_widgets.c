@@ -41,19 +41,19 @@ PyInit_XPStandardWidgets(void)
 {
   PyObject *mod = PyModule_Create(&XPStandardWidgetsModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
-    PyModule_AddIntConstant(mod, "xpWidgetClass_MainWindow", xpWidgetClass_MainWindow);
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
+    PyModule_AddIntConstant(mod, "xpWidgetClass_MainWindow", xpWidgetClass_MainWindow); //XPWidgetClass
     PyModule_AddIntConstant(mod, "xpMainWindowStyle_MainWindow", xpMainWindowStyle_MainWindow);
     PyModule_AddIntConstant(mod, "xpMainWindowStyle_Translucent", xpMainWindowStyle_Translucent);
     PyModule_AddIntConstant(mod, "xpProperty_MainWindowType", xpProperty_MainWindowType);
     PyModule_AddIntConstant(mod, "xpProperty_MainWindowHasCloseBoxes", xpProperty_MainWindowHasCloseBoxes);
     PyModule_AddIntConstant(mod, "xpMessage_CloseButtonPushed", xpMessage_CloseButtonPushed);
-    PyModule_AddIntConstant(mod, "xpWidgetClass_SubWindow", xpWidgetClass_SubWindow);
+    PyModule_AddIntConstant(mod, "xpWidgetClass_SubWindow", xpWidgetClass_SubWindow); //XPWidgetClass
     PyModule_AddIntConstant(mod, "xpSubWindowStyle_SubWindow", xpSubWindowStyle_SubWindow);
     PyModule_AddIntConstant(mod, "xpSubWindowStyle_Screen", xpSubWindowStyle_Screen);
     PyModule_AddIntConstant(mod, "xpSubWindowStyle_ListView", xpSubWindowStyle_ListView);
     PyModule_AddIntConstant(mod, "xpProperty_SubWindowType", xpProperty_SubWindowType);
-    PyModule_AddIntConstant(mod, "xpWidgetClass_Button", xpWidgetClass_Button);
+    PyModule_AddIntConstant(mod, "xpWidgetClass_Button", xpWidgetClass_Button); //XPWidgetClass
     PyModule_AddIntConstant(mod, "xpPushButton", xpPushButton);
     PyModule_AddIntConstant(mod, "xpRadioButton", xpRadioButton);
     PyModule_AddIntConstant(mod, "xpWindowCloseBox", xpWindowCloseBox);
@@ -67,7 +67,7 @@ PyInit_XPStandardWidgets(void)
     PyModule_AddIntConstant(mod, "xpProperty_ButtonState", xpProperty_ButtonState);
     PyModule_AddIntConstant(mod, "xpMsg_PushButtonPressed", xpMsg_PushButtonPressed);
     PyModule_AddIntConstant(mod, "xpMsg_ButtonStateChanged", xpMsg_ButtonStateChanged);
-    PyModule_AddIntConstant(mod, "xpWidgetClass_TextField", xpWidgetClass_TextField);
+    PyModule_AddIntConstant(mod, "xpWidgetClass_TextField", xpWidgetClass_TextField); //XPWidgetClass
     PyModule_AddIntConstant(mod, "xpTextEntryField", xpTextEntryField);
     PyModule_AddIntConstant(mod, "xpTextTransparent", xpTextTransparent);
     PyModule_AddIntConstant(mod, "xpTextTranslucent", xpTextTranslucent);
@@ -81,7 +81,7 @@ PyInit_XPStandardWidgets(void)
     PyModule_AddIntConstant(mod, "xpProperty_Font", xpProperty_Font);
     PyModule_AddIntConstant(mod, "xpProperty_ActiveEditSide", xpProperty_ActiveEditSide);
     PyModule_AddIntConstant(mod, "xpMsg_TextFieldChanged", xpMsg_TextFieldChanged);
-    PyModule_AddIntConstant(mod, "xpWidgetClass_ScrollBar", xpWidgetClass_ScrollBar);
+    PyModule_AddIntConstant(mod, "xpWidgetClass_ScrollBar", xpWidgetClass_ScrollBar); //XPWidgetClass
     PyModule_AddIntConstant(mod, "xpScrollBarTypeScrollBar", xpScrollBarTypeScrollBar);
     PyModule_AddIntConstant(mod, "xpScrollBarTypeSlider", xpScrollBarTypeSlider);
     PyModule_AddIntConstant(mod, "xpProperty_ScrollBarSliderPosition", xpProperty_ScrollBarSliderPosition);
@@ -91,9 +91,9 @@ PyInit_XPStandardWidgets(void)
     PyModule_AddIntConstant(mod, "xpProperty_ScrollBarType", xpProperty_ScrollBarType);
     PyModule_AddIntConstant(mod, "xpProperty_ScrollBarSlop", xpProperty_ScrollBarSlop);
     PyModule_AddIntConstant(mod, "xpMsg_ScrollBarSliderPositionChanged", xpMsg_ScrollBarSliderPositionChanged);
-    PyModule_AddIntConstant(mod, "xpWidgetClass_Caption", xpWidgetClass_Caption);
+    PyModule_AddIntConstant(mod, "xpWidgetClass_Caption", xpWidgetClass_Caption); //XPWidgetClass
     PyModule_AddIntConstant(mod, "xpProperty_CaptionLit", xpProperty_CaptionLit);
-    PyModule_AddIntConstant(mod, "xpWidgetClass_GeneralGraphics", xpWidgetClass_GeneralGraphics);
+    PyModule_AddIntConstant(mod, "xpWidgetClass_GeneralGraphics", xpWidgetClass_GeneralGraphics); //XPWidgetClass
     PyModule_AddIntConstant(mod, "xpShip", xpShip);
     PyModule_AddIntConstant(mod, "xpILSGlideScope", xpILSGlideScope);
     PyModule_AddIntConstant(mod, "xpMarkerLeft", xpMarkerLeft);
@@ -114,23 +114,23 @@ PyInit_XPStandardWidgets(void)
     PyModule_AddIntConstant(mod, "xpOilPlatformSmall", xpOilPlatformSmall);
     PyModule_AddIntConstant(mod, "xpWayPoint", xpWayPoint);
     PyModule_AddIntConstant(mod, "xpProperty_GeneralGraphicsType", xpProperty_GeneralGraphicsType);
-    PyModule_AddIntConstant(mod, "xpWidgetClass_Progress", xpWidgetClass_Progress);
+    PyModule_AddIntConstant(mod, "xpWidgetClass_Progress", xpWidgetClass_Progress); //XPWidgetClass
     PyModule_AddIntConstant(mod, "xpProperty_ProgressPosition", xpProperty_ProgressPosition);
     PyModule_AddIntConstant(mod, "xpProperty_ProgressMin", xpProperty_ProgressMin);
     PyModule_AddIntConstant(mod, "xpProperty_ProgressMax", xpProperty_ProgressMax);
 
-    PyModule_AddIntConstant(mod, "WidgetClass_MainWindow", xpWidgetClass_MainWindow);
+    PyModule_AddIntConstant(mod, "WidgetClass_MainWindow", xpWidgetClass_MainWindow); //XPWidgetClass
     PyModule_AddIntConstant(mod, "MainWindowStyle_MainWindow", xpMainWindowStyle_MainWindow);
     PyModule_AddIntConstant(mod, "MainWindowStyle_Translucent", xpMainWindowStyle_Translucent);
     PyModule_AddIntConstant(mod, "Property_MainWindowType", xpProperty_MainWindowType);
     PyModule_AddIntConstant(mod, "Property_MainWindowHasCloseBoxes", xpProperty_MainWindowHasCloseBoxes);
     PyModule_AddIntConstant(mod, "Message_CloseButtonPushed", xpMessage_CloseButtonPushed);
-    PyModule_AddIntConstant(mod, "WidgetClass_SubWindow", xpWidgetClass_SubWindow);
+    PyModule_AddIntConstant(mod, "WidgetClass_SubWindow", xpWidgetClass_SubWindow); //XPWidgetClass
     PyModule_AddIntConstant(mod, "SubWindowStyle_SubWindow", xpSubWindowStyle_SubWindow);
     PyModule_AddIntConstant(mod, "SubWindowStyle_Screen", xpSubWindowStyle_Screen);
     PyModule_AddIntConstant(mod, "SubWindowStyle_ListView", xpSubWindowStyle_ListView);
     PyModule_AddIntConstant(mod, "Property_SubWindowType", xpProperty_SubWindowType);
-    PyModule_AddIntConstant(mod, "WidgetClass_Button", xpWidgetClass_Button);
+    PyModule_AddIntConstant(mod, "WidgetClass_Button", xpWidgetClass_Button); //XPWidgetClass
     PyModule_AddIntConstant(mod, "PushButton", xpPushButton);
     PyModule_AddIntConstant(mod, "RadioButton", xpRadioButton);
     PyModule_AddIntConstant(mod, "WindowCloseBox", xpWindowCloseBox);
@@ -144,7 +144,7 @@ PyInit_XPStandardWidgets(void)
     PyModule_AddIntConstant(mod, "Property_ButtonState", xpProperty_ButtonState);
     PyModule_AddIntConstant(mod, "Msg_PushButtonPressed", xpMsg_PushButtonPressed);
     PyModule_AddIntConstant(mod, "Msg_ButtonStateChanged", xpMsg_ButtonStateChanged);
-    PyModule_AddIntConstant(mod, "WidgetClass_TextField", xpWidgetClass_TextField);
+    PyModule_AddIntConstant(mod, "WidgetClass_TextField", xpWidgetClass_TextField); //XPWidgetClass
     PyModule_AddIntConstant(mod, "TextEntryField", xpTextEntryField);
     PyModule_AddIntConstant(mod, "TextTransparent", xpTextTransparent);
     PyModule_AddIntConstant(mod, "TextTranslucent", xpTextTranslucent);
@@ -158,7 +158,7 @@ PyInit_XPStandardWidgets(void)
     PyModule_AddIntConstant(mod, "Property_Font", xpProperty_Font);
     PyModule_AddIntConstant(mod, "Property_ActiveEditSide", xpProperty_ActiveEditSide);
     PyModule_AddIntConstant(mod, "Msg_TextFieldChanged", xpMsg_TextFieldChanged);
-    PyModule_AddIntConstant(mod, "WidgetClass_ScrollBar", xpWidgetClass_ScrollBar);
+    PyModule_AddIntConstant(mod, "WidgetClass_ScrollBar", xpWidgetClass_ScrollBar); //XPWidgetClass
     PyModule_AddIntConstant(mod, "ScrollBarTypeScrollBar", xpScrollBarTypeScrollBar);
     PyModule_AddIntConstant(mod, "ScrollBarTypeSlider", xpScrollBarTypeSlider);
     PyModule_AddIntConstant(mod, "Property_ScrollBarSliderPosition", xpProperty_ScrollBarSliderPosition);
@@ -168,9 +168,9 @@ PyInit_XPStandardWidgets(void)
     PyModule_AddIntConstant(mod, "Property_ScrollBarType", xpProperty_ScrollBarType);
     PyModule_AddIntConstant(mod, "Property_ScrollBarSlop", xpProperty_ScrollBarSlop);
     PyModule_AddIntConstant(mod, "Msg_ScrollBarSliderPositionChanged", xpMsg_ScrollBarSliderPositionChanged);
-    PyModule_AddIntConstant(mod, "WidgetClass_Caption", xpWidgetClass_Caption);
+    PyModule_AddIntConstant(mod, "WidgetClass_Caption", xpWidgetClass_Caption); //XPWidgetClass
     PyModule_AddIntConstant(mod, "Property_CaptionLit", xpProperty_CaptionLit);
-    PyModule_AddIntConstant(mod, "WidgetClass_GeneralGraphics", xpWidgetClass_GeneralGraphics);
+    PyModule_AddIntConstant(mod, "WidgetClass_GeneralGraphics", xpWidgetClass_GeneralGraphics); //XPWidgetClass
     PyModule_AddIntConstant(mod, "Ship", xpShip);
     PyModule_AddIntConstant(mod, "ILSGlideScope", xpILSGlideScope);
     PyModule_AddIntConstant(mod, "MarkerLeft", xpMarkerLeft);
@@ -191,7 +191,7 @@ PyInit_XPStandardWidgets(void)
     PyModule_AddIntConstant(mod, "OilPlatformSmall", xpOilPlatformSmall);
     PyModule_AddIntConstant(mod, "WayPoint", xpWayPoint);
     PyModule_AddIntConstant(mod, "Property_GeneralGraphicsType", xpProperty_GeneralGraphicsType);
-    PyModule_AddIntConstant(mod, "WidgetClass_Progress", xpWidgetClass_Progress);
+    PyModule_AddIntConstant(mod, "WidgetClass_Progress", xpWidgetClass_Progress); //XPWidgetClass
     PyModule_AddIntConstant(mod, "Property_ProgressPosition", xpProperty_ProgressPosition);
     PyModule_AddIntConstant(mod, "Property_ProgressMin", xpProperty_ProgressMin);
     PyModule_AddIntConstant(mod, "Property_ProgressMax", xpProperty_ProgressMax);

@@ -96,7 +96,10 @@ static inline XPLMDataRef drefFromObj(PyObject *obj)
   return ret;
 }
 
-My_DOCSTR(_findDataRef__doc__, "findDataRef", "name",
+My_DOCSTR(_findDataRef__doc__, "findDataRef",
+          "name",
+          "name:str",
+          "XPLMDataRef",
           "Looks up string name of data ref and returns dataRef code\n"
           "to be used with get and set data ref functions,\n"
           "or None, if name cannot be found.");
@@ -116,7 +119,10 @@ static PyObject *XPLMFindDataRefFun(PyObject *self, PyObject *args, PyObject *kw
   }
 }
 
-My_DOCSTR(_canWriteDataRef__doc__, "canWriteDataRef", "dataRef",
+My_DOCSTR(_canWriteDataRef__doc__, "canWriteDataRef",
+          "dataRef",
+          "dataRef:XPLMDataRef",
+          "bool",
           "Returns True if dataRef is writable, False otherwise. Also\n"
           "returns False if provided dataRef is None.");
 static PyObject *XPLMCanWriteDataRefFun(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -135,7 +141,10 @@ static PyObject *XPLMCanWriteDataRefFun(PyObject *self, PyObject *args, PyObject
   }
 }
 
-My_DOCSTR(_isDataRefGood__doc__, "isDataRefGood", "dataRef",
+My_DOCSTR(_isDataRefGood__doc__, "isDataRefGood",
+          "dataRef",
+          "dataRef:XPLMDataRef",
+          "bool",
           "(Deprecated, do not use.)");
 static PyObject *XPLMIsDataRefGoodFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -153,7 +162,10 @@ static PyObject *XPLMIsDataRefGoodFun(PyObject *self, PyObject *args, PyObject *
   }
 }
 
-My_DOCSTR(_getDataRefTypes__doc__, "getDataRefTypes", "dataRef",
+My_DOCSTR(_getDataRefTypes__doc__, "getDataRefTypes",
+          "dataRef",
+          "dataRef:XPLMDataRef",
+          "int",
           "Returns or'd values of data type(s) supported by dataRef.\n"
           "   1 Type_Int\n"
           "   2 Type_Float\n"
@@ -173,7 +185,10 @@ static PyObject *XPLMGetDataRefTypesFun(PyObject *self, PyObject *args, PyObject
   return PyLong_FromLong(XPLMGetDataRefTypes(inDataRef));
 }
 
-My_DOCSTR(_getDatai__doc__, "getDatai", "dataRef",
+My_DOCSTR(_getDatai__doc__, "getDatai",
+          "dataRef",
+          "dataRef:XPLMDataRef",
+          "int",
           "Returns integer value for dataRef.");
 static PyObject *XPLMGetDataiFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -187,7 +202,10 @@ static PyObject *XPLMGetDataiFun(PyObject *self, PyObject *args, PyObject *kwarg
   return PyLong_FromLong(XPLMGetDatai(inDataRef));
 }
 
-My_DOCSTR(_setDatai__doc__, "setDatai", "dataRef, value=0",
+My_DOCSTR(_setDatai__doc__, "setDatai",
+          "dataRef, value=0",
+          "dataRef:XPLMDataRef, value:int=0",
+          "None",
           "Sets integer value for dataRef.");
 static PyObject *XPLMSetDataiFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -203,7 +221,10 @@ static PyObject *XPLMSetDataiFun(PyObject *self, PyObject *args, PyObject *kwarg
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_getDataf__doc__, "getDataf", "dataRef",
+My_DOCSTR(_getDataf__doc__, "getDataf",
+          "dataRef",
+          "dataRef:XPLMDataRef",
+          "float",
           "Returns float value for dataRef.");
 static PyObject *XPLMGetDatafFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -217,7 +238,10 @@ static PyObject *XPLMGetDatafFun(PyObject *self, PyObject *args, PyObject *kwarg
   return PyFloat_FromDouble(XPLMGetDataf(inDataRef));
 }
 
-My_DOCSTR(_setDataf__doc__, "setDataf", "dataRef, value=0.0",
+My_DOCSTR(_setDataf__doc__, "setDataf",
+          "dataRef, value=0.0",
+          "dataRef:XPLMDataRef, value:float=0.0",
+          "None",
           "Sets float value for dataRef.");
 static PyObject *XPLMSetDatafFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -233,7 +257,10 @@ static PyObject *XPLMSetDatafFun(PyObject *self, PyObject *args, PyObject *kwarg
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_getDatad__doc__, "getDatad", "dataRef",
+My_DOCSTR(_getDatad__doc__, "getDatad",
+          "dataRef",
+          "dataRef:XPLMDataRef",
+          "float",
           "Returns double value for dataRef (as a python float)");
 static PyObject *XPLMGetDatadFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -247,7 +274,10 @@ static PyObject *XPLMGetDatadFun(PyObject *self, PyObject *args, PyObject *kwarg
   return PyFloat_FromDouble(XPLMGetDatad(inDataRef));
 }
 
-My_DOCSTR(_setDatad__doc__, "setDatad", "dataRef, value=0.0",
+My_DOCSTR(_setDatad__doc__, "setDatad",
+          "dataRef, value=0.0",
+          "dataRef:XPLMDataRef, value:float=0.0",
+          "None",
           "Sets double value for dataRef.");
 static PyObject *XPLMSetDatadFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -263,7 +293,10 @@ static PyObject *XPLMSetDatadFun(PyObject *self, PyObject *args, PyObject *kwarg
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_getDatavi__doc__, "getDatavi", "dataRef, values=None, offset=0, count=-1",
+My_DOCSTR(_getDatavi__doc__, "getDatavi",
+          "dataRef, values=None, offset=0, count=-1",
+          "dataRef:XPLMDataRef, values:Optional[list[int]]=None, offset:int=0, count:int=-1",
+          "int",
           "Get integer array value for dataRef.\n"
           "\n"
           "If values is None, return number of elements in the array (only).\n"
@@ -317,7 +350,10 @@ static PyObject *XPLMGetDataviFun(PyObject *self, PyObject *args, PyObject *kwar
   return PyLong_FromLong(res);
 }
 
-My_DOCSTR(_setDatavi__doc__, "setDatavi", "dataRef, values, offset=0, count=-1",
+My_DOCSTR(_setDatavi__doc__, "setDatavi",
+          "dataRef, values, offset=0, count=-1",
+          "dataRef:XPLMDataRef, values:list[int], offset:int=0, count:int=-1",
+          "None",
           "Set integer array value for dataRef.\n"
           "\n"
           "values is a list of integers, to be written into dataRef starting\n"
@@ -365,7 +401,10 @@ static PyObject *XPLMSetDataviFun(PyObject *self, PyObject *args, PyObject *kwar
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_getDatavf__doc__, "getDatavf", "dataRef, values=None, offset=0, count=-1",
+My_DOCSTR(_getDatavf__doc__, "getDatavf",
+          "dataRef, values=None, offset=0, count=-1",
+          "dataRef:XPLMDataRef, values:Optional[list[float]]=None, offset:int=0, count:int=-1",
+          "int",
           "Get float array value for dataRef.\n"
           "\n"
           "If values is None, return number of elements in the array (only).\n"
@@ -427,7 +466,10 @@ static PyObject *XPLMGetDatavfFun(PyObject *self, PyObject *args, PyObject *kwar
   return PyLong_FromLong(res);
 }
 
-My_DOCSTR(_setDatavf__doc__, "setDatavf", "dataRef, values, offset=0, count=-1",
+My_DOCSTR(_setDatavf__doc__, "setDatavf",
+          "dataRef, values, offset=0, count=-1",
+          "dataRef:XPLMDataRef, values:list[float], offset:int=0, count:int=-1",
+          "None",
           "Set float array value for dataRef.\n"
           "\n"
           "values is a list of floats, to be written into dataRef starting\n"
@@ -476,7 +518,10 @@ static PyObject *XPLMSetDatavfFun(PyObject *self, PyObject *args, PyObject *kwar
 }
 
 
-My_DOCSTR(_getDatab__doc__, "getDatab", "dataRef, values=None, offset=0, count=-1",
+My_DOCSTR(_getDatab__doc__, "getDatab",
+          "dataRef, values=None, offset=0, count=-1",
+          "dataRef:XPLMDataRef, values:Optional[list[int]]=None, offset:int=0, count:int=-1",
+          "int",
           "Get byte array value for dataRef.\n"
           "\n"
           "If values is None, return number of elements in the array (only).\n"
@@ -531,7 +576,10 @@ static PyObject *XPLMGetDatabFun(PyObject *self, PyObject *args, PyObject *kwarg
   return PyLong_FromLong(res);
 }
 
-My_DOCSTR(_setDatab__doc__, "setDatab", "dataRef, values, offset=0, count=-1",
+My_DOCSTR(_setDatab__doc__, "setDatab",
+          "dataRef, values, offset=0, count=-1",
+          "dataRef:XPLMDataRef, values:list[int] | bytes, offset:int=0, count:int=-1",
+          "None",
           "Set byte array value for dataRef.\n"
           "\n"
           "values is a list of bytes, to be written into dataRef starting\n"
@@ -581,7 +629,10 @@ static PyObject *XPLMSetDatabFun(PyObject *self, PyObject *args, PyObject *kwarg
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_getDatas__doc__, "getDatas", "dataRef, offset=0, count=-1",
+My_DOCSTR(_getDatas__doc__, "getDatas",
+          "dataRef, offset=0, count=-1",
+          "dataRef:XPLMDataRef, offset:int=0, count:int=-1",
+          "str | None",
           "Returns string value for dataRef.\n"
           "\n"
           "String is the first null-terminated sequence found in the byte-array\n"
@@ -623,7 +674,10 @@ static PyObject *XPLMGetDatasFun(PyObject *self, PyObject *args, PyObject *kwarg
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_setDatas__doc__, "setDatas", "dataRef, value, offset=0, count=-1",
+My_DOCSTR(_setDatas__doc__, "setDatas",
+          "dataRef, value, offset=0, count=-1",
+          "dataRef:XPLMDataRef, value:str, offset:int=0, count:int=-1",
+          "None",
           "Set byte array to string value for dataRef.\n"
           "\n"
           "value is a python unicode string (capable of being encoded as 'UTF-8').\n"
@@ -1231,7 +1285,17 @@ static void setDatab(void *inRefcon, void *inValue, int inOffset, int inCount)
 }
 
 
-My_DOCSTR(_registerDataAccessor__doc__, "registerDataAccessor", "name, dataType=Type_Unknown, writable=-1, readInt=None, writeInt=None, readFloat=None, writeFloat=None, readDouble=None, writeDouble=None, readIntArray=None, writeIntArray=None, readFloatArray=None, writeFloatArray=None, readData=None, writeData=None, readRefCon=None, writeRefCon=None",
+My_DOCSTR(_registerDataAccessor__doc__, "registerDataAccessor",
+          "name, dataType=Type_Unknown, writable=-1, readInt=None, writeInt=None, readFloat=None, writeFloat=None, readDouble=None, writeDouble=None, readIntArray=None, writeIntArray=None, readFloatArray=None, writeFloatArray=None, readData=None, writeData=None, readRefCon=None, writeRefCon=None",
+          "name:str, dataType:int=Type_Unknown, writable:int=-1, "
+          "readInt:Optional[Callable[[Any], int]]=None, writeInt:Optional[Callable[[Any, int], None]]=None, "
+          "readFloat:Optional[Callable[[Any], float]]=None, writeFloat:Optional[Callable[[Any, float], None]]=None, "
+          "readDouble:Optional[Callable[[Any], float]]=None, writeDouble:Optional[Callable[[Any, float], None]]=None, "
+          "readIntArray:Optional[Callable[[Any, list[int], int, int], int]]=None, writeIntArray:Optional[Callable[[Any, list[int], int, int], None]]=None, "
+          "readFloatArray:Optional[Callable[[Any, list[float], int, int], int]]=None, writeFloatArray:Optional[Callable[[Any, list[float], int, int], None]]=None, "
+          "readData:Optional[Callable[[Any, list[int], int, int], int]]=None, writeData:Optional[Callable[[Any, list[int], int, int], None]]=None, "
+          "readRefCon:Any=None, writeRefCon:Any=None",
+          "XPLMDataRef",
           "Register data accessors for provided string name.\n"
           "\n"
           "Provide one or more read/write callback functions which implement\n"
@@ -1303,7 +1367,10 @@ static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args, PyO
   return dataRefCapsule;
 }
 
-My_DOCSTR(_unregisterDataAccessor__doc__, "unregisterDataAccessor", "accessor",
+My_DOCSTR(_unregisterDataAccessor__doc__, "unregisterDataAccessor",
+          "accessor",
+          "acccessor:XPLMDataRef",
+          "None",
           "Unregisters data accessor.");
 static PyObject *XPLMUnregisterDataAccessorFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -1375,7 +1442,11 @@ static void genericSharedDataChanged(void *inRefcon)
   Py_DECREF(oRes);
 }
 
-My_DOCSTR(_shareData__doc__, "shareData", "name, dataType, dataChanged=None, refCon=None",
+My_DOCSTR(_shareData__doc__, "shareData",
+          "name, dataType, dataChanged=None, refCon=None",
+          "name:str, dataType:int, "
+          "dataChanged:Optional[Callable[[Any], None]]=None, refCon:Any=None",
+          "int",
           "Create shared data ref with provided name and dataType.\n"
           "\n"
           "Optionally provide a callback function which will be called whenever\n"
@@ -1413,7 +1484,10 @@ static PyObject *XPLMShareDataFun(PyObject *self, PyObject *args, PyObject *kwar
   return PyLong_FromLong(res);
 }
 
-My_DOCSTR(_countDataRefs__doc__, "countDataRefs", "",
+My_DOCSTR(_countDataRefs__doc__, "countDataRefs",
+          "",
+          "",
+          "int",
           "Returns the total number of datarefs that have been registered in X-Plane.");
 static PyObject *XPLMCountDataRefsFun(PyObject *self, PyObject *args)
 {
@@ -1426,7 +1500,10 @@ static PyObject *XPLMCountDataRefsFun(PyObject *self, PyObject *args)
   return PyLong_FromLong(XPLMCountDataRefs_ptr());
 }
 
-My_DOCSTR(_getDataRefsByIndex__doc__, "getDataRefsByIndex", "offset=0, count=1",
+My_DOCSTR(_getDataRefsByIndex__doc__, "getDataRefsByIndex",
+          "offset=0, count=1",
+          "offset:int=0, count:int=1",
+          "None | list[XPLMDataRef]",
           "Returns list of dataRefs, each similar to return from xp.findDataRef().\n"
           "Use xp.getDataRefInfo() to access information about the dataref.\n"
           "As a special case, count=-1 returns all datarefs starting from offset to the end.\n"
@@ -1481,10 +1558,13 @@ static PyObject *XPLMGetDataRefsByIndexFun(PyObject *self, PyObject *args, PyObj
   return outValuesObj;
 }
 
-My_DOCSTR(_getDataRefInfo__doc__, "getDataRefInfo", "dataRef",
+My_DOCSTR(_getDataRefInfo__doc__, "getDataRefInfo",
+          "dataRef",
+          "dataRef:XPLMDataRef",
+          "XPLMDataRefInfo_t",
           "Return DataRefInfo object for provided dataRef.\n"
           "\n"
-          "DataRefInfo object is .name, .type, .writable, .owner\n"
+          "XPLMDataRefInfo_t object is .name, .type, .writable, .owner\n"
           "  recall type is a bitfield, see xp.getDataRefTypes()");
 static PyObject *XPLMGetDataRefInfoFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -1507,7 +1587,10 @@ static PyObject *XPLMGetDataRefInfoFun(PyObject *self, PyObject *args, PyObject 
   return PyDataRefInfo_New(outInfo.name, outInfo.type, outInfo.writable, outInfo.owner);
 }
 
-My_DOCSTR(_unshareData__doc__, "unshareData", "name, dataType, dataChanged=None, refCon=None",
+My_DOCSTR(_unshareData__doc__, "unshareData",
+          "name, dataType, dataChanged=None, refCon=None",
+          "name:str, dataType:int, dataChanged:Optional[Callable[[Any], None]]=None, refCon:Any=None",
+          "int",
           "Unshare data. If dataChanged function was provided with initial shareData()\n"
           "the callback will no longer be called on data changes.\n"
           "All parameter values must match those provided with shareData()\n"
@@ -1692,22 +1775,22 @@ PyInit_XPLMDataAccess(void)
     if(!(sharedDict = PyDict_New())){
       return NULL;
     }
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
     PyDict_SetItemString(XPY3pythonDicts, "sharedDrefs", sharedDict);
-    PyModule_AddIntConstant(mod, "xplmType_Unknown", xplmType_Unknown);
-    PyModule_AddIntConstant(mod, "xplmType_Int", xplmType_Int);
-    PyModule_AddIntConstant(mod, "xplmType_Float", xplmType_Float);
-    PyModule_AddIntConstant(mod, "xplmType_Double", xplmType_Double);
-    PyModule_AddIntConstant(mod, "xplmType_FloatArray", xplmType_FloatArray);
-    PyModule_AddIntConstant(mod, "xplmType_IntArray", xplmType_IntArray);
-    PyModule_AddIntConstant(mod, "xplmType_Data", xplmType_Data);
-    PyModule_AddIntConstant(mod, "Type_Unknown", xplmType_Unknown);
-    PyModule_AddIntConstant(mod, "Type_Int", xplmType_Int);
-    PyModule_AddIntConstant(mod, "Type_Float", xplmType_Float);
-    PyModule_AddIntConstant(mod, "Type_Double", xplmType_Double);
-    PyModule_AddIntConstant(mod, "Type_FloatArray", xplmType_FloatArray);
-    PyModule_AddIntConstant(mod, "Type_IntArray", xplmType_IntArray);
-    PyModule_AddIntConstant(mod, "Type_Data", xplmType_Data);
+    PyModule_AddIntConstant(mod, "xplmType_Unknown", xplmType_Unknown); // XPLMDataTypeID
+    PyModule_AddIntConstant(mod, "xplmType_Int", xplmType_Int);  // XPLMDataTypeID
+    PyModule_AddIntConstant(mod, "xplmType_Float", xplmType_Float);  // XPLMDataTypeID
+    PyModule_AddIntConstant(mod, "xplmType_Double", xplmType_Double);  // XPLMDataTypeID
+    PyModule_AddIntConstant(mod, "xplmType_FloatArray", xplmType_FloatArray);  // XPLMDataTypeID
+    PyModule_AddIntConstant(mod, "xplmType_IntArray", xplmType_IntArray);  // XPLMDataTypeID
+    PyModule_AddIntConstant(mod, "xplmType_Data", xplmType_Data);  // XPLMDataTypeID
+    PyModule_AddIntConstant(mod, "Type_Unknown", xplmType_Unknown);  // XPLMDataTypeID
+    PyModule_AddIntConstant(mod, "Type_Int", xplmType_Int);  // XPLMDataTypeID
+    PyModule_AddIntConstant(mod, "Type_Float", xplmType_Float);  // XPLMDataTypeID
+    PyModule_AddIntConstant(mod, "Type_Double", xplmType_Double);  // XPLMDataTypeID
+    PyModule_AddIntConstant(mod, "Type_FloatArray", xplmType_FloatArray);  // XPLMDataTypeID
+    PyModule_AddIntConstant(mod, "Type_IntArray", xplmType_IntArray);  // XPLMDataTypeID
+    PyModule_AddIntConstant(mod, "Type_Data", xplmType_Data);  // XPLMDataTypeID
   }
 
   return mod;

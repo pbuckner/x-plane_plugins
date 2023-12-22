@@ -70,7 +70,7 @@ static PyMemberDef WeatherInfoWinds_members[] = {
 
 static PyObject *WeatherInfoWinds_str(WeatherInfoWindsObject *obj) {
   char *msg = NULL;
-  if (-1 == asprintf(&msg, "<WeatherInfoWinds object> %03.0f@%.0f at %.1fm MSL",
+  if (-1 == asprintf(&msg, "<XPLMWeatherInfoWinds_t object> %03.0f@%.0f at %.1fm MSL",
                      obj->direction, obj->speed * 1.94384, obj->alt_msl)) {
     pythonLog("Failed to allocate asprintf memory for WeatherInfoWinds.");
     return (PyObject *)obj;
@@ -84,8 +84,8 @@ static PyObject *WeatherInfoWinds_str(WeatherInfoWindsObject *obj) {
 PyTypeObject
 WeatherInfoWindsType = {
   PyVarObject_HEAD_INIT(NULL, 0)
-  .tp_name = "XPPython.WeatherInfoWinds",
-  .tp_doc = "WeatherInfoWinds, class of objects listed in WeatherInfo class, one for each wind layer",
+  .tp_name = "XPPython.XPLMWeatherInfoWinds_t",
+  .tp_doc = "XPLMWeatherInfoWinds_t, class of objects listed in XPLMWeatherInfo_t class, one for each wind layer",
   .tp_basicsize = sizeof(WeatherInfoWindsObject),
   .tp_itemsize = 0,
   .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,

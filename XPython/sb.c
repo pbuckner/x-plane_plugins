@@ -78,7 +78,7 @@ PyInit_SBU(void)
 {
   PyObject *mod = PyModule_Create(&SBUModule);
   if(mod) {
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
   }
   return mod;
 }

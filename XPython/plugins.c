@@ -7,7 +7,10 @@
 #include "utils.h"
 #include "xppythontypes.h"
 
-My_DOCSTR(_getMyID__doc__, "getMyID", "",
+My_DOCSTR(_getMyID__doc__, "getMyID",
+          "",
+          "",
+          "int",
           "Returns plugin ID of calling plugin.\n"
           "\n"
           "For XPPython3, this is *always* the ID of the XPPython3 plugin\n"
@@ -19,7 +22,10 @@ static PyObject *XPLMGetMyIDFun(PyObject *self, PyObject *args)
   return PyLong_FromLong(XPLMGetMyID());
 }
 
-My_DOCSTR(_countPlugins__doc__, "countPlugins", "",
+My_DOCSTR(_countPlugins__doc__, "countPlugins",
+          "",
+          "",
+          "int",
           "Return total number of (non-python) plugins");
 static PyObject *XPLMCountPluginsFun(PyObject *self, PyObject *args)
 {
@@ -28,7 +34,10 @@ static PyObject *XPLMCountPluginsFun(PyObject *self, PyObject *args)
   return PyLong_FromLong(XPLMCountPlugins());
 }
 
-My_DOCSTR(_getNthPlugin__doc__, "getNthPlugin", "index",
+My_DOCSTR(_getNthPlugin__doc__, "getNthPlugin",
+          "index",
+          "index:int",
+          "XPLMPluginID",
           "Return the ID of a (non-python) plugin by index.");
 static PyObject *XPLMGetNthPluginFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -41,7 +50,10 @@ static PyObject *XPLMGetNthPluginFun(PyObject *self, PyObject *args, PyObject *k
   return PyLong_FromLong(XPLMGetNthPlugin(inIndex));
 }
 
-My_DOCSTR(_findPluginByPath__doc__, "findPluginByPath", "path",
+My_DOCSTR(_findPluginByPath__doc__, "findPluginByPath",
+          "path",
+          "path:str",
+          "XPLMPluginID",
           "Return pluginID of (non-python) plugin whose file exists at path.\n"
           "\n"
           "Path must be absolute.");
@@ -56,7 +68,10 @@ static PyObject *XPLMFindPluginByPathFun(PyObject *self, PyObject *args, PyObjec
   return PyLong_FromLong(XPLMFindPluginByPath(inPath));
 }
 
-My_DOCSTR(_findPluginBySignature__doc__, "findPluginBySignature", "signature",
+My_DOCSTR(_findPluginBySignature__doc__, "findPluginBySignature",
+          "signature",
+          "signature:str",
+          "XPLMPluginID",
           "Return the pluginID of the (non-python) plugin whose signature matches.");
 static PyObject *XPLMFindPluginBySignatureFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -69,7 +84,10 @@ static PyObject *XPLMFindPluginBySignatureFun(PyObject *self, PyObject *args, Py
   return PyLong_FromLong(XPLMFindPluginBySignature(inSignature));
 }
 
-My_DOCSTR(_getPluginInfo__doc__, "getPluginInfo", "pluginID",
+My_DOCSTR(_getPluginInfo__doc__, "getPluginInfo",
+          "pluginID",
+          "pluginID:XPLMPluginID",
+          "PluginInfo",
           "Return information about plugin.\n"
           "\n"
           "Return value is an object with attributes:\n"
@@ -93,7 +111,10 @@ static PyObject *XPLMGetPluginInfoFun(PyObject *self, PyObject *args, PyObject *
   return PyPluginInfo_New(name, filePath, signature, description);
 }
 
-My_DOCSTR(_isPluginEnabled__doc__, "isPluginEnabled", "pluginID",
+My_DOCSTR(_isPluginEnabled__doc__, "isPluginEnabled",
+          "pluginID",
+          "pluginID:XPLMPluginID",
+          "int",
           "Return 1 if plugin is enabled, 0 otherwise");
 static PyObject *XPLMIsPluginEnabledFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -106,7 +127,10 @@ static PyObject *XPLMIsPluginEnabledFun(PyObject *self, PyObject *args, PyObject
   return PyLong_FromLong(XPLMIsPluginEnabled(inPluginID));
 }
 
-My_DOCSTR(_enablePlugin__doc__, "enablePlugin", "pluginID",
+My_DOCSTR(_enablePlugin__doc__, "enablePlugin",
+          "pluginID",
+          "pluginID:XPLMPluginID",
+          "int",
           "Enables plugin.");
 static PyObject *XPLMEnablePluginFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -119,7 +143,10 @@ static PyObject *XPLMEnablePluginFun(PyObject *self, PyObject *args, PyObject *k
   return PyLong_FromLong(XPLMEnablePlugin(inPluginID));
 }
 
-My_DOCSTR(_disablePlugin__doc__, "disablePlugin", "pluginID",
+My_DOCSTR(_disablePlugin__doc__, "disablePlugin",
+          "pluginID",
+          "pluginID:XPLMPluginID",
+          "None",
           "Disables plugin");
 static PyObject *XPLMDisablePluginFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -133,7 +160,10 @@ static PyObject *XPLMDisablePluginFun(PyObject *self, PyObject *args, PyObject *
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_reloadPlugins__doc__, "reloadPlugins", "",
+My_DOCSTR(_reloadPlugins__doc__, "reloadPlugins",
+          "",
+          "",
+          "None",
           "Reload *all* plugins.\n"
           "\n"
           "Likely crashes the sim. DO NOT USE.");
@@ -145,7 +175,10 @@ static PyObject *XPLMReloadPluginsFun(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_sendMessageToPlugin__doc__, "sendMessageToPlugin", "pluginID, message, param=None",
+My_DOCSTR(_sendMessageToPlugin__doc__, "sendMessageToPlugin",
+          "pluginID, message, param=None",
+          "pluginID:XPLMPluginID, message:int, param:Optional[Any]",
+          "None",
           "Send message to plugin\n"
           "\n"
           "Messages sent to XPPython3 plugin will be forwarded to all\n"
@@ -190,7 +223,10 @@ static PyObject *XPLMSendMessageToPluginFun(PyObject *self, PyObject *args, PyOb
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_hasFeature__doc__, "hasFeature", "feature",
+My_DOCSTR(_hasFeature__doc__, "hasFeature",
+          "feature",
+          "feature:str",
+          "int",
           "Return 1 if X-Plane supports feature.");
 static PyObject *XPLMHasFeatureFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -203,7 +239,10 @@ static PyObject *XPLMHasFeatureFun(PyObject *self, PyObject *args, PyObject *kwa
   return PyLong_FromLong(XPLMHasFeature(inFeature));
 }
 
-My_DOCSTR(_isFeatureEnabled__doc__, "isFeatureEnabled", "feature",
+My_DOCSTR(_isFeatureEnabled__doc__, "isFeatureEnabled",
+          "feature",
+          "feature:str",
+          "int",
           "Returns 1 if feature is currently enabled for your plugin.");
 static PyObject *XPLMIsFeatureEnabledFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -216,7 +255,10 @@ static PyObject *XPLMIsFeatureEnabledFun(PyObject *self, PyObject *args, PyObjec
   return PyLong_FromLong(XPLMIsFeatureEnabled(inFeature));
 }
 
-My_DOCSTR(_enableFeature__doc__, "enableFeature", "feature, enable=1",
+My_DOCSTR(_enableFeature__doc__, "enableFeature",
+          "feature, enable=1",
+          "feature:str, enable:int=1",
+          "None",
           "Enables / disables indicated feature for this plugin.");
 static PyObject *XPLMEnableFeatureFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -267,7 +309,10 @@ static void featureEnumerator(const char *inFeature, void *inRef)
 }
 
 
-My_DOCSTR(_enumerateFeatures__doc__, "enumerateFeatures", "enumerator, refCon=None",
+My_DOCSTR(_enumerateFeatures__doc__, "enumerateFeatures",
+          "enumerator, refCon=None",
+          "enumerator:Callable[[str, Any], None], refCon:Any=None",
+          "None",
           "Enumerate supported features\n"
           "\n"
           "You callback takes (name, refCon) as parameters");
@@ -363,7 +408,7 @@ PyInit_XPLMPlugin(void)
   }
   PyObject *mod = PyModule_Create(&XPLMPluginModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
     PyModule_AddIntConstant(mod, "XPLM_MSG_PLANE_CRASHED", XPLM_MSG_PLANE_CRASHED);
     PyModule_AddIntConstant(mod, "XPLM_MSG_PLANE_LOADED", XPLM_MSG_PLANE_LOADED);
     PyModule_AddIntConstant(mod, "XPLM_MSG_AIRPORT_LOADED", XPLM_MSG_AIRPORT_LOADED);
@@ -387,14 +432,34 @@ PyInit_XPLMPlugin(void)
     PyModule_AddIntConstant(mod, "MSG_ENTERED_VR", XPLM_MSG_ENTERED_VR);
     PyModule_AddIntConstant(mod, "MSG_EXITING_VR", XPLM_MSG_EXITING_VR);
     PyModule_AddIntConstant(mod, "MSG_RELEASE_PLANES", XPLM_MSG_RELEASE_PLANES);
+
+    PyModule_AddIntConstant(mod, "MsgPlaneCrashed", XPLM_MSG_PLANE_CRASHED);
+    PyModule_AddIntConstant(mod, "MsgPlaneLoaded", XPLM_MSG_PLANE_LOADED);
+    PyModule_AddIntConstant(mod, "MsgAirportLoaded", XPLM_MSG_AIRPORT_LOADED);
+    PyModule_AddIntConstant(mod, "MsgSceneryLoaded", XPLM_MSG_SCENERY_LOADED);
+    PyModule_AddIntConstant(mod, "MsgAirplaneCountChanged", XPLM_MSG_AIRPLANE_COUNT_CHANGED);
+    PyModule_AddIntConstant(mod, "MsgPlaneUnloaded", XPLM_MSG_PLANE_UNLOADED);
+    PyModule_AddIntConstant(mod, "MsgWillWritePrefs", XPLM_MSG_WILL_WRITE_PREFS);
+    PyModule_AddIntConstant(mod, "MsgLivery_Loaded", XPLM_MSG_LIVERY_LOADED);
+    PyModule_AddIntConstant(mod, "MsgEnteredVr", XPLM_MSG_ENTERED_VR);
+    PyModule_AddIntConstant(mod, "MsgExitingVr", XPLM_MSG_EXITING_VR);
+    PyModule_AddIntConstant(mod, "MsgReleasePlanes", XPLM_MSG_RELEASE_PLANES);
 #if defined(XPLM400)    
     PyModule_AddIntConstant(mod, "MSG_FMOD_BANK_LOADED", XPLM_MSG_FMOD_BANK_LOADED);
     PyModule_AddIntConstant(mod, "MSG_FMOD_BANK_UNLOADING", XPLM_MSG_FMOD_BANK_UNLOADING);
     PyModule_AddIntConstant(mod, "MSG_DATAREFS_ADDED", XPLM_MSG_DATAREFS_ADDED);
+
+    PyModule_AddIntConstant(mod, "MsgFmodBankLoaded", XPLM_MSG_FMOD_BANK_LOADED);
+    PyModule_AddIntConstant(mod, "MsgFmodBankUnloading", XPLM_MSG_FMOD_BANK_UNLOADING);
+    PyModule_AddIntConstant(mod, "MsgDatarefs_Added", XPLM_MSG_DATAREFS_ADDED);
 #else
     PyModule_AddIntConstant(mod, "MSG_FMOD_BANK_LOADED", -1);
     PyModule_AddIntConstant(mod, "MSG_FMOD_BANK_UNLOADING", -1);
     PyModule_AddIntConstant(mod, "MSG_DATAREFS_ADDED", -1);
+
+    PyModule_AddIntConstant(mod, "MsgFmodBankLoaded", -1);
+    PyModule_AddIntConstant(mod, "MsgFmodBankUnloading", -1);
+    PyModule_AddIntConstant(mod, "MsgDatarefsAdded", -1);
 #endif
   }
   return mod;

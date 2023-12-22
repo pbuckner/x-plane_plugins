@@ -82,7 +82,7 @@ WeatherInfo_init(WeatherInfoObject *self, PyObject *args, PyObject *kwds)
 
 static PyMemberDef WeatherInfo_members[] = {
   {"detail_found", T_INT, offsetof(WeatherInfoObject, detail_found), 0,
-   "Return value from XPLMGetWeatherAtLocation(), 1=\"detailed weather found\""},
+   "Return value from XPLMGetWeatherAtLocation(), 1='detailed weather found'"},
   {"temperature_alt", T_FLOAT, offsetof(WeatherInfoObject, temperature_alt), 0, "Temperature at altitude (Celsius)"},
   {"dewpoint_alt", T_FLOAT, offsetof(WeatherInfoObject, dewpoint_alt), 0, "Dewpoint at altitude (Celsius)"},
   {"pressure_alt", T_FLOAT, offsetof(WeatherInfoObject, pressure_alt), 0, "Pressure at altitude (Pascals)"},
@@ -98,14 +98,14 @@ static PyMemberDef WeatherInfo_members[] = {
   {"precip_rate", T_FLOAT, offsetof(WeatherInfoObject, precip_rate), 0, "Base precipitation ratio at 0 altitude"},
   {"thermal_climb", T_FLOAT, offsetof(WeatherInfoObject, thermal_climb), 0, "Climb rate due to thermals (meters/second)"},
   {"pressure_sl", T_FLOAT, offsetof(WeatherInfoObject, pressure_sl), 0, "Pressure at 0 altitude (Pascals)"},
-  {"wind_layers", T_OBJECT_EX, offsetof(WeatherInfoObject, wind_layers), 0, "List of WeatherInfoWinds objects"},
-  {"cloud_layers", T_OBJECT_EX, offsetof(WeatherInfoObject, cloud_layers), 0, "List of WeatherInfoClouds objects"},
+  {"wind_layers", T_OBJECT_EX, offsetof(WeatherInfoObject, wind_layers), 0, "List of XPLMWeatherInfoWinds_t objects"},
+  {"cloud_layers", T_OBJECT_EX, offsetof(WeatherInfoObject, cloud_layers), 0, "List of XPLMWeatherInfoClouds_t objects"},
   {NULL, T_INT, 0, 0, ""} /* Sentinel */
 };
 
 static PyObject *WeatherInfo_str(WeatherInfoObject *obj) {
   char *msg = NULL;
-  if (-1 == asprintf(&msg, "<WeatherInfo object> %.1f/%.1f %03.0f@%.0f QNH%.0f",
+  if (-1 == asprintf(&msg, "<XPLMWeatherInfo_t object> %.1f/%.1f %03.0f@%.0f QNH%.0f",
                      obj->temperature_alt, obj->dewpoint_alt,
                      obj->wind_dir_alt, obj->wind_spd_alt * 1.94384,
                      obj->pressure_sl / 100.0)) {
@@ -121,8 +121,8 @@ static PyObject *WeatherInfo_str(WeatherInfoObject *obj) {
 PyTypeObject
 WeatherInfoType = {
   PyVarObject_HEAD_INIT(NULL, 0)
-  .tp_name = "XPPython.WeatherInfo",
-  .tp_doc = "WeatherInfo class, return value of xp.getWeatherAtLocation().",
+  .tp_name = "XPPython.XPLMWeatherInfo_t",
+  .tp_doc = "XPLMWeatherInfo_t class, return value of xp.getWeatherAtLocation().",
   .tp_basicsize = sizeof(WeatherInfoObject),
   .tp_itemsize = 0,
   .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,

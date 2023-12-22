@@ -64,7 +64,10 @@ static void menuHandler(void * menuRefCon, void * inItemRef)
   Py_XDECREF(res);
 }
 
-My_DOCSTR(_findPluginsMenu__doc__, "findPluginsMenu", "",
+My_DOCSTR(_findPluginsMenu__doc__, "findPluginsMenu",
+          "",
+          "",
+          "XPLMMenuID",
           "Returns menuID of plugins-menu.");
 static PyObject *XPLMFindPluginsMenuFun(PyObject *self, PyObject *args)
 {
@@ -76,7 +79,10 @@ static PyObject *XPLMFindPluginsMenuFun(PyObject *self, PyObject *args)
   return ret;
 }
 
-My_DOCSTR(_findAircraftMenu__doc__, "findAircraftMenu", "",
+My_DOCSTR(_findAircraftMenu__doc__, "findAircraftMenu",
+          "",
+          "",
+          "XPLMMenuID",
           "Returns menuID of currently loaded aircraft plugins menu.\n"
           "\n"
           "Note this is always 'None' for XPPython3.");
@@ -91,7 +97,11 @@ static PyObject *XPLMFindAircraftMenuFun(PyObject *self, PyObject *args)
   return getPtrRef(XPLMFindAircraftMenu_ptr(), menuIDCapsules, menuIDRef);
 }
 
-My_DOCSTR(_createMenu__doc__, "createMenu", "name=None, parentMenuID=None, parentItem=0, handler=None, refCon=None",
+My_DOCSTR(_createMenu__doc__, "createMenu",
+          "name=None, parentMenuID=None, parentItem=0, handler=None, refCon=None",
+          "name:Optional[str]=None, parentMenuID:Optional[XPLMMenuID]=None, parentItem:Optional[int]=0, "
+          "handler:Optional[Callable[[Any, Any], None]]=None, refCon:Optional[Any]=None",
+          "None | XPLMMenuID",
           "Creates menu, returning menuID or None on error.\n"
           "\n"
           "parentMenuID=None adds menu to PluginsMenu.\n");
@@ -166,7 +176,10 @@ static PyObject *XPLMCreateMenuFun(PyObject *self, PyObject *args, PyObject *kwa
   return menuID;
 }
 
-My_DOCSTR(_destroyMenu__doc__, "destroyMenu", "menuID",
+My_DOCSTR(_destroyMenu__doc__, "destroyMenu",
+          "menuID",
+          "menuID:XPLMMenuID",
+          "None",
           "Remove submenu from provided menuID.");
 static PyObject *XPLMDestroyMenuFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -192,8 +205,11 @@ static PyObject *XPLMDestroyMenuFun(PyObject *self, PyObject *args, PyObject *kw
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_clearAllMenuItems__doc__, "clearAllMenuItems", "menuID=None",
-          "Remove menu items from provided menuID, or \"all menus\", if menuID is None.");
+My_DOCSTR(_clearAllMenuItems__doc__, "clearAllMenuItems",
+          "menuID=None",
+          "menuID:Optional[XPLMMenuID]",
+          "None",
+          "Remove menu items from provided menuID, or 'all menus', if menuID is None.");
 static PyObject *XPLMClearAllMenuItemsFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   static char *keywords[] = {"menuID", NULL};
@@ -308,7 +324,10 @@ void clearInstanceMenuItems(PyObject *pluginSelf) {
   pythonDebug("%*s Cleared top-level menu items for %s", 8, " ", objDebug(pluginSelf));
 }
 
-My_DOCSTR(_appendMenuItem__doc__, "appendMenuItem", "menuID=None, name=\"Item\", refCon=None",
+My_DOCSTR(_appendMenuItem__doc__, "appendMenuItem",
+          "menuID=None, name='Item', refCon=None",
+          "menuID:Optional[XPLMMenuID]=None, name:str='Item', refCon:Any=None",
+          "int",
           "Appends new menu item to end of existing menuID.\n"
           "\n"
           "Returns index for created menu item or -1 on error.");
@@ -346,7 +365,10 @@ static PyObject *XPLMAppendMenuItemFun(PyObject *self, PyObject *args, PyObject 
   return PyLong_FromLong(res);
 }
 
-My_DOCSTR(_appendMenuItemWithCommand__doc__, "appendMenuItemWithCommand", "menuID=None, name=\"Command\", commandRef=None",
+My_DOCSTR(_appendMenuItemWithCommand__doc__, "appendMenuItemWithCommand",
+          "menuID=None, name='Command', commandRef=None",
+          "menuID:Optional[XPLMMenuID]=None, name:str='Command', commandRef:Any=None",
+          "int",
           "Adds menu item to existing menuID, and executes commandRef when selected.\n"
           "\n"
           "Returns index for created menu item or -1 on error.");
@@ -391,12 +413,13 @@ static PyObject *XPLMAppendMenuItemWithCommandFun(PyObject *self, PyObject *args
   return PyLong_FromLong(res);
 }
 
-My_DOCSTR(_appendMenuSeparator__doc__, "appendMenuSeparator", "menuID=None",
-          "Adds separator to end of menu\n"
-#if !defined(XPLM400)
+My_DOCSTR(_appendMenuSeparator__doc__, "appendMenuSeparator",
+          "menuID=None",
+          "menuID:XPLMMenuID=None",
+          "None | int",
+          "Adds separator to end of menu.\n"
           "\n"
-          "Returns index of created item."
-#endif
+          "Returns index of created item for XP11, None for XP12"
           );
 static PyObject *XPLMAppendMenuSeparatorFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -435,7 +458,10 @@ static PyObject *XPLMAppendMenuSeparatorFun(PyObject *self, PyObject *args, PyOb
 #endif
 }
 
-My_DOCSTR(_setMenuItemName__doc__, "setMenuItemName", "menuID=None, index=0, name=\"New Name\"",
+My_DOCSTR(_setMenuItemName__doc__, "setMenuItemName",
+          "menuID=None, index=0, name='New Name'",
+          "menuID:Optional[XPLMMenuID]=None, index:int=0, name:str='New Name'",
+          "None",
           "Change the name of and existing menu item.");
 static PyObject *XPLMSetMenuItemNameFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -468,7 +494,10 @@ static PyObject *XPLMSetMenuItemNameFun(PyObject *self, PyObject *args, PyObject
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_checkMenuItem__doc__, "checkMenuItem", "menuID=None, index=0, checked=Menu_Checked",
+My_DOCSTR(_checkMenuItem__doc__, "checkMenuItem",
+          "menuID=None, index=0, checked=Menu_Checked",
+          "menuID:Optional[XPLMMenuID]=None, index:int=0, checked:XPLMMenuCheck=Menu_Checked",
+          "None",
           "Set checkmark for given menu item.\n"
           "\n"
           "  Menu_NoCheck = 0\n"
@@ -506,7 +535,10 @@ static PyObject *XPLMCheckMenuItemFun(PyObject *self, PyObject *args, PyObject *
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_checkMenuItemState__doc__, "checkMenuItemState", "menuID=None, index=0",
+My_DOCSTR(_checkMenuItemState__doc__, "checkMenuItemState",
+          "menuID=None, index=0",
+          "menuID:Optional[XPLMMenuID], index:int=0",
+          "int",
           "Returns menu item checked state.\n"
           "\n"
           "  Menu_NoCheck = 0\n"
@@ -545,7 +577,10 @@ static PyObject *XPLMCheckMenuItemStateFun(PyObject *self, PyObject *args, PyObj
   return PyLong_FromLong(outCheck);
 }
 
-My_DOCSTR(_enableMenuItem__doc__, "enableMenuItem", "menuID=None, index=0, enabled=1",
+My_DOCSTR(_enableMenuItem__doc__, "enableMenuItem",
+          "menuID=None, index=0, enabled=1",
+          "menuID:Optional[XPLMMenuID]=None, index:int=0, enabled:int=1",
+          "None",
           "Enables menu item\n"
           "\n"
           "Use enabled=0 to disable item, 1 to enable");
@@ -581,7 +616,10 @@ static PyObject *XPLMEnableMenuItemFun(PyObject *self, PyObject *args, PyObject 
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_removeMenuItem__doc__, "removeMenuItem", "menuID=None, index=0",
+My_DOCSTR(_removeMenuItem__doc__, "removeMenuItem",
+          "menuID=None, index=0",
+          "menuID:Optional[XPLMMenuID]=None, index:int=0",
+          "None",
           "Removes one item from menu.\n"
           "\n"
           "Note that all menu items below are moved up one index.");
@@ -730,14 +768,14 @@ PyInit_XPLMMenus(void)
 
   PyObject *mod = PyModule_Create(&XPLMMenusModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
-    PyModule_AddIntConstant(mod, "xplm_Menu_NoCheck", xplm_Menu_NoCheck);
-    PyModule_AddIntConstant(mod, "xplm_Menu_Unchecked", xplm_Menu_Unchecked);
-    PyModule_AddIntConstant(mod, "xplm_Menu_Checked", xplm_Menu_Checked);
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
+    PyModule_AddIntConstant(mod, "xplm_Menu_NoCheck", xplm_Menu_NoCheck); // XPLMMenuCheck
+    PyModule_AddIntConstant(mod, "xplm_Menu_Unchecked", xplm_Menu_Unchecked); // XPLMMenuCheck
+    PyModule_AddIntConstant(mod, "xplm_Menu_Checked", xplm_Menu_Checked); // XPLMMenuCheck
 
-    PyModule_AddIntConstant(mod, "Menu_NoCheck", xplm_Menu_NoCheck);
-    PyModule_AddIntConstant(mod, "Menu_Unchecked", xplm_Menu_Unchecked);
-    PyModule_AddIntConstant(mod, "Menu_Checked", xplm_Menu_Checked);
+    PyModule_AddIntConstant(mod, "Menu_NoCheck", xplm_Menu_NoCheck); // XPLMMenuCheck
+    PyModule_AddIntConstant(mod, "Menu_Unchecked", xplm_Menu_Unchecked); // XPLMMenuCheck
+    PyModule_AddIntConstant(mod, "Menu_Checked", xplm_Menu_Checked); // XPLMMenuCheck
   }
 
   return mod;

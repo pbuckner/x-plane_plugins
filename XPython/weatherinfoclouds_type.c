@@ -65,7 +65,7 @@ static PyMemberDef WeatherInfoClouds_members[] = {
 
 static PyObject *WeatherInfoClouds_str(WeatherInfoCloudsObject *obj) {
   char *msg = NULL;
-  if (-1 == asprintf(&msg, "<WeatherInfoClouds object> %.1f (%.0f%%) from %.1fm to %.1fm",
+  if (-1 == asprintf(&msg, "<XPLMWeatherInfoClouds_t object> %.1f (%.0f%%) from %.1fm to %.1fm",
                      obj->cloud_type, 100.0 * obj->coverage, obj->alt_base, obj->alt_top)) {
     pythonLog("Failed to allocate asprintf memory for WeatherInfoClouds.");
     return (PyObject *)obj;
@@ -79,8 +79,8 @@ static PyObject *WeatherInfoClouds_str(WeatherInfoCloudsObject *obj) {
 PyTypeObject
 WeatherInfoCloudsType = {
   PyVarObject_HEAD_INIT(NULL, 0)
-  .tp_name = "xppython3.WeatherInfoClouds",
-  .tp_doc = "WeatherInfoClouds, class of objects listed in WeatherInfo class, one for each cloud layer",
+  .tp_name = "xppython3.XPLMWeatherInfoClouds_t",
+  .tp_doc = "XPLMWeatherInfoClouds_t, class of objects listed in XPLMWeatherInfo_t class, one for each cloud layer",
   .tp_basicsize = sizeof(WeatherInfoCloudsObject),
   .tp_itemsize = 0,
   .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,

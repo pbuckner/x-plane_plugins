@@ -28,7 +28,10 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 }
 
 #if defined (_FMOD_COMMON_H)
-My_DOCSTR(_getFMODStudio__doc__, "getFMODStudio", "",
+My_DOCSTR(_getFMODStudio__doc__, "getFMODStudio",
+          "",
+          "",
+          "FMOD_STUDIO_SYSTEM",
           "Get PyCapsule to FMOD_STUDIO_SYSTEM, allowing you to load/process whatever\n"
           "else you need. You will need to use python ctypes to access. See\n"
           "documentation.");
@@ -44,7 +47,10 @@ static PyObject *XPLMGetFMODStudioFun(PyObject *self, PyObject *args)
   return getPtrRefOneshot(ret, "FMOD_STUDIO_SYSTEM");
 }
   
-My_DOCSTR(_getFMODChannelGroup__doc__, "getFMODChannelGroup", "audioType",
+My_DOCSTR(_getFMODChannelGroup__doc__, "getFMODChannelGroup",
+          "audioType",
+          "audioType:XPLMAudioBus",
+          "FMOD_CHANNELGROUP",
           "Returns PyCapsule to the FMOD_CHANNELGROUP with the given index.\n"
           "You will need to use python ctypes to access. See documentation.");
 static PyObject *XPLMGetFMODChannelGroupFun(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -67,6 +73,9 @@ static PyObject *XPLMGetFMODChannelGroupFun(PyObject *self, PyObject *args, PyOb
 
 My_DOCSTR(_playPCMOnBus__doc__, "playPCMOnBus",
           "audioBuffer, bufferSize, soundFormat, freqHz, numChannels, loop=0, audioType=8, callback=None, refCon=None",
+          "audioBuffer:Any, bufferSize:int, soundFormat:int, freqHz:int, numChannels:int, loop:int=0, "
+          "audioType:XPLMAudioBus=AudioUI, callback:Optional[Callable[[Any, int], None]]=None, refCon:Any=None",
+          "None | FMODChannel",
           "Play provided data, of length bufferSize on the bus indicatedd by audioType. On\n"
           "completion, or stoppage, invoke (optional) callback with provided refCon.\n"
           " * soundFormat is # bytes per frame 1=8bit, 2=16bit, etc.\n"
@@ -177,7 +186,10 @@ static void soundCallback(void *inRefcon, FMOD_RESULT status)
   PyObject_CallFunctionObjArgs(fun, refCon, PyLong_FromLong(status), NULL);
 }
 
-My_DOCSTR(_stopAudio__doc__, "stopAudio", "channel",
+My_DOCSTR(_stopAudio__doc__, "stopAudio",
+          "channel",
+          "channel:FMOD_CHANNEL",
+          "int",
           "Stop playing an active FMOD channel. If you defined a completion callback,\n"
           "this will be called. After this, the FMOD::Channel* will no longer be valid\n"
           "and must not be used in any future calls\n"
@@ -201,7 +213,10 @@ static PyObject *XPLMStopAudioFun(PyObject *self, PyObject *args, PyObject *kwar
   return PyLong_FromLong(res);
 }
 
-My_DOCSTR(_setAudioPosition__doc__, "setAudioPosition", "channel, position, velocity=None",
+My_DOCSTR(_setAudioPosition__doc__, "setAudioPosition",
+          "channel, position, velocity=None",
+          "channel:FMOD_CHANNEL, position:Sequence[float], velocity:Optional[Sequence[float]]=None",
+          "int",
           "For audio channel, set position (for panning and attenuation) \n"
           "and velocity (for use with doppler).\n"
           " * position is OpenGL position (x, y, z) -- list of three float.\n"
@@ -263,7 +278,10 @@ static PyObject *XPLMSetAudioPositionFun(PyObject *self, PyObject *args, PyObjec
   return PyLong_FromLong(res);
 }
 
-My_DOCSTR(_setAudioFadeDistance__doc__, "setAudioFadeDistance", "channel, min_distance=1.0, max_distance=10000.0",
+My_DOCSTR(_setAudioFadeDistance__doc__, "setAudioFadeDistance",
+          "channel, min_distance=1.0, max_distance=10000.0",
+          "channel:FMOD_CHANNEL, min_distance:float=1.0, max_distance:float=10000.0",
+          "int",
           "Sets minimum and maximum distance for the channel.\n"
           "When the listener is in-between the minimum distance and the source, the volume\n"
           "will be at it's maximum. As the listener moves from the minimum distance to the\n"
@@ -299,7 +317,10 @@ static PyObject *XPLMSetAudioFadeDistanceFun(PyObject *self, PyObject *args, PyO
   return PyLong_FromLong(res);
 }
 
-My_DOCSTR(_setAudioVolume__doc__, "setAudioVolume", "channel, volume=1.0",
+My_DOCSTR(_setAudioVolume__doc__, "setAudioVolume",
+          "channel, volume=1.0",
+          "channel:FMOD_CHANNEL, volume:float=1.0",
+          "int",
           "Set the current volume of an active FMOD channel. This should be used to\n"
           "handle changes in the audio source volume, not for fading with distance.\n"
           "Values from 0.0 to 1.0 are normal, above 1 can be used to artificially amplify\n"
@@ -323,7 +344,10 @@ static PyObject *XPLMSetAudioVolumeFun(PyObject *self, PyObject *args, PyObject 
   return PyLong_FromLong(res);
 }
 
-My_DOCSTR(_setAudioPitch__doc__, "setAudioPitch", "channel, pitch=1.0",
+My_DOCSTR(_setAudioPitch__doc__, "setAudioPitch",
+          "channel, pitch=1.0",
+          "channel:FMOD_CHANNEL, pitch:float=1.0",
+          "int",
           "Change the current pitch of an active FMOD channel.\n"
           "This is a multiplier to the original channel value *not* a new frequency,"
           "so '0.8' lowers the pitch, '1.2' raises the pitch, and '1.0' sets the"
@@ -347,7 +371,10 @@ static PyObject *XPLMSetAudioPitchFun(PyObject *self, PyObject *args, PyObject *
   return PyLong_FromLong(res);
 }
 
-My_DOCSTR(_setAudioCone__doc__, "setAudioCone", "channel, inside_angle=360.0, outside_angle=360.0, outside_volume=1.0, orientation=None",
+My_DOCSTR(_setAudioCone__doc__, "setAudioCone",
+          "channel, inside_angle=360.0, outside_angle=360.0, outside_volume=1.0, orientation=None",
+          "channel:FMOD_CHANNEL, inside_angle:float=360.0, outside_angle:float=360.0, outside_volume:float=1.0, orientation:Optional[tuple[float, float, float]]=None",
+          "int",
           "Set a direction code for an active FMOD channel. The orientation vector is in local coordinates.\n"
           "This will set the sound to 3D if it is not already.\n"
           " * inside_angle: degrees, within this angle, sound is at normal volume.\n"
@@ -460,37 +487,37 @@ PyInit_XPLMSound(void)
   }
   PyObject *mod = PyModule_Create(&XPLMSoundModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
 #if defined(XPLM400)
-    PyModule_AddIntConstant(mod, "AudioRadioCom1", xplm_AudioRadioCom1);
-    PyModule_AddIntConstant(mod, "AudioRadioCom2", xplm_AudioRadioCom2);
-    PyModule_AddIntConstant(mod, "AudioRadioPilot", xplm_AudioRadioPilot);
-    PyModule_AddIntConstant(mod, "AudioRadioCopilot", xplm_AudioRadioCopilot);
-    PyModule_AddIntConstant(mod, "AudioExteriorAircraft", xplm_AudioExteriorAircraft);
-    PyModule_AddIntConstant(mod, "AudioExteriorEnvironment", xplm_AudioExteriorEnvironment);
-    PyModule_AddIntConstant(mod, "AudioExteriorUnprocessed", xplm_AudioExteriorUnprocessed);
-    PyModule_AddIntConstant(mod, "AudioInterior", xplm_AudioInterior);
-    PyModule_AddIntConstant(mod, "AudioUI", xplm_AudioUI);
-    PyModule_AddIntConstant(mod, "AudioGround", xplm_AudioGround);
-    PyModule_AddIntConstant(mod, "Master", xplm_Master);
-    PyModule_AddIntConstant(mod, "MasterBank", xplm_MasterBank);
-    PyModule_AddIntConstant(mod, "RadioBank", xplm_RadioBank);
+    PyModule_AddIntConstant(mod, "AudioRadioCom1", xplm_AudioRadioCom1); // XPLMAudioBus
+    PyModule_AddIntConstant(mod, "AudioRadioCom2", xplm_AudioRadioCom2); // XPLMAudioBus
+    PyModule_AddIntConstant(mod, "AudioRadioPilot", xplm_AudioRadioPilot); // XPLMAudioBus
+    PyModule_AddIntConstant(mod, "AudioRadioCopilot", xplm_AudioRadioCopilot); // XPLMAudioBus
+    PyModule_AddIntConstant(mod, "AudioExteriorAircraft", xplm_AudioExteriorAircraft); // XPLMAudioBus
+    PyModule_AddIntConstant(mod, "AudioExteriorEnvironment", xplm_AudioExteriorEnvironment); // XPLMAudioBus
+    PyModule_AddIntConstant(mod, "AudioExteriorUnprocessed", xplm_AudioExteriorUnprocessed); // XPLMAudioBus
+    PyModule_AddIntConstant(mod, "AudioInterior", xplm_AudioInterior); // XPLMAudioBus
+    PyModule_AddIntConstant(mod, "AudioUI", xplm_AudioUI); // XPLMAudioBus
+    PyModule_AddIntConstant(mod, "AudioGround", xplm_AudioGround); // XPLMAudioBus
+    PyModule_AddIntConstant(mod, "Master", xplm_Master); // XPLMAudioBus
+    PyModule_AddIntConstant(mod, "MasterBank", xplm_MasterBank); // XPLMBankID
+    PyModule_AddIntConstant(mod, "RadioBank", xplm_RadioBank); // XPLMBankID
     PyModule_AddIntConstant(mod, "FMOD_OK", FMOD_OK);
     PyModule_AddIntConstant(mod, "FMOD_SOUND_FORMAT_PCM16", FMOD_SOUND_FORMAT_PCM16);
 #else
-    PyModule_AddIntConstant(mod, "AudioRadioCom1", -1);
-    PyModule_AddIntConstant(mod, "AudioRadioCom2", -1);
-    PyModule_AddIntConstant(mod, "AudioRadioPilot", -1);
-    PyModule_AddIntConstant(mod, "AudioRadioCopilot", -1);
-    PyModule_AddIntConstant(mod, "AudioExteriorAircraft", -1);
-    PyModule_AddIntConstant(mod, "AudioExteriorEnvironment", -1);
-    PyModule_AddIntConstant(mod, "AudioExteriorUnprocessed", -1);
-    PyModule_AddIntConstant(mod, "AudioInterior", -1);
-    PyModule_AddIntConstant(mod, "AudioUI", -1);
-    PyModule_AddIntConstant(mod, "AudioGround", -1);
-    PyModule_AddIntConstant(mod, "Master", -1);
-    PyModule_AddIntConstant(mod, "MasterBank", -1);
-    PyModule_AddIntConstant(mod, "RadioBank", -1);
+    PyModule_AddIntConstant(mod, "AudioRadioCom1", -1); // XPLMAudioBus
+    PyModule_AddIntConstant(mod, "AudioRadioCom2", -1); // XPLMAudioBus
+    PyModule_AddIntConstant(mod, "AudioRadioPilot", -1); // XPLMAudioBus
+    PyModule_AddIntConstant(mod, "AudioRadioCopilot", -1); // XPLMAudioBus
+    PyModule_AddIntConstant(mod, "AudioExteriorAircraft", -1); // XPLMAudioBus
+    PyModule_AddIntConstant(mod, "AudioExteriorEnvironment", -1); // XPLMAudioBus
+    PyModule_AddIntConstant(mod, "AudioExteriorUnprocessed", -1); // XPLMAudioBus
+    PyModule_AddIntConstant(mod, "AudioInterior", -1); // XPLMAudioBus
+    PyModule_AddIntConstant(mod, "AudioUI", -1); // XPLMAudioBus
+    PyModule_AddIntConstant(mod, "AudioGround", -1); // XPLMAudioBus
+    PyModule_AddIntConstant(mod, "Master", -1); // XPLMAudioBus
+    PyModule_AddIntConstant(mod, "MasterBank", -1); // XPLMBankID
+    PyModule_AddIntConstant(mod, "RadioBank", -1); // XPLMBankID
     PyModule_AddIntConstant(mod, "FMOD_OK", -1);
     PyModule_AddIntConstant(mod, "FMOD_SOUND_FORMAT_PCM16", -1);
 #endif

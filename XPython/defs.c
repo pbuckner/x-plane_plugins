@@ -38,7 +38,7 @@ PyInit_XPLMDefs(void)
 {
   PyObject *mod = PyModule_Create(&XPLMDefsModule);
   if(mod != NULL){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
     PyModule_AddIntConstant(mod, "XPLM_NO_PLUGIN_ID", XPLM_NO_PLUGIN_ID);
     PyModule_AddIntConstant(mod, "XPLM_PLUGIN_XPLANE", XPLM_PLUGIN_XPLANE);
     PyModule_AddIntConstant(mod, "kXPLM_Version", kXPLM_Version);
@@ -46,17 +46,19 @@ PyInit_XPLMDefs(void)
     PyModule_AddIntConstant(mod, "PLUGIN_XPLANE", XPLM_PLUGIN_XPLANE);
     PyModule_AddIntConstant(mod, "kVersion", kXPLM_Version);
 
-    PyModule_AddIntConstant(mod, "xplm_ShiftFlag", xplm_ShiftFlag);
-    PyModule_AddIntConstant(mod, "xplm_OptionAltFlag", xplm_OptionAltFlag);
-    PyModule_AddIntConstant(mod, "xplm_ControlFlag", xplm_ControlFlag);
-    PyModule_AddIntConstant(mod, "xplm_DownFlag", xplm_DownFlag);
-    PyModule_AddIntConstant(mod, "xplm_UpFlag", xplm_UpFlag);
+    PyModule_AddIntConstant(mod, "xplm_NoFlag", 0); //XPLMKeyFlags
+    PyModule_AddIntConstant(mod, "xplm_ShiftFlag", xplm_ShiftFlag); //XPLMKeyFlags
+    PyModule_AddIntConstant(mod, "xplm_OptionAltFlag", xplm_OptionAltFlag); //XPLMKeyFlags
+    PyModule_AddIntConstant(mod, "xplm_ControlFlag", xplm_ControlFlag); //XPLMKeyFlags
+    PyModule_AddIntConstant(mod, "xplm_DownFlag", xplm_DownFlag); //XPLMKeyFlags
+    PyModule_AddIntConstant(mod, "xplm_UpFlag", xplm_UpFlag); //XPLMKeyFlags
 
-    PyModule_AddIntConstant(mod, "ShiftFlag", xplm_ShiftFlag);
-    PyModule_AddIntConstant(mod, "OptionAltFlag", xplm_OptionAltFlag);
-    PyModule_AddIntConstant(mod, "ControlFlag", xplm_ControlFlag);
-    PyModule_AddIntConstant(mod, "DownFlag", xplm_DownFlag);
-    PyModule_AddIntConstant(mod, "UpFlag", xplm_UpFlag);
+    PyModule_AddIntConstant(mod, "NoFlag", 0); //XPLMKeyFlags
+    PyModule_AddIntConstant(mod, "ShiftFlag", xplm_ShiftFlag); //XPLMKeyFlags
+    PyModule_AddIntConstant(mod, "OptionAltFlag", xplm_OptionAltFlag); //XPLMKeyFlags
+    PyModule_AddIntConstant(mod, "ControlFlag", xplm_ControlFlag); //XPLMKeyFlags
+    PyModule_AddIntConstant(mod, "DownFlag", xplm_DownFlag); //XPLMKeyFlags
+    PyModule_AddIntConstant(mod, "UpFlag", xplm_UpFlag); //XPLMKeyFlags
 
     PyModule_AddIntConstant(mod, "XPLM_KEY_RETURN", XPLM_KEY_RETURN);
     PyModule_AddIntConstant(mod, "XPLM_KEY_ESCAPE", XPLM_KEY_ESCAPE);

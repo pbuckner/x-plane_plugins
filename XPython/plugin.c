@@ -28,7 +28,7 @@ static int pythonVerbose = 0;
 /*************************************
  * Python plugin upgrade for Python 3
  *   Michal        f.josef@email.cz (uglyDwarf on x-plane.org)
- *   Peter Buckner pbuck@avnwx.com (pbuckner on x-plane.org) 
+ *   Peter Buckner pbuck@xppython3.org (pbuckner on x-plane.org) 
  *
  * Upgraded from original Python2 version by
  *   Sandy Barbour (on x-plane.org)

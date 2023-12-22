@@ -68,7 +68,10 @@ PyObject *getExecutable()
 
 
 
-My_DOCSTR(_reloadPlugin__doc__, "reloadPlugin", "signature",
+My_DOCSTR(_reloadPlugin__doc__, "reloadPlugin",
+          "signature",
+          "signature:str",
+          "None",
           "Reload (python) plugin with provided signature\n"
           "\n"
           "Plugin will be disabled, stopped, reloaded, then\n"
@@ -86,7 +89,10 @@ static PyObject *XPReloadPlugin(PyObject *self, PyObject *args, PyObject *kwargs
 }
 
 
-My_DOCSTR(_getPluginStats__doc__, "getPluginStats", "",
+My_DOCSTR(_getPluginStats__doc__, "getPluginStats",
+          "",
+          "",
+          "dict",
           "Return dictionary of python plugin performance statistics\n"
           "\n"
           "Keys are different python plugins, with key=None being\n"
@@ -130,7 +136,10 @@ static PyObject *XPGetPluginStats(PyObject *self, PyObject *args)
   return info;
 }
 
-My_DOCSTR(_pythonGetDicts__doc__, "pythonGetDicts", "",
+My_DOCSTR(_pythonGetDicts__doc__, "pythonGetDicts",
+          "",
+          "",
+          "dict",
           "Return dictionary of internal xppython3 dictionaries\n"
           "\n"
           "See documentation, intended for debugging only");
@@ -142,7 +151,10 @@ static PyObject *XPPythonGetDictsFun(PyObject *self, PyObject *args)
   return XPY3pythonDicts;
 }
 
-My_DOCSTR(_pythonLog__doc__, "log", "",
+My_DOCSTR(_pythonLog__doc__, "log",
+          "s",
+          "s:Optional[str]=None",
+          "None",
           "Log string to XPPython3log.txt file. Flush buffer, if no string is provided.");
 static PyObject *XPPythonLogFun(PyObject *self, PyObject *args)
 {
@@ -166,7 +178,10 @@ static PyObject *XPPythonLogFun(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_pythonSystemLog__doc__, "systemLog", "",
+My_DOCSTR(_pythonSystemLog__doc__, "systemLog",
+          "s",
+          "s:Optional[str]=None",
+          "None",
           "Log string to system log file, Log.txt, with newline appended, flushing buffer.");
 static PyObject *XPSystemLogFun(PyObject *self, PyObject *args)
 {
@@ -192,7 +207,10 @@ static PyObject *XPSystemLogFun(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_pythonGetCapsules__doc__, "pythonGetCapsules", "",
+My_DOCSTR(_pythonGetCapsules__doc__, "pythonGetCapsules",
+          "",
+          "",
+          "dict",
           "Returns internal dictionary of Capsules\n"
           "\n"
           "Intended for debugging only");
@@ -204,7 +222,10 @@ static PyObject *XPPythonGetCapsulesFun(PyObject *self, PyObject *args)
   return XPY3pythonCapsules;
 }
 
-My_DOCSTR(_derefCapsule__doc__, "derefCapsule", "capsule_type, capsule",
+My_DOCSTR(_derefCapsule__doc__, "derefCapsule",
+          "capsule_type, capsule",
+          "capsule_type:str, capsule:Any",
+          "int",
           "Dereference a capsule to retrieve internal C language pointer\n"
           "\n"
           "Intended for debugging only");
@@ -365,18 +386,18 @@ PyInit_XPPython(void)
   PythonModuleMTimes = PyDict_New();
 
   if (mod != NULL) {
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
     PyModule_AddStringConstant(mod, "VERSION", pythonPluginVersion);
     PyModule_AddStringConstant(mod, "PLUGINSPATH", pythonPluginsPath);
     PyModule_AddStringConstant(mod, "INTERNALPLUGINSPATH", pythonInternalPluginsPath);
     PyModule_AddIntConstant(mod, "pythonDebugLevel", pythonDebugs);
-    PyModule_AddObject(mod, "pythonExecutable", getExecutable());
+    PyModule_AddObject(mod, "pythonExecutable", getExecutable()); // str
     PyModule_AddObject(mod, "HotKeyInfo", (PyObject *) &HotKeyInfoType);
-    PyModule_AddObject(mod, "ProbeInfo", (PyObject *) &ProbeInfoType);
-    PyModule_AddObject(mod, "DataRefInfo", (PyObject *) &DataRefInfoType);
-    PyModule_AddObject(mod, "WeatherInfo", (PyObject *) &WeatherInfoType);
-    PyModule_AddObject(mod, "WeatherInfoClouds", (PyObject *) &WeatherInfoCloudsType);
-    PyModule_AddObject(mod, "WeatherInfoWinds", (PyObject *) &WeatherInfoWindsType);
+    PyModule_AddObject(mod, "XPLMProbeInfo_t", (PyObject *) &ProbeInfoType);
+    PyModule_AddObject(mod, "XPLMDataRefInfo_t", (PyObject *) &DataRefInfoType);
+    PyModule_AddObject(mod, "XPLMWeatherInfo_t", (PyObject *) &WeatherInfoType);
+    PyModule_AddObject(mod, "XPLMWeatherInfoClouds_t", (PyObject *) &WeatherInfoCloudsType);
+    PyModule_AddObject(mod, "XPLMWeatherInfoWinds_t", (PyObject *) &WeatherInfoWindsType);
     PyModule_AddObject(mod, "PluginInfo", (PyObject *) &PluginInfoType);
     PyModule_AddObject(mod, "NavAidInfo", (PyObject *) &NavAidInfoType);
     PyModule_AddObject(mod, "FMSEntryInfo", (PyObject *) &FMSEntryInfoType);

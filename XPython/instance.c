@@ -26,7 +26,10 @@ void resetInstances(void) {
   PyDict_Clear(instanceRefCapsules);
 }
 
-My_DOCSTR(_createInstance__doc__, "createInstance", "obj, dataRefs=None",
+My_DOCSTR(_createInstance__doc__, "createInstance",
+          "obj, dataRefs=None",
+          "obj:XPLMObjectRef, dataRefs:Optional[tuple[str]]=None",
+          "XPLMInstanceRef",
           "Create Instance for object retrieved by loadObject() or loadObjectAsync().\n"
           "\n"
           "Provide list of string dataRefs to be registered for this object.\n"
@@ -81,7 +84,10 @@ static PyObject *XPLMCreateInstanceFun(PyObject *self, PyObject *args, PyObject 
   return getPtrRef(res, instanceRefCapsules, instanceRefName);
 }
 
-My_DOCSTR(_destroyInstance__doc__, "destroyInstance", "instance",
+My_DOCSTR(_destroyInstance__doc__, "destroyInstance",
+          "instance",
+          "instance:XPLMObjectRef",
+          "None",
           "Destroys instance created by createInstance().");
 static PyObject *XPLMDestroyInstanceFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -101,7 +107,11 @@ static PyObject *XPLMDestroyInstanceFun(PyObject *self, PyObject *args, PyObject
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_instanceSetPosition__doc__, "instanceSetPosition", "instance, position, data=None",
+My_DOCSTR(_instanceSetPosition__doc__, "instanceSetPosition",
+          "instance, position, data=None",
+          "instance:XPLMObjectRef, position:XPLMDrawInfo_t | tuple[float, float, float, float, float, float], "
+          "data:Optional[tuple[float]]=None",
+          "None",
           "Update position (x, y, z, pitch, heading, roll), \n"
           "and all datarefs (<float>, <float>, ...)"
           "\n"
@@ -122,13 +132,51 @@ static PyObject *XPLMInstanceSetPositionFun(PyObject *self, PyObject *args, PyOb
   }
   XPLMDrawInfo_t inNewPosition;
   inNewPosition.structSize = sizeof(XPLMDrawInfo_t);
-  inNewPosition.x = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 0));
-  inNewPosition.y = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 1));
-  inNewPosition.z = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 2));
-  inNewPosition.pitch = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 3));
-  inNewPosition.heading = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 4));
-  inNewPosition.roll = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 5));
-  
+  if (PySequence_Check(newPositionSeq) && PySequence_Length(newPositionSeq) == 6) {
+    inNewPosition.x = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 0));
+    inNewPosition.y = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 1));
+    inNewPosition.z = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 2));
+    inNewPosition.pitch = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 3));
+    inNewPosition.heading = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 4));
+    inNewPosition.roll = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 5));
+  } else if (PyObject_HasAttrString(newPositionSeq, "heading")) {
+    PyObject *value;
+    value = PyObject_GetAttrString(newPositionSeq, "x");
+    inNewPosition.x = PyFloat_AsDouble(value);
+    Py_DECREF(value);
+
+    value = PyObject_GetAttrString(newPositionSeq, "y");
+    inNewPosition.y = PyFloat_AsDouble(value);
+    Py_DECREF(value);
+
+    value = PyObject_GetAttrString(newPositionSeq, "z");
+    inNewPosition.z = PyFloat_AsDouble(value);
+    Py_DECREF(value);
+
+    value = PyObject_GetAttrString(newPositionSeq, "pitch");
+    inNewPosition.pitch = PyFloat_AsDouble(value);
+    Py_DECREF(value);
+
+    value = PyObject_GetAttrString(newPositionSeq, "heading");
+    inNewPosition.heading = PyFloat_AsDouble(value);
+    Py_DECREF(value);
+
+    value = PyObject_GetAttrString(newPositionSeq, "roll");
+    inNewPosition.roll = PyFloat_AsDouble(value);
+    Py_DECREF(value);
+
+  } else if (PyMapping_Check(newPositionSeq)) {
+    inNewPosition.x = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "x"));
+    inNewPosition.y = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "y"));
+    inNewPosition.z = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "z"));
+    inNewPosition.pitch = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "pitch"));
+    inNewPosition.heading = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "heading"));
+    inNewPosition.roll = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "roll"));
+  } else {
+    PyErr_SetString(PyExc_AttributeError, "instanceSetPosition: unknown data type for position");
+    return NULL;
+  }
+    
   Py_ssize_t len = 0;
   if (data != Py_None) {
     len = PySequence_Length(data);
@@ -192,7 +240,7 @@ PyInit_XPLMInstance(void)
 {
   PyObject *mod = PyModule_Create(&XPLMInstanceModule);
   if(mod) {
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
   }
   if(!(instanceRefCapsules = PyDict_New())){return NULL;}
   PyDict_SetItemString(XPY3pythonCapsules, instanceRefName, instanceRefCapsules);

@@ -11,7 +11,10 @@
 #include "utils.h"
 #include "widgetutils.h"
 
-My_DOCSTR(_createWidgets__doc__, "createWidgets", "widgetDefs, parentID=None",
+My_DOCSTR(_createWidgets__doc__, "createWidgets",
+          "widgetDefs, parentID=None",
+          "widgetDefs:Sequence[Sequence[Any]], parentID:Optional[XPWidgetID]",
+          "None | list[XPWidgetID]",
           "This does not work in X-Plane.");
 static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -93,7 +96,10 @@ static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args, PyObject *k
   return widgets;
 }
 
-My_DOCSTR(_moveWidgetBy__doc__, "moveWidgetBy", "widgetID, dx=0, dy=y",
+My_DOCSTR(_moveWidgetBy__doc__, "moveWidgetBy",
+          "widgetID, dx=0, dy=0",
+          "widgetID:XPWidgetID, dx:int=0, dy:int=0",
+          "None",
           "Move widget by amount. +x = right, +y = up");
 static PyObject *XPUMoveWidgetByFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -110,7 +116,10 @@ static PyObject *XPUMoveWidgetByFun(PyObject *self, PyObject *args, PyObject *kw
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_fixedLayout__doc__, "fixedLayout", "message, widgetID, param1, param2",
+My_DOCSTR(_fixedLayout__doc__, "fixedLayout",
+          "message, widgetID, param1, param2",
+          "message:XPWidgetMessage, widgetID:XPWidgetID, param1:int, param2:int",
+          "int",
           "Use this as a widgetCallback to have child widgets maintain relative positions\n"
           "\n"
           "Seems to be completely useless with X-Plane 11.55+");
@@ -215,7 +224,10 @@ void convertMessagePythonToC(XPWidgetMessage msg, PyObject *widget, PyObject *pa
   errCheck("end convertMesssagePythonToC");
 }
 
-My_DOCSTR(_selectIfNeeded__doc__, "selectIfNeeded", "message, widgetID, param1, param2, eatClick=1",
+My_DOCSTR(_selectIfNeeded__doc__, "selectIfNeeded",
+          "message, widgetID, param1, param2, eatClick=1",
+          "message:XPWidgetMessage, widgetID:XPWidgetID, param1:int, param2:int, eatClick:int=1",
+          "int",
           "Call within widget Callback to raise widget, if not already\n"
           "\n"
           "Seems completely useless with X-Plane 11.55+");
@@ -312,7 +324,10 @@ static PyObject *XPUSelectIfNeededFun(PyObject *self, PyObject *args, PyObject *
   return PyLong_FromLong(res);
 }
 
-My_DOCSTR(_defocusKeyboard__doc__, "defocusKeyboard", "message, widgetID, param1, param2, eatClick=1",
+My_DOCSTR(_defocusKeyboard__doc__, "defocusKeyboard",
+          "message, widgetID, param1, param2, eatClick=1",
+          "message:XPWidgetMessage, widgetID:XPWidgetID, param1:int, param2:int, eatClick:int=1",
+          "int",
           "Send keyboard focus back to X-Plane\n"
           "\n"
           "Seems completely useless in X-Plane 11.55");
@@ -334,7 +349,10 @@ static PyObject *XPUDefocusKeyboardFun(PyObject *self, PyObject *args, PyObject 
   return PyLong_FromLong(res);
 }
 
-My_DOCSTR(_dragWidget__doc__, "dragWidget", "message, widgetID, param1, param2, left, top, right, bottom",
+My_DOCSTR(_dragWidget__doc__, "dragWidget",
+          "message, widgetID, param1, param2, left, top, right, bottom",
+          "message:XPWidgetMessage, widgetID:XPWidgetID, param1:int, param2:int, left:int, top:int, right:int, bottom:int",
+          "int",
           "Add to your widget callback to support drag areas\n"
           "\n"
           "(left, top, right, bottom) define area within your widget where, if drag\n"
@@ -407,7 +425,7 @@ PyInit_XPWidgetUtils(void)
 {
   PyObject *mod = PyModule_Create(&XPWidgetUtilsModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
     PyModule_AddIntConstant(mod, "NO_PARENT", NO_PARENT);
     PyModule_AddIntConstant(mod, "PARAM_PARENT", PARAM_PARENT);
 

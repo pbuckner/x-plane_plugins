@@ -7,7 +7,10 @@
 #include "utils.h"
 #include "xppythontypes.h"
 
-My_DOCSTR(_getFirstNavAid__doc__, "getFirstNavAid", "",
+My_DOCSTR(_getFirstNavAid__doc__, "getFirstNavAid",
+          "",
+          "",
+          "int",
           "Returns navRef of first entry in navaid database.");
 static PyObject *XPLMGetFirstNavAidFun(PyObject *self, PyObject *args)
 {
@@ -16,7 +19,10 @@ static PyObject *XPLMGetFirstNavAidFun(PyObject *self, PyObject *args)
   return PyLong_FromLong(XPLMGetFirstNavAid());
 }
 
-My_DOCSTR(_getNextNavAid__doc__, "getNextNavAid", "navRef",
+My_DOCSTR(_getNextNavAid__doc__, "getNextNavAid",
+          "navRef",
+          "navRef:XPLMNavRef",
+          "int",
           "Returns next navRef after the provided value.");
 static PyObject *XPLMGetNextNavAidFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -29,7 +35,10 @@ static PyObject *XPLMGetNextNavAidFun(PyObject *self, PyObject *args, PyObject *
   return PyLong_FromLong(XPLMGetNextNavAid(inNavAidRef));
 }
 
-My_DOCSTR(_findFirstNavAidOfType__doc__, "findFirstNavAidOfType", "navType",
+My_DOCSTR(_findFirstNavAidOfType__doc__, "findFirstNavAidOfType",
+          "navType",
+          "navType:XPLMNavType",
+          "int",
           "Returns navRef of first navAid of given type.\n"
           "\n"
           "Types are:\n"
@@ -58,7 +67,10 @@ static PyObject *XPLMFindFirstNavAidOfTypeFun(PyObject *self, PyObject *args, Py
   return PyLong_FromLong(XPLMFindFirstNavAidOfType(inType));
 }
 
-My_DOCSTR(_findLastNavAidOfType__doc__, "findLastNavAidOfType", "navType",
+My_DOCSTR(_findLastNavAidOfType__doc__, "findLastNavAidOfType",
+          "navType",
+          "navType:XPLMNavType",
+          "int",
           "Returns navRef of last navAid of given type.");
 static PyObject *XPLMFindLastNavAidOfTypeFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -71,12 +83,16 @@ static PyObject *XPLMFindLastNavAidOfTypeFun(PyObject *self, PyObject *args, PyO
   return PyLong_FromLong(XPLMFindLastNavAidOfType(inType));
 }
 
-My_DOCSTR(_findNavAid__doc__, "findNavAid", "name=None, navAidID=None, lat=None, lon=None, freq=None, navType=-1",
+My_DOCSTR(_findNavAid__doc__, "findNavAid",
+          "name=None, navAidID=None, lat=None, lon=None, freq=None, navType=0xffffffff",
+          "name:Optional[str], navAidID:Optional[str], lat:Optional[float], "
+          "lon:Optional[float], freq:Optional[int], navType:XPLMNavType=Nav_Any",
+          "XPLMNavRef",
           "Returns navRef of last navAid matching information.\n"
           "\n"
           "name and navAidID are case-sensitive and will match a fragment of the actual value.\n"
           "freq is an integer, 100x the real frequency value (eg. 137.75 -> 13775) except for NDB.\n"
-          "navType=-1 will match any value");
+          "navType=0xffffffff will match any type value");
 static PyObject *XPLMFindNavAidFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   static char *keywords[] = {"name", "navAidID", "lat", "lon", "freq", "navType", NULL};
@@ -87,7 +103,7 @@ static PyObject *XPLMFindNavAidFun(PyObject *self, PyObject *args, PyObject *kwa
   float lat, *inLat = NULL;
   float lon, *inLon = NULL;
   int frequency, *inFrequency = NULL;
-  int inType=-1;
+  int inType=0xffffff;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|zzOOOi", keywords, &inNameFragment, &inIDFragment, &objLat, &objLon, &objFreq, &inType)){
     return NULL;
   }
@@ -103,13 +119,13 @@ static PyObject *XPLMFindNavAidFun(PyObject *self, PyObject *args, PyObject *kwa
     frequency = PyLong_AsLong(objFreq);
     inFrequency = &frequency;
   }
-  if (inType == -1) {
-    inType = 0xffffffff;
-  }
   return PyLong_FromLong(XPLMFindNavAid(inNameFragment, inIDFragment, inLat, inLon, inFrequency, inType));
 }
 
-My_DOCSTR(_getNavAidInfo__doc__, "getNavAidInfo", "navRef",
+My_DOCSTR(_getNavAidInfo__doc__, "getNavAidInfo",
+          "navRef",
+          "navRef:XPLMNavRef",
+          "NavAidInfo",
           "Returns NavAidInfo object for given navRef\n"
           "\n"
           "Attibutes are:\n"
@@ -120,7 +136,7 @@ My_DOCSTR(_getNavAidInfo__doc__, "getNavAidInfo", "navRef",
           " .frequency  # integer, for NDB, value is exact, otherwise devide by 100.0\n"
           " .heading    # See documentation for glideslope headings\n"
           " .navAidID\n"
-          " .reg        # =1 if navaid is within local \"region\" of loaded DSFs");
+          " .reg        # =1 if navaid is within local 'region' of loaded DSFs");
 static PyObject *XPLMGetNavAidInfoFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   static char *keywords[] = {"navRef", NULL};
@@ -139,7 +155,10 @@ static PyObject *XPLMGetNavAidInfoFun(PyObject *self, PyObject *args, PyObject *
   return PyNavAidInfo_New(type, latitude, longitude, height, frequency, heading, ID, name, (int)reg[0]);
 }
 
-My_DOCSTR(_countFMSEntries__doc__, "countFMSEntries", "",
+My_DOCSTR(_countFMSEntries__doc__, "countFMSEntries",
+          "",
+          "",
+          "int",
           "Returns number of FMS Entries");
 static PyObject *XPLMCountFMSEntriesFun(PyObject *self, PyObject *args)
 {
@@ -148,7 +167,10 @@ static PyObject *XPLMCountFMSEntriesFun(PyObject *self, PyObject *args)
   return PyLong_FromLong(XPLMCountFMSEntries());
 }
 
-My_DOCSTR(_getDisplayedFMSEntry__doc__, "getDisplayedFMSEntry", "",
+My_DOCSTR(_getDisplayedFMSEntry__doc__, "getDisplayedFMSEntry",
+          "",
+          "",
+          "int",
           "Returns index number of currently displayed FMS entry.");
 static PyObject *XPLMGetDisplayedFMSEntryFun(PyObject *self, PyObject *args)
 {
@@ -157,7 +179,10 @@ static PyObject *XPLMGetDisplayedFMSEntryFun(PyObject *self, PyObject *args)
   return PyLong_FromLong(XPLMGetDisplayedFMSEntry());
 }
 
-My_DOCSTR(_getDestinationFMSEntry__doc__, "getDestinationFMSEntry", "",
+My_DOCSTR(_getDestinationFMSEntry__doc__, "getDestinationFMSEntry",
+          "",
+          "",
+          "int",
           "Returns index number of destination FMS entry.");
 static PyObject *XPLMGetDestinationFMSEntryFun(PyObject *self, PyObject *args)
 {
@@ -166,7 +191,10 @@ static PyObject *XPLMGetDestinationFMSEntryFun(PyObject *self, PyObject *args)
   return PyLong_FromLong(XPLMGetDestinationFMSEntry());
 }
 
-My_DOCSTR(_setDisplayedFMSEntry__doc__, "setDisplayedFMSEntry", "index",
+My_DOCSTR(_setDisplayedFMSEntry__doc__, "setDisplayedFMSEntry",
+          "index",
+          "index:int",
+          "None",
           "Sets index number for FMS Entry to be displayed.");
 static PyObject *XPLMSetDisplayedFMSEntryFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -180,7 +208,10 @@ static PyObject *XPLMSetDisplayedFMSEntryFun(PyObject *self, PyObject *args, PyO
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_setDestinationFMSEntry__doc__, "setDestinationFMSEntry", "index",
+My_DOCSTR(_setDestinationFMSEntry__doc__, "setDestinationFMSEntry",
+          "index",
+          "index:int",
+          "None",
           "Sets index number for FMS Entry to become the current destination.");
 static PyObject *XPLMSetDestinationFMSEntryFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -194,7 +225,10 @@ static PyObject *XPLMSetDestinationFMSEntryFun(PyObject *self, PyObject *args, P
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_getFMSEntryInfo__doc__, "getFMSEntryInfo", "index",
+My_DOCSTR(_getFMSEntryInfo__doc__, "getFMSEntryInfo",
+          "index",
+          "index:int",
+          "FMSEntryInfo",
           "Return FMSEntryInfo object for given FMS Entry index.\n"
           "\n"
           "Attributes are:\n"
@@ -223,7 +257,10 @@ static PyObject *XPLMGetFMSEntryInfoFun(PyObject *self, PyObject *args, PyObject
   return PyFMSEntryInfo_New(type, ID, ref, altitude, lat, lon);
 }
 
-My_DOCSTR(_setFMSEntryInfo__doc__, "setFMSEntryInfo", "index, navRef, altitude=0",
+My_DOCSTR(_setFMSEntryInfo__doc__, "setFMSEntryInfo",
+          "index, navRef, altitude=0",
+          "index:int, navRef:XPLMNavRef, altitude:int=0",
+          "None",
           "Set given FMS Entry to provided navRef and altitude (feet)");
 static PyObject *XPLMSetFMSEntryInfoFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -239,7 +276,10 @@ static PyObject *XPLMSetFMSEntryInfoFun(PyObject *self, PyObject *args, PyObject
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_setFMSEntryLatLon__doc__, "setFMSEntryLatLon", "index, lat, lon, altitude=0",
+My_DOCSTR(_setFMSEntryLatLon__doc__, "setFMSEntryLatLon",
+          "index, lat, lon, altitude=0",
+          "index:int, lat:float, lon:float, altitude:int=0",
+          "None",
           "Set given FMS Entry to provided (lat, lon) and altitude(feet).");
 static PyObject *XPLMSetFMSEntryLatLonFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -256,7 +296,10 @@ static PyObject *XPLMSetFMSEntryLatLonFun(PyObject *self, PyObject *args, PyObje
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_clearFMSEntry__doc__, "clearFMSEntry", "index",
+My_DOCSTR(_clearFMSEntry__doc__, "clearFMSEntry",
+          "index",
+          "index:int",
+          "None",
           "Clear given FMS entry.");
 static PyObject *XPLMClearFMSEntryFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -270,7 +313,10 @@ static PyObject *XPLMClearFMSEntryFun(PyObject *self, PyObject *args, PyObject *
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_getGPSDestinationType__doc__, "getGPSDestinationType", "",
+My_DOCSTR(_getGPSDestinationType__doc__, "getGPSDestinationType",
+          "",
+          "",
+          "int",
           "Return NavType of current GPS Destination.");
 static PyObject *XPLMGetGPSDestinationTypeFun(PyObject *self, PyObject *args)
 {
@@ -279,7 +325,10 @@ static PyObject *XPLMGetGPSDestinationTypeFun(PyObject *self, PyObject *args)
   return PyLong_FromLong(XPLMGetGPSDestinationType());
 }
 
-My_DOCSTR(_getGPSDestination__doc__, "getGPSDestination", "",
+My_DOCSTR(_getGPSDestination__doc__, "getGPSDestination",
+          "",
+          "",
+          "int",
           "Return navRef of current GPS Destination.");
 static PyObject *XPLMGetGPSDestinationFun(PyObject *self, PyObject *args)
 {
@@ -358,36 +407,38 @@ PyInit_XPLMNavigation(void)
 {
   PyObject *mod = PyModule_Create(&XPLMNavigationModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
-    PyModule_AddIntConstant(mod, "xplm_Nav_Unknown", xplm_Nav_Unknown);
-    PyModule_AddIntConstant(mod, "xplm_Nav_Airport", xplm_Nav_Airport);
-    PyModule_AddIntConstant(mod, "xplm_Nav_NDB", xplm_Nav_NDB);
-    PyModule_AddIntConstant(mod, "xplm_Nav_VOR", xplm_Nav_VOR);
-    PyModule_AddIntConstant(mod, "xplm_Nav_ILS", xplm_Nav_ILS);
-    PyModule_AddIntConstant(mod, "xplm_Nav_Localizer", xplm_Nav_Localizer);
-    PyModule_AddIntConstant(mod, "xplm_Nav_GlideSlope", xplm_Nav_GlideSlope);
-    PyModule_AddIntConstant(mod, "xplm_Nav_OuterMarker", xplm_Nav_OuterMarker);
-    PyModule_AddIntConstant(mod, "xplm_Nav_MiddleMarker", xplm_Nav_MiddleMarker);
-    PyModule_AddIntConstant(mod, "xplm_Nav_InnerMarker", xplm_Nav_InnerMarker);
-    PyModule_AddIntConstant(mod, "xplm_Nav_Fix", xplm_Nav_Fix);
-    PyModule_AddIntConstant(mod, "xplm_Nav_DME", xplm_Nav_DME);
-    PyModule_AddIntConstant(mod, "xplm_Nav_LatLon", xplm_Nav_LatLon);
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
+    PyModule_AddIntConstant(mod, "xplm_Nav_Any", 0xffffffff); //XPLMNavType
+    PyModule_AddIntConstant(mod, "xplm_Nav_Unknown", xplm_Nav_Unknown); // XPLMNavType
+    PyModule_AddIntConstant(mod, "xplm_Nav_Airport", xplm_Nav_Airport); // XPLMNavType
+    PyModule_AddIntConstant(mod, "xplm_Nav_NDB", xplm_Nav_NDB); // XPLMNavType
+    PyModule_AddIntConstant(mod, "xplm_Nav_VOR", xplm_Nav_VOR); // XPLMNavType
+    PyModule_AddIntConstant(mod, "xplm_Nav_ILS", xplm_Nav_ILS); // XPLMNavType
+    PyModule_AddIntConstant(mod, "xplm_Nav_Localizer", xplm_Nav_Localizer); // XPLMNavType
+    PyModule_AddIntConstant(mod, "xplm_Nav_GlideSlope", xplm_Nav_GlideSlope); // XPLMNavType
+    PyModule_AddIntConstant(mod, "xplm_Nav_OuterMarker", xplm_Nav_OuterMarker); // XPLMNavType
+    PyModule_AddIntConstant(mod, "xplm_Nav_MiddleMarker", xplm_Nav_MiddleMarker); // XPLMNavType
+    PyModule_AddIntConstant(mod, "xplm_Nav_InnerMarker", xplm_Nav_InnerMarker); // XPLMNavType
+    PyModule_AddIntConstant(mod, "xplm_Nav_Fix", xplm_Nav_Fix); // XPLMNavType
+    PyModule_AddIntConstant(mod, "xplm_Nav_DME", xplm_Nav_DME); // XPLMNavType
+    PyModule_AddIntConstant(mod, "xplm_Nav_LatLon", xplm_Nav_LatLon); // XPLMNavType
     
     PyModule_AddIntConstant(mod, "XPLM_NAV_NOT_FOUND", XPLM_NAV_NOT_FOUND);
 
-    PyModule_AddIntConstant(mod, "Nav_Unknown", xplm_Nav_Unknown);
-    PyModule_AddIntConstant(mod, "Nav_Airport", xplm_Nav_Airport);
-    PyModule_AddIntConstant(mod, "Nav_NDB", xplm_Nav_NDB);
-    PyModule_AddIntConstant(mod, "Nav_VOR", xplm_Nav_VOR);
-    PyModule_AddIntConstant(mod, "Nav_ILS", xplm_Nav_ILS);
-    PyModule_AddIntConstant(mod, "Nav_Localizer", xplm_Nav_Localizer);
-    PyModule_AddIntConstant(mod, "Nav_GlideSlope", xplm_Nav_GlideSlope);
-    PyModule_AddIntConstant(mod, "Nav_OuterMarker", xplm_Nav_OuterMarker);
-    PyModule_AddIntConstant(mod, "Nav_MiddleMarker", xplm_Nav_MiddleMarker);
-    PyModule_AddIntConstant(mod, "Nav_InnerMarker", xplm_Nav_InnerMarker);
-    PyModule_AddIntConstant(mod, "Nav_Fix", xplm_Nav_Fix);
-    PyModule_AddIntConstant(mod, "Nav_DME", xplm_Nav_DME);
-    PyModule_AddIntConstant(mod, "Nav_LatLon", xplm_Nav_LatLon);
+    PyModule_AddIntConstant(mod, "Nav_Any", 0xffffffff); //XPLMNavType
+    PyModule_AddIntConstant(mod, "Nav_Unknown", xplm_Nav_Unknown); // XPLMNavType
+    PyModule_AddIntConstant(mod, "Nav_Airport", xplm_Nav_Airport); // XPLMNavType
+    PyModule_AddIntConstant(mod, "Nav_NDB", xplm_Nav_NDB); // XPLMNavType
+    PyModule_AddIntConstant(mod, "Nav_VOR", xplm_Nav_VOR); // XPLMNavType
+    PyModule_AddIntConstant(mod, "Nav_ILS", xplm_Nav_ILS); // XPLMNavType
+    PyModule_AddIntConstant(mod, "Nav_Localizer", xplm_Nav_Localizer); // XPLMNavType
+    PyModule_AddIntConstant(mod, "Nav_GlideSlope", xplm_Nav_GlideSlope); // XPLMNavType
+    PyModule_AddIntConstant(mod, "Nav_OuterMarker", xplm_Nav_OuterMarker); // XPLMNavType
+    PyModule_AddIntConstant(mod, "Nav_MiddleMarker", xplm_Nav_MiddleMarker); // XPLMNavType
+    PyModule_AddIntConstant(mod, "Nav_InnerMarker", xplm_Nav_InnerMarker); // XPLMNavType
+    PyModule_AddIntConstant(mod, "Nav_Fix", xplm_Nav_Fix); // XPLMNavType
+    PyModule_AddIntConstant(mod, "Nav_DME", xplm_Nav_DME); // XPLMNavType
+    PyModule_AddIntConstant(mod, "Nav_LatLon", xplm_Nav_LatLon); // XPLMNavType
     
     PyModule_AddIntConstant(mod, "NAV_NOT_FOUND", XPLM_NAV_NOT_FOUND);
   }

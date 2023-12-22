@@ -89,8 +89,8 @@ static PyMemberDef ProbeInfo_members[] = {
 PyTypeObject
 ProbeInfoType = {
   PyVarObject_HEAD_INIT(NULL, 0)
-  .tp_name = "XPPython.ProbeInfo",
-  .tp_doc = PyDoc_STR("ProbeInfo, return from xp.probeTerrainXYZ()"),
+  .tp_name = "XPPython.XPLMProbeInfo_t",
+  .tp_doc = PyDoc_STR("XPLMProbeInfo_t, return from xp.probeTerrainXYZ()"),
   .tp_basicsize = sizeof(ProbeInfoObject),
   .tp_itemsize = 0,
   .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,

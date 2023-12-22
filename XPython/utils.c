@@ -16,7 +16,7 @@
 
 const char *objRefName = "XPLMObjectRef";
 const char *commandRefName = "XPLMCommandRef";
-const char *widgetRefName = "XPLMWidgetID";
+const char *widgetRefName = "XPWidgetID";
 
 char CurrentPythonModuleName[512] = "Main";
 
@@ -409,7 +409,7 @@ PyObject *getPtrRef(void *ptr, PyObject *dict, const char *refName)
 void *refToPtr(PyObject *ref, const char *refName)
 {
   errCheck("prior refToPtr %s", refName);
-  /* XPLMWidgetID can be 0, refering to underlying X-Plane window, need to keep that */
+  /* XPWidgetID can be 0, refering to underlying X-Plane window, need to keep that */
   if (ref == Py_None) return NULL;
   if (refName == NULL) {
     refName = PyCapsule_GetName(ref);

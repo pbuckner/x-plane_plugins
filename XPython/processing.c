@@ -138,7 +138,10 @@ static float genericFlightLoopCallback(float inElapsedSinceLastCall, float inEla
   return tmp;
 }
 
-My_DOCSTR(_getElapsedTime__doc__, "getElapsedTime", "",
+My_DOCSTR(_getElapsedTime__doc__, "getElapsedTime",
+          "",
+          "",
+          "float",
           "Return elapsed time since sim started.");
 static PyObject *XPLMGetElapsedTimeFun(PyObject *self, PyObject *args)
 {
@@ -148,7 +151,10 @@ static PyObject *XPLMGetElapsedTimeFun(PyObject *self, PyObject *args)
   return PyFloat_FromDouble(res);
 }
 
-My_DOCSTR(_getCycleNumber__doc__, "getCycleNumber", "",
+My_DOCSTR(_getCycleNumber__doc__, "getCycleNumber",
+          "",
+          "",
+          "int",
           "Get cycle number, increased for each cycle computed by sim.");
 static PyObject *XPLMGetCycleNumberFun(PyObject *self, PyObject *args)
 {
@@ -160,7 +166,10 @@ static PyObject *XPLMGetCycleNumberFun(PyObject *self, PyObject *args)
 
 
 
-My_DOCSTR(_registerFlightLoopCallback__doc__, "registerFlightLoopCallback", "callback, interval=0.0, refCon=None",
+My_DOCSTR(_registerFlightLoopCallback__doc__, "registerFlightLoopCallback",
+          "callback, interval=0.0, refCon=None",
+          "callback:Callable[[float, float, int, Any], float], interval:float=0.0, refCon:Any=None",
+          "None",
           "Register flight look callback.\n"
           "\n"
           "interval indicates when you'll be called next:\n"
@@ -196,7 +205,10 @@ static PyObject *XPLMRegisterFlightLoopCallbackFun(PyObject* self, PyObject *arg
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_unregisterFlightLoopCallback__doc__, "unregisterFlightLoopCallback", "callback, refCon=None",
+My_DOCSTR(_unregisterFlightLoopCallback__doc__, "unregisterFlightLoopCallback",
+          "callback, refCon=None",
+          "callback:Callable[[float, float, int, Any], float], refCon:Any=None",
+          "None",
           "Unregisters flightloop matching callback and refCon.\n"
           "\n"
           "Input must match that provided to registerFlightLoopCallback().");
@@ -240,7 +252,10 @@ static PyObject *XPLMUnregisterFlightLoopCallbackFun(PyObject *self, PyObject *a
 }
 
 
-My_DOCSTR(_setFlightLoopCallbackInterval__doc__, "setFlightLoopCallbackInterval", "callback, interval=0.0, relativeToNow=1, refCon=None",
+My_DOCSTR(_setFlightLoopCallbackInterval__doc__, "setFlightLoopCallbackInterval",
+          "callback, interval=0.0, relativeToNow=1, refCon=None",
+          "callback:Callable[[float, float, int, Any], float], interval:float=0.0, relativeToNow:int=1, refCon:Any=None",
+          "None",
           "Change interval associated with callback, refCon.\n"
           "\n"
           "Must have been previously registered with registerFlightLoopCallback()");
@@ -280,7 +295,11 @@ static PyObject *XPLMSetFlightLoopCallbackIntervalFun(PyObject *self, PyObject *
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_createFlightLoop__doc__, "createFlightLoop", "callback, phase=0, refCon=None",
+My_DOCSTR(_createFlightLoop__doc__, "createFlightLoop",
+          "callback, phase=0, refCon=None",
+          "callback:Callable[[float, float, int, Any], float], "
+          "phase:XPLMFlightLoopPhaseType=FlightLoop_Phase_BeforeFlightModel, refCon:Any=None",
+          "XPLMFlightLoopID",
           "Create flight loop, returning flightLoopID\n"
           "\n"
           "Callback take (sinceLast, elapsedTime, counter, refCon)\n"
@@ -333,7 +352,10 @@ static PyObject *XPLMCreateFlightLoopFun(PyObject* self, PyObject *args, PyObjec
   return flightLoopIDObj;
 }
 
-My_DOCSTR(_destroyFlightLoop__doc__, "destroyFlightLoop", "flightLoopID",
+My_DOCSTR(_destroyFlightLoop__doc__, "destroyFlightLoop",
+          "flightLoopID",
+          "flightLoopID:XPLMFlightLoopID",
+          "None",
           "Destroys flight loop previously created by createFlightLoop()");
 static PyObject *XPLMDestroyFlightLoopFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -367,7 +389,10 @@ static PyObject *XPLMDestroyFlightLoopFun(PyObject *self, PyObject *args, PyObje
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_scheduleFlightLoop__doc__, "scheduleFlightLoop", "flightLoopID, interval=0.0, relativeToNow=1",
+My_DOCSTR(_scheduleFlightLoop__doc__, "scheduleFlightLoop",
+          "flightLoopID, interval=0.0, relativeToNow=1",
+          "flightLoopID:XPLMFlightLoopID, interval:float=0.0, relativeToNow:int=1",
+          "None",
           "Change interval associated with flight loop\n"
           "\n"
           "  0= stop\n"
@@ -469,12 +494,12 @@ PyInit_XPLMProcessing(void)
   PyDict_SetItemString(XPY3pythonDicts, "flightLoopIDs", flIDDict);
   PyObject *mod = PyModule_Create(&XPLMProcessingModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
-    PyModule_AddIntConstant(mod, "xplm_FlightLoop_Phase_BeforeFlightModel", xplm_FlightLoop_Phase_BeforeFlightModel);
-    PyModule_AddIntConstant(mod, "xplm_FlightLoop_Phase_AfterFlightModel", xplm_FlightLoop_Phase_AfterFlightModel);
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
+    PyModule_AddIntConstant(mod, "xplm_FlightLoop_Phase_BeforeFlightModel", xplm_FlightLoop_Phase_BeforeFlightModel); // XPLMFlightLoopPhaseType
+    PyModule_AddIntConstant(mod, "xplm_FlightLoop_Phase_AfterFlightModel", xplm_FlightLoop_Phase_AfterFlightModel); // XPLMFlightLoopPhaseType
 
-    PyModule_AddIntConstant(mod, "FlightLoop_Phase_BeforeFlightModel", xplm_FlightLoop_Phase_BeforeFlightModel);
-    PyModule_AddIntConstant(mod, "FlightLoop_Phase_AfterFlightModel", xplm_FlightLoop_Phase_AfterFlightModel);
+    PyModule_AddIntConstant(mod, "FlightLoop_Phase_BeforeFlightModel", xplm_FlightLoop_Phase_BeforeFlightModel); // XPLMFlightLoopPhaseType
+    PyModule_AddIntConstant(mod, "FlightLoop_Phase_AfterFlightModel", xplm_FlightLoop_Phase_AfterFlightModel); // XPLMFlightLoopPhaseType
   }
 
   /* XPLMRegisterFlightLoopCallback(flightLoopStats, -1, NULL); */

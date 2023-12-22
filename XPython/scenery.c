@@ -21,20 +21,26 @@ static void genericObjectLoaded(XPLMObjectRef inObject, void *inRefcon);
 
 static const char probeName[] = "XPLMProbeRef";
 
-My_DOCSTR(_createProbe__doc__, "createProbe", "probeType=0",
+My_DOCSTR(_createProbe__doc__, "createProbe",
+          "probeType=0",
+          "probeType:XPLMProbeType=ProbeY",
+          "XPLMProbeRef",
           "Return a probeRef");
 static PyObject *XPLMCreateProbeFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   static char *keywords[] = {"probeType", NULL};
   (void) self;
-  int inProbeType = 0;
+  int inProbeType = xplm_ProbeY;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", keywords, &inProbeType)){
     return NULL;
   }
   return getPtrRefOneshot(XPLMCreateProbe(inProbeType), probeName);
 }
 
-My_DOCSTR(_destroyProbe__doc__, "destroyProbe", "probe",
+My_DOCSTR(_destroyProbe__doc__, "destroyProbe",
+          "probe",
+          "probe:XPLMProbeType",
+          "None",
           "Destroy a probeRef");
 static PyObject *XPLMDestroyProbeFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -48,7 +54,10 @@ static PyObject *XPLMDestroyProbeFun(PyObject *self, PyObject *args, PyObject *k
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_probeTerrainXYZ__doc__, "probeTerrainXYZ", "probeRef, x, y, z",
+My_DOCSTR(_probeTerrainXYZ__doc__, "probeTerrainXYZ",
+          "probeRef, x, y, z",
+          "probeRef:XPLMProbeRef, x:float, y:float, z:float",
+          "XPLMProbeInfo_t",
           "Probe terrain using probeRef at (x, y, z) location\n"
           "\n"
           "Object returned as attributes:\n"
@@ -86,7 +95,10 @@ static PyObject *XPLMProbeTerrainXYZFun(PyObject *self, PyObject *args, PyObject
   return ret;
 }
 
-My_DOCSTR(_getMagneticVariation__doc__, "getMagneticVariation", "latitude, longitude",
+My_DOCSTR(_getMagneticVariation__doc__, "getMagneticVariation",
+          "latitude, longitude",
+          "latitude:float, longitude:float",
+          "float",
           "Magnetic declination at point");
 static PyObject *XPLMGetMagneticVariationFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -103,7 +115,10 @@ static PyObject *XPLMGetMagneticVariationFun(PyObject *self, PyObject *args, PyO
   return PyFloat_FromDouble(XPLMGetMagneticVariation_ptr(latitude, longitude));
 }
 
-My_DOCSTR(_degTrueToDegMagnetic__doc__, "degTrueToDegMagnetic", "degrees=0.0",
+My_DOCSTR(_degTrueToDegMagnetic__doc__, "degTrueToDegMagnetic",
+          "degrees=0.0",
+          "degrees:float=0.0",
+          "float",
           "Convert degrees True to degrees Magnetic, at user's current location");
 static PyObject *XPLMDegTrueToDegMagneticFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -120,7 +135,10 @@ static PyObject *XPLMDegTrueToDegMagneticFun(PyObject *self, PyObject *args, PyO
   return PyFloat_FromDouble(XPLMDegTrueToDegMagnetic_ptr(headingDegreesTrue));
 }
 
-My_DOCSTR(_degMagneticToDegTrue__doc__, "degMagneticToDegTrue", "degrees=0.0",
+My_DOCSTR(_degMagneticToDegTrue__doc__, "degMagneticToDegTrue",
+          "degrees=0.0",
+          "degrees:float=0.0",
+          "float",
           "Convert degrees Magnetic to degrees True, at user's current location");
 static PyObject *XPLMDegMagneticToDegTrueFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -138,7 +156,10 @@ static PyObject *XPLMDegMagneticToDegTrueFun(PyObject *self, PyObject *args, PyO
 }
 
 
-My_DOCSTR(_loadObject__doc__, "loadObject", "path",
+My_DOCSTR(_loadObject__doc__, "loadObject",
+          "path",
+          "path:str",
+          "XPLMObjectRef",
           "Load OBJ file from path, returning objectRef\n"
           "\n"
           "Path may be absolute, or relative X-Plane Root");
@@ -181,7 +202,10 @@ static void genericObjectLoaded(XPLMObjectRef inObject, void *inRefcon)
 }
 
 
-My_DOCSTR(_loadObjectAsync__doc__, "loadObjectAsync", "path, loaded, refCon=None",
+My_DOCSTR(_loadObjectAsync__doc__, "loadObjectAsync",
+          "path, loaded, refCon=None",
+          "path:str, loaded:Callable[[XPLMObjectRef, Any], None], refCon:Any=None",
+          "None",
           "Loads OBJ asynchronously, calling callback on completion.\n"
           "\n"
           "Callback signature is loaded(objecRef, refCon)\n"
@@ -213,7 +237,10 @@ static PyObject *XPLMLoadObjectAsyncFun(PyObject *self, PyObject *args, PyObject
 }
 
 
-My_DOCSTR(_unloadObject__doc__, "unloadObject", "objectRef",
+My_DOCSTR(_unloadObject__doc__, "unloadObject",
+          "objectRef",
+          "objectRef:XPLMObjectRef",
+          "None",
           "Unloads objectRef");
 static PyObject *XPLMUnloadObjectFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -255,7 +282,11 @@ static void libraryEnumerator(const char *inFilePath, void *inRef)
   Py_XDECREF(res);
 }
 
-My_DOCSTR(_lookupObjects__doc__, "lookupObjects", "path, latitude=0.0, longitude=0.0, enumerator=None, refCon=None",
+My_DOCSTR(_lookupObjects__doc__, "lookupObjects",
+          "path, latitude=0.0, longitude=0.0, enumerator=None, refCon=None",
+          "path:str, latitude:float=0.0, longitude:float=0.0, "
+          "enumerator:Optional[Callable[[str, Any], None]]=None, refCon:Any=None",
+          "int",
           "Converts virtual path to file paths, calling enumerator with info\n"
           "\n"
           "Path is virual path, which may have zero or more matching file paths\n"
@@ -361,16 +392,16 @@ PyInit_XPLMScenery(void)
 
   PyObject *mod = PyModule_Create(&XPLMSceneryModule);
   if(mod){
-    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@avnwx.com)");
-    PyModule_AddIntConstant(mod, "xplm_ProbeY", xplm_ProbeY);
-    PyModule_AddIntConstant(mod, "xplm_ProbeHitTerrain", xplm_ProbeHitTerrain);
-    PyModule_AddIntConstant(mod, "xplm_ProbeError", xplm_ProbeError);
-    PyModule_AddIntConstant(mod, "xplm_ProbeMissed", xplm_ProbeMissed );
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
+    PyModule_AddIntConstant(mod, "xplm_ProbeY", xplm_ProbeY);  // XPLMProbeType
+    PyModule_AddIntConstant(mod, "xplm_ProbeHitTerrain", xplm_ProbeHitTerrain);  // XPLMProbeResult
+    PyModule_AddIntConstant(mod, "xplm_ProbeError", xplm_ProbeError);  // XPLMProbeResult
+    PyModule_AddIntConstant(mod, "xplm_ProbeMissed", xplm_ProbeMissed );  // XPLMProbeResult
 
-    PyModule_AddIntConstant(mod, "ProbeY", xplm_ProbeY);
-    PyModule_AddIntConstant(mod, "ProbeHitTerrain", xplm_ProbeHitTerrain);
-    PyModule_AddIntConstant(mod, "ProbeError", xplm_ProbeError);
-    PyModule_AddIntConstant(mod, "ProbeMissed", xplm_ProbeMissed );
+    PyModule_AddIntConstant(mod, "ProbeY", xplm_ProbeY);  // XPLMProbeType
+    PyModule_AddIntConstant(mod, "ProbeHitTerrain", xplm_ProbeHitTerrain);  // XPLMProbeResult
+    PyModule_AddIntConstant(mod, "ProbeError", xplm_ProbeError);  // XPLMProbeResult
+    PyModule_AddIntConstant(mod, "ProbeMissed", xplm_ProbeMissed );  // XPLMProbeResult
   }
 
   return mod;

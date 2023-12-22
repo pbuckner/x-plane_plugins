@@ -66,7 +66,7 @@ Four steps:
 3. **Extract the xp31x.zip** into your :code:`X-Plane/Resources/plugins` folder, such that you have folder there called :code:`XPPython3`.
 
   This plugin XPPython3 folder must be placed in :code:`<XP>/Resources/plugins`.
-  On first execution, XPPython3 **will create** the :code:`Resources/plugins/PythonPlugins` folder.
+  On first execution of X-Plane, XPPython3 **will create** the :code:`Resources/plugins/PythonPlugins` folder.
 
   You should place any third-party python plugins in that PythonPlugins folder. (On first run of
   the plugin, XPPython3 will automatically download a set of sample plugins into

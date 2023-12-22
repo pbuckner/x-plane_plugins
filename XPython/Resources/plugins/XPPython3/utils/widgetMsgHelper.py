@@ -167,4 +167,6 @@ class WidgetMsgHelper:
 
     def __str__(self):
         m = WidgetMsgHelper.msgs[self.inMessage]
-        return f"Received: {m['name']}, ({m['param1'](self.inParam1)}, {m['param2'](self.inParam2)})"
+        param1 = m['param1'](self.inParam1) if callable(m['param1']) else self.inParam1
+        param2 = m['param2'](self.inParam2) if callable(m['param2']) else self.inParam2
+        return f"Received: {m['name']}, ({param1}, {param2})"

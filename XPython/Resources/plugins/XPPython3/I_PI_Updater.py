@@ -12,9 +12,10 @@ from XPPython3 import xp
 from XPPython3.utils import samples
 from XPPython3.XPListBox import XPCreateListBox
 from XPPython3.ui.popups import Popup, ScrollingPopup
+from XPPython3 import xp_typing
 
 class MyWidgetWindow(TypedDict):
-    widgetID: Union[xp.XPLMWidgetID, None]
+    widgetID: xp_typing.XPWidgetID |  None
     widgets: dict
     
 PLUGIN_MODULE_NAME = 4

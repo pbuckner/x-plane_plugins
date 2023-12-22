@@ -140,7 +140,7 @@ class Updater(Config):
             try:
                 ret = urlopen(self.VersionCheckURL + ('&beta=y' if self.config.get('beta', False) else ''), data=data)
                 if ret.getcode() != 200:
-                    xp.sys_log(f"Failed to get {self.VersionCheckURL}, returned code: {ret.getcode()}")
+                    xp.systemLog(f"Failed to get {self.VersionCheckURL}, returned code: {ret.getcode()}")
                     return
             except URLError as e:
                 xp.log(f"URLError is {e}")
@@ -151,7 +151,7 @@ class Updater(Config):
                         msg = ("\nError: !!! Python Installation Incomplete:\n"
                                "    Run /Applications/Python<version>/Install Certificates, and restart X-Plane.\n"
                                "    See https://xppython3.readthedocs.io/en/latest/usage/common_errors.html\n")
-                        xp.sys_log(msg)
+                        xp.systemLog(msg)
                         xp.log(msg)
                         return
                 except Exception:
@@ -199,9 +199,9 @@ class Updater(Config):
             update_which = None if uptodate else ('beta' if version == self.beta_version else 'release')
 
             if update_which:
-                xp.sys_log(f">>>>> A new version is available: v.{self.Version} -> v.{version}.")
+                xp.systemLog(f">>>>> A new version is available: v.{self.Version} -> v.{version}.")
                 if forceUpgrade or (info.get('autoUpgrade', False) and self.config and self.config.get('autoUpgrade', False)):
-                    xp.sys_log(">>>>> Automatically upgrading")
+                    xp.systemLog(">>>>> Automatically upgrading")
                     z = ZipDownload()
                     z.install_path = self.install_path
                     z.initial_progress_msg = self.initial_progress_msg
@@ -213,10 +213,10 @@ class Updater(Config):
                     else:
                         z.get_zipfile(info['beta_download'], info.get('beta_cksum', None))
                 else:
-                    xp.sys_log(f">>>>> To upgrade: {info.get('upgrade', 'See documentation')}")
+                    xp.systemLog(f">>>>> To upgrade: {info.get('upgrade', 'See documentation')}")
             else:
                 xp.log(f"Version is up to date")
-                xp.sys_log(f"Version is up to date")
+                xp.systemLog(f"Version is up to date")
 
     @staticmethod
     def calc_update(try_beta, current_version, stable_version, beta_version):

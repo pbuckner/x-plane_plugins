@@ -12,7 +12,7 @@ except ImportError:
 from XPPython3 import xp
 from XPPython3.XPProgressWindow import XPProgressWindow
 
-log = xp.sys_log
+log = xp.systemLog
 
 
 class ZipDownload:
@@ -99,7 +99,7 @@ class ZipDownload:
                     msg = ("\nError: !!! Python Installation Incomplete:\n"
                            "    Run /Applications/Python<version>/Install Certificates, and restart X-Plane.\n"
                            "    See https://xppython3.readthedocs.io/en/latest/usage/common_errors.html\n")
-                    xp.sys_log(msg)
+                    xp.systemLog(msg)
                     xp.log(msg)
                     self.setCaption("Python Installation incomplete, See XPPython3Log.txt for details")
                     return
@@ -115,11 +115,11 @@ class ZipDownload:
         try:
             if cksum is not None and not self._verify(zipfile, cksum):
                 self.setCaption("Not upgraded: Field does not match checksum: incomplete download?")
-                xp.sys_log("Not upgraded: File does not match checksum: incomplete download?")
+                xp.systemLog("Not upgraded: File does not match checksum: incomplete download?")
                 return
         except Exception as e:
             self.setCaption("Failed to verify download checksum.")
-            xp.sys_log("Failed to verify download file checksum: {}, json has: {}. {}, ".format(download_url, cksum, e))
+            xp.systemLog("Failed to verify download file checksum: {}, json has: {}. {}, ".format(download_url, cksum, e))
 
         with ZipFile(zipfile, 'r') as zipfp:
             self.setCaption("Testing the downloaded zip file...")
@@ -137,7 +137,7 @@ class ZipDownload:
                             i.filename = '/'.join(i.filename.split('/')[1:])
                             if not i.filename:
                                 continue
-                            xp.sys_log("renamed to {}".format(i.filename))
+                            xp.systemLog("renamed to {}".format(i.filename))
                         if os.path.exists(os.path.join(self.install_path, i.filename)):
                             if not os.path.isdir(os.path.join(self.install_path, i.filename)):
                                 # remove old 'bak' if it exists, ignore if it doesn't
@@ -149,7 +149,7 @@ class ZipDownload:
                                 os.replace(os.path.join(self.install_path, i.filename),
                                            os.path.join(self.install_path, i.filename + '.bak'))
                                 if self.backup:
-                                    xp.sys_log('{} moved to {}'.format(i.filename, i.filename + '.bak'))
+                                    xp.systemLog('{} moved to {}'.format(i.filename, i.filename + '.bak'))
                                 else:
                                     # we didn't want .bak, so attempt to remove .bak, ignore if failure
                                     try:
@@ -160,18 +160,18 @@ class ZipDownload:
                     except PermissionError as e:
                         success = False
                         self.setCaption("Extraction failed for {}.".format(i.filename))
-                        xp.sys_log(">>>> Failed to extract {}, upgrade failed: {}".format(i.filename, e))
+                        xp.systemLog(">>>> Failed to extract {}, upgrade failed: {}".format(i.filename, e))
                         break
                 self.setProgress(1)
             else:
                 self.setCaption("Test failed.")
                 success = False
-                xp.sys_log("failed testzip()")
+                xp.systemLog("failed testzip()")
         if success:
             os.remove(zipfile)
             self.setProgress(1)
             self.setCaption(self.final_progress_msg)
-            xp.sys_log("Download successful")
+            xp.systemLog("Download successful")
 
     def _verify(self, filename, file_cksum=None):
         cksum = None

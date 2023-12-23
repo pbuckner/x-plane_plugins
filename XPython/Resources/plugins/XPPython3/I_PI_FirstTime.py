@@ -1,8 +1,5 @@
-from typing import Union
 import shutil
 import os
-import re
-import platform
 from XPPython3 import xp
 from XPPython3.utils import samples
 from XPPython3.scriptupdate import Version
@@ -55,7 +52,7 @@ class PythonInterface:
         if os.path.exists(imgui_dir):
             xp.log("Found, and removing old XPPython3/imgui directory")
             shutil.rmtree(imgui_dir)
-        
+
         return
 
 def get_version(filename) -> Version:

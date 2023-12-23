@@ -17,7 +17,7 @@ def getCycleNumber() -> int:
 
 def registerFlightLoopCallback(callback:Callable[[float, float, int, Any], float], interval:float=0.0, refCon:Any=None) -> None:
     """
-    Register flight look callback.
+    Register flight loop callback.
     
     interval indicates when you'll be called next:
       0= deactivate 

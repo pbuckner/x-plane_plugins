@@ -51,14 +51,14 @@ Device_Primus_MFD_3: XPLMDeviceID
 Device_Primus_RMU_1: XPLMDeviceID
 Device_Primus_RMU_2: XPLMDeviceID
 _Airport: int
-def registerDrawCallback(draw:Callable[[XPLMDrawingPhase, int, Any], None], phase:XPLMDrawingPhase=Phase_Window, after:int=0, refCon:Any=None) -> int:
+def registerDrawCallback(draw:Callable[[XPLMDrawingPhase, int, Any], None | int], phase:XPLMDrawingPhase=Phase_Window, after:int=0, refCon:Any=None) -> int:
     """
     Registers  low-level drawing callback.
     
     The after parameter indicates you want to be called before (0) or after (1) phase.
     draw() callback function takes three parameters (phase, after, refCon), returning 
     0 to suppress further X-Plane drawing in the phase, or 1 to allow X-Plane to finish
-    (Callback's value is ignored if after=1.
+    (Callback's value is ignored if after=1).
     
     Registration returns 1 on success, 0 otherwise.
     """

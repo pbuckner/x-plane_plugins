@@ -1,4 +1,4 @@
-from typing import Union, TypedDict
+from typing import TypedDict
 import threading
 import queue
 import sys
@@ -10,18 +10,17 @@ import webbrowser
 from XPPython3 import scriptupdate
 from XPPython3 import xp
 from XPPython3.utils import samples
-from XPPython3.XPListBox import XPCreateListBox
-from XPPython3.ui.popups import Popup, ScrollingPopup
+from XPPython3.ui.popups import ScrollingPopup
 from XPPython3 import xp_typing
 
 class MyWidgetWindow(TypedDict):
     widgetID: xp_typing.XPWidgetID |  None
     widgets: dict
-    
+
 PLUGIN_MODULE_NAME = 4
 
 
-class MyConfig (scriptupdate.Updater):
+class MyConfig(scriptupdate.Updater):
     Name = "XPPython3 Updater"
     Sig = f"xppython3.{xp.getVersions()[1]}.{sys.version_info.major}.{sys.version_info.minor}"  #{SDK}
     Desc = "Automatic updater for XPPython3 plugin"
@@ -140,7 +139,7 @@ class PythonInterface(MyConfig):
     def performanceFLCallback(self, *_args, **_kwargs):
         def sum_merge(a, b):
             res = {}
-            for plugin in (set(a) | set(b)):
+            for plugin in set(a) | set(b):
                 fields = set(a.get(plugin, {})) | set(b.get(plugin, {}))
                 res[plugin] = {x: (a.get(plugin, {}).get(x, 0) + b.get(plugin, {}).get(x, 0)) for x in fields}
             return res
@@ -524,8 +523,8 @@ class PythonInterface(MyConfig):
         return 0
 
     def createPipWindow(self):
-        widgetWindow : MyWidgetWindow = {'widgetID': None,
-                                         'widgets': {}}
+        widgetWindow: MyWidgetWindow = {'widgetID': None,
+                                        'widgets': {}}
         box_left = 100
         box_right = 500
         top = 300
@@ -596,7 +595,7 @@ class PythonInterface(MyConfig):
 
         execute = False
         if any([inMessage == xp.Msg_KeyPress and inParam1[2] == xp.VK_RETURN and inParam1[1] & xp.DownFlag,
-                inMessage == xp.Msg_PushButtonPressed and inParam1 == self.pipWindow['widgets']['button']]):    
+                inMessage == xp.Msg_PushButtonPressed and inParam1 == self.pipWindow['widgets']['button']]):
             s = xp.getWidgetDescriptor(self.pipWindow['widgets']['packages'])
             packages = list(filter(lambda x: x != '', re.split('[, ]+', s)))
             xp.log(f"Looking to install packages: {packages}")
@@ -613,7 +612,7 @@ class PythonInterface(MyConfig):
 
     def startPipCall(self, cmd):
         self.pip_output_popup = ScrollingPopup("PIP Output", 100, 400, 600, 100)
-        self.q : queue.Queue = queue.Queue()
+        self.q: queue.Queue = queue.Queue()
         t = threading.Thread(name="pip", target=pip, args=[cmd, self.q])
         t.start()
         self.pipWindowLoopID = xp.createFlightLoop(self.pipWindowLoop, refCon=self.q)

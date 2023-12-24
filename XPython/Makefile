@@ -5,7 +5,7 @@ SDK=400
 XP_SDK=../SDK401
 VERSIONS= 310 311 312
 # python versions are like 4.1.1 -> 4.1.2a1 -> 4.1.2a2 -> 4.1.2b1 -> 4.1.2 (letter is [ab], cannot end with letter)
-XPPYTHONVERSION=4.1.2a8
+XPPYTHONVERSION=4.1.2a9
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
 FMOD=../FMOD
 #########
@@ -184,7 +184,7 @@ Resources/plugins/xp3%.zip: win/XPPython3%.xpl lin/XPPython3%.xpl mac/XPPython3%
 	#     xp36-linux.zip 
 	#     xp36-darwin.zip 
 	cd Resources/plugins; \
-		$(ZIP) $(notdir $@) -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/.firstTimeComplete XPPython3/\*.py \*.md; \
+		$(ZIP) $(notdir $@) -R XPPython3  XPPython3/\*_x64/\*3.xpl XPPython3/.firstTimeComplete XPPython3/\*.pyi XPPython3/\*.py \*.md; \
 		$(ZIP) $(notdir $@) -u XPPython3/utils/*.py ; \
 		$(ZIP) $(notdir $@) -u XPPython3/hooks/*.py ; \
 		$(ZIP) $(notdir $@) -u XPPython3/xp_imgui/*.py ; \

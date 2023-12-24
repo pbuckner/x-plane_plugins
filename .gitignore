@@ -16,6 +16,7 @@ XPython/docs/source/_static/test.py
 XPython/docs/source/_static/xp_dref.py
 XPython/Resources/plugins/xppython*-*.zip
 XPython/Resources/plugins/xppython*b.zip
+XPython/Resources/plugins/xp*b.zip
 XPython/Resources/plugins/XPPython3/version.txt
 XPython/macros.emacs
 XPython/docs/recent_annotations.py

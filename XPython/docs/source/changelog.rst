@@ -12,7 +12,7 @@ Known Bugs
 
  None (prove me wrong!)
 
-4.1.2 (BETA)
+4.2 (24-Dec-2023)
 -------------------
 :New Features:
    * **Type Hinting and \*.pyi files**. Doc strings and type hinting for all SDK functions are generated

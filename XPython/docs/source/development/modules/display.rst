@@ -18,7 +18,8 @@ rendered by drawing the 3-d scene (dome, ground, objects, airplanes, etc.)
 and then drawing the cockpit on top of it.  Alpha blending is used to
 overlay the cockpit over the world (and the gauges over the panel, etc.).
 
-There are two ways you can draw: directly and in a window.
+There are three ways you can draw: directly, directly onto avionics screens,
+and in a window.
 
 * **Direct drawing** involves drawing to the screen before or after X-Plane
   finishes a phase of drawing.  When you draw directly, you can specify
@@ -255,7 +256,7 @@ Avionics Drawing
 ----------------
 
 Avionics callback is convenient in that is provides the proper setup for a number of glass avionics devices.
-When you draw function is called, OpenGL is properly set for the device's viewport. Additionally, you
+When your draw function is called, OpenGL is properly set for the device's viewport. Additionally, you
 can draw before, after, or instead of the X-Plane drawing for that device.
 
 Avionics Drawing Functions
@@ -266,7 +267,8 @@ Avionics Drawing Functions
  Registers function to be called `before` and/or `after` X-Plane draws on the
  specified device.
 
- Returns an AvionicsID which should be passed to :py:func:`unregisterAvionicsCallbacks`.
+ Returns an AvionicsID which should be passed to :py:func:`unregisterAvionicsCallbacks`, or
+ None on error.
 
  Both `before` and `after` callback functions have identical signatures. Return value for
  `after` callback is ignored. Return value for `before` function is either `1` to indicated
@@ -1043,7 +1045,7 @@ Window Functions
  or an XPLM300 window that was not created using :func:`createWindowEx`), the units
  are pixels relative to the main X-Plane display.
 
- If, on the other hand, this is a new X-Plane 11-style window (compiled against the
+ For X-Plane 11 and 12 windows (compiled against the
  XPLM300 SDK and created using :func:`createWindowEx`), the units are global desktop boxels.
 
  Returns (left, top, right, bottom)

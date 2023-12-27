@@ -34,9 +34,10 @@ XPLMPluginID
     X-Plane itself.      `Official SDK <https://developer.x-plane.com/sdk/XPLMDefs/#XPLM_PLUGIN_XPLANE>`__: :index:`XPLM_PLUGIN_XPLANE`
  
  .. py:data:: kVersion
-    :value: 303
+    :value: 400
 
-    The current XPLM SDK revision for X-Plane 11.55 is 303. `Official SDK <https://developer.x-plane.com/sdk/XPLMDefs/#kXPLM_Version>`__: :index:`kXPLM_Version`
+    The current XPLM SDK revision for X-Plane 11.55 is 303. X-Plane 12 is 400.
+    `Official SDK <https://developer.x-plane.com/sdk/XPLMDefs/#kXPLM_Version>`__: :index:`kXPLM_Version`
 
 
 .. _XPLMKeyFlags:

@@ -41,6 +41,12 @@ Functions
     Registers an instance of an X-Plane object, with an optional list of *dataRefs*.
 
     *obj* is an object handle, as returned by :py:func:`loadObject` or :py:func:`loadObjectAsync`.
+    Note that this object must be fully loaded before you can attempt to create an instance of that object: you
+    cannot pass in a Null object reference or change the reference later.
+
+    Also, if you use an custom datarefs in your object, they must be registered before the object is loaded. This
+    is true even if their data will be provided via the instance dataref list.
+    
     Returns an object instance, which you'll pass to :py:func:`instanceSetPosition` and :py:func:`destroyInstance`.
 
     The following example loads an XP standard object using :py:func:`lookupObjects`, and creates
@@ -59,12 +65,18 @@ Functions
 
     (With the above code, you've found, loaded and created the Instance, but you still need to :py:func:`instanceSetPosition`
     in order to actually see it.)
+
+    Note you can also release the loaded object (:py:func:`unloadObject`) immediately
+    after successful ``createInstance()`` (if you don't need to create another
+    instance of that object.) The created ``XPLMInstance`` will maintain its own reference to the object and the object will
+    be deallocated when the instance is destroyed.
     
     `Official SDK <https://developer.x-plane.com/sdk/XPLMInstance/#XPLMCreateInstance>`__ :index:`XPLMCreateInstance`
 
 .. py:function:: destroyInstance(instance)
 
-    Unregisters an instance (as returned from :py:func:`createInstance`.)
+    Unregisters an instance (as returned from :py:func:`createInstance`.) You are still responsible for
+    eventually releasing the *Object* using :py:func:`unloadObject`.
 
     >>> xp.destroyInstance(instance)
 
@@ -73,7 +85,11 @@ Functions
 .. py:function:: instanceSetPosition(instance, position, data=None)
 
     Updates both the position of the instance and all datarefs you registered
-    for it.
+    for it. Call this from a flight loop callback or UI callback;
+
+    **Do Not** call this from a drawing callback; the whole point of instancing is that you do
+    not need any drawing callbacks. Setting instance data from drawing callback may have undefined
+    consequences, and the drawing callback hurts FPS unnecessarily.
 
     *instance* is as returned by :py:func:`createInstance`.
     You must always provide a six-float tuple for *position*: (x, y, z, pitch, heading, roll),

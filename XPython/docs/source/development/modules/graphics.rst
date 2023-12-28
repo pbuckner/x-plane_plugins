@@ -14,7 +14,7 @@ X-Plane uses three kinds of coordinates.  Global coordinates are specified
 as latitude, longitude and elevation.  This coordinate system never changes
 but is not very precise.
 
-OpenGL (or 'local') coordinates are cartesian and shift with the plane.
+OpenGL (or 'local') coordinates are Cartesian and shift with the plane.
 They offer more precision and are used for 3-d OpenGL drawing.  The X axis
 is aligned east-west with positive X meaning east.  The Y axis is aligned
 straight up and down at the point 0,0,0 (but since the earth is round it is
@@ -44,7 +44,7 @@ These functions are divided into three sections:
    | :py:func:`bindTexture2d`,
    | :py:func:`generateTextureNumbers`
 
-* :ref:`coordinate_functions`\: Allowing you to conver to / from coordinate systems.
+* :ref:`coordinate_functions`\: Allowing you to convert to / from coordinate systems.
 
    | :py:func:`worldToLocal`,
    | :py:func:`localToWorld`
@@ -98,6 +98,10 @@ OpenGL Functions
 
  *depthWriting*: enables writing back of depth information to the depth bufffer, as in ``glDepthMask(GL_TRUE);``
 
+ X-Plane's lighting and fog environment is significantly more complex than the fixed function pipeline
+ can express; do not assume that lighting and fog state is a good approximation for 3-d drawing. Prefer to
+ use :mod:`XPLMInstance` API to draw objects. Calls to ``setGraphicsState`` *should have no fog or lighting*.
+ 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMGraphics/#XPLMSetGraphicsState>`__ :index:`XPLMSetGraphicsState`
 
 .. py:function:: bindTexture2d(textureID, textureUnit)

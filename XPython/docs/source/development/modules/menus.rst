@@ -280,7 +280,7 @@ Functions
 
   the menu has a mark next to it that is checked (lit).
 
- .. note:: In X-Plane 11, "Unchecked" and "NoCheck" are visually identical. The
+ .. note:: Since X-Plane 11, "Unchecked" and "NoCheck" are visually identical. The
            state is maintained programmatically, so calls to :py:func:`checkMenuItemState`
            will return the set value, but the user won't see a difference.
 

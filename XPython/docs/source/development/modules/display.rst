@@ -1288,7 +1288,7 @@ Window Functions
            :py:func:`setWindowResizingLimits`, any future changes to that window's geometry (either
            via manual dragging or :py:func:`setWindowGeometry`) will cause the window to snap
            to its declared sizing limit, but until the window is resized, it will remain too large.
-           Bug filed with Laminar 23-October-2021 as XPD-11455.
+           Bug filed with Laminar 23-October-2021 as `XPD-11455 <https://developer.x-plane.com/x-plane-bug-database/?issue=XPD-11455>`_.
            Minimum sizes are correctly constrained.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMSetWindowResizingLimits>`__ :index:`XPLMSetWindowResizingLimits`

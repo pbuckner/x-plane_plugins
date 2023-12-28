@@ -17,7 +17,7 @@ Plugins Menu
 
 On start-up the "Plugins" menu contains a single item, "Show Plugin Admin". This is added by Laminar and will display
 all loaded plugins. Note that because *all* python plugins are executed by XPPython3, only XPPython3 is listed.
-FPS impact for XPPython3 is the sum impact of all python plugins (XPPython3 by itself adds negligable overhead).
+FPS impact for XPPython3 is the sum impact of all python plugins (XPPython3 by itself adds negligible overhead).
 
 
 Top-Level Menu
@@ -217,5 +217,5 @@ each index.) Remember to *also* call using the top-level menuID to remove your i
 Just remember:
 
 * Things you create in XPluginStart, destroy in XPluginStop.
-* Things you create in XPluginEnable (or after enable), destory in XPluginDisable  
+* Things you create in XPluginEnable (or after enable), destroy in XPluginDisable  
 

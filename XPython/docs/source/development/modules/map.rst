@@ -544,7 +544,7 @@ map's rotation can potentially change every frame.
  Returns the heading (in degrees clockwise) from the positive Y axis ("up")
  in the cartesian mapping coordinate system to true north at the point passed in.
  You can use it as a clockwise rotation offset to align icons and other 2-d
- drawing with true nort on the map, compensating for rotations in the map due to
+ drawing with true north on the map, compensating for rotations in the map due to
  projection. (Don't you hate it when engineers write documentation.)
 
  Returns the heading (in degrees clockwise from "up") that corresponds to

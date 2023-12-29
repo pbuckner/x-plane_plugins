@@ -12,6 +12,13 @@ Known Bugs
 
  None (prove me wrong!)
 
+4.2.1 (29-Dec-2023)
+-------------------
+:Fixes:
+   * **Removed extraneous newlines**. Python ``logging`` module, and stdout ``print()`` resulted
+     in extra newlines in the log file. Bug introduced in v4.2, now corrected.
+   
+
 4.2 (24-Dec-2023)
 -------------------
 :New Features:

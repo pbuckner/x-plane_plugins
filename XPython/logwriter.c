@@ -11,8 +11,7 @@ static PyObject *logWriterWrite(PyObject *self, PyObject *args)
   if(!PyArg_ParseTuple(args, "s", &msg)){
     return NULL;
   }
-  //printf("%s", msg);
-  pythonLog("%s", msg);
+  pythonLogRaw(msg);
   pythonLogFlush();
   Py_RETURN_NONE;
 }

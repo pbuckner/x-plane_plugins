@@ -475,7 +475,7 @@ class PythonInterface(MyConfig):
         uptodate, version = self.calc_update(try_beta, current, stable_version, beta_version)
 
         if uptodate:
-            return f"{'Stable' if current == stable_version else 'Beta'} {current} is up-to-date"
+            return f"{'Stable' if current == stable_version else 'Beta' if current == beta_version else ''} {current} is up-to-date"
         return f"Update to {'Beta' if version == beta_version else 'Stable'} {version}"
 
     def get_currency(self):
@@ -486,7 +486,7 @@ class PythonInterface(MyConfig):
 
         uptodate, version = self.calc_update(try_beta, current, stable_version, beta_version)
         if uptodate:
-            return f"{'Stable' if current == stable_version else 'Beta'} {current} is up-to-date"
+            return f"{'Stable' if current == stable_version else 'Beta' if current == beta_version else ''} {current} is up-to-date"
         return f"{'Beta' if version == beta_version else 'Stable'} {version} is available"
 
     def aboutWidgetCallback(self, inMessage, _inWidget, inParam1, _inParam2):

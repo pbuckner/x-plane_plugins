@@ -10,10 +10,14 @@ Change Log
 Known Bugs
 ----------
 
-Version 4.2 introduced an "extra newline" while outputting text to XPPython3Log.txt file. This
-occurs if you use python's ``print`` statement, or python's ``logging`` module. For the moment, live
-with the extra newlines -- it will be corrected in v4.2.1 targeted for Jan-2024.
-
+  None (prove me wrong!)
+  
+4.2.1 (29-Dec-2023)
+-------------------
+:Fixes:
+   * **Removed extraneous newlines**. Python ``logging`` module, and stdout ``print()`` resulted
+     in extra newlines in the log file. Bug introduced in v4.2, now corrected.
+   
 
 4.2 (24-Dec-2023)
 -------------------

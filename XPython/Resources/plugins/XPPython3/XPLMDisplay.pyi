@@ -57,7 +57,7 @@ def registerDrawCallback(draw:Callable[[XPLMDrawingPhase, int, Any], None | int]
     
     The after parameter indicates you want to be called before (0) or after (1) phase.
     draw() callback function takes three parameters (phase, after, refCon), returning 
-    0 to suppress further X-Plane drawing in the phase, or 1 to allow X-Plane to finish
+    0 to suppress further X-Plane drawing in the phase, or 1 to allow X-Plane to finish.
     (Callback's value is ignored if after=1).
     
     Registration returns 1 on success, 0 otherwise.

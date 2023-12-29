@@ -129,6 +129,15 @@ void pythonLog(const char *fmt, ...) {
     free(msg);
 }
 
+void pythonLogRaw(const char *msg) {
+  if (pythonLog_fp) {
+    fprintf(pythonLog_fp, "%s", msg);
+    pythonLogFlush();
+  } else {
+    XPLMDebugString(msg);
+  }
+}
+
 void pythonDebug(const char *fmt, ...) {
   /* do not include terminating newline */
   if (pythonDebugs) {
@@ -499,14 +508,17 @@ void MyPyRun_String(const char *str, int start, PyObject *globals, PyObject *loc
 void MyPyRun_File(FILE *fp, const char *filename, int start, PyObject *globals, PyObject *locals) {
   (void) filename;  /* ?? */
   char *buffer = 0;
-  long length;
+  unsigned long length;
   if(fp) {
     fseek(fp, 0, SEEK_END);
     length = ftell(fp);
     fseek(fp, 0, SEEK_SET);
     buffer = malloc(length+1);
     if (buffer) {
-      fread(buffer, 1, length, fp);
+      if (length != fread(buffer, 1, length, fp)) {
+        pythonLog("Failed to fully read %s for MyPyRun_File. Expected %ul bytes\n", filename, length);
+        return;
+      };
       buffer[length] = '\0';
     }
     if (buffer) {

@@ -32,6 +32,7 @@ void pythonLogWarning(const char *msg);
 void pythonDebug(const char *fmt, ...);
 void setLogFile(void);
 void pythonLog(const char *fmt, ...);
+void pythonLogRaw(const char *msg);
 void pythonLogFlush(void);
 void pythonLogClose(void);
 

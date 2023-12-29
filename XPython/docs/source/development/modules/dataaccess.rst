@@ -133,12 +133,11 @@ Functions
 
        >>> dataRef = xp.findDataRef('sim/aircraft/electrical/num_batteries')
        >>> xp.canWriteDataRef(dataRef)
-       True
+       False
     
-    Yes, DataRefs.txt indicates that "sim/aircraft/electrical/num_batteries" is not writable. However
-    XP 11.55 thinks it is, even though attempting to programmatically change the value fails. In fact,
-    *all* DataRefs listed in DataRefs.txt report they are writable, when in fact many of them are not.
-    Bug filed with Laminar 2021-10-14.
+    Note that even if a dataref is marked writable, it may not act writable. This can happen
+    for datarefs taht X-Plane writes to on every frame of the simulation. In some cases, the dataref
+    is writable by you have to set a separate "override" dataref to 1 to stop X-Plane from writing to it.
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMCanWriteDataRef>`__: :index:`XPLMCanWriteDataRef`
 
@@ -232,8 +231,9 @@ Functions
   As a special case, if count is `-1`, a full list is returned starting from ``offset``.
 
     >>> xp.getDataRefsByIndex(count=3)
-    [<capsule object "datarefRef" at 0x7fa44b4909c0>, <capsule object "datarefRef" at 0x7fa44b940900>,
-     <capsule object "datarefRef" at 0x7fa44b4909c0>]
+    [<capsule object "datarefRef" at 0x7fa44b4909c0>,
+     <capsule object "datarefRef" at 0x7fa44b940900>,
+     <capsule object "datarefRef" at 0x7fa44b4077c0>]
 
   .. Warning::
 

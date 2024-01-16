@@ -71,11 +71,10 @@ Navaid Functions
   the next of the same type, or same query (see :py:func:`findFirstNavAidOfType`, or
   :py:func:`findNavAid`). It is very
   fast, so one strategy is to enumerate through the full navaid database if you're trying
-  to do anything complicated (e.g., find all navaids with the same frequency).
-
- .. warning:: due to a bug in the SDK, when fix loading is disabled in the
-  rendering settings screen, calling this routine with the last airport
-  returns a bogus navaid.  Using this navaid can crash X-Plane.
+  to do anything complicated (e.g., find all navaids with the same frequency). If you're
+  looking for all navaids of the same type, you can iterate between ``getFirstNavAidOfType()``
+  and ``getLastNavAidOfType()``: navaids of the same type are guaranteed to be grouped
+  together, though they are not guaranteed to be sequentially continuous.
 
  >>> navRef = xp.getFirstNavAid()
  >>> navRef = xp.getNextNavAid(navRef)
@@ -92,10 +91,6 @@ Navaid Functions
  database or :py:data:`NAV_NOT_FOUND` if there are no navaids of that type in the
  database.  *You must pass exactly one navaid type to this routine.*
 
- .. warning:: Due to a bug in the SDK, when fix loading is disabled in the
-  rendering settings screen, calling this routine with fixes returns a bogus
-  navaid.  Using this navaid can crash X-Plane.
-
  >>> xp.findFirstNavAidOfType(navType=xp.Nav_DME)
  18826
  >>> xp.findFirstNavAidOfType(navType=xp.Nav_DME | xp.Nav_VOR)
@@ -110,13 +105,10 @@ Navaid Functions
  database or :py:data:`NAV_NOT_FOUND` if there are no navaids of that type in the
  database.  *You must pass exactly one navaid type to this routine.*
 
- You'll note there is no ``findNextNavAidOfType()`` function. A common work around
- is to load all navaid information into your plugin and then search within that
+ You'll note there is no ``findNextNavAidOfType()`` function. Because all navaids of the same type
+ are grouped together, you can iterate between ``findFirstNavAidOfType()`` and ``findLastNavAidOfType()``.
+ A common work around is to load all navaid information into your plugin and then search within that
  data structure.
-
- .. warning:: Due to a bug in the SDK, when fix loading is disabled in the
-  rendering settings screen, calling this routine with fixes returns a bogus
-  navaid.  Using this navaid can crash X-Plane.
 
  >>> xp.findLastNavAidOfType(navType=xp.Nav_DME)
  26189
@@ -216,7 +208,7 @@ Navaid Functions
 Flight Management Computer
 --------------------------
 Some aircraft have a Flight Management System which responds to these
-commands. Some do not. *sigh* The Laminar G530 mostly works.
+commands. Some do not. *sigh*. The Laminar G530 and G1000 work.
 
 Note: the FMS works based on an array of entries.  Indices into the array
 are zero-based.  Each entry is a nav-aid plus an altitude.  The FMS tracks

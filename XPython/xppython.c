@@ -54,13 +54,8 @@ PyObject *getExecutable()
    anticipated
 */
 {
-  PyObject *exec_prefix = PySys_GetObject("exec_prefix");
-#if LIN || APL
-  PyObject *executable = PyUnicode_FromFormat("%S/bin/python" PYTHONVERSION, exec_prefix);
-#endif
-#if IBM
-  PyObject *executable = PyUnicode_FromFormat("%S\\pythonw.exe", exec_prefix);
-#endif
+  PyObject *py_executable = PySys_GetObject("executable");
+  PyObject *executable = PyUnicode_FromFormat("%S", py_executable);
   return executable;
 }
 

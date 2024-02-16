@@ -5,7 +5,7 @@ SDK=400
 XP_SDK=../SDK401
 VERSIONS= 312
 # python versions are like 4.1.1 -> 4.1.2a1 -> 4.1.2a2 -> 4.1.2b1 -> 4.1.2 (letter is [ab], cannot end with letter)
-XPPYTHONVERSION=4.3.0a1
+XPPYTHONVERSION=4.3.0a2
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
 FMOD=../FMOD
 ZIP=zip
@@ -182,12 +182,12 @@ xp_zip: win/XPPython3.xpl lin/XPPython3.xpl mac/XPPython3.xpl $(StandardPythonUt
 	rm Resources/plugins/xp.zip
 
 
-install_beta : $(zipfiles)
+install_beta : $(zipfiles) xp_zip
 	# dependencies are xp3.zip and xp3-(win32|linux|darwin).zip
 	# 1) rename each to beta naming xp3b.zip and xp-(win32|linux|darwin)b.zip
-	for f in $^; do cp $$f `echo "$$f" | sed 's/\.zip/b.zip/g'`; done
+	for f in $(filter %.zip, $^); do cp $$f `echo "$$f" | sed 's/\.zip/b.zip/g'`; done
 	# 2) upload them to server
-	scp Resources/plugins/xp3{,-darwin,-linux,-win32}b.zip pbuck@avnwx.com:/var/www/production/data/x-plane
+	scp Resources/plugins/xp3{-darwin,-linux,-win32}b.zip pbuck@avnwx.com:/var/www/production/data/x-plane
 	# 3) On the server, execute updatemd5.py <>.zip <version>
 	#    ... the server code will manage -win32, -darwin and -linux variants
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; \

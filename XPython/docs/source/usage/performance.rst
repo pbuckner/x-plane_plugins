@@ -13,9 +13,12 @@ You can compare these values with those provided by X-Plane's built-in Plugin Ad
 
 The *Flight Loop* column in the popup will very closely match the "Flight Loop" line in the X-Plane performance tab. (Though
 it doesn't happen to in the images here.) This is the time spent executing a flight loop callback. For XPPython3 performance,
-we've been able to determine *which* python plugin is using the most time. (Note the performance presentation itself is
-done within the ``I_PI_Updater`` plugin, which is why it's consuming 146 μsec per frame: if you're not displaying the
-performance window, the flight loop is canceled.)
+we've been able to determine *which* python plugin is using the most time.
+
+.. Note:: Note the performance presentation itself is
+   done within the ``I_PI_Updater`` plugin, which is why it's consuming 146 μsec per frame in the above example:
+   if you're not displaying the
+   performance window, the flight loop is canceled, and there is no impact on performance.
 
 The *Drawing Misc* column also closely matches the "Drawing Misc" line in the performance tab. This
 covers work done within drawing callback, usually associated with windows you've created.

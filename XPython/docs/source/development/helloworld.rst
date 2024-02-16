@@ -22,7 +22,7 @@ when we need to destroy it.
 Details
 -------
 
-First, consider the ``import xp``. As with most python programs, we're importing other modules. For XPPython3,
+First, consider the ``from XPPython3 import xp``. As with most python programs, we're importing other modules. For XPPython3,
 we have two choices. By importing the `xp` module, we're using the simplified API (See :doc:`modules/xp` module description.)
 
 Otherwise, we would use::

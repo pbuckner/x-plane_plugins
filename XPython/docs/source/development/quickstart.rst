@@ -51,7 +51,7 @@ Couple of quick points common to all XPPython3 plugins:
 
      # These two calls are equivalent:
      # a) Using the simplified xp interface
-     import xp
+     from XPPython3 import xp
      xp.destroyWindow(myWindowID)
 
      # b) Using the traditional interface
@@ -64,7 +64,7 @@ Couple of quick points common to all XPPython3 plugins:
 
   You may intermix the two interfaces without problems (other than confusion on your part)::
 
-    import xp
+    from XPPython3 import xp
     import XPLMDisplay
 
     myWindowID = xp.createWindow()

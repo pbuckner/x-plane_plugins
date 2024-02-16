@@ -66,8 +66,12 @@ The next three menu items are:
   to install X-Plane plugins. If your python plugin requires additional Python packages, your plugin should
   tell you which packages you'll need to install.
 
-  You will most likely need OpenGL (which is a drawing package). For python, it is called ``pyopengl``. That's
-  why we suggest you install it at your first opportunity. It's free.
+  With XPPython3, I've included all python standard libraries, and three commonly used non-standard libraries
+  with their dependencies, so you should not have to install them:
+
+    + OpenGL
+    + imgui
+    + requests
 
   PIP is further described in :doc:`pip`.
 
@@ -86,7 +90,7 @@ Finally:
   XPluginStart, XPluginEnable). We also attempt to unregister and delete resources no properly removed by the plugin
   themselves.
   
-  When step #3 **Reload** occurs, we re-search for possible plugins, so if you add or delete
+  When step #3 **Reload** occurs, we search for all possible plugins, so if you add or delete
   a plugin, it will be updated. Also, existing python plugin code will be reloaded (aka ``importlib.reload()``)
   which allows for XPPython3 to execute changed python code, very useful for debugging. Normal python3 reload
   caveats apply (i.e., usually it works, but sometimes it doesn't.)

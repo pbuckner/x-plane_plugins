@@ -8,9 +8,9 @@ If you're not familiar with **ImGui**, read about the C++ library, and the pytho
 
 .. note:: Earlier versions of XPPython3  provided a developer version of python imgui wrapper
           as part of standard XPPython3 installation in XPPython3/imgui folder. This is no longer
-          required, now that pyimgui version 2.0.0 has been made generally available. If you
-          may need to change your plugin's import, if you had explicitly imported the module
-          as::
+          required, now that pyimgui version 2.0.0 has been made generally available, we've included
+          that version with the (included) version of python. If your plugin had previously
+          imported this library from XPPython3 packages, you need to change::
 
             from XPPython3 import imgui
 
@@ -18,13 +18,6 @@ If you're not familiar with **ImGui**, read about the C++ library, and the pytho
 
             import imgui
 
-Installation
-------------
-Our version of imgui requires OpenGL, so everyone (you and all users of your plugin) will need to install
-OpenGL. See :doc:`/development/opengl` for details.
-
-You will also have to install the standard version of imgui using pip. Note that imgui installation runs a compiler
-and can take a few minutes to install.
 
 Test Plugin
 -----------

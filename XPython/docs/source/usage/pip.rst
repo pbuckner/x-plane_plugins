@@ -15,15 +15,16 @@ To simplify matters within X-Plane, XPPython3 provides an interface to PIP.
 Package Installation Example
 ----------------------------
 
-OpenGL is a common package used by plugins, but not initially included. This
+pytz is a simple package, not initially included. It handles easily handles timezones in Python. This
 makes it a great "first example".
 
 1) XPPython3 Menu, select "Pip Package Installer"
-2) Install package ``pyopengl``. Type in the package name and press Install. It will take a few seconds (depends on
-   your Internet speed.) Though this package is not required by XPPython3, it is commonly used by plugins, so you might
-   as well install it now.
+2) Install package ``pytz``. Type in the package name and press Install. It will take a few seconds (depends on
+   your Internet speed.) Though this package is not required by XPPython3, but it's a harmless example if you're
+   looking to try something.
 
-If Pip fails because it cannot find pip (most commonly on linux) make sure you've manually added the python3-pip package.
+If Pip fails because it cannot find an executable version of pip (most commonly on linux), send your log files to support
+and we'll check it out.
 
 .. image:: /images/pip_installer.png
 

@@ -3,10 +3,7 @@ ImGui Coding
 **ImGui** is an open-source C++ library. As of December 2022, imgui is on version 1.89.1.
 
 **pyimgui** is an open source python wrapper to *some* of the features of the C++ library. It
-wraps an older version of imgui, version 1.65. (pyimgui is version 1.4.1, which generally supports imgui 1.65).
-
-XPPython3 has taken a development copy of pyimgui v2.0.0 and is providing it for use with X-Plane, this adds a lot
-of new features (moving imgui from 1.65 to 1.82), though doesn't quite match the latest version of imgui (v1.89.1).
+wraps an older version of imgui, version 1.82. (That is, pyimgui is version 2.0.0, which generally supports imgui 1.82).
 
 Even so, this is more than adequate for implementing
 widgets to interact with the user: more complicated drawing is probably not going to work. Some of the
@@ -65,10 +62,14 @@ ImGui Standalone
 To "play" with imgui in a python environment, without having to fire up X-Plane,
 You can use a different application environment to drive ImGui.
 
+.. Note:: In this example, you're using the OS-installed version of Python, *not* the
+    XPPython3 version of Python, so you'll need to separately install OpenGL and IMGUI
+    modules.
+
 To run standalone, do this:
 
 #. Get python3 running
-#. Install python modules ``pyopengl``, ``pyglet`` ::
+#. Install python modules ``pyopengl``, ``imgui``, ``pyglet`` ::
 
      $ python3 -m pip install pyopengl pyglet
 

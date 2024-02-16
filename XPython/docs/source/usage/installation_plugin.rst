@@ -4,7 +4,6 @@ Plugin Installation
 Requirements
 ============
 
-* **Python3** not Python2, 64-bit.
 * **X-Plane 12.00+**. Linux, Mac (Intel and M-series processors) or Windows.
   This plugin is built with SDK 400 and is NOT backward compatible to X-Plane 11 or earlier.
 
@@ -17,53 +16,22 @@ If you're **upgrading** from XPPython v3.1.5, see :doc:`upgrading`.
 Installation
 ============
 
-Four steps:
+Three steps:
 
-1. **Download and install Python 3.12.x**
+1. **Download XPPython3 zipfile**:
 
-  + https://www.python.org/downloads/
+  Select zipfile:
 
-  .. warning:: 
-
-     Do not use Python 3.11.1 on Windows. It has a loading bug and will not work.
-
-     Version 3.10.x is okay, 3.11.0 is okay, 3.11.2+ is okay, 3.12.x is okay.
-
-  **For Windows**
-    select "Add Python x.x to PATH" (*PLEASE*. This is the single most common error!)
-
-    .. image:: /images/windows_python_environment.jpg
-
-    Choose either "Install Now" or "Customize Installation", either will work as long as python is
-    added to your path!
-
-  **For Linux**
-    use your package manager (deb, apt, etc.) install as root, and make sure you also have pip and libpython.
-    (e.g., ``apt-get install python3-pip``)
-    Check which version of python3 is actually installed, because you'll need to get *that* version of XPPython3 plugin: ``python3 --version``.
-
-    We search for the matching library along the usual library search path. If you're using a virtual environment or
-    install a personal copy of python, just make sure it's visible on the search path.
-
-  **For Mac**
-    just install directly from python.org.
-
-  Questions, see [#F1]_. Want to use a different version of python, see `Other Versions of Python <older_python.html>`_.
-
-2. **Download XPPython3 zipfile**:
-
-  Select zipfile based on the version of python you are using:
-
-  +-------------------+----------------------------------------------------------------------------------------------------------------+
-  | For Python 3.12.x |`xp312.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xp312.zip>`_       |
-  +-------------------+----------------------------------------------------------------------------------------------------------------+
-  | For Python 3.11.x |`xp311.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xp311.zip>`_       |
-  +-------------------+----------------------------------------------------------------------------------------------------------------+
-  | For Python 3.10.x |`xp310.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xp310.zip>`_       |
-  +-------------------+----------------------------------------------------------------------------------------------------------------+
+  +----------------+--------------------------------------------------------------------------------------------------------------------+
+  | For Windows    |`xp3-win32.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xp3-win32.zip>`_   |
+  +----------------+--------------------------------------------------------------------------------------------------------------------+
+  | For Linux      |`xp3-linux.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xp3-linux.zip>`_   |
+  +----------------+--------------------------------------------------------------------------------------------------------------------+
+  | For Mac        |`xp3-darwin.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xp3-darwin.zip>`_ |
+  +----------------+--------------------------------------------------------------------------------------------------------------------+
 
 
-3. **Extract the xp31x.zip** into your :code:`X-Plane/Resources/plugins` folder, such that you have folder there called :code:`XPPython3`.
+2. **Extract the xp3xxx.zip** into your :code:`X-Plane/Resources/plugins` folder, such that you have folder there called :code:`XPPython3`.
 
   This plugin XPPython3 folder must be placed in :code:`<XP>/Resources/plugins`.
   On first execution of X-Plane, XPPython3 **will create** the :code:`Resources/plugins/PythonPlugins` folder.
@@ -73,18 +41,23 @@ Four steps:
   your ``Resources/plugins/PythonPlugins/samples``
   folder. To execute a sample, move a plugin up into the `PythonPlugins` folder.)
 
-  You file system layout should match::
+  You file system layout should match (with only one of mac_x64 or lin_x64 or win_x64::
 
     <X-Plane>/
     └─── Resources/
          └─── plugins/
               └─── XPPython3/
                    ├─── mac_x64/
-                   |    └─── XPPython3.xpl
+                   |    ├─── XPPython3.xpl
+                   |    └─── python3.12/
                    ├─── lin_x64/
-                   |    └─── XPPython3.xpl
+                   |    ├─── XPPython3.xpl
+                   |    └─── python3.12/
                    └─── win_x64/
-                        └─── XPPython3.xpl
+                        ├─── XPPython3.xpl
+                        ├─── python.exe
+                        ├─── ...
+                        └─── Lib/
 
 
 .. _for-mac:
@@ -96,7 +69,7 @@ Four steps:
      If you forget to do this, *XPPython3 will not load* and you'll get error popup
      indicating XPPython3.xpl cannot be opened. See :doc:`common_errors`.
 
-4. **Start X-Plane**.
+3. **Start X-Plane**.
 
   On installation success, we'll popup a window:
 
@@ -120,9 +93,3 @@ If it's running, get familiar with :doc:`runtime_menus`.
    common_errors
    getting_support
    
-----
-
-.. [#F1] "*But I already have a copy of python on my computer*". Yes, you probably do. Is it the right version,
-         includes the necessary packages and scripts, and located in the correct location? Maybe, but **no one** 
-         wants to try and debug that, so *please*: you have the disk space. Download a brand new copy of python,
-         place it in the recommended location and think of it as being used exclusively for X-Plane.

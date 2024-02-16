@@ -1,4 +1,4 @@
-import xp
+from XPPython3 import xp
 
 class PythonInterface:
     def __init__(self):

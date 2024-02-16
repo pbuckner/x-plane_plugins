@@ -26,7 +26,7 @@ author = 'Peter Buckner'
 master_doc = 'index'
 
 # The full version, including alpha/beta/rc tags
-release = 'latest'
+release = 'beta'
 
 # -- general configuration ---------------------------------------------------
 

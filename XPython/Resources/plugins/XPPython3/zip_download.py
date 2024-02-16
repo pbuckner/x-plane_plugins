@@ -1,7 +1,7 @@
 import hashlib
 import os
 import threading
-from zipfile import ZipFile
+from zipfile import ZipFile, ZipInfo
 from urllib.request import urlretrieve
 from urllib.error import URLError
 import platform
@@ -15,6 +15,18 @@ from XPPython3.XPProgressWindow import XPProgressWindow
 log = xp.systemLog
 
 
+class MyZipFile(ZipFile):
+    # preserves file permissions
+    def _extract_member(self, member, targetpath, pwd):
+        if not isinstance(member, ZipInfo):
+            member = self.getinfo(member)
+        targetpath = super()._extract_member(member, targetpath, pwd)
+        attr = member.external_attr >> 16
+        if attr != 0:
+            os.chmod(targetpath, attr)
+        return targetpath
+        
+        
 class ZipDownload:
     initial_progress_msg = "Updating file"
     final_progress_msg = "Update complete"
@@ -121,7 +133,7 @@ class ZipDownload:
             self.setCaption("Failed to verify download checksum.")
             xp.systemLog("Failed to verify download file checksum: {}, json has: {}. {}, ".format(download_url, cksum, e))
 
-        with ZipFile(zipfile, 'r') as zipfp:
+        with MyZipFile(zipfile, 'r') as zipfp:
             self.setCaption("Testing the downloaded zip file...")
             if not zipfp.testzip():
                 self.setCaption("Testing complete. Preparing to extract.")

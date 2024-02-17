@@ -118,9 +118,11 @@ class ZipDownload:
             except Exception:
                 pass
             xp.log("Internet connection error, cannot check version. Will check next time.")
-            
+            self.setCaption("Internet connection error, cannot check version. Try again later.")
+            return
         except Exception as e:
-            log('Error while retrieving: {} ({}): {}'.format(download_url, zipfile, e))
+            xp.log('Error while retrieving: {} ({}): {}'.format(download_url, zipfile, e))
+            self.setCaption("Error while attempting to retrieve file. See XPPython3Log.txt.")
             return
         self.setCaption("Download complete.")
         log("Downloaded file: {}".format(zipfile))
@@ -132,10 +134,15 @@ class ZipDownload:
         except Exception as e:
             self.setCaption("Failed to verify download checksum.")
             xp.systemLog("Failed to verify download file checksum: {}, json has: {}. {}, ".format(download_url, cksum, e))
+            raise e
 
         with MyZipFile(zipfile, 'r') as zipfp:
             self.setCaption("Testing the downloaded zip file...")
-            if not zipfp.testzip():
+            try:
+                test_error = cksum is None and zipfp.testzip()  # If cksum, we've already checked file integrity
+            except:
+                test_error = "Exception in testzip"
+            if not test_error:
                 self.setCaption("Testing complete. Preparing to extract.")
                 success = True
                 files = zipfp.infolist()
@@ -150,24 +157,18 @@ class ZipDownload:
                             if not i.filename:
                                 continue
                             xp.systemLog("renamed to {}".format(i.filename))
-                        if os.path.exists(os.path.join(self.install_path, i.filename)):
-                            if not os.path.isdir(os.path.join(self.install_path, i.filename)):
-                                # remove old 'bak' if it exists, ignore if it doesn't
-                                try:
-                                    os.remove(os.path.join(self.install_path, i.filename + '.bak'))
-                                except FileNotFoundError:
-                                    pass
-                                # in-place rename current -> .bak
-                                os.replace(os.path.join(self.install_path, i.filename),
-                                           os.path.join(self.install_path, i.filename + '.bak'))
-                                if self.backup:
-                                    xp.systemLog('{} moved to {}'.format(i.filename, i.filename + '.bak'))
-                                else:
-                                    # we didn't want .bak, so attempt to remove .bak, ignore if failure
+                        if self.backup:
+                            if os.path.exists(os.path.join(self.install_path, i.filename)):
+                                if not os.path.isdir(os.path.join(self.install_path, i.filename)):
+                                    # remove old 'bak' if it exists, ignore if it doesn't
                                     try:
                                         os.remove(os.path.join(self.install_path, i.filename + '.bak'))
-                                    except PermissionError:
+                                    except FileNotFoundError:
                                         pass
+                                    # in-place rename current -> .bak
+                                    os.replace(os.path.join(self.install_path, i.filename),
+                                               os.path.join(self.install_path, i.filename + '.bak'))
+                                    xp.systemLog('{} moved to {}'.format(i.filename, i.filename + '.bak'))
                         zipfp.extract(i, path=self.install_path)
                     except PermissionError as e:
                         success = False
@@ -192,9 +193,10 @@ class ZipDownload:
         self.setProgress()
         filesize = os.path.getsize(filename)
         fileread = 0
+        chunksize = 65336
         with open(filename, 'rb') as f:
-            for chunk in iter(lambda: f.read(4086), b''):
-                fileread += 4086
+            for chunk in iter(lambda: f.read(chunksize), b''):
+                fileread += chunksize
                 p = fileread / filesize
                 self.setProgress(p)
                 self.setCaption("Verifying [{:2.0%}]".format(p))

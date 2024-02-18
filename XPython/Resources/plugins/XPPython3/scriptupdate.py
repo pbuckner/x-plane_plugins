@@ -7,6 +7,7 @@ import os
 import os.path
 import platform
 import re
+import certifi
 from urllib.request import urlopen
 from urllib.parse import urlencode
 from urllib.error import URLError
@@ -138,7 +139,8 @@ class Updater(Config):
             else:
                 data = None
             try:
-                ret = urlopen(self.VersionCheckURL + ('&beta=y' if self.config.get('beta', False) else ''), data=data)
+                ret = urlopen(self.VersionCheckURL + ('&beta=y' if self.config.get('beta', False) else ''), data=data,
+                              cafile=certifi.where())
                 if ret.getcode() != 200:
                     xp.systemLog(f"Failed to get {self.VersionCheckURL}, returned code: {ret.getcode()}")
                     return
@@ -186,7 +188,7 @@ class Updater(Config):
                     return
 
             try:
-                self.new_version = info['version']
+                self.new_version = info.get('version', {})
             except KeyError:
                 xp.log(f"scriptupdater cannot determine update version information for plugin {self.Sig}: {info}")
                 return

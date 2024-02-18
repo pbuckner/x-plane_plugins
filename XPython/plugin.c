@@ -43,7 +43,7 @@ const char *pythonInternalPluginsPath = "Resources/plugins/XPPython3";
 const char *pythonInternalHooksPath =   "Resources/plugins/XPPython3/hooks";
 
 static const char *pythonPluginName = "XPPython3";
-const char *pythonPluginVersion = XPPYTHON3VERSION " - for Python " PYTHONVERSION;
+const char *pythonPluginVersion = XPPYTHON3VERSION;
 const char *pythonPluginSig  = "xppython3.main";
 static const char *pythonPluginDesc = "X-Plane interface for Python 3";
 static const char *pythonDisableCommand = "XPPython3/disableScripts";

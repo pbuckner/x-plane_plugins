@@ -2,8 +2,9 @@ import hashlib
 import os
 import threading
 from zipfile import ZipFile, ZipInfo
-from urllib.request import urlretrieve
+from urllib.request import urlretrieve, urlopen
 from urllib.error import URLError
+import certifi
 import platform
 try:
     from ssl import SSLCertVerificationError  # py 3.7+
@@ -58,7 +59,7 @@ class ZipDownload:
             self.update_thread.join()
             
 
-        self.update_thread = threading.Thread(target=lambda: self._download(download_url, cksum))
+        self.update_thread = threading.Thread(target=lambda: self._download_wrapper(download_url, cksum))
         self.setCaption("Starting Download...")
         self.setProgress(0)
         self.progressWindow.show()
@@ -77,9 +78,18 @@ class ZipDownload:
     def setProgress(self, progress=0):
         self.progress = progress
 
-    def _download(self, download_url, cksum=None):
-        log('_download started')
+    def _download_wrapper(self, download_url, cksum=None):
+        log('Download started')
+        try:
+            msg = self._download(download_url, cksum)
+        except Exception as e:
+            msg = f'Download failed with exception {e}'
+        if msg:
+            log(msg)
+            self.setCaption(msg)
+        return
 
+    def _download(self, download_url, cksum=None) -> str:
         def hook(chunk, maxChunk, total):
             if total > 0:
                 p = (chunk * maxChunk) / total
@@ -90,19 +100,37 @@ class ZipDownload:
             self.counter += 1
 
         if self.install_path is None:
-            log("Error: install_path not set")
-            return
+            return ("Error: install_path not set")
 
         self.setCaption("Downloading")
         success = None
 
         if not os.path.exists(self.download_path):
-            log("Making download directory: {}".format(self.download_path))
+            log(f"Making download directory: {self.download_path}")
             os.makedirs(self.download_path)
 
-        zipfile = os.path.join(self.download_path, '._UPDATE.zip')
+        zipfile = os.path.normpath(os.path.join(self.download_path, '._UPDATE.zip'))
+        if os.path.exists(zipfile):
+            try:
+                os.remove(zipfile)
+            except Exception as e:
+                xp.log(f"Failed to remove previous download {zipfile}: {e}")
+                return f"Failed to removed previous download {zipfile}"
+            
         try:
-            urlretrieve(download_url, zipfile, reporthook=hook)
+            with urlopen(download_url, cafile=certifi.where()) as fp:
+                total = int(fp.headers['Content-Length'] or '-1')
+                chunk_count = 0
+                with open(zipfile, 'wb') as zp:
+                    chunksize = min(max(4096, total//100), 1024 * 1024) # [4096 ... 1024*1024], optimized to total // 100
+                    data = fp.read(chunksize)
+                    while data:
+                        chunk_count += 1
+                        zp.write(data)
+                        hook(chunk_count, chunksize, total)
+                        data = fp.read(chunksize)
+                xp.log(f"Downloaded {chunk_count * chunksize} to {zipfile}")
+            #urlretrieve(download_url, zipfile, reporthook=hook)
         except URLError as e:
             try:
                 if ((isinstance(e.reason, SSLCertVerificationError)
@@ -111,80 +139,85 @@ class ZipDownload:
                     msg = ("\nError: !!! Python Installation Incomplete:\n"
                            "    Run /Applications/Python<version>/Install Certificates, and restart X-Plane.\n"
                            "    See https://xppython3.readthedocs.io/en/latest/usage/common_errors.html\n")
-                    xp.systemLog(msg)
+                    log(msg)
                     xp.log(msg)
-                    self.setCaption("Python Installation incomplete, See XPPython3Log.txt for details")
-                    return
+                    return "Python Installation incomplete, See XPPython3Log.txt for details"
             except Exception:
                 pass
-            xp.log("Internet connection error, cannot check version. Will check next time.")
-            self.setCaption("Internet connection error, cannot check version. Try again later.")
-            return
+            xp.log(f"Internet connection error {e}")
+            return "Internet connection error, cannot check version. Try again later."
         except Exception as e:
-            xp.log('Error while retrieving: {} ({}): {}'.format(download_url, zipfile, e))
-            self.setCaption("Error while attempting to retrieve file. See XPPython3Log.txt.")
-            return
+            xp.log(f'Error while retrieving: {download_url} ({zipfile}): {e}')
+            return "Error while attempting to retrieve file. See XPPython3Log.txt."
+
         self.setCaption("Download complete.")
-        log("Downloaded file: {}".format(zipfile))
+        log(f"Downloaded file: {zipfile}")
         try:
-            if cksum is not None and not self._verify(zipfile, cksum):
-                self.setCaption("Not upgraded: Field does not match checksum: incomplete download?")
-                xp.systemLog("Not upgraded: File does not match checksum: incomplete download?")
-                return
+            if cksum:
+                if not self._verify(zipfile, cksum):
+                    return "Error: Downloaded file does not match checksum: incomplete download?"
+                xp.log("File cksum verified")
         except Exception as e:
-            self.setCaption("Failed to verify download checksum.")
-            xp.systemLog("Failed to verify download file checksum: {}, json has: {}. {}, ".format(download_url, cksum, e))
-            raise e
+            xp.log(f"Failed to verify download file checksum: {download_url}, json has: {cksum}. {e}")
+            return "Failed to verify download. Checksum error"
 
         with MyZipFile(zipfile, 'r') as zipfp:
-            self.setCaption("Testing the downloaded zip file...")
-            try:
-                test_error = cksum is None and zipfp.testzip()  # If cksum, we've already checked file integrity
-            except:
-                test_error = "Exception in testzip"
-            if not test_error:
-                self.setCaption("Testing complete. Preparing to extract.")
-                success = True
-                files = zipfp.infolist()
-                numfiles = len(files)
-                for idx, i in enumerate(files):
-                    self.setProgress(idx / numfiles)
-                    self.setCaption("Extracting [{}/{}] {}".format(idx + 1, numfiles, os.path.basename(i.filename)))
+            if not cksum:
+                self.setCaption("Testing the downloaded zip file...")
+                try:
+                    zipfp.testzip()  # If cksum, we've already checked file integrity
+                    xp.log("TextZip complete")
+                except Exception as e:
+                    xp.log(f"Downloaded file {zipfile} failed integrity check: {e}")
+                    return "Downloaded file failed integrity check"
+
+            self.setCaption("Preparing to extract.")
+            success = True
+            files = zipfp.infolist()
+            numfiles = len(files)
+            for idx, i in enumerate(files):
+                self.setProgress(idx / numfiles)
+                self.setCaption("Extracting [{}/{}]\n   {}".format(idx + 1, numfiles, os.path.basename(i.filename)))
+
+                if self.remove_top_dir:
+                    # change ZipInfo value of filename
+                    i.filename = '/'.join(i.filename.split('/')[1:])
+                    if not i.filename:
+                        continue
+                    xp.log(f"renamed to {i.filename}")
+
+                if self.backup:
                     try:
-                        if self.remove_top_dir:
-                            # change ZipInfo value of filename
-                            i.filename = '/'.join(i.filename.split('/')[1:])
-                            if not i.filename:
-                                continue
-                            xp.systemLog("renamed to {}".format(i.filename))
-                        if self.backup:
-                            if os.path.exists(os.path.join(self.install_path, i.filename)):
-                                if not os.path.isdir(os.path.join(self.install_path, i.filename)):
-                                    # remove old 'bak' if it exists, ignore if it doesn't
-                                    try:
-                                        os.remove(os.path.join(self.install_path, i.filename + '.bak'))
-                                    except FileNotFoundError:
-                                        pass
-                                    # in-place rename current -> .bak
-                                    os.replace(os.path.join(self.install_path, i.filename),
-                                               os.path.join(self.install_path, i.filename + '.bak'))
-                                    xp.systemLog('{} moved to {}'.format(i.filename, i.filename + '.bak'))
-                        zipfp.extract(i, path=self.install_path)
-                    except PermissionError as e:
-                        success = False
-                        self.setCaption("Extraction failed for {}.".format(i.filename))
-                        xp.systemLog(">>>> Failed to extract {}, upgrade failed: {}".format(i.filename, e))
-                        break
-                self.setProgress(1)
-            else:
-                self.setCaption("Test failed.")
-                success = False
-                xp.systemLog("failed testzip()")
-        if success:
-            os.remove(zipfile)
+                        path = os.path.normpath(os.path.join(self.install_path, i.filename))
+                        if os.path.exists(path):
+                            if not os.path.isdir(path):
+                                # remove old 'bak' if it exists, ignore if it doesn't
+                                try:
+                                    os.remove(path + '.bak')
+                                except FileNotFoundError:
+                                    pass
+                                # in-place rename current -> .bak
+                                try:
+                                    os.replace(path, path + '.bak')
+                                    xp.log(f'{i.filename} moved to {i.filename}.bak')
+                                except Exception as e:
+                                    xp.log(f'Failed to move {i.filename} to {i.filename}.bak, {e}')
+                                    raise
+                    except Exception as e:
+                        xp.log(f"Failed dealing with backup file {i.filename}, {e}")
+                        return "Extraction failed. See log files."
+
+                try:
+                    zipfp.extract(i, path=self.install_path)
+                except Exception as e:
+                    xp.log(f"Failed to extract {i.filename}, upgrade failed: {e}")
+                    return f">>>> Failed to extract {i.filename}, download failed."
             self.setProgress(1)
-            self.setCaption(self.final_progress_msg)
-            xp.systemLog("Download successful")
+
+        os.remove(zipfile)
+        self.setProgress(1)
+        log("Download successful")
+        return self.final_progress_msg
 
     def _verify(self, filename, file_cksum=None):
         cksum = None
@@ -193,7 +226,7 @@ class ZipDownload:
         self.setProgress()
         filesize = os.path.getsize(filename)
         fileread = 0
-        chunksize = 65336
+        chunksize = 65536
         with open(filename, 'rb') as f:
             for chunk in iter(lambda: f.read(chunksize), b''):
                 fileread += chunksize

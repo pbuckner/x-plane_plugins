@@ -36,8 +36,12 @@ def hook(reload_unknown, mtimes, sym_start):
                 mtime = os.stat(mod.__file__).st_mtime  # if it's simple foo.py
                 if VERBOSE: xp.log(f'mtime for {mod} is {mtime}')
             except (OSError, IOError) as e:
-                updated_mods.append(f'Cannot find mtime for {mod.__file__}: {e}')
-                continue
+                if mod.__file__.endswith('.py') and os.path.exists(mod.__file__ +'c'): # missing .py, but there is a pyc
+                    mtime = os.stat(mod.__file__ + 'c').st_mtime
+                    if VERBOSE: xp.log(f'mtime for {mod} is {mtime}')
+                else:
+                    updated_mods.append(f'Cannot find mtime for {mod.__file__}: {e}')
+                    continue
             if mod.__file__.endswith('.pyc') and os.path.exists(mod.__file__[:-1]):  # if there is (also) a pyc
                 mtime = max(mtime, os.stat(mod.__file__[:-1]).st_mtime)
                 if VERBOSE: xp.log(f'mtime now {mtime} after looking at pyc')

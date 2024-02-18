@@ -1,11 +1,11 @@
-.PHONY : clean darwin lin windows xp_zip
+.PHONY : clean darwin lin windows
 
 PLUGIN_PATH=Resources/plugins/XPPython3
 SDK=400
 XP_SDK=../SDK401
 VERSIONS= 312
 # python versions are like 4.1.1 -> 4.1.2a1 -> 4.1.2a2 -> 4.1.2b1 -> 4.1.2 (letter is [ab], cannot end with letter)
-XPPYTHONVERSION=4.3.0a2
+XPPYTHONVERSION=4.3.0a3
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
 FMOD=../FMOD
 ZIP=zip
@@ -121,7 +121,7 @@ endif
 
 StandardPythonUtils = Resources/plugins/XPPython3/xp.py Resources/plugins/XPPython3/xp_imgui/ Resources/plugins/XPPython3/I_PI_Updater.py Resources/plugins/XPPython3/scriptupdate.py Resources/plugins/XPPython3/scriptconfig.py Resources/plugins/XPPython3/I_PI_FirstTime.py Resources/plugins/XPPython3/zip_download.py
 
-xp_zip: win/XPPython3.xpl lin/XPPython3.xpl mac/XPPython3.xpl $(StandardPythonUtils)
+Resources/plugins/xp3-darwin.zip: win/XPPython3.xpl lin/XPPython3.xpl mac/XPPython3.xpl $(StandardPythonUtils)
 	# remove old
 	rm -fr Resources/plugins/xp.zip $(zipfiles)
 	rm -ff Resources/plugins/XPPython3/*/*.xpl
@@ -178,20 +178,19 @@ xp_zip: win/XPPython3.xpl lin/XPPython3.xpl mac/XPPython3.xpl $(StandardPythonUt
 	cd Resources/plugins; $(ZIP) xp3-linux.zip  -q -u -r XPPython3/lin_x64/python3.12
 	cd Resources/plugins; $(ZIP) xp3-win32.zip  -q -u -r XPPython3/win_x64
 	#
-	rm -r Resources/plugins/XPPython3/*_x64
-	rm Resources/plugins/xp.zip
+	rm -fr Resources/plugins/XPPython3/*_x64
 
 
-install_beta : $(zipfiles) xp_zip
+install_beta : $(zipfiles)
 	# dependencies are xp3.zip and xp3-(win32|linux|darwin).zip
 	# 1) rename each to beta naming xp3b.zip and xp-(win32|linux|darwin)b.zip
 	for f in $(filter %.zip, $^); do cp $$f `echo "$$f" | sed 's/\.zip/b.zip/g'`; done
 	# 2) upload them to server
-	scp Resources/plugins/xp3{-darwin,-linux,-win32}b.zip pbuck@avnwx.com:/var/www/production/data/x-plane
+	scp Resources/plugins/xp3{,upgrade}{-darwin,-linux,-win32}b.zip pbuck@avnwx.com:/var/www/production/data/x-plane
 	# 3) On the server, execute updatemd5.py <>.zip <version>
 	#    ... the server code will manage -win32, -darwin and -linux variants
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; \
-		./db_updatemd5.py xp3b.zip $(SDK) "$(XPPYTHONVERSION) - for Python 3.12"'
+		./db_updatemd5.py xp3b.zip $(SDK) "$(XPPYTHONVERSION)"'
 
 install_remote : $(zipfiles)
 	@if [ "$(BETA)" -gt "0" ]; then \

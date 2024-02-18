@@ -660,6 +660,7 @@ def pip(cmd, q):
                               stdout=subprocess.PIPE,
                               stderr=subprocess.STDOUT,
                               bufsize=1,
+                              encoding='utf-8',
                               universal_newlines=True) as sub:
             for line in sub.stdout:
                 if line[-1] == '\n':

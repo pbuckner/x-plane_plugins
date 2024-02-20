@@ -2,7 +2,7 @@ import hashlib
 import os
 import threading
 from zipfile import ZipFile, ZipInfo
-from urllib.request import urlretrieve, urlopen
+from urllib.request import urlopen
 from urllib.error import URLError
 import certifi
 import platform
@@ -17,14 +17,17 @@ log = xp.systemLog
 
 
 class MyZipFile(ZipFile):
+    ZIP_UNIX_SYSTEM = 3
     # preserves file permissions
     def _extract_member(self, member, targetpath, pwd):
         if not isinstance(member, ZipInfo):
             member = self.getinfo(member)
         targetpath = super()._extract_member(member, targetpath, pwd)
-        attr = member.external_attr >> 16
-        if attr != 0:
-            os.chmod(targetpath, attr)
+        if member.create_system == ZIP_UNIX_SYSTEM and os.path.isfile(targetpath):
+            # only restore 'user-execute' permission -- that's safe
+            unix_attr = member.external_attr >> 16
+            if unix_attr & S_IXUSR:
+                os.chmod(targetpath, os.stat(targetpath).st_mode | S_IXUSR)
         return targetpath
         
         
@@ -130,7 +133,6 @@ class ZipDownload:
                         hook(chunk_count, chunksize, total)
                         data = fp.read(chunksize)
                 xp.log(f"Downloaded {chunk_count * chunksize} to {zipfile}")
-            #urlretrieve(download_url, zipfile, reporthook=hook)
         except URLError as e:
             try:
                 if ((isinstance(e.reason, SSLCertVerificationError)

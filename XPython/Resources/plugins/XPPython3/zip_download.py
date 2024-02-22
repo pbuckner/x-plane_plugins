@@ -6,6 +6,7 @@ from urllib.request import urlopen
 from urllib.error import URLError
 import certifi
 import platform
+import stat
 try:
     from ssl import SSLCertVerificationError  # py 3.7+
 except ImportError:
@@ -16,8 +17,8 @@ from XPPython3.XPProgressWindow import XPProgressWindow
 log = xp.systemLog
 
 
+ZIP_UNIX_SYSTEM = 3
 class MyZipFile(ZipFile):
-    ZIP_UNIX_SYSTEM = 3
     # preserves file permissions
     def _extract_member(self, member, targetpath, pwd):
         if not isinstance(member, ZipInfo):
@@ -26,8 +27,8 @@ class MyZipFile(ZipFile):
         if member.create_system == ZIP_UNIX_SYSTEM and os.path.isfile(targetpath):
             # only restore 'user-execute' permission -- that's safe
             unix_attr = member.external_attr >> 16
-            if unix_attr & S_IXUSR:
-                os.chmod(targetpath, os.stat(targetpath).st_mode | S_IXUSR)
+            if unix_attr & stat.S_IXUSR:
+                os.chmod(targetpath, os.stat(targetpath).st_mode | stat.S_IXUSR)
         return targetpath
         
         

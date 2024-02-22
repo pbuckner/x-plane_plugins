@@ -5,7 +5,7 @@ SDK=400
 XP_SDK=../SDK401
 VERSIONS= 312
 # python versions are like 4.1.1 -> 4.1.2a1 -> 4.1.2a2 -> 4.1.2b1 -> 4.1.2 (letter is [ab], cannot end with letter)
-XPPYTHONVERSION=4.3.0a3
+XPPYTHONVERSION=4.3.0a5
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
 FMOD=../FMOD
 ZIP=zip
@@ -108,6 +108,8 @@ ifeq ($(TARGET), Darwin)
 		-change /Library/Frameworks/Python.framework/Versions/3.12/Python  \
 		@executable_path/../../../Resources/plugins/XPPython3/mac_x64/python3.12/lib/libpython3.12.dylib \
 		XPPython3.xpl
+	codesign --remove-signature XPPython3.xpl
+	codesign -s - XPPython3.xpl
 else ifeq ($(TARGET), Linux)
 	$(LD) $^ $(LDFLAGS312) -o $@
 	patchelf \
@@ -143,25 +145,25 @@ Resources/plugins/xp3-darwin.zip: win/XPPython3.xpl lin/XPPython3.xpl mac/XPPyth
 	#     xp3-linux.zip 
 	#     xp3-darwin.zip 
 	cd Resources/plugins; \
-		$(ZIP) xp.zip -R XPPython3  XPPython3/*_x64/*3.xpl; \
-		$(ZIP) xp.zip -u XPPython3/version.txt ; \
-		$(ZIP) xp.zip -u XPPython3/.firstTimeComplete; \
-		$(ZIP) xp.zip -u XPPython3/*.md; \
-		$(ZIP) xp.zip -u XPPython3/*.py ; \
-		$(ZIP) xp.zip -u XPPython3/*.pyi ; \
-		$(ZIP) xp.zip -u XPPython3/utils/*.py ; \
-		$(ZIP) xp.zip -u XPPython3/hooks/*.py ; \
-		$(ZIP) xp.zip -u XPPython3/xp_imgui/*.py ; \
-		$(ZIP) xp.zip -u XPPython3/ui/*.py ; \
-		$(ZIP) xp.zip -u -r XPPython3/Authori*.app;
+		$(ZIP) xp.zip -q -R XPPython3  XPPython3/*_x64/*3.xpl; \
+		$(ZIP) xp.zip -q -u XPPython3/version.txt ; \
+		$(ZIP) xp.zip -q -u XPPython3/.firstTimeComplete; \
+		$(ZIP) xp.zip -q -u XPPython3/*.md; \
+		$(ZIP) xp.zip -q -u XPPython3/*.py ; \
+		$(ZIP) xp.zip -q -u XPPython3/*.pyi ; \
+		$(ZIP) xp.zip -q -u XPPython3/utils/*.py ; \
+		$(ZIP) xp.zip -q -u XPPython3/hooks/*.py ; \
+		$(ZIP) xp.zip -q -u XPPython3/xp_imgui/*.py ; \
+		$(ZIP) xp.zip -q -u XPPython3/ui/*.py ; \
+		$(ZIP) xp.zip -q -u -r XPPython3/Drop\ Q*.app;
 	# That's the same as the 'upgrade' -- python-less -- version
 	cp Resources/plugins/xp.zip Resources/plugins/xp3upgrade-win32.zip
 	cp Resources/plugins/xp.zip Resources/plugins/xp3upgrade-darwin.zip
 	cp Resources/plugins/xp.zip Resources/plugins/xp3upgrade-linux.zip
 	# Delete "other" architectures from each zip
-	$(ZIP) -d Resources/plugins/xp3upgrade-win32.zip  XPPython3/lin_\* XPPython3/mac_\*
-	$(ZIP) -d Resources/plugins/xp3upgrade-darwin.zip XPPython3/lin_\* XPPython3/win_\*
-	$(ZIP) -d Resources/plugins/xp3upgrade-linux.zip  XPPython3/mac_\* XPPython3/win_\*
+	$(ZIP) -d -q Resources/plugins/xp3upgrade-win32.zip  XPPython3/lin_\* XPPython3/mac_\* XPPython3/Drop\ \* XPPython3/Authori\*
+	$(ZIP) -d -q Resources/plugins/xp3upgrade-darwin.zip XPPython3/lin_\* XPPython3/win_\*
+	$(ZIP) -d -q Resources/plugins/xp3upgrade-linux.zip  XPPython3/mac_\* XPPython3/win_\* XPPython3/Drop\ \* XPPython3/Authori\*
 
 
 	# Copy "Python3.12" distro
@@ -178,7 +180,10 @@ Resources/plugins/xp3-darwin.zip: win/XPPython3.xpl lin/XPPython3.xpl mac/XPPyth
 	cd Resources/plugins; $(ZIP) xp3-linux.zip  -q -u -r XPPython3/lin_x64/python3.12
 	cd Resources/plugins; $(ZIP) xp3-win32.zip  -q -u -r XPPython3/win_x64
 	#
-	rm -fr Resources/plugins/XPPython3/*_x64
+	sleep 5
+	rm -fr Resources/plugins/XPPython3/mac_x64
+	rm -fr Resources/plugins/XPPython3/lin_x64
+	rm -fr Resources/plugins/XPPython3/win_x64
 
 
 install_beta : $(zipfiles)

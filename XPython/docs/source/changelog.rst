@@ -32,7 +32,11 @@ Known Bugs
      than Wayland interface and this appears to work. If your UI doesn't use Wayland, you shouldn't
      see anything.
      
-     
+   |
+
+:Fixes:
+   * **XPLMCreateWindow_Ex** was missing a sentinel on keyword argument list causing calls to sometimes
+     fail.
      
 4.2.1 (29-Dec-2023)
 -------------------

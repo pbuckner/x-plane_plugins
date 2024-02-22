@@ -22,14 +22,17 @@ Three steps:
 
   Select zipfile:
 
-  +----------------+--------------------------------------------------------------------------------------------------------------------+
-  | For Windows    |`xp3-win32.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xp3-win32.zip>`_   |
-  +----------------+--------------------------------------------------------------------------------------------------------------------+
-  | For Linux      |`xp3-linux.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xp3-linux.zip>`_   |
-  +----------------+--------------------------------------------------------------------------------------------------------------------+
-  | For Mac        |`xp3-darwin.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/Resources/plugins/xp3-darwin.zip>`_ |
-  +----------------+--------------------------------------------------------------------------------------------------------------------+
-
+     +----------------+------------------------------------------------------------------------+--------------------------------------------------------------------------+
+     | OS             | Stable Version                                                         | Beta Version [#Beta]_                                                    |
+     +================+========================================================================+==========================================================================+
+     | For Windows    | `xp3-win32.zip <https://maps.avnwx.com/data/x-plane/xp3-win32.zip>`_   | `xp3-win32b.zip <https://maps.avnwx.com/data/x-plane/xp3-win32b.zip>`_   |
+     +----------------+------------------------------------------------------------------------+--------------------------------------------------------------------------+
+     | For Linux      | `xp3-linux.zip <https://maps.avnwx.com/data/x-plane/xp3-linux.zip>`_   | `xp3-linuxb.zip <https://maps.avnwx.com/data/x-plane/xp3-linuxb.zip>`_   |
+     +----------------+------------------------------------------------------------------------+--------------------------------------------------------------------------+
+     | For Mac        | `xp3-darwin.zip <https://maps.avnwx.com/data/x-plane/xp3-darwin.zip>`_ | `xp3-darwinb.zip <https://maps.avnwx.com/data/x-plane/xp3-darwinb.zip>`_ |
+     |                |                                                                        |                                                                          |
+     +----------------+------------------------------------------------------------------------+--------------------------------------------------------------------------+
+   
 
 2. **Extract the xp3xxx.zip** into your :code:`X-Plane/Resources/plugins` folder, such that you have folder there called :code:`XPPython3`.
 
@@ -93,3 +96,8 @@ If it's running, get familiar with :doc:`runtime_menus`.
    common_errors
    getting_support
    
+----
+
+.. [#Beta]
+   *Caution*: It's Beta. Save a copy of your stable XPPython3 just in case (just rename the folder and it won't load automatically).
+   Anything can happen in a Beta, "not working" is common. If you've been invited to use a beta, my deepest thanks.

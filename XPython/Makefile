@@ -5,7 +5,7 @@ SDK=400
 XP_SDK=../SDK401
 VERSIONS= 312
 # python versions are like 4.1.1 -> 4.1.2a1 -> 4.1.2a2 -> 4.1.2b1 -> 4.1.2 (letter is [ab], cannot end with letter)
-XPPYTHONVERSION=4.3.0a5
+XPPYTHONVERSION=4.3.0
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
 FMOD=../FMOD
 ZIP=zip
@@ -202,9 +202,9 @@ install_remote : $(zipfiles)
 		echo "Current version is BETA: $(XPPYTHONVERSION). Not installing"; \
 		exit 1; \
 	fi
-	scp Resources/plugins/xp3{,-darwin,-linux,-win32}.zip pbuck@avnwx.com:/var/www/production/data/x-plane
+	scp Resources/plugins/xp3{,upgrade}{-darwin,-linux,-win32}.zip pbuck@avnwx.com:/var/www/production/data/x-plane
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; \
-		./db_updatemd5.py xp3.zip $(SDK) "$(XPPYTHONVERSION) - for Python 3.12"'
+		./db_updatemd5.py xp3.zip $(SDK) "$(XPPYTHONVERSION)"'
 
 SUBDIRS = . mac lin win
 SUBDIRSCLEAN=$(addsuffix .clean,$(SUBDIRS))

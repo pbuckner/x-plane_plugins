@@ -94,6 +94,9 @@ class ZipDownload:
         return
 
     def _download(self, download_url, cksum=None) -> str:
+        # returned 'str' is the last message (success or failure message) which
+        # should be displayed to user
+        
         def hook(chunk, maxChunk, total):
             if total > 0:
                 p = (chunk * maxChunk) / total
@@ -104,7 +107,7 @@ class ZipDownload:
             self.counter += 1
 
         if self.install_path is None:
-            return ("Error: install_path not set")
+            return "Error: install_path not set"
 
         self.setCaption("Downloading")
         success = None
@@ -166,9 +169,10 @@ class ZipDownload:
 
         with MyZipFile(zipfile, 'r') as zipfp:
             if not cksum:
+                # If cksum, we've already checked file integrity, no need to further testzip()
                 self.setCaption("Testing the downloaded zip file...")
                 try:
-                    zipfp.testzip()  # If cksum, we've already checked file integrity
+                    zipfp.testzip()
                     xp.log("TextZip complete")
                 except Exception as e:
                     xp.log(f"Downloaded file {zipfile} failed integrity check: {e}")
@@ -189,26 +193,37 @@ class ZipDownload:
                         continue
                     xp.log(f"renamed to {i.filename}")
 
-                if self.backup:
-                    try:
-                        path = os.path.normpath(os.path.join(self.install_path, i.filename))
-                        if os.path.exists(path):
-                            if not os.path.isdir(path):
-                                # remove old 'bak' if it exists, ignore if it doesn't
+                # ALWAYS rename existing file to *.bak. Then GENTLY try to remove it if we don't want to keep
+                # it around. This allows us to download shared libraries which are currently in use
+                # -- we rename them, download a new version & then on restart, a new one is loaded.
+                try:
+                    path = os.path.normpath(os.path.join(self.install_path, i.filename))
+                    if os.path.exists(path):
+                        if not os.path.isdir(path):
+                            # remove old 'bak' if it exists, ignore if it doesn't
+                            try:
+                                os.remove(path + '.bak')
+                            except FileNotFoundError:
+                                pass
+                            # in-place rename current -> .bak
+                            try:
+                                os.replace(path, path + '.bak')
+                            except Exception as e:
+                                xp.log(f'Failed to move {i.filename} to {i.filename}.bak, {e}')
+                                raise
+
+                            if self.backup:
+                                xp.log(f'{i.filename} moved to {i.filename}.bak')
+                            else:
+                                # we didn't want .bak, so attemtpt to remove .bak, ignore if failure
                                 try:
                                     os.remove(path + '.bak')
-                                except FileNotFoundError:
+                                except PermissionError:
                                     pass
-                                # in-place rename current -> .bak
-                                try:
-                                    os.replace(path, path + '.bak')
-                                    xp.log(f'{i.filename} moved to {i.filename}.bak')
-                                except Exception as e:
-                                    xp.log(f'Failed to move {i.filename} to {i.filename}.bak, {e}')
-                                    raise
-                    except Exception as e:
-                        xp.log(f"Failed dealing with backup file {i.filename}, {e}")
-                        return "Extraction failed. See log files."
+
+                except Exception as e:
+                    xp.log(f"Failed dealing with backup file {i.filename}, {e}")
+                    return "Extraction failed. See log files."
 
                 try:
                     zipfp.extract(i, path=self.install_path)

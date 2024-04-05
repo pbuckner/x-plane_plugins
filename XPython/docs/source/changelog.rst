@@ -12,14 +12,14 @@ Known Bugs
 
   None (prove me wrong!)
   
-4.3.0 (BETA Feb-2024)
+4.3.0 (5-Apr-2024)
 ---------------------
 :New Features:
-   * **Python Included**. For all architectures, we now include a version of Python 3.12. *You not
+   * **Python Included**. For all architectures, we now include a version of Python 3.12. *You no
      longer need to install your own python, or alter your OS-provided version.*
 
-   * **OpenGL and IMGUI Included**. By including our own copy of Python, we can also provide
-     standard copies of OpenGL and IMGUI, (and requests) modules. For users, this means you
+   * **OpenGL, IMGUI, and requests modules Included**. By including our own copy of Python, we can also provide
+     standard copies of OpenGL, IMGUI, and requests modules. For users, this means you
      no longer have to install these yourself. For developers, this means *all your users
      will have this installed already!* 
 

@@ -5,6 +5,7 @@ import sys
 import urllib
 import re
 import os
+import stat
 import subprocess
 import webbrowser
 from XPPython3 import scriptupdate
@@ -12,6 +13,14 @@ from XPPython3 import xp
 from XPPython3.utils import samples
 from XPPython3.ui.popups import ScrollingPopup
 from XPPython3 import xp_typing
+
+# location where we want PIP to install packages. Relative to X-Plane directory
+PKG_DIR = {
+    'linux': 'Resources/plugins/XPPython3/lin_x64/python3.12/lib/python3.12/dist-packages',
+    'win32': 'Resources/plugins/XPPython3/win_x64/Lib/site-packages',
+    'darwin': 'Resources/plugins/XPPython3/mac_x64/python3.12/lib/python3.12/site-packages',
+}
+
 
 class MyWidgetWindow(TypedDict):
     widgetID: xp_typing.XPWidgetID |  None
@@ -217,10 +226,12 @@ class PythonInterface(MyConfig):
             if not self.pipWindow:
                 self.pipWindow = self.createPipWindow()
             else:
-                if xp.isWidgetVisible(self.pipWindow['widgetID']):
-                    xp.hideWidget(self.pipWindow['widgetID'])
+                widget = self.pipWindow['widgetID']
+                if xp.isWidgetVisible(widget) and xp.isWidgetInFront(widget):
+                    xp.hideWidget(widget)
                 else:
-                    xp.showWidget(self.pipWindow['widgetID'])
+                    xp.showWidget(widget)
+                    xp.bringRootWidgetToFront(widget)
         return 0
 
     def XPluginStop(self):
@@ -593,7 +604,6 @@ class PythonInterface(MyConfig):
             xp.hideWidget(self.pipWindow['widgetID'])
             return 1
 
-        execute = False
         if any([inMessage == xp.Msg_KeyPress and inParam1[2] == xp.VK_RETURN and inParam1[1] & xp.DownFlag,
                 inMessage == xp.Msg_PushButtonPressed and inParam1 == self.pipWindow['widgets']['button']]):
             s = xp.getWidgetDescriptor(self.pipWindow['widgets']['packages'])
@@ -602,7 +612,17 @@ class PythonInterface(MyConfig):
             if packages:
                 xp.setWidgetDescriptor(self.pipWindow['widgets']['error'],
                                        f"Looking to install packages: {' '.join(packages)}")
-                cmd = [xp.pythonExecutable, '-m', 'pip', 'install', '--user'] + packages
+                # -s causes us to NOT add user site-pkg directory
+                # --no-warn-script-location
+                target = PKG_DIR[sys.platform]
+                mode = os.stat(xp.pythonExecutable).st_mode
+                if not mode & stat.S_IXUSR:
+                    os.chmod(xp.pythonExecutable, mode | stat.S_IXUSR | stat.S_IXGRP)
+                cmd = [xp.pythonExecutable, '-s',
+                       '-m', 'pip',
+                       'install', '--no-warn-script-location',
+                       '--target', target,
+                       ] + packages
                 self.startPipCall(cmd)
 
             xp.setWidgetDescriptor(self.pipWindow['widgets']['packages'], '')
@@ -635,14 +655,20 @@ class PythonInterface(MyConfig):
 def pip(cmd, q):
     xp.log(f"Doing {' '.join(cmd)}")
     q.put(f"$ {' '.join(cmd)}")
-    with subprocess.Popen(cmd,
-                          stdout=subprocess.PIPE,
-                          stderr=subprocess.STDOUT,
-                          bufsize=1,
-                          universal_newlines=True) as sub:
-        for line in sub.stdout:
-            if line[-1] == '\n':
-                line = line[:-1]
-            q.put(line)
-    xp.log("All done")
+    try:
+        with subprocess.Popen(cmd,
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT,
+                              bufsize=1,
+                              encoding='utf-8',
+                              universal_newlines=True) as sub:
+            for line in sub.stdout:
+                if line[-1] == '\n':
+                    line = line[:-1]
+                q.put(line)
+        xp.log("All done")
+    except PermissionError:
+        xp.log(f"Error: {cmd[0]} does not have executable permission.")
+    except FileNotFoundError:
+        xp.log(f"Error: {cmd[0]} not found.")
     q.put('[DONE]')

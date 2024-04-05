@@ -20,3 +20,6 @@ XPython/Resources/plugins/xp*b.zip
 XPython/Resources/plugins/XPPython3/version.txt
 XPython/macros.emacs
 XPython/docs/recent_annotations.py
+XPython/Resources/plugins/xp.zip
+XPython/README_REFCNT.txt
+XPython/README_STABLE.txt

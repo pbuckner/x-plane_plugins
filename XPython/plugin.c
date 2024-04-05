@@ -9,6 +9,7 @@
 #include <XPLM/XPLMPlugin.h>
 #include <sys/types.h>
 #include <dlfcn.h>
+#include <wchar.h>
 #if LIN
 /* to get strlcat() */
 #include <bsd/string.h>
@@ -42,7 +43,7 @@ const char *pythonInternalPluginsPath = "Resources/plugins/XPPython3";
 const char *pythonInternalHooksPath =   "Resources/plugins/XPPython3/hooks";
 
 static const char *pythonPluginName = "XPPython3";
-const char *pythonPluginVersion = XPPYTHON3VERSION " - for Python " PYTHONVERSION;
+const char *pythonPluginVersion = XPPYTHON3VERSION;
 const char *pythonPluginSig  = "xppython3.main";
 static const char *pythonPluginDesc = "X-Plane interface for Python 3";
 static const char *pythonDisableCommand = "XPPython3/disableScripts";
@@ -55,7 +56,7 @@ static XPLMCommandRef reloadScripts;
 
 static int commandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void *inRefcon);
 
-static int loadPythonLibrary(void);
+static int loadLocalPythonLibrary(void);
 static void setSysPath(void);
 static void handleConfigFile(void);
 static void reloadSysModules(void);
@@ -140,15 +141,51 @@ int initPython(void){
 #if defined(Py_LIMITED_API)
   Py_Initialize();
 #else
-  if (pythonVerbose) {
-    PyConfig config;
-    PyConfig_InitPythonConfig(&config);
-    config.verbose = pythonVerbose;
-    Py_InitializeFromConfig(&config);
-    PyConfig_Clear(&config);
-  } else {
-    Py_Initialize();
+  PyPreConfig preconfig;
+  PyPreConfig_InitIsolatedConfig(&preconfig);
+  //preconfig.utf8_mode = 1; ... this seems to cause Windows filename errors
+  PyStatus status = Py_PreInitialize(&preconfig);
+  if (PyStatus_Exception(status)) {
+    pythonLog("preinit status is error");
+    Py_ExitStatusException(status);
   }
+
+  PyConfig config;
+  PyConfig_InitIsolatedConfig(&config);
+
+  char executable[512];
+  XPLMGetSystemPath(executable);
+  /* config.home seems to be set properly in the executables (?) or other tricks
+     such as patchelf / install_name_tool, so I don't appear to need to set
+     it explicitly
+  */
+#if APL
+  /* config.home = wcsdup(L"Resources/plugins/XPPython3/mac_x64/python" PYTHONVERSION); */
+  strcat(executable, "Resources/plugins/XPPython3/mac_x64/python" PYTHONVERSION "/Resources/Python.app/Contents/MacOS/Python");
+#elif IBM
+  /* config.home = wcsdup(L"Resources/plugins/XPPython3/win_x64"); */
+  strcat(executable, "Resources/plugins/XPPython3/win_x64/pythonw.exe");
+#elif LIN
+  /* config.home = wcsdup(L"Resources/plugins/XPPython3/lin_x64/python" PYTHONVERSION); */
+  strcat(executable, "Resources/plugins/XPPython3/lin_x64/python" PYTHONVERSION "/bin/python" PYTHONVERSION);
+  /* setenv("PYOPENGL_PLATFORM", "egl", 1);*/
+  setenv("PYOPENGL_PLATFORM", "glx", 1); /* to get around Wayland... */
+#endif  
+
+  status = PyConfig_SetBytesString(&config, &config.executable, strdup(executable));
+  if (PyStatus_Exception(status)) {
+    pythonLog("SetBytesString status is error");
+    Py_ExitStatusException(status);
+  }
+  if (pythonVerbose) {
+    config.verbose = pythonVerbose;
+  }
+  status = Py_InitializeFromConfig(&config);
+  if (PyStatus_Exception(status)) {
+    pythonLog("InitializeFrom Config status is error");
+    Py_ExitStatusException(status);
+  }
+  PyConfig_Clear(&config);
 #endif
   if(!Py_IsInitialized()){
     pythonLog("[XPPython3] Failed to initialize Python.");
@@ -361,7 +398,7 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
   
   pythonLog("[%s] Version %s Started -- %.24s", pythonPluginName, pythonPluginVersion, ctime(&SymStartTime));
 
-  if (loadPythonLibrary() == -1) {return 0;}
+  if (loadLocalPythonLibrary() == -1) {return 0;}
 
   pythonLogFlush();
   strcpy(outName, pythonPluginName);
@@ -549,64 +586,34 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
   Py_DECREF(param);
 }
 
-static int loadPythonLibrary(void) 
+static int loadLocalPythonLibrary(void)
 {
-#if LIN || APL
-  /* Prefered library is simple .so:
-      libpython3.8.so
-     But, that's usually a link to a versioned .so and sometimes, that
-     link hasn't been created, so we'll also look for that:
-      libpython3.8.so.1
-     (there could be more versions, but that seems unlikely for most consumers)
+/*
+  The _reason_ we have to do this is a python problem which (still) exists on linux (November 2022)
+  Essential, the python shared libs (say _ssl.so) don't look within the python libpythonX.X.so shared
+  lib, so the imported shared lib will fail with something like:
+     ImportError: /usr/lib/python/lib-dynload/_sso.so: undefined symbol: PyEx_ValueError
 
-     Now, prior to 3.8, the library name included 'm' to indicate it includes pymalloc, which
-     which is prefered, so we look for those FIRST, and if not found, look for
-     libraries without the 'm'.
-
-     The _reason_ we have to do this is a python problem which (still) exists on linux (November 2022)
-     Essential, the python shared libs (say _ssl.so) don't look within the python libpythonX.X.so shared
-     lib, so the imported shared lib will fail with something like:
-      ImportError: /usr/lib/python/lib-dynload/_sso.so: undefined symbol: PyEx_ValueError
-
-     See https://mail.python.org/pipermail/new-bugs-announce/2008-November/003322.html
-  */
-#if LIN
-  char *suffix = "so";
-  char *path = "";
-#endif
+  See https://mail.python.org/pipermail/new-bugs-announce/2008-November/003322.html
+*/
+#if APL || LIN
 #if APL
   char *suffix = "dylib";
-  char *path = "/Library/Frameworks/Python.framework/Versions/" PYTHONVERSION "/lib/";
-#endif
+  char *path = "Resources/plugins/XPPython3/mac_x64/python" PYTHONVERSION "/lib/";
+#elif LIN
+  char *suffix = "so";
+  char *path = "Resources/plugins/XPPython3/lin_x64/python" PYTHONVERSION "/lib/";
+#endif  
   char library[1024];
-  sprintf(library, "%slibpython%sm.%s", path, PYTHONVERSION, suffix);
+  sprintf(library, "%slibpython%s.%s", path, PYTHONVERSION, suffix);
   pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
   if (!pythonHandle) {
-    sprintf(library, "%slibpython%sm.%s.1", path, PYTHONVERSION, suffix);
-    pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
-  }
-  if (!pythonHandle) {
-    sprintf(library, "%slibpython%sm.%s.1.0", path, PYTHONVERSION, suffix);
-    pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
-  }
-  if (!pythonHandle) {
-    sprintf(library, "%slibpython%s.%s", path, PYTHONVERSION, suffix);
-    pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
-  }
-  if (!pythonHandle) {
-    sprintf(library, "%slibpython%s.%s.1", path, PYTHONVERSION, suffix);
-    pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
-  }
-  if (!pythonHandle) {
-    sprintf(library, "%slibpython%s.%s.1.0", path, PYTHONVERSION, suffix);
-    pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
-  }
-  if (!pythonHandle) {
-    pythonLog("Unable to find python shared library '%slibpython%s.%s'", path, PYTHONVERSION, suffix);
+    char cwd[1000];
+    pythonLog("Unable to find python shared library '%s' from %s: %s", library, getcwd(cwd, sizeof(cwd)), dlerror());
     pythonLogFlush();
     return -1;
   }
-  pythonLog("[XPPython3] Python shared library loaded: %s", library);
+  pythonLog("[XPPython3] Python shared library loaded: '%s'", library);
 #endif
   return 0;
 }

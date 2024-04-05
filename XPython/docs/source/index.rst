@@ -7,13 +7,14 @@ of additional plugins using python3. This is a replacement for Sandy Barbour's e
 
 Curious? See `current usage graphs <https://maps.avnwx.com/x-plane/stats>`_.
 
-This is XPPython3 version 4.
+This is XPPython3 version 4 and includes both the X-Plane plugin as well as a private
+version of Python3. Unlike previous versions of XPPython3, you no longer need to install
+your own copy of Python.
 
 * **X-Plane 12**
 
-* **Python3 only**: Python3.12 is recommended. Note that you will have to use the correct version of this
-  plugin to match the version of python installed on your system. We currently support python3.10, python3.11, and python3.12.
-
+* **Python3** (included)
+  
 .. note::
 
    For **X-Plane 11** or other versions of python, you should use an earlier

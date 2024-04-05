@@ -12,6 +12,32 @@ Known Bugs
 
   None (prove me wrong!)
   
+4.3.0 (5-Apr-2024)
+---------------------
+:New Features:
+   * **Python Included**. For all architectures, we now include a version of Python 3.12. *You no
+     longer need to install your own python, or alter your OS-provided version.*
+
+   * **OpenGL, IMGUI, and requests modules Included**. By including our own copy of Python, we can also provide
+     standard copies of OpenGL, IMGUI, and requests modules. For users, this means you
+     no longer have to install these yourself. For developers, this means *all your users
+     will have this installed already!* 
+
+   |
+   
+:Improvements:
+   * **IMGUI / Wayland** interaction fixed. Some Linux distros (Ubuntu 22.04, for example) use
+     Wayland graphics interface which (currently) fails with IMGUI. Attempts to use IMGUI within
+     X-Plane result in blank windows. I've embedded a fix which instructs linux to use X.org rather
+     than Wayland interface and this appears to work. If your UI doesn't use Wayland, you shouldn't
+     see anything.
+     
+   |
+
+:Fixes:
+   * **XPLMCreateWindow_Ex** was missing a sentinel on keyword argument list causing calls to sometimes
+     fail.
+     
 4.2.1 (29-Dec-2023)
 -------------------
 :Fixes:
@@ -27,6 +53,8 @@ Known Bugs
      information in (standard) ``*.pyi`` files, included with the standard XPPython3 distribution. See
      updated use in :doc:`/development/stubs`.
      
+     |
+
 :Fixes:
    * **Corrected** :py:func:`xp.getWeatherAtLocation` **error detection**. See linked documentation for details.
      Previously XPPython3 interpreted a zero return from XPLMGetWeatherAtLocation() as an error

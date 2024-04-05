@@ -1154,7 +1154,7 @@ static PyObject *XPLMGetWindowGeometryFun(PyObject *self, PyObject *args, PyObje
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOOOO", keywords, &win, &outLeft, &outTop, &outRight, &outBottom)) {
     returnValues = 1;
     PyErr_Clear();
-    static char *nkeywords[] = {"windowID"};
+    static char *nkeywords[] = {"windowID", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", nkeywords, &win)) {
       return NULL;
     }
@@ -1214,7 +1214,7 @@ static PyObject *XPLMGetWindowGeometryOSFun(PyObject *self, PyObject *args, PyOb
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOOOO", keywords, &win, &outLeft, &outTop, &outRight, &outBottom)) {
     returnValues = 1;
     PyErr_Clear();
-    static char *nkeywords[] = {"windowID"};
+    static char *nkeywords[] = {"windowID", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", nkeywords, &win)) {
       return NULL;
     }
@@ -1342,7 +1342,7 @@ My_DOCSTR(_setWindowIsVisible__doc__, "setWindowIsVisible",
           "Sets window visibility. 1 indicates visible, 0 is not-visible.");
 static PyObject *XPLMSetWindowIsVisibleFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"windowID", "visible=1", NULL};
+  static char *keywords[] = {"windowID", "visible", NULL};
   (void) self;
   PyObject *win;
   int inIsVisible = 1;

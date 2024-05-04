@@ -3,7 +3,7 @@ Transitioning from Xlua to XPPython3
 
 .. warning:: This is proposed documentation, for review only.
 
-Laminar provide a Xlua plugin which is commonly used with Aircraft plugins. It is simple, but
+Laminar provides a Xlua plugin which is commonly used with Aircraft plugins. It is simple, but
 limited in functionality. If you're familiar with Xlua and want to transtion to python,
 here are some tools to make it easier for you.
 

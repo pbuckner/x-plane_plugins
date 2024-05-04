@@ -79,6 +79,7 @@ Want to do something more interesting? Work through the next :doc:`quickstart` e
    Graphics options <graphics>
    tools
    implementation_details
+   xlua_transition
    /changelog
 
 ----

@@ -30,8 +30,8 @@ This is standard python. A convenient block might want to copy & paste could be:
   from XPPython3.utils.easy_python import EasyPython
   from XPPython3 import xp
   from XPPython3.utils.datarefs import find_dataref, create_dataref
-  from XPPython3.utils.commands import find_command, create_command, replace_command
-  from XPPython3.utils.timers import run_after_time
+  from XPPython3.utils.commands import find_command, create_command, replace_command, wrap_command, filter_command
+  from XPPython3.utils.timers import run_timer, run_after_time, run_at_interval, stop_timer, is_timer_running
   from XPPython3.utils import xlua
 
 You `must` include the ``easy_python`` module as this is used to provide the interface
@@ -42,6 +42,7 @@ which have equivalent functionality.
 
 Importing ``xlua`` will give you access to read-only variables provided by xlua.
 
+There is no performance penalty by importing "too much", so copy & paste is safe.
 
 Global Variables
 ----------------
@@ -168,12 +169,6 @@ Providing an implementation for any of the seven pre-defined callbacks will allo
 
 See :doc:`modules/easy_python` for these commands.
 
-.. toctree::
-   :titlesonly:
-   :hidden:
-
-   /development/modules/datarefs
-   /development/modules/commands
-   /development/modules/timers
-   /development/modules/easy_python
-   /development/modules/xlua_variables
+Skeleton
+--------
+Download a simple python skeleton you can use: `PI_xlua_skeleton.py <https://github.com/pbuckner/xppython3-demos/main/PI_xlua_skeleton.py>`_.

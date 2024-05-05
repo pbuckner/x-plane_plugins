@@ -4,7 +4,7 @@ Transitioning from Xlua to XPPython3
 .. warning:: This is proposed documentation, for review only.
 
 Laminar provides a Xlua plugin which is commonly used with Aircraft plugins. It is simple, but
-limited in functionality. If you're familiar with Xlua and want to transtion to python,
+limited in functionality. If you're familiar with Xlua and want to transition to python,
 here are some tools to make it easier for you.
 
 Overview
@@ -52,7 +52,7 @@ likely read / write datarefs, set timers for delayed operation and respond to us
 and sim events.
 
 The X-Plane SDK supports all of these actions of course, but as it's designed for
-a C/C++ programmmer it has not been simplified for typical use of an aircraft.
+a C/C++ programmer it has not been simplified for typical use of an aircraft.
 
 With XPPython3, we include a module (``easy_python``) that, together with
 some addition tools, mimics the Xlua interface. It provides the same

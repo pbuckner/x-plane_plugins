@@ -13,7 +13,7 @@ command:
 
 * :py:func:`replace_command`: overwrite existing command to execute your code
 
-* :py:func:`wrap_command`: modify existing command by adding code to execute before and/or after existing functionaliy.
+* :py:func:`wrap_command`: modify existing command by adding code to execute before and/or after existing functionality.
 
 * :py:func:`filter_command`: conditionally execute the command when triggered.
 
@@ -84,7 +84,7 @@ Functions
 
 .. py:function:: find_command(name)
 
-  Return :py:class:`Command` instance for command with string ``name``. Raises ``ValueError`` exeception
+  Return :py:class:`Command` instance for command with string ``name``. Raises ``ValueError`` exception
   if command does not exist::
 
     >>> pause = find_command('sim/operation/pause_toggle')
@@ -110,7 +110,7 @@ Functions
   the :py:class:`Command` is the same: there is no way to call the "original"
   callback.
 
-    >>> id(my_cmd) == id(my_replaed_cmd)
+    >>> id(my_cmd) == id(my_replaced_cmd)
     True
 
 .. py:function:: wrap_command(name, before, after)
@@ -122,7 +122,7 @@ Functions
   The callbacks have the same signature, taking ``phase`` and ``duration`` and do not
   return a value.
 
-  Because callbacks are computationaly expensive, if you don't need a callback, set it
+  Because callbacks are computationally expensive, if you don't need a callback, set it
   to ``None``.
 
 .. py:function:: filter_command(name, filter)

@@ -15,7 +15,7 @@ X-Plane SDK uses flight loop callbacks to schedule events in the future. Xlua
 provides an simple wrapper which defines some easy-to-use timers. XPPython3
 also supports this interface.
 
-Timers are keyed by their callback funtion: any particular function can
+Timers are keyed by their callback function: any particular function can
 have only one timer active at a time, though that timer may repeat, and you
 are permitted an unlimited number of timers.
 
@@ -26,6 +26,21 @@ quick so as to not delay the sim::
   >>> def timer_callback():
   ...    print(f"Current flight time is {xlua.FLIGHT_TIME}")
   ...
+
+As with other callbacks within XPPython3, if your timer callback is
+a method of PythonInterface, it should have the ``self`` parameter, which
+will be available within you callback. For example::
+
+  class PythonInterface(EasyPython):
+      def __init__(self):
+          super().__init__()
+          self.name = "foobar"
+
+      def timer_callback(self):
+          print(f"Flight time is {xlua.FLIGHT_TIME} in plugin {self.name}")
+
+      def onStart(self):
+          timers.run_after_time(self.timer_callback, 10)
 
 To start a timer, use:
 
@@ -94,7 +109,7 @@ Functions
 
   Run function until stopped. First execution is after ``delay`` seconds
   (which may be 0), and each subsequent execution is after ``interval``
-  seconds. Tis does not return any value. You can stop this timer by passing
+  seconds. It does not return any value. You can stop this timer by passing
   the same callback ``func`` to :py:func:`stop_timer`::
    
     >>> run_timer(func, 0, 5)
@@ -113,4 +128,4 @@ Functions
 
 .. py:function:: stop_timer(func)  
  
-  Stops timer with given callback. No error fs timer is not found.
+  Stops timer with given callback. No error if timer is not found.

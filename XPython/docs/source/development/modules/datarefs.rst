@@ -164,3 +164,23 @@ Strings are easy::
   >>> dr_n_number.value = 'N20113'
   >>> print(dr_n_number.value)
   'N20113'
+
+
+As with other callbacks within XPPython3, if your dataref callback is
+a method of PythonInterface, it should also have ``self`` parameter, which
+will be available within you callback. For example::
+
+  class PythonInterface(EasyPython):
+      def __init__(self):
+          super().__init__()
+          self.name = "foobar"
+
+      def dataref_callback(self):
+          print("someone the dataref created in {self.name}")
+
+      def onStart(self):
+          datarefs.create_dataref("test/fuel_tank/capacity', 'array[6]', self.dataref_callback)
+
+You will not get any indication `within the callback` as to what was changed. You could
+determine this information by storing previous value within the class (e.g., ``self.capacity_previous``)
+and then making the comparison within the callback, as you'll have access to `self`.

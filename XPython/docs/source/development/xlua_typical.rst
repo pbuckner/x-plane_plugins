@@ -3,7 +3,7 @@ Typical Aircraft xlua Plugin
 
 .. warning:: This is proposed documentation, for review only.
 
-Most Aircraft XLua scripts look similar, so taking that as an example, here's
+Most Aircraft Xlua scripts look similar, so taking that as an example, here's
 a annotated version for python.
 
 Assume you have an xlua script in ``Aircraft/MyAircraft/plugins/xlua/scripts/MyInit/MyInit.xlua``.
@@ -127,7 +127,7 @@ Miscellaneous functions
 -----------------------
 Nothing special here, but you may want to create any number of other module-level functions.
 These can either be for callback (such as timer callbacks), or convenience functions. Putting
-such function in a section away from datarefs and commands is simply for maintenace purposes: python
+such function in a section away from datarefs and commands is simply for maintenance purposes: python
 doesn't care.::
 
   ############################################
@@ -145,13 +145,13 @@ doesn't care.::
 Runtime code
 ------------
 This part is crucial. All the previous code is executed `once`, when the python module is loaded.
-To have X-Plane execute our plunin's functionality at the proper time, you'll need to provide
+To have X-Plane execute our plugin's functionality at the proper time, you'll need to provide
 the appropriate callback `as methods of the` ``PythonInterface`` `class`::
 
   ############################################
   # RUNTIME CODE
   
-  class PythonInteface(EasyPython):
+  class PythonInterface(EasyPython):
 
       def flight_start(self):
           do_something_on_each_flight_start()

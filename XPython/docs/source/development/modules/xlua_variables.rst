@@ -1,4 +1,4 @@
-XLua Variables
+Xlua Variables
 ==============
 
 .. warning:: This is proposed documentation, for review only.

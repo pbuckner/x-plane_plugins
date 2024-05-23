@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMNavigation.h>
+#include "plugin_dl.h"
 #include "utils.h"
 #include "xppythontypes.h"
 
@@ -54,7 +55,8 @@ My_DOCSTR(_findFirstNavAidOfType__doc__, "findFirstNavAidOfType",
           "  Nav_InnerMarker  =256\n"
           "  Nav_Fix          =512\n"
           "  Nav_DME         =1024\n"
-          "  Nav_LatLon      =2048"
+          "  Nav_LatLon      =2048\n"
+          "  Nav_TACAN       =4096\n"
           );
 static PyObject *XPLMFindFirstNavAidOfTypeFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -337,6 +339,364 @@ static PyObject *XPLMGetGPSDestinationFun(PyObject *self, PyObject *args)
   return PyLong_FromLong(XPLMGetGPSDestination());
 }
 
+/* SDK410 FMSFlightPlan routines */
+My_DOCSTR(_countFMSFlightPlanEntries__doc__, "countFMSFlightPlanEntries",
+          "flightPlan",
+          "flightPlan:XPLMNavFlightPlan",
+          "int",
+          "Returns number of FMS Entries in given flightplan:\n"
+          "  Fpl_Pilot_Primary\n"
+          "  Fpl_CoPilot_Primary\n"
+          "  Fpl_Pilot_Approach\n"
+          "  Fpl_CoPilot_Approach\n"
+          "  Fpl_Pilot_Temporary\n"
+          "  Fpl_CoPilot_Temporary\n"
+);
+static PyObject *XPLMCountFMSFlightPlanEntriesFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  (void)self;
+  static char *keywords[] = {"flightPlan", NULL};
+  int inFlightPlan;
+  if (!XPLMCountFMSFlightPlanEntries_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMCountFMSFlightPlanEntries is available only in XPLM410 and up.");
+    return NULL;
+  }
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inFlightPlan)){
+    return NULL;
+  }
+
+  return PyLong_FromLong(XPLMCountFMSFlightPlanEntries_ptr(inFlightPlan));
+}
+
+
+My_DOCSTR(_getDisplayedFMSFlightPlanEntry__doc__, "getDisplayedFMSFlightPlanEntry",
+          "flightPlan",
+          "flightPlan:XPLMNavFlightPlan",
+          "int",
+          "Returns index number of the entry the pilot is viewing.");
+static PyObject *XPLMGetDisplayedFMSFlightPlanEntryFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  (void)self;
+  if (!XPLMGetDisplayedFMSFlightPlanEntry_ptr) {
+    PyErr_SetString(PyExc_RuntimeError, "XPLMGetDisplayedFMSFlightPlanEntry is available only in XPLM410 and up.");
+    return NULL;
+  }
+
+  static char *keywords[] = {"flightPlan", NULL};
+  int inFlightPlan;
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inFlightPlan)){
+    return NULL;
+  }
+  return PyLong_FromLong(XPLMGetDisplayedFMSFlightPlanEntry_ptr(inFlightPlan));
+
+}
+
+My_DOCSTR(_getDestinationFMSFlightPlanEntry__doc__, "getDestinationFMSFlightPlanEntry",
+          "flightPlan",
+          "flightPlan:XPLMNavFlightPlan",
+          "int",
+          "Returns the index number of the flight plan destination.");
+static PyObject *XPLMGetDestinationFMSFlightPlanEntryFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  (void)self;
+  if (!XPLMGetDestinationFMSFlightPlanEntry_ptr) {
+    PyErr_SetString(PyExc_RuntimeError, "XPLMGetDestinationFMSFlightPlanEntry is available only in XPLM410 and up.");
+    return NULL;
+  }
+  static char *keywords[] = {"flightPlan", NULL};
+  int inFlightPlan;
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inFlightPlan)){
+    return NULL;
+  }
+  return PyLong_FromLong(XPLMGetDestinationFMSFlightPlanEntry_ptr(inFlightPlan));
+}
+
+My_DOCSTR(_setDisplayedFMSFlightPlanEntry__doc__, "setDisplayedFMSFlightPlanEntry",
+          "flightPlan, index",
+          "flightPlan:XPLMNavFlightPlan, index:int",
+          "None",
+          "Sets index number for FMS Entry to be displayed for this flight plan.");
+static PyObject *XPLMSetDisplayedFMSFlightPlanEntryFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  (void)self;
+  if (!XPLMSetDisplayedFMSFlightPlanEntry_ptr) {
+    PyErr_SetString(PyExc_RuntimeError, "XPLMSetDisplayedFMSFlightPlanEntry is available only in XPLM410 and up.");
+    return NULL;
+  }
+  static char *keywords[] = {"flightPlan", "index", NULL};
+  int inFlightPlan;
+  int index;
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ii", keywords, &inFlightPlan, &index)){
+    return NULL;
+  }
+
+  XPLMSetDisplayedFMSFlightPlanEntry_ptr(inFlightPlan, index);
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_setDestinationFMSFlightPlanEntry__doc__, "setDestinationFMSFlightPlanEntry",
+          "flightPlan, index",
+          "flightPlan:XPLMNavFlightPlan, index:int",
+          "None",
+          "Sets index number for the FMS Entry to become the destination. The track\n"
+          "is from the n-1'th point to this point.");
+static PyObject *XPLMSetDestinationFMSFlightPlanEntryFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  (void)self;
+  if (!XPLMSetDestinationFMSFlightPlanEntry_ptr) {
+    PyErr_SetString(PyExc_RuntimeError, "XPLMSetDestinationFMSFlightPlanEntry is available only in XPLM410 and up.");
+    return NULL;
+  }
+  static char *keywords[] = {"flightPlan", "index", NULL};
+  int inFlightPlan;
+  int index;
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ii", keywords, &inFlightPlan, &index)){
+    return NULL;
+  }
+  XPLMSetDestinationFMSFlightPlanEntry_ptr(inFlightPlan, index);
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_setDirectToFMSFlightPlanEntry__doc__, "setDirectToFMSFlightPlanEntry",
+          "flightPlan, index",
+          "flightPlan:XPLMNavFlightPlan, index:int",
+          "None",
+          "Sets the entry the FMS is flying toward. The track is from the current\n"
+          "position directly to this point, ignoring the point before it in the flight plan.");
+static PyObject *XPLMSetDirectToFMSFlightPlanEntryFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  (void)self;
+  if (!XPLMSetDirectToFMSFlightPlanEntry_ptr) {
+    PyErr_SetString(PyExc_RuntimeError, "XPLMSetDirectToFMSFlightPlanEntry is available only in XPLM410 and up.");
+    return NULL;
+  }
+
+  static char *keywords[] = {"flightPlan", "index", NULL};
+  int inFlightPlan;
+  int index;
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ii", keywords, &inFlightPlan, &index)){
+    return NULL;
+  }
+
+  XPLMSetDirectToFMSFlightPlanEntry_ptr(inFlightPlan, index);
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_getFMSFlightPlanEntryInfo__doc__, "getFMSFlightPlanEntryInfo",
+          "flightPlan, index",
+          "flightPlan:XPLMNavFlightPlan, index:int",
+          "FMSEntryInfo",
+          "Returns FMSEntryInfo object for give FMS index for this flightplan.\n"
+          "\n"
+          "Attributes are:\n"
+          " .type      # a NavType\n"
+          " .navAidID\n"
+          " .ref       # navRef (use as input to getNavAidInfo())\n"
+          " .altitude  # (in feet)\n"
+          " .lat\n"
+          " .lon");
+static PyObject *XPLMGetFMSFlightPlanEntryInfoFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  (void)self;
+  if (!XPLMGetFMSFlightPlanEntryInfo_ptr) {
+    PyErr_SetString(PyExc_RuntimeError, "XPLMGetFMSFlightPlanEntryInfo is available only in XPLM410 and up.");
+    return NULL;
+  }
+
+  static char *keywords[] = {"flightPlan", "index", NULL};
+  int inFlightPlan;
+  int index;
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ii", keywords, &inFlightPlan, &index)){
+    return NULL;
+  }
+  XPLMNavType type;
+  float lat, lon;
+  char ID[512];
+  XPLMNavRef ref;
+  int altitude;
+
+  ref = XPLM_NAV_NOT_FOUND;  /* due to bug prior to 11.31, reference is not set, when no data is available, so always pre-set this */
+  
+  XPLMGetFMSFlightPlanEntryInfo_ptr(inFlightPlan, index, &type, ID, &ref, &altitude, &lat, &lon);
+  return PyFMSEntryInfo_New(type, ID, ref, altitude, lat, lon);
+}
+
+My_DOCSTR(_setFMSFlightPlanEntryInfo__doc__, "setFMSFlightPlanEntryInfo",
+          "flightPlan, index, navRef, altitude=0",
+          "flightPlan:XPLMNavFlightPlan, index:int, navRef:XPLMNavRef, altitude:int=0",
+          "None",
+          "Sets given FMS entry to provided navRef and altitude (feet).");
+static PyObject *XPLMSetFMSFlightPlanEntryInfoFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  (void)self;
+  if (!XPLMSetFMSFlightPlanEntryInfo_ptr) {
+    PyErr_SetString(PyExc_RuntimeError, "XPLMSetFMSFlightPlanEntryInfo is available only in XPLM410 and up.");
+    return NULL;
+  }
+
+  static char *keywords[] = {"flightPlan", "index", "navRef", "altitude", NULL};
+  int inFlightPlan;
+  int index;
+  XPLMNavRef inRef;
+  int inAltitude=0;
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iii|i", keywords, &inFlightPlan, &index, &inRef, &inAltitude)){
+    return NULL;
+  }
+  XPLMSetFMSFlightPlanEntryInfo_ptr(inFlightPlan, index, inRef, inAltitude);
+  Py_RETURN_NONE;
+
+}
+
+My_DOCSTR(_setFMSFlightPlanEntryLatLon__doc__, "setFMSFlightPlanEntryLatLon",
+          "flightPlan, index, lat, lon, altitude=0",
+          "flightPlan:XPLMNavFlightPlan, index:int, lat:float, lon:float, altitude:int=0",
+          "None",
+          "Set given FMS Entry to provided (lat, lon) and altitude(feet).");
+static PyObject *XPLMSetFMSFlightPlanEntryLatLonFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  (void)self;
+  if (!XPLMSetFMSFlightPlanEntryLatLon_ptr) {
+    PyErr_SetString(PyExc_RuntimeError, "XPLMSetFMSFlightPlanEntryLatLon is available only in XPLM410 and up.");
+    return NULL;
+  }
+
+  static char *keywords[] = {"flightPlan", "index", "lat", "lon", "altitude", NULL};
+  int index;
+  float inLat;
+  float inLon;
+  int inAltitude =0;
+  int inFlightPlan;
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiff|i", keywords, &inFlightPlan, &index, &inLat, &inLon, &inAltitude)){
+    return NULL;
+  }
+  XPLMSetFMSFlightPlanEntryLatLon_ptr(inFlightPlan, index, inLat, inLon, inAltitude);
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_setFMSFlightPlanEntryLatLonWithId__doc__, "setFMSFlightPlanEntryLatLonWithId",
+          "flightPlan, index, lat, lon, altitude=0, ID=None",
+          "flightPlan:XPLMNavFlightPlan, index:int, lat:float, lon:float, altitude:int=0, ID:str=None",
+          "None",
+          "Sets entry in the FMS to a lat/lon entry, with the given coordinates\n"
+          "and display ID for the waypoint.");
+static PyObject *XPLMSetFMSFlightPlanEntryLatLonWithIdFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  (void)self;
+  if (!XPLMSetFMSFlightPlanEntryLatLonWithId_ptr) {
+    PyErr_SetString(PyExc_RuntimeError, "XPLMSetFMSFlightPlanEntryLatLonWithId is available only in XPLM410 and up.");
+    return NULL;
+  }
+
+  static char *keywords[] = {"flightPlan", "index", "lat", "lon", "altitude", "ID", NULL};
+  int index;
+  float inLat;
+  float inLon;
+  int inAltitude =0;
+  int inFlightPlan;
+  const char *inID = "Lat/Lon";
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiff|iz", keywords, &inFlightPlan, &index, &inLat, &inLon, &inAltitude, &inID)){
+    return NULL;
+  }
+  unsigned int length = strlen(inID);
+  XPLMSetFMSFlightPlanEntryLatLonWithId_ptr(inFlightPlan, index, inLat, inLon, inAltitude, inID, length);
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_clearFMSFlightPlanEntry__doc__, "clearFMSFlightPlanEntry",
+          "flightPlan, index",
+          "flightPlan:XPLMNavFlightPlan, index:int",
+          "None",
+          "Clears given FMS Entry.");
+static PyObject *XPLMClearFMSFlightPlanEntryFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  (void)self;
+  if (!XPLMClearFMSFlightPlanEntry_ptr) {
+    PyErr_SetString(PyExc_RuntimeError, "XPLMClearFMSFlightPlanEntry is available only in XPLM410 and up.");
+    return NULL;
+  }
+
+  static char *keywords[] = {"flightPlan", "index", NULL};
+  int inFlightPlan;
+  int index;
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ii", keywords, &inFlightPlan, &index)){
+    return NULL;
+  }
+  XPLMClearFMSFlightPlanEntry_ptr(inFlightPlan, index);
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_loadFMSFlightPlan__doc__, "loadFMSFlightPlan",
+          "device, flightPlan",
+          "device:int, flightPlan:str",
+          "None",
+          "Loads provided flightplan into pilot (device=0) or co-pilot (device=1) unit.");
+static PyObject *XPLMLoadFMSFlightPlanFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  (void)self;
+  if (!XPLMLoadFMSFlightPlan_ptr) {
+    PyErr_SetString(PyExc_RuntimeError, "XPLMLoadFMSFlightPlan is available only in XPLM410 and up.");
+    return NULL;
+  }
+
+  static char *keywords[] = {"device", "flightPlan", NULL};
+  int device;
+  char *flightPlan;
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iz", keywords, &device, &flightPlan)){
+    return NULL;
+  }
+  XPLMLoadFMSFlightPlan_ptr(device, flightPlan, strlen(flightPlan));
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_saveFMSFlightPlan__doc__, "saveFMSFlightPlan",
+          "device=0",
+          "device:Optional[int]=0",
+          "str",
+          "Returns X-Plane 11 formatted flightplan from FMS or GPS.\n"
+          "Use device=0 for pilot, device=1 for co-pilot side unit.");
+static PyObject *XPLMSaveFMSFlightPlanFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  (void)self;
+  if (!XPLMSaveFMSFlightPlan_ptr) {
+    PyErr_SetString(PyExc_RuntimeError, "XPLMSaveFMSFlightPlan is available only in XPLM410 and up.");
+    return NULL;
+  }
+  static char *keywords[] = {"device", NULL};
+  int device=0;
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", keywords, &device)){
+    return NULL;
+  }
+
+  char *buffer;
+  int buffer_size = 1000;
+  while (1) {
+    buffer = malloc(buffer_size);
+    int ret = XPLMSaveFMSFlightPlan_ptr(device, buffer, buffer_size);
+    if (ret < buffer_size) break;
+    buffer_size = buffer_size * 2;
+    free(buffer);
+  }
+  PyObject *flightPlan = PyUnicode_FromString(buffer);
+  Py_INCREF(flightPlan);
+  free(buffer);
+  return flightPlan;
+}
+
+/* ------ cleanup ------- */
+
 static PyObject *cleanup(PyObject *self, PyObject *args)
 {
   (void) self;
@@ -381,6 +741,35 @@ static PyMethodDef XPLMNavigationMethods[] = {
   {"XPLMGetGPSDestinationType", (PyCFunction)XPLMGetGPSDestinationTypeFun, METH_VARARGS, ""},
   {"getGPSDestination", (PyCFunction)XPLMGetGPSDestinationFun, METH_VARARGS, _getGPSDestination__doc__},
   {"XPLMGetGPSDestination", (PyCFunction)XPLMGetGPSDestinationFun, METH_VARARGS, ""},
+  // SDK 410
+  {"countFMSFlightPlanEntries", (PyCFunction)XPLMCountFMSFlightPlanEntriesFun, METH_VARARGS | METH_KEYWORDS, _countFMSFlightPlanEntries__doc__},
+  {"XPLMCountFMSFlightPlanEntries", (PyCFunction)XPLMCountFMSFlightPlanEntriesFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getDisplayedFMSFlightPlanEntry", (PyCFunction)XPLMGetDisplayedFMSFlightPlanEntryFun, METH_VARARGS | METH_KEYWORDS, _getDisplayedFMSFlightPlanEntry__doc__},
+  {"XPLMGetDisplayedFMSFlightPlanEntry", (PyCFunction)XPLMGetDisplayedFMSFlightPlanEntryFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getDestinationFMSFlightPlanEntry", (PyCFunction)XPLMGetDestinationFMSFlightPlanEntryFun, METH_VARARGS | METH_KEYWORDS, _getDestinationFMSFlightPlanEntry__doc__},
+  {"XPLMGetDestinationFMSFlightPlanEntry", (PyCFunction)XPLMGetDestinationFMSFlightPlanEntryFun, METH_VARARGS | METH_KEYWORDS, ""},  
+  {"setDisplayedFMSFlightPlanEntry", (PyCFunction)XPLMSetDisplayedFMSFlightPlanEntryFun, METH_VARARGS | METH_KEYWORDS, _setDisplayedFMSFlightPlanEntry__doc__},
+  {"XPLMSetDisplayedFMSFlightPlanEntry", (PyCFunction)XPLMSetDisplayedFMSFlightPlanEntryFun, METH_VARARGS | METH_KEYWORDS, ""},  
+  {"setDestinationFMSFlightPlanEntry", (PyCFunction)XPLMSetDestinationFMSFlightPlanEntryFun, METH_VARARGS | METH_KEYWORDS, _setDestinationFMSFlightPlanEntry__doc__},
+  {"XPLMSetDestinationFMSFlightPlanEntry", (PyCFunction)XPLMSetDestinationFMSFlightPlanEntryFun, METH_VARARGS | METH_KEYWORDS, ""},  
+  {"setDirectToFMSFlightPlanEntry", (PyCFunction)XPLMSetDirectToFMSFlightPlanEntryFun, METH_VARARGS | METH_KEYWORDS, _setDirectToFMSFlightPlanEntry__doc__},
+  {"XPLMSetDirectToFMSFlightPlanEntry", (PyCFunction)XPLMSetDirectToFMSFlightPlanEntryFun, METH_VARARGS | METH_KEYWORDS, ""},  
+  {"getFMSFlightPlanEntryInfo", (PyCFunction)XPLMGetFMSFlightPlanEntryInfoFun, METH_VARARGS | METH_KEYWORDS, _getFMSFlightPlanEntryInfo__doc__},
+  {"XPLMGetFMSFlightPlanEntryInfo", (PyCFunction)XPLMGetFMSFlightPlanEntryInfoFun, METH_VARARGS | METH_KEYWORDS, ""},  
+  {"setFMSFlightPlanEntryInfo", (PyCFunction)XPLMSetFMSFlightPlanEntryInfoFun, METH_VARARGS | METH_KEYWORDS, _setFMSFlightPlanEntryInfo__doc__},
+  {"XPLMSetFMSFlightPlanEntryInfo", (PyCFunction)XPLMSetFMSFlightPlanEntryInfoFun, METH_VARARGS | METH_KEYWORDS, ""},  
+  {"setFMSFlightPlanEntryLatLon", (PyCFunction)XPLMSetFMSFlightPlanEntryLatLonFun, METH_VARARGS | METH_KEYWORDS, _setFMSFlightPlanEntryLatLon__doc__},
+  {"XPLMSetFMSFlightPlanEntryLatLon", (PyCFunction)XPLMSetFMSFlightPlanEntryLatLonFun, METH_VARARGS | METH_KEYWORDS, ""},  
+  {"setFMSFlightPlanEntryLatLonWithId", (PyCFunction)XPLMSetFMSFlightPlanEntryLatLonWithIdFun, METH_VARARGS | METH_KEYWORDS, _setFMSFlightPlanEntryLatLonWithId__doc__},
+  {"XPLMSetFMSFlightPlanEntryLatLonWithId", (PyCFunction)XPLMSetFMSFlightPlanEntryLatLonWithIdFun, METH_VARARGS | METH_KEYWORDS, ""},  
+  {"clearFMSFlightPlanEntry", (PyCFunction)XPLMClearFMSFlightPlanEntryFun, METH_VARARGS | METH_KEYWORDS, _clearFMSFlightPlanEntry__doc__},
+  {"XPLMClearFMSFlightPlanEntry", (PyCFunction)XPLMClearFMSFlightPlanEntryFun, METH_VARARGS | METH_KEYWORDS, ""},  
+  {"loadFMSFlightPlan", (PyCFunction)XPLMLoadFMSFlightPlanFun, METH_VARARGS | METH_KEYWORDS, _loadFMSFlightPlan__doc__},
+  {"XPLMLoadFMSFlightPlan", (PyCFunction)XPLMLoadFMSFlightPlanFun, METH_VARARGS | METH_KEYWORDS, ""},  
+  {"saveFMSFlightPlan", (PyCFunction)XPLMSaveFMSFlightPlanFun, METH_VARARGS | METH_KEYWORDS, _saveFMSFlightPlan__doc__},
+  {"XPLMSaveFMSFlightPlan", (PyCFunction)XPLMSaveFMSFlightPlanFun, METH_VARARGS | METH_KEYWORDS, ""},  
+
+
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };
@@ -422,6 +811,7 @@ PyInit_XPLMNavigation(void)
     PyModule_AddIntConstant(mod, "xplm_Nav_Fix", xplm_Nav_Fix); // XPLMNavType
     PyModule_AddIntConstant(mod, "xplm_Nav_DME", xplm_Nav_DME); // XPLMNavType
     PyModule_AddIntConstant(mod, "xplm_Nav_LatLon", xplm_Nav_LatLon); // XPLMNavType
+    PyModule_AddIntConstant(mod, "xplm_Nav_TACAN", xplm_Nav_TACAN); // XPLMNavType
     
     PyModule_AddIntConstant(mod, "XPLM_NAV_NOT_FOUND", XPLM_NAV_NOT_FOUND);
 
@@ -439,6 +829,21 @@ PyInit_XPLMNavigation(void)
     PyModule_AddIntConstant(mod, "Nav_Fix", xplm_Nav_Fix); // XPLMNavType
     PyModule_AddIntConstant(mod, "Nav_DME", xplm_Nav_DME); // XPLMNavType
     PyModule_AddIntConstant(mod, "Nav_LatLon", xplm_Nav_LatLon); // XPLMNavType
+    PyModule_AddIntConstant(mod, "Nav_TACAN", xplm_Nav_TACAN); // XPLMNavType
+
+    PyModule_AddIntConstant(mod, "Fpl_Pilot_Primary", xplm_Fpl_Pilot_Primary);  // XPLMNavFlightPlan
+    PyModule_AddIntConstant(mod, "Fpl_CoPilot_Primary", xplm_Fpl_CoPilot_Primary); // XPLMNavFlightPlan
+    PyModule_AddIntConstant(mod, "Fpl_Pilot_Approach", xplm_Fpl_Pilot_Approach); // XPLMNavFlightPlan
+    PyModule_AddIntConstant(mod, "Fpl_CoPilot_Approach", xplm_Fpl_CoPilot_Approach); // XPLMNavFlightPlan
+    PyModule_AddIntConstant(mod, "Fpl_Pilot_Temporary", xplm_Fpl_Pilot_Temporary); // XPLMNavFlightPlan
+    PyModule_AddIntConstant(mod, "Fpl_CoPilot_Temporary", xplm_Fpl_CoPilot_Temporary); // XPLMNavFlightPlan
+    
+    PyModule_AddIntConstant(mod, "xplm_Fpl_Pilot_Primary", xplm_Fpl_Pilot_Primary);  // XPLMNavFlightPlan
+    PyModule_AddIntConstant(mod, "xplm_Fpl_CoPilot_Primary", xplm_Fpl_CoPilot_Primary); // XPLMNavFlightPlan
+    PyModule_AddIntConstant(mod, "xplm_Fpl_Pilot_Approach", xplm_Fpl_Pilot_Approach); // XPLMNavFlightPlan
+    PyModule_AddIntConstant(mod, "xplm_Fpl_CoPilot_Approach", xplm_Fpl_CoPilot_Approach); // XPLMNavFlightPlan
+    PyModule_AddIntConstant(mod, "xplm_Fpl_Pilot_Temporary", xplm_Fpl_Pilot_Temporary); // XPLMNavFlightPlan
+    PyModule_AddIntConstant(mod, "xplm_Fpl_CoPilot_Temporary", xplm_Fpl_CoPilot_Temporary); // XPLMNavFlightPlan
     
     PyModule_AddIntConstant(mod, "NAV_NOT_FOUND", XPLM_NAV_NOT_FOUND);
   }

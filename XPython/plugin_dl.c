@@ -16,6 +16,7 @@
 #include <XPLM/XPLMPlanes.h>
 #include <XPLM/XPLMWeather.h>
 #include <XPLM/XPLMSound.h>
+#include <XPLM/XPLMNavigation.h>
 #include <Widgets/XPWidgets.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -169,6 +170,76 @@ t_fcn_info funcs400[] = {
   {NULL, NULL}
 };
 
+//XPLM410 functions
+typeof(XPLMGetAvionicsHandle) *XPLMGetAvionicsHandle_ptr = NULL;
+typeof(XPLMIsAvionicsBound) *XPLMIsAvionicsBound_ptr = NULL;
+typeof(XPLMIsCursorOverAvionics) *XPLMIsCursorOverAvionics_ptr = NULL;
+typeof(XPLMIsAvionicsPopupVisible) *XPLMIsAvionicsPopupVisible_ptr = NULL;
+typeof(XPLMIsAvionicsPoppedOut) *XPLMIsAvionicsPoppedOut_ptr = NULL;
+typeof(XPLMHasAvionicsKeyboardFocus) *XPLMHasAvionicsKeyboardFocus_ptr = NULL;
+typeof(XPLMAvionicsNeedsDrawing) *XPLMAvionicsNeedsDrawing_ptr = NULL;
+typeof(XPLMSetAvionicsPopupVisible) *XPLMSetAvionicsPopupVisible_ptr = NULL;
+typeof(XPLMPopOutAvionics) *XPLMPopOutAvionics_ptr = NULL;
+typeof(XPLMTakeAvionicsKeyboardFocus) *XPLMTakeAvionicsKeyboardFocus_ptr = NULL;
+typeof(XPLMDestroyAvionics) *XPLMDestroyAvionics_ptr = NULL;
+typeof(XPLMGetAvionicsGeometry) *XPLMGetAvionicsGeometry_ptr = NULL;
+typeof(XPLMSetAvionicsGeometry) *XPLMSetAvionicsGeometry_ptr = NULL;
+typeof(XPLMGetAvionicsGeometryOS) *XPLMGetAvionicsGeometryOS_ptr = NULL;
+typeof(XPLMSetAvionicsGeometryOS) *XPLMSetAvionicsGeometryOS_ptr = NULL;
+typeof(XPLMGetAvionicsBrightnessRheo) *XPLMGetAvionicsBrightnessRheo_ptr = NULL;
+typeof(XPLMSetAvionicsBrightnessRheo) *XPLMSetAvionicsBrightnessRheo_ptr = NULL;
+typeof(XPLMGetAvionicsBusVoltsRatio) *XPLMGetAvionicsBusVoltsRatio_ptr = NULL;
+typeof(XPLMCreateAvionicsEx) *XPLMCreateAvionicsEx_ptr = NULL;
+typeof(XPLMCountFMSFlightPlanEntries) *XPLMCountFMSFlightPlanEntries_ptr = NULL;
+typeof(XPLMGetDisplayedFMSFlightPlanEntry) *XPLMGetDisplayedFMSFlightPlanEntry_ptr = NULL;
+typeof(XPLMGetDestinationFMSFlightPlanEntry) *XPLMGetDestinationFMSFlightPlanEntry_ptr = NULL;
+typeof(XPLMSetDisplayedFMSFlightPlanEntry) *XPLMSetDisplayedFMSFlightPlanEntry_ptr = NULL;
+typeof(XPLMSetDestinationFMSFlightPlanEntry) *XPLMSetDestinationFMSFlightPlanEntry_ptr = NULL;
+typeof(XPLMSetDirectToFMSFlightPlanEntry) *XPLMSetDirectToFMSFlightPlanEntry_ptr = NULL;
+typeof(XPLMGetFMSFlightPlanEntryInfo) *XPLMGetFMSFlightPlanEntryInfo_ptr = NULL;
+typeof(XPLMSetFMSFlightPlanEntryInfo) *XPLMSetFMSFlightPlanEntryInfo_ptr = NULL;
+typeof(XPLMSetFMSFlightPlanEntryLatLon) *XPLMSetFMSFlightPlanEntryLatLon_ptr = NULL;
+typeof(XPLMSetFMSFlightPlanEntryLatLonWithId) *XPLMSetFMSFlightPlanEntryLatLonWithId_ptr = NULL;
+typeof(XPLMClearFMSFlightPlanEntry) *XPLMClearFMSFlightPlanEntry_ptr = NULL;
+typeof(XPLMLoadFMSFlightPlan) *XPLMLoadFMSFlightPlan_ptr = NULL;
+typeof(XPLMSaveFMSFlightPlan) *XPLMSaveFMSFlightPlan_ptr = NULL;
+
+t_fcn_info funcs410[] = {
+  {"XPLMGetAvionicsHandle", (void*) &XPLMGetAvionicsHandle_ptr},
+  {"XPLMIsAvionicsBound", (void*) &XPLMIsAvionicsBound_ptr},
+  {"XPLMIsCursorOverAvionics", (void*) &XPLMIsCursorOverAvionics_ptr},
+  {"XPLMIsAvionicsPopupVisible", (void*) &XPLMIsAvionicsPopupVisible_ptr},
+  {"XPLMIsAvionicsPoppedOut", (void*) &XPLMIsAvionicsPoppedOut_ptr},
+  {"XPLMHasAvionicsKeyboardFocus", (void*) &XPLMHasAvionicsKeyboardFocus_ptr},
+  {"XPLMAvionicsNeedsDrawing", (void*) &XPLMAvionicsNeedsDrawing_ptr},
+  {"XPLMSetAvionicsPopupVisible", (void*) &XPLMSetAvionicsPopupVisible_ptr},
+  {"XPLMPopOutAvionics", (void*) &XPLMPopOutAvionics_ptr},
+  {"XPLMTakeAvionicsKeyboardFocus", (void*) &XPLMTakeAvionicsKeyboardFocus_ptr},
+  {"XPLMDestroyAvionics", (void*) &XPLMDestroyAvionics_ptr},
+  {"XPLMGetAvionicsGeometry", (void*) &XPLMGetAvionicsGeometry_ptr},
+  {"XPLMSetAvionicsGeometry", (void*) &XPLMSetAvionicsGeometry_ptr},
+  {"XPLMGetAvionicsGeometryOS", (void*) &XPLMGetAvionicsGeometryOS_ptr},
+  {"XPLMSetAvionicsGeometryOS", (void*) &XPLMSetAvionicsGeometryOS_ptr},
+  {"XPLMGetAvionicsBrightnessRheo", (void*) &XPLMGetAvionicsBrightnessRheo_ptr},
+  {"XPLMSetAvionicsBrightnessRheo", (void*) &XPLMSetAvionicsBrightnessRheo_ptr},
+  {"XPLMGetAvionicsBusVoltsRatio", (void*) &XPLMGetAvionicsBusVoltsRatio_ptr},
+  {"XPLMCreateAvionicsEx", (void*) &XPLMCreateAvionicsEx_ptr},
+  {"XPLMCountFMSFlightPlanEntries", (void*) &XPLMCountFMSFlightPlanEntries_ptr},
+  {"XPLMGetDisplayedFMSFlightPlanEntry", (void*) &XPLMGetDisplayedFMSFlightPlanEntry_ptr},
+  {"XPLMGetDestinationFMSFlightPlanEntry", (void*) &XPLMGetDestinationFMSFlightPlanEntry_ptr},
+  {"XPLMSetDisplayedFMSFlightPlanEntry", (void*) &XPLMSetDisplayedFMSFlightPlanEntry_ptr},
+  {"XPLMSetDestinationFMSFlightPlanEntry", (void*) &XPLMSetDestinationFMSFlightPlanEntry_ptr},
+  {"XPLMSetDirectToFMSFlightPlanEntry", (void*) &XPLMSetDirectToFMSFlightPlanEntry_ptr},
+  {"XPLMGetFMSFlightPlanEntryInfo", (void*) &XPLMGetFMSFlightPlanEntryInfo_ptr},
+  {"XPLMSetFMSFlightPlanEntryInfo", (void*) &XPLMSetFMSFlightPlanEntryInfo_ptr},
+  {"XPLMSetFMSFlightPlanEntryLatLon", (void*) &XPLMSetFMSFlightPlanEntryLatLon_ptr},
+  {"XPLMSetFMSFlightPlanEntryLatLonWithId", (void*) &XPLMSetFMSFlightPlanEntryLatLonWithId_ptr},
+  {"XPLMClearFMSFlightPlanEntry", (void*) &XPLMClearFMSFlightPlanEntry_ptr},
+  {"XPLMLoadFMSFlightPlan", (void*) &XPLMLoadFMSFlightPlan_ptr},
+  {"XPLMSaveFMSFlightPlan", (void*) &XPLMSaveFMSFlightPlan_ptr},
+  {NULL, NULL}
+};
+
  
 
 
@@ -205,6 +276,9 @@ bool loadSDKFunctions(void)
   XPLMGetVersions(&xp_ver, &xplm_ver, &app);
 
   bool res = true;
+  if(xplm_ver >= 410){
+    res &= loadFunctions(funcs410);
+  }
   if(xplm_ver >= 400){
     res &= loadFunctions(funcs400);
   }

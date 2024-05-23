@@ -49,15 +49,41 @@ static PyObject *avionicsCallbacksDict; // key is PyLong(avionicsCallbacksCntr)
 static intptr_t avionicsCallbacksCntr;
 #define AVIONICS_MODULE_NAME 0
 #define AVIONICS_DEVICE 1
-#define AVIONICS_BEFORE 2
-#define AVIONICS_AFTER  3
+#define AVIONICS_BEFORE 2      // only used for customize
+#define AVIONICS_AFTER  3      // only used for customize
 #define AVIONICS_REFCON 4
+#define AVIONICS_BEZEL_DRAW 5          // create
+#define AVIONICS_DRAW 6                // create
+#define AVIONICS_BEZEL_CLICK 7         // create
+#define AVIONICS_BEZEL_RIGHTCLICK 8    // create
+#define AVIONICS_BEZEL_SCROLL 9        // create
+#define AVIONICS_BEZEL_CURSOR 10       // create
+#define AVIONICS_SCREEN_TOUCH 11       // create
+#define AVIONICS_SCREEN_RIGHTTOUCH 12  // create
+#define AVIONICS_SCREEN_SCROLL 13      // create
+#define AVIONICS_SCREEN_CURSOR 14      // create
+#define AVIONICS_KEYBOARD 15           // create
+#define AVIONICS_BRIGHTNESS 16         // create
+#define AVIONICS_CREATE 17             // both... if this item is CREATED we'll need to DESTROY. Otherwise it's REGISTERED.
 static PyObject *avionicsCallbacksIDDict; // key is avionicsIDCapsule, value is PyLong(avionicsCallbacksCntr)
 static int genericAvionicsCallback(XPLMDeviceID inDeviceID, int inIsBefore, void *inRefcon);
+static void genericAvionicsBezelDraw(float inAmbiantR, float inAmbiantG, float inAmbiantB,  void *inRefcon);
+static void genericAvionicsScreenDraw(void *inRefcon);
+static int genericAvionicsBezelClick(int x, int y, XPLMMouseStatus inMouse, void *inRefcon);
+static int genericAvionicsBezelRightClick(int x, int y, XPLMMouseStatus inMouse, void *inRefcon);
+static int genericAvionicsBezelScroll(int x, int y, int wheel, int clicks, void *inRefcon);
+static XPLMCursorStatus genericAvionicsBezelCursor(int x, int y, void *inRefcon);
+static int genericAvionicsScreenTouch(int x, int y, int inMouse, void *inRefcon);
+static int genericAvionicsScreenRightTouch(int x, int y, int inMouse, void *inRefcon);
+static int genericAvionicsScreenScroll(int x, int y, int wheel, int clicks, void *inRefcon);
+static XPLMCursorStatus genericAvionicsScreenCursor(int x, int y, void *inRefcon);
+static int genericAvionicsKeyboard(char inKey, XPLMKeyFlags inFlags, char inVirtualKey, void *inRefcon, int losingFocus);
+static float genericAvionicsBrightness(float inRheoValue, float inAmbiantBrightness, float inBusVoltsRatio, void *inRefcon);
+
 
 
 //draw, key,mouse, cursor, wheel
-static PyObject *windowDict;
+static PyObject *windowDict;  /* key is windowID ... getPtrRef(id, windowIDCapsules, windowIDRef); */
 #define WINDOW_DRAW 0
 #define WINDOW_CLICK 1
 #define WINDOW_KEY 2
@@ -65,6 +91,13 @@ static PyObject *windowDict;
 #define WINDOW_WHEEL 4
 #define WINDOW_RIGHTCLICK 5
 #define WINDOW_MODULE_NAME 6
+static void genericWindowDraw(XPLMWindowID inWindowID, void *inRefcon);
+static int genericWindowMouseClick(XPLMWindowID inWindowID, int x, int y, XPLMMouseStatus inMouse, void *inRefcon);
+static void genericWindowKey(XPLMWindowID, char inKey, XPLMKeyFlags inFlags, char inVirtualKey, void *inRefcon, int losingFocus);
+static XPLMCursorStatus genericWindowCursor(XPLMWindowID inWindowID, int x, int y, void *inRefcon);
+static int genericWindowMouseWheel(XPLMWindowID  inWindowID, int x, int y, int wheel, int clicks, void *inRefcon);
+static int genericWindowRightClick(XPLMWindowID inWindowID, int x, int y, XPLMMouseStatus inMouse, void *inRefcon);
+
 
 static PyObject *hotkeyDict;  /* {
                                    hotkeyCntr1:  ([0]callback, [1]refcon, [2]module) )
@@ -120,17 +153,27 @@ void resetAvionicsCallbacks(void) {
   errCheck("prior resetAvionicsCallbacks");
   while(PyDict_Next(avionicsCallbacksIDDict, &pos, &avIDCapsule, &avDictKey)) {
     PyObject *tuple = PyDict_GetItem(avionicsCallbacksDict, avDictKey);
-    char *moduleName = objToStr(PyTuple_GetItem(tuple, AVIONICS_MODULE_NAME));
-    char *callback_before = objToStr(PyTuple_GetItem(tuple, AVIONICS_BEFORE));
-    char *callback_after = objToStr(PyTuple_GetItem(tuple, AVIONICS_AFTER));
-    XPLMAvionicsID avionicsId = refToPtr(avIDCapsule, avionicsIDRef);
-    XPLMUnregisterAvionicsCallbacks_ptr(avionicsId);
-    errCheck("after XPLMUnregisterAvioniccCallbacks in reset");
-    pythonDebug("     Reset --     %s - (%s)", moduleName, callback_before, callback_after);
-    free(moduleName);
-    free(callback_before);
-    free(callback_after);
+    if (tuple != NULL) {
+      char *moduleName = objToStr(PyTuple_GetItem(tuple, AVIONICS_MODULE_NAME));
+      char *callback_before = objToStr(PyTuple_GetItem(tuple, AVIONICS_BEFORE));
+      char *callback_after = objToStr(PyTuple_GetItem(tuple, AVIONICS_AFTER));
+      XPLMAvionicsID avionicsId = refToPtr(avIDCapsule, avionicsIDRef);
+      if (PyTuple_GetItem(tuple, AVIONICS_CREATE)) {
+        XPLMDestroyAvionics_ptr(avionicsId);
+        errCheck("after XPLMDestroyAvionics in reset");
+      } else {
+        XPLMUnregisterAvionicsCallbacks_ptr(avionicsId);
+        errCheck("after XPLMUnregisterAvioniccCallbacks in reset");
+      }
+      pythonDebug("     Reset --     %s - (%s)", moduleName, callback_before, callback_after);
+      free(moduleName);
+      free(callback_before);
+      free(callback_after);
+    } /* else... this ID has no callbacks (possible if just XPLMGetAvionicsHandle() was called) */
   }
+
+  /****** call DestroyAvionics for all non-stock avionics devices *******/
+
   PyDict_Clear(avionicsCallbacksIDDict);
   PyDict_Clear(avionicsCallbacksDict);
 }
@@ -238,11 +281,22 @@ static PyObject *XPLMRegisterDrawCallbackFun(PyObject *self, PyObject *args, PyO
 
 
 My_DOCSTR(_registerAvionicsCallbacksEx__doc__, "registerAvionicsCallbacksEx",
-          "deviceId, before=None, after=None, refCon=None",
+          "deviceId, before=None, after=None, refCon=None, bezelClick=None, bezelRightClick=None, "
+          "bezelScroll=None, bezelCursor=None, screenTouch=None, screenRightTouch=None, screenScroll=None, "
+          "screenCursor=None, keyboard=None",
           "deviceId:XPLMDeviceID, "
           "before:Optional[Callable[[XPLMDeviceID, int, Any], int]]=None, "
           "after:Optional[Callable[[XPLMDeviceID, int, Any], int]]=None, "
-          "refCon:Any=None",
+          "refCon:Any=None,"
+          "bezelClick:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, "
+          "bezelRightClick:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, "
+          "bezelScroll:Optional[Callable[[int, int, int, int, Any], int]]=None, "
+          "bezelCursor:Optional[Callable[[int, int, Any], XPLMCursorStatus]]=None, "
+          "screenTouch:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, "
+          "screenRightTouch:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, "
+          "screenScroll:Optional[Callable[[int, int, int, int, Any], int]]=None, "
+          "screenCursor:Optional[Callable[[int, int, Any], XPLMCursorStatus]]=None, "
+          "keyboard:Optional[Callable[[char, XPLMKeyFlags, char, Any, int], int]]=None",
           "XPLMAvionicsID",
           "Registers draw callback for particular device.\n"
           "\n"
@@ -258,56 +312,146 @@ My_DOCSTR(_registerAvionicsCallbacksEx__doc__, "registerAvionicsCallbacksEx",
 static PyObject *XPLMRegisterAvionicsCallbacksExFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void) self;
-  static char *keywords[] = {"deviceId", "before", "after", "refCon", NULL};
-  int deviceId;
-  PyObject *beforeCallback = Py_None;
-  PyObject *afterCallback = Py_None;
-  PyObject *refcon = Py_None;
+  static char *keywords[] = {"deviceId", "before", "after", "refCon",
+                             "bezelClick", "bezelRightClick", "bezelScroll", "bezelCursor",
+                             "screenTouch", "screenRightTouch", "screenScroll", "screenCursor",
+                             "keyboard", NULL};
+  int deviceId=0;
 
+  PyObject *firstObj=Py_None, *paramsObj = Py_None;
+
+  PyObject
+    *before=Py_None,
+    *after=Py_None,
+    *screenDraw=Py_None,
+    *bezelDraw=Py_None,
+    *bezelClick=Py_None,
+    *bezelRightClick=Py_None,
+    *bezelScroll=Py_None,
+    *bezelCursor=Py_None,
+    *screenTouch=Py_None,
+    *screenRightTouch=Py_None,
+    *screenScroll=Py_None,
+    *screenCursor=Py_None,
+    *keyboard=Py_None,
+    *refcon=Py_None;
+
+  /* not used with register */
+  (void) screenDraw;
+  (void) bezelDraw;
+  
   if(!XPLMRegisterAvionicsCallbacksEx_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMRegisterAvionicsCallbacksEx is available only in XPLM400 and up.");
     return NULL;
   }
 
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i|OOO", keywords, &deviceId, &beforeCallback, &afterCallback, &refcon)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOOOOOOOOOOOO", keywords,
+                                  &firstObj, &before, &after, &refcon,
+                                  &bezelClick, &bezelRightClick, &bezelScroll, &bezelCursor,
+                                  &screenTouch, &screenRightTouch, &screenScroll, &screenCursor,
+                                  &keyboard)){
     return NULL;
   }
 
-  if (beforeCallback == Py_None && afterCallback == Py_None) {
-    PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterAviationCallbacksEx: Both before and after callbacks cannot be None.");
+  /* if (beforeCallback == Py_None && afterCallback == Py_None) { */
+  /*   PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterAviationCallbacksEx: Both before and after callbacks cannot be None."); */
+  /*   return NULL; */
+  /* } */
+
+  if (firstObj == Py_None) {
+    /* deviceID is _required_, so if firstObj isn't specified, this is simply an error */
+    return NULL;
+  } else if (PyLong_Check(firstObj)) {
+    deviceId = PyLong_AsLong(firstObj);
+  } else if (PySequence_Check(firstObj)) {
+    paramsObj = firstObj;
+    if (PySequence_Length(paramsObj) != 13) {
+      PyErr_SetString(PyExc_AttributeError ,"registerAvionicsEx tuple did not contain 13 values\n.");
+      return NULL;
+    }
+  } else {
+    PyErr_SetString(PyExc_AttributeError ,"registerAvionicsEx could not parse arguments.\n");
     return NULL;
   }
-  PyObject *avDictsKey = PyLong_FromLong(++avionicsCallbacksCntr);
+
+  XPLMCustomizeAvionics_t params;
+  params.structSize = sizeof(params);
+  if (paramsObj != Py_None) {
+    PyObject *paramsTuple = PySequence_Tuple(paramsObj);
+    params.deviceId = PyLong_AsLong(PyTuple_GetItem(paramsTuple, 0));
+    before = PyTuple_GetItem(paramsTuple, 1);
+    after = PyTuple_GetItem(paramsTuple, 2);
+    refcon = PyTuple_GetItem(paramsTuple, 3);
+    bezelClick = PyTuple_GetItem(paramsTuple, 4);
+    bezelRightClick = PyTuple_GetItem(paramsTuple, 5);
+    bezelScroll = PyTuple_GetItem(paramsTuple, 6);
+    bezelCursor = PyTuple_GetItem(paramsTuple, 7);
+    screenTouch = PyTuple_GetItem(paramsTuple, 8);
+    screenRightTouch = PyTuple_GetItem(paramsTuple, 9);
+    screenScroll = PyTuple_GetItem(paramsTuple, 10);
+    screenCursor = PyTuple_GetItem(paramsTuple, 11);
+    keyboard = PyTuple_GetItem(paramsTuple, 12);
+    Py_DECREF(paramsTuple);
+  } else {
+    params.deviceId = deviceId;
+  }
+
+  params.refcon = (void *)++avionicsCallbacksCntr;
+  params.drawCallbackBefore = before != Py_None ? genericAvionicsCallback : NULL;
+  params.drawCallbackAfter = after != Py_None ? genericAvionicsCallback : NULL;
+  params.bezelClickCallback = bezelClick != Py_None ? genericAvionicsBezelClick : NULL;
+  params.bezelRightClickCallback = bezelRightClick != Py_None ? genericAvionicsBezelRightClick : NULL;
+  params.bezelScrollCallback = bezelScroll != Py_None ? genericAvionicsBezelScroll : NULL;
+  params.bezelCursorCallback = bezelCursor != Py_None ? genericAvionicsBezelCursor : NULL;
+  params.screenTouchCallback = screenTouch != Py_None ? genericAvionicsScreenTouch : NULL;
+  params.screenRightTouchCallback = screenRightTouch != Py_None ? genericAvionicsScreenRightTouch : NULL;
+  params.screenScrollCallback = screenScroll != Py_None ? genericAvionicsScreenScroll : NULL;
+  params.screenCursorCallback = screenCursor != Py_None ? genericAvionicsScreenCursor : NULL;
+  params.keyboardCallback = keyboard != Py_None ? genericAvionicsKeyboard : NULL;
+
+  PyObject *callbackList[] = {before, after, bezelDraw, screenDraw, bezelClick, bezelRightClick, bezelScroll,
+                              bezelCursor, screenTouch, screenRightTouch, screenScroll, screenCursor, keyboard};
+  for (int i=0; i< 13; i++) {
+    if (callbackList[i] != Py_None) {
+      if (PyCallable_Check(callbackList[i])) {
+        Py_INCREF(callbackList[i]);
+      } else {
+        PyErr_SetString(PyExc_ValueError ,"registerAvionicsEx callback is not callable.\n");
+        return NULL;
+      }
+    }
+  }
+
+  
+  Py_INCREF(refcon);
+  
+  PyObject *avDictsKey = PyLong_FromLong(avionicsCallbacksCntr);
   if(!avDictsKey){
     PyErr_SetString(PyExc_RuntimeError ,"Couldn't create long.\n");
     return NULL;
   }
-  PyObject *tuple = Py_BuildValue("(siOOO)", CurrentPythonModuleName, deviceId, beforeCallback, afterCallback, refcon);
-  PyDict_SetItem(avionicsCallbacksDict, avDictsKey, tuple);
-  Py_DECREF(tuple);
-    
-  XPLMCustomizeAvionics_t params;
-  params.structSize = sizeof(params);
-  params.deviceId = deviceId;
-  params.drawCallbackBefore = beforeCallback != Py_None ? genericAvionicsCallback : NULL;
-  params.drawCallbackAfter = afterCallback != Py_None ? genericAvionicsCallback : NULL;
-  params.refcon = (void *)avionicsCallbacksCntr;
+  PyObject *cbkTuple = Py_BuildValue("(siOOOOOOOOOOOOOOd)",
+                                     CurrentPythonModuleName, deviceId, before, after,
+                                     refcon, bezelDraw, screenDraw,
+                                     bezelClick, bezelRightClick, bezelScroll, bezelCursor,
+                                     screenTouch, screenRightTouch, screenScroll, screenCursor,
+                                     keyboard, 0);
+  if(!cbkTuple){
+    PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterAvionicsCallbacksEx couldn't create a callback tuple.\n");
+    return NULL;
+  }
 
-  if (beforeCallback != Py_None) {
-    Py_INCREF(beforeCallback);
-  }
-  if (afterCallback != Py_None) {
-    Py_INCREF(afterCallback);
-  }
-  
+  PyDict_SetItem(avionicsCallbacksDict, avDictsKey, cbkTuple);
+    
   XPLMAvionicsID avionicsId = XPLMRegisterAvionicsCallbacksEx_ptr(&params);
   PyObject *avIDCapsule = getPtrRef(avionicsId, avionicsIDCapsules, avionicsIDRef);
   if(!avIDCapsule){
     PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterAvionicsCallbacksEx failed.\n");
     return NULL;
   }
-
   PyDict_SetItem(avionicsCallbacksIDDict, avIDCapsule, avDictsKey);
+
+  Py_DECREF(cbkTuple);
   Py_DECREF(avDictsKey);
   return avIDCapsule;
 }
@@ -350,6 +494,385 @@ static PyObject *XPLMUnregisterAvionicsCallbacksFun(PyObject *self, PyObject *ar
   Py_RETURN_NONE;
 }
           
+
+
+My_DOCSTR(_getAvionicsHandle__doc__, "getAvionicsHandle",
+          "deviceID",
+          "deviceID:int",
+          "XPLMAvionicsID",
+          "Registers no callbacks for a cockpit device, but returns a\n"
+          "handle which allows you to interact using other Avionics Device\n"
+          "API. Use this if you do not wish to intercept drawing, clicks, or\n"
+          "touches but want to interact with its popup programmatically.\n"
+          "\n"
+          "Returns XPLMAvionicsID."
+          );
+static PyObject *XPLMGetAvionicsHandleFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"deviceID", NULL};
+  (void) self;
+  int deviceID;
+  if (!XPLMGetAvionicsHandle_ptr) {
+    PyErr_SetString(PyExc_RuntimeError , "XPLMGetAvionicsHandle is available only in XPLM410 and up.");
+    return NULL;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &deviceID)) {
+    return NULL;
+  }
+
+  PyObject *avDictsKey = PyLong_FromLong(++avionicsCallbacksCntr);
+  if(!avDictsKey){
+    PyErr_SetString(PyExc_RuntimeError ,"Couldn't create long.\n");
+    return NULL;
+  }
+
+  XPLMAvionicsID avionicsId = XPLMGetAvionicsHandle_ptr(deviceID);
+  if (avionicsId == NULL) {
+    PyErr_SetString(PyExc_RuntimeError ,"XPLMGetAvionicsHandle() returned NULL. (bug filed)\n");
+    return NULL;
+  }    
+
+  PyObject *avIDCapsule = getPtrRef(avionicsId, avionicsIDCapsules, avionicsIDRef);
+  if(!avIDCapsule){
+    PyErr_SetString(PyExc_RuntimeError ,"XPLMGetAvionicsHandle failed.\n");
+    return NULL;
+  }
+  PyDict_SetItem(avionicsCallbacksIDDict, avIDCapsule, avDictsKey);
+  Py_DECREF(avDictsKey);
+  return avIDCapsule;
+}
+
+My_DOCSTR(_isAvionicsBound__doc__, "isAvionicsBound",
+          "avionicsID",
+          "avionicsID:XPLMAvionicsID",
+          "int",
+          "Return 1 if cockpit device with given ID is used by the current aircraft.");
+static PyObject *XPLMIsAvionicsBoundFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"avionicsID", NULL};
+  (void) self;
+  PyObject *avionicsID;
+  if (!XPLMIsAvionicsBound_ptr) {
+    PyErr_SetString(PyExc_RuntimeError , "XPLMIsAvionicsBound is available only in XPLM410 and up.");
+    return NULL;
+  }
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
+    return NULL;
+  }
+  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  int ret = XPLMIsAvionicsBound_ptr(avionics_id);
+  return PyLong_FromLong(ret);
+}
+
+My_DOCSTR(_isCursorOverAvionics__doc__, "isCursorOverAvionics",
+          "avionicsID",
+          "avionicsID:XPLMAvionicsID",
+          "Tuple[x:int, y:int]",
+          "Is the cursor over the device with given avionicsID\n"
+          "\n"
+          "Returns tuple (x, y) with position or None.");
+static PyObject *XPLMIsCursorOverAvionicsFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"avionicsID", NULL};
+  (void) self;
+  PyObject *avionicsID;
+  if (!XPLMIsCursorOverAvionics_ptr) {
+    PyErr_SetString(PyExc_RuntimeError , "XPLMIsCursorOverAvionics is available only in XPLM410 and up.");
+    return NULL;
+  }
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
+    return NULL;
+  }
+  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  int x=0, y=0;
+  int ret = XPLMIsCursorOverAvionics_ptr(avionics_id, &x, &y);
+  if (!ret) {
+    Py_RETURN_NONE;
+  }
+
+  PyObject *tuple = PyTuple_New(2);
+  PyTuple_SetItem(tuple, 0, PyLong_FromLong(x));
+  PyTuple_SetItem(tuple, 1, PyLong_FromLong(y));
+  Py_INCREF(tuple);
+  return tuple;
+}
+
+My_DOCSTR(_isAvionicsPopupVisible__doc__, "isAvionicsPopupVisible",
+          "avionicsID",
+          "avionicsID:XPLMAvionicsID",
+          "int",
+          "Is the popup window for the device with given avionicsID visible?\n"
+          "(It may or may not be popped out into an OS window.)\n"
+          "\n"
+          "Returns 1 if true.");
+static PyObject *XPLMIsAvionicsPopupVisibleFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"avionicsID", NULL};
+  (void) self;
+  PyObject *avionicsID;
+  if (!XPLMIsAvionicsPopupVisible_ptr) {
+    PyErr_SetString(PyExc_RuntimeError , "XPLMIsAvionicsPopupVisible is available only in XPLM410 and up.");
+    return NULL;
+  }
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
+    return NULL;
+  }
+  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  return PyLong_FromLong(XPLMIsAvionicsPopupVisible_ptr(avionics_id));
+}
+
+My_DOCSTR(_isAvionicsPoppedOut__doc__, "isAvionicsPoppedOut",
+          "avionicsID",
+          "avionicsID:XPLMAvionicsID",
+          "int",
+          "Returns 1 (true) if the popup window for the cockpit device is popped out\n"
+          "into an OS window.");
+static PyObject *XPLMIsAvionicsPoppedOutFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"avionicsID", NULL};
+  (void) self;
+  PyObject *avionicsID;
+  if (!XPLMIsAvionicsPoppedOut_ptr) {
+    PyErr_SetString(PyExc_RuntimeError , "XPLMIsAvionicsPoppedOut is available only in XPLM410 and up.");
+    return NULL;
+  }
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
+    return NULL;
+  }
+  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  return PyLong_FromLong(XPLMIsAvionicsPoppedOut_ptr(avionics_id));
+}
+
+My_DOCSTR(_hasAvionicsKeyboardFocus__doc__, "hasAvionicsKeyboardFocus",
+          "avionicsID",
+          "avionicsID:XPLMAvionicsID",
+          "int",
+          "Returns 1 (true) if cockpit device has keyboard focus.");
+static PyObject *XPLMHasAvionicsKeyboardFocusFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"avionicsID", NULL};
+  (void) self;
+  PyObject *avionicsID;
+  if (!XPLMHasAvionicsKeyboardFocus_ptr) {
+    PyErr_SetString(PyExc_RuntimeError , "XPLMHasAvionicsKeyboardFocus is available only in XPLM410 and up.");
+    return NULL;
+  }
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
+    return NULL;
+  }
+  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  return PyLong_FromLong(XPLMHasAvionicsKeyboardFocus_ptr(avionics_id));
+}
+
+My_DOCSTR(_avionicsNeedsDrawing__doc__, "avionicsNeedsDrawing",
+          "avionicsID",
+          "avionicsID:XPLMAvionicsID",
+          "None",
+          "Tells X-Plane that your device's screens needs to be re-drawn.\n"
+          "If your device is marked for on-demand drawing, XP will call your screen\n"
+          "drawing callback before drawing the next simulator frame. If your device\n"
+          "is already drawn every frame, this has no effect.");
+static PyObject *XPLMAvionicsNeedsDrawingFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"avionicsID", NULL};
+  (void) self;
+  PyObject *avionicsID;
+  if (!XPLMAvionicsNeedsDrawing_ptr) {
+    PyErr_SetString(PyExc_RuntimeError , "XPLMAvionicsNeedsDrawing is available only in XPLM410 and up.");
+    return NULL;
+  }
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
+    return NULL;
+  }
+  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  XPLMAvionicsNeedsDrawing_ptr(avionics_id);
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_popOutAvionics__doc__, "popOutAvionics",
+          "avionicsID",
+          "avionicsID:XPLMAvionicsID",
+          "None",
+          "Pops out OS window for cockpit device.");
+static PyObject *XPLMPopOutAvionicsFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"avionicsID", NULL};
+  (void) self;
+  PyObject *avionicsID;
+  if (!XPLMPopOutAvionics_ptr) {
+    PyErr_SetString(PyExc_RuntimeError , "XPLMPopOutAvionics is available only in XPLM410 and up.");
+    return NULL;
+  }
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
+    return NULL;
+  }
+  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  XPLMPopOutAvionics_ptr(avionics_id);
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_takeAvionicsKeyboardFocus__doc__, "takeAvionicsKeyboardFocus",
+          "avionicsID",
+          "avionicsID:XPLMAvionicsID",
+          "None",
+          "Sets keyboard focus to the (already) visible popup window of cockpit device.\n"
+          "Does nothing if device is not visible.");
+static PyObject *XPLMTakeAvionicsKeyboardFocusFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"avionicsID", NULL};
+  (void) self;
+  PyObject *avionicsID;
+  if (!XPLMTakeAvionicsKeyboardFocus_ptr) {
+    PyErr_SetString(PyExc_RuntimeError , "XPLMTakeAvionicsKeyboardFocus is available only in XPLM410 and up.");
+    return NULL;
+  }
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
+    return NULL;
+  }
+  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  XPLMTakeAvionicsKeyboardFocus_ptr(avionics_id);
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_destroyAvionics__doc__, "destroyAvionics",
+          "avionicsID",
+          "avionicsID:XPLMAvionicsID",
+          "None",
+          "Destroys the cockpit device and deallocates its framebuffer. You should\n"
+          "only ever call this for devices that you created, not stock X-Plane devices\n"
+          "you have customized.");
+static PyObject *XPLMDestroyAvionicsFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"avionicsID", NULL};
+  (void) self;
+  PyObject *avionicsID;
+  if (!XPLMDestroyAvionics_ptr) {
+    PyErr_SetString(PyExc_RuntimeError , "XPLMDestroyAvionics is available only in XPLM410 and up.");
+    return NULL;
+  }
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
+    return NULL;
+  }
+  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  XPLMDestroyAvionics_ptr(avionics_id);
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_getAvionicsBusVoltsRatio__doc__, "getAvionicsBusVoltsRatio",
+          "avionicsID",
+          "avionicsID:XPLMAvionicsID",
+          "float",
+          "Return ratio [0.0:1.0] of nominal voltage of electrical bus,\n"
+          "for given avionics device. Returns -1 if device is not bound\n"
+          "to the current aircraft.");
+static PyObject *XPLMGetAvionicsBusVoltsRatioFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"avionicsID", NULL};
+  (void) self;
+  PyObject *avionicsID;
+  if (!XPLMGetAvionicsBusVoltsRatio_ptr) {
+    PyErr_SetString(PyExc_RuntimeError, "XPLMGetAvionicsBusVoltsRatio is available only in XPLM410 and up.");
+    return NULL;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
+    return NULL;
+  }
+
+  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  return PyFloat_FromDouble(XPLMGetAvionicsBusVoltsRatio_ptr(avionics_id));
+}
+
+My_DOCSTR(_getAvionicsBrightnessRheo__doc__, "getAvionicsBrightnessRheo",
+          "avionicsID",
+          "avionicsID:XPLMAvionicsID",
+          "float",
+          "Returns brightness setting between 0 and 1 for the screen of\n"
+          "this cockpit device.\n"
+          "If the device is bound to current aircraft, this is equivalent\n"
+          "to 'sim/cockpit2/switches/instrument_brightness_ratio[]' dataref\n"
+          "with the correct array slot for the bound device.\n"
+          "If the device is not bound, it returns brightness ratio for the\n"
+          "device alone.");
+static PyObject *XPLMGetAvionicsBrightnessRheoFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"avionicsID", NULL};
+  (void) self;
+  PyObject *avionicsID;
+  if (!XPLMGetAvionicsBrightnessRheo_ptr) {
+    PyErr_SetString(PyExc_RuntimeError, "XPLMGetAvionicsBrightnessRheo is available only in XPLM410 and up.");
+    return NULL;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
+    return NULL;
+  }
+
+  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  return PyFloat_FromDouble(XPLMGetAvionicsBrightnessRheo_ptr(avionics_id));
+}
+
+My_DOCSTR(_setAvionicsBrightnessRheo__doc__, "setAvionicsBrightnessRheo",
+          "avionicsID, brightness=1.0",
+          "avionicsID:XPLMAvionicsID, brightness:float=1.0",
+          "None",
+          "Sets brightness setting between 0 and 1 for the screen of\n"
+          "this cockpit device.\n\n"
+          "If the device is bound to current aircraft, this is equivalent\n"
+          "to 'sim/cockpit2/switches/instrument_brightness_ratio[]' dataref\n"
+          "with the correct array slot for the bound device.\n\n"
+          "If the device is not bound, it sets brightness rheostat for the\n"
+          "device alone, even though not connected to the dataref.");
+static PyObject *XPLMSetAvionicsBrightnessRheoFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"avionicsID", "brightness", NULL};
+  (void) self;
+  PyObject *avionicsID;
+  float brightness=1.0;
+  if (!XPLMSetAvionicsBrightnessRheo_ptr) {
+    PyErr_SetString(PyExc_RuntimeError, "XPLMSetAvionicsBrightnessRheo is available only in XPLM410 and up.");
+    return NULL;
+  }
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|f", keywords, &avionicsID, &brightness)) {
+    return NULL;
+  }
+
+  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  XPLMSetAvionicsBrightnessRheo_ptr(avionics_id, brightness);
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_setAvionicsPopupVisible__doc__, "setAvionicsPopupVisible",
+          "avionicsID, visible=1",
+          "avionicsID:XPLMAvionicsID, visible:int=1",
+          "None",
+          "Shows (visible=1) or Hides popup window for cockpit device.");
+static PyObject *XPLMSetAvionicsPopupVisibleFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"avionicsID", "visible", NULL};
+  (void) self;
+  PyObject *avionicsID;
+  int visible=1;
+  if (!XPLMSetAvionicsPopupVisible_ptr) {
+    PyErr_SetString(PyExc_RuntimeError , "XPLMSetAvionicsPopupVisible is available only in XPLM410 and up.");
+    return NULL;
+  }
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", keywords, &avionicsID, &visible)) {
+    return NULL;
+  }
+  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  XPLMSetAvionicsPopupVisible_ptr(avionics_id, visible);
+  Py_RETURN_NONE;
+}
 
 
 My_DOCSTR(_registerKeySniffer__doc__, "registerKeySniffer",
@@ -488,16 +1011,16 @@ static PyObject *XPLMUnregisterKeySnifferFun(PyObject *self, PyObject *args, PyO
 }
 
 
-static void drawWindow(XPLMWindowID  inWindowID,
+static void genericWindowDraw(XPLMWindowID  inWindowID,
                 void         *inRefcon)
 {
-  errCheck("prior drawWindow");
+  errCheck("prior genericWindowDraw");
   struct timespec all_stop, all_start;
   clock_gettime(CLOCK_MONOTONIC, &all_start);
   PyObject *pID = getPtrRef(inWindowID, windowIDCapsules, windowIDRef);
   PyObject *pCbks = PyDict_GetItem(windowDict, pID);
   if(pCbks == NULL){
-    printf("Unknown window passed to drawWindow (%p).", inWindowID);
+    printf("Unknown window passed to genericWindowDraw (%p).", inWindowID);
     return;
   }
   PyObject *func = PyTuple_GetItem(pCbks, WINDOW_DRAW);
@@ -515,19 +1038,19 @@ static void drawWindow(XPLMWindowID  inWindowID,
     Py_XDECREF(oRes);
   }
   Py_DECREF(pID);
-  errCheck("end drawWindow");
+  errCheck("end genericWindowDraw");
   clock_gettime(CLOCK_MONOTONIC, &all_stop);
   pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
 }
 
-static void handleKey(XPLMWindowID  inWindowID,
+static void genericWindowKey(XPLMWindowID  inWindowID,
                char          inKey,
                XPLMKeyFlags  inFlags,
                char          inVirtualKey,
                void         *inRefcon,
                int           losingFocus)
 {
-  errCheck("prior handleKey");
+  errCheck("prior genericWindowKey");
   if (losingFocus) {
     /* If losing focus, X-Plane sends the _receiving_ windowID, rather than "self", the _losing_
      * windowID. Bug reported 10/22/2021. 
@@ -554,12 +1077,12 @@ static void handleKey(XPLMWindowID  inWindowID,
          So far, it appears safe to just ignore.
          Filed with Laminar 18-May-2020 as XPD-10834
       */
-      XPLMDebugString("NULL window passed to handleKey. Ignoring\n");
-      errCheck("no callback, losing focus, handleKey");
+      XPLMDebugString("NULL window passed to genericWindowKey. Ignoring\n");
+      errCheck("no callback, losing focus, genericWindowKey");
       return;
     }
     char *s = objToStr(pID);
-    sprintf(msg, "Unknown window passed to handleKey (%p) [%ld] -- losingFocus is %d. pID is %s\n", inWindowID, (long)inWindowID, losingFocus, s);
+    sprintf(msg, "Unknown window passed to genericWindowKey (%p) [%ld] -- losingFocus is %d. pID is %s\n", inWindowID, (long)inWindowID, losingFocus, s);
     free(s);
     pythonLog("%s", msg);
     return;
@@ -569,7 +1092,7 @@ static void handleKey(XPLMWindowID  inWindowID,
   PyObject *arg3 = PyLong_FromLong((unsigned int)inVirtualKey);
   PyObject *arg4 = PyLong_FromLong(losingFocus);
   /* char *s = objToStr(pID); */
-  /* printf("Calling handleKey callback. inWindowID = %p, pPID = %s, losingFocus = %d\n", inWindowID, s, losingFocus); */
+  /* printf("Calling genericWindowKey callback. inWindowID = %p, pPID = %s, losingFocus = %d\n", inWindowID, s, losingFocus); */
   /* free(s); */
   set_moduleName(PyTuple_GetItem(pCbks, WINDOW_MODULE_NAME));
   PyObject *oRes = PyObject_CallFunctionObjArgs(PyTuple_GetItem(pCbks, WINDOW_KEY), pID, arg1, arg2, arg3, inRefcon, arg4, NULL);
@@ -578,17 +1101,17 @@ static void handleKey(XPLMWindowID  inWindowID,
   Py_XDECREF(arg3);
   Py_XDECREF(arg4);
   Py_XDECREF(oRes);
-  errCheck("end handleKey");
+  errCheck("end genericWindowKey");
   Py_DECREF(pID);
 }
 
-static int handleMouseClick(XPLMWindowID     inWindowID,
+static int genericWindowMouseClick(XPLMWindowID     inWindowID,
                      int              x,
                      int              y,
                      XPLMMouseStatus  inMouse,
                      void            *inRefcon)
 {
-  errCheck("prior handleMouseClick");
+  errCheck("prior genericWindowMouseClick");
   (void) inRefcon;
   PyObject *pID = getPtrRef(inWindowID, windowIDCapsules, windowIDRef);
   PyObject *pCbks = PyDict_GetItem(windowDict, pID);
@@ -600,7 +1123,7 @@ static int handleMouseClick(XPLMWindowID     inWindowID,
   set_moduleName(PyTuple_GetItem(pCbks, WINDOW_MODULE_NAME));
   if (func == Py_None) {
     /* consume click */
-    errCheck("no func handleMouseClick");
+    errCheck("no func genericWindowMouseClick");
     return 1;
   }
 
@@ -631,17 +1154,17 @@ static int handleMouseClick(XPLMWindowID     inWindowID,
   }
   int res = (int)PyLong_AsLong(pRes);
   Py_DECREF(pRes);
-  errCheck("end handleMouseClick");
+  errCheck("end genericWindowMouseClick");
   return res;
 }
 
-static int handleRightClick(XPLMWindowID     inWindowID,
+static int genericWindowRightClick(XPLMWindowID     inWindowID,
                      int              x,
                      int              y,
                      XPLMMouseStatus  inMouse,
                      void            *inRefcon)
 {
-  errCheck("prior handleRightClick");
+  errCheck("prior genericWindowRightClick");
   (void) inRefcon;
   PyObject *pID = getPtrRef(inWindowID, windowIDCapsules, windowIDRef);
   PyObject *pCbks = PyDict_GetItem(windowDict, pID);
@@ -682,21 +1205,21 @@ static int handleRightClick(XPLMWindowID     inWindowID,
   }
   int res = (int)PyLong_AsLong(pRes);
   Py_DECREF(pRes);
-  errCheck("end handleRightClick");
+  errCheck("end genericWindowRightClick");
   return res;
 }
 
-static XPLMCursorStatus handleCursor(XPLMWindowID  inWindowID,
+static XPLMCursorStatus genericWindowCursor(XPLMWindowID  inWindowID,
                               int           x,
                               int           y,
                               void         *inRefcon)
 {
-  errCheck("prior handleCursor");
+  errCheck("prior genericWindowCursor");
   (void) inRefcon;
   PyObject *pID = getPtrRef(inWindowID, windowIDCapsules, windowIDRef);
   PyObject *pCbks = PyDict_GetItem(windowDict, pID);
   if(pCbks == NULL){
-    printf("Unknown window passed to handleCursor (%p).\n", inWindowID);
+    printf("Unknown window passed to genericWindowCursor (%p).\n", inWindowID);
     return 0;
   }
   PyObject *cbk = PyTuple_GetItem(pCbks, WINDOW_CURSOR);
@@ -717,23 +1240,23 @@ static XPLMCursorStatus handleCursor(XPLMWindowID  inWindowID,
   }
   int res = (int)PyLong_AsLong(pRes);
   Py_DECREF(pRes);
-  errCheck("end handleCursor");
+  errCheck("end genericWindowCursor");
   return res;
 }
 
-static int handleMouseWheel(XPLMWindowID  inWindowID,
+static int genericWindowMouseWheel(XPLMWindowID  inWindowID,
                      int           x,
                      int           y,
                      int           wheel,
                      int           clicks,
                      void         *inRefcon)
 {
-  errCheck("prior handleMouseWheel");
+  errCheck("prior genericWindowMouseWheel");
   (void) inRefcon;
   PyObject *pID = getPtrRef(inWindowID, windowIDCapsules, windowIDRef);
   PyObject *pCbks = PyDict_GetItem(windowDict, pID);
   if(pCbks == NULL){
-    printf("Unknown window passed to handleMouseWheel (%p).\n", inWindowID);
+    printf("Unknown window passed to genericWindowMouseWheel (%p).\n", inWindowID);
     return 1;
   }
   PyObject *cbk = PyTuple_GetItem(pCbks, WINDOW_WHEEL);
@@ -758,10 +1281,228 @@ static int handleMouseWheel(XPLMWindowID  inWindowID,
   }
   int res = (int)PyLong_AsLong(pRes);
   Py_DECREF(pRes);
-  errCheck("end handleMouseWheel");
+  errCheck("end genericWindowMouseWheel");
   return res;
 }
 
+
+My_DOCSTR(_createAvionicsEx__doc__, "createAvionicsEx",
+          "screenWidth=100, screenHeight=200, bezelWidth=140, bezelHeight=250, screenOffsetX=20, screenOffsetY=25, "
+          "drawOnDemand=0, bezelDraw=None, screenDraw=None, bezelClick=None, bezelRightClick=None, "
+          "bezelScroll=None, bezelCursor=None, screenTouch=None, screenRightTouch=None, screenScroll=None, "
+          "screenCursor=None, keyboard=None, brightness=None, deviceID=\"deviceID\", deviceName=\"deviceName\", refcon=None",
+          "screenWidth:int=100, screenHeight:in=200, bezelWidth:int:140, bezelHeight:int=250, "
+          "screenOffsetX:int=20, screenOffsetY:int=25, drawOnDemand=0, "
+          "bezelDraw:Optional[Callable[[float, float, float, Any], None]]=None, "
+          "screenDraw:Optional[Callable[[Any], None]]=None, "
+          "bezelClick:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, "
+          "bezelRightClick:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, "
+          "bezelScroll:Optional[Callable[[int, int, int, int, Any], int]]=None, "
+          "bezelCursor:Optional[Callable[[int, int, Any], XPLMCursorStatus]]=None, "
+          "screenTouch:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, "
+          "screenRightTouch:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, "
+          "screenScroll:Optional[Callable[[int, int, int, int, Any], int]]=None, "
+          "screenCursor:Optional[Callable[[int, int, Any], XPLMCursorStatus]]=None, "
+          "keyboard:Optional[Callable[[char, XLMKeyFlags, char, Any int], int]]=None, "
+          "brightness:Optional[Callable[[float, float, float], float]]=None, "
+          "deviceID:str=\"deviceID\", deviceName:str=\"deviceName\", "
+          "refCon:Any=None,"
+          ,
+          "XPLMAvionicsID",
+          "Creates glass cockpit device for 3D cockpit.\n"
+          "With 12.0 you needed to call this within your XPluginStart callback\n"
+          "to ensure your texture would be ready. Since 12.1, you may call this\n"
+          "at anytime and X-Plane will retroactively map your display to it.\n"
+          "\n"
+          "Returns new avionicsID.");
+
+static PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  (void) self;
+  static char *keywords[] = {"screenWidth", "screenHeight", "bezelWidth", "bezelHeight",
+    "screenOffsetX", "screenOffsetY", "drawOnDemand",
+    "bezelDraw", "screenDraw",
+    "bezelClick", "bezelRightClick", "bezelScroll", "bezelCursor",
+    "screenTouch", "screenRightTouch", "screenScroll", "screenCursor",
+    "keyboard", "brightness",
+    "deviceID", "deviceName", "refCon", NULL};
+
+
+  /*float brt(float rheo, float photo_cell, float bus_ratio) {
+    "default" behavior.
+    return photo_cell * rheo;
+    }
+  */
+
+  int screenWidth=100;
+  int screenHeight=200;
+  int bezelWidth=140;
+  int bezelHeight=250;
+  int screenOffsetX=20;
+  int screenOffsetY=25;
+  int drawOnDemand=0;
+
+  PyObject *firstObj=Py_None, *paramsObj=Py_None;
+
+  PyObject
+    *screenDraw=Py_None,
+    *bezelDraw=Py_None,
+    *bezelClick=Py_None,
+    *bezelRightClick=Py_None,
+    *bezelScroll=Py_None,
+    *bezelCursor=Py_None,
+    *screenTouch=Py_None,
+    *screenRightTouch=Py_None,
+    *screenScroll=Py_None,
+    *screenCursor=Py_None,
+    *keyboard=Py_None,
+    *brightness=Py_None,
+    *refcon=Py_None;
+  char *deviceIDstr = "deviceID";
+  char *deviceName= "deviceName";
+
+  /* not used with create */
+
+  if(!XPLMCreateAvionicsEx_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMCreateAvionicsEx() is available only in XPLM410 and up.");
+    return NULL;
+  }
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OiiiiiiOOOOOOOOOOOOssO", keywords,
+                                  &firstObj, &screenHeight, &bezelWidth, &bezelHeight, &screenOffsetX, &screenOffsetY,
+                                  &drawOnDemand,
+                                  &bezelDraw, &screenDraw,
+                                  &bezelClick, &bezelRightClick, &bezelScroll, &bezelCursor,
+                                  &screenTouch, &screenRightTouch, &screenScroll, &screenCursor,
+                                  &keyboard, &brightness,
+                                  &deviceIDstr,
+                                  &deviceName,
+                                  &refcon
+                                  )){
+    return NULL;
+  }
+  if (firstObj == Py_None) {
+    ; /* ``width'' remains as default value */
+  } else if (PyLong_Check(firstObj)) {
+    screenWidth = PyLong_AsLong(firstObj);
+  } else if (PySequence_Check(firstObj)) {
+    paramsObj = firstObj;
+    if (PySequence_Length(paramsObj) != 22) {
+      PyErr_SetString(PyExc_AttributeError ,"createAvionicsEx tuple did not contain 21 values\n.");
+      return NULL;
+    }
+  } else {
+    PyErr_SetString(PyExc_AttributeError ,"createAvionicsEx could not parse arguments.\n");
+    return NULL;
+  }
+
+  XPLMCreateAvionics_t params;
+  params.structSize = sizeof(params);
+  if(paramsObj != Py_None) {
+    PyObject *paramsTuple = PySequence_Tuple(paramsObj);
+    params.screenWidth = PyLong_AsLong(PyTuple_GetItem(paramsTuple, 0));
+    params.screenHeight = PyLong_AsLong(PyTuple_GetItem(paramsTuple, 1));
+    params.bezelWidth = PyLong_AsLong(PyTuple_GetItem(paramsTuple, 2));
+    params.bezelHeight = PyLong_AsLong(PyTuple_GetItem(paramsTuple, 3));
+    params.screenOffsetX = PyLong_AsLong(PyTuple_GetItem(paramsTuple, 4));
+    params.screenOffsetY = PyLong_AsLong(PyTuple_GetItem(paramsTuple, 5));
+    params.drawOnDemand = PyLong_AsLong(PyTuple_GetItem(paramsTuple, 6));
+    params.deviceID = objToStr(PyTuple_GetItem(paramsTuple, 19));
+    params.deviceName = objToStr(PyTuple_GetItem(paramsTuple, 20));
+
+    bezelDraw = PyTuple_GetItem(paramsTuple, 7);
+    screenDraw = PyTuple_GetItem(paramsTuple, 8);
+    bezelClick = PyTuple_GetItem(paramsTuple, 9);
+    bezelRightClick = PyTuple_GetItem(paramsTuple, 10);
+    bezelScroll = PyTuple_GetItem(paramsTuple, 11);
+    bezelCursor = PyTuple_GetItem(paramsTuple, 12);
+    screenTouch = PyTuple_GetItem(paramsTuple, 13);
+    screenRightTouch = PyTuple_GetItem(paramsTuple, 14);
+    screenScroll = PyTuple_GetItem(paramsTuple, 15);
+    screenCursor = PyTuple_GetItem(paramsTuple, 16);
+    keyboard = PyTuple_GetItem(paramsTuple, 17);
+    brightness = PyTuple_GetItem(paramsTuple, 18);
+
+    refcon = PyTuple_GetItem(paramsTuple, 21);
+    Py_DECREF(paramsTuple);
+  } else {
+    params.screenWidth = screenWidth;
+    params.screenHeight = screenHeight;
+    params.bezelWidth = bezelWidth;
+    params.bezelHeight = bezelHeight;
+    params.screenOffsetX = screenOffsetX;
+    params.screenOffsetY = screenOffsetY;
+    params.drawOnDemand = drawOnDemand;
+    params.deviceID = deviceIDstr;
+    params.deviceName = deviceName;
+  }
+
+  if (params.bezelWidth < (params.screenWidth + params.screenOffsetX) || params.bezelHeight < (params.screenHeight + params.screenOffsetY)) {
+    PyErr_SetString(PyExc_ValueError ,"createAvionicsEx() requires bezelWidth >= screenWidth + offsetX; and bezelHeight >= screenHeight + offsetY.\n");
+    return NULL;
+  }
+
+  params.refcon = (void *) ++avionicsCallbacksCntr;
+  params.bezelDrawCallback = bezelDraw != Py_None ? genericAvionicsBezelDraw : NULL;
+  params.drawCallback = screenDraw != Py_None ? genericAvionicsScreenDraw : NULL;
+  params.bezelClickCallback = bezelClick != Py_None ? genericAvionicsBezelClick : NULL;
+  params.bezelRightClickCallback = bezelRightClick != Py_None ? genericAvionicsBezelRightClick : NULL;
+  params.bezelScrollCallback = bezelScroll != Py_None ? genericAvionicsBezelScroll : NULL;
+  params.bezelCursorCallback = bezelCursor != Py_None ? genericAvionicsBezelCursor : NULL;
+  params.screenTouchCallback = screenTouch != Py_None ? genericAvionicsScreenTouch : NULL;
+  params.screenRightTouchCallback = screenRightTouch != Py_None ? genericAvionicsScreenRightTouch : NULL;
+  params.screenScrollCallback = screenScroll != Py_None ? genericAvionicsScreenScroll : NULL;
+  params.screenCursorCallback = screenCursor != Py_None ? genericAvionicsScreenCursor : NULL;
+  params.keyboardCallback = keyboard != Py_None ? genericAvionicsKeyboard : NULL;
+  params.brightnessCallback = brightness != Py_None ? genericAvionicsBrightness : NULL;
+
+  /* check which are callable & Py_INCREF as appropriate */
+  PyObject *callbackList[] = {bezelDraw, screenDraw, bezelClick, bezelRightClick, bezelScroll,
+                              bezelCursor, screenTouch, screenRightTouch, screenScroll, screenCursor, keyboard, brightness};
+  for (int i=0; i< 12; i++) {
+    if (callbackList[i] != Py_None) {
+      if (PyCallable_Check(callbackList[i])) {
+        Py_INCREF(callbackList[i]);
+      } else {
+        PyErr_SetString(PyExc_ValueError ,"createAvionicsEx callback is not callable.\n");
+        return NULL;
+      }
+    }
+  }
+
+  Py_INCREF(refcon);
+
+  PyObject *avDictsKey = PyLong_FromLong(avionicsCallbacksCntr);
+  if(!avDictsKey){
+    PyErr_SetString(PyExc_RuntimeError ,"Couldn't create long.\n");
+    return NULL;
+  }
+  PyObject *cbkTuple = Py_BuildValue("(siOOOOOOOOOOOOOOOd)",
+                                     CurrentPythonModuleName, 0, Py_None, Py_None,  /* ... deviceID, before, after callbacks */
+                                     refcon, bezelDraw, screenDraw,
+                                     bezelClick, bezelRightClick, bezelScroll, bezelCursor,
+                                     screenTouch, screenRightTouch, screenScroll, screenCursor,
+                                     keyboard, brightness, 1);
+  if(!cbkTuple){
+    PyErr_SetString(PyExc_RuntimeError ,"XPLMCreateAvionicsEx couldn't create a callback tuple.\n");
+    return NULL;
+  }
+
+  PyDict_SetItem(avionicsCallbacksDict, avDictsKey, cbkTuple);
+
+  XPLMAvionicsID avionicsId = XPLMCreateAvionicsEx_ptr(&params);
+  PyObject *avIDCapsule = getPtrRef(avionicsId, avionicsIDCapsules, avionicsIDRef);
+  if(!avIDCapsule){
+    PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterAvionicsCallbacksEx failed.\n");
+    return NULL;
+  }
+  PyDict_SetItem(avionicsCallbacksIDDict, avIDCapsule, avDictsKey);
+
+  Py_DECREF(cbkTuple);
+  Py_DECREF(avDictsKey);
+  errCheck("end createAvionicsEx");
+  return avIDCapsule;
+}
 
 My_DOCSTR(_createWindowEx__doc__, "createWindowEx",
           "left=100, top=200, right=200, bottom=100, visible=0, draw=None, click=None, key=None, cursor=None, wheel=None, refCon=None, decoration=WindowDecorationRoundRectangle, layer=WindowLayerFloatingWindows, rightClick=None",
@@ -892,12 +1633,12 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
   Py_INCREF(params.refcon);
 
   PyObject *cbkTuple = Py_BuildValue("(OOOOOOs)", draw, click, key, cursor, wheel, rightClick, CurrentPythonModuleName);
-  params.drawWindowFunc = drawWindow;
-  params.handleMouseClickFunc = handleMouseClick;
-  params.handleKeyFunc = handleKey;
-  params.handleCursorFunc = handleCursor;
-  params.handleMouseWheelFunc = handleMouseWheel;
-  params.handleRightClickFunc = handleRightClick;
+  params.drawWindowFunc = genericWindowDraw;
+  params.handleMouseClickFunc = genericWindowMouseClick;
+  params.handleKeyFunc = genericWindowKey;
+  params.handleCursorFunc = genericWindowCursor;
+  params.handleMouseWheelFunc = genericWindowMouseWheel;
+  params.handleRightClickFunc = genericWindowRightClick;
 
   if(!cbkTuple){
     PyErr_SetString(PyExc_RuntimeError ,"XPLMCreateWindowEx couldn't create a callback tuple.\n");
@@ -939,7 +1680,7 @@ static PyObject *XPLMCreateWindowFun(PyObject *self, PyObject *args, PyObject *k
   }
 
   Py_INCREF(refcon);
-  XPLMWindowID id = XPLMCreateWindow(left, top, right, bottom, visible, drawWindow, handleKey, handleMouseClick, refcon);
+  XPLMWindowID id = XPLMCreateWindow(left, top, right, bottom, visible, genericWindowDraw, genericWindowKey, genericWindowMouseClick, refcon);
 
   PyObject *pID = getPtrRef(id, windowIDCapsules, windowIDRef);
   PyDict_SetItem(windowDict, pID, cbkTuple);
@@ -1175,6 +1916,30 @@ static PyObject *XPLMGetWindowGeometryFun(PyObject *self, PyObject *args, PyObje
     PyList_Append(outBottom, PyLong_FromLong(bottom));
   Py_RETURN_NONE;
 }
+
+My_DOCSTR(_getAvionicsGeometry__doc__, "getAvionicsGeometry",
+          "avionicsID",
+          "avionicsID:XPLMAvionicsID",
+          "tuple[int, int, int, int]",
+          "Returns geometry (left, top, right, bottom) of popup window\n"
+          "in X-Plane coordinate system.");
+static PyObject *XPLMGetAvionicsGeometryFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"avionicsID", NULL};
+  (void) self;
+  PyObject *avionicsID;
+
+  if (!XPLMGetAvionicsGeometry_ptr) {
+    PyErr_SetString(PyExc_RuntimeError , "XPLMGetAvionicsGeometry is available only in XPLM410 and up.");
+    return NULL;
+  }
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
+    return NULL;
+  }
+  int left=0, top=0, right=0, bottom=0;
+  XPLMGetAvionicsGeometry_ptr(refToPtr(avionicsID, avionicsIDRef), &left, &top, &right, &bottom);
+  return Py_BuildValue("(iiii)", left, top, right, bottom);
+}
   
 My_DOCSTR(_setWindowGeometry__doc__, "setWindowGeometry",
           "windowID, left, top, right, bottom",
@@ -1192,6 +1957,30 @@ static PyObject *XPLMSetWindowGeometryFun(PyObject *self, PyObject *args, PyObje
   }
   void *inWindowID = refToPtr(win, windowIDRef);
   XPLMSetWindowGeometry(inWindowID, inLeft, inTop, inRight, inBottom);
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_setAvionicsGeometry__doc__, "setAvionicsGeometry",
+          "avionicsID, left, top, right, bottom",
+          "avionicsID:XPLMAvionicsID, left:int, top:int, right:int, bottom:int",
+          "None",
+          "Sets window geometry for cockpit device's popup window in X-Plane coordinates.");
+static PyObject *XPLMSetAvionicsGeometryFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"avionicsID", "left", "top", "right", "bottom", NULL};
+  (void) self;
+  PyObject *avionicsID;
+  int inLeft, inTop, inRight, inBottom;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oiiii", keywords, &avionicsID, &inLeft, &inTop, &inRight, &inBottom)){
+    return NULL;
+  }
+  if(!XPLMSetAvionicsGeometry_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMSetAvionicsGeometry is available only in XPLM410 and up.");
+    return NULL;
+  }
+    
+  void *inAvionicsID = refToPtr(avionicsID, avionicsIDRef);
+  XPLMSetAvionicsGeometry_ptr(inAvionicsID, inLeft, inTop, inRight, inBottom);
   Py_RETURN_NONE;
 }
 
@@ -1233,6 +2022,50 @@ static PyObject *XPLMGetWindowGeometryOSFun(PyObject *self, PyObject *args, PyOb
     PyList_Append(outRight, PyLong_FromLong(right));
   if (outBottom != Py_None)
     PyList_Append(outBottom, PyLong_FromLong(bottom));
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_getAvionicsGeometryOS__doc__, "getAvionicsGeometryOS",
+          "avionicsID",
+          "avionicsID:XPLMAvionicsID",
+          "tuple[int, int, int, int]",
+          "Returns window geometry for popped-out avionics device (left, top, right, bottom).");
+static PyObject *XPLMGetAvionicsGeometryOSFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"avionicsID", NULL};
+  (void) self;
+  PyObject *avionicsID;
+  if(!XPLMGetAvionicsGeometryOS_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMGetAvionicsGeometryOS is available only in XPLM410 and up.");
+    return NULL;
+  }
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
+    return NULL;
+  }
+  int left=0, top=0, right=0, bottom=0;
+  XPLMGetAvionicsGeometryOS_ptr(refToPtr(avionicsID, avionicsIDRef), &left, &top, &right, &bottom);
+  return Py_BuildValue("(iiii)", left, top, right, bottom);
+}
+
+My_DOCSTR(_setAvionicsGeometryOS__doc__, "setAvionicsGeometryOS",
+          "avionicsID, left, top, right, bottom",
+          "avionicsID:XPLMAvionicsID, left:int, top:int, right:int, bottom:int",
+          "None",
+          "Sets window geometry for popped-out avionics.");
+static PyObject *XPLMSetAvionicsGeometryOSFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"avionicsID", "left", "top", "right", "bottom", NULL};
+  (void) self;
+  PyObject *avionicsID;
+  int inLeft, inTop, inRight, inBottom;
+  if(!XPLMSetAvionicsGeometryOS_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMSetAvionicsGeometryOS is available only in XPLM410 and up.");
+    return NULL;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oiiii", keywords, &avionicsID, &inLeft, &inTop, &inRight, &inBottom)){
+    return NULL;
+  }
+  XPLMSetAvionicsGeometryOS_ptr(refToPtr(avionicsID, avionicsIDRef), inLeft, inTop, inRight, inBottom);
   Py_RETURN_NONE;
 }
 
@@ -1903,6 +2736,14 @@ static PyMethodDef XPLMDisplayMethods[] = {
   {"XPLMGetWindowGeometryOS", (PyCFunction)XPLMGetWindowGeometryOSFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"setWindowGeometryOS", (PyCFunction)XPLMSetWindowGeometryOSFun, METH_VARARGS | METH_KEYWORDS, _setWindowGeometryOS__doc__},
   {"XPLMSetWindowGeometryOS", (PyCFunction)XPLMSetWindowGeometryOSFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getAvionicsGeometry", (PyCFunction)XPLMGetAvionicsGeometryFun, METH_VARARGS | METH_KEYWORDS, _getAvionicsGeometry__doc__},
+  {"XPLMGetAvionicsGeometry", (PyCFunction)XPLMGetAvionicsGeometryFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"setAvionicsGeometry", (PyCFunction)XPLMSetAvionicsGeometryFun, METH_VARARGS | METH_KEYWORDS, _setAvionicsGeometry__doc__},
+  {"XPLMSetAvionicsGeometry", (PyCFunction)XPLMSetAvionicsGeometryFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getAvionicsGeometryOS", (PyCFunction)XPLMGetAvionicsGeometryOSFun, METH_VARARGS | METH_KEYWORDS, _getAvionicsGeometryOS__doc__},
+  {"XPLMGetAvionicsGeometryOS", (PyCFunction)XPLMGetAvionicsGeometryOSFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"setAvionicsGeometryOS", (PyCFunction)XPLMSetAvionicsGeometryOSFun, METH_VARARGS | METH_KEYWORDS, _setAvionicsGeometryOS__doc__},
+  {"XPLMSetAvionicsGeometryOS", (PyCFunction)XPLMSetAvionicsGeometryOSFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"getWindowIsVisible", (PyCFunction)XPLMGetWindowIsVisibleFun, METH_VARARGS | METH_KEYWORDS, _getWindowIsVisible__doc__},
   {"XPLMGetWindowIsVisible", (PyCFunction)XPLMGetWindowIsVisibleFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"setWindowIsVisible", (PyCFunction)XPLMSetWindowIsVisibleFun, METH_VARARGS | METH_KEYWORDS, _setWindowIsVisible__doc__},
@@ -1953,6 +2794,38 @@ static PyMethodDef XPLMDisplayMethods[] = {
   {"XPLMRegisterAvionicsCallbacksEx", (PyCFunction)XPLMRegisterAvionicsCallbacksExFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"unregisterAvionicsCallbacks", (PyCFunction)XPLMUnregisterAvionicsCallbacksFun, METH_VARARGS | METH_KEYWORDS, _unregisterAvionicsCallbacks__doc__},
   {"XPLMUnregisterAvionicsCallbacks", (PyCFunction)XPLMUnregisterAvionicsCallbacksFun, METH_VARARGS | METH_KEYWORDS, ""},
+  // SDK 410
+  {"getAvionicsHandle", (PyCFunction)XPLMGetAvionicsHandleFun, METH_VARARGS | METH_KEYWORDS, _getAvionicsHandle__doc__},
+  {"XPLMGetAvionicsHandle", (PyCFunction)XPLMGetAvionicsHandleFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"isAvionicsBound", (PyCFunction)XPLMIsAvionicsBoundFun, METH_VARARGS | METH_KEYWORDS, _isAvionicsBound__doc__},
+  {"XPLMIsAvionicsBound", (PyCFunction)XPLMIsAvionicsBoundFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"isCursorOverAvionics", (PyCFunction)XPLMIsCursorOverAvionicsFun, METH_VARARGS | METH_KEYWORDS, _isCursorOverAvionics__doc__},
+  {"XPLMIsCursorOverAvionics", (PyCFunction)XPLMIsCursorOverAvionicsFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"isAvionicsPopupVisible", (PyCFunction)XPLMIsAvionicsPopupVisibleFun, METH_VARARGS | METH_KEYWORDS, _isAvionicsPopupVisible__doc__},
+  {"XPLMIsAvionicsPopupVisible", (PyCFunction)XPLMIsAvionicsPopupVisibleFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"isAvionicsPoppedOut", (PyCFunction)XPLMIsAvionicsPoppedOutFun, METH_VARARGS | METH_KEYWORDS, _isAvionicsPoppedOut__doc__},
+  {"XPLMIsAvionicsPoppedOut", (PyCFunction)XPLMIsAvionicsPoppedOutFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"hasAvionicsKeyboardFocus", (PyCFunction)XPLMHasAvionicsKeyboardFocusFun, METH_VARARGS | METH_KEYWORDS, _hasAvionicsKeyboardFocus__doc__},
+  {"XPLMHasAvionicsKeyboardFocus", (PyCFunction)XPLMHasAvionicsKeyboardFocusFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"avionicsNeedsDrawing", (PyCFunction)XPLMAvionicsNeedsDrawingFun, METH_VARARGS | METH_KEYWORDS, _avionicsNeedsDrawing__doc__},
+  {"XPLMAvionicsNeedsDrawing", (PyCFunction)XPLMAvionicsNeedsDrawingFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"setAvionicsPopupVisible", (PyCFunction)XPLMSetAvionicsPopupVisibleFun, METH_VARARGS | METH_KEYWORDS, _setAvionicsPopupVisible__doc__},
+  {"XPLMSetAvionicsPopupVisible", (PyCFunction)XPLMSetAvionicsPopupVisibleFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"popOutAvionics", (PyCFunction)XPLMPopOutAvionicsFun, METH_VARARGS | METH_KEYWORDS, _popOutAvionics__doc__},
+  {"XPLMPopOutAvionics", (PyCFunction)XPLMPopOutAvionicsFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"takeAvionicsKeyboardFocus", (PyCFunction)XPLMTakeAvionicsKeyboardFocusFun, METH_VARARGS | METH_KEYWORDS, _takeAvionicsKeyboardFocus__doc__},
+  {"XPLMTakeAvionicsKeyboardFocus", (PyCFunction)XPLMTakeAvionicsKeyboardFocusFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"destroyAvionics", (PyCFunction)XPLMDestroyAvionicsFun, METH_VARARGS | METH_KEYWORDS, _destroyAvionics__doc__},
+  {"XPLMDestroyAvionics", (PyCFunction)XPLMDestroyAvionicsFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"createAvionicsEx", (PyCFunction)XPLMCreateAvionicsExFun, METH_VARARGS | METH_KEYWORDS, _createAvionicsEx__doc__},
+  {"XPLMCreateAvionicsEx", (PyCFunction)XPLMCreateAvionicsExFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"setAvionicsBrightnessRheo", (PyCFunction)XPLMSetAvionicsBrightnessRheoFun, METH_VARARGS | METH_KEYWORDS, _setAvionicsBrightnessRheo__doc__},
+  {"XPLMSetAvionicsBrightnessRheo", (PyCFunction)XPLMSetAvionicsBrightnessRheoFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getAvionicsBrightnessRheo", (PyCFunction)XPLMGetAvionicsBrightnessRheoFun, METH_VARARGS | METH_KEYWORDS, _getAvionicsBrightnessRheo__doc__},
+  {"XPLMGetAvionicsBrightnessRheo", (PyCFunction)XPLMGetAvionicsBrightnessRheoFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getAvionicsBusVoltsRatio", (PyCFunction)XPLMGetAvionicsBusVoltsRatioFun, METH_VARARGS | METH_KEYWORDS, _getAvionicsBusVoltsRatio__doc__},
+  {"XPLMGetAvionicsBusVoltsRatio", (PyCFunction)XPLMGetAvionicsBusVoltsRatioFun, METH_VARARGS | METH_KEYWORDS, ""},
+
   
   {"_cleanup", cleanup, METH_VARARGS, "cleanup"},
   {NULL, NULL, 0, NULL}
@@ -2048,6 +2921,7 @@ PyInit_XPLMDisplay(void)
     PyModule_AddIntConstant(mod, "Phase_LocalMapProfile", xplm_Phase_LocalMapProfile); //XPLMDrawingPhase
 #endif
 
+    /* mouse status has been moved to defs.c in SDK410, but we'll keep it here, also, so older code continues to work */
     PyModule_AddIntConstant(mod, "xplm_MouseDown", xplm_MouseDown); // XPLMMouseStatus
     PyModule_AddIntConstant(mod, "xplm_MouseDrag", xplm_MouseDrag); // XPLMMouseStatus
     PyModule_AddIntConstant(mod, "xplm_MouseUp",   xplm_MouseUp); // XPLMMouseStatus
@@ -2055,6 +2929,7 @@ PyInit_XPLMDisplay(void)
     PyModule_AddIntConstant(mod, "MouseDown", xplm_MouseDown); // XPLMMouseStatus
     PyModule_AddIntConstant(mod, "MouseDrag", xplm_MouseDrag); // XPLMMouseStatus
     PyModule_AddIntConstant(mod, "MouseUp",   xplm_MouseUp); // XPLMMouseStatus
+    /* ^^^^^ */
 
     PyModule_AddIntConstant(mod, "xplm_CursorDefault", xplm_CursorDefault); //XPLMCursorStatus
     PyModule_AddIntConstant(mod, "xplm_CursorHidden",  xplm_CursorHidden); //XPLMCursorStatus
@@ -2138,6 +3013,13 @@ PyInit_XPLMDisplay(void)
     PyModule_AddIntConstant(mod, "Device_Primus_MFD_3", -1); // XPLMDeviceID
     PyModule_AddIntConstant(mod, "Device_Primus_RMU_1", -1); // XPLMDeviceID
     PyModule_AddIntConstant(mod, "Device_Primus_RMU_2", -1); // XPLMDeviceID
+#endif
+#if defined(XPLM410)
+    PyModule_AddIntConstant(mod, "Device_MCDU_1", 18); // XPLMDeviceID
+    PyModule_AddIntConstant(mod, "Device_MCDU_2", 19); // XPLMDeviceID
+#else
+    PyModule_AddIntConstant(mod, "Device_MCDU_1", -1); // XPLMDeviceID
+    PyModule_AddIntConstant(mod, "Device_MCDU_2", -1); // XPLMDeviceID
 #endif
   }
 
@@ -2327,5 +3209,636 @@ int genericKeySnifferCallback(char inChar, XPLMKeyFlags inFlags, char inVirtualK
   }
 
   Py_XDECREF(pRes);
+  return res;
+}
+
+static void genericAvionicsBezelDraw(float inAmbiantR, float inAmbiantG, float inAmbiantB, void *inRefcon) {
+  struct timespec all_stop, all_start;
+  clock_gettime(CLOCK_MONOTONIC, &all_start);
+  PyObject *pl = PyLong_FromVoidPtr(inRefcon);/*new*/
+  PyObject *err = NULL;
+  if (pl == NULL) {
+    pythonLog("avionicsBezelDraw, can't create PyLong.");
+    goto cleanup;
+  }
+
+  PyObject *tup = PyDict_GetItem(avionicsCallbacksDict, pl); /*borrowed*/
+  Py_DECREF(pl);
+  if (!tup) {
+    pythonLog("avionicsBezelDraw, got unknown inRefcon(%p)!", inRefcon);
+    goto cleanup;
+  }
+
+  PyObject *fun = PyTuple_GetItem(tup, AVIONICS_BEZEL_DRAW); /* borrowed */
+  PyObject *refCon = PyTuple_GetItem(tup, AVIONICS_REFCON);/* borrowed */
+  set_moduleName(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME));
+  struct timespec stop, start;
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  PyObject_CallFunctionObjArgs(fun,
+                               PyFloat_FromDouble(inAmbiantR),
+                               PyFloat_FromDouble(inAmbiantG),
+                               PyFloat_FromDouble(inAmbiantB), refCon, NULL);
+  clock_gettime(CLOCK_MONOTONIC, &stop);
+  pluginStats[getPluginIndex(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+
+ cleanup:
+  err = PyErr_Occurred();
+  if(err){
+    pythonLogException();
+  }
+
+  clock_gettime(CLOCK_MONOTONIC, &all_stop);
+  pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
+}
+
+static void genericAvionicsScreenDraw(void *inRefcon)  {
+  struct timespec all_stop, all_start;
+  clock_gettime(CLOCK_MONOTONIC, &all_start);
+  PyObject *pl = PyLong_FromVoidPtr(inRefcon);/*new*/
+  PyObject *err = NULL;
+  if (pl == NULL) {
+    pythonLog("genericAvionicsScreenDraw, can't create PyLong.");
+    goto cleanup;
+  }
+
+  PyObject *tup = PyDict_GetItem(avionicsCallbacksDict, pl); /*borrowed*/
+  Py_DECREF(pl);
+  if (!tup) {
+    pythonLog("genericAvionicsScreenDraw, got unknown inRefcon(%p)!", inRefcon);
+    goto cleanup;
+  }
+
+  PyObject *fun = PyTuple_GetItem(tup, AVIONICS_DRAW); /* borrowed */
+  PyObject *refCon = PyTuple_GetItem(tup, AVIONICS_REFCON);/* borrowed */
+  set_moduleName(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME));
+  struct timespec stop, start;
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  PyObject_CallFunctionObjArgs(fun, refCon, NULL);
+  clock_gettime(CLOCK_MONOTONIC, &stop);
+  pluginStats[getPluginIndex(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+
+ cleanup:
+  err = PyErr_Occurred();
+  if(err){
+    pythonLogException();
+  }
+
+  clock_gettime(CLOCK_MONOTONIC, &all_stop);
+  pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
+}
+
+static float genericAvionicsBrightness(float inRheoValue, float inAmbiantBrightness, float inBusVoltsRatio, void *inRefcon)  {
+  struct timespec all_stop, all_start;
+  clock_gettime(CLOCK_MONOTONIC, &all_start);
+  PyObject *err = NULL;
+  PyObject *pRes = NULL;
+  PyObject *pl = PyLong_FromVoidPtr(inRefcon);/*new*/
+  float res = inRheoValue * inAmbiantBrightness; /* ... the default behavior */
+
+  if (pl == NULL) {
+    pythonLog("genericAvionicsBrightness, can't create PyLong.");
+    goto cleanup;
+  }
+
+  PyObject *tup = PyDict_GetItem(avionicsCallbacksDict, pl); /*borrowed*/
+  Py_DECREF(pl);
+  if (!tup) {
+    pythonLog("genericAvionicsBrightness, got unknown inRefcon(%p)!", inRefcon);
+    goto cleanup;
+  }
+
+  PyObject *fun = PyTuple_GetItem(tup, AVIONICS_BRIGHTNESS); /* borrowed */
+  PyObject *refCon = PyTuple_GetItem(tup, AVIONICS_REFCON);/* borrowed */
+
+  set_moduleName(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME));
+  struct timespec stop, start;
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  pRes = PyObject_CallFunctionObjArgs(fun,
+                                      PyFloat_FromDouble(inRheoValue),
+                                      PyFloat_FromDouble(inAmbiantBrightness),
+                                      PyFloat_FromDouble(inBusVoltsRatio),
+                                      refCon, NULL);
+  clock_gettime(CLOCK_MONOTONIC, &stop);
+  pluginStats[getPluginIndex(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+
+  if(!pRes){
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Avionics Brightness callback %s failed.", CurrentPythonModuleName, s2);
+    free(s2);
+    goto cleanup;
+  }
+  if(!PyFloat_Check(pRes)){
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Avionics Brightness callback %s returned a wrong type (callbacks must return int).", CurrentPythonModuleName, s2);
+    free(s2);
+    goto cleanup;
+  }
+  res = (float)PyFloat_AsDouble(pRes);
+
+ cleanup:
+  err = PyErr_Occurred();
+  if(err){
+    pythonLogException();
+  }
+
+  clock_gettime(CLOCK_MONOTONIC, &all_stop);
+  pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
+  return res;
+}
+
+static int genericAvionicsBezelClick(int x, int y, XPLMMouseStatus inMouse, void *inRefcon) {
+  struct timespec all_stop, all_start;
+  clock_gettime(CLOCK_MONOTONIC, &all_start);
+  PyObject *pl = PyLong_FromVoidPtr(inRefcon);/*new*/
+  PyObject *err = NULL;
+  PyObject *pRes = NULL;
+  int res = 0;
+  if (pl == NULL) {
+    pythonLog("avionicsBezelClick, can't create PyLong.");
+    goto cleanup;
+  }
+
+  PyObject *tup = PyDict_GetItem(avionicsCallbacksDict, pl); /*borrowed*/
+  Py_DECREF(pl);
+  if (!tup) {
+    pythonLog("avionicsBezelClick, got unknown inRefcon(%p)!", inRefcon);
+    goto cleanup;
+  }
+  PyObject *fun = PyTuple_GetItem(tup, AVIONICS_BEZEL_CLICK); /* borrowed */
+  PyObject *refCon = PyTuple_GetItem(tup, AVIONICS_REFCON);/* borrowed */
+  set_moduleName(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME));
+
+  struct timespec stop, start;
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  pRes = PyObject_CallFunctionObjArgs(fun, PyLong_FromLong(x), PyLong_FromLong(y), PyLong_FromLong(inMouse), refCon, NULL);
+  clock_gettime(CLOCK_MONOTONIC, &stop);
+  pluginStats[getPluginIndex(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+
+  if(!pRes){
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Avionics Bezel Click callback %s failed.", CurrentPythonModuleName, s2);
+    free(s2);
+    goto cleanup;
+  }
+  if(!PyLong_Check(pRes)){
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Avionics Bezel Click callback %s returned a wrong type (callbacks must return int).", CurrentPythonModuleName, s2);
+    free(s2);
+    goto cleanup;
+  }
+  res = (int)PyLong_AsLong(pRes);
+                                   
+ cleanup:
+  err = PyErr_Occurred();
+  if(err){
+    pythonLogException();
+  }
+  Py_XDECREF(pRes);
+
+  clock_gettime(CLOCK_MONOTONIC, &all_stop);
+  pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
+
+  return res;
+}
+
+static int genericAvionicsBezelRightClick(int x, int y, XPLMMouseStatus inMouse, void *inRefcon) {
+  struct timespec all_stop, all_start;
+  clock_gettime(CLOCK_MONOTONIC, &all_start);
+  PyObject *pl = PyLong_FromVoidPtr(inRefcon);/*new*/
+  PyObject *err = NULL;
+  PyObject *pRes = NULL;
+  int res = 0;
+  if (pl == NULL) {
+    pythonLog("avionicsBezelRightClick, can't create PyLong.");
+    goto cleanup;
+  }
+
+  PyObject *tup = PyDict_GetItem(avionicsCallbacksDict, pl); /*borrowed*/
+  Py_DECREF(pl);
+  if (!tup) {
+    pythonLog("avionicsBezelRightClick, got unknown inRefcon(%p)!", inRefcon);
+    goto cleanup;
+  }
+  PyObject *fun = PyTuple_GetItem(tup, AVIONICS_BEZEL_RIGHTCLICK); /* borrowed */
+  PyObject *refCon = PyTuple_GetItem(tup, AVIONICS_REFCON);/* borrowed */
+  set_moduleName(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME));
+
+  struct timespec stop, start;
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  pRes = PyObject_CallFunctionObjArgs(fun, PyLong_FromLong(x), PyLong_FromLong(y), PyLong_FromLong(inMouse), refCon, NULL);
+  clock_gettime(CLOCK_MONOTONIC, &stop);
+  pluginStats[getPluginIndex(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+
+  if(!pRes){
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Avionics Bezel Right Click callback %s failed.", CurrentPythonModuleName, s2);
+    free(s2);
+    goto cleanup;
+  }
+  if(!PyLong_Check(pRes)){
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Avionics Bezel Right Click callback %s returned a wrong type (callbacks must return int).", CurrentPythonModuleName, s2);
+    free(s2);
+    goto cleanup;
+  }
+  res = (int)PyLong_AsLong(pRes);
+                                   
+ cleanup:
+  err = PyErr_Occurred();
+  if(err){
+    pythonLogException();
+  }
+  Py_XDECREF(pRes);
+
+  clock_gettime(CLOCK_MONOTONIC, &all_stop);
+  pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
+
+  return res;
+}
+
+static int genericAvionicsBezelScroll(int x, int y, int wheel, int clicks, void *inRefcon) {
+  struct timespec all_stop, all_start;
+  clock_gettime(CLOCK_MONOTONIC, &all_start);
+  PyObject *pl = PyLong_FromVoidPtr(inRefcon);/*new*/
+  PyObject *err = NULL;
+  PyObject *pRes = NULL;
+  int res = 0;
+  if (pl == NULL) {
+    pythonLog("avionicsBezelScroll, can't create PyLong.");
+    goto cleanup;
+  }
+
+  PyObject *tup = PyDict_GetItem(avionicsCallbacksDict, pl); /*borrowed*/
+  Py_DECREF(pl);
+  if (!tup) {
+    pythonLog("avionicsBezelScroll, got unknown inRefcon(%p)!", inRefcon);
+    goto cleanup;
+  }
+  PyObject *fun = PyTuple_GetItem(tup, AVIONICS_BEZEL_SCROLL); /* borrowed */
+  PyObject *refCon = PyTuple_GetItem(tup, AVIONICS_REFCON);/* borrowed */
+  set_moduleName(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME));
+
+  struct timespec stop, start;
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  pRes = PyObject_CallFunctionObjArgs(fun, PyLong_FromLong(x), PyLong_FromLong(y), PyLong_FromLong(wheel),
+                                      PyLong_FromLong(clicks), refCon, NULL);
+  clock_gettime(CLOCK_MONOTONIC, &stop);
+  pluginStats[getPluginIndex(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+
+  if(!pRes){
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Avionics Bezel Scroll callback %s failed.", CurrentPythonModuleName, s2);
+    free(s2);
+    goto cleanup;
+  }
+  if(!PyLong_Check(pRes)){
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Avionics Bezel Scroll callback %s returned a wrong type (callbacks must return int).", CurrentPythonModuleName, s2);
+    free(s2);
+    goto cleanup;
+  }
+  res = (int)PyLong_AsLong(pRes);
+                                   
+ cleanup:
+  err = PyErr_Occurred();
+  if(err){
+    pythonLogException();
+  }
+  Py_XDECREF(pRes);
+
+  clock_gettime(CLOCK_MONOTONIC, &all_stop);
+  pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
+
+  return res;
+}
+
+static XPLMCursorStatus genericAvionicsBezelCursor(int x, int y, void *inRefcon) {
+  struct timespec all_stop, all_start;
+  clock_gettime(CLOCK_MONOTONIC, &all_start);
+  PyObject *pl = PyLong_FromVoidPtr(inRefcon);/*new*/
+  PyObject *err = NULL;
+  PyObject *pRes = NULL;
+  XPLMCursorStatus res = 0;
+  if (pl == NULL) {
+    pythonLog("avionicsBezelCursor, can't create PyLong.");
+    goto cleanup;
+  }
+
+  PyObject *tup = PyDict_GetItem(avionicsCallbacksDict, pl); /*borrowed*/
+  Py_DECREF(pl);
+  if (!tup) {
+    pythonLog("avionicsBezelCursor, got unknown inRefcon(%p)!", inRefcon);
+    goto cleanup;
+  }
+  PyObject *fun = PyTuple_GetItem(tup, AVIONICS_BEZEL_CURSOR); /* borrowed */
+  PyObject *refCon = PyTuple_GetItem(tup, AVIONICS_REFCON);/* borrowed */
+  set_moduleName(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME));
+
+  struct timespec stop, start;
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  pRes = PyObject_CallFunctionObjArgs(fun, PyLong_FromLong(x), PyLong_FromLong(y), refCon, NULL);
+  clock_gettime(CLOCK_MONOTONIC, &stop);
+  pluginStats[getPluginIndex(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+
+  if(!pRes){
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Avionics Bezel Cursor callback %s failed.", CurrentPythonModuleName, s2);
+    free(s2);
+    goto cleanup;
+  }
+  if(!PyLong_Check(pRes)){
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Avionics Bezel Cursor callback %s returned a wrong type (callbacks must return int).", CurrentPythonModuleName, s2);
+    free(s2);
+    goto cleanup;
+  }
+  res = (XPLMCursorStatus)PyLong_AsLong(pRes);
+                                   
+ cleanup:
+  err = PyErr_Occurred();
+  if(err){
+    pythonLogException();
+  }
+  Py_XDECREF(pRes);
+
+  clock_gettime(CLOCK_MONOTONIC, &all_stop);
+  pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
+
+  return res;
+}
+
+static int genericAvionicsScreenTouch(int x, int y, int inMouse, void *inRefcon) {
+  struct timespec all_stop, all_start;
+  clock_gettime(CLOCK_MONOTONIC, &all_start);
+  PyObject *pl = PyLong_FromVoidPtr(inRefcon);/*new*/
+  PyObject *err = NULL;
+  PyObject *pRes = NULL;
+  int res = 0;
+  if (pl == NULL) {
+    pythonLog("avionicsScreenTouch, can't create PyLong.");
+    goto cleanup;
+  }
+
+  PyObject *tup = PyDict_GetItem(avionicsCallbacksDict, pl); /*borrowed*/
+  Py_DECREF(pl);
+  if (!tup) {
+    pythonLog("avionicsScreenTouch, got unknown inRefcon(%p)!", inRefcon);
+    goto cleanup;
+  }
+  PyObject *fun = PyTuple_GetItem(tup, AVIONICS_SCREEN_TOUCH); /* borrowed */
+  PyObject *refCon = PyTuple_GetItem(tup, AVIONICS_REFCON);/* borrowed */
+  set_moduleName(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME));
+
+  struct timespec stop, start;
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  pRes = PyObject_CallFunctionObjArgs(fun, PyLong_FromLong(x), PyLong_FromLong(y), PyLong_FromLong(inMouse), refCon, NULL);
+  clock_gettime(CLOCK_MONOTONIC, &stop);
+  pluginStats[getPluginIndex(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+
+  if(!pRes){
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Avionics Screen Touch callback %s failed.", CurrentPythonModuleName, s2);
+    free(s2);
+    goto cleanup;
+  }
+  if(!PyLong_Check(pRes)){
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Avionics Screen Touch callback %s returned a wrong type (callbacks must return int).", CurrentPythonModuleName, s2);
+    free(s2);
+    goto cleanup;
+  }
+  res = (int)PyLong_AsLong(pRes);
+                                   
+ cleanup:
+  err = PyErr_Occurred();
+  if(err){
+    pythonLogException();
+  }
+  Py_XDECREF(pRes);
+
+  clock_gettime(CLOCK_MONOTONIC, &all_stop);
+  pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
+
+  return res;
+}
+
+static int genericAvionicsScreenRightTouch(int x, int y, int inMouse, void *inRefcon) {
+  struct timespec all_stop, all_start;
+  clock_gettime(CLOCK_MONOTONIC, &all_start);
+  PyObject *pl = PyLong_FromVoidPtr(inRefcon);/*new*/
+  PyObject *err = NULL;
+  PyObject *pRes = NULL;
+  int res = 0;
+  if (pl == NULL) {
+    pythonLog("avionicsScreenRightTouch, can't create PyLong.");
+    goto cleanup;
+  }
+
+  PyObject *tup = PyDict_GetItem(avionicsCallbacksDict, pl); /*borrowed*/
+  Py_DECREF(pl);
+  if (!tup) {
+    pythonLog("avionicsScreenRightTouch, got unknown inRefcon(%p)!", inRefcon);
+    goto cleanup;
+  }
+  PyObject *fun = PyTuple_GetItem(tup, AVIONICS_SCREEN_RIGHTTOUCH); /* borrowed */
+  PyObject *refCon = PyTuple_GetItem(tup, AVIONICS_REFCON);/* borrowed */
+  set_moduleName(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME));
+
+  struct timespec stop, start;
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  pRes = PyObject_CallFunctionObjArgs(fun, PyLong_FromLong(x), PyLong_FromLong(y), PyLong_FromLong(inMouse), refCon, NULL);
+  clock_gettime(CLOCK_MONOTONIC, &stop);
+  pluginStats[getPluginIndex(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+
+  if(!pRes){
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Avionics Screen Right Touch callback %s failed.", CurrentPythonModuleName, s2);
+    free(s2);
+    goto cleanup;
+  }
+  if(!PyLong_Check(pRes)){
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Avionics Screen Right Touch callback %s returned a wrong type (callbacks must return int).", CurrentPythonModuleName, s2);
+    free(s2);
+    goto cleanup;
+  }
+  res = (int)PyLong_AsLong(pRes);
+                                   
+ cleanup:
+  err = PyErr_Occurred();
+  if(err){
+    pythonLogException();
+  }
+  Py_XDECREF(pRes);
+
+  clock_gettime(CLOCK_MONOTONIC, &all_stop);
+  pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
+
+  return res;
+}
+
+static int genericAvionicsScreenScroll(int x, int y, int wheel, int clicks, void *inRefcon) {
+  struct timespec all_stop, all_start;
+  clock_gettime(CLOCK_MONOTONIC, &all_start);
+  PyObject *pl = PyLong_FromVoidPtr(inRefcon);/*new*/
+  PyObject *err = NULL;
+  PyObject *pRes = NULL;
+  int res = 0;
+  if (pl == NULL) {
+    pythonLog("avionicsScreenScroll, can't create PyLong.");
+    goto cleanup;
+  }
+
+  PyObject *tup = PyDict_GetItem(avionicsCallbacksDict, pl); /*borrowed*/
+  Py_DECREF(pl);
+  if (!tup) {
+    pythonLog("avionicsScreenScroll, got unknown inRefcon(%p)!", inRefcon);
+    goto cleanup;
+  }
+  PyObject *fun = PyTuple_GetItem(tup, AVIONICS_SCREEN_SCROLL); /* borrowed */
+  PyObject *refCon = PyTuple_GetItem(tup, AVIONICS_REFCON);/* borrowed */
+  set_moduleName(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME));
+
+  struct timespec stop, start;
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  pRes = PyObject_CallFunctionObjArgs(fun, PyLong_FromLong(x), PyLong_FromLong(y),
+                                      PyLong_FromLong(wheel), PyLong_FromLong(clicks), refCon, NULL);
+  clock_gettime(CLOCK_MONOTONIC, &stop);
+  pluginStats[getPluginIndex(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+
+  if(!pRes){
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Avionics Screen Scroll callback %s failed.", CurrentPythonModuleName, s2);
+    free(s2);
+    goto cleanup;
+  }
+  if(!PyLong_Check(pRes)){
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Avionics Screen Scroll callback %s returned a wrong type (callbacks must return int).", CurrentPythonModuleName, s2);
+    free(s2);
+    goto cleanup;
+  }
+  res = (int)PyLong_AsLong(pRes);
+                                   
+ cleanup:
+  err = PyErr_Occurred();
+  if(err){
+    pythonLogException();
+  }
+  Py_XDECREF(pRes);
+
+  clock_gettime(CLOCK_MONOTONIC, &all_stop);
+  pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
+
+  return res;
+}
+
+static XPLMCursorStatus genericAvionicsScreenCursor(int x, int y, void *inRefcon) {
+  struct timespec all_stop, all_start;
+  clock_gettime(CLOCK_MONOTONIC, &all_start);
+  PyObject *pl = PyLong_FromVoidPtr(inRefcon);/*new*/
+  PyObject *err = NULL;
+  PyObject *pRes = NULL;
+  XPLMCursorStatus res = 0;
+  if (pl == NULL) {
+    pythonLog("avionicsScreenCursor, can't create PyLong.");
+    goto cleanup;
+  }
+
+  PyObject *tup = PyDict_GetItem(avionicsCallbacksDict, pl); /*borrowed*/
+  Py_DECREF(pl);
+  if (!tup) {
+    pythonLog("avionicsScreenCursor, got unknown inRefcon(%p)!", inRefcon);
+    goto cleanup;
+  }
+  PyObject *fun = PyTuple_GetItem(tup, AVIONICS_SCREEN_CURSOR); /* borrowed */
+  PyObject *refCon = PyTuple_GetItem(tup, AVIONICS_REFCON);/* borrowed */
+  set_moduleName(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME));
+
+  struct timespec stop, start;
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  pRes = PyObject_CallFunctionObjArgs(fun, PyLong_FromLong(x), PyLong_FromLong(y), refCon, NULL);
+  clock_gettime(CLOCK_MONOTONIC, &stop);
+  pluginStats[getPluginIndex(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+
+  if(!pRes){
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Avionics Screen Cursor callback %s failed.", CurrentPythonModuleName, s2);
+    free(s2);
+    goto cleanup;
+  }
+  if(!PyLong_Check(pRes)){
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Avionics Screen Cursor callback %s returned a wrong type (callbacks must return int).", CurrentPythonModuleName, s2);
+    free(s2);
+    goto cleanup;
+  }
+  res = (XPLMCursorStatus)PyLong_AsLong(pRes);
+                                   
+ cleanup:
+  err = PyErr_Occurred();
+  if(err){
+    pythonLogException();
+  }
+  Py_XDECREF(pRes);
+
+  clock_gettime(CLOCK_MONOTONIC, &all_stop);
+  pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
+  return res;
+}
+
+static int genericAvionicsKeyboard(char inKey, XPLMKeyFlags inFlags, char inVirtualKey, void *inRefcon, int losingFocus) {
+  struct timespec all_stop, all_start;
+  clock_gettime(CLOCK_MONOTONIC, &all_start);
+  PyObject *pl = PyLong_FromVoidPtr(inRefcon);/*new*/
+  PyObject *err = NULL;
+  PyObject *pRes = NULL;
+  int res = 0;
+  if (pl == NULL) {
+    pythonLog("avionicsKeyboard, can't create PyLong.");
+    goto cleanup;
+  }
+
+  PyObject *tup = PyDict_GetItem(avionicsCallbacksDict, pl); /*borrowed*/
+  Py_DECREF(pl);
+  if (!tup) {
+    pythonLog("avionicsKeyboard, got unknown inRefcon(%p)!", inRefcon);
+    goto cleanup;
+  }
+  PyObject *fun = PyTuple_GetItem(tup, AVIONICS_KEYBOARD); /* borrowed */
+  PyObject *refCon = PyTuple_GetItem(tup, AVIONICS_REFCON);/* borrowed */
+  set_moduleName(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME));
+
+  struct timespec stop, start;
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  pRes = PyObject_CallFunctionObjArgs(fun,
+                                      PyLong_FromLong(inKey), PyLong_FromLong(inFlags),
+                                      PyLong_FromLong(inVirtualKey), refCon, PyLong_FromLong(losingFocus), NULL);
+  clock_gettime(CLOCK_MONOTONIC, &stop);
+  pluginStats[getPluginIndex(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+
+  if(!pRes){
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Avionics Keyboard callback %s failed.", CurrentPythonModuleName, s2);
+    free(s2);
+    goto cleanup;
+  }
+  if(!PyLong_Check(pRes)){
+    char *s2 = objToStr(fun);
+    pythonLog("[%s] Avionics Keyboard callback %s returned a wrong type (callbacks must return int).", CurrentPythonModuleName, s2);
+    free(s2);
+    goto cleanup;
+  }
+  res = (int)PyLong_AsLong(pRes);
+                                   
+ cleanup:
+  err = PyErr_Occurred();
+  if(err){
+    pythonLogException();
+  }
+  Py_XDECREF(pRes);
+
+  clock_gettime(CLOCK_MONOTONIC, &all_stop);
+  pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
   return res;
 }

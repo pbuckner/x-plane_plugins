@@ -13,6 +13,7 @@
 #include <XPLM/XPLMDisplay.h>
 #include <XPLM/XPLMPlanes.h>
 #include <XPLM/XPLMWeather.h>
+#include <XPLM/XPLMNavigation.h>
 #include <XPLM/XPLMSound.h>
 #include <Widgets/XPWidgetDefs.h>
 #include <Widgets/XPWidgets.h>
@@ -72,7 +73,43 @@ extern typeof(XPLMGetDataRefInfo) *XPLMGetDataRefInfo_ptr;
 extern typeof(XPLMGetMETARForAirport) *XPLMGetMETARForAirport_ptr;
 extern typeof(XPLMGetWeatherAtLocation) *XPLMGetWeatherAtLocation_ptr;
 
+
 #define PLUGIN_DLL(x) extern typeof(x) *x##_ptr
+//XPLM_410
+PLUGIN_DLL(XPLMGetAvionicsHandle);
+PLUGIN_DLL(XPLMIsAvionicsBound);
+PLUGIN_DLL(XPLMIsCursorOverAvionics);
+PLUGIN_DLL(XPLMIsAvionicsPopupVisible);
+PLUGIN_DLL(XPLMIsAvionicsPoppedOut);
+PLUGIN_DLL(XPLMHasAvionicsKeyboardFocus);
+PLUGIN_DLL(XPLMAvionicsNeedsDrawing);
+PLUGIN_DLL(XPLMSetAvionicsPopupVisible);
+PLUGIN_DLL(XPLMPopOutAvionics);
+PLUGIN_DLL(XPLMTakeAvionicsKeyboardFocus);
+PLUGIN_DLL(XPLMDestroyAvionics);
+PLUGIN_DLL(XPLMGetAvionicsGeometry);
+PLUGIN_DLL(XPLMSetAvionicsGeometry);
+PLUGIN_DLL(XPLMGetAvionicsGeometryOS);
+PLUGIN_DLL(XPLMSetAvionicsGeometryOS);
+PLUGIN_DLL(XPLMGetAvionicsBrightnessRheo);
+PLUGIN_DLL(XPLMSetAvionicsBrightnessRheo);
+PLUGIN_DLL(XPLMGetAvionicsBusVoltsRatio);
+PLUGIN_DLL(XPLMCreateAvionicsEx);
+
+PLUGIN_DLL(XPLMCountFMSFlightPlanEntries);
+PLUGIN_DLL(XPLMGetDisplayedFMSFlightPlanEntry);
+PLUGIN_DLL(XPLMGetDestinationFMSFlightPlanEntry);
+PLUGIN_DLL(XPLMSetDisplayedFMSFlightPlanEntry);
+PLUGIN_DLL(XPLMSetDestinationFMSFlightPlanEntry);
+PLUGIN_DLL(XPLMSetDirectToFMSFlightPlanEntry);
+PLUGIN_DLL(XPLMGetFMSFlightPlanEntryInfo);
+PLUGIN_DLL(XPLMSetFMSFlightPlanEntryInfo);
+PLUGIN_DLL(XPLMSetFMSFlightPlanEntryLatLon);
+PLUGIN_DLL(XPLMSetFMSFlightPlanEntryLatLonWithId);
+PLUGIN_DLL(XPLMClearFMSFlightPlanEntry);
+PLUGIN_DLL(XPLMLoadFMSFlightPlan);
+PLUGIN_DLL(XPLMSaveFMSFlightPlan);
+
 #if defined(_FMOD_COMMON_H)
 PLUGIN_DLL(XPLMGetFMODStudio);
 PLUGIN_DLL(XPLMGetFMODChannelGroup);

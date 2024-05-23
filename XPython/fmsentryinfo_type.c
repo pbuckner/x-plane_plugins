@@ -112,6 +112,8 @@ static PyObject *FMSEntryInfo_str(FMSEntryInfoObject *obj) {
     navAidType = "Fix"; break;
   case xplm_Nav_DME:
     navAidType = "DME"; break;
+  case xplm_Nav_TACAN:
+    navAidType = "TACAN"; break;
   case xplm_Nav_LatLon:
     navAidType = "LatLon"; break;
   case xplm_Nav_Unknown:
@@ -154,6 +156,7 @@ FMSEntryInfoType = {
 PyObject *
 PyFMSEntryInfo_New(int type, char *navAidID, int ref, int altitude, float lat, float lon)
 {
+  if (type == xplm_Nav_Unknown) Py_RETURN_NONE;
   PyObject *argsList = Py_BuildValue("iUiiff", type, navAidID, ref, altitude, lat, lon);
   PyObject *obj = PyObject_CallObject((PyObject *) &FMSEntryInfoType, argsList);
   Py_XDECREF(argsList);

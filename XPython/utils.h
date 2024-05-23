@@ -13,6 +13,7 @@ extern PyObject *XPY3pythonDicts;
 extern PyObject *XPY3pythonCapsules;
 extern int pythonDebugs;
 extern int pythonWarnings;
+extern int pythonStats;
 extern int pythonFlushLog;
 extern int pythonCapsuleRegistration;
 extern char CurrentPythonModuleName[];

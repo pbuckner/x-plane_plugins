@@ -242,6 +242,7 @@ void clearInstanceMenuItems(PyObject *pluginSelf) {
      if the existing index is greater than a index in the deletion list (e.g., '[3, 5, 6]')
    */
   pythonDebug("%*s Clearing top-level menu items for %s", 6, " ", objDebug(pluginSelf));
+  if (!menuPluginIdxDict) return;
   if (!PyDict_Contains(menuPluginIdxDict, pluginSelf)) {
     pythonDebug("%*s No menu items for %s", 8, " ", objDebug(pluginSelf));
     return;

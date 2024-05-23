@@ -286,7 +286,7 @@ static int stopPython(void)
     char **dict_ptr = dicts;
     while(*dict_ptr != NULL) {
       PyObject *dict = PyDict_GetItemString(XPY3pythonDicts, *dict_ptr); // borrowed
-      if (PyDict_Size(dict)) {
+      if (PyDict_Size(dict) > 0) {
         pythonLog("{%s}: [%d]", *dict_ptr, PyDict_Size(dict));
         Py_ssize_t pos = 0;
         PyObject *key,  *value;
@@ -380,6 +380,13 @@ static int stopPython(void)
 
 PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
 {
+  if (Py_IsInitialized()) {
+    XPLMDebugString("[XPPython3] already initialized\n");
+    return 0;
+  } else if (XPLMFindPluginBySignature("xppython3.main") != XPLM_NO_PLUGIN_ID) {
+    XPLMDebugString("[XPPython3] already running. Using that instance instead.\n");
+    return 0;
+  }
   if (XPLMFindPluginBySignature("sandybarbour.projects.pythoninterface") != XPLM_NO_PLUGIN_ID) {
     XPLMDebugString("[XPPython3] WARNING: XPPython3 Detected python2 PythonInterface plugin. These plugins have compatibility issues.\n");
   }
@@ -537,6 +544,11 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
     }
   }
 
+  if (inMessage == XPLM_MSG_PLANE_LOADED && inParam == XPLM_USER_AIRCRAFT) {
+    xpy_startAircraftPlugins();
+    xpy_enableAircraftPlugins();
+  }
+
   while(PyDict_Next(XPY3moduleDict, &pos, &pModuleName, &pluginInstance)){
     pluginInfo = PyDict_GetItem(XPY3pluginDict, pluginInstance);
     if (PyList_GetItem(pluginInfo, PLUGIN_DISABLED) == Py_True) {
@@ -548,9 +560,11 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
 
     PyObject *err = PyErr_Occurred();
     if (err) {
+      PyErr_Clear();
       if (PyObject_HasAttrString(pluginInstance, "XPluginReceiveMessage")) {
         pythonLog("[%s] Error occured during the XPluginReceiveMessage call:", CurrentPythonModuleName);
         pythonLogException();
+        PyErr_SetRaisedException(err);
       } else {
         /* ignore error, if XPluginReceiveMessage is not defined in the PythonInterface class */
         PyErr_Clear();
@@ -573,10 +587,6 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
     xpy_stopSceneryPlugins();
     xpy_startSceneryPlugins();
     xpy_enableSceneryPlugins();
-  }
-  if (inMessage == XPLM_MSG_PLANE_LOADED && inParam == XPLM_USER_AIRCRAFT) {
-    xpy_startAircraftPlugins();
-    xpy_enableAircraftPlugins();
   }
   if (inMessage == XPLM_MSG_PLANE_UNLOADED && inParam == XPLM_USER_AIRCRAFT && XPLMGetCycleNumber() != 0) {
     xpy_disableAircraftPlugins();
@@ -661,6 +671,7 @@ static void handleConfigFile(void) {  /* Find and handle config.ini file */
 #endif
   pythonDebugs = xpy_config_get_int("[Main].debug");
   pythonWarnings = xpy_config_get_int("[Main].warning");
+  pythonStats = xpy_config_get_int("[Main].stats");
 #if !defined(Py_LIMITED_API)
   pythonVerbose = xpy_config_get_int("[Main].py_verbose");/* 0= off, 1= each file as loaded, 2= each file that is checked when searching for module */
 #endif

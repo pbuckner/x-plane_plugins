@@ -25,6 +25,10 @@ Timing Functions
     Return the elapsed time since the sim started up, in floating point
     seconds. This is continues to count upward even if the sim is paused.
 
+    :return float: elapsed time in seconds
+
+    Value *does not* reset on new flight, only on simulator re-start.
+
     .. warning:: :py:func:`getElapsedTime` is not a very good timer! It lacks precision in both its data type and its source.
                  Do not attempt to use it for time critical applications like network multiplayer.
 
@@ -35,7 +39,10 @@ Timing Functions
 
 .. py:function:: getCycleNumber()
 
-    Return an integer counter starting at zero for each sim cycle computed/video frame rendered.
+    Return an integer counter starting at zero for each sim cycle computed/video frame rendered. Value *does not* reset on new flight, only
+    on simulator re-start.
+
+    :return int: count
 
     >>> xp.getCycleNumber()
     29776
@@ -52,13 +59,12 @@ There are two sets of flight loop functions. The "new" way is a bit simpler, and
 |                                      |                                        |                                        |
 +======================================+========================================+========================================+
 | Create / Register                    |:py:func:`createFlightLoop`             |:py:func:`registerFlightLoopCallback`   |
-|                                      |                                        |                                        |
 +--------------------------------------+----------------------------------------+----------------------------------------+
 | Reschedule                           |:py:func:`scheduleFlightLoop`           |:py:func:`setFlightLoopCallbackInterval`|
-|                                      |                                        |                                        |
++--------------------------------------+----------------------------------------+----------------------------------------+
+| Check Validity                       |:py:func:`isFlightLoopValid`            | not available                          |
 +--------------------------------------+----------------------------------------+----------------------------------------+
 |Destroy / Unregister                  |:py:func:`destroyFlightLoop`            |:py:func:`unregisterFlightLoopCallback` |
-|                                      |                                        |                                        |
 +--------------------------------------+----------------------------------------+----------------------------------------+
  
 FlightLoop - New Style
@@ -69,6 +75,10 @@ FlightLoop - New Style
   Create a flightloop callback and return a :py:data:`flightLoopID` which
   can be used to change or destroy it.
 
+  :param function callback: function to be called based on schedule
+  :param XPLMFlightLoopPhaseType phase: flag to run before or after X-Plane integrates flight model.
+  :param Any refCon: reference constant passed to your callback function
+
   The flight loop callback is initialized as unscheduled: You'll need
   to call :py:func:`scheduleFlightLoop`.
 
@@ -77,17 +87,18 @@ FlightLoop - New Style
     
   .. py:function:: callback(sinceLast, elapsedTime, counter, refCon)
             
-        *sinceLast* is wall time (seconds) since your last callback.
-
-        *elapsedTime* is wall time (seconds) since start of sim. This appears
-        to be identical to current value of :py:func:`getElapsedTime`.
+        :param float sinceLast: wall time (seconds) since your last callback.
+        :param float elapsedTime: wall time (seconds) since start of sim.
+        :param int counter: monontonically increasing counter                          
+        :param Any refCon: reference constant provided with :py:func:`createFlightLoop`
+        :return float: "next" interval to execute.
                                           
-        *counter* is a monotonically increasing counter, bumped once per flight loop dispatched from the sim.
+        *elapsedTime*  appears to be identical to current value of :py:func:`getElapsedTime`.
+
+        *counter* is bumped once per flight loop dispatched from the sim.
         It appears to be identical to the current cycle (:py:func:`getCycleNumber`). Note that
         "cycle" rate and "flightloop" rate are not the same. Commonly, two cycles are consumed
         between calls to the flight loop.
-
-        *refCon* is the same reference constant passed on creation.
 
         Your callback must return a floating point value for the "next" interval (This is identical to value
         in :py:func:`scheduleFlightLoop`):
@@ -97,14 +108,9 @@ FlightLoop - New Style
           * <0 number of flightloops until next callback
     
         .. note:: Laminar documentation indicates the second parameter to the callback is
-
                 *inElapsedTimeSinceLastFlightLoop*: the wall time since any flight loop was dispatched.
-
-              This is not correct: it is total sim elapsed time
-              independent of your callback.
-    
-  *phase* is one of :ref:`XPLMFlightLoopPhaseType`, to have your callback run before or after X-Plane
-  integrates the flight model.
+                This is not correct: it is total sim elapsed time
+                independent of your callback.
     
   Try to run your flight loop as *infrequently* as is practical, and suspend it (using
   return value 0) when you do not need it; lots of flight loop callbacks that
@@ -142,7 +148,8 @@ FlightLoop - New Style
 .. py:function::  destroyFlightLoop(flightLoopID)
 
   This routine destroys a flight loop callback specified by *flightLoopID*.
-  Only call it on flight loops created with :py:func:`createFlightLoop`.
+
+  :param XPLMFlightLoopID flightLoopID: Only call it on flight loops created with :py:func:`createFlightLoop`.
 
   >>> flightLoopID = xp.createFlightLoop(MyCallback)
   >>> xp.destroyFlightLoop(flightLoopID)
@@ -207,6 +214,15 @@ FlightLoop - New Style
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMProcessing/#XPLMScheduleFlightLoop>`__ :index:`XPLMScheduleFlightLoop`
   
+.. py:function:: isFlightLoopValid(flightLoopID)
+
+   Returns True if flightLoopID is valid and known: it may or may not be scheduled.
+
+   :param XPLMFlightLoopID flightLoopID: as from :py:func:`createFlightLoop`                
+   :return bool: True if valid flightLoopID
+
+   This is an XPPython3-only function.                 
+
 FlightLoop - Old Style
 ++++++++++++++++++++++
 

@@ -22,6 +22,7 @@ char CurrentPythonModuleName[512] = "Main";
 
 void c_backtrace();
 int pythonWarnings = 1;  /* 1= issue warnings, 0= do not */
+int pythonStats = 1;  /* 1= collect timing information, 0=do not */
 int pythonDebugs = 0; /* 1= issue DEBUG messages, 0= do not */
 int pythonFlushLog = 0; /* 1= flush python log after every wrinte, 0= buffer writes */
 int pythonCapsuleRegistration = 0;  /* 1= log registration of all capsules (REQUIRES ERRCHECK) */
@@ -424,7 +425,7 @@ void *refToPtr(PyObject *ref, const char *refName)
     refName = PyCapsule_GetName(ref);
     errCheck("Bad PyCapsule_GetName()");
   }
-  if (!strcmp(widgetRefName, refName) && PyLong_Check(ref) && PyLong_AsLong(ref) == 0) {
+  if (PyLong_Check(ref) && PyLong_AsLong(ref) == 0 && !strcmp(widgetRefName, refName)){
     return NULL;
   }
 

@@ -748,6 +748,8 @@ PyInit_XPLMUtilities(void)
     PyModule_AddIntConstant(mod, "Language_Japanese", xplm_Language_Japanese); // XPLMLanguageCode
     PyModule_AddIntConstant(mod, "xplm_Language_Chinese", xplm_Language_Chinese); // XPLMLanguageCode
     PyModule_AddIntConstant(mod, "Language_Chinese", xplm_Language_Chinese); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "xplm_Language_Ukrainian", xplm_Language_Ukrainian); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_Ukrainian", xplm_Language_Ukrainian); // XPLMLanguageCode
 
     PyModule_AddIntConstant(mod, "xplm_DataFile_Situation", xplm_DataFile_Situation); // XPLMDataFileType
     PyModule_AddIntConstant(mod, "xplm_DataFile_ReplayMovie", xplm_DataFile_ReplayMovie); // XPLMDataFileType

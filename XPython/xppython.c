@@ -1,11 +1,13 @@
 #define _GNU_SOURCE 1
 #include <Python.h>
+#include <math.h>
 #include <sys/time.h>
 #include <stdio.h>
 #include <structmember.h>
 #include "xppythontypes.h"
 #include <XPLM/XPLMUtilities.h>
 #include <XPLM/XPLMNavigation.h>
+#include <XPLM/XPLMProcessing.h>
 #include "menus.h"
 #include "display.h"
 #include "processing.h"
@@ -189,7 +191,8 @@ static PyObject *XPSystemLogFun(PyObject *self, PyObject *args)
   } else {
     if (strlen(inString)) {
       char *msg;
-      if (-1 == asprintf(&msg, "[XP3: %s] %s\n", CurrentPythonModuleName, inString)) {
+      float t = XPLMGetElapsedTime();
+      if (-1 == asprintf(&msg, "%d:%02d:%06.3f XP3: [%s] %s\n", (int) (t / 3600.0), (int) (t / 60.0), fmod(t, 60.0), CurrentPythonModuleName, inString)) {
         pythonLog("Failed to allocate memory for asprintf syslog.");
       } else {
         XPLMDebugString(msg);

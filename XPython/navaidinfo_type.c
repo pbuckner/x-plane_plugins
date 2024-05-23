@@ -149,6 +149,8 @@ static PyObject *NavAidInfo_str(NavAidInfoObject *obj) {
     navAidType = "DME"; break;
   case xplm_Nav_LatLon:
     navAidType = "LatLon"; break;
+  case xplm_Nav_TACAN:
+    navAidType = "TACAN"; break;
   case xplm_Nav_Unknown:
     navAidType = "Unknown"; break;
   default:

@@ -45,7 +45,9 @@ static PyObject *flIDDict;  /* {
                                } */
 
 static const char flIDRef[] = "XPLMFlightLoopID";
-static float genericFlightLoopCallback(float inElapsedSinceLastCall, float inElapsedTimeSinceLastFlightLoop, 
+static float genericFlightLoopCallbackStats(float inElapsedSinceLastCall, float inElapsedTimeSinceLastFlightLoop, 
+                                       int counter, void * inRefcon);
+static float genericFlightLoopCallbackNoStats(float inElapsedSinceLastCall, float inElapsedTimeSinceLastFlightLoop, 
                                        int counter, void * inRefcon);
 
 void resetFlightLoops()
@@ -61,7 +63,8 @@ void resetFlightLoops()
     pythonDebug("     Reset --     (%s)", s);
     free(s);
     if(PyLong_AsLong(PyTuple_GetItem(pValue, FLIGHTLOOP_TYPE)) == 0) {
-      XPLMUnregisterFlightLoopCallback(genericFlightLoopCallback, PyLong_AsVoidPtr(pKey));
+      XPLMUnregisterFlightLoopCallback(pythonStats ? genericFlightLoopCallbackStats : genericFlightLoopCallbackNoStats,
+                                       PyLong_AsVoidPtr(pKey));
     } else {
       XPLMDestroyFlightLoop(refToPtr(PyDict_GetItem(flIDDict, pKey), "XPLMFlightLoopID"));
     }
@@ -70,7 +73,7 @@ void resetFlightLoops()
   PyDict_Clear(flIDDict);
 }
 
-static float genericFlightLoopCallback(float inElapsedSinceLastCall, float inElapsedTimeSinceLastFlightLoop, 
+static float genericFlightLoopCallbackStats(float inElapsedSinceLastCall, float inElapsedTimeSinceLastFlightLoop, 
                                 int counter, void * inRefcon)
 {
   errCheck("prior flightLoop");
@@ -138,6 +141,55 @@ static float genericFlightLoopCallback(float inElapsedSinceLastCall, float inEla
   return tmp;
 }
 
+static float genericFlightLoopCallbackNoStats(float inElapsedSinceLastCall, float inElapsedTimeSinceLastFlightLoop, 
+                                              int counter, void * inRefcon)
+{
+  PyObject *flDictKey = PyLong_FromVoidPtr(inRefcon);
+  PyObject *flInfo = PyDict_GetItem(flDict, flDictKey);
+  Py_XDECREF(flDictKey);
+  if(flInfo == NULL){
+    pythonDebug("Unknown flightLoop callback requested! (inRefcon = %p). Disabling it.\n", inRefcon);
+    return 0.0;
+  }
+  PyObject *inElapsedSinceLastCallObj = PyFloat_FromDouble(inElapsedSinceLastCall);
+  PyObject *inElapsedTimeSinceLastFlightLoopObj = PyFloat_FromDouble(inElapsedTimeSinceLastFlightLoop);
+  PyObject *counterObj = PyLong_FromLong(counter);
+
+  PyObject *res = PyObject_CallFunctionObjArgs(PyTuple_GetItem(flInfo, FLIGHTLOOP_CALLBACK), inElapsedSinceLastCallObj,
+                                               inElapsedTimeSinceLastFlightLoopObj, counterObj,
+                                               PyTuple_GetItem(flInfo, FLIGHTLOOP_REFCON), NULL);
+  float tmp;
+  PyObject *err = PyErr_Occurred();
+  Py_DECREF(inElapsedSinceLastCallObj);
+  Py_DECREF(inElapsedTimeSinceLastFlightLoopObj);
+  Py_DECREF(counterObj);
+  if(err){
+    pythonLogException();
+    char *s = objToStr(PyTuple_GetItem(flInfo, FLIGHTLOOP_CALLBACK));
+    pythonLog("[%s]: %s Error occured during the flightLoop callback (inRefcon = %p), disabling:",
+              CurrentPythonModuleName, s, inRefcon);
+    free(s);
+    errCheck("opps, trying to log error failed");
+    tmp = 0.0f;
+  } else if (PyFloat_Check(res)) {
+    tmp = PyFloat_AsDouble(res);
+  } else if (PyLong_Check(res)) {
+    tmp = PyLong_AsDouble(res);
+  } else {
+    char *s = objToStr(PyTuple_GetItem(flInfo, FLIGHTLOOP_CALLBACK));
+    char *s2 = objToStr(res); 
+    pythonLog("[%s]: %s Error occured during the flightLoop callback (inRefcon = %p), disabling: Bad return value '%s'",
+              CurrentPythonModuleName, s, inRefcon, s2);
+    free(s);
+    free(s2);
+    errCheck("opps, trying to log 'else' error failed");
+    tmp = 0.0f;
+  }
+  Py_XDECREF(res);
+
+  return tmp;
+}
+
 My_DOCSTR(_getElapsedTime__doc__, "getElapsedTime",
           "",
           "",
@@ -201,9 +253,11 @@ static PyObject *XPLMRegisterFlightLoopCallbackFun(PyObject* self, PyObject *arg
   Py_DECREF(flInfo);
 
   Py_DECREF(flDictKey);
-  XPLMRegisterFlightLoopCallback(genericFlightLoopCallback, interval, uniqueInt);
+  XPLMRegisterFlightLoopCallback(pythonStats ? genericFlightLoopCallbackStats : genericFlightLoopCallbackNoStats,
+                                 interval, uniqueInt);
   Py_RETURN_NONE;
 }
+
 
 My_DOCSTR(_unregisterFlightLoopCallback__doc__, "unregisterFlightLoopCallback",
           "callback, refCon=None",
@@ -246,7 +300,8 @@ static PyObject *XPLMUnregisterFlightLoopCallbackFun(PyObject *self, PyObject *a
     PyErr_SetString(PyExc_ValueError , "unregisterFlightLoopCallback: Unknown flight loop callback.");
     return NULL;
   }
-  XPLMUnregisterFlightLoopCallback(genericFlightLoopCallback, PyLong_AsVoidPtr(found));
+  XPLMUnregisterFlightLoopCallback(pythonStats ? genericFlightLoopCallbackStats : genericFlightLoopCallbackNoStats,
+                                   PyLong_AsVoidPtr(found));
   PyDict_DelItem(flDict, found);
   Py_RETURN_NONE;
 }
@@ -291,7 +346,8 @@ static PyObject *XPLMSetFlightLoopCallbackIntervalFun(PyObject *self, PyObject *
     return NULL;
   }
 
-  XPLMSetFlightLoopCallbackInterval(genericFlightLoopCallback, inInterval, inRelativeToNow, PyLong_AsVoidPtr(found));
+  XPLMSetFlightLoopCallbackInterval(pythonStats ? genericFlightLoopCallbackStats : genericFlightLoopCallbackNoStats,
+                                    inInterval, inRelativeToNow, PyLong_AsVoidPtr(found));
   Py_RETURN_NONE;
 }
 
@@ -336,7 +392,7 @@ static PyObject *XPLMCreateFlightLoopFun(PyObject* self, PyObject *args, PyObjec
     /* refCon set with parseTuple */
   }
 
-  fl.callbackFunc = genericFlightLoopCallback;
+  fl.callbackFunc = pythonStats ? genericFlightLoopCallbackStats : genericFlightLoopCallbackNoStats;
   void *flDictKey = (void *)++flCntr;
   PyObject *flDictKeyObj = PyLong_FromVoidPtr(flDictKey);
   fl.refcon = flDictKey;
@@ -350,6 +406,34 @@ static PyObject *XPLMCreateFlightLoopFun(PyObject* self, PyObject *args, PyObjec
   PyObject *flightLoopIDObj = getPtrRefOneshot(flightLoopID, flIDRef);
   PyDict_SetItem(flIDDict, flDictKeyObj, flightLoopIDObj);
   return flightLoopIDObj;
+}
+
+My_DOCSTR(_isFlightLoopValid__doc__, "isFlightLoopValid",
+          "flightLoopID",
+          "flightLoopID:XPLMFlightLoopID",
+          "bool",
+          "Return True if flightLoopID exists and is valid: it may or may not be scheduled.");
+static PyObject *isFlightLoopValidFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"flightLoopID", NULL};
+  (void) self;
+  PyObject *revId;
+  if(!XPLMDestroyFlightLoop_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "isFlightLoopValid is available only in XPLM210 and up.");
+    return NULL;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &revId)){
+    PyErr_SetString(PyExc_ValueError , "xp.isFlightLoopValid: missing flightLoopID.");
+    return NULL;
+  }
+  PyObject *pKey, *pValue;
+  Py_ssize_t pos = 0;
+  while(PyDict_Next(flIDDict, &pos, &pKey, &pValue)){
+    if (refToPtr(pValue, flIDRef) == refToPtr(revId, flIDRef)) {
+      return Py_True;
+    }
+  }
+  return Py_False;
 }
 
 My_DOCSTR(_destroyFlightLoop__doc__, "destroyFlightLoop",
@@ -457,6 +541,7 @@ static PyMethodDef XPLMProcessingMethods[] = {
   {"XPLMDestroyFlightLoop", (PyCFunction)XPLMDestroyFlightLoopFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"scheduleFlightLoop", (PyCFunction)XPLMScheduleFlightLoopFun, METH_VARARGS | METH_KEYWORDS, _scheduleFlightLoop__doc__},
   {"XPLMScheduleFlightLoop", (PyCFunction)XPLMScheduleFlightLoopFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"isFlightLoopValid", (PyCFunction)isFlightLoopValidFun, METH_VARARGS | METH_KEYWORDS, _isFlightLoopValid__doc__},
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };

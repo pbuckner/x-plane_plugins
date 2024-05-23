@@ -220,13 +220,14 @@ void xpy_disableInstance(PyObject *moduleName, PyObject *pluginInstance) {
   PyObject *err = PyErr_Occurred();
 
   if (err) {
+    PyErr_Clear();
     if (PyObject_HasAttrString(pluginInstance, "XPluginDisable")) {
       pythonLogException();
       pythonLog("[XPPython3] Error occured during call to %s XPluginDisable", CurrentPythonModuleName);
+      PyErr_SetRaisedException(err);
     } else {
       pythonDebug("  (no XPluginDisable for %s module)", CurrentPythonModuleName);
       /* ignore error, if XPluginDisable is not defined in the PythonInterface class */
-      PyErr_Clear();
     }
   }
 }

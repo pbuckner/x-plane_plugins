@@ -60,6 +60,24 @@ PyInit_XPLMDefs(void)
     PyModule_AddIntConstant(mod, "DownFlag", xplm_DownFlag); //XPLMKeyFlags
     PyModule_AddIntConstant(mod, "UpFlag", xplm_UpFlag); //XPLMKeyFlags
 
+    PyModule_AddIntConstant(mod, "xplm_CursorDefault", xplm_CursorDefault); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "xplm_CursorHidden",  xplm_CursorHidden); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "xplm_CursorArrow",   xplm_CursorArrow); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "xplm_CursorCustom",  xplm_CursorCustom); //XPLMCursorStatus
+
+    PyModule_AddIntConstant(mod, "CursorDefault", xplm_CursorDefault); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "CursorHidden",  xplm_CursorHidden); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "CursorArrow",   xplm_CursorArrow); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "CursorCustom",  xplm_CursorCustom); //XPLMCursorStatus
+
+    PyModule_AddIntConstant(mod, "xplm_MouseDown", xplm_MouseDown); // XPLMMouseStatus
+    PyModule_AddIntConstant(mod, "xplm_MouseDrag", xplm_MouseDrag); // XPLMMouseStatus
+    PyModule_AddIntConstant(mod, "xplm_MouseUp",   xplm_MouseUp); // XPLMMouseStatus
+
+    PyModule_AddIntConstant(mod, "MouseDown", xplm_MouseDown); // XPLMMouseStatus
+    PyModule_AddIntConstant(mod, "MouseDrag", xplm_MouseDrag); // XPLMMouseStatus
+    PyModule_AddIntConstant(mod, "MouseUp",   xplm_MouseUp); // XPLMMouseStatus
+
     PyModule_AddIntConstant(mod, "XPLM_KEY_RETURN", XPLM_KEY_RETURN);
     PyModule_AddIntConstant(mod, "XPLM_KEY_ESCAPE", XPLM_KEY_ESCAPE);
     PyModule_AddIntConstant(mod, "XPLM_KEY_TAB", XPLM_KEY_TAB);

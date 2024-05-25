@@ -139,7 +139,7 @@ PyTypeObject
 FMSEntryInfoType = {
   PyVarObject_HEAD_INIT(NULL, 0)
   .tp_name = "XPPython.FMSEntryInfo",
-  .tp_doc = PyDoc_STR("FMSEntryInfo, return from xp.getFMSEntryInfo()"),
+  .tp_doc = PyDoc_STR("FMSEntryInfo, return from xp.getFMSFlightPlanEntryInfo()"),
   .tp_basicsize = sizeof(FMSEntryInfoObject),
   .tp_itemsize = 0,
   .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
@@ -159,6 +159,11 @@ PyFMSEntryInfo_New(int type, char *navAidID, int ref, int altitude, float lat, f
   if (type == xplm_Nav_Unknown) Py_RETURN_NONE;
   PyObject *argsList = Py_BuildValue("iUiiff", type, navAidID, ref, altitude, lat, lon);
   PyObject *obj = PyObject_CallObject((PyObject *) &FMSEntryInfoType, argsList);
+  if (PyErr_Occurred()) {
+    PyErr_SetString(PyExc_RuntimeError, "FMSEntryInfo invalid data.");
+    Py_XDECREF(argsList);
+    return NULL;
+  }
   Py_XDECREF(argsList);
   return (PyObject*)obj;
 }

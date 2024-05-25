@@ -47,7 +47,7 @@ created a ``ATTR_manip_device`` manipulator for you Object).
 
 * :py:func:`avionicsNeedsDrawing` to optimize drawing of the custom device.  
 
-When working wih avionics devices, all coordinates for drawing & mouse events are in texels, with (0,0) origin in the lower
+When working with avionics devices, all coordinates for drawing & mouse events are in texels, with (0,0) origin in the lower
 left corner. X-Plane handles scaling for popped-out 2D windows. When your draw function is called, OpenGL is properly set
 for the device's viewport.
 
@@ -132,9 +132,9 @@ Use any of these device IDs with :py:func:`registerAvionicsCallbacksEx` or :py:f
  |  :value: 19                            |                                                           |
  +----------------------------------------+-----------------------------------------------------------+
  
-.. py:function:: registerAvionicsCallbacksEx(deviceId, before, after, refCon, bezelClick, bezelRightClick, bezelScroll, bezelCursor, screenTouch, screenRightTouch, screenScroll, screenCursor, keyboard)
+.. py:function:: registerAvionicsCallbacksEx(deviceID, before, after, refCon, bezelClick, bezelRightClick, bezelScroll, bezelCursor, screenTouch, screenRightTouch, screenScroll, screenCursor, keyboard)
 
-  :param int deviceId: One of built-in integer devices as listed above
+  :param int deviceID: One of built-in integer devices as listed above
   :param Any refCon: reference constant to be passed to your callbacks
   :param callbacks: ... default to None. See below for specific callbacks
   :return: XPLMAvionicsID or None on error.                 
@@ -191,7 +191,7 @@ Use any of these device IDs with :py:func:`registerAvionicsCallbacksEx` or :py:f
     +--------------------------------------------------------+--------------------+
     |keyboard(key, flags, vKey, refCon, losingFocus)         |1 =Consume event    |
     |                                                        +--------------------+
-    |                                                        |0 =Pass it throug   |
+    |                                                        |0 =Pass it through  |
     +--------------------------------------------------------+--------------------+
 
   Each callback is further described next:
@@ -232,7 +232,7 @@ Use any of these device IDs with :py:func:`registerAvionicsCallbacksEx` or :py:f
 
     :param int x: horizontal position of mouse relative lower-left corner of screen or bezel
     :param int y: vertical position of mouse relative lower-left corner of screen or bezel
-    :param int mouseStats: XPLMMouseStatus see values below.
+    :param int mouseStatus: XPLMMouseStatus see values below.
     :param Any refCon: refCon you provided on registration
     :return int: 1= consume the click, 0= pass the click through to the device               
 
@@ -435,7 +435,7 @@ XPLMAvionicsID handle, you can then manipulate the popup window using functions 
   :param callbacks: ... see below
   :param str deviceID: *unique* string to identify the device. See notes below.
   :param str deviceName: user-friendly name of the device
-  :param Any refcon: refernce constant to be passed to your callbacks.
+  :param Any refcon: reference constant to be passed to your callbacks.
   :return: XPLMAvionicsID
   
   Creates a custom Avionics device and returns an avionicsID handle (XPLMAvionicsID), which should
@@ -453,7 +453,7 @@ XPLMAvionicsID handle, you can then manipulate the popup window using functions 
      :height: 200px        
   
   The size of the device is in texels and will be scaled by X-Plane. That is, regardless of how the device window
-  is resized, you can treat it as the same height and width (and mouse events will be similarlly mapped.)
+  is resized, you can treat it as the same height and width (and mouse events will be similarly mapped.)
   
   The size of the bezel must be *at least* as much as the screen + offset.
 
@@ -490,7 +490,7 @@ XPLMAvionicsID handle, you can then manipulate the popup window using functions 
   of the screen is also (0,0), but will be displaced by the given values for offset.
 
   Note that ``deviceID`` needs to be unique, and can be used within 3d
-  cockpit as the named ``ATTR_cockpit_device``. Observe that *deviceID* with custom avioncs is a string,
+  cockpit as the named ``ATTR_cockpit_device``. Observe that *deviceID* with custom avionics is a string,
   but *deviceID* for built-in devices is an integer enumeration. Don't confuse the two!
   
   ``deviceName`` will be displayed to the user as the *title* of the device window when popped out.
@@ -528,14 +528,14 @@ XPLMAvionicsID handle, you can then manipulate the popup window using functions 
 
     This is the prototype for drawing callbacks for custom devices' bezel.
 
-    :param float r: ambiant Red
-    :param float g: ambiant Green
-    :param float b: ambiant Blue
+    :param float r: ambient Red
+    :param float g: ambient Green
+    :param float b: ambient Blue
     :param Any refCon: reference constant provided with :py:func:`createAvionicsEx`
     :return: None
 
     You are passed in the red, green, and blue values you can optionally use for
-    tinting your bezel according to ambiant light.
+    tinting your bezel according to ambient light.
     
     Upon entry the OpenGL context will be correctly set up for you and OpenGL
     will be in panel coordinates for 2d drawing.  The OpenGL state (texturing,
@@ -544,12 +544,12 @@ XPLMAvionicsID handle, you can then manipulate the popup window using functions 
     Unlike the :py:func:`screenDraw`, this function is called every frame and is
     not influenced by the ``drawOnDemand`` parameter.
     
-  .. py:function:: brightness(rheoValue, ambiantBrightness, busVoltsRatio, refCon)
+  .. py:function:: brightness(rheoValue, ambientBrightness, busVoltsRatio, refCon)
 
     This is the prototype for screen brightness callbacks for custom devices.
 
-    :param float rheoValue: current instrument rheostate brightness [0..1]
-    :param float ambiantBrightness: ambiantBrightness [0..1]
+    :param float rheoValue: current instrument rheostat brightness [0..1]
+    :param float ambientBrightness: ambientBrightness [0..1]
     :param float busVoltsRatio: busVoltsRatio [0..1], or -1 if device not bound
     :param Any refCon: reference constant provided with :py:func:`createAvionicsEx`
     :return float: ratio [0..1] of the screen's maximum brightness to display the screen in 3D cockpit
@@ -561,8 +561,8 @@ XPLMAvionicsID handle, you can then manipulate the popup window using functions 
     *rheoValue* is the current ratio value (between 0 and 1) of the instrument
     brightness rheostat to which the device is bound.
     
-    *ambiantBrightness* is the value (between 0 and 1) that the callback should
-    return for the screen to be at a usable brightness based on ambiant light
+    *ambientBrightness* is the value (between 0 and 1) that the callback should
+    return for the screen to be at a usable brightness based on ambient light
     (if your device has a photo cell and automatically adjusts its brightness,
     you can return this and your screen will be at the optimal brightness to be
     readable, but not blind the pilot).
@@ -635,7 +635,7 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
   :return int: 1 if device is currently displayed in a popup window.
 
   Shows (hides) the device's 2d popup window. If the device is *also* popped-out, ``visible=0`` will close (and hide) the popped-out
-  window; ``visble=1`` has no effect on an already-popped-out display.::
+  window; ``visible=1`` has no effect on an already-popped-out display.::
 
     >>> xp.setAvionicsPopupVisible(avionicsID)
     >>> xp.isAvionicsPopupVisible(avionicsID)
@@ -830,12 +830,12 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
   Nominal bus voltage for given device
   
   :param XPLMAvionicsID avionicsID: as from :py:func:`createAvionicsEx`,  :py:func:`getAvionicsHandle`, or :py:func:`registerAvionicsCallbacksEx`
-  :return float: [0..1] represeing nominal bus voltage, -1 if device not bound to aircraft
+  :return float: [0..1] representing nominal bus voltage, -1 if device not bound to aircraft
 
   |TBD|
 
   Returns the ratio of the nominal voltage (1= full voltage) of the electrical bus to which
-  the given avioncs device is bound. Or, -1 if the device is not bound to the current aircraft.
+  the given avionics device is bound. Or, -1 if the device is not bound to the current aircraft.
   
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMGetAvionicsBusVoltsRatio>`__ :index:`XPLMGetAvionicsBusVoltsRatio`
 

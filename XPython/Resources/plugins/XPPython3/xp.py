@@ -191,6 +191,25 @@ getWindowGeometry = XPLMDisplay.getWindowGeometry
 setWindowGeometry = XPLMDisplay.setWindowGeometry
 getWindowGeometryOS = XPLMDisplay.getWindowGeometryOS
 setWindowGeometryOS = XPLMDisplay.setWindowGeometryOS
+createAvionicsEx = XPLMDisplay.createAvionicsEx
+getAvionicsGeometry = XPLMDisplay.getAvionicsGeometry
+setAvionicsGeometry = XPLMDisplay.setAvionicsGeometry
+getAvionicsGeometryOS = XPLMDisplay.getAvionicsGeometryOS
+setAvionicsGeometryOS = XPLMDisplay.setAvionicsGeometryOS
+getAvionicsHandle = XPLMDisplay.getAvionicsHandle
+getAvionicsBusVoltsRatio = XPLMDisplay.getAvionicsBusVoltsRatio
+getAvionicsBrightnessRheo = XPLMDisplay.getAvionicsBrightnessRheo
+setAvionicsBrightnessRheo = XPLMDisplay.setAvionicsBrightnessRheo
+destroyAvionics = XPLMDisplay.destroyAvionics
+isAvionicsBound = XPLMDisplay.isAvionicsBound
+isCursorOverAvionics = XPLMDisplay.isCursorOverAvionics
+isAvionicsPopupVisible = XPLMDisplay.isAvionicsPopupVisible
+isAvionicsPoppedOut = XPLMDisplay.isAvionicsPoppedOut
+hasAvionicsKeyboardFocus = XPLMDisplay.hasAvionicsKeyboardFocus
+avionicsNeedsDrawing = XPLMDisplay.avionicsNeedsDrawing
+setAvionicsPopupVisible = XPLMDisplay.setAvionicsPopupVisible
+popOutAvionics = XPLMDisplay.popOutAvionics
+takeAvionicsKeyboardFocus = XPLMDisplay.takeAvionicsKeyboardFocus
 getWindowGeometryVR = XPLMDisplay.getWindowGeometryVR
 setWindowGeometryVR = XPLMDisplay.setWindowGeometryVR
 getWindowIsVisible = XPLMDisplay.getWindowIsVisible
@@ -262,6 +281,8 @@ Device_Primus_MFD_2 = XPLMDisplay.Device_Primus_MFD_2
 Device_Primus_MFD_3 = XPLMDisplay.Device_Primus_MFD_3
 Device_Primus_RMU_1 = XPLMDisplay.Device_Primus_RMU_1
 Device_Primus_RMU_2 = XPLMDisplay.Device_Primus_RMU_2
+Device_MCDU_1 = XPLMDisplay.Device_MCDU_1
+Device_MCDU_2 = XPLMDisplay.Device_MCDU_2
 import XPLMGraphics
 setGraphicsState = XPLMGraphics.setGraphicsState
 bindTexture2d = XPLMGraphics.bindTexture2d
@@ -334,6 +355,19 @@ setFMSEntryLatLon = XPLMNavigation.setFMSEntryLatLon
 clearFMSEntry = XPLMNavigation.clearFMSEntry
 getGPSDestinationType = XPLMNavigation.getGPSDestinationType
 getGPSDestination = XPLMNavigation.getGPSDestination
+countFMSFlightPlanEntries = XPLMNavigation.countFMSFlightPlanEntries
+getDisplayedFMSFlightPlanEntry = XPLMNavigation.getDisplayedFMSFlightPlanEntry
+getDestinationFMSFlightPlanEntry = XPLMNavigation.getDestinationFMSFlightPlanEntry
+setDisplayedFMSFlightPlanEntry = XPLMNavigation.setDisplayedFMSFlightPlanEntry
+setDestinationFMSFlightPlanEntry = XPLMNavigation.setDestinationFMSFlightPlanEntry
+setDirectToFMSFlightPlanEntry = XPLMNavigation.setDirectToFMSFlightPlanEntry
+getFMSFlightPlanEntryInfo = XPLMNavigation.getFMSFlightPlanEntryInfo
+setFMSFlightPlanEntryInfo = XPLMNavigation.setFMSFlightPlanEntryInfo
+setFMSFlightPlanEntryLatLon = XPLMNavigation.setFMSFlightPlanEntryLatLon
+setFMSFlightPlanEntryLatLonWithId = XPLMNavigation.setFMSFlightPlanEntryLatLonWithId
+clearFMSFlightPlanEntry = XPLMNavigation.clearFMSFlightPlanEntry
+loadFMSFlightPlan = XPLMNavigation.loadFMSFlightPlan
+saveFMSFlightPlan = XPLMNavigation.saveFMSFlightPlan
 Nav_Unknown = XPLMNavigation.Nav_Unknown
 Nav_Airport = XPLMNavigation.Nav_Airport
 Nav_NDB = XPLMNavigation.Nav_NDB
@@ -347,7 +381,14 @@ Nav_InnerMarker = XPLMNavigation.Nav_InnerMarker
 Nav_Fix = XPLMNavigation.Nav_Fix
 Nav_DME = XPLMNavigation.Nav_DME
 Nav_LatLon = XPLMNavigation.Nav_LatLon
+Nav_TACAN = XPLMNavigation.Nav_TACAN
 NAV_NOT_FOUND = XPLMNavigation.NAV_NOT_FOUND
+Fpl_Pilot_Primary = XPLMNavigation.Fpl_Pilot_Primary
+Fpl_CoPilot_Primary = XPLMNavigation.Fpl_CoPilot_Primary
+Fpl_Pilot_Approach = XPLMNavigation.Fpl_Pilot_Approach
+Fpl_CoPilot_Approach = XPLMNavigation.Fpl_CoPilot_Approach
+Fpl_Pilot_Temporary = XPLMNavigation.Fpl_Pilot_Temporary
+Fpl_CoPilot_Temporary = XPLMNavigation.Fpl_CoPilot_Temporary
 import XPLMPlanes
 setUsersAircraft = XPLMPlanes.setUsersAircraft
 placeUserAtAirport = XPLMPlanes.placeUserAtAirport
@@ -410,6 +451,7 @@ setFlightLoopCallbackInterval = XPLMProcessing.setFlightLoopCallbackInterval
 createFlightLoop = XPLMProcessing.createFlightLoop
 destroyFlightLoop = XPLMProcessing.destroyFlightLoop
 scheduleFlightLoop = XPLMProcessing.scheduleFlightLoop
+isFlightLoopValid = XPLMProcessing.isFlightLoopValid
 FlightLoop_Phase_BeforeFlightModel = XPLMProcessing.FlightLoop_Phase_BeforeFlightModel
 FlightLoop_Phase_AfterFlightModel = XPLMProcessing.FlightLoop_Phase_AfterFlightModel
 import XPLMScenery
@@ -463,6 +505,7 @@ Language_Russian = XPLMUtilities.Language_Russian
 Language_Greek = XPLMUtilities.Language_Greek
 Language_Japanese = XPLMUtilities.Language_Japanese
 Language_Chinese = XPLMUtilities.Language_Chinese
+Language_Ukrainian = XPLMUtilities.Language_Ukrainian
 DataFile_Situation = XPLMUtilities.DataFile_Situation
 DataFile_ReplayMovie = XPLMUtilities.DataFile_ReplayMovie
 CommandBegin = XPLMUtilities.CommandBegin
@@ -728,7 +771,7 @@ RadioBank = XPLMSound.RadioBank
 FMOD_OK = XPLMSound.FMOD_OK
 FMOD_SOUND_FORMAT_PCM16 = XPLMSound.FMOD_SOUND_FORMAT_PCM16
 
-import wave
+
 def playWaveOnBus(wav, loop, audioType, callback=None, refCon=None):
     data = wav.readframes(wav.getnframes())
     return playPCMOnBus(data,
@@ -740,3 +783,23 @@ def playWaveOnBus(wav, loop, audioType, callback=None, refCon=None):
                         audioType,
                         callback,
                         refCon)
+
+
+class PluginItem:
+    def __init__(self, key):
+        if isinstance(key, str):
+            item = [x for x in pythonGetDicts()['plugins'].items() if x[1][1] == key][0]
+        else:
+            item = [x for x in pythonGetDicts()['plugins'].items() if x[0] == key][0]
+        self.instance = item[0]
+        self.name = item[1][0]
+        self.signature = item[1][1]
+        self.description = item[1][2]
+        self.module = item[1][3]
+        self.module_name = item[1][4]
+        self.disabled = item[1][5]
+
+
+def getAccessors(self):
+    plugin = PluginItem(self).module_name  # e.g., PythonPlugins.PI_MiniPython
+    return [x for x in pythonGetDicts()['accessors'].items() if x[0] == plugin]

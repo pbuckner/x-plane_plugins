@@ -295,7 +295,7 @@ Functions
     >>> xp.countFMSFlightPlanEntries(xp.Fpl_Pilot_Primary)
     22
     
-  (Your results may differ, as this is depenedent on the current X-Plane navigation database).
+  (Your results may differ, as this is dependent on the current X-Plane navigation database).
   
   `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMLoadFMSFlightPlan>`__ :index:`XPLMLoadFMSFlightPlan`
 
@@ -304,7 +304,7 @@ Functions
   Returns a string representing flight plan for selected device
   
   :param int device: 0= pilot side, 1= co-pilot side
-  :return str: X-Plane 11+ formatted flgiht plan                   
+  :return str: X-Plane 11+ formatted flight plan                   
 
   The format of the flight plan is X-Plane specific, and is described in `Flightplan files - v11 .fms file format <https://developer.x-plane.com/article/flightplan-files-v11-fms-file-format/>`__.
   
@@ -396,13 +396,13 @@ Functions
   :param int index: 0-based index to set
   :param XPLMNavRef navRef: :ref:`XPLMNavRef` integer from :py:func:`findNavAid`
   :param float lat:
-  :param float lon: Latitude / Logitude. To be used when navRef is not appropriate   
+  :param float lon: Latitude / Longitude. To be used when navRef is not appropriate   
   :param int altitude: Altitude of fix in feet.                 
   :param str ID: Optional string used (with LatLon) to be displayed with entry
   :return: None
 
   These three functions all do the same thing, but using slightly different data as input. If a *navRef* is
-  provided, its latitude, longtude and display name will used. If no navRef is provided, latitude and longitude
+  provided, its latitude, longitude and display name will used. If no navRef is provided, latitude and longitude
   must be provided.
 
   The *index* you provide must be for either an existing entry, or one more than the last entry, otherwise
@@ -598,7 +598,7 @@ Functions
   :param int index: existing 0-based index to be displayed                                      
   :return: None
 
-  Change the entry being displayed, where applicable.
+  Change the entry being displayed on ND (Navigation Display), where applicable.
 
   For example, on the Airbus:
 
@@ -613,8 +613,8 @@ Functions
   Note that, for the Airbus, if the MCDU is set on "F-PLN" the display will not update. Select any
   other MCDU button and the views will update.
 
-  Note also that G1000 MFD can be made to view each leg of the flight plan, but does not appear
-  to respond to these Get/SetDisplay functions.
+  Note also that G1000 MFD can be made to view each leg of the flight plan by manually moving
+  the on-screen cursor, but does not respond to these Get/SetDisplay functions.
 
   
   `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMSetDisplayedFMSFlightPlanEntry>`__ :index:`XPLMSetDisplayedFMSFlightPlanEntry`

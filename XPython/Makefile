@@ -1,7 +1,7 @@
 .PHONY : clean darwin lin windows
 
 PLUGIN_PATH=Resources/plugins/XPPython3
-SDK=410
+SERVER_SDK=400
 XP_SDK=../SDK410
 VERSIONS= 312
 # python versions are like 4.1.1 -> 4.1.2a1 -> 4.1.2a2 -> 4.1.2b1 -> 4.1.2 (letter is [ab], cannot end with letter)
@@ -213,7 +213,7 @@ install_beta : $(zipfiles)
 	# 3) On the server, execute updatemd5.py <>.zip <version>
 	#    ... the server code will manage -win32, -darwin and -linux variants
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; \
-		./db_updatemd5.py xp3b.zip $(SDK) "$(XPPYTHONVERSION)"'
+		./db_updatemd5.py xp3b.zip $(SERVER_SDK) "$(XPPYTHONVERSION)"'
 
 install_remote : $(zipfiles)
 	@if [ "$(BETA)" -gt "0" ]; then \
@@ -222,7 +222,7 @@ install_remote : $(zipfiles)
 	fi
 	scp Resources/plugins/xp3{,upgrade}{-darwin,-linux,-win32}.zip pbuck@avnwx.com:/var/www/production/data/x-plane
 	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; \
-		./db_updatemd5.py xp3.zip $(SDK) "$(XPPYTHONVERSION)"'
+		./db_updatemd5.py xp3.zip $(SERVER_SDK) "$(XPPYTHONVERSION)"'
 
 SUBDIRS = . mac lin win
 SUBDIRSCLEAN=$(addsuffix .clean,$(SUBDIRS))

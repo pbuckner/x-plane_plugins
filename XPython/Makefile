@@ -1,11 +1,11 @@
 .PHONY : clean darwin lin windows
 
 PLUGIN_PATH=Resources/plugins/XPPython3
-SDK=400
-XP_SDK=../SDK401
+SDK=410
+XP_SDK=../SDK410
 VERSIONS= 312
 # python versions are like 4.1.1 -> 4.1.2a1 -> 4.1.2a2 -> 4.1.2b1 -> 4.1.2 (letter is [ab], cannot end with letter)
-XPPYTHONVERSION=4.3.0
+XPPYTHONVERSION=4.4.0a3
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
 FMOD=../FMOD
 ZIP=zip
@@ -21,15 +21,16 @@ zipfiles = \
 # COMMON opts
 # eventually....:   -DPy_LIMITED_API=0x030a0000
 CFLAGS=-Wall -Wextra -g -fpic -fPIC -fvisibility=hidden -DXPPYTHON3VERSION=\"$(XPPYTHONVERSION)\"
-XPLM_CPPFLAGS = -DXPLM200 -DXPLM210 -DXPLM300 -DXPLM301 -DXPLM302 -DXPLM303 -DXPLM400 \
+XPLM_CPPFLAGS = -DXPLM200 -DXPLM210 -DXPLM300 -DXPLM301 -DXPLM302 -DXPLM303 -DXPLM400 -DXPLM410 \
                 -I$(XP_SDK)/CHeaders -I$(XP_SDK)/CHeaders/XPLM -I$(XP_SDK)/CHeaders/Widgets -I$(FMOD)/api/core/inc -I$(FMOD)/api/studio/inc
 
 # "BETA" make errCheck() function execute. Otherwise it is removed during compilation and optimization is enabled
 ifeq ($(BETA), "0")
   CFLAGS+= -DERRCHECK=0
-  CFLAGS+= -O0
+  OPTIMIZATION= -O3
 else
   CFLAGS+= -DERRCHECK=1
+  OPTIMIZATION= -O0
 endif
 
 ##########
@@ -61,7 +62,9 @@ endif
 
 ifeq ($(TARGET), Darwin)
   CFLAGS += ${XPLM_CPPFLAGS} -DIBM=0 -DAPL=1 -DLIN=0
-  CFLAGS312=$(CFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.12/bin/python3-config --cflags) -DPYTHONVERSION=\"3.12\"
+  PYTHON_CONFIG_FLAGS = -I/Library/Frameworks/Python.framework/Versions/3.12/include/python3.12 -I/Library/Frameworks/Python.framework/Versions/3.12/include/python3.12 -fno-strict-overflow -Wsign-compare -Wunreachable-code -fno-common -dynamic -DNDEBUG -g -Wall -arch arm64 -arch x86_64 -g
+CFLAGS312=$(CFLAGS) $(PYTHON_CONFIG_FLAGS) -DPYTHONVERSION=\"3.12\"
+  CFLAGS312+=$(OPTIMIZATION)
   LDFLAGS += -shared -fPIC -fpic -ldl -g -fvisibility=hidden -undefined dynamic_lookup
   LDFLAGS312 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.12/bin/python3-config --ldflags) -lpython3.12
   PLUGIN_DIR=mac_x64
@@ -99,8 +102,23 @@ else
 	$(CC) -c $(CFLAGS312) $< -o $@
 endif
 
+# Modifying *.xpl to "find" python shared object:
+# If using @rpath rather than @executable, you cannot use symlinks for *.xpl, as rpath @loader
+# is based off of the original_location of xpl. (so you'd have to have python3.12/lib... link _in_ same
+# directory as original *.xpl
+# I'm keeping with @executable because a) it works; b) it works with symlinks. Here is MAC code
+# for using rpath:
+# install_name_tool \
+# 	-change /Library/Frameworks/Python.framework/Versions/3.12/Python  \
+# 	@rpath/libpython3.12.dylib \
+# 	XPPython3.xpl
+# install_name_tool \
+# 	-add_rpath @loader_path/python3.12/lib XPPython3.xpl
+
 XPPython3.xpl: $(PLUGIN_OBJ)
 ifeq ($(TARGET), Darwin)
+	# $(LD) -headerpad_max_install_names -target arm64-apple-macos11 $(^:.o=.o.arm) $(LDFLAGS312) -o $@.arm
+	# $(LD) -headerpad_max_install_names -target x86_64-apple-macos10.12 $(^:.o=.o.x86) $(LDFLAGS312) -o $@.x86
 	$(LD) -target arm64-apple-macos11 $(^:.o=.o.arm) $(LDFLAGS312) -o $@.arm
 	$(LD) -target x86_64-apple-macos10.12 $(^:.o=.o.x86) $(LDFLAGS312) -o $@.x86
 	lipo -create -output $@ $@.arm $@.x86

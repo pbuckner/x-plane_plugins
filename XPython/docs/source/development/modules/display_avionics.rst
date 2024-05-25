@@ -543,6 +543,10 @@ XPLMAvionicsID handle, you can then manipulate the popup window using functions 
 
     Unlike the :py:func:`screenDraw`, this function is called every frame and is
     not influenced by the ``drawOnDemand`` parameter.
+
+    You're drawing the full extent of the bezel, which includes space *behind* the
+    screen. Bezel and screen will blend, so most likely, you'll want to draw
+    a black rectangle in the position (... at the offset) of the screen.
     
   .. py:function:: brightness(rheoValue, ambientBrightness, busVoltsRatio, refCon)
 

@@ -614,7 +614,7 @@ Functions
   other MCDU button and the views will update.
 
   Note also that G1000 MFD can be made to view each leg of the flight plan, but does not appear
-  to respond to
+  to respond to these Get/SetDisplay functions.
 
   
   `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMSetDisplayedFMSFlightPlanEntry>`__ :index:`XPLMSetDisplayedFMSFlightPlanEntry`
@@ -815,14 +815,14 @@ aircraft.
  .. table::
    :align: left
      
-   ================================== === ===================================
-   .. py:data:: Fpl_Pilot_Primary     =0  Cessna 172 G1000, G530, Airbus MCDU
-   .. py:data:: Fpl_CoPilot_Primary   =1  Cessna 172 G430, Airbus MCDU
-   .. py:data:: Fpl_Pilot_Approach    =2
-   .. py:data:: Fpl_CoPilot_Approach  =3
+   ================================== === =====================================
+   .. py:data:: Fpl_Pilot_Primary     =0  Cessna 172 G1000, GNS530, Airbus MCDU
+   .. py:data:: Fpl_CoPilot_Primary   =1  Cessna 172 GNS430, Airbus MCDU
+   .. py:data:: Fpl_Pilot_Approach    =2  GNS530, G1000
+   .. py:data:: Fpl_CoPilot_Approach  =3  GNS430
    .. py:data:: Fpl_Pilot_Temporary   =4  Airbus MCDU
    .. py:data:: Fpl_CoPilot_Temporary =5  Airbus MCDU
-   ================================== === ===================================
+   ================================== === =====================================
 
 
 .. _XPLMNavType:

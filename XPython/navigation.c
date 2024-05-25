@@ -516,13 +516,11 @@ static PyObject *XPLMGetFMSFlightPlanEntryInfoFun(PyObject *self, PyObject *args
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ii", keywords, &inFlightPlan, &index)){
     return NULL;
   }
-  XPLMNavType type;
+  XPLMNavType type = xplm_Nav_Unknown;
   float lat, lon;
   char ID[512];
-  XPLMNavRef ref;
+  XPLMNavRef ref = XPLM_NAV_NOT_FOUND; /* due to bug prior to 11.31, reference is not set, when no data is available, so always pre-set this */
   int altitude;
-
-  ref = XPLM_NAV_NOT_FOUND;  /* due to bug prior to 11.31, reference is not set, when no data is available, so always pre-set this */
   
   XPLMGetFMSFlightPlanEntryInfo_ptr(inFlightPlan, index, &type, ID, &ref, &altitude, &lat, &lon);
   return PyFMSEntryInfo_New(type, ID, ref, altitude, lat, lon);
@@ -637,8 +635,8 @@ static PyObject *XPLMClearFMSFlightPlanEntryFun(PyObject *self, PyObject *args, 
 }
 
 My_DOCSTR(_loadFMSFlightPlan__doc__, "loadFMSFlightPlan",
-          "device, flightPlan",
-          "device:int, flightPlan:str",
+          "device, plan",
+          "device:int, plan:str",
           "None",
           "Loads provided flightplan into pilot (device=0) or co-pilot (device=1) unit.");
 static PyObject *XPLMLoadFMSFlightPlanFun(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -649,7 +647,7 @@ static PyObject *XPLMLoadFMSFlightPlanFun(PyObject *self, PyObject *args, PyObje
     return NULL;
   }
 
-  static char *keywords[] = {"device", "flightPlan", NULL};
+  static char *keywords[] = {"device", "plan", NULL};
   int device;
   char *flightPlan;
 

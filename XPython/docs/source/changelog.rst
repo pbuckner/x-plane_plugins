@@ -12,8 +12,40 @@ Known Bugs
 
   None (prove me wrong!)
   
+4.4.0 (BETA)
+------------
+:New Features:
+   * **SDK 410 Support**. With X-Plane 12.1 new SDK features were added to support
+     more flexible Avionics Display (:doc:`/development/modules/display`) and
+     FMS flight plan manipulation (:doc:`/development/modules/navigation`).
+     XPPython v4.4 can be used with X-Plane 12.0 or greater, though SDK410 functions
+     are available only while using 12.1 or greater.
+
+   * **EasyPython**. To help developers who want to transition from using xlua
+     for aircraft plugins, and to support a simpler way to write python plugins,
+     some helper classes have been introduced. These simplify:
+
+     * :doc:`/development/modules/datarefs`
+     * :doc:`/development/modules/commands`
+     * :doc:`/development/modules/timers`
+
+     These mimic the interface provided by xlua, and are fully usable in *any* XPPython3 plugin.
+     Additionally, a simpler "main loop" is introduced as :doc:`/development/modules/easy_python`.
+     These enhancement should be considered *BETA* at present, and improved documentation with
+     examples will be included in the future.
+
+   |
+
+:Improvements:
+   * **Aircraft Plugin handling**. Previously, we loaded python aircraft plugins *after*
+     sending the ``XPLM_MSG_PLANE_LOADED`` message to all (other) python plugins, which
+     results in the aircraft plugin *itself* not receive this message. Now we load
+     the aircraft python plugin(s), and then send the ``PLANE_LOADED`` message to *all*
+     python plugins.
+
+     
 4.3.0 (5-Apr-2024)
----------------------
+------------------
 :New Features:
    * **Python Included**. For all architectures, we now include a version of Python 3.12. *You no
      longer need to install your own python, or alter your OS-provided version.*

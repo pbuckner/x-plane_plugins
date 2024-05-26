@@ -61,7 +61,7 @@ class XPLMDataRefInfo_t:
     type: int
     writable: bool
     owner: int
-    
+
 @dataclass
 class XPLMDrawInfo_t:
     x: float
@@ -70,7 +70,7 @@ class XPLMDrawInfo_t:
     pitch: float
     heading: float
     roll: float
-    
+
 @dataclass
 class FMSEntryInfo:
     type: int
@@ -91,22 +91,24 @@ class NavAidInfo:
     navAidID: str
     name: str
     reg: int
-    
-    
+
+
 @dataclass
 class PluginInfo:
     name: str
     filePath: str
     signature: str
     description: str
-    
+
+
 @dataclass
 class HotKeyInfo:
     virtualKey: int
     flags: int
     description: str
     pluing: int
-    
+
+
 @dataclass
 class TrackMetrics:
     isVertical: int
@@ -116,12 +118,14 @@ class TrackMetrics:
     upPageSize: int
     upBtnSize: int
 
+
 @dataclass
 class XPLMWeatherInfoClouds_t:
     cloud_type: float
     coverage: float
     alt_type: float
     alt_base: float
+
 
 @dataclass
 class XPLMWeatherInfoWinds_t:
@@ -131,7 +135,8 @@ class XPLMWeatherInfoWinds_t:
     gust_speed: float
     shear: float
     turbulence: float
-    
+
+
 @dataclass
 class XPLMWeatherInfo_t:
     detail_found: int
@@ -152,7 +157,8 @@ class XPLMWeatherInfo_t:
     pressure_sl: float
     wind_layers: list[XPLMWeatherInfoWinds_t]
     cloud_layers: list[XPLMWeatherInfoClouds_t]
-    
+
+
 @dataclass
 class XPLMProbeInfo_t:
     result:int
@@ -166,5 +172,3 @@ class XPLMProbeInfo_t:
     velocityY: float
     velocityZ: float
     is_wet: int
-
-    

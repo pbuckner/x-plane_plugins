@@ -1,4 +1,5 @@
 from XPPython3 import xp
+from typing import Callable, Any
 from . import xlua
 
 # run_at_interval(func, interval) -> run_timer(func, interval, interval)
@@ -14,23 +15,17 @@ from . import xlua
 
 
 class Timer:
-    def __init__(self, func, delay, interval):
+    def __init__(self, func: Callable[[None], None], delay: float, interval: float):
         self.func = func
         self.interval = interval
         self.delay = delay
-        try:
-            self.next_fire = RunningTime.value + delay
-        except AttributeError:
-            self.next_fire = delay
-
-
-RunningTime = None
+        self.next_fire = xlua.RUNNING_TIME + delay
 
 
 class Timers:
     _Timers = []
 
-    def genericTimerCallback(self, _sinceLast, _elapsedTime, _counter, _refCon):
+    def genericTimerCallback(self, _sinceLast: float, _elapsedTime: float, _counter: int, _refCon: Any) -> int:
         if self._Timers:
             now = xlua.RUNNING_TIME
             for t in self._Timers:
@@ -43,19 +38,19 @@ class Timers:
     def __init__(self):
         self._timerFlightLoop = None
 
-    def get(self, func):
+    def get(self, func: Callable[[None], None]) -> Timer | None:
         try:
             return [x for x in self._Timers if x.func == func][0]
         except IndexError:
             return None
 
-    def is_timer_scheduled(self, func):
+    def is_timer_scheduled(self, func: Callable[[None], None]) -> bool:
         return bool(self.get(func))
 
-    def stop_timer(self, func):
+    def stop_timer(self, func: Callable[[None], None]) -> None:
         self._Timers = [x for x in self._Timers if x.func != func]
 
-    def run_timer(self, func, delay, interval):
+    def run_timer(self, func: Callable[[None], None], delay: float, interval: float) -> None:
         if self._timerFlightLoop is None or not xp.isFlightLoopValid(self._timerFlightLoop):
             self._Timers = []  # delete any existing dead timers (will happen if all plugins are reloaded)
             self._timerFlightLoop = xp.createFlightLoop(self.genericTimerCallback, phase=xp.FlightLoop_Phase_BeforeFlightModel)
@@ -66,24 +61,22 @@ class Timers:
 _t = Timers()
 
 
-def is_timer_scheduled(func):
-    xp.log(f"timers {id(_t)=}, {len(_t._Timers)}")
-    _t.is_timer_scheduled(func)
+def is_timer_scheduled(func: Callable[[None], None]) -> bool:
+    return _t.is_timer_scheduled(func)
 
 
-def stop_timer(func):
+def stop_timer(func: Callable[[None], None]) -> None:
     _t.stop_timer(func)
 
 
-def run_after_time(func, seconds):
+def run_after_time(func: Callable[[None], None], seconds: float) -> None:
     _t.run_timer(func, seconds, 0)
 
 
-def run_at_interval(func, interval):
-    xp.log(f"timers {id(_t)=}, {len(_t._Timers)}")
+def run_at_interval(func: Callable[[None], None], interval: float) -> None:
     _t.run_timer(func, interval, interval)
 
 
-def run_timer(func, delay, interval):
+def run_timer(func: Callable[[None], None], delay: float, interval: float) -> None:
     _t.stop_timer(func)
     _t.run_timer(func, delay, interval)

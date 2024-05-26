@@ -1,7 +1,7 @@
-from typing import Any, Callable, Union, List
+from __future__ import annotations
+from typing import Any, Callable, Union, List, Iterable, SupportsIndex, overload
 from XPPython3 import xp
 import re
-_DataRefs = {}  # type: dict[str, object]
 
 
 """
@@ -108,77 +108,7 @@ To use:
 """
 
 
-def create_dataref(name, dataRefType="number", callback=None):
-    """
-    create_dataref(name, type="number|array|string", callback=False)
-
-    Creates a dataref. If callback is False, dataref is not
-      "number" created int/float/double type
-      "array[x]" creates int_array/float_array of dimension x
-      "string" creates data
-
-    Callback:
-      * If None dataref is writable, but no callback
-      * If callable(), that callback will be called when callback is written to
-
-    Create works for number, array (Setting Callback=None allows it to be settable, Callback=False is not writable
-      get /set work
-
-    Have not tried setting notification callback
-
-    Get/Set all data types seems good.
-    """
-    if callable(dataRefType) and not callback:
-        callback = dataRefType
-        dataRefType = 'number'
-    dataType = ((xp.Type_Int | xp.Type_Float | xp.Type_Double) if dataRefType == "number"
-                else (xp.Type_IntArray | xp.Type_FloatArray) if dataRefType.startswith("array[")
-                else xp.Type_Data if dataRefType == "string"
-                else xp.Type_Unknown)
-    assert dataType != xp.Type_Unknown, 'dataRefType must be one of "number" | "array[]" | "string"'
-
-    try:
-        # if name looks like an array, e.g. sim/foo[12], we'll use THAT value as
-        m = re.match(r'array\[ *([0-9]+) *\]$', dataRefType)
-        dim = int(m.group(1))
-        assert dim > 0, "For array type, dimension must be > 0"
-    except AttributeError:
-        dim = 512
-
-    try:
-        return _DataRefs[name]
-    except KeyError:
-        return DataRef(name, make=True, callback=callback, dataType=dataType, dim=dim)
-
-
-def find_dataref(name):
-    try:
-        return _DataRefs[name]
-    except KeyError:
-        return DataRef(name)
-
-
-class DList(list):
-    def __init__(self, dataref, values):
-        self.dataref = dataref
-        super(DList, self).__init__(list(values))
-
-    def __setitem__(self, idx, value):
-        #  self.dataref
-        #
-        if 'float_array' in self.dataref.types:
-            # print("DList setting {} [{}] to '{}'".format(self.dataref._dref, idx, value))
-            xp.setDatavf(self.dataref._dref, [value, ], offset=idx, count=1)
-            return
-        if 'int_array' in self.dataref.types:
-            # print("DList setting {} [{}] to '{}'".format(self.dataref._dref, idx, value))
-            xp.setDatavi(self.dataref._dref, [value, ], offset=idx, count=1)
-            return
-        if 'data' in self.dataref.types:
-            # print("DList setting {} [{}] to '{}'".format(self.dataref._dref, idx, value))
-            xp.setDatas(self.dataref._dref, value, offset=idx, count=1)
-            return
-        raise ValueError("dataref does not support indexing")
+_DataRefs: dict[str, DataRef] = {}
 
 
 class DataRef:
@@ -274,7 +204,7 @@ class DataRef:
     # in X-Plane (or locally).
     # ----------------------------------
     @property
-    def value(self):
+    def value(self) -> Any:
         """
         "getting" value of dataref:
         If it's 'our' dataref, simply return the value
@@ -311,7 +241,7 @@ class DataRef:
         raise ValueError(f"Unable to get value for {self.name}")
 
     @value.setter
-    def value(self, value):
+    def value(self, value: Any) -> None:
         if self._ours:
             if 'data' in self.types:
                 self._our_value = bytearray(value.encode('utf-8'))
@@ -349,12 +279,12 @@ class DataRef:
     # are callbacks we provide so _other_ plugins
     # can access "our" dataref
     # ----------------------------
-    def set_array(self, _refCon, values, offset, count):
+    def set_array(self, _refCon: Any, values: list[Any], offset: int, count: int) -> None:
         if not self._ours:
             raise ValueError("This is not ours")
         self._our_value[offset:offset + count] = values[0:count]
 
-    def get_array(self, _refCon, values, offset, count):
+    def get_array(self, _refCon, values: list[Any], offset: int, count: int) -> int:
         if not self._ours:
             raise ValueError("This is not ours")
         if count == -1:
@@ -365,7 +295,7 @@ class DataRef:
         values.extend(ret)
         return count
 
-    def get(self, *_unused):
+    def get(self, *_unused) -> Any:
         return self.value
 
     def set_int(self, _dataref: Any, value: int) -> None:
@@ -381,7 +311,7 @@ class DataRef:
     # __getitem__() and __setitem__() allow
     # you to use foo.value[n] for array types
     # --------------------------
-    def __getitem__(self, idx, *args):
+    def __getitem__(self, idx: int, *args) -> Any:
         if not self._isarray:
             raise IndexError
         if self._ours:
@@ -390,7 +320,7 @@ class DataRef:
             return self._our_value[idx]
         return self.value[idx]
 
-    def __setitem__(self, idx, value):
+    def __setitem__(self, idx: int, value: Any) -> None:
         if not self._isarray:
             raise IndexError
 
@@ -415,6 +345,87 @@ class DataRef:
             # print("DRef setting {} [{}] to '{}'".format(self.dataref._dref, idx, value))
             xp.setDatab(self._dref, [value, ], offset=idx, count=1)
             return
+
+
+def create_dataref(name: str, dataRefType: str = "number", callback: Callable[[None], None] = None) -> DataRef:
+    """
+    create_dataref(name, type="number|array|string", callback=False)
+
+    Creates a dataref. If callback is False, dataref is not
+      "number" created int/float/double type
+      "array[x]" creates int_array/float_array of dimension x
+      "string" creates data
+
+    Callback:
+      * If None dataref is writable, but no callback
+      * If callable(), that callback will be called when callback is written to
+
+    Create works for number, array (Setting Callback=None allows it to be settable, Callback=False is not writable
+      get /set work
+
+    Have not tried setting notification callback
+
+    Get/Set all data types seems good.
+    """
+    if callable(dataRefType) and not callback:
+        callback = dataRefType
+        dataRefType = 'number'
+    dataType = ((xp.Type_Int | xp.Type_Float | xp.Type_Double) if dataRefType == "number"
+                else (xp.Type_IntArray | xp.Type_FloatArray) if dataRefType.startswith("array[")
+                else xp.Type_Data if dataRefType == "string"
+                else xp.Type_Unknown)
+    assert dataType != xp.Type_Unknown, 'dataRefType must be one of "number" | "array[]" | "string"'
+
+    try:
+        # if name looks like an array, e.g. sim/foo[12], we'll use THAT value as
+        m = re.match(r'array\[ *([0-9]+) *\]$', dataRefType)
+        dim = int(m.group(1))
+        assert dim > 0, "For array type, dimension must be > 0"
+    except AttributeError:
+        dim = 512
+
+    try:
+        return _DataRefs[name]
+    except KeyError:
+        return DataRef(name, make=True, callback=callback, dataType=dataType, dim=dim)
+
+
+def find_dataref(name: str) -> DataRef:
+    try:
+        return _DataRefs[name]
+    except KeyError:
+        return DataRef(name)
+
+
+class DList(list):
+    def __init__(self, dataref: DataRef, values: Any):
+        self.dataref = dataref
+        super(DList, self).__init__(list(values))
+
+    @overload
+    def __setitem__(self, idx: SupportsIndex, value: Any) -> None:
+        #  self.dataref
+        #
+        if 'float_array' in self.dataref.types:
+            # print("DList setting {} [{}] to '{}'".format(self.dataref._dref, idx, value))
+            xp.setDatavf(self.dataref._dref, [value, ], offset=int(idx), count=1)
+            return
+        if 'int_array' in self.dataref.types:
+            # print("DList setting {} [{}] to '{}'".format(self.dataref._dref, idx, value))
+            xp.setDatavi(self.dataref._dref, [value, ], offset=int(idx), count=1)
+            return
+        if 'data' in self.dataref.types:
+            # print("DList setting {} [{}] to '{}'".format(self.dataref._dref, idx, value))
+            xp.setDatas(self.dataref._dref, value, offset=int(idx), count=1)
+            return
+        raise ValueError("dataref does not support indexing")
+
+    @overload
+    def __setitem__(self, idx: slice, value: Iterable[Any]) -> None:
+        raise ValueError("slice not supported")
+
+    def __setitem__(self, idx: slice | SupportsIndex, value: Any, /) -> None:
+        ...
 
 
 def test():

@@ -568,7 +568,7 @@ static PyObject *XPLMIsAvionicsBoundFun(PyObject *self, PyObject *args, PyObject
 My_DOCSTR(_isCursorOverAvionics__doc__, "isCursorOverAvionics",
           "avionicsID",
           "avionicsID:XPLMAvionicsID",
-          "Tuple[x:int, y:int]",
+          "tuple[int, int] | None",
           "Is the cursor over the device with given avionicsID\n"
           "\n"
           "Returns tuple (x, y) with position or None.");
@@ -1291,7 +1291,7 @@ My_DOCSTR(_createAvionicsEx__doc__, "createAvionicsEx",
           "drawOnDemand=0, bezelDraw=None, screenDraw=None, bezelClick=None, bezelRightClick=None, "
           "bezelScroll=None, bezelCursor=None, screenTouch=None, screenRightTouch=None, screenScroll=None, "
           "screenCursor=None, keyboard=None, brightness=None, deviceID=\"deviceID\", deviceName=\"deviceName\", refcon=None",
-          "screenWidth:int=100, screenHeight:in=200, bezelWidth:int:140, bezelHeight:int=250, "
+          "screenWidth:int=100, screenHeight:int=200, bezelWidth:int=140, bezelHeight:int=250, "
           "screenOffsetX:int=20, screenOffsetY:int=25, drawOnDemand=0, "
           "bezelDraw:Optional[Callable[[float, float, float, Any], None]]=None, "
           "screenDraw:Optional[Callable[[Any], None]]=None, "
@@ -1303,7 +1303,7 @@ My_DOCSTR(_createAvionicsEx__doc__, "createAvionicsEx",
           "screenRightTouch:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, "
           "screenScroll:Optional[Callable[[int, int, int, int, Any], int]]=None, "
           "screenCursor:Optional[Callable[[int, int, Any], XPLMCursorStatus]]=None, "
-          "keyboard:Optional[Callable[[char, XLMKeyFlags, char, Any int], int]]=None, "
+          "keyboard:Optional[Callable[[int, XPLMKeyFlags, int, Any, int], int]]=None, "
           "brightness:Optional[Callable[[float, float, float], float]]=None, "
           "deviceID:str=\"deviceID\", deviceName:str=\"deviceName\", "
           "refCon:Any=None,"

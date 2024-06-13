@@ -15,17 +15,6 @@
 ## CODE
 Support (some?) of the Sandy Barbour convenience functions
 
-Better debug reporting rather than crashing on bad input.
-
-Update do.csh to strip out _f() and _t() functions for xp.py
-Update do.csh to strip out methods which contain 'DEPRECATED' as their docstring (graphics.XPLMGetTexture for example)
-       (Note do.csh works off of stubs, not *.c files)
-.... I think I've removed all deprecated constants from stubs, so they'll no longer be included in next xp.py
-
-Move xp.py to under plugins/XPPython3 directory
-
-
-
 These appear to be 'internal', yet available interfaces from Python2 -- I don't see usefulness of these
   XPLMPlugin.PI_RemoveEnumerateFeatures
   XPLMScenery.PI_RemoveLookupObjects
@@ -33,12 +22,6 @@ These appear to be 'internal', yet available interfaces from Python2 -- I don't 
   XPLMUtilities.PI_RemoveErrorCallback
 
 ## DOCUMENTATION
-
-### BUILD:
-More details on windows build
-
-### SDK:
-Include updated docs on SDK, pointers to Laminar resources, etc.
 
 ### API
 
@@ -52,7 +35,3 @@ Support PythonScriptMessaging functions
 * PI_DisableScript(scriptID)
 * PI_SendMessageToScript(<self>, scriptID | None, message, param)
 
-### TEST
-PI_SeeAndAvoid
-PI_NOAA -- PORTED!!
-        Runs on Mac and Windows, not test Linux (likely weatherServer won't starup correctly yet).

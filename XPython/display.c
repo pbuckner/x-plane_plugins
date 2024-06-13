@@ -296,7 +296,7 @@ My_DOCSTR(_registerAvionicsCallbacksEx__doc__, "registerAvionicsCallbacksEx",
           "screenRightTouch:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, "
           "screenScroll:Optional[Callable[[int, int, int, int, Any], int]]=None, "
           "screenCursor:Optional[Callable[[int, int, Any], XPLMCursorStatus]]=None, "
-          "keyboard:Optional[Callable[[char, XPLMKeyFlags, char, Any, int], int]]=None",
+          "keyboard:Optional[Callable[[int, XPLMKeyFlags, int, Any, int], int]]=None",
           "XPLMAvionicsID",
           "Registers draw callback for particular device.\n"
           "\n"
@@ -3041,7 +3041,6 @@ static int genericAvionicsCallback(XPLMDeviceID inDeviceID, int inIsBefore, void
   }
 
   PyObject *tup = PyDict_GetItem(avionicsCallbacksDict, pl); /*borrowed*/
-  Py_DECREF(pl);
   if (!tup) {
     pythonLog("avionicsDrawCallback, got unknown inRefcon(%p)!", inRefcon);
     goto cleanup;
@@ -3054,15 +3053,20 @@ static int genericAvionicsCallback(XPLMDeviceID inDeviceID, int inIsBefore, void
   PyObject *isBefore = PyLong_FromLong(inIsBefore);/* new */
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
-  pRes = PyObject_CallFunctionObjArgs(fun, deviceId, isBefore, refCon, NULL);
+  if (fun != Py_None)
+    pRes = PyObject_CallFunctionObjArgs(fun, deviceId, isBefore, refCon, NULL);
   clock_gettime(CLOCK_MONOTONIC, &stop);
   pluginStats[getPluginIndex(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   Py_DECREF(isBefore);
 
   if(!pRes){
-    char *s2 = objToStr(fun);
-    pythonLog("[%s] Avionics Draw callback %s failed.", CurrentPythonModuleName, s2);
-    free(s2);
+    err = PyErr_Occurred();
+    if (err && fun != Py_None) {
+      pythonLogException();
+      pythonLog("[%s] Avionics Draw function disabled. %s", CurrentPythonModuleName, objToStr(fun));
+      PyTuple_SetItem(tup, inIsBefore ? AVIONICS_BEFORE : AVIONICS_AFTER, Py_None);
+      PyDict_SetItem(avionicsCallbacksDict, pl, tup);
+    }
     goto cleanup;
   }
   if (inIsBefore) {
@@ -3082,6 +3086,7 @@ static int genericAvionicsCallback(XPLMDeviceID inDeviceID, int inIsBefore, void
     pythonLogException();
   }
   Py_XDECREF(pRes);
+  Py_XDECREF(pl);
 
   clock_gettime(CLOCK_MONOTONIC, &all_stop);
   pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
@@ -3103,7 +3108,6 @@ static int genericDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *i
     goto cleanup;
   }else{
     tup = PyDict_GetItem(drawCallbackDict, pl);
-    Py_DECREF(pl);
   }
 
   if(!tup){
@@ -3118,18 +3122,21 @@ static int genericDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *i
 
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
-  pRes = PyObject_CallFunctionObjArgs(fun, inPhaseObj, inIsBeforeObj, refcon, NULL);
+  if (fun != Py_None)
+    pRes = PyObject_CallFunctionObjArgs(fun, inPhaseObj, inIsBeforeObj, refcon, NULL);
   clock_gettime(CLOCK_MONOTONIC, &stop);
   pluginStats[getPluginIndex(PyTuple_GetItem(tup, DRAW_MODULE_NAME))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
 
   Py_DECREF(inPhaseObj);
   Py_DECREF(inIsBeforeObj);
   if(!pRes){
-    char *s = objToStr(PyTuple_GetItem(tup, DRAW_MODULE_NAME));
-    char *s2 = objToStr(fun);
-    pythonLog("[%s] Draw callback %s failed.", s, s2);
-    free(s);
-    free(s2);
+    err = PyErr_Occurred();
+    if (err && fun != Py_None) {
+      pythonLogException();
+      pythonLog("[%s] Draw callback %s failed.", CurrentPythonModuleName, objToStr(fun));
+      PyTuple_SetItem(tup, DRAW_CALLBACK, Py_None);
+      PyDict_SetItem(drawCallbackDict, pl, tup);
+    }
     goto cleanup;
   }
   if(!PyLong_Check(pRes)){
@@ -3152,6 +3159,7 @@ static int genericDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *i
     pythonLogException();
   }
 
+  Py_XDECREF(pl);
   Py_XDECREF(pRes);
   clock_gettime(CLOCK_MONOTONIC, &all_stop);
   pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
@@ -3217,36 +3225,41 @@ static void genericAvionicsBezelDraw(float inAmbiantR, float inAmbiantG, float i
   clock_gettime(CLOCK_MONOTONIC, &all_start);
   PyObject *pl = PyLong_FromVoidPtr(inRefcon);/*new*/
   PyObject *err = NULL;
+  PyObject *fun = Py_None;
   if (pl == NULL) {
     pythonLog("avionicsBezelDraw, can't create PyLong.");
     goto cleanup;
   }
 
   PyObject *tup = PyDict_GetItem(avionicsCallbacksDict, pl); /*borrowed*/
-  Py_DECREF(pl);
   if (!tup) {
     pythonLog("avionicsBezelDraw, got unknown inRefcon(%p)!", inRefcon);
     goto cleanup;
   }
 
-  PyObject *fun = PyTuple_GetItem(tup, AVIONICS_BEZEL_DRAW); /* borrowed */
+  fun = PyTuple_GetItem(tup, AVIONICS_BEZEL_DRAW); /* borrowed */
   PyObject *refCon = PyTuple_GetItem(tup, AVIONICS_REFCON);/* borrowed */
   set_moduleName(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME));
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
-  PyObject_CallFunctionObjArgs(fun,
-                               PyFloat_FromDouble(inAmbiantR),
-                               PyFloat_FromDouble(inAmbiantG),
-                               PyFloat_FromDouble(inAmbiantB), refCon, NULL);
+  if (fun != Py_None)
+    PyObject_CallFunctionObjArgs(fun,
+                                 PyFloat_FromDouble(inAmbiantR),
+                                 PyFloat_FromDouble(inAmbiantG),
+                                 PyFloat_FromDouble(inAmbiantB), refCon, NULL);
   clock_gettime(CLOCK_MONOTONIC, &stop);
   pluginStats[getPluginIndex(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
 
  cleanup:
   err = PyErr_Occurred();
-  if(err){
+  if(err && fun != Py_None){
     pythonLogException();
+    pythonLog("[%s] Avionics Bezel Draw function disabled. %s", CurrentPythonModuleName, objToStr(fun));
+    PyTuple_SetItem(tup, AVIONICS_BEZEL_DRAW, Py_None);
+    PyDict_SetItem(avionicsCallbacksDict, pl, tup);
   }
 
+  Py_XDECREF(pl);
   clock_gettime(CLOCK_MONOTONIC, &all_stop);
   pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
 }
@@ -3256,33 +3269,38 @@ static void genericAvionicsScreenDraw(void *inRefcon)  {
   clock_gettime(CLOCK_MONOTONIC, &all_start);
   PyObject *pl = PyLong_FromVoidPtr(inRefcon);/*new*/
   PyObject *err = NULL;
+  PyObject *fun = Py_None;
   if (pl == NULL) {
     pythonLog("genericAvionicsScreenDraw, can't create PyLong.");
     goto cleanup;
   }
 
   PyObject *tup = PyDict_GetItem(avionicsCallbacksDict, pl); /*borrowed*/
-  Py_DECREF(pl);
   if (!tup) {
     pythonLog("genericAvionicsScreenDraw, got unknown inRefcon(%p)!", inRefcon);
     goto cleanup;
   }
 
-  PyObject *fun = PyTuple_GetItem(tup, AVIONICS_DRAW); /* borrowed */
+  fun = PyTuple_GetItem(tup, AVIONICS_DRAW); /* borrowed */
   PyObject *refCon = PyTuple_GetItem(tup, AVIONICS_REFCON);/* borrowed */
   set_moduleName(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME));
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
-  PyObject_CallFunctionObjArgs(fun, refCon, NULL);
+  if (fun != Py_None)
+    PyObject_CallFunctionObjArgs(fun, refCon, NULL);
   clock_gettime(CLOCK_MONOTONIC, &stop);
   pluginStats[getPluginIndex(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
 
  cleanup:
   err = PyErr_Occurred();
-  if(err){
+  if(err && fun != Py_None){
     pythonLogException();
+    pythonLog("[%s] ScreenDraw function disabled. %s", CurrentPythonModuleName, objToStr(fun));
+    PyTuple_SetItem(tup, AVIONICS_DRAW, Py_None);
+    PyDict_SetItem(avionicsCallbacksDict, pl, tup);
   }
 
+  Py_XDECREF(pl);
   clock_gettime(CLOCK_MONOTONIC, &all_stop);
   pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
 }
@@ -3301,7 +3319,6 @@ static float genericAvionicsBrightness(float inRheoValue, float inAmbiantBrightn
   }
 
   PyObject *tup = PyDict_GetItem(avionicsCallbacksDict, pl); /*borrowed*/
-  Py_DECREF(pl);
   if (!tup) {
     pythonLog("genericAvionicsBrightness, got unknown inRefcon(%p)!", inRefcon);
     goto cleanup;
@@ -3313,18 +3330,23 @@ static float genericAvionicsBrightness(float inRheoValue, float inAmbiantBrightn
   set_moduleName(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME));
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
-  pRes = PyObject_CallFunctionObjArgs(fun,
-                                      PyFloat_FromDouble(inRheoValue),
-                                      PyFloat_FromDouble(inAmbiantBrightness),
-                                      PyFloat_FromDouble(inBusVoltsRatio),
-                                      refCon, NULL);
+  if (fun != Py_None)
+    pRes = PyObject_CallFunctionObjArgs(fun,
+                                        PyFloat_FromDouble(inRheoValue),
+                                        PyFloat_FromDouble(inAmbiantBrightness),
+                                        PyFloat_FromDouble(inBusVoltsRatio),
+                                        refCon, NULL);
   clock_gettime(CLOCK_MONOTONIC, &stop);
   pluginStats[getPluginIndex(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME))].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
 
   if(!pRes){
-    char *s2 = objToStr(fun);
-    pythonLog("[%s] Avionics Brightness callback %s failed.", CurrentPythonModuleName, s2);
-    free(s2);
+    err = PyErr_Occurred();
+    if (err && fun != Py_None) {
+      pythonLogException();
+      pythonLog("[%s] Avionics Brightness callback %s failed.", CurrentPythonModuleName, objToStr(fun));
+      PyTuple_SetItem(tup, AVIONICS_BRIGHTNESS, Py_None);
+      PyDict_SetItem(avionicsCallbacksDict, pl, tup);
+    }
     goto cleanup;
   }
   if(!PyFloat_Check(pRes)){
@@ -3341,6 +3363,7 @@ static float genericAvionicsBrightness(float inRheoValue, float inAmbiantBrightn
     pythonLogException();
   }
 
+  Py_XDECREF(pl);
   clock_gettime(CLOCK_MONOTONIC, &all_stop);
   pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
   return res;

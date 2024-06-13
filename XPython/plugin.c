@@ -1,5 +1,6 @@
 //Python comes first!
 #include <Python.h>
+#include <pthread.h>
 #include <unistd.h>
 #include <sys/time.h>
 #include <stdio.h>
@@ -74,6 +75,8 @@ static bool xpy3_started = false;
 static PyObject *loggerModuleObj;
 static void *pythonHandle = NULL;
 
+pthread_t pythonThread = (pthread_t) NULL;
+
 extern PyMODINIT_FUNC PyInit_XPLMDefs(void);
 extern PyMODINIT_FUNC PyInit_XPLMDisplay(void);
 extern PyMODINIT_FUNC PyInit_XPLMGraphics(void);
@@ -109,6 +112,8 @@ int initPython(void){
   /* Initalize Python and internal modules
    * return 0: success, otherwise: fail... all failures are fatal */
 
+  pythonThread = pthread_self();
+  
   PyImport_AppendInittab("XPPython", PyInit_XPPython);
   PyImport_AppendInittab("XPLMDefs", PyInit_XPLMDefs);
   PyImport_AppendInittab("XPLMDisplay", PyInit_XPLMDisplay);

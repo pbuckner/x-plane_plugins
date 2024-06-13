@@ -2,8 +2,8 @@ from XPPython3 import xp
 from typing import Callable, Any
 from . import xlua
 
-# run_at_interval(func, interval) -> run_timer(func, interval, interval)
-# run_after_time(func, delay)   -> run_timer(func, delay, 0)
+# run_at_interval(func, interval) == run_timer(func, interval, interval)
+# run_after_time(func, delay)     == run_timer(func, delay, 0)
 # run_timer(func, delay, interval)
 #    (after delay run & repeat every interval after that)
 # stop_timer(func)

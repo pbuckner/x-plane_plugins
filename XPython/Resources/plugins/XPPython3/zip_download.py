@@ -18,20 +18,22 @@ log = xp.systemLog
 
 
 ZIP_UNIX_SYSTEM = 3
+
+
 class MyZipFile(ZipFile):
     # preserves file permissions
     def _extract_member(self, member, targetpath, pwd):
         if not isinstance(member, ZipInfo):
             member = self.getinfo(member)
-        targetpath = super()._extract_member(member, targetpath, pwd)
+        targetpath = super()._extract_member(member, targetpath, pwd)  # type: ignore
         if member.create_system == ZIP_UNIX_SYSTEM and os.path.isfile(targetpath):
             # only restore 'user-execute' permission -- that's safe
             unix_attr = member.external_attr >> 16
             if unix_attr & stat.S_IXUSR:
                 os.chmod(targetpath, os.stat(targetpath).st_mode | stat.S_IXUSR)
         return targetpath
-        
-        
+
+
 class ZipDownload:
     initial_progress_msg = "Updating file"
     final_progress_msg = "Update complete"
@@ -40,10 +42,6 @@ class ZipDownload:
     backup = True
     progressWindow = None
     remove_top_dir = False
-
-    # def __del__(self):
-    #     if self.progressWindow:
-    #         self.progressWindow.destroy()
 
     def __init__(self):
         self.update_thread = None
@@ -58,10 +56,9 @@ class ZipDownload:
         self.progressWindow = XPProgressWindow(self.initial_progress_msg, num_captions)
         self.flightLoopID = xp.createFlightLoop(self.progressFLCallback)
         xp.scheduleFlightLoop(self.flightLoopID, -1)
-        log("ZipDownload.get_zipfile called with: {}".format(download_url))
+        log(f"ZipDownload.get_zipfile called with: {download_url}")
         if self.update_thread and self.update_thread.is_alive():
             self.update_thread.join()
-            
 
         self.update_thread = threading.Thread(target=lambda: self._download_wrapper(download_url, cksum))
         self.setCaption("Starting Download...")
@@ -96,7 +93,7 @@ class ZipDownload:
     def _download(self, download_url, cksum=None) -> str:
         # returned 'str' is the last message (success or failure message) which
         # should be displayed to user
-        
+
         def hook(chunk, maxChunk, total):
             if total > 0:
                 p = (chunk * maxChunk) / total
@@ -110,7 +107,6 @@ class ZipDownload:
             return "Error: install_path not set"
 
         self.setCaption("Downloading")
-        success = None
 
         if not os.path.exists(self.download_path):
             log(f"Making download directory: {self.download_path}")
@@ -123,13 +119,14 @@ class ZipDownload:
             except Exception as e:
                 xp.log(f"Failed to remove previous download {zipfile}: {e}")
                 return f"Failed to removed previous download {zipfile}"
-            
+
         try:
             with urlopen(download_url, cafile=certifi.where()) as fp:
                 total = int(fp.headers['Content-Length'] or '-1')
                 chunk_count = 0
                 with open(zipfile, 'wb') as zp:
-                    chunksize = min(max(4096, total//100), 1024 * 1024) # [4096 ... 1024*1024], optimized to total // 100
+                    # [4096 ... 1024*1024], optimized to total // 100
+                    chunksize = min(max(4096, total // 100), 1024 * 1024)
                     data = fp.read(chunksize)
                     while data:
                         chunk_count += 1
@@ -179,12 +176,11 @@ class ZipDownload:
                     return "Downloaded file failed integrity check"
 
             self.setCaption("Preparing to extract.")
-            success = True
             files = zipfp.infolist()
             numfiles = len(files)
             for idx, i in enumerate(files):
                 self.setProgress(idx / numfiles)
-                self.setCaption("Extracting [{}/{}]\n   {}".format(idx + 1, numfiles, os.path.basename(i.filename)))
+                self.setCaption(f"Extracting [{idx + 1}/{numfiles}]\n   {os.path.basename(i.filename)}")
 
                 if self.remove_top_dir:
                     # change ZipInfo value of filename
@@ -250,7 +246,7 @@ class ZipDownload:
                 fileread += chunksize
                 p = fileread / filesize
                 self.setProgress(p)
-                self.setCaption("Verifying [{:2.0%}]".format(p))
+                self.setCaption(f"Verifying [{p:2.0%}]")
                 hash_md5.update(chunk)
             cksum = hash_md5.hexdigest()
         self.setCaption("Verification complete.")

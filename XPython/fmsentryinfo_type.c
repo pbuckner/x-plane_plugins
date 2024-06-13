@@ -86,6 +86,12 @@ static PyMemberDef FMSEntryInfo_members[] = {
     {NULL, T_INT, 0, 0, ""}  /* Sentinel */
 };
 
+#if APL || LIN
+static int max(int a, int b) {
+  return a > b ? a : b;
+}
+#endif
+
 static PyObject *FMSEntryInfo_str(FMSEntryInfoObject *obj) {
   char *navAidType;
   char *floats;
@@ -125,14 +131,15 @@ static PyObject *FMSEntryInfo_str(FMSEntryInfoObject *obj) {
   if (-1==asprintf(&floats, "(%.3f, %.3f) @%d'", obj->lat, obj->lon, obj->altitude)) {
     pythonLog("Failed to allocate memory for asprintf, FMSEntryInfo");
   }
-  if (obj->type == xplm_Nav_LatLon) {
-    ret = PyUnicode_FromFormat("%s: %s", navAidType, floats);
+  if (obj->type == xplm_Nav_LatLon || obj->type == xplm_Nav_Unknown) {
+    ret = PyUnicode_FromFormat("%s:%*s %6S, %s", navAidType, 11 + max(0, 9-strlen(navAidType)), " ", obj->navAidID, floats);
   } else {
-    ret = PyUnicode_FromFormat("%s: [%d] %S, %s", navAidType, obj->ref, obj->navAidID, floats);
+    ret = PyUnicode_FromFormat("%s:%*s [%8d] %6S, %s", navAidType, max(0, 9-strlen(navAidType)), " ", obj->ref, obj->navAidID, floats);
   }
   free(floats);
   return ret;
 }
+
 
 
 PyTypeObject
@@ -156,7 +163,6 @@ FMSEntryInfoType = {
 PyObject *
 PyFMSEntryInfo_New(int type, char *navAidID, int ref, int altitude, float lat, float lon)
 {
-  if (type == xplm_Nav_Unknown) Py_RETURN_NONE;
   PyObject *argsList = Py_BuildValue("iUiiff", type, navAidID, ref, altitude, lat, lon);
   PyObject *obj = PyObject_CallObject((PyObject *) &FMSEntryInfoType, argsList);
   if (PyErr_Occurred()) {

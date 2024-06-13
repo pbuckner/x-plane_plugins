@@ -1,37 +1,26 @@
 from typing import TypedDict
-import threading
-import queue
 import sys
 import urllib
 import re
 import os
-import stat
-import subprocess
 import webbrowser
 from XPPython3 import scriptupdate
 from XPPython3 import xp
-from XPPython3.utils import samples
-from XPPython3.ui.popups import ScrollingPopup
+from XPPython3.utils import samples, xp_pip
 from XPPython3 import xp_typing
-
-# location where we want PIP to install packages. Relative to X-Plane directory
-PKG_DIR = {
-    'linux': 'Resources/plugins/XPPython3/lin_x64/python3.12/lib/python3.12/dist-packages',
-    'win32': 'Resources/plugins/XPPython3/win_x64/Lib/site-packages',
-    'darwin': 'Resources/plugins/XPPython3/mac_x64/python3.12/lib/python3.12/site-packages',
-}
 
 
 class MyWidgetWindow(TypedDict):
-    widgetID: xp_typing.XPWidgetID |  None
+    widgetID: xp_typing.XPWidgetID | None
     widgets: dict
+
 
 PLUGIN_MODULE_NAME = 4
 
 
 class MyConfig(scriptupdate.Updater):
     Name = "XPPython3 Updater"
-    Sig = f"xppython3.{xp.getVersions()[1]}.{sys.version_info.major}.{sys.version_info.minor}"  #{SDK}
+    Sig = f"xppython3.{xp.getVersions()[1]}.{sys.version_info.major}.{sys.version_info.minor}"
     Desc = "Automatic updater for XPPython3 plugin"
     Version = xp.VERSION
     VersionCheckData = {'product': urllib.parse.quote_plus(Sig),
@@ -612,63 +601,8 @@ class PythonInterface(MyConfig):
             if packages:
                 xp.setWidgetDescriptor(self.pipWindow['widgets']['error'],
                                        f"Looking to install packages: {' '.join(packages)}")
-                # -s causes us to NOT add user site-pkg directory
-                # --no-warn-script-location
-                target = PKG_DIR[sys.platform]
-                mode = os.stat(xp.pythonExecutable).st_mode
-                if not mode & stat.S_IXUSR:
-                    os.chmod(xp.pythonExecutable, mode | stat.S_IXUSR | stat.S_IXGRP)
-                cmd = [xp.pythonExecutable, '-s',
-                       '-m', 'pip',
-                       'install', '--no-warn-script-location',
-                       '--target', target,
-                       ] + packages
-                self.startPipCall(cmd)
-
+                xp_pip.load_packages(packages, end_message="This information has been added to XPPython3 log file.")
             xp.setWidgetDescriptor(self.pipWindow['widgets']['packages'], '')
             return 1
 
         return 0
-
-    def startPipCall(self, cmd):
-        self.pip_output_popup = ScrollingPopup("PIP Output", 100, 400, 600, 100)
-        self.q: queue.Queue = queue.Queue()
-        t = threading.Thread(name="pip", target=pip, args=[cmd, self.q])
-        t.start()
-        self.pipWindowLoopID = xp.createFlightLoop(self.pipWindowLoop, refCon=self.q)
-        xp.scheduleFlightLoop(self.pipWindowLoopID, -1)
-
-    def pipWindowLoop(self, since, elapsed, counter, q):
-        try:
-            line = q.get_nowait()
-            if line == '[DONE]':
-                self.pip_output_popup.add(" -- [Completed] --")
-                for i in self.pip_output_popup.get_data():
-                    xp.log(f"PIP>> {i}")
-                self.pip_output_popup.add("This information has been added to XPPython3 log file.")
-                return 0
-            self.pip_output_popup.add(line)
-        except queue.Empty:
-            pass
-        return -10  # Check again in 10 frames
-
-def pip(cmd, q):
-    xp.log(f"Doing {' '.join(cmd)}")
-    q.put(f"$ {' '.join(cmd)}")
-    try:
-        with subprocess.Popen(cmd,
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.STDOUT,
-                              bufsize=1,
-                              encoding='utf-8',
-                              universal_newlines=True) as sub:
-            for line in sub.stdout:
-                if line[-1] == '\n':
-                    line = line[:-1]
-                q.put(line)
-        xp.log("All done")
-    except PermissionError:
-        xp.log(f"Error: {cmd[0]} does not have executable permission.")
-    except FileNotFoundError:
-        xp.log(f"Error: {cmd[0]} not found.")
-    q.put('[DONE]')

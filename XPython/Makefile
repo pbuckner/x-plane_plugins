@@ -5,7 +5,7 @@ SERVER_SDK=400
 XP_SDK=../SDK410
 VERSIONS= 312
 # python versions are like 4.1.1 -> 4.1.2a1 -> 4.1.2a2 -> 4.1.2b1 -> 4.1.2 (letter is [ab], cannot end with letter)
-XPPYTHONVERSION=4.4.0a3
+XPPYTHONVERSION=4.4.0a6
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
 FMOD=../FMOD
 ZIP=zip
@@ -171,7 +171,9 @@ Resources/plugins/xp3-darwin.zip: win/XPPython3.xpl lin/XPPython3.xpl mac/XPPyth
 		$(ZIP) xp.zip -q -u XPPython3/*.pyi ; \
 		$(ZIP) xp.zip -q -u XPPython3/utils/*.py ; \
 		$(ZIP) xp.zip -q -u XPPython3/hooks/*.py ; \
+		$(ZIP) xp.zip -q -u XPPython3/internals/*.py ; \
 		$(ZIP) xp.zip -q -u XPPython3/xp_imgui/*.py ; \
+		$(ZIP) xp.zip -q -u XPPython3/xpgl/*.py ; \
 		$(ZIP) xp.zip -q -u XPPython3/ui/*.py ; \
 		$(ZIP) xp.zip -q -u -r XPPython3/Drop\ Q*.app;
 	# That's the same as the 'upgrade' -- python-less -- version
@@ -198,7 +200,7 @@ Resources/plugins/xp3-darwin.zip: win/XPPython3.xpl lin/XPPython3.xpl mac/XPPyth
 	cd Resources/plugins; $(ZIP) xp3-linux.zip  -q -u -r XPPython3/lin_x64/python3.12
 	cd Resources/plugins; $(ZIP) xp3-win32.zip  -q -u -r XPPython3/win_x64
 	#
-	sleep 5
+	sleep 30
 	rm -fr Resources/plugins/XPPython3/mac_x64
 	rm -fr Resources/plugins/XPPython3/lin_x64
 	rm -fr Resources/plugins/XPPython3/win_x64

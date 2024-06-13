@@ -39,7 +39,7 @@ If you don't see the window immediately, check the logs.
 Programming OpenGL
 ------------------
 
-I'm not an OpenGL expert, so you're on your own. The key is you will draw within a window's DrawCallback (the "window"
+If you're an OpenGL expert, have at it. The key is you will draw within a window's DrawCallback (the "window"
 may be transparent and does not require decorations). Then, each call you'll::
 
   import OpenGL.GL as GL
@@ -49,4 +49,6 @@ may be transparent and does not require decorations). Then, each call you'll::
       GL.glBegin(...)
       do_stuff()
       GL.glEnd()
-  
+
+For the rest of us, you can use :py:mod:`xpgl` routines to do most anything you want. This module us pure-python
+so you can see what OpenGL calls are actually being made if you're curious.

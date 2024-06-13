@@ -21,6 +21,19 @@ Known Bugs
      XPPython v4.4 can be used with X-Plane 12.0 or greater, though SDK410 functions
      are available only while using 12.1 or greater.
 
+   * **OpenGL Utilities**. The :py:mod:`xpgl` module has been added to XPPython3.
+     This module wraps OpenGL routines, allowing you to easily
+     draw :doc:`Lines </development/modules/xpgl_lines>`,
+     :doc:`Shapes </development/modules/xpgl_shapes>`,
+     :doc:`Images </development/modules/xpgl_images>`,
+     :doc:`Text </development/modules/xpgl_text>`,
+     :doc:`Transformations </development/modules/xpgl_transformations>`,
+     :doc:`Masks </development/modules/xpgl_mask>`,
+     without needing to understand OpenGL. Also included
+     is a :doc:`pygame Template </development/modules/xpgl_debugging>` which
+     allows you to experiment with XPPython XPGL drawing without needing
+     to fire up X-Plane.
+     
    * **EasyPython**. To help developers who want to transition from using xlua
      for aircraft plugins, and to support a simpler way to write python plugins,
      some helper classes have been introduced. These simplify:
@@ -33,6 +46,9 @@ Known Bugs
      Additionally, a simpler "main loop" is introduced as :doc:`/development/modules/easy_python`.
      These enhancement should be considered *BETA* at present, and improved documentation with
      examples will be included in the future.
+
+   * **xp_pip module**. This module allows plugin developers to automatically install
+     python modules into the correct location withing XPPython3. See :doc:`/development/modules/xp_pip`.
 
    |
 

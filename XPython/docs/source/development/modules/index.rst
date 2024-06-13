@@ -132,6 +132,39 @@ X-Planes's Widget modules:
 |:doc:`widgetutils`      |Mostly useless functions.                                            |
 +------------------------+---------------------------------------------------------------------+
 
+Some "helper" pure-python modules, built on top of the others, making basic functionality easier
+to implement.
+
++-------------------------+---------------------------------------------------------------------+
+|:doc:`timers`            |Create and schedule one-shot and interval timers. Easier than working|
+|                         |with flight loops.                                                   |
+|                         |                                                                     |
++-------------------------+---------------------------------------------------------------------+
+|:doc:`commands`          |Create and execute X-Plane commands. Alter existing commands.        |
+|                         |                                                                     |
+|                         |                                                                     |
++-------------------------+---------------------------------------------------------------------+
+|:doc:`datarefs`          |Create and access datarefs.                                          |
+|                         |                                                                     |
+|                         |                                                                     |
++-------------------------+---------------------------------------------------------------------+
+|:doc:`easy_python`       |Optional parent class for required PythonInterface class. Provides a |
+|                         |number of well-defined callback points, making it easier for you to  |
+|                         |code a plugin.                                                       |
++-------------------------+---------------------------------------------------------------------+
+|:doc:`xlua_variables`    |Convenience code with pre-defined global parameters, also commonly   |
+|                         |used in xlua programs.                                               |
+|                         |                                                                     |
++-------------------------+---------------------------------------------------------------------+
+
+More pure-python modules useful for graphics:
+
++------------------------+---------------------------------------------------------------------+
+|:doc:`xpgl`             |Convenience wrapper around common OpenGL routines allowing you to    |
+|                        |quickly draw shapes, load images, and fonts.                         |
+|                        |                                                                     |
++------------------------+---------------------------------------------------------------------+
+
 And three XPPython-specific additions (also accessible with simple ``import xp``.)
 
 +------------------------+---------------------------------------------------------------------+
@@ -173,4 +206,11 @@ And three XPPython-specific additions (also accessible with simple ``import xp``
    utilities
    xp
    xp_imgui
+   xp_pip
    python
+   timers
+   commands
+   datarefs
+   easy_python
+   xlua_variables
+   xpgl

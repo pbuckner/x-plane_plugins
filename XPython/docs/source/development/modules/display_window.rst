@@ -859,7 +859,7 @@ Window Functions
  +-------+-----------------------------+---------------------------------------+
 
  Therefore your window will keep its size, and the upper left of your window will stay in the same location (i.e., same
- number of pixels from down from the top and over from the left of the screen.(
+ number of pixels from down from the top and over from the left of the screen.
 
  ``(0.0, 1.0, 1.0, 1.0)`` can be interpreted as:
 

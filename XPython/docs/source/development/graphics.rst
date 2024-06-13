@@ -14,11 +14,13 @@ The X-Plane SDK provides a few ways of drawing:
 * **Windows with Widgets**: Create a widget window and attach user-interaction widgets to it. See :doc:`/development/modules/widgets` and
   :doc:`/development/modules/standardwidgets`.
   
-Additionally, XPPython3 has wrapped the `Dear IMGUI <https://github.com/ocornut/imgui>`_ library to provide:
+Additionally, XPPython3 has wrapped the `Dear IMGUI <https://github.com/ocornut/imgui>`_ library and OpenGL to provide:
 
 * **Windows with ImGui Widgets**:
   Create a window and attach `Dear IMGUI <https://github.com/ocornut/imgui>`_ widgets to it. See :doc:`imgui`.
     
+* **XPGL Graphics**:
+  Draw shapes, fonts, images with a pure-python graphics drawing package. See :doc:`/development/modules/xpgl`.
 
 For details on non-SDK drawing, see:
 
@@ -27,3 +29,4 @@ For details on non-SDK drawing, see:
 
    opengl
    imgui
+   /development/modules/xpgl

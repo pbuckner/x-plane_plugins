@@ -1,11 +1,13 @@
 Easy Commands
 =============
 
-.. warning:: This is proposed documentation, for review only.
-
-..
-   py:module:: commands
+.. py:module:: utils.commands
   
+To use:
+::
+
+   from XPPython3.utils import commands
+
 X-Plane already defines a larger number of commands. To use or modify an existing
 command:
 
@@ -22,6 +24,8 @@ You can also create your own commands and these can be further modified using th
 * :py:func:`create_command`: create named command
   
 Command are implemented using the SDK Command interface, as further described in :doc:`utilities`.
+(This module can be used with or without other python-xlua
+inspired modules).
 
 Each of these functions return a ``Command`` object, which allows you to execute the command once or multiple times.
 
@@ -55,11 +59,12 @@ Functions
 ---------
 
 .. py:function:: create_command(name, description, callback)
-
-  Return :py:class:`Command` instance for newly created command with string ``name``.
-  The ``description`` will be user-visible in sim, and the provided function ``callback`` will
-  be executed when the command is triggered.
-
+                 
+  :param name str: name of command to be created
+  :param description str: User-visible description of command (in sim, with listing of all commands)
+  :param callback Callable: function to be called on execution
+  :return: :py:class:`Command` instance for newly created command
+           
   Callback function takes two parameters, ``phase`` and ``duration``. `Phase` is the value 0, 1, or 2
   corresponding to:
 
@@ -84,8 +89,10 @@ Functions
 
 .. py:function:: find_command(name)
 
-  Return :py:class:`Command` instance for command with string ``name``. Raises ``ValueError`` exception
-  if command does not exist::
+  :param name str: name of existing command to be retrieved
+  :return: :py:class:`Command` instance for newly created command
+
+  Raises ``ValueError`` exception if command does not exist::
 
     >>> pause = find_command('sim/operation/pause_toggle')
     >>> print(pause)
@@ -97,7 +104,10 @@ Functions
 
 .. py:function:: replace_command(name, callback)
 
-  Call ``callback`` instead of whatever may be defined for existing command.
+  :param name str: Name of command to be replaced
+  :param callback Callable: Function to be called *instead of* whatever may defined for existing command                 
+  :return: :py:class:`Command` instance for replaced command
+
   Building on the :py:func:`create_command` example above, say we want to change the callback::
 
     >>> def say_goodbye(phase, duration):
@@ -115,6 +125,11 @@ Functions
 
 .. py:function:: wrap_command(name, before, after)
 
+  :param name str: Name of command to be replaced
+  :param before Callable: Function to be called *before* whatever may defined for existing command                 
+  :param after Callable: Function to be called *after* whatever may defined for existing command                 
+  :return: :py:class:`Command` instance for wrapped command
+
   Similar to :py:func:`replace_command`, this function returns a :py:class:`Command` object
   for existing command with string ``name``. Rather than `replace` the original callback, it `adds` callbacks
   to be executed `before` and `after` the original callback. Either may be ``None``.
@@ -126,6 +141,10 @@ Functions
   to ``None``.
 
 .. py:function:: filter_command(name, filter)
+
+  :param name str: Name of command to be filtered
+  :param filter Callable: Function to be called prior to existing command
+  :return: :py:class:`Command` instance for command
 
   This returns a :py:class:`Command` object for existing command with string ``name``.
   Provided `filter` callback is executed whenever the command is triggered. If the

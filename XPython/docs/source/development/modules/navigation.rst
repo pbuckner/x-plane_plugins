@@ -352,38 +352,88 @@ Functions
 
 .. py:function:: getFMSFlightPlanEntryInfo(flightPlan, index)
 
-  Returns information about a single entry in the give flight plan.
+  Returns information about a single entry in the given flight plan.
 
   :param XPLMNavFlightPlan flightPlan: selected flight plan
   :param int index: existing 0-based index to retrieve
   :return FMSEntryInfo: Instance of :ref:`FMSEntryInfo`
 
-  >>> for i in range(xp.countFMSFlightPlanEntries(0)):
-  ...    print(str(xp.getFMSFlightPlanEntryInfo(0, i)))
+  >>> for i in range(xp.countFMSFlightPlanEntries(xp.Fpl_Pilot_Primary)):
+  ...    print(str(xp.getFMSFlightPlanEntryInfo(xp.Fpl_Pilot_Primary, i)))
   ...
-  Airport: [16803968] EDDS,   (48.690, 9.222) @1271'
-  Unknown:       [-1] RW25,   (48.694, 9.244) @1180'
-  Unknown:       [-1] (1700), (48.690, 9.220) @1699'
-  Fix:     [33622837] DS050,  (48.671, 9.122) @0'
-  Fix:     [33622827] DS040,  (48.690, 9.067) @0'
-  Fix:     [33622830] DS043,  (48.801, 9.010) @0'
-  Fix:     [33613119] KOVAN,  (48.882, 9.084) @19999'
-  Fix:     [33611008] ETASA,  (49.191, 9.128) @19035'
-  Fix:     [33620051] XINLA,  (49.284, 9.142) @0'
-  Fix:     [33617115] SUKON,  (49.660, 9.196) @0'
-  Fix:     [33617153] SUPIX,  (49.728, 9.305) @0'
-  Fix:     [33617059] SPESA,  (49.862, 9.348) @0'
-  VOR:         [5353] CHA,    (49.921, 9.040) @0'
-  Unknown:       [-1] D338K,  (50.095, 8.942) @0'
-  Fix:     [33621910] LEDKI,  (50.104, 8.856) @0'
-  Unknown:       [-1] FF25L,  (50.081, 8.759) @0'
-  Unknown:       [-1] RW25L,  (50.040, 8.587) @411'
-  Unknown:       [-1] D247E,  (50.021, 8.505) @0'
-  Unknown:       [-1] D241H,  (49.993, 8.453) @0'
-  Unknown:       [-1] (5000), (49.925, 8.232) @4999'
-  VOR:         [5353] CHA,    (49.921, 9.040) @0'
-  Airport: [16787675] EDDF,   (50.033, 8.570) @353'
+  Airport:   [16803968]   EDDS, (48.690, 9.222) @1272'
+  LatLon:                 RW25, (48.694, 9.244) @1180'
+  Unknown:              (1700), (48.690, 9.220) @1699'
+  Fix:       [33622837]  DS050, (48.671, 9.122) @0'
+  Fix:       [33622827]  DS040, (48.690, 9.067) @0'
+  Fix:       [33622830]  DS043, (48.801, 9.010) @0'
+  Fix:       [33613119]  KOVAN, (48.882, 9.084) @0'
+  Fix:       [33611008]  ETASA, (49.191, 9.128) @0'
+  Fix:       [33620051]  XINLA, (49.284, 9.142) @0'
+  Fix:       [33617115]  SUKON, (49.660, 9.196) @0'
+  Fix:       [33617153]  SUPIX, (49.728, 9.305) @0'
+  Fix:       [33617059]  SPESA, (49.862, 9.348) @0'
+  VOR:       [    5353]    CHA, (49.921, 9.040) @0'
+  Fix:       [33621703]  D338K, (50.095, 8.942) @0'
+  Fix:       [33621910]  LEDKI, (50.104, 8.856) @0'
+  Fix:       [33621902]  FF25L, (50.081, 8.759) @0'
+  LatLon:                RW25L, (50.040, 8.587) @411'
+  Fix:       [33621697]  D247E, (50.021, 8.505) @0'
+  Fix:       [33621696]  D241H, (49.993, 8.453) @0'
+  Unknown:              (5000), (49.925, 8.232) @4999'
+  VOR:       [    5353]    CHA, (49.921, 9.040) @0'
+  Airport:   [16787675]   EDDF, (50.033, 8.570) @354'
  
+  Note that loading the same flight plan into a different aircraft may
+  results in a different set of entries. The above entries were for the Airbus,
+  the following entries are from the Cessan 172 G1000
+
+  >>> for i in range(xp.countFMSFlightPlanEntries(xp.Fpl_Pilot_Primary)):
+  ...    print(str(xp.getFMSFlightPlanEntryInfo(xp.Fpl_Pilot_Primary, i)))
+  ...
+  Airport:   [16803968]   EDDS, (48.690, 9.222) @1272'
+  LatLon:                 RW25, (48.694, 9.244) @1180'
+  Unknown:              (1700), (48.690, 9.220) @1699'
+  Fix:       [33622837]  DS050, (48.671, 9.122) @0'
+  Fix:       [33622827]  DS040, (48.690, 9.067) @0'
+  Fix:       [33622830]  DS043, (48.801, 9.010) @0'
+  Fix:       [33613119]  KOVAN, (48.882, 9.084) @0'
+  Fix:       [33611008]  ETASA, (49.191, 9.128) @0'
+  Fix:       [33620051]  XINLA, (49.284, 9.142) @0'
+  Fix:       [33617115]  SUKON, (49.660, 9.196) @0'
+  Fix:       [33617153]  SUPIX, (49.728, 9.305) @0'
+  Fix:       [33617059]  SPESA, (49.862, 9.348) @0'
+  VOR:       [    5353]    CHA, (49.921, 9.040) @0'
+  Fix:       [33621832]  DF606, (49.945, 8.912) @0'
+  Fix:       [33621834]  DF610, (50.029, 8.917) @0'
+  Fix:       [33621835]  DF611, (50.043, 8.973) @0'
+  Fix:       [33621836]  DF612, (50.066, 9.071) @0'
+  Fix:       [33621837]  DF613, (50.088, 9.168) @0'
+  Fix:       [33621838]  DF614, (50.111, 9.266) @0'
+  Fix:       [33621839]  DF615, (50.134, 9.363) @0'
+  Fix:       [33621840]  DF616, (50.156, 9.461) @0'
+  Unknown:              VECTOR, (52.515, 26.154) @0'
+  Airport:   [16787675]   EDDF, (50.033, 8.570) @354'
+
+  Note the use of VECTOR here, which is a lat/lon a few hundred miles away
+  *in the direction* one is suppose to fly. Not something to actually
+  over-fly.
+
+  And... because G1000 has a separate Approach plan, don't forget:
+
+  >>> for i in range(xp.countFMSFlightPlanEntries(xp.Fpl_Pilot_Approach)):
+  ...    print(str(xp.getFMSFlightPlanEntryInfo(xp.Fpl_Pilot_Approach, i)))
+  ...
+  VOR:       [    5353]    CHA, (49.921, 9.040) @0'
+  Fix:       [33621703]  D338K, (50.095, 8.942) @0'
+  Fix:       [33621910]  LEDKI, (50.104, 8.856) @0'
+  Fix:       [33621902]  FF25L, (50.081, 8.759) @0'
+  LatLon:                RW25L, (50.040, 8.587) @411'
+  Fix:       [33621697]  D247E, (50.021, 8.505) @0'
+  Fix:       [33621696]  D241H, (49.993, 8.453) @0'
+  Unknown:              (5000), (49.925, 8.232) @4999'
+  VOR:       [    5353]    CHA, (49.921, 9.040) @0'
+
   `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMGetFMSFlightPlanEntryInfo>`__ :index:`XPLMGetFMSFlightPlanEntryInfo`
 
 .. py:function:: setFMSFlightPlanEntryInfo(flightPlan, index, navRef, altitude=0)
@@ -503,32 +553,32 @@ Functions
 
   .. code-block:: none
 
-    ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-    ┃Entry  Before delete #15 "FF25L"                        After delete note DISCON at #15                ┃
-    ┠━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┃
-    ┃ [0]  Airport: [16803968] EDDS, (48.690, 9.222) @1271' Airport: [16803968] EDDS, (48.690, 9.222) @1271'┃
-    ┃ [1]  Unknown: [-1] RW25, (48.694, 9.244) @1180'       Unknown: [-1] RW25, (48.694, 9.244) @1180'      ┃
-    ┃ [2]  Unknown: [-1] (1700), (48.690, 9.220) @1699'     Unknown: [-1] (1700), (0.000, 0.000) @0'        ┃
-    ┃ [3]  Fix: [33622837] DS050, (48.671, 9.122) @0'       Fix: [33622837] DS050, (48.671, 9.122) @0'      ┃
-    ┃ [4]  Fix: [33622827] DS040, (48.690, 9.067) @0'       Fix: [33622827] DS040, (48.690, 9.067) @0'      ┃
-    ┃ [5]  Fix: [33622830] DS043, (48.801, 9.010) @0'       Fix: [33622830] DS043, (48.801, 9.010) @0'      ┃
-    ┃ [6]  Fix: [33613119] KOVAN, (48.882, 9.084) @19999'   Fix: [33613119] KOVAN, (48.882, 9.084) @0'      ┃
-    ┃ [7]  Fix: [33611008] ETASA, (49.191, 9.128) @19035'   Fix: [33611008] ETASA, (49.191, 9.128) @0'      ┃
-    ┃ [8]  Fix: [33620051] XINLA, (49.284, 9.142) @0'       Fix: [33620051] XINLA, (49.284, 9.142) @0'      ┃
-    ┃ [9]  Fix: [33617115] SUKON, (49.660, 9.196) @0'       Fix: [33617115] SUKON, (49.660, 9.196) @0'      ┃
-    ┃[10]  Fix: [33617153] SUPIX, (49.728, 9.305) @0'       Fix: [33617153] SUPIX, (49.728, 9.305) @0'      ┃
-    ┃[11]  Fix: [33617059] SPESA, (49.862, 9.348) @0'       Fix: [33617059] SPESA, (49.862, 9.348) @0'      ┃
-    ┃[12]  VOR: [5353] CHA, (49.921, 9.040) @0'             VOR: [5353] CHA, (49.921, 9.040) @0'            ┃
-    ┃[13]  Unknown: [-1] D338K, (50.095, 8.942) @0'         Unknown: [-1] D338K, (50.095, 8.942) @0'        ┃
-    ┃[14]  Fix: [33621910] LEDKI, (50.104, 8.856) @0'       Fix: [33621910] LEDKI, (50.104, 8.856) @0'      ┃
-    ┃[15]  Unknown: [-1] FF25L, (50.081, 8.759) @0'         Unknown: [-1] DISCON, (50.072, 8.721) @0'       ┃
-    ┃[16]  Unknown: [-1] RW25L, (50.040, 8.587) @411'       Unknown: [-1] RW25L, (50.040, 8.587) @411'      ┃
-    ┃[17]  Unknown: [-1] D247E, (50.021, 8.505) @0'         Unknown: [-1] D247E, (50.021, 8.505) @0'        ┃
-    ┃[18]  Unknown: [-1] D241H, (49.993, 8.453) @0'         Unknown: [-1] D241H, (49.993, 8.453) @0'        ┃
-    ┃[19]  Unknown: [-1] (5000), (49.925, 8.232) @4999'     Unknown: [-1] (5000), (49.925, 8.232) @4999'    ┃
-    ┃[20]  VOR: [5353] CHA, (49.921, 9.040) @0'             VOR: [5353] CHA, (49.921, 9.040) @0'            ┃
-    ┃[21]  Airport: [16787675] EDDF, (50.033, 8.570) @353'  Airport: [16787675] EDDF, (50.033, 8.570) @353' ┃
-    ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+    ┏━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+    ┃Entry┃       Before delete #15 "FF25L"                  ┃     After delete note DISCON at #15               ┃
+    ┠━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┃
+    ┃ [0] ┃Airport: [16803968]  EDDS, (48.690, 9.222) @1271' ┃  Airport: [16803968]  EDDS, (48.690, 9.222) @1271'┃
+    ┃ [1] ┃LatLon:              RW25, (48.694, 9.244) @1180' ┃  LatLon:              RW25, (48.694, 9.244) @1180'┃
+    ┃ [2] ┃Unknown:           (1700), (48.690, 9.220) @1699' ┃  Unknown:           (1700), (0.000, 0.000) @0'    ┃
+    ┃ [3] ┃Fix:     [33622837] DS050, (48.671, 9.122) @0'    ┃  Fix:     [33622837] DS050, (48.671, 9.122) @0'   ┃
+    ┃ [4] ┃Fix:     [33622827] DS040, (48.690, 9.067) @0'    ┃  Fix:     [33622827] DS040, (48.690, 9.067) @0'   ┃
+    ┃ [5] ┃Fix:     [33622830] DS043, (48.801, 9.010) @0'    ┃  Fix:     [33622830] DS043, (48.801, 9.010) @0'   ┃
+    ┃ [6] ┃Fix:     [33613119] KOVAN, (48.882, 9.084) @19999'┃  Fix:     [33613119] KOVAN, (48.882, 9.084) @0'   ┃
+    ┃ [7] ┃Fix:     [33611008] ETASA, (49.191, 9.128) @19035'┃  Fix:     [33611008] ETASA, (49.191, 9.128) @0'   ┃
+    ┃ [8] ┃Fix:     [33620051] XINLA, (49.284, 9.142) @0'    ┃  Fix:     [33620051] XINLA, (49.284, 9.142) @0'   ┃
+    ┃ [9] ┃Fix:     [33617115] SUKON, (49.660, 9.196) @0'    ┃  Fix:     [33617115] SUKON, (49.660, 9.196) @0'   ┃
+    ┃[10] ┃Fix:     [33617153] SUPIX, (49.728, 9.305) @0'    ┃  Fix:     [33617153] SUPIX, (49.728, 9.305) @0'   ┃
+    ┃[11] ┃Fix:     [33617059] SPESA, (49.862, 9.348) @0'    ┃  Fix:     [33617059] SPESA, (49.862, 9.348) @0'   ┃
+    ┃[12] ┃VOR:     [    5353]   CHA, (49.921, 9.040) @0'    ┃  VOR:     [    5353]   CHA, (49.921, 9.040) @0'   ┃
+    ┃[13] ┃Fix:     [33621703] D338K, (50.095, 8.942) @0'    ┃  Fix:     [33621703] D338K, (50.095, 8.942) @0'   ┃
+    ┃[14] ┃Fix:     [33621910] LEDKI, (50.104, 8.856) @0'    ┃  Fix:     [33621910] LEDKI, (50.104, 8.856) @0'   ┃
+    ┃[15] ┃Fix:     [33621902] FF25L, (50.081, 8.759) @0'    ┃  Unknown:           DISCON, (50.072, 8.721) @0'   ┃
+    ┃[16] ┃LatLon:             RW25L, (50.040, 8.587) @411'  ┃  LatLon:             RW25L, (50.040, 8.587) @411' ┃
+    ┃[17] ┃Fix:     [33621697] D247E, (50.021, 8.505) @0'    ┃  Fix:     [33621697] D247E, (50.021, 8.505) @0'   ┃
+    ┃[18] ┃Fix:     [33621696] D241H, (49.993, 8.453) @0'    ┃  Fix:     [33621696] D241H, (49.993, 8.453) @0'   ┃
+    ┃[19] ┃Unknown:           (5000), (49.925, 8.232) @4999' ┃  Unknown:           (5000), (49.925, 8.232) @4999'┃
+    ┃[20] ┃VOR:     [    5353]   CHA, (49.921, 9.040) @0'    ┃  VOR:     [    5353]   CHA, (49.921, 9.040) @0'   ┃
+    ┃[21] ┃Airport: [16787675]  EDDF, (50.033, 8.570) @353'  ┃  Airport: [16787675]  EDDF, (50.033, 8.570) @353' ┃
+    ┗━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMClearFMSFlightPlanEntry>`__ :index:`XPLMClearFMSFlightPlanEntry`

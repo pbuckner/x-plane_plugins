@@ -1,10 +1,7 @@
 Easy Datarefs
 =============
 
-.. warning:: This is proposed documentation, for review only.
-
-..
-  py:module:: datarefs
+.. py:module:: utils.datarefs
 
 
 To use:
@@ -22,7 +19,8 @@ To make creating and using datarefs easier, XPPython3 includes a module which
 mimics the way Xlua creates and define datarefs. While originally this was
 included to make it easier for Aircraft designers to transition from Xlua to
 python, there is no requirement to use other xlua-related code or restrict
-use to Aircraft plugins. The module can be freely mixed with any XPPython3 plugins.
+use to Aircraft plugins. (This module can be used with or without other python-xlua
+inspired modules).
 
 There are two functions:
 
@@ -31,10 +29,22 @@ There are two functions:
  * :py:func:`create_dataref`
 
 
+Both functions return a :py:class:`DataRef` instance.
+
+.. py:class:: DataRef
+
+  Result of :py:func:`find_dataref` and :py:func:`create_dataref`. You should
+  not create an instance of this class yourself.
+
+  See example below for use.
+  
 Functions
 ---------
 
 .. py:function:: find_dataref(name)
+
+  :param name str: Name of existing dataref to find
+  :return: :py:class:`DataRef`                   
 
   Use ``find_dataref`` to retrieve and store the accessor which provides
   the interface to a dataref::
@@ -114,8 +124,11 @@ array)::
 
 .. py:function::  create_dataref(name:str, dataRefType:str="number"|"array"|"string", callback:None|Callable=None)
                   
-  Creates a dataref with the give ``name``.
-  
+  :param name str: Name of dataref to be created
+  :param dataRefType str: See table for possible values
+  :param: callback Callable: function to be called whenever dataref is written to                          
+  :return: :py:class:`DataRef`                   
+
   The ``dataRefType`` is a string which defaults to "``number``" if not provided.:
   
   .. table::

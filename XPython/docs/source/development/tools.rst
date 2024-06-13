@@ -39,6 +39,11 @@ plugins:
   XPPython3 monitors the performance of individual python plugins and displays this information
   when you select the `XPPython3` -> `Performance` menu item.
 
+* **XPGL Open GL Debugging Script**
+
+  Stand-alone OpenGL pygame python script that allows you to experiment with OpenGL and :py:mod:`xpgl` module
+  drawing routines using a graphics context similar to  X-Plane. (See :doc:`/development/modules/xpgl_debugging`)
+
 * **Debug Config Initialization** (See :doc:`xppython3.ini`.)
 
   For debugging, we've added some run-time flags which can be configured and stored. These
@@ -47,14 +52,11 @@ plugins:
   
 * XPPythonGetDicts :doc:`xppythondicts`
 
-* **Python Stubs** (Download from github: `stubs.zip <https://github.com/pbuckner/x-plane_plugins/raw/master/XPython/stubs.zip>`_.)
+* **Python Stubs**
    
   Because the XPLM* modules are contained within a shared library, they are not useful for support tools such as
-  pylint. For this reason, we've included a set of stubs. See :doc:`stubs` for details.
+  pylint. For this reason, we've included a set of ".pyi" stubs. See :doc:`stubs` for details.
    
-  .. Note:: Do not place stubs in XPPython3 or PythonPlugins folder where they will be found by
-            X-Plane! The stubs do not actually execute code.
-
 * **Porting** from older plugin?
 
   Note that XPPython3 is backward compatible to the API, but you will need

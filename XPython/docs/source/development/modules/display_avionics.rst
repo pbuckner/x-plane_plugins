@@ -515,9 +515,10 @@ XPLMAvionicsID handle, you can then manipulate the popup window using functions 
     will be in panel coordinates for 2d drawing.  The OpenGL state (texturing,
     etc.) will be unknown.
 
-    X-Plane does not clear your screen for you between
+    X-Plane *does not clear* your screen for you between
     calls - this means you can re-use portions to save drawing, but otherwise
-    you must call glClear() to erase the screen's contents.
+    you must call glClear() to erase the screen's contents. Similarly, it *does not flush*
+    your OpenGL calls, so you must call glFlush() when you're finished.
 
     This interacts with the value of the ``drawOnDemand`` parameter. If ``drawOnDemand=0``, this
     draw function is called every frame. If ``drawOnDemand=1``, this draw function is called once.
@@ -545,8 +546,10 @@ XPLMAvionicsID handle, you can then manipulate the popup window using functions 
     not influenced by the ``drawOnDemand`` parameter.
 
     You're drawing the full extent of the bezel, which includes space *behind* the
-    screen. Bezel and screen will blend, so most likely, you'll want to draw
+    screen. Bezel and screen *will blend*, so most likely, you'll want to draw
     a black rectangle in the position (... at the offset) of the screen.
+
+    Unlike :py:func:`screenDraw`, you do not need to include calls to glClear() and glFlush().
     
   .. py:function:: brightness(rheoValue, ambientBrightness, busVoltsRatio, refCon)
 
@@ -693,8 +696,9 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
   Note that (x, y) reflects device's screen coordinates, and will return None if cursor is over the bezel or other part of X-Plane,
   or if some other window has focus.
 
-  (XPD-15475: values are still returned if over bezel, with values reflecting screen origin)
-  
+  >>> xp.isCursorOverAvionics(avionicsID)
+  (619, 510)
+
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMIsCursorOverAvionics>`__ :index:`XPLMIsCursorOverAvionics`
 
 .. py:function:: hasAvionicsKeyboardFocus(avionicsID)
@@ -836,7 +840,15 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
   :param XPLMAvionicsID avionicsID: as from :py:func:`createAvionicsEx`,  :py:func:`getAvionicsHandle`, or :py:func:`registerAvionicsCallbacksEx`
   :return float: [0..1] representing nominal bus voltage, -1 if device not bound to aircraft
 
-  |TBD|
+  >>> xp.getAvionicsBusVoltsRatio(xp.getAvionicsHandle(xp.Device_G1000_PFD_1))
+  0.91567
+  >>> xp.getAvionicsBusVoltsRatio(xp.getAvionicsHandle(xp.Device_G1000_PFD_2))
+  -1.0
+
+  And if you turn off power:
+
+  >>> xp.getAvionicsBusVoltsRatio(xp.getAvionicsHandle(xp.Device_G1000_PFD_1))
+  0.0
 
   Returns the ratio of the nominal voltage (1= full voltage) of the electrical bus to which
   the given avionics device is bound. Or, -1 if the device is not bound to the current aircraft.

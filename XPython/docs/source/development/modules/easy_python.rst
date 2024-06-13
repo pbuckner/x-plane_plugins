@@ -1,10 +1,7 @@
 EasyPython
 ==========
 
-.. warning:: This is proposed documentation for review only.
-             
-..
-  py:module:: easy_python
+.. py:module:: utils.easy_python
 
 To use::
 
@@ -17,7 +14,8 @@ EasyPython Class
 
 Have your PythonInterface class inherit from the `EasyPython` class
 and you'll gain some ease-of-use without losing the full power
-of python and the full X-Plane SDK.
+of python and the full X-Plane SDK. (This module can be used with or without other python-xlua
+inspired modules).
 
 Your python plugin needs to inherit from ``EasyPython`` class::
 
@@ -42,38 +40,38 @@ There still needs to be a class named ``PythonInterface`` in your ``PI_*.py`` fi
 as that's what we're looking for. However, by
 inheriting from the ``EasyPython`` class, you'll gain the following callback interface:
 
-.. py:function:: EasyPython.aircraft_load
+.. py:function:: EasyPython.aircraft_load(self)
 
    Run one when your aircraft (user aircraft) is loaded. This is
    run after the aircraft is initialized enough to set overrides.
 
-.. py:function:: EasyPython.aircraft_unload
+.. py:function:: EasyPython.aircraft_unload(self)
 
    Run once, when your aircraft is unloaded.                 
 
-.. py:function:: EasyPython.flight_start()
+.. py:function:: EasyPython.flight_start(self)
 
    Run once each time a flight is started. The      
    aircraft is already initialized and can thus be  
    customized. This is always called after          
    ``aircraft_load()`` has been run at least once.  
                  
-.. py:function:: EasyPython.flight_crash()
+.. py:function:: EasyPython.flight_crash(self)
 
    Called if X­Plane detects that the user has      
    crashed the airplane.                            
                  
-.. py:function:: EasyPython.before_physics()
+.. py:function:: EasyPython.before_physics(self)
 
    Called every frame that the sim is not paused and
    not in replay, before physics are calculated.    
 
-.. py:function:: EasyPython.after_physics()
+.. py:function:: EasyPython.after_physics(self)
 
    Called every frame that the sim is not paused and
    not in replay, after physics are calculated.     
 
-.. py:function:: EasyPython.after_replay()
+.. py:function:: EasyPython.after_replay(self)
 
    Called every frame that the sim is in replay     
    mode, regardless of pause status.                

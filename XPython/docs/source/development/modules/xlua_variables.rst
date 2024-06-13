@@ -1,10 +1,7 @@
 Xlua Variables
 ==============
 
-.. warning:: This is proposed documentation, for review only.
-             
-..
-  py:module:: xlua
+py:module:: utils.xlua
 
 To use:
 ::

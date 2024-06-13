@@ -1,10 +1,7 @@
 Easy Timers
 ===========
 
-.. warning:: This is proposed documentation, for review only.
-
-..
-  py:module:: timers
+.. py:module:: utils.timers
 
 To use:
 ::
@@ -13,7 +10,8 @@ To use:
 
 X-Plane SDK uses flight loop callbacks to schedule events in the future. Xlua
 provides an simple wrapper which defines some easy-to-use timers. XPPython3
-also supports this interface.
+also supports this interface. (This module can be used with or without other python-xlua
+inspired modules).
 
 Timers are keyed by their callback function: any particular function can
 have only one timer active at a time, though that timer may repeat, and you
@@ -69,6 +67,10 @@ Functions
 
 .. py:function:: run_after_time(func, delay)
 
+  :param func Callable: function to be run
+  :param delay float: Number of seconds to wait prior to execution. Run *once*.
+  :return: None                   
+
   Run function once after `delay` seconds. This does not return any value.
   You can stop this timer prior to execution if required by passing the same
   callback ``func`` to :py:func:`stop_timer`::
@@ -86,6 +88,10 @@ Functions
   This is implemented as ``run_timer(func, delay, 0)``.
 
 .. py:function:: run_at_interval(func, interval)
+
+  :param func Callable: function to be run
+  :param interval float: Number of seconds to wait prior to execution, and repeat at interval.
+  :return: None                   
 
   Run function until stopped, after each ``interval`` seconds. The
   `first` execution of the call back is `after` the initial interval.
@@ -107,6 +113,11 @@ Functions
 
 .. py:function:: run_timer(func, delay, interval)
 
+  :param func Callable: function to be run
+  :param delay float: Number of seconds to wait prior to first execution.
+  :param interval float: Number of seconds, after `delay`, to repeat at interval.
+  :return: None                   
+
   Run function until stopped. First execution is after ``delay`` seconds
   (which may be 0), and each subsequent execution is after ``interval``
   seconds. It does not return any value. You can stop this timer by passing
@@ -121,11 +132,17 @@ Functions
   
 .. py:function:: is_timer_scheduled(func)
 
+  :param func Callable: function to stop
+  :return: Boolean, True if given callback function is scheduled.
+
   Returns True if given callback function is scheduled as a one-time or
   repeating timer.
   If timer has already executed (and is not repeating),
   stopped, or never scheduled, returns False.
 
 .. py:function:: stop_timer(func)  
+
+  :param func Callable: function to stop
+  :return: None                   
  
   Stops timer with given callback. No error if timer is not found.

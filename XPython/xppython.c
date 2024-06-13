@@ -1,5 +1,6 @@
 #define _GNU_SOURCE 1
 #include <Python.h>
+#include <pthread.h>
 #include <math.h>
 #include <sys/time.h>
 #include <stdio.h>
@@ -164,7 +165,7 @@ static PyObject *XPPythonLogFun(PyObject *self, PyObject *args)
     flush = 1;
   } else {
     if (strlen(inString)) {
-      pythonLog("[%s] %s", CurrentPythonModuleName, inString);
+      pythonLog("[%s] %s", pthread_equal(pythonThread, pthread_self()) ? CurrentPythonModuleName : "Thread", inString);
     } else {
       flush = 1;
     }
@@ -192,7 +193,12 @@ static PyObject *XPSystemLogFun(PyObject *self, PyObject *args)
     if (strlen(inString)) {
       char *msg;
       float t = XPLMGetElapsedTime();
-      if (-1 == asprintf(&msg, "%d:%02d:%06.3f XP3: [%s] %s\n", (int) (t / 3600.0), (int) (t / 60.0), fmod(t, 60.0), CurrentPythonModuleName, inString)) {
+      if (-1 == asprintf(&msg, "%d:%02d:%06.3f XP3: [%s] %s\n",
+                         (int) (t / 3600.0),
+                         (int) (t / 60.0),
+                         fmod(t, 60.0),
+                         pthread_equal(pythonThread, pthread_self()) ? CurrentPythonModuleName : "Thread",
+                         inString)) {
         pythonLog("Failed to allocate memory for asprintf syslog.");
       } else {
         XPLMDebugString(msg);

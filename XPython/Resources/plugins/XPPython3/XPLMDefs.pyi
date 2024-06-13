@@ -11,6 +11,13 @@ OptionAltFlag: XPLMKeyFlags
 ControlFlag: XPLMKeyFlags
 DownFlag: XPLMKeyFlags
 UpFlag: XPLMKeyFlags
+CursorDefault: XPLMCursorStatus
+CursorHidden: XPLMCursorStatus
+CursorArrow: XPLMCursorStatus
+CursorCustom: XPLMCursorStatus
+MouseDown: XPLMMouseStatus
+MouseDrag: XPLMMouseStatus
+MouseUp: XPLMMouseStatus
 KEY_RETURN: int
 KEY_ESCAPE: int
 KEY_TAB: int

@@ -14,6 +14,7 @@ Language_Russian: XPLMLanguageCode
 Language_Greek: XPLMLanguageCode
 Language_Japanese: XPLMLanguageCode
 Language_Chinese: XPLMLanguageCode
+Language_Ukrainian: XPLMLanguageCode
 DataFile_Situation: XPLMDataFileType
 DataFile_ReplayMovie: XPLMDataFileType
 CommandBegin: XPLMCommandPhase

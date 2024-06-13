@@ -20,6 +20,13 @@ OptionAltFlag: XPLMKeyFlags
 ControlFlag: XPLMKeyFlags
 DownFlag: XPLMKeyFlags
 UpFlag: XPLMKeyFlags
+CursorDefault: XPLMCursorStatus
+CursorHidden: XPLMCursorStatus
+CursorArrow: XPLMCursorStatus
+CursorCustom: XPLMCursorStatus
+MouseDown: XPLMMouseStatus
+MouseDrag: XPLMMouseStatus
+MouseUp: XPLMMouseStatus
 KEY_RETURN: int
 KEY_ESCAPE: int
 KEY_TAB: int
@@ -159,13 +166,6 @@ Phase_LastCockpit: XPLMDrawingPhase
 Phase_LocalMap3D: XPLMDrawingPhase
 Phase_LocalMap2D: XPLMDrawingPhase
 Phase_LocalMapProfile: XPLMDrawingPhase
-MouseDown: XPLMMouseStatus
-MouseDrag: XPLMMouseStatus
-MouseUp: XPLMMouseStatus
-CursorDefault: XPLMCursorStatus
-CursorHidden: XPLMCursorStatus
-CursorArrow: XPLMCursorStatus
-CursorCustom: XPLMCursorStatus
 WindowLayerFlightOverlay: XPLMWindowLayer
 WindowLayerFloatingWindows: XPLMWindowLayer
 WindowLayerModal: XPLMWindowLayer
@@ -198,6 +198,8 @@ Device_Primus_MFD_2: XPLMDeviceID
 Device_Primus_MFD_3: XPLMDeviceID
 Device_Primus_RMU_1: XPLMDeviceID
 Device_Primus_RMU_2: XPLMDeviceID
+Device_MCDU_1: XPLMDeviceID
+Device_MCDU_2: XPLMDeviceID
 Tex_GeneralInterface: XPLMTextureID
 Font_Basic: XPLMFontID
 Font_Proportional: XPLMFontID
@@ -227,6 +229,13 @@ Nav_InnerMarker: XPLMNavType
 Nav_Fix: XPLMNavType
 Nav_DME: XPLMNavType
 Nav_LatLon: XPLMNavType
+Nav_TACAN: XPLMNavType
+Fpl_Pilot_Primary: XPLMNavFlightPlan
+Fpl_CoPilot_Primary: XPLMNavFlightPlan
+Fpl_Pilot_Approach: XPLMNavFlightPlan
+Fpl_CoPilot_Approach: XPLMNavFlightPlan
+Fpl_Pilot_Temporary: XPLMNavFlightPlan
+Fpl_CoPilot_Temporary: XPLMNavFlightPlan
 NAV_NOT_FOUND: int
 USER_AIRCRAFT: int
 MSG_PLANE_CRASHED: int
@@ -412,6 +421,7 @@ Language_Russian: XPLMLanguageCode
 Language_Greek: XPLMLanguageCode
 Language_Japanese: XPLMLanguageCode
 Language_Chinese: XPLMLanguageCode
+Language_Ukrainian: XPLMLanguageCode
 DataFile_Situation: XPLMDataFileType
 DataFile_ReplayMovie: XPLMDataFileType
 CommandBegin: XPLMCommandPhase
@@ -803,7 +813,16 @@ def registerDrawCallback(draw:Callable[[XPLMDrawingPhase, int, Any], None | int]
 def registerAvionicsCallbacksEx(deviceId:XPLMDeviceID, 
           before:Optional[Callable[[XPLMDeviceID, int, Any], int]]=None, 
           after:Optional[Callable[[XPLMDeviceID, int, Any], int]]=None, 
-          refCon:Any=None) -> XPLMAvionicsID:
+          refCon:Any=None,
+          bezelClick:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, 
+          bezelRightClick:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, 
+          bezelScroll:Optional[Callable[[int, int, int, int, Any], int]]=None, 
+          bezelCursor:Optional[Callable[[int, int, Any], XPLMCursorStatus]]=None, 
+          screenTouch:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, 
+          screenRightTouch:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, 
+          screenScroll:Optional[Callable[[int, int, int, int, Any], int]]=None, 
+          screenCursor:Optional[Callable[[int, int, Any], XPLMCursorStatus]]=None, 
+          keyboard:Optional[Callable[[int, XPLMKeyFlags, int, Any, int], int]]=None) -> XPLMAvionicsID:
     """
     Registers draw callback for particular device.
     
@@ -825,6 +844,124 @@ def unregisterAvionicsCallbacks(avionicsId:XPLMAvionicsID) -> None:
     
     Does not return a value.
     
+    """
+    ...
+
+def getAvionicsHandle(deviceID:int) -> XPLMAvionicsID:
+    """
+    Registers no callbacks for a cockpit device, but returns a
+    handle which allows you to interact using other Avionics Device
+    API. Use this if you do not wish to intercept drawing, clicks, or
+    touches but want to interact with its popup programmatically.
+    
+    Returns XPLMAvionicsID.
+    
+    """
+    ...
+
+def isAvionicsBound(avionicsID:XPLMAvionicsID) -> int:
+    """
+    Return 1 if cockpit device with given ID is used by the current aircraft.
+    """
+    ...
+
+def isCursorOverAvionics(avionicsID:XPLMAvionicsID) -> tuple[int, int] | None:
+    """
+    Is the cursor over the device with given avionicsID
+    
+    Returns tuple (x, y) with position or None.
+    """
+    ...
+
+def isAvionicsPopupVisible(avionicsID:XPLMAvionicsID) -> int:
+    """
+    Is the popup window for the device with given avionicsID visible?
+    (It may or may not be popped out into an OS window.)
+    
+    Returns 1 if true.
+    """
+    ...
+
+def isAvionicsPoppedOut(avionicsID:XPLMAvionicsID) -> int:
+    """
+    Returns 1 (true) if the popup window for the cockpit device is popped out
+    into an OS window.
+    """
+    ...
+
+def hasAvionicsKeyboardFocus(avionicsID:XPLMAvionicsID) -> int:
+    """
+    Returns 1 (true) if cockpit device has keyboard focus.
+    """
+    ...
+
+def avionicsNeedsDrawing(avionicsID:XPLMAvionicsID) -> None:
+    """
+    Tells X-Plane that your device's screens needs to be re-drawn.
+    If your device is marked for on-demand drawing, XP will call your screen
+    drawing callback before drawing the next simulator frame. If your device
+    is already drawn every frame, this has no effect.
+    """
+    ...
+
+def popOutAvionics(avionicsID:XPLMAvionicsID) -> None:
+    """
+    Pops out OS window for cockpit device.
+    """
+    ...
+
+def takeAvionicsKeyboardFocus(avionicsID:XPLMAvionicsID) -> None:
+    """
+    Sets keyboard focus to the (already) visible popup window of cockpit device.
+    Does nothing if device is not visible.
+    """
+    ...
+
+def destroyAvionics(avionicsID:XPLMAvionicsID) -> None:
+    """
+    Destroys the cockpit device and deallocates its framebuffer. You should
+    only ever call this for devices that you created, not stock X-Plane devices
+    you have customized.
+    """
+    ...
+
+def getAvionicsBusVoltsRatio(avionicsID:XPLMAvionicsID) -> float:
+    """
+    Return ratio [0.0:1.0] of nominal voltage of electrical bus,
+    for given avionics device. Returns -1 if device is not bound
+    to the current aircraft.
+    """
+    ...
+
+def getAvionicsBrightnessRheo(avionicsID:XPLMAvionicsID) -> float:
+    """
+    Returns brightness setting between 0 and 1 for the screen of
+    this cockpit device.
+    If the device is bound to current aircraft, this is equivalent
+    to 'sim/cockpit2/switches/instrument_brightness_ratio[]' dataref
+    with the correct array slot for the bound device.
+    If the device is not bound, it returns brightness ratio for the
+    device alone.
+    """
+    ...
+
+def setAvionicsBrightnessRheo(avionicsID:XPLMAvionicsID, brightness:float=1.0) -> None:
+    """
+    Sets brightness setting between 0 and 1 for the screen of
+    this cockpit device.
+    
+    If the device is bound to current aircraft, this is equivalent
+    to 'sim/cockpit2/switches/instrument_brightness_ratio[]' dataref
+    with the correct array slot for the bound device.
+    
+    If the device is not bound, it sets brightness rheostat for the
+    device alone, even though not connected to the dataref.
+    """
+    ...
+
+def setAvionicsPopupVisible(avionicsID:XPLMAvionicsID, visible:int=1) -> None:
+    """
+    Shows (visible=1) or Hides popup window for cockpit device.
     """
     ...
 
@@ -857,6 +994,32 @@ def unregisterKeySniffer(sniffer:Callable[[int, XPLMKeyFlags, int, Any], int], b
     
     Parameters must match those provided with registerKeySniffer().
     Returns 1 on success, 0 otherwise.
+    """
+    ...
+
+def createAvionicsEx(screenWidth:int=100, screenHeight:int=200, bezelWidth:int=140, bezelHeight:int=250, 
+          screenOffsetX:int=20, screenOffsetY:int=25, drawOnDemand=0, 
+          bezelDraw:Optional[Callable[[float, float, float, Any], None]]=None, 
+          screenDraw:Optional[Callable[[Any], None]]=None, 
+          bezelClick:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, 
+          bezelRightClick:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, 
+          bezelScroll:Optional[Callable[[int, int, int, int, Any], int]]=None, 
+          bezelCursor:Optional[Callable[[int, int, Any], XPLMCursorStatus]]=None, 
+          screenTouch:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, 
+          screenRightTouch:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, 
+          screenScroll:Optional[Callable[[int, int, int, int, Any], int]]=None, 
+          screenCursor:Optional[Callable[[int, int, Any], XPLMCursorStatus]]=None, 
+          keyboard:Optional[Callable[[int, XPLMKeyFlags, int, Any, int], int]]=None, 
+          brightness:Optional[Callable[[float, float, float], float]]=None, 
+          deviceID:str="deviceID", deviceName:str="deviceName", 
+          refCon:Any=None,) -> XPLMAvionicsID:
+    """
+    Creates glass cockpit device for 3D cockpit.
+    With 12.0 you needed to call this within your XPluginStart callback
+    to ensure your texture would be ready. Since 12.1, you may call this
+    at anytime and X-Plane will retroactively map your display to it.
+    
+    Returns new avionicsID.
     """
     ...
 
@@ -950,15 +1113,40 @@ def getWindowGeometry(windowID:XPLMWindowID) -> None | tuple[int, int, int, int]
     """
     ...
 
+def getAvionicsGeometry(avionicsID:XPLMAvionicsID) -> tuple[int, int, int, int]:
+    """
+    Returns geometry (left, top, right, bottom) of popup window
+    in X-Plane coordinate system.
+    """
+    ...
+
 def setWindowGeometry(windowID:XPLMWindowID, left:int, top:int, right:int, bottom:int) -> None:
     """
     Sets window geometry.
     """
     ...
 
+def setAvionicsGeometry(avionicsID:XPLMAvionicsID, left:int, top:int, right:int, bottom:int) -> None:
+    """
+    Sets window geometry for cockpit device's popup window in X-Plane coordinates.
+    """
+    ...
+
 def getWindowGeometryOS(windowID:XPLMWindowID) -> None | tuple[int, int, int, int]:
     """
     Returns window geometry for popped-out window (left, top, right, bottom).
+    """
+    ...
+
+def getAvionicsGeometryOS(avionicsID:XPLMAvionicsID) -> tuple[int, int, int, int]:
+    """
+    Returns window geometry for popped-out avionics device (left, top, right, bottom).
+    """
+    ...
+
+def setAvionicsGeometryOS(avionicsID:XPLMAvionicsID, left:int, top:int, right:int, bottom:int) -> None:
+    """
+    Sets window geometry for popped-out avionics.
     """
     ...
 
@@ -1454,6 +1642,7 @@ def findFirstNavAidOfType(navType:XPLMNavType) -> int:
       Nav_Fix          =512
       Nav_DME         =1024
       Nav_LatLon      =2048
+      Nav_TACAN       =4096
     
     """
     ...
@@ -1562,6 +1751,103 @@ def getGPSDestinationType() -> int:
 def getGPSDestination() -> int:
     """
     Return navRef of current GPS Destination.
+    """
+    ...
+
+def countFMSFlightPlanEntries(flightPlan:XPLMNavFlightPlan) -> int:
+    """
+    Returns number of FMS Entries in given flightplan:
+      Fpl_Pilot_Primary
+      Fpl_CoPilot_Primary
+      Fpl_Pilot_Approach
+      Fpl_CoPilot_Approach
+      Fpl_Pilot_Temporary
+      Fpl_CoPilot_Temporary
+    
+    """
+    ...
+
+def getDisplayedFMSFlightPlanEntry(flightPlan:XPLMNavFlightPlan) -> int:
+    """
+    Returns index number of the entry the pilot is viewing.
+    """
+    ...
+
+def getDestinationFMSFlightPlanEntry(flightPlan:XPLMNavFlightPlan) -> int:
+    """
+    Returns the index number of the flight plan destination.
+    """
+    ...
+
+def setDisplayedFMSFlightPlanEntry(flightPlan:XPLMNavFlightPlan, index:int) -> None:
+    """
+    Sets index number for FMS Entry to be displayed for this flight plan.
+    """
+    ...
+
+def setDestinationFMSFlightPlanEntry(flightPlan:XPLMNavFlightPlan, index:int) -> None:
+    """
+    Sets index number for the FMS Entry to become the destination. The track
+    is from the n-1'th point to this point.
+    """
+    ...
+
+def setDirectToFMSFlightPlanEntry(flightPlan:XPLMNavFlightPlan, index:int) -> None:
+    """
+    Sets the entry the FMS is flying toward. The track is from the current
+    position directly to this point, ignoring the point before it in the flight plan.
+    """
+    ...
+
+def getFMSFlightPlanEntryInfo(flightPlan:XPLMNavFlightPlan, index:int) -> FMSEntryInfo:
+    """
+    Returns FMSEntryInfo object for give FMS index for this flightplan.
+    
+    Attributes are:
+     .type      # a NavType
+     .navAidID
+     .ref       # navRef (use as input to getNavAidInfo())
+     .altitude  # (in feet)
+     .lat
+     .lon
+    """
+    ...
+
+def setFMSFlightPlanEntryInfo(flightPlan:XPLMNavFlightPlan, index:int, navRef:XPLMNavRef, altitude:int=0) -> None:
+    """
+    Sets given FMS entry to provided navRef and altitude (feet).
+    """
+    ...
+
+def setFMSFlightPlanEntryLatLon(flightPlan:XPLMNavFlightPlan, index:int, lat:float, lon:float, altitude:int=0) -> None:
+    """
+    Set given FMS Entry to provided (lat, lon) and altitude(feet).
+    """
+    ...
+
+def setFMSFlightPlanEntryLatLonWithId(flightPlan:XPLMNavFlightPlan, index:int, lat:float, lon:float, altitude:int=0, ID:str=None) -> None:
+    """
+    Sets entry in the FMS to a lat/lon entry, with the given coordinates
+    and display ID for the waypoint.
+    """
+    ...
+
+def clearFMSFlightPlanEntry(flightPlan:XPLMNavFlightPlan, index:int) -> None:
+    """
+    Clears given FMS Entry.
+    """
+    ...
+
+def loadFMSFlightPlan(device:int, plan:str) -> None:
+    """
+    Loads provided flightplan into pilot (device=0) or co-pilot (device=1) unit.
+    """
+    ...
+
+def saveFMSFlightPlan(device:Optional[int]=0) -> str:
+    """
+    Returns X-Plane 11 formatted flightplan from FMS or GPS.
+    Use device=0 for pilot, device=1 for co-pilot side unit.
     """
     ...
 
@@ -1798,6 +2084,12 @@ def createFlightLoop(callback:Callable[[float, float, int, Any], float],
     Callback take (sinceLast, elapsedTime, counter, refCon)
     returning interval (0=stop, >0 seconds, <0 flightloops)
     phase is 0=before or 1=After flight model integration
+    """
+    ...
+
+def isFlightLoopValid(flightLoopID:XPLMFlightLoopID) -> bool:
+    """
+    Return True if flightLoopID exists and is valid: it may or may not be scheduled.
     """
     ...
 

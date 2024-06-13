@@ -50,5 +50,24 @@ may be transparent and does not require decorations). Then, each call you'll::
       do_stuff()
       GL.glEnd()
 
-For the rest of us, you can use :py:mod:`xpgl` routines to do most anything you want. This module us pure-python
-so you can see what OpenGL calls are actually being made if you're curious.
+Programming OpenGL with xpgl
+----------------------------
+
+If you're not an OpenGL expert, we've wrapped major features of OpenGL with :py:mod:`xpgl`, which should
+make it vastly easier to use. This module us pure-python
+so you can see what OpenGL calls are actually being made if you're curious. It has functions which
+support:
+
+* :doc:`modules/xpgl_lines`:  single lines, sets of connected lines, different thicknesses and with stipple patterns.
+
+* :doc:`modules/xpgl_shapes`: lines configured as circles, rectangles and other polygons, filled or outlined only.
+
+* :doc:`modules/xpgl_images`: Textures, read from image files
+
+* :doc:`modules/xpgl_text`: Loading fonts and displaying text with different styles, sizes, and colors
+
+* :doc:`modules/xpgl_transformations`: Transform part of a drawing using rotation, translation, and scaling  
+
+* :doc:`modules/xpgl_mask`: Alter the drawing by showing or hiding part of it using a mask
+
+

@@ -2,18 +2,31 @@ xpgl Debugging Script
 =====================
 
 To simplify experimentation and aid with debugging, you can use any of these functions in a stand-alone
-python program. We've provided a pygame-based shell: You can edit your ``draw()`` function within this
-shell and then execute it directly from the command line, independent from X-Plane.
+python program. We've provided two python scripts: [#versions]_
 
-Note, however, you'll need your own instance of Python (with OpenGL pygame and other support modules).
+* ``xpgl_test.py``: a pygame-based shell,  and
+
+* ``xpgl_test_glut.py``: a GLUT-based shell.
+
+You can edit your ``draw()`` function within the script
+and then execute it directly from the command line, independent from X-Plane.
+
+Note, however, you'll need your own instance of Python (with OpenGL, pygame, freetype-py, pillow, numpy
+and other support modules).
 While it is possible to use the XPPython3-installed version of python, you would need to manipulate
 python path to get it to locate everything you need.
 
-Use the file ``xpgl_test.py`` located under ``samples``, and move it into your ``PythonPlugins`` folder.
+Use the file ``xpgl_test.py`` (or ``xpgl_test_glut.py``) located under ``samples``, and move it into your ``PythonPlugins`` folder.
 From there, directly execute it. By default, it will open a window 500x500 and if you press the 'q' key
-within the window, it will exit::
+within the window, it will exit.
 
-  $ python3.12 xpgl_test.py
+Windows / Mac::
+  
+  $ python3 xpgl_test.py
+
+Linux::
+
+  $ python3 xpgl_test_glut.py
 
 The drawing canvas is in textuals, with (0,0) in the lower left corner, increasing up in the Y axis, and
 to the right on the X axis. Upper right corner is *always* the screen's (width, height). If the canvas is
@@ -65,3 +78,11 @@ toggle.
            :width: 40%
 
 Extensive documentation is included in the file.
+
+----
+
+.. [#versions]
+   There are two different scripts because Windows does not run GLUT programs without bizarre installation steps, so **pygame**
+   is best for you. Linux drivers are such that pygame tends to have installation programs, so **GLUT** works best there. Either
+   works fine on Macs. Both of these ``xpgl_test*.py`` scripts do the same thing, so pick the version which works on your
+   system and ignore the other!

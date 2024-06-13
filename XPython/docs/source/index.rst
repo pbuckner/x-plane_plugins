@@ -48,6 +48,7 @@ Next:
    usage/add_plugin
    development/index
    development/udp/index
+   changelog
 
 
 ..   

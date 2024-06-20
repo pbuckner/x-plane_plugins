@@ -266,9 +266,9 @@ def createAvionicsEx(screenWidth:int=100, screenHeight:int=200, bezelWidth:int=1
           screenScroll:Optional[Callable[[int, int, int, int, Any], int]]=None, 
           screenCursor:Optional[Callable[[int, int, Any], XPLMCursorStatus]]=None, 
           keyboard:Optional[Callable[[int, XPLMKeyFlags, int, Any, int], int]]=None, 
-          brightness:Optional[Callable[[float, float, float], float]]=None, 
-          deviceID:str="deviceID", deviceName:str="deviceName", 
-          refCon:Any=None,) -> XPLMAvionicsID:
+          brightness:Optional[Callable[[float, float, float, float], float]]=None, 
+          deviceID:str = "deviceID", deviceName:str = "deviceName",
+          refCon:Any = None,) -> XPLMAvionicsID:
     """
     Creates glass cockpit device for 3D cockpit.
     With 12.0 you needed to call this within your XPluginStart callback

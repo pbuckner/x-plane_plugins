@@ -1,12 +1,6 @@
 Change Log
 ==========
 
-.. Note::
-
-   With X-Plane 12, the new SDK is likely to be updated a few more times. This
-   will require updates to XPPython3 which I hope to keep to a minimum.
-
-
 Known Bugs
 ----------
 

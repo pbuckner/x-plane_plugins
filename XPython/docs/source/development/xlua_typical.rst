@@ -1,8 +1,6 @@
 Typical Aircraft xlua Plugin
 ============================
 
-.. warning:: This is proposed documentation, for review only.
-
 Most Aircraft Xlua scripts look similar, so taking that as an example, here's
 a annotated version for python.
 

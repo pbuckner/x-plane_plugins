@@ -6,8 +6,8 @@ Known Bugs
 
   None (prove me wrong!)
   
-4.4.0 (BETA)
-------------
+4.4.0 (9-Jul-2024)
+------------------
 :New Features:
    * **SDK 410 Support**. With X-Plane 12.1 new SDK features were added to support
      more flexible Avionics Display (:doc:`/development/modules/display`) and

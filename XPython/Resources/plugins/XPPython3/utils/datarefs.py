@@ -347,7 +347,7 @@ class DataRef:
             return
 
 
-def create_dataref(name: str, dataRefType: str = "number", callback: Callable[[None], None] = None) -> DataRef:
+def create_dataref(name: str, dataRefType: str = "number", callback: Callable[[], None] = None) -> DataRef:
     """
     create_dataref(name, type="number|array|string", callback=False)
 

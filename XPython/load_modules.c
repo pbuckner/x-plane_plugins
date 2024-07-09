@@ -90,6 +90,11 @@ static PyObject *loadPIClass(const char *fname)
       char *s;
       if (already_loaded) {
         module2_p = PyImport_ReloadModule(module_p);
+        if (PyErr_Occurred()){
+          pythonLogException();
+          pythonLog("[XPPython3] Problem reloading module '%s'.", fname);
+          return NULL;
+        }
         s = objDebug(module2_p);
         pythonDebug("reloaded '%s'", s);
         Py_DECREF(module_p);

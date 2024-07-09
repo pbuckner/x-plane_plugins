@@ -69,10 +69,16 @@ The next three menu items are:
   With XPPython3, I've included all python standard libraries, and three commonly used non-standard libraries
   with their dependencies, so you should not have to install them:
 
-    + OpenGL
-    + imgui
-    + requests
+  + OpenGL
+  + imgui
+  + requests
 
+  With XPPython3 v4.4, I'l attempt to also install:
+
+  + numpy
+  + Pillow (PIL)
+  + freetype
+  
   PIP is further described in :doc:`pip`.
 
 Finally:

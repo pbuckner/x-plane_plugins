@@ -30,6 +30,10 @@ and we'll check it out.
 
 Installing a package already installed is not a problem. You can install multiple packages at the same time.
 
+
+If you're looking to distribute your plugin which requires a non-standard python package, you should take a look
+at automating installation using the XPPython3 :py:mod:`utils.xp_pip` module.
+
 ----
 
 .. [#F1] You'll install python libraries using PIP: you do not install X-Plane plugins using PIP.

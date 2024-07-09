@@ -5,8 +5,9 @@ SERVER_SDK=400
 XP_SDK=../SDK410
 VERSIONS= 312
 # python versions are like 4.1.1 -> 4.1.2a1 -> 4.1.2a2 -> 4.1.2b1 -> 4.1.2 (letter is [ab], cannot end with letter)
-XPPYTHONVERSION=4.4.0a6
-BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce '[a-z]')
+XPPYTHONVERSION=4.4.0a8
+BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce 'b')
+ALPHA=$(shell echo $(XPPYTHONVERSION) | grep -ce 'a')
 FMOD=../FMOD
 ZIP=zip
 zipfiles = \
@@ -24,13 +25,13 @@ CFLAGS=-Wall -Wextra -g -fpic -fPIC -fvisibility=hidden -DXPPYTHON3VERSION=\"$(X
 XPLM_CPPFLAGS = -DXPLM200 -DXPLM210 -DXPLM300 -DXPLM301 -DXPLM302 -DXPLM303 -DXPLM400 -DXPLM410 \
                 -I$(XP_SDK)/CHeaders -I$(XP_SDK)/CHeaders/XPLM -I$(XP_SDK)/CHeaders/Widgets -I$(FMOD)/api/core/inc -I$(FMOD)/api/studio/inc
 
-# "BETA" make errCheck() function execute. Otherwise it is removed during compilation and optimization is enabled
-ifeq ($(BETA), "0")
-  CFLAGS+= -DERRCHECK=0
-  OPTIMIZATION= -O3
-else
+# "ALPHA" make errCheck() function execute. Otherwise it is removed during compilation and optimization is enabled
+ifeq ($(ALPHA), "1")
   CFLAGS+= -DERRCHECK=1
   OPTIMIZATION= -O0
+else
+  CFLAGS+= -DERRCHECK=0
+  OPTIMIZATION= -O3
 endif
 
 ##########
@@ -166,6 +167,7 @@ Resources/plugins/xp3-darwin.zip: win/XPPython3.xpl lin/XPPython3.xpl mac/XPPyth
 		$(ZIP) xp.zip -q -R XPPython3  XPPython3/*_x64/*3.xpl; \
 		$(ZIP) xp.zip -q -u XPPython3/version.txt ; \
 		$(ZIP) xp.zip -q -u XPPython3/.firstTimeComplete; \
+		$(ZIP) xp.zip -q -u XPPython3/*.png; \
 		$(ZIP) xp.zip -q -u XPPython3/*.md; \
 		$(ZIP) xp.zip -q -u XPPython3/*.py ; \
 		$(ZIP) xp.zip -q -u XPPython3/*.pyi ; \
@@ -207,6 +209,7 @@ Resources/plugins/xp3-darwin.zip: win/XPPython3.xpl lin/XPPython3.xpl mac/XPPyth
 
 
 install_beta : $(zipfiles)
+	# Beta or Alpha installed this way
 	# dependencies are xp3.zip and xp3-(win32|linux|darwin).zip
 	# 1) rename each to beta naming xp3b.zip and xp-(win32|linux|darwin)b.zip
 	for f in $(filter %.zip, $^); do cp $$f `echo "$$f" | sed 's/\.zip/b.zip/g'`; done
@@ -218,7 +221,7 @@ install_beta : $(zipfiles)
 		./db_updatemd5.py xp3b.zip $(SERVER_SDK) "$(XPPYTHONVERSION)"'
 
 install_remote : $(zipfiles)
-	@if [ "$(BETA)" -gt "0" ]; then \
+	@if [ "$(BETA)" -gt "0" -o "$(ALPHA)" -gt "0"]; then \
 		echo "Current version is BETA: $(XPPYTHONVERSION). Not installing"; \
 		exit 1; \
 	fi

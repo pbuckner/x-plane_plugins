@@ -7,7 +7,7 @@ Known Bugs
   None (prove me wrong!)
   
 4.4.1 (10-Jul-2024)
-------------------
+-------------------
 :Fixes:
    * **Fix Stats**: by default, v4.4.0 turned off recording flightloop performance statistics. This release
      sets the default back to previous value, which now records the information.

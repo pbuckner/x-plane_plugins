@@ -80,6 +80,7 @@ Want to do something more interesting? Work through the next :doc:`quickstart` e
    tools
    implementation_details
    xlua_transition
+   /changelog
 
 ----
 

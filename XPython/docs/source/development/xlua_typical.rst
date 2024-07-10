@@ -18,13 +18,13 @@ Your plugin file will (likely) have the following sections, which we will cover 
 
 * Miscellaneous functions
 
-* Runtime code  
+* Runtime code
 
 
 Imports
 -------
 This is standard python. A convenient block might want to copy & paste could be::
-                                                                                                               
+
   from XPPython3.utils.easy_python import EasyPython
   from XPPython3 import xp
   from XPPython3.utils.datarefs import find_dataref, create_dataref
@@ -78,18 +78,18 @@ parts: your callbacks and your set of datarefs::
   # -------------
   # Functions for writable dataref callbacks.
   # -------------
-  
+
   def myDataRefCallback():
       if dr_my_data_ref.value < 2:
           cmd_do_some_command.once()
-  
+
   # -------------
   # Find / Create datarefs
   # -------------
-  
+
   dr_paused = find_dataref("sim/time/paused")
   dr_my_data_ref = create_dataref('test/my_dataref', callback=myDataRefCallback)
-  
+
 You can refer to :doc:`modules/datarefs` for details these commands.
 
 Commands
@@ -104,21 +104,21 @@ You'll create callback functions for each command you create.::
   # -------------
   # Function callbacks for my commands
   # -------------
-  
+
   def cmd_my_command_callback(phase, duration):
       if phase == 0 and not dr.paused.value:
           do_something()
-  
+
   def cmd_version_callback(phase, duration):
       if phase == 0:
           print(VERSION)
-  
+
   # -------------
   # Find / Create commands
   # -------------
   cmd_my_command = create_command("test/my_command", "Execute my command", cmd_my_command_callback)
   cmd_version_command = replace_command("sim/version/sim_build_string", cmd_version_callback)
-  
+
 See :doc:`modules/commands` for these commands.
 
 Miscellaneous functions
@@ -130,15 +130,15 @@ doesn't care.::
 
   ############################################
   # MISC. FUNCTIONS
-  
+
   def func_animate_slowly(reference_value, animated_VALUE, anim_speed):
       return animated_VALUE + ((reference_value - animated_VALUE) * (anim_speed * xlua.SIM_PERIOD))
-  
+
   def deferred_flight_start():
       print('Deferred flight start')
       dr_interior_lites_0.value = 0.4
       dr_interior_lites_1.value = 1
-  
+
 
 Runtime code
 ------------
@@ -148,7 +148,7 @@ the appropriate callback `as methods of the` ``PythonInterface`` `class`::
 
   ############################################
   # RUNTIME CODE
-  
+
   class PythonInterface(EasyPython):
 
       def flight_start(self):
@@ -156,7 +156,7 @@ the appropriate callback `as methods of the` ``PythonInterface`` `class`::
 
       def after_physics(self):
           do_something_on_each_frame()
-          
+
       ...
 
 Being a python class, you may certainly add other methods to ``PythonInterface``. Its

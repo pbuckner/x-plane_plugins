@@ -73,14 +73,18 @@ char *xpy_config_get(char *item)
   return NULL;
 }
 
+int xpy_config_get_int_default(char *item, int if_not_found) {
+  char *foo = xpy_config_get(item);
+  if (foo) return atoi(foo);
+  return if_not_found;
+}  
+
 int xpy_config_get_int(char *item) {
   /* strings, nulls will return 0.
      Real numbers return only integer part.
      Negative numbers return negative  integers
   */
-  char *foo = xpy_config_get(item);
-  if (foo) return atoi(foo);
-  return 0;
+  return xpy_config_get_int_default(item, 0);
 }
 
 

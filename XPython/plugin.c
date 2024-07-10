@@ -676,7 +676,7 @@ static void handleConfigFile(void) {  /* Find and handle config.ini file */
 #endif
   pythonDebugs = xpy_config_get_int("[Main].debug");
   pythonWarnings = xpy_config_get_int("[Main].warning");
-  pythonStats = xpy_config_get_int("[Main].stats");
+  pythonStats = xpy_config_get_int_default("[Main].stats", 1);
 #if !defined(Py_LIMITED_API)
   pythonVerbose = xpy_config_get_int("[Main].py_verbose");/* 0= off, 1= each file as loaded, 2= each file that is checked when searching for module */
 #endif

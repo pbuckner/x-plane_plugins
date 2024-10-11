@@ -793,7 +793,7 @@ Functions
  at *altitude* (in feet) specified.
  Use this only for airports, fixes,
  and radio-beacon navaids.  Currently for radio beacons, the FMS can only
- support VORs and NDBs.
+ support VORs, NDBs, and TACANS.
 
  Use the :py:func:`setFMSEntryLatLon` fly to a lat/lon.
 

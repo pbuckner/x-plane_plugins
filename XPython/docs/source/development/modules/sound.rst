@@ -44,8 +44,8 @@ Basic FMOD interface
   
   The sound is not started instantly. Instead it will be started the next time X-Plane refreshes the sound system,
   typically at the start of the next frame. This allows you to set the initial position for the sound,
-  if required. The callback will be called on the same thread as the sounds is created from, and will be called only
-  once per sounds. If the :py:func:`playPCMOnBus` call fails and you provided a callback function, you will get a callback
+  if required. The callback will be called on the main thread, and will be called only
+  once per sound. If the :py:func:`playPCMOnBus` call fails and you provided a callback function, you will get a callback
   with an FMOD status code.
 
   * `bufferSize` is length in bytes of passed data

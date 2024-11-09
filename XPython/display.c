@@ -3014,9 +3014,9 @@ PyInit_XPLMDisplay(void)
     PyModule_AddIntConstant(mod, "Device_Primus_RMU_1", -1); // XPLMDeviceID
     PyModule_AddIntConstant(mod, "Device_Primus_RMU_2", -1); // XPLMDeviceID
 #endif
-#if defined(XPLM410)
-    PyModule_AddIntConstant(mod, "Device_MCDU_1", 18); // XPLMDeviceID
-    PyModule_AddIntConstant(mod, "Device_MCDU_2", 19); // XPLMDeviceID
+#if defined(XPLM411)
+    PyModule_AddIntConstant(mod, "Device_MCDU_1", xplm_device_MCDU_1); // XPLMDeviceID
+    PyModule_AddIntConstant(mod, "Device_MCDU_2", xplm_device_MCDU_2); // XPLMDeviceID
 #else
     PyModule_AddIntConstant(mod, "Device_MCDU_1", -1); // XPLMDeviceID
     PyModule_AddIntConstant(mod, "Device_MCDU_2", -1); // XPLMDeviceID

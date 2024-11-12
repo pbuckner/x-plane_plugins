@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
+
 
 char xpy_ini_file[512] = "xppython3.ini";  /* by design, this will get changed to include full path in handleConfigFile() */
 
@@ -75,7 +77,17 @@ char *xpy_config_get(char *item)
 
 int xpy_config_get_int_default(char *item, int if_not_found) {
   char *foo = xpy_config_get(item);
-  if (foo) return atoi(foo);
+  char *truevalues[] = {"ON", "On", "on", "True", "TRUE", "true", "T", "t", "YES", "Yes", "yes", "Y", "y", ""};
+  char **v;
+  v = truevalues;
+  if (foo) {
+    while (**v != 0) {
+      if (0 == strcmp(foo, *v++)) {
+        return 1;
+      }
+    }
+    return atoi(foo);
+  }
   return if_not_found;
 }  
 

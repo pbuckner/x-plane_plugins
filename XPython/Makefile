@@ -2,10 +2,10 @@
 
 PLUGIN_PATH=Resources/plugins/XPPython3
 SERVER_SDK=400
-XP_SDK=../SDK410
+XP_SDK=../SDK411
 VERSIONS= 312
 # python versions are like 4.1.1 -> 4.1.2a1 -> 4.1.2a2 -> 4.1.2b1 -> 4.1.2 (letter is [ab], cannot end with letter)
-XPPYTHONVERSION=4.4.1
+XPPYTHONVERSION=4.4.2a9
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce 'b')
 ALPHA=$(shell echo $(XPPYTHONVERSION) | grep -ce 'a')
 FMOD=../FMOD
@@ -22,11 +22,11 @@ zipfiles = \
 # COMMON opts
 # eventually....:   -DPy_LIMITED_API=0x030a0000
 CFLAGS=-Wall -Wextra -g -fpic -fPIC -fvisibility=hidden -DXPPYTHON3VERSION=\"$(XPPYTHONVERSION)\"
-XPLM_CPPFLAGS = -DXPLM200 -DXPLM210 -DXPLM300 -DXPLM301 -DXPLM302 -DXPLM303 -DXPLM400 -DXPLM410 \
+XPLM_CPPFLAGS = -DXPLM200 -DXPLM210 -DXPLM300 -DXPLM301 -DXPLM302 -DXPLM303 -DXPLM400 -DXPLM410 -DXPLM411 \
                 -I$(XP_SDK)/CHeaders -I$(XP_SDK)/CHeaders/XPLM -I$(XP_SDK)/CHeaders/Widgets -I$(FMOD)/api/core/inc -I$(FMOD)/api/studio/inc
 
 # "ALPHA" make errCheck() function execute. Otherwise it is removed during compilation and optimization is enabled
-ifeq ($(ALPHA), "1")
+ifeq ("$(ALPHA)", "1")
   CFLAGS+= -DERRCHECK=1
   OPTIMIZATION= -O0
 else
@@ -66,8 +66,9 @@ ifeq ($(TARGET), Darwin)
   PYTHON_CONFIG_FLAGS = -I/Library/Frameworks/Python.framework/Versions/3.12/include/python3.12 -I/Library/Frameworks/Python.framework/Versions/3.12/include/python3.12 -fno-strict-overflow -Wsign-compare -Wunreachable-code -fno-common -dynamic -DNDEBUG -g -Wall -arch arm64 -arch x86_64 -g
 CFLAGS312=$(CFLAGS) $(PYTHON_CONFIG_FLAGS) -DPYTHONVERSION=\"3.12\"
   CFLAGS312+=$(OPTIMIZATION)
-  LDFLAGS += -shared -fPIC -fpic -ldl -g -fvisibility=hidden -undefined dynamic_lookup
-  LDFLAGS312 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.12/bin/python3-config --ldflags) -lpython3.12
+  # LDFLAGS += -shared -fPIC -fpic -ldl -g -fvisibility=hidden -undefined dynamic_lookup
+  LDFLAGS += -shared -fPIC -fpic -ldl -g -fvisibility=hidden 
+  LDFLAGS312 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.12/bin/python3-config --ldflags) -lpython3.12 -F $(XP_SDK)/Libraries/Mac -framework XPLM -framework XPWidgets
   PLUGIN_DIR=mac_x64
   LD=cc
 endif

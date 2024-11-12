@@ -6,7 +6,6 @@ import json
 import os
 import os.path
 import platform
-import re
 import certifi
 from urllib.request import urlopen
 from urllib.parse import urlencode
@@ -19,54 +18,7 @@ except ImportError:
 from XPPython3 import xp
 from XPPython3.scriptconfig import Config
 from XPPython3.zip_download import ZipDownload
-from XPPython3.utils.version import StrictVersion
-
-
-class Version(StrictVersion):
-    """
-    Extract first thing which looks like a version number from
-    provided string and convert using StrictVersion.
-
-     1) Version number is first extracted, as the first "word" with leading number, through to first space'
-         '3.0.1 Release'         -> '3.0.1'
-         '3.0.1a1 Beta'          -> '3.0.1a1'
-         'Release 3.0.1a1 Beta'  -> '3.0.1a1'
-         'Version-3 Beta 2'      -> '3'
-
-     2) If version number ends with letter, we append '0' to it. This permits us to use step 3
-         '3.0.1'   -> '3.0.1'
-         '3.0.1a'  -> '3.0.1a0'
-         '3.0.1a1' -> '3.0.1a1'
-
-     3) Comparison uses distutils.version.StrictVersion (note that pre-release letter is _only_ a or b):
-       * dot separated Major, Minor, Patch values:
-            3.0
-            3.1
-            3.1.10
-       * number are compared numerically, missing patch value is 'zero' (Major and Minor are required)
-            3.0.0
-            3.1.0
-            3.1.10
-       * optional 'pre-release' after version number consists of letter 'a' or 'b' _with_ a number
-            3.0a1
-            3.1a2
-            3.1.0a11
-            3.1.10a1
-            3.1.10a2
-            3.1.10a10
-       * 'pre-release' are less than release of same number
-            3.1.9
-            3.1.10a1
-            3.1.10
-    """
-    def __init__(self, vstring=None):
-        try:
-            vstring = re.search(r'\d[\.\dab]*', vstring)[0]
-        except TypeError:
-            vstring = '0.0'
-        if vstring[-1].isalpha():
-            vstring += '0'
-        super(Version, self).__init__(vstring)
+from XPPython3.updater.version import calc_update, Version
 
 
 class Updater(Config):
@@ -125,16 +77,29 @@ class Updater(Config):
         self.install_path = os.path.join(xp.getSystemPath(), self.plugin_path)
         self.new_version = '<Error>'
         self.beta_version = '<Error>'
+        self.json_info = {}
+        try:
+            if any([getattr(self, 'do_not_check_for_updates', True),
+                    not getattr(getattr(self, 'preferences'), 'preferences').get('check_for_update', False),
+                    getattr(getattr(self, 'preferences'), 'preferences').get('debug', True)]):
+                self.new_version = "<not checked>"
+                self.beta_version = "<not checked>"
+                return
+        except AttributeError:
+            pass
+
         if xp.getCycleNumber() == 0:
+            xp.log(">>>>>>>>>> checking <<<<<<<<<<<<<")
             self.check()
         else:
             xp.log(f"*** Cyclenumber is {xp.getCycleNumber()=}, skipping update checking")
-        self.json_info = {}
 
     def check(self, forceUpgrade=False):
-        xp.log("Calling Check with version check url: {}".format(self.VersionCheckURL))
+        xp.log(f"Calling Check with version check url: {self.VersionCheckURL}")
         if self.VersionCheckURL:
             if self.VersionCheckData is not None:
+                if hasattr(self, 'uuid'):
+                    self.VersionCheckData['uuid'] = self.uuid
                 data = urlencode(self.VersionCheckData).encode('utf-8')
             else:
                 data = None
@@ -193,10 +158,10 @@ class Updater(Config):
                 xp.log(f"scriptupdater cannot determine update version information for plugin {self.Sig}: {info}")
                 return
             self.beta_version = info.get('beta_version', '')
-            uptodate, version = self.calc_update(try_beta=self.config.get('beta', False),
-                                                 current_version=self.Version,
-                                                 stable_version=self.new_version,
-                                                 beta_version=self.beta_version)
+            uptodate, version = calc_update(try_beta=self.config.get('beta', False),
+                                            current_version=self.Version,
+                                            stable_version=self.new_version,
+                                            beta_version=self.beta_version)
             uptodate = uptodate and not forceUpgrade
             update_which = None if uptodate else ('beta' if version == self.beta_version else 'release')
 
@@ -217,34 +182,5 @@ class Updater(Config):
                 else:
                     xp.systemLog(f">>>>> To upgrade: {info.get('upgrade', 'See documentation')}")
             else:
-                xp.log(f"Version is up to date")
-                xp.systemLog(f"Version is up to date")
-
-    @staticmethod
-    def calc_update(try_beta, current_version, stable_version, beta_version):
-        """
-        returns tuple (up-to-date: T/F, change to: version)
-        """
-        current = Version(current_version)
-        stable = Version(stable_version)
-        beta = Version(beta_version)
-        if try_beta:
-            if beta > current:
-                if stable > beta:
-                    return (False, stable_version)
-                return (False, beta_version)
-            if beta == current and stable < beta:
-                return (True, beta_version)
-            if stable > current:
-                return (False, stable_version)
-            return (True, current_version)
-        if stable > current:
-            return (False, stable_version)
-        if stable == current:
-            return (True, current_version)
-        # If i have a beta (any beta), go with stable_version
-        # otherwise, stick with what I have.
-        if current.prerelease:
-            # you have beta
-            return (False, stable_version)
-        return (True, current_version)
+                xp.log("Version is up to date")
+                xp.systemLog("Version is up to date")

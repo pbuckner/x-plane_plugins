@@ -4,6 +4,8 @@ from XPPython3 import xp
 from XPPython3.utils import samples, xp_pip
 from XPPython3.scriptupdate import Version
 
+PLUGIN_DISABLED = 5
+
 
 class PythonInterface:
     def __init__(self):
@@ -17,16 +19,14 @@ class PythonInterface:
         return 'FirstTime', 'xppython3.firstTime', 'Performs tasks which should be run "first time" for XPPython3 plugin'
 
     def XPluginEnable(self):
-        # Register flight loop, but set to zero to disable (this way, we know it exists and
-        # can unconditionally unregister it in XPluginDisable).
-        # "Enable" the flight loop, only if touchfile does not exist or is old.
-        self.flID = xp.createFlightLoop(self.flightLoopCallback)
         self.current_version = Version(xp.VERSION)
         touch_version = get_version(self.touch_file)
         if self.current_version > touch_version:
+            self.flID = xp.createFlightLoop(self.flightLoopCallback)
             xp.log(f"Current is {self.current_version} and touchfile is {touch_version}")
             xp.scheduleFlightLoop(self.flID, -1)
-        return 1
+            return 1
+        return 0
 
     def flightLoopCallback(self, _sinceLastCall, _sinceLastFlightLoop, _counter, _refcon):
         # we do work within a flight loop so we can display progress / results
@@ -35,6 +35,7 @@ class PythonInterface:
         with open(self.touch_file, 'w', encoding="UTF-8") as fp:
             fp.write(f'{self.current_version}\n')
         # execute only once
+        self.disablePlugin()
         return 0
 
     def XPluginDisable(self):
@@ -61,6 +62,18 @@ class PythonInterface:
         xp_pip.load_requirements(requirements)
 
         return
+
+    def disablePlugin(self):
+        # Mark this python plugin disabled:
+        # This will cause it to not be included in the XPPython3 performance window.
+        # and this plugin will not be reloaded & will not receive XP messages
+        #
+        # Normally, you'd disable a plugin by returning '0' in XPluginEnable.
+        # Here, we disable the plugin _after_ it's done it's stuff. "Disabled"
+        # is kind of a misnomer therefore. By disabling it "late", we stop
+        # it from receiving futher messages and prevent it from appearing in
+        # the 'performance' popup window.
+        xp.pythonGetDicts()['plugins'][self][PLUGIN_DISABLED] = True
 
 
 def get_version(filename) -> Version:

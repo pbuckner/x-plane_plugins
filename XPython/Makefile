@@ -171,13 +171,8 @@ Resources/plugins/xp3-darwin.zip: win/XPPython3.xpl lin/XPPython3.xpl mac/XPPyth
 		$(ZIP) xp.zip -q -u XPPython3/*.png; \
 		$(ZIP) xp.zip -q -u XPPython3/*.md; \
 		$(ZIP) xp.zip -q -u XPPython3/*.py ; \
+		$(ZIP) xp.zip -q -u XPPython3/*/*.py ; \
 		$(ZIP) xp.zip -q -u XPPython3/*.pyi ; \
-		$(ZIP) xp.zip -q -u XPPython3/utils/*.py ; \
-		$(ZIP) xp.zip -q -u XPPython3/hooks/*.py ; \
-		$(ZIP) xp.zip -q -u XPPython3/internals/*.py ; \
-		$(ZIP) xp.zip -q -u XPPython3/xp_imgui/*.py ; \
-		$(ZIP) xp.zip -q -u XPPython3/xpgl/*.py ; \
-		$(ZIP) xp.zip -q -u XPPython3/ui/*.py ; \
 		$(ZIP) xp.zip -q -u -r XPPython3/Drop\ Q*.app;
 	# That's the same as the 'upgrade' -- python-less -- version
 	cp Resources/plugins/xp.zip Resources/plugins/xp3upgrade-win32.zip

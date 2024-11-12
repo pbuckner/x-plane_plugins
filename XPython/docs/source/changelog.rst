@@ -4,8 +4,28 @@ Change Log
 Known Bugs
 ----------
 
-  None (prove me wrong!)
+* **Incorrect log message attribution**: In rare occasions XPPython3Log.txt will
+  incorrectly attribute a log message to
+  the wrong python plugin. This may be related to X-Plane calls to internal error reporting callback.
+  The message is correct apart from identifying the requesting plugin.
   
+4.4.2 (Beta)
+------------
+:Improvements:
+   * **Usage Data Collection**: Previously, XPPython3 would check for updates and record basic usage statistics.
+     This version enables users & developers to enable/disable version checking and usage data collection. It
+     also introduces the (optional) collection of per-python plugin usage. See
+     :doc:`/usage/preferences`.
+
+   * **xppython3.ini parser**: Previously XPPython3's parsing of options required "1" or "0" for boolean
+     options. It now also supports "Yes", "On", and "True" as equivalents. See :doc:`development/xppython3.ini`.
+
+   |
+   
+:New Features:
+   * **Preferences Popup**: On first execution and in response to "Preferences" menu item, a :doc:`/usage/preferences` popup
+     is displayed. This augments the existing :doc:`/development/xppython3.ini` feature.
+
 4.4.1 (10-Jul-2024)
 -------------------
 :Fixes:
@@ -48,7 +68,7 @@ Known Bugs
      examples will be included in the future.
 
    * **xp_pip module**. This module allows plugin developers to automatically install
-     python modules into the correct location withing XPPython3. See :doc:`/development/modules/xp_pip`.
+     python modules into the correct location within XPPython3. See :doc:`/development/modules/xp_pip`.
 
    |
 

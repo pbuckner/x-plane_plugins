@@ -85,14 +85,29 @@ with different ImGui functionality.
 
 Note *<sigh>*, if you're using python 3.12 and pyglet, there is a bug in the imgui pyglet integration.
 This does not affect X-Plane, but will cause the above example to fail. You can fix this
-by changing :code:`imgui/integrations/pyglet.py`. Remove the deprecated::
+by making 2 changes to :code:`imgui/integrations/pyglet.py`.
 
-  from distutils.version import LooseVersion
+1. Remove the deprecated::
 
-and change line::
+    from distutils.version import LooseVersion
 
-  if LooseVersion(pyglet.version) < LooseVersion('2.0'):
+2. and change line::
 
-to::  
+    if LooseVersion(pyglet.version) < LooseVersion('2.0'):
 
-  if int(pyglet.version.split('.')[0]) < 2:
+   to::  
+
+    if int(pyglet.version.split('.')[0]) < 2:
+
+*Where* is ``imgui/integrations/pyglet.py``? It's where your pip installed it. Easy way to find it
+is ask python::
+
+  $ python3
+  >>> import imgui
+  >>> imgui
+  <module 'imgui' from '/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/imgui/__init__.py'>
+
+My copy of ``imgui`` is installed at ``/Library/Frameworks/Python.framework/.../site-packages/imgui``,
+so ``integrations/pyglet.py`` is just under that.
+    
+Next, :doc:`imgui_advanced`

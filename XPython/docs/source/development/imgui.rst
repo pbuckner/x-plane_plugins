@@ -46,8 +46,9 @@ Next, :doc:`imgui_plugin`
 |
 |
 
+ImGui related pages:
+
 .. toctree::
-   :hidden:
 
    imgui_plugin
    imgui_coding

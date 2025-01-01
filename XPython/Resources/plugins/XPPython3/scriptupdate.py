@@ -2,6 +2,7 @@
 Python Plugin updater, modelled after PI_ScriptUpdater.py by
 Joan Perez i Cauhe
 """
+from typing import Any
 import json
 import os
 import os.path
@@ -18,12 +19,12 @@ except ImportError:
 from XPPython3 import xp
 from XPPython3.scriptconfig import Config
 from XPPython3.zip_download import ZipDownload
-from XPPython3.updater.version import calc_update, Version
+from XPPython3.updater.version import calc_update, Version  # (We don't use Version here, but other scripts assume it exists in this module)
 
 
 class Updater(Config):
     VersionCheckURL = "http://example.com/foo.json"
-    VersionCheckData = None
+    VersionCheckData: dict[str, Any] = {}
 
     """
     To Use
@@ -97,7 +98,7 @@ class Updater(Config):
     def check(self, forceUpgrade=False):
         xp.log(f"Calling Check with version check url: {self.VersionCheckURL}")
         if self.VersionCheckURL:
-            if self.VersionCheckData is not None:
+            if self.VersionCheckData is not {}:
                 if hasattr(self, 'uuid'):
                     self.VersionCheckData['uuid'] = self.uuid
                 data = urlencode(self.VersionCheckData).encode('utf-8')

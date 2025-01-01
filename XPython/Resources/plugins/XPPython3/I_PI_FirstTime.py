@@ -21,16 +21,23 @@ class PythonInterface:
     def XPluginEnable(self):
         self.current_version = Version(xp.VERSION)
         touch_version = get_version(self.touch_file)
+
+        # Check (and update if necessary) required modules
+        requirements = ['numpy>=1.26.4', 'freetype-py>=2.4.0', 'pillow>=10.3.0', 'charset-normalizer>=3.4.1']
+        xp_pip.load_requirements(requirements, force=False)
+
         if self.current_version > touch_version:
             self.flID = xp.createFlightLoop(self.flightLoopCallback)
             xp.log(f"Current is {self.current_version} and touchfile is {touch_version}")
             xp.scheduleFlightLoop(self.flID, -1)
             return 1
+
         return 0
 
     def flightLoopCallback(self, _sinceLastCall, _sinceLastFlightLoop, _counter, _refcon):
         # we do work within a flight loop so we can display progress / results
         # in a window. The flight loop callback is not enabled & nothing is done if the touch_file exists.
+
         self.firstTime()
         with open(self.touch_file, 'w', encoding="UTF-8") as fp:
             fp.write(f'{self.current_version}\n')
@@ -57,8 +64,8 @@ class PythonInterface:
             xp.log("Found, and removing old XPPython3/imgui directory")
             shutil.rmtree(imgui_dir)
 
-        # 4) add PIL and numpy modules if not already installed
-        requirements = ['numpy>=1.26.4', 'freetype-py>=2.4.0', 'pillow>=10.3.0']
+        # 4) add other modules
+        requirements = []
         xp_pip.load_requirements(requirements)
 
         return

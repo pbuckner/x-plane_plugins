@@ -11,6 +11,7 @@ except ImportError:
 
 from typing import List
 from XPPython3 import xp
+from XPPython3 import xp_typing
 
 # To use:
 # Where you want a list box widget, call
@@ -104,7 +105,7 @@ class XPListBox(object):
             if not wrap:
                 unwrapped.append('')
         return unwrapped[:-1]
-        
+
     def add(self, s):
         xp.setWidgetDescriptor(self.widgetID, s)
         xp.setWidgetProperty(self.widgetID, Prop.ListBoxAddItem, 1)
@@ -118,7 +119,7 @@ class XPListBox(object):
             if xp.selectIfNeeded(message, widget, param1, param2, 0):
                 return 1
         except SystemError:
-            print("Failure in selectIfNeeded for message: {}, {}, {}, {}".format(message, widget, param1, param2))
+            print(f"Failure in selectIfNeeded for message: {message}, {widget}, {param1}, {param2}")
             raise
 
         left, top, right, bottom = xp.getWidgetGeometry(widget)
@@ -182,7 +183,7 @@ class XPListBox(object):
                 sliderPosition = scrollbarMax
                 xp.setWidgetProperty(widget, Prop.ListBoxScrollBarMax, scrollbarMax)
                 if self.autoScroll:
-                    if wasViewingBottom and not(maxListBoxItems - sliderPosition > 0):
+                    if wasViewingBottom and sliderPosition >= maxListBoxItems:
                         # print('was, but no more, setting to {}'.format(maxListBoxItems - 1))
                         xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, maxListBoxItems - 1)
                     elif wasViewingBottom:
@@ -485,10 +486,10 @@ kXPlaneColorNames = [
 
 
 # This array contains the resolved datarefs
-gColorRefs = []
+gColorRefs: List[xp_typing.XPLMDataRef] = []
 
 
-def SetupAmbientColor(inColorID, immediate=False):
+def SetupAmbientColor(inColorID: int, immediate: bool = False):
     """
     This routine sets up a color from the above table.  Pass
     in a float[3] to get the color; pass in NULL to have the

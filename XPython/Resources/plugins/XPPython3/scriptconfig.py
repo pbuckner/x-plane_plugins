@@ -27,7 +27,7 @@ def system_log(s):
 
 class Config(object):
     ConfigFilename = 'example.pkl'
-    defaults = {}
+    defaults: dict = {}
     Name = "Plugin Name"
     Sig = "Unique Plugin Signature"
     Desc = "Short description"

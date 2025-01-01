@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Any
 import sys
 import urllib
 import os
@@ -7,7 +7,8 @@ from XPPython3 import xp
 from XPPython3.utils import samples
 from XPPython3.ui import popups
 from XPPython3.updater import Pip, About, Performance, Preferences, Usage
-from XPPython3.updater.version import calc_update, VersionUnknownException
+from XPPython3.updater.version import calc_update
+from XPPython3.xp_typing import PythonInterfaceType
 
 
 class MyConfig(scriptupdate.Updater):
@@ -31,16 +32,17 @@ class MyConfig(scriptupdate.Updater):
 
 class PythonInterface(MyConfig):
 
-    def __init__(self):
+    def __init__(self: PythonInterfaceType):
         self.menu = None
         self.about = About(self)
         self.performance = Performance(self)
         self.preferences = Preferences(self)
         self.pip = Pip(self)
         self.status_idx = 0
-        self.stats = {}
+        self.stats: dict = {}
         self.updateMenuIdx = None
         self.frame_rate_period_dref = xp.findDataRef('sim/time/framerate_period')
+        self.need_to_keep_a_handle_to_this: Any = None  # need to hold onto window handle (see below)
         self.cmds: List = [
             {'command': 'xppython3/update',
              'description': 'Update XPPython3 Plugin',

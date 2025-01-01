@@ -11,6 +11,25 @@ Known Bugs
   
 4.4.2 (Beta)
 ------------
+:Fixes:
+   * **Python library update**: For Silicon Macs only (i.e., ARM architecture): All except one python library, included
+     with XPPython3 supported both ARM and Intel architectures. The ``charset_normalizer`` module supported only Intel
+     (x86_64). Two libraries have been updated to support both architectures: ``md.cpython-312-darwin.so`` and ``md__mypyc.cpython-312-darwin.so``.
+     This is irrelevant if you're using an Intel-based Mac, or Linux or Windows. Code will be automatically
+     updated on first restart.
+
+   |
+   
+:New Features:
+   * **Preferences Popup**: On first execution and in response to "Preferences" menu item, a :doc:`/usage/preferences` popup
+     is displayed. This augments the existing :doc:`/development/xppython3.ini` feature.
+
+   * **Custom Cursors**: Thanks to guidance from Saso Kiselkov, XPPython3 now includes platform-specific
+     code allowing you to load a set custom cursors (See :doc:`/development/modules/cursor`). Additionally, we're
+     providing a number of predefined cursors.
+
+   |
+
 :Improvements:
    * **Usage Data Collection**: Previously, XPPython3 would check for updates and record basic usage statistics.
      This version enables users & developers to enable/disable version checking and usage data collection. It
@@ -20,12 +39,7 @@ Known Bugs
    * **xppython3.ini parser**: Previously XPPython3's parsing of options required "1" or "0" for boolean
      options. It now also supports "Yes", "On", and "True" as equivalents. See :doc:`development/xppython3.ini`.
 
-   |
    
-:New Features:
-   * **Preferences Popup**: On first execution and in response to "Preferences" menu item, a :doc:`/usage/preferences` popup
-     is displayed. This augments the existing :doc:`/development/xppython3.ini` feature.
-
 4.4.1 (10-Jul-2024)
 -------------------
 :Fixes:

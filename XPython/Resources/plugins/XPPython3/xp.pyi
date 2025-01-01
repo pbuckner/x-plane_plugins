@@ -1,6 +1,5 @@
-from dataclasses import dataclass
-from typing import Any, Callable, Generic, Optional, Type, TypeVar, NewType, Literal, Sequence
-from XPPython3.xp_typing import *    
+from typing import Any, Callable, Optional, Literal, Sequence
+from XPPython3.xp_typing import *
 ControlCameraUntilViewChanges: XPLMCameraControlDuration
 ControlCameraForever: XPLMCameraControlDuration
 Type_Unknown: XPLMDataTypeID
@@ -473,9 +472,9 @@ INTERNALPLUGINSPATH: str
 pythonDebugLevel: int
 pythonExecutable: str
 ModuleMTimes: object
-def controlCamera(howLong:int=ControlCameraUntilViewChanges,
-          controlFunc:Optional[Callable[[list[float], int, Any], int]]=None,
-          refCon:Any=None) -> None:
+def controlCamera(howLong: int = ControlCameraUntilViewChanges,
+                  controlFunc: Optional[Callable[[list[float], int, Any], int]] = None,
+                  refCon: Any = None) -> None:
     """
     Reposition camera on next drawing cycle.
       howLong: 1 = until view changes
@@ -1379,7 +1378,7 @@ def drawNumber(rgb:Sequence[float]=(1., 1., 1.), x:int=0, y:int=0, value:float=0
     """
     ...
 
-def getFontDimensions(fontID:XPLMFontID) -> None | tuple[int, int, int]:
+def getFontDimensions(fontID:XPLMFontID) -> tuple[int, int, int]:
     """
     Get information about font
     
@@ -1559,7 +1558,7 @@ def appendMenuItemWithCommand(menuID:Optional[XPLMMenuID]=None, name:str='Comman
     """
     ...
 
-def appendMenuSeparator(menuID:XPLMMenuID=None) -> None | int:
+def appendMenuSeparator(menuID:Optional[XPLMMenuID]=None) -> None | int:
     """
     Adds separator to end of menu.
     
@@ -1825,7 +1824,7 @@ def setFMSFlightPlanEntryLatLon(flightPlan:XPLMNavFlightPlan, index:int, lat:flo
     """
     ...
 
-def setFMSFlightPlanEntryLatLonWithId(flightPlan:XPLMNavFlightPlan, index:int, lat:float, lon:float, altitude:int=0, ID:str=None) -> None:
+def setFMSFlightPlanEntryLatLonWithId(flightPlan:XPLMNavFlightPlan, index:int, lat:float, lon:float, altitude:int=0, ID:Optional[str]=None) -> None:
     """
     Sets entry in the FMS to a lat/lon entry, with the given coordinates
     and display ID for the waypoint.

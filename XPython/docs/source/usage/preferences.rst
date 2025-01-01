@@ -8,7 +8,7 @@ opposed to preferences which may relate to any particular python plugin.)
            
 * **Documentation**: opens a browser to this page.
 
-* **Save**: records your changes to disk and closes the windoow:
+* **Save**: records your changes to disk and closes the window:
   you will need to restart X-Plane to have them take effect.
 
 * **Cancel**: discards any changes and closes the window.
@@ -49,9 +49,10 @@ any problem enabling them yet running X-Plane without a network connection.
   the range of features implemented through python plugins and this is an effort to
   recognized those plugins which are most popular.
 
-Information is stored on servers physically in the United States, and is accessible *only* by
-me. Other than what is viewable by the above graphs, no information is sold or shared with
-anyone else.
+.. note:: Information is stored anonymously on secure servers physically in the United States,
+  and is accessible *only* by me. I don't have, nor do I care to have, your name, email, phone
+  number or pet's name. Other than what is viewable by the above graphs,
+  no information is sold or shared with anyone else.
 
 When we say the data is collected "anonymously", here's what we mean. As with *every*
 interaction on the Internet, the server will receive your IP address. Other than to communicate

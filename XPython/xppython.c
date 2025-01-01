@@ -353,7 +353,7 @@ static struct PyModuleDef XPPythonModule = {
   PyModuleDef_HEAD_INIT,
   "XPPython",
   "XPPython3 documentation: \n"
-  "   https://xppython3.rtfd.io/en/stable/development/modules/xpython.html",
+  "   https://xppython3.rtfd.io/en/stable/development/modules/xppython.html",
   -1,
   XPPythonMethods,
   NULL,

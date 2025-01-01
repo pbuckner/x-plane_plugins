@@ -390,7 +390,8 @@ def create_dataref(name: str, dataRefType: str = "number", callback: Callable[[]
         return DataRef(name, make=True, callback=callback, dataType=dataType, dim=dim)
 
 
-def find_dataref(name: str) -> DataRef:
+def find_dataref(name: str, _dr_type: Any = None) -> DataRef:
+    # (Note, xlua allows specifying dr_type, be we don't care, so I've added a parameter to ease porting)
     try:
         return _DataRefs[name]
     except KeyError:

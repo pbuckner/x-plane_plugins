@@ -359,7 +359,8 @@ class LooseVersion(Version):
 
     def _cmp(self, other):
         if isinstance(other, str):
-            other = LooseVersion(other)
+            with suppress_known_deprecation():
+                other = LooseVersion(other)
         elif not isinstance(other, LooseVersion):
             return NotImplemented
 

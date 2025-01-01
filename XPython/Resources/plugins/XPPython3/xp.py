@@ -772,6 +772,10 @@ MasterBank = XPLMSound.MasterBank
 RadioBank = XPLMSound.RadioBank
 FMOD_OK = XPLMSound.FMOD_OK
 FMOD_SOUND_FORMAT_PCM16 = XPLMSound.FMOD_SOUND_FORMAT_PCM16
+import XPCursor
+loadCursor = XPCursor.loadCursor
+setCursor = XPCursor.setCursor
+unloadCursor = XPCursor.unloadCursor
 
 
 def playWaveOnBus(wav, loop, audioType, callback=None, refCon=None):

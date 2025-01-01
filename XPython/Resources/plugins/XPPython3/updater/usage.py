@@ -1,12 +1,23 @@
-from typing import List
+from typing import List, Any
+from types import ModuleType
 from XPPython3 import xp
-import requests
+try:
+    # we do this instead of simple 'import requests' because
+    # 'requests' imports charset_normalizer, which had a bug
+    # we need to be able to continue in light of this bug, so we can
+    # automatically correct it later, but re-installing new version of
+    # that module
+    requests: ModuleType | None
+    import requests
+except ImportError:
+    xp.log("requests module import error")
+    requests = None
 
 
 class Usage:
     UsagePostURL = 'https://maps.avnwx.com/x-plane/usage'
 
-    def __init__(self, interface):
+    def __init__(self, interface: Any):
         pref = interface.preferences.preferences
         if pref['debug'] or not pref['collect_python_plugin_stats']:
             # if debug is set, or 'collect_python_plugin_stats is set to False, skip data collection
@@ -22,7 +33,7 @@ class Usage:
                 except AttributeError:
                     pass
                 plugins.append((module_name, sig, description))
-        if plugins:
+        if plugins and requests is not None:
             try:
                 # blast it & not wait for response
                 requests.post(self.UsagePostURL, json={'uuid': interface.uuid, 'plugins': plugins}, timeout=(5, 0.0001))

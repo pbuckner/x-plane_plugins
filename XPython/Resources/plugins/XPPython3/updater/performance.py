@@ -1,15 +1,16 @@
 from XPPython3 import xp
+from XPPython3.xp_typing import PythonInterfaceType
 from .my_widget_window import MyWidgetWindow
 
 PLUGIN_MODULE_NAME = 4
 
 
 class Performance:
-    def __init__(self, interface):
+    def __init__(self, interface: PythonInterfaceType):
         self.interface = interface
         self.window = MyWidgetWindow()
         self.status_idx = 0
-        self.stats = {}
+        self.stats: dict = {}
         self.frame_rate_period_dref = xp.findDataRef('sim/time/framerate_period')
 
     def toggleCommand(self, _inCommand, inPhase, _inRefcon):

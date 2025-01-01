@@ -3,14 +3,15 @@ import webbrowser
 import os
 import configparser
 from XPPython3 import xp
+from XPPython3.xp_typing import PythonInterfaceType
 from .my_widget_window import MyWidgetWindow
 
 
 class Preferences:
-    def __init__(self, interface):
-        self.preferences: dict = None
+    def __init__(self, interface: PythonInterfaceType):
+        self.preferences: dict = {}
         self.popup_preferences_dialog = False
-        self.temp_preferences: dict = None
+        self.temp_preferences: dict = {}
         self.interface = interface
         self.window = MyWidgetWindow()
         self.config_ini = self.load_config()
@@ -19,6 +20,8 @@ class Preferences:
         ini_file = os.path.join(xp.getSystemPath(), 'Output', 'preferences', 'xppython3.ini')
         parser = configparser.ConfigParser()
         parser.read(ini_file)
+        if not parser.has_section('Main'):
+            parser.add_section('Main')
         parser['Main'].update(preferences)
         try:
             with open(ini_file, 'w', encoding='UTF-8') as configfile:
@@ -32,9 +35,11 @@ class Preferences:
         ini_file = os.path.join(xp.getSystemPath(), 'Output', 'preferences', 'xppython3.ini')
         parser = configparser.ConfigParser()
         parser.read(ini_file)
-        if 'uuid' not in parser['Main'] or parser['Main']['uuid'] == '':
+        if parser.get(section='Main', option='uuid', fallback='') == '':
             self.popup_preferences_dialog = True
-            parser['Main']['uuid'] = str(uuid.uuid4())
+            if not parser.has_section('Main'):
+                parser.add_section('Main')
+            parser['Main'].update({'uuid': str(uuid.uuid4())})
             self.save_config(dict(parser['Main']))
             parser.read(ini_file)
 
@@ -174,7 +179,7 @@ class Preferences:
             for x in self.preferences:
                 try:
                     if inParam1 == self.window.widgets[x]:
-                        self.temp_preferences[x] = xp.getWidgetProperty(inParam1, xp.Property_ButtonState, None) == 1
+                        self.temp_preferences[x] = xp.getWidgetProperty(inParam1, xp.Property_ButtonState) == 1
                 except KeyError:
                     pass
             return 1

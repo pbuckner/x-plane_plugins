@@ -19,7 +19,7 @@ except ImportError:
 from XPPython3 import xp
 from XPPython3.scriptconfig import Config
 from XPPython3.zip_download import ZipDownload
-from XPPython3.updater.version import calc_update, Version  # (We don't use Version here, but other scripts assume it exists in this module)
+from XPPython3.updater.version import calc_update, Version, VersionUnknownException  # (We don't use Version here, but other scripts assume it exists in this module)
 
 
 class Updater(Config):

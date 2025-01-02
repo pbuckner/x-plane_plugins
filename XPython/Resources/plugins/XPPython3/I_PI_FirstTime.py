@@ -2,7 +2,7 @@ import shutil
 import os
 from XPPython3 import xp
 from XPPython3.utils import samples, xp_pip
-from XPPython3.scriptupdate import Version
+from XPPython3.scriptupdate import Version, VersionUnknownException
 
 PLUGIN_DISABLED = 5
 
@@ -20,7 +20,10 @@ class PythonInterface:
 
     def XPluginEnable(self):
         self.current_version = Version(xp.VERSION)
-        touch_version = get_version(self.touch_file)
+        try:
+            touch_version = get_version(self.touch_file)
+        except VersionUnknownException:
+            touch_version = Version('0.0')
 
         # Check (and update if necessary) required modules
         requirements = ['numpy>=1.26.4', 'freetype-py>=2.4.0', 'pillow>=10.3.0', 'charset-normalizer>=3.4.1']

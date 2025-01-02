@@ -5,7 +5,7 @@ SERVER_SDK=400
 XP_SDK=../SDK411
 VERSIONS= 312
 # python versions are like 4.1.1 -> 4.1.2a1 -> 4.1.2a2 -> 4.1.2b1 -> 4.1.2 (letter is [ab], cannot end with letter)
-XPPYTHONVERSION=4.4.2a10
+XPPYTHONVERSION=4.4.2b1
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce 'b')
 ALPHA=$(shell echo $(XPPYTHONVERSION) | grep -ce 'a')
 FMOD=../FMOD
@@ -229,7 +229,7 @@ install_beta : $(zipfiles)
 		./db_updatemd5.py xp3b.zip $(SERVER_SDK) "$(XPPYTHONVERSION)"'
 
 install_remote : $(zipfiles)
-	@if [ "$(BETA)" -gt "0" -o "$(ALPHA)" -gt "0"]; then \
+	@if [ "$(BETA)" -gt "0" -o "$(ALPHA)" -gt "0" ]; then \
 		echo "Current version is BETA: $(XPPYTHONVERSION). Not installing"; \
 		exit 1; \
 	fi

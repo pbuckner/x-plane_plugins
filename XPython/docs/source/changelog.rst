@@ -13,10 +13,11 @@ Known Bugs
 ------------
 :Fixes:
    * **Python library update**: For Silicon Macs only (i.e., ARM architecture): All except one python library, included
-     with XPPython3 supported both ARM and Intel architectures. The ``charset_normalizer`` module supported only Intel
+     with XPPython3's version of Python supported both ARM and Intel architectures.
+     The ``charset_normalizer`` module supported only Intel
      (x86_64). Two libraries have been updated to support both architectures: ``md.cpython-312-darwin.so`` and ``md__mypyc.cpython-312-darwin.so``.
      This is irrelevant if you're using an Intel-based Mac, or Linux or Windows. Code will be automatically
-     updated on first restart.
+     updated on first restart. (You'll see a 'PIP Output' window popup with the output.)
 
    |
    

@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath('../../stubs'))
 # -- Project information -----------------------------------------------------
 
 project = 'XPPython3'
-copyright = '2024, Peter Buckner'
+copyright = '2025, Peter Buckner'
 author = 'Peter Buckner'
 
 master_doc = 'index'
@@ -47,7 +47,7 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns: list[str] = []
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -57,7 +57,7 @@ exclude_patterns = []
 #
 html_js_files = [
     'js/versions.js'
-]    
+]
 html_theme = 'python_docs_theme'
 html_theme_path = ['_theme', ]
 html_last_updated_fmt = ""
@@ -79,7 +79,7 @@ html_toc_object_entries = False
 html_title = f"{project} {html_theme_options['versionhash'][release]}"
 html_js_files = [
     'js/versions.js'
-]    
+]
 html_show_sourcelink = False
 
 # Add any paths that contain custom static files (such as style sheets) here,

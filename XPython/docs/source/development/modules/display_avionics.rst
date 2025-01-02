@@ -806,7 +806,7 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
   :return float: between 0 and 1 for current brightness setting.
                  
   For devices bound to the current aircraft, this is a shortcut to getting the brightness rheostat value from
-  dataref array ``sim/cockpit2/switches/instrument_brightness_ratio``, using the appropriate index into the array.
+  dataref array ``sim/cockpit2/electrical/instrument_brightness_ratio``, using the appropriate index into the array.
   
   For devices not bound, the returns a value managed by the device itself::
 

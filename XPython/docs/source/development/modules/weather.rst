@@ -146,14 +146,13 @@ This API provides access to the X-Plane enhanced weather system and requires at 
   If ``coverage`` is zero, there are no clouds at that layer regardless of the
   other parameters. Just skip that layer and look at the next.
 
-  Though not documented, I assume "cloud type" enumeration is the same as the older dataref?:
+  Though not documented, I assume "cloud type" enumeration is the same as the ``sim/weather/aircraft/cloud_type``
+  and ``sim/weather/region/cloud_type`` datarefs:
 
-  | 0 = Clear
-  | 1 = High Cirrus
-  | 2 = Scattered
-  | 3 = Broken
-  | 4 = Overcast
-  | 5 = Stratus
+  | 0 = Cirrus
+  | 1 = Stratus
+  | 2 = Cumulus
+  | 3 = Cumulo-nimbus
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLMGetWeatherAtLocation>`__ :index:`XPLMGetWeatherAtLocation`
   

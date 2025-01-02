@@ -89,3 +89,4 @@ life, this might point to datarefs to set or other internal data.
 Note that :code:`drawWindow` does the imgui work and everything else is nearly identical to
 a non-imgui example. Also check out the ``PI_imguiBarometer.py`` example under :doc:`samples`.
 
+Next, :doc:`imgui_coding`

@@ -112,7 +112,9 @@ int initPython(void){
   /* Initalize Python and internal modules
    * return 0: success, otherwise: fail... all failures are fatal */
 
+  printf("getting pthread_self\n");
   pythonThread = pthread_self();
+  printf("got pthread_self\n");
   
   PyImport_AppendInittab("XPPython", PyInit_XPPython);
   PyImport_AppendInittab("XPLMDefs", PyInit_XPLMDefs);

@@ -6,8 +6,8 @@
 #include "manage_instance.h"
 #include "menus.h"
 
-extern void clearInstanceMenuItems();
-extern void clearInstanceCommands();
+extern void clearInstanceMenuItems(PyObject*);
+extern void clearInstanceCommands(PyObject*);
 static void updatePluginDict(PyObject*, PyObject*,PyObject*, PyObject*);
 static PyObject *getPluginInfo(PyObject *);
 

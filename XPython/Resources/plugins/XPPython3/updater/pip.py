@@ -1,15 +1,16 @@
+from typing import Self, Any
 import re
 from XPPython3 import xp
+from XPPython3.xp_typing import XPLMCommandRef, XPLMCommandPhase, XPWidgetMessage, XPWidgetID
 from XPPython3.utils import xp_pip
 from .my_widget_window import MyWidgetWindow
 
 
 class Pip:
-    def __init__(self, interface):
-        self.interace = interface
+    def __init__(self: Self) -> None:
         self.window = MyWidgetWindow()
 
-    def toggleCommand(self, _inCommand, inPhase, _refCon):
+    def toggleCommand(self: Self, _inCommand: XPLMCommandRef, inPhase: XPLMCommandPhase, _refCon: Any) -> int:
         if inPhase == xp.CommandBegin:
             if not (self.window and self.window.widgetID):
                 self.createWindow()
@@ -21,7 +22,7 @@ class Pip:
                     xp.bringRootWidgetToFront(self.window.widgetID)
         return 0
 
-    def createWindow(self):
+    def createWindow(self: Self) -> None:
         box_left = 100
         box_right = 500
         top = 300
@@ -83,9 +84,10 @@ class Pip:
                                                        1, '', 0, self.window.widgetID,
                                                        xp.WidgetClass_Caption)
 
-    def pipWidgetCallback(self, inMessage, _inWidget, inParam1, _inParam2):
+    def pipWidgetCallback(self:Self, inMessage: XPWidgetMessage, _inWidget: XPWidgetID, inParam1: Any, _inParam2: Any) -> int:
         if inMessage == xp.Message_CloseButtonPushed:
-            xp.hideWidget(self.window.widgetID)
+            if self.window.widgetID is not None:
+                xp.hideWidget(self.window.widgetID)
             return 1
 
         if any([inMessage == xp.Msg_KeyPress and inParam1[2] == xp.VK_RETURN and inParam1[1] & xp.DownFlag,

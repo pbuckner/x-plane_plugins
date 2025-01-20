@@ -1,5 +1,7 @@
+from typing import Self, Optional, Any
 from XPPython3 import xp
 from XPPython3.XPListBox import XPListBox
+from XPPython3.xp_typing import XPWidgetID, XPWidgetMessage, XPLMFontID
 
 
 class ScrollingPopup(XPListBox):
@@ -10,7 +12,7 @@ class ScrollingPopup(XPListBox):
 
     Window is shown immediately and deleted on close.
     """
-    def __init__(self, title, left=100, top=400, right=400, bottom=100, _fontID=None):
+    def __init__(self: Self, title: str, left: int = 100, top: int = 400, right: int = 400, bottom: int = 100, _fontID: Optional[int] = None) -> None:
         self.mainWindowID = xp.createWidget(left, top, right, bottom, 1, title,
                                             1, 0, xp.WidgetClass_MainWindow)
 
@@ -18,7 +20,7 @@ class ScrollingPopup(XPListBox):
         xp.addWidgetCallback(self.mainWindowID, self.popupCallback)
         super().__init__(left, top - 20, right + 2, bottom, 1, '', self.mainWindowID)
 
-    def popupCallback(self, inMessage, inWidget, _inParam1, _inParam2):
+    def popupCallback(self: Self, inMessage: XPWidgetMessage, inWidget: XPWidgetID, _inParam1: Any, _inParam2: Any) -> int:
         if inMessage == xp.Message_CloseButtonPushed:
             xp.hideWidget(inWidget)  # i.e., self.mainWindowID
             self.destroy()  # destroys the scrolling bits from XPListBox
@@ -40,7 +42,7 @@ class Popup:
     If/when the Popup Instance goes out of scope, it wil be deleted (so
     you will need to 'hold' a reference to it, to keep it displayed!)
     """
-    def __init__(self, title, lines, left=100, bottom=400, fontID=None):
+    def __init__(self: Self, title: str, lines: list[str], left: int = 100, bottom: int = 400, fontID: Optional[XPLMFontID] = None):
         fontID = fontID or xp.Font_Proportional
         _w, strHeight, _ignore = xp.getFontDimensions(fontID)
 
@@ -50,8 +52,8 @@ class Popup:
             top += strHeight + 4
             widest = int(max(widest, xp.measureString(fontID, line.strip())))
 
-        self.main = xp.createWidget(left, top, int(left + widest + 10), bottom,
-                                    1, title, 1, 0, xp.WidgetClass_MainWindow)
+        self.main: Optional[XPWidgetID] = xp.createWidget(left, top, int(left + widest + 10), bottom,
+                                                          1, title, 1, 0, xp.WidgetClass_MainWindow)
         xp.setWidgetProperty(self.main, xp.Property_MainWindowHasCloseBoxes, 1)
         xp.addWidgetCallback(self.main, self.popupCallback)
 
@@ -65,14 +67,14 @@ class Popup:
                             xp.WidgetClass_Caption)
             top -= strHeight + 4
 
-    def popupCallback(self, inMessage, inWidget, _inParam1, _inParam2):
+    def popupCallback(self: Self, inMessage: XPWidgetMessage, inWidget: XPWidgetID, _inParam1: Any, _inParam2: Any) -> int:
         if inMessage == xp.Message_CloseButtonPushed:
             xp.hideWidget(inWidget)
             # xp.destroyWidget(inWidget)
             return 1
         return 0
 
-    def __del__(self):
+    def __del__(self: Self) -> None:
         if self.main is not None:
             xp.destroyWidget(self.main)
             self.main = None

@@ -1,3 +1,4 @@
+from typing import Self, Optional
 import hashlib
 import os
 import threading
@@ -13,6 +14,7 @@ except ImportError:
     from ssl import CertificateError as SSLCertVerificationError  # py < 3.7, py2
 from XPPython3 import xp
 from XPPython3.XPProgressWindow import XPProgressWindow
+from XPPython3.xp_typing import XPLMFlightLoopID
 
 log = xp.systemLog
 
@@ -22,7 +24,7 @@ ZIP_UNIX_SYSTEM = 3
 
 class MyZipFile(ZipFile):
     # preserves file permissions
-    def _extract_member(self, member, targetpath, pwd):
+    def _extract_member(self: Self, member: str | ZipInfo, targetpath: str, pwd: str) -> str:
         if not isinstance(member, ZipInfo):
             member = self.getinfo(member)
         targetpath = super()._extract_member(member, targetpath, pwd)  # type: ignore
@@ -38,20 +40,20 @@ class ZipDownload:
     initial_progress_msg = "Updating file"
     final_progress_msg = "Update complete"
     download_path = os.path.join(xp.getSystemPath(), 'Resources', 'Downloads')
-    install_path = None
+    install_path: Optional[str] = None
     backup = True
     progressWindow = None
     remove_top_dir = False
 
-    def __init__(self):
-        self.update_thread = None
+    def __init__(self: Self):
+        self.update_thread: Optional[threading.Thread] = None
         self.counter = 0
         self.progressWindow = None
         self.caption = ''
-        self.progress = 0
-        self.flightLoopID = None
+        self.progress = 0.0
+        self.flightLoopID: Optional[XPLMFlightLoopID] = None
 
-    def get_zipfile(self, download_url, cksum=None):
+    def get_zipfile(self: Self, download_url: str, cksum: Optional[str] = None) -> None:
         num_captions = max(2, len(self.initial_progress_msg.split('\n')), len(self.final_progress_msg.split('\n')))
         self.progressWindow = XPProgressWindow(self.initial_progress_msg, num_captions)
         self.flightLoopID = xp.createFlightLoop(self.progressFLCallback)
@@ -66,35 +68,35 @@ class ZipDownload:
         self.progressWindow.show()
         self.update_thread.start()
 
-    def progressFLCallback(self, *_args, **_kwargs):
-        self.progressWindow.setCaption(self.caption)
-        self.progressWindow.setProgress(self.progress)
-        if xp.isWidgetVisible(self.progressWindow.progressWindow):
-            return -1
+    def progressFLCallback(self: Self, *_args, **_kwargs) -> int:
+        if self.progressWindow:
+            self.progressWindow.setCaption(self.caption)
+            self.progressWindow.setProgress(self.progress)
+            if xp.isWidgetVisible(self.progressWindow.progressWindow):
+                return -1
         return 0
 
-    def setCaption(self, caption):
+    def setCaption(self: Self, caption: str) -> None:
         self.caption = caption
 
-    def setProgress(self, progress=0):
+    def setProgress(self: Self, progress: float = 0) -> None:
         self.progress = progress
 
-    def _download_wrapper(self, download_url, cksum=None):
+    def _download_wrapper(self: Self, download_url: str, cksum: Optional[str] = None) -> None:
         log('Download started')
         try:
             msg = self._download(download_url, cksum)
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             msg = f'Download failed with exception {e}'
         if msg:
             log(msg)
             self.setCaption(msg)
-        return
 
-    def _download(self, download_url, cksum=None) -> str:
+    def _download(self: Self, download_url: str, cksum: Optional[str] = None) -> str:
         # returned 'str' is the last message (success or failure message) which
         # should be displayed to user
 
-        def hook(chunk, maxChunk, total):
+        def hook(chunk: int, maxChunk: int, total: int) -> None:
             if total > 0:
                 p = (chunk * maxChunk) / total
                 self.setProgress(p)
@@ -116,7 +118,7 @@ class ZipDownload:
         if os.path.exists(zipfile):
             try:
                 os.remove(zipfile)
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 xp.log(f"Failed to remove previous download {zipfile}: {e}")
                 return f"Failed to removed previous download {zipfile}"
 
@@ -145,11 +147,11 @@ class ZipDownload:
                     log(msg)
                     xp.log(msg)
                     return "Python Installation incomplete, See XPPython3Log.txt for details"
-            except Exception:
+            except Exception:  # pylint: disable=broad-except
                 pass
             xp.log(f"Internet connection error {e}")
             return "Internet connection error, cannot check version. Try again later."
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             xp.log(f'Error while retrieving: {download_url} ({zipfile}): {e}')
             return "Error while attempting to retrieve file. See XPPython3Log.txt."
 
@@ -160,7 +162,7 @@ class ZipDownload:
                 if not self._verify(zipfile, cksum):
                     return "Error: Downloaded file does not match checksum: incomplete download?"
                 xp.log("File cksum verified")
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             xp.log(f"Failed to verify download file checksum: {download_url}, json has: {cksum}. {e}")
             return "Failed to verify download. Checksum error"
 
@@ -171,7 +173,7 @@ class ZipDownload:
                 try:
                     zipfp.testzip()
                     xp.log("TextZip complete")
-                except Exception as e:
+                except Exception as e:  # pylint: disable=broad-except
                     xp.log(f"Downloaded file {zipfile} failed integrity check: {e}")
                     return "Downloaded file failed integrity check"
 
@@ -217,13 +219,13 @@ class ZipDownload:
                                 except PermissionError:
                                     pass
 
-                except Exception as e:
+                except Exception as e:  # pylint: disable=broad-except
                     xp.log(f"Failed dealing with backup file {i.filename}, {e}")
                     return "Extraction failed. See log files."
 
                 try:
                     zipfp.extract(i, path=self.install_path)
-                except Exception as e:
+                except Exception as e:  # pylint: disable=broad-except
                     xp.log(f"Failed to extract {i.filename}, upgrade failed: {e}")
                     return f">>>> Failed to extract {i.filename}, download failed."
             self.setProgress(1)
@@ -233,7 +235,7 @@ class ZipDownload:
         log("Download successful")
         return self.final_progress_msg
 
-    def _verify(self, filename, file_cksum=None):
+    def _verify(self: Self, filename: str, file_cksum: Optional[str] = None) -> bool:
         cksum = None
         hash_md5 = hashlib.md5()
         self.setCaption("Verifying...")

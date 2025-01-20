@@ -1,19 +1,20 @@
+from typing import Self, Any, Optional
+from XPPython3.xp_typing import XPLMCommandRef, XPLMCommandPhase, XPWidgetMessage, XPWidgetID
 from XPPython3 import xp
-from XPPython3.xp_typing import PythonInterfaceType
 from .my_widget_window import MyWidgetWindow
 
 PLUGIN_MODULE_NAME = 4
 
 
 class Performance:
-    def __init__(self, interface: PythonInterfaceType):
-        self.interface = interface
+    def __init__(self: Self) -> None:
         self.window = MyWidgetWindow()
         self.status_idx = 0
         self.stats: dict = {}
         self.frame_rate_period_dref = xp.findDataRef('sim/time/framerate_period')
+        self.toggleCommandRef: Optional[XPLMCommandRef] = None
 
-    def toggleCommand(self, _inCommand, inPhase, _inRefcon):
+    def toggleCommand(self: Self, _inCommand: XPLMCommandRef, inPhase: XPLMCommandPhase, _inRefcon: Any):
         if inPhase == xp.CommandBegin:
             if not (self.window and self.window.widgetID):
                 self.createWindow()
@@ -24,9 +25,9 @@ class Performance:
                 self.window.widgetID = None
         return 0
 
-    def fLCallback(self, *_args, **_kwargs):
-        def sum_merge(a, b):
-            res = {}
+    def fLCallback(self: Self, *_args, **_kwargs) -> int:
+        def sum_merge(a: dict, b: dict) -> dict:
+            res: dict = {}
             for plugin in set(a) | set(b):
                 fields = set(a.get(plugin, {})) | set(b.get(plugin, {}))
                 res[plugin] = {x: (a.get(plugin, {}).get(x, 0) + b.get(plugin, {}).get(x, 0)) for x in fields}
@@ -89,18 +90,18 @@ class Performance:
         else:
             return 0
 
-    def performanceWindowCallback(self, inMessage, _inWidget, _inParam1, _inParam2):
-        if inMessage == xp.Message_CloseButtonPushed:
-            xp.commandOnce(self.interface.cmds[3]['commandRef'])
+    def performanceWindowCallback(self: Self, inMessage: XPWidgetMessage, _inWidget: XPWidgetID, _inParam1: Any, _inParam2: Any):
+        if inMessage == xp.Message_CloseButtonPushed and self.toggleCommandRef is not None:
+            xp.commandOnce(self.toggleCommandRef)
             return 1
 
         return 0
 
-    def createWindow(self):
+    def createWindow(self: Self) -> None:
         fontID = xp.Font_Proportional
         _w, strHeight, _ignore = xp.getFontDimensions(fontID)
         # Only get enabled plugins
-        data = sorted([x[PLUGIN_MODULE_NAME] for x in xp.pythonGetDicts()['plugins'].values() if not x[-1]])
+        data: list[str] = sorted([x[PLUGIN_MODULE_NAME] for x in xp.pythonGetDicts()['plugins'].values() if not x[-1]])
         data.append('All')
 
         left = 100
@@ -123,11 +124,10 @@ class Performance:
             left + 10, top, left + int(xp.measureString(fontID, label)),
             bottom, 1, label, 0, self.window.widgetID, xp.WidgetClass_Caption)
 
-        for k in (('Custom Widgets', 'customw', colRight[0]),
-                  ('Drawing Misc', 'draw', colRight[1]),
-                  ('Flight Loop', 'fl', colRight[2]),
-                  ('%', 'pct', colRight[3])):
-            label, code, col = k
+        for label, code, col in (('Custom Widgets', 'customw', colRight[0]),
+                                 ('Drawing Misc', 'draw', colRight[1]),
+                                 ('Flight Loop', 'fl', colRight[2]),
+                                 ('%', 'pct', colRight[3])):
             strWidth = xp.measureString(fontID, label)
             self.window.widgets['title' + code] = xp.createWidget(
                 right - col - int(strWidth), top, right - col, bottom,

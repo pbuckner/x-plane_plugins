@@ -60,4 +60,3 @@ def drawMaskEnd() -> None:
     """
     GL.glDisable(GL.GL_STENCIL_TEST)
     xp.setGraphicsState(depthTesting=0)
-

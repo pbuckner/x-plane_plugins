@@ -1,4 +1,4 @@
-from OpenGL import error
+import OpenGL.error as error
 import OpenGL.GL as GL
 
 # drawBezierLineQ

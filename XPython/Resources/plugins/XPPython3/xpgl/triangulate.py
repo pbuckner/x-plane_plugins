@@ -1,9 +1,7 @@
 def IsConvex(a, b, c):
     # only convex if traversing anti-clockwise
     crossp = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
-    if crossp >= 0:
-        return True 
-    return False 
+    return crossp >= 0
 
 
 def InTriangle(a, b, c, p):
@@ -19,8 +17,8 @@ def InTriangle(a, b, c, p):
     # check if p lies in triangle (a, b, c)
     for x in L:
         if x > 1 or x < 0:
-            return False  
-    return True  
+            return False
+    return True
 
 
 def IsClockwise(poly):
@@ -28,10 +26,8 @@ def IsClockwise(poly):
     summ = (poly[0][0] - poly[len(poly) - 1][0]) * (poly[0][1] + poly[len(poly) - 1][1])
     # iterate over all other elements (0 to n-1)
     for i in range(len(poly) - 1):
-        summ += (poly[i + 1][0] - poly[i][0]) * (poly[i+1][1] + poly[i][1])
-    if summ > 0:
-        return True
-    return False
+        summ += (poly[i + 1][0] - poly[i][0]) * (poly[i + 1][1] + poly[i][1])
+    return summ > 0
 
 
 def GetEar(poly):

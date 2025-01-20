@@ -1,8 +1,9 @@
+from XPPython3.xp_typing import XPLMFontID
 from .fonts import Faces, Font
 from .colors import RGBColor, Colors
 
 
-def loadFont(fontName: str | int, size: int = 0) -> Font:
+def loadFont(fontName: str | XPLMFontID, size: int = 0) -> Font:
     return Faces.load_font(fontName, size)
 
 

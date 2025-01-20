@@ -1,111 +1,107 @@
 from __future__ import annotations
-from typing import Any, Callable, Union, List, Iterable, SupportsIndex, overload
+from typing import Any, Callable, Union, List, Iterable, SupportsIndex, overload, Optional, Self
 from XPPython3 import xp
 import re
 
 
-"""
+# find_dataref()
 
-find_dataref()
+# >>> foo = find_dataref("foo")
+# >>> foo
+# <DataRef obect at 0x87646500>
+# >>> print(foo)
+# DataRef: 'foo' [int]
+# >>> foo.value = 2
+# >>> foo.value
+# 2
+# >>> bar_one = find_dataref("bar[1]")
+# >>> print(bar_one)
+# DataRef: 'bar[1]' [int_array]
+# >>> bar_one.value = 3
+# >>> bar_one.value
+# 3
+# >>> bar_list = find_dataref("bar")
+# >>> bar_list.value
+# [1, 3, 0]
+# >>> bar_list[1]
+# 3
+# >>> bar_list[1] = 4
+# >>> bar_list
+# <DataRef: 'bar'>
+# >>> bar_list.value
+# [1, 4, 0]
+# >>> bar_list.value[2]
+# 0
+# >>> bar_list.value[2] = 4
+# >>> bar_list.value
+# [1, 4, 4]
 
->>> foo = find_dataref("foo")
->>> foo
-<DataRef obect at 0x87646500>
->>> print(foo)
-DataRef: 'foo' [int]
->>> foo.value = 2
->>> foo.value
-2
->>> bar_one = find_dataref("bar[1]")
->>> print(bar_one)
-DataRef: 'bar[1]' [int_array]
->>> bar_one.value = 3
->>> bar_one.value
-3
->>> bar_list = find_dataref("bar")
->>> bar_list.value
-[1, 3, 0]
->>> bar_list[1]
-3
->>> bar_list[1] = 4
->>> bar_list
-<DataRef: 'bar'>
->>> bar_list.value
-[1, 4, 0]
->>> bar_list.value[2]
-0
->>> bar_list.value[2] = 4
->>> bar_list.value
-[1, 4, 4]
+# To use:
+#   1. identify which datarefs you want to use, and store the accessor:
 
-To use:
-  1. identify which datarefs you want to use, and store the accessor:
+#        num_batteries = find_dataref("sim/aircraft/electrical/num_batteries")
+#        inverter_on = find_dataref("sim/cockpit2/electrical/inverter_on")
+#        fuel_pump_on_zero = find_dataref("sim/cockpit/engine/fuel_pump_on[0]")
 
-       num_batteries = find_dataref("sim/aircraft/electrical/num_batteries")
-       inverter_on = find_dataref("sim/cockpit2/electrical/inverter_on")
-       fuel_pump_on_zero = find_dataref("sim/cockpit/engine/fuel_pump_on[0]")
+#      Don't bother with datatype, we'll figure it out.
+#      Array / bytes data ref types return the full array (e.g., inverter_on above),
+#      but you can include [<digit>] to retrieve single value from an array or
+#      bytes data ref (e.g., fuel_pump_on_zero above).
 
-     Don't bother with datatype, we'll figure it out.
-     Array / bytes data ref types return the full array (e.g., inverter_on above),
-     but you can include [<digit>] to retrieve single value from an array or
-     bytes data ref (e.g., fuel_pump_on_zero above).
+#      Data has not been retrieved yet.
 
-     Data has not been retrieved yet.
+#   2. To get current value, simply access the '.value' attribute:
 
-  2. To get current value, simply access the '.value' attribute:
+#      >>> if num_batteries.value == 1:
+#      ...   do_something()
+#      ...
 
-     >>> if num_batteries.value == 1:
-     ...   do_something()
-     ...
+#      If it's an array type, you'll (probably) want to index it:
 
-     If it's an array type, you'll (probably) want to index it:
+#      >>> if inverter_on.value[0] and inverter_on.value[1]:
+#      ...    do_something()
+#      ... elif inverter_on.value[0]:
+#      ...    do_something_else()
+#      ...
 
-     >>> if inverter_on.value[0] and inverter_on.value[1]:
-     ...    do_something()
-     ... elif inverter_on.value[0]:
-     ...    do_something_else()
-     ...
+#      Values are not cached, are are looked up immediately.
+#      While it is fast, if you're going to access the same data ref
+#      many times in the same cycle, it may be preferable to assign
+#      the retrieved value to a local variable.
 
-     Values are not cached, are are looked up immediately.
-     While it is fast, if you're going to access the same data ref
-     many times in the same cycle, it may be preferable to assign
-     the retrieved value to a local variable.
+#      Note: For array types, you can drop '.value' for accessing
+#            indexed data: e.g., inverter_on[0] is similar to inverter_on.value[0]:
+#            * inverter_on[0] queries X-Plane for the single valued item
+#            * inverter_on.value[0] retrieves from X-Plane the list of values, and
+#              then python returns the [0] list element.
 
-     Note: For array types, you can drop '.value' for accessing
-           indexed data: e.g., inverter_on[0] is similar to inverter_on.value[0]:
-           * inverter_on[0] queries X-Plane for the single valued item
-           * inverter_on.value[0] retrieves from X-Plane the list of values, and
-             then python returns the [0] list element.
+#   3. To set value, simply assign a new value:
 
-  3. To set value, simply assign a new value:
+#      >>> fuel_pump_on_zero.value
+#      0
+#      >>> fuel_pump_on_zero.value = 1
+#      >>> fuel_pump_on_zero.value
+#      1
 
-     >>> fuel_pump_on_zero.value
-     0
-     >>> fuel_pump_on_zero.value = 1
-     >>> fuel_pump_on_zero.value
-     1
+#      Data is immediately updated in X-Plane.
 
-     Data is immediately updated in X-Plane.
+#      If the data ref is an array type, and you specified it
+#      with an index (e.g., fuel_pump_on_zero), we'll correctly
+#      set the single value.
 
-     If the data ref is an array type, and you specified it
-     with an index (e.g., fuel_pump_on_zero), we'll correctly
-     set the single value.
+#      >>> inverter_on.value
+#      [0, 0]
+#      >>> inverter_on.value[1] = 1
+#      >>> inverter_on.value
+#      [0, 1]
 
-     >>> inverter_on.value
-     [0, 0]
-     >>> inverter_on.value[1] = 1
-     >>> inverter_on.value
-     [0, 1]
+#      Again, you can forgo the .value attribute for array types:
 
-     Again, you can forgo the .value attribute for array types:
-
-     >>> inverter_on.value
-     [0, 0]
-     >>> inverter_on[1] = 1
-     >>> inverter_on.value
-     [0, 1]
-
-"""
+#      >>> inverter_on.value
+#      [0, 0]
+#      >>> inverter_on[1] = 1
+#      >>> inverter_on.value
+#      [0, 1]
 
 
 _DataRefs: dict[str, DataRef] = {}
@@ -118,17 +114,23 @@ class DataRef:
     # If the dataref is not ours, we gather information
     # about it from X-Plane.
     # ----------------------
-    def __init__(self, name, make=False, callback=False, dataType=0, dim=512):
+    def __init__(self: Self, name: str, make: bool = False, callback: Optional[Callable | bool] = False, dataType: int = 0, dim: int = 512) -> None:
         self.name: str = name
         self._ours: bool = False
         self._our_value: Any = None
         self._dref_name: str = name
         self._isarray: bool = self.name.endswith(']')
         self._count: int = 1
-        self._notify: Callable = None
+        self._notify: Optional[Callable] = None
         self._dim: int = dim
         try:
-            self._index: int = None if not self._isarray else int(re.search(r'\[([0-9]+)\]$', self.name).group(1))
+            self._index = 0
+            if self._isarray:
+                m = re.search(r'\[([0-9]+)\]$', self.name)
+                if m:
+                    self._index = int(m.group(1))
+                else:
+                    raise AttributeError
         except AttributeError as e:
             raise ValueError("Array dataref missing number within []") from e
 
@@ -175,27 +177,24 @@ class DataRef:
                 self.types.append('double')
             if _types & xp.Type_FloatArray:
                 self._isarray = True
-                if self._index is None:
-                    self._index = 0
+                if self._index == 0:
                     self._count = -1
                 self.types.append('float_array')
             if _types & xp.Type_IntArray:
                 self._isarray = True
-                if self._index is None:
-                    self._index = 0
+                if self._index == 0:
                     self._count = -1
                 self.types.append('int_array')
             if _types & xp.Type_Data:
                 self._isarray = True
-                if self._index is None:
-                    self._index = 0
+                if self._index == 0:
                     self._count = -1
                 self.types.append('data')
         if self._dref is None:
             raise ValueError(f"Unknown dataref {name}")
         _DataRefs[self.name] = self
 
-    def __str__(self):
+    def __str__(self: Self) -> str:
         return f"DataRef: '{self.name} [{', '.join(self.types)}]'"
 
     # ----------------------------------
@@ -204,7 +203,7 @@ class DataRef:
     # in X-Plane (or locally).
     # ----------------------------------
     @property
-    def value(self) -> Any:
+    def value(self: Self) -> Any:
         """
         "getting" value of dataref:
         If it's 'our' dataref, simply return the value
@@ -279,12 +278,12 @@ class DataRef:
     # are callbacks we provide so _other_ plugins
     # can access "our" dataref
     # ----------------------------
-    def set_array(self, _refCon: Any, values: list[Any], offset: int, count: int) -> None:
+    def set_array(self: Self, _refCon: Any, values: list[Any], offset: int, count: int) -> None:
         if not self._ours:
             raise ValueError("This is not ours")
         self._our_value[offset:offset + count] = values[0:count]
 
-    def get_array(self, _refCon, values: list[Any], offset: int, count: int) -> int:
+    def get_array(self: Self, _refCon, values: list[Any], offset: int, count: int) -> int:
         if not self._ours:
             raise ValueError("This is not ours")
         if count == -1:
@@ -295,13 +294,13 @@ class DataRef:
         values.extend(ret)
         return count
 
-    def get(self, *_unused) -> Any:
+    def get(self: Self, *_unused) -> Any:
         return self.value
 
-    def set_int(self, _dataref: Any, value: int) -> None:
+    def set_int(self: Self, _refCon: Any, value: int) -> None:
         self.set(value)
 
-    def set_float(self, _dataref: Any, value: float) -> None:
+    def set_float(self, _refCon: Any, value: float) -> None:
         self.set(value)
 
     def set(self, value: Union[int, float, str]) -> None:
@@ -347,7 +346,7 @@ class DataRef:
             return
 
 
-def create_dataref(name: str, dataRefType: str = "number", callback: Callable[[], None] = None) -> DataRef:
+def create_dataref(name: str, dataRefType: str = "number", callback: Optional[Callable[[], None]] = None) -> DataRef:
     """
     create_dataref(name, type="number|array|string", callback=False)
 
@@ -379,7 +378,9 @@ def create_dataref(name: str, dataRefType: str = "number", callback: Callable[[]
     try:
         # if name looks like an array, e.g. sim/foo[12], we'll use THAT value as
         m = re.match(r'array\[ *([0-9]+) *\]$', dataRefType)
-        dim = int(m.group(1))
+        dim = 0
+        if m:
+            dim = int(m.group(1))
         assert dim > 0, "For array type, dimension must be > 0"
     except AttributeError:
         dim = 512
@@ -399,12 +400,12 @@ def find_dataref(name: str, _dr_type: Any = None) -> DataRef:
 
 
 class DList(list):
-    def __init__(self, dataref: DataRef, values: Any):
+    def __init__(self: Self, dataref: DataRef, values: Any) -> None:
         self.dataref = dataref
         super(DList, self).__init__(list(values))
 
     @overload
-    def __setitem__(self, idx: SupportsIndex, value: Any) -> None:
+    def __setitem__(self: Self, idx: SupportsIndex, value: Any) -> None:
         #  self.dataref
         #
         if 'float_array' in self.dataref.types:
@@ -422,10 +423,10 @@ class DList(list):
         raise ValueError("dataref does not support indexing")
 
     @overload
-    def __setitem__(self, idx: slice, value: Iterable[Any]) -> None:
+    def __setitem__(self: Self, idx: slice, value: Iterable[Any]) -> None:
         raise ValueError("slice not supported")
 
-    def __setitem__(self, idx: slice | SupportsIndex, value: Any, /) -> None:
+    def __setitem__(self: Self, idx: slice | SupportsIndex, value: Any, /) -> None:
         ...
 
 

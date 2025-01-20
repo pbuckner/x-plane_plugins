@@ -1,4 +1,6 @@
+from typing import Self, Any
 from XPPython3 import xp
+from XPPython3.xp_typing import XPWidgetMessage
 
 
 class WidgetMsgHelper:
@@ -25,7 +27,7 @@ class WidgetMsgHelper:
                       'param1': lambda x: '<>',
                       'param2': lambda x: '<>', },
         xp.Msg_KeyPress: {'name': 'KeyPress',
-                          'param1': lambda x: WidgetMsgHelper.keyState(x),
+                          'param1': lambda x: WidgetMsgHelper.keyState(x),  # pylint: disable=unnecessary-lambda
                           'param2': lambda x: '<>', },
         xp.Msg_KeyTakeFocus: {'name': 'KeyTakeFocus',  # (someone else gave up focus???)
                               'param1': lambda x: 'Child gave up focus' if x == 1 else 'Someone else gave up focus',
@@ -34,17 +36,17 @@ class WidgetMsgHelper:
                               'param1': lambda x: 'Another widget is taking' if x == 1 else 'Someone called API to request remove focus',
                               'param2': lambda x: '<>', },
         xp.Msg_MouseDown: {'name': 'MouseDown',
-                           'param1': lambda x: WidgetMsgHelper.mouseState(x),
+                           'param1': lambda x: WidgetMsgHelper.mouseState(x),  # pylint: disable=unnecessary-lambda
                            'param2': lambda x: '<>', },
         xp.Msg_MouseDrag: {'name': 'MouseDrag',
-                           'param1': lambda x: WidgetMsgHelper.mouseState(x),
+                           'param1': lambda x: WidgetMsgHelper.mouseState(x),  # pylint: disable=unnecessary-lambda
                            'param2': lambda x: '<>', },
         xp.Msg_MouseUp: {'name': 'MouseUp',
-                         'param1': lambda x: WidgetMsgHelper.mouseState(x),
+                         'param1': lambda x: WidgetMsgHelper.mouseState(x),  # pylint: disable=unnecessary-lambda
                          'param2': lambda x: '<>', },
         xp.Msg_Reshape: {'name': 'Reshape',  # (drag the window to generate a "reshape")
                          'param1': lambda x: f'Widget: {x}',
-                         'param2': lambda x: WidgetMsgHelper.widgetGeometry(x), },
+                         'param2': lambda x: WidgetMsgHelper.widgetGeometry(x), },  # pylint: disable=unnecessary-lambda
         xp.Msg_ExposedChanged: {'name': 'ExposedChanged',
                                 'param1': lambda x: '<>',
                                 'param2': lambda x: '<>', },
@@ -67,13 +69,13 @@ class WidgetMsgHelper:
                                    'param1': lambda x: '<>',
                                    'param2': lambda x: '<>', },
         xp.Msg_PropertyChanged: {'name': 'PropertyChanged',
-                                 'param1': lambda x: WidgetMsgHelper.propertyID(x),
+                                 'param1': lambda x: WidgetMsgHelper.propertyID(x),  # pylint: disable=unnecessary-lambda
                                  'param2': lambda x: x, },
         xp.Msg_MouseWheel: {'name': 'MouseWheel',
-                            'param1': lambda x: WidgetMsgHelper.mouseState(x),
+                            'param1': lambda x: WidgetMsgHelper.mouseState(x),  # pylint: disable=unnecessary-lambda
                             'param2': lambda x: '<>', },
         xp.Msg_CursorAdjust: {'name': 'CursorAdjust',
-                              'param1': lambda x: WidgetMsgHelper.mouseState(x),
+                              'param1': lambda x: WidgetMsgHelper.mouseState(x),  # pylint: disable=unnecessary-lambda
                               'param2': lambda x: f'<pointer 0x{x:x}>', },
         xp.Msg_UserStart: {'name': 'UserStart',
                            'param1': lambda x: '<>',
@@ -132,25 +134,25 @@ class WidgetMsgHelper:
         xp.Property_UserStart: 'UserStart',
     }
 
-    def __init__(self, inMessage, inParam1, inParam2):
+    def __init__(self: Self, inMessage: XPWidgetMessage, inParam1: Any, inParam2: Any) -> None:
         self.inMessage = inMessage
         self.inParam1 = inParam1
         self.inParam2 = inParam2
 
     @staticmethod
-    def mouseState(x):
+    def mouseState(x: tuple[int, int, int, int]) -> str:
         return f'({x[0]}, {x[1]}) Btn: #{"left" if x[2] == 0 else "unknown"} delta:{x[3]}'
 
     @staticmethod
-    def widgetGeometry(x):
+    def widgetGeometry(x: tuple[int, int, int, int]) -> str:
         return f"dx, dy: ({x[0]}, {x[1]}), dwidth, dheight: ({x[2]}, {x[3]})"
 
     @staticmethod
-    def propertyID(x):
+    def propertyID(x: int) -> str:
         return WidgetMsgHelper.prop_values[x]
 
     @staticmethod
-    def keyState(x):
+    def keyState(x: tuple[int, int, int]) -> str:
         modifiers = []
         inFlags = x[1]
         if inFlags & xp.ShiftFlag:
@@ -161,11 +163,11 @@ class WidgetMsgHelper:
             modifiers.append('Ctl')
         if inFlags & xp.DownFlag:
             modifiers.append('Key Down')
-        if inFlags & x.UpFlag:
+        if inFlags & xp.UpFlag:
             modifiers.append('Key Up')
         return f'{x[0]} [{" ".join(modifiers)}], #{x[2]}'
 
-    def __str__(self):
+    def __str__(self: Self) -> str:
         m = WidgetMsgHelper.msgs[self.inMessage]
         param1 = m['param1'](self.inParam1) if callable(m['param1']) else self.inParam1
         param2 = m['param2'](self.inParam2) if callable(m['param2']) else self.inParam2

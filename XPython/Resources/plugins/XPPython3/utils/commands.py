@@ -1,7 +1,7 @@
+from typing import Self, Callable
 import time
-from XPPython3 import xp_typing
+from XPPython3.xp_typing import XPLMCommandRef, XPLMCommandPhase
 from XPPython3 import xp
-from typing import Callable
 # cmd = find_command("")
 # cmd.once() execute command once
 # cmd.start() starts command
@@ -25,7 +25,7 @@ Commands: dict = {}
 class Command:
     _registry: list = []
 
-    def __new__(cls, name: str, commandRef: xp_typing.XPLMCommandRef, callback: None | Callable[[int, float], None]):
+    def __new__(cls, name: str, commandRef: XPLMCommandRef, callback: None | Callable[[int, float], None]) -> Self:
         if commandRef is None:
             raise ValueError("Command not found.")
         if commandRef in Commands:
@@ -33,7 +33,7 @@ class Command:
         self = object.__new__(cls)
         return self
 
-    def __init__(self, name: str, commandRef: xp_typing.XPLMCommandRef, callback: None | Callable[[int, float], None]):
+    def __init__(self: Self, name: str, commandRef: XPLMCommandRef, callback: None | Callable[[int, float], None]):
         try:
             assert self.function  # type: ignore
         except AttributeError:
@@ -48,16 +48,16 @@ class Command:
             self.function = 'create'
             Commands[commandRef] = self
 
-    def once(self):
+    def once(self: Self) -> None:
         xp.commandOnce(self.commandRef)
 
-    def start(self):
+    def start(self: Self) -> None:
         xp.commandBegin(self.commandRef)
 
-    def stop(self):
+    def stop(self: Self) -> None:
         xp.commandEnd(self.commandRef)
 
-    def __str__(self):
+    def __str__(self: Self) -> str:
         return f"<Command: '{self.name}'>"
 
 
@@ -65,7 +65,7 @@ def find_command(name: str) -> Command:
     return Command(name, xp.findCommand(name), None)
 
 
-def genericBeforeCallback(_commandRef, phase, cmd):
+def genericBeforeCallback(_commandRef: XPLMCommandRef, phase: XPLMCommandPhase, cmd: Command) -> int:
     # xp.log(f"{cmd.name} BEFORE {phase=} {time.time()=} {cmd.started=}")
     if phase == 0:
         cmd.started = time.time()
@@ -77,7 +77,7 @@ def genericBeforeCallback(_commandRef, phase, cmd):
     return 1  # continue processing command
 
 
-def genericAfterCallback(_commandRef, phase, cmd):
+def genericAfterCallback(_commandRef: XPLMCommandRef, phase: XPLMCommandPhase, cmd: Command) -> int:
     # xp.log(f"{cmd.name} AFTER {phase=} {time.time()=} {cmd.started=}")
     duration = time.time() - cmd.started
     if not callable(cmd.callback_after):
@@ -87,12 +87,13 @@ def genericAfterCallback(_commandRef, phase, cmd):
     return 0  # (ignored for after)
 
 
-def genericCallback(_commandRef, phase, cmd):
+def genericCallback(_commandRef: XPLMCommandRef, phase: XPLMCommandPhase, cmd: Command) -> int:
     # xp.log(f"{cmd.name} {phase=} {time.time()=} {cmd.started=}")
     if phase == 0:
         cmd.started = time.time()
     duration = time.time() - cmd.started
-    cmd.callback(phase, 0 if phase == 0 else duration)
+    if cmd.callback is not None:
+        cmd.callback(phase, 0 if phase == 0 else duration)
     if cmd.function == 'replace':
         return 0
     return 1  # continue processing command
@@ -148,10 +149,10 @@ def genericFilterCallback(commandRef, phase: int, cmd: Command) -> int:
             if cmd.started:
                 return 1
             cmd.started = time.time()
-            genericCallback(commandRef, 0, cmd)  # send phase 0 rather than phase 1
+            genericCallback(commandRef, xp.CommandBegin, cmd)  # send phase 0 rather than phase 1
             return 0
         if cmd.started:
-            genericCallback(commandRef, 2, cmd)
+            genericCallback(commandRef, xp.CommandEnd, cmd)
         cmd.started = 0
     return 0
 

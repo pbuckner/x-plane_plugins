@@ -1,5 +1,5 @@
 from XPPython3 import xp
-from typing import Optional
+from typing import Optional, Any
 import re
 import tempfile
 import os
@@ -105,7 +105,7 @@ def load_packages(packages: Optional[list | str] = None, start_message: Optional
     return True
 
 
-def startPipCall(cmd: Optional[list] = None, msgs: Optional[dict] = None, temp_file: Optional[str] = None):
+def startPipCall(cmd: Optional[list] = None, msgs: Optional[dict] = None, temp_file: Optional[str] = None) -> None:
     all_msgs = {'start': None, 'end': None}
     all_msgs.update(msgs or {})
 
@@ -126,7 +126,7 @@ def startPipCall(cmd: Optional[list] = None, msgs: Optional[dict] = None, temp_f
     xp.scheduleFlightLoop(pipWindowLoopID, -1)
 
 
-def pipWindowLoop(_since, _elapsed, _counter, refCon):
+def pipWindowLoop(_since: float, _elapsed: float, _counter: float, refCon: Any) -> int:
     q = refCon['q']
     pip_output_popup = refCon['popup']
     msgs = refCon['msgs']

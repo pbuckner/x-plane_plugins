@@ -152,6 +152,10 @@ Functions
  1
  >>> print(info)
  <TrackMetrics {isVertical: 1, downBtnSize: 14, downPageSize: 39, thumbSize: 16, upPageSize:118, upBtnSize: 13}>
+
+ Currently (XP12) widget button sizes don't change based on size of track or contents. This
+ means the down button, up button and thumb always remain the same. The down page and up page sizes reflect the "space" between
+ the up/down button and the thumb. Summing the five metrics will always equal the longer dimension of the track.
  
  `Official SDK <https://developer.x-plane.com/sdk/XPUIGraphics/#XPGetTrackMetrics>`__ :index:`XPGetTrackMetrics` 
 

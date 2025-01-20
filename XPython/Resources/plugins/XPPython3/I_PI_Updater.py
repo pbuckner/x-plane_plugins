@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import List, Any, Self, Optional
 import sys
 import urllib
 import os
@@ -8,7 +8,7 @@ from XPPython3.utils import samples
 from XPPython3.ui import popups
 from XPPython3.updater import Pip, About, Performance, Preferences, Usage
 from XPPython3.updater.version import calc_update
-from XPPython3.xp_typing import PythonInterfaceType
+from XPPython3.xp_typing import XPLMCommandPhase, XPLMCommandRef, XPLMMenuID
 
 
 class MyConfig(scriptupdate.Updater):
@@ -32,15 +32,15 @@ class MyConfig(scriptupdate.Updater):
 
 class PythonInterface(MyConfig):
 
-    def __init__(self: PythonInterfaceType):
-        self.menu = None
-        self.about = About(self)
-        self.performance = Performance(self)
-        self.preferences = Preferences(self)
-        self.pip = Pip(self)
+    def __init__(self: Self) -> None:
+        self.menu: Optional[XPLMMenuID] = None
+        self.about = About()
+        self.performance = Performance()
+        self.preferences = Preferences()
+        self.pip = Pip()
         self.status_idx = 0
         self.stats: dict = {}
-        self.updateMenuIdx = None
+        self.updateMenuIdx: Optional[int] = None
         self.frame_rate_period_dref = xp.findDataRef('sim/time/framerate_period')
         self.need_to_keep_a_handle_to_this: Any = None  # need to hold onto window handle (see below)
         self.cmds: List = [
@@ -79,12 +79,18 @@ class PythonInterface(MyConfig):
 
         self.uuid = self.preferences.preferences['uuid'] if self.preferences.preferences['collect_xppython3_stats'] else ''
         super(PythonInterface, self).__init__()
+        self.about.new_version = self.new_version
+        self.about.beta_version = self.beta_version
+        self.about.Version = self.Version
+        self.about.setUpdateMenu = self.setUpdateMenu
 
-    def XPluginStart(self):
+    def XPluginStart(self: Self) -> tuple[str, str, str]:
         for cmd in self.cmds:
             cmd['commandRef'] = xp.createCommand(cmd['command'], cmd['description'])
             xp.registerCommandHandler(cmd['commandRef'], cmd['callback'], 1, '')
 
+        self.performance.toggleCommandRef = self.cmds[3]['commandRef']
+        self.about.config = self.config
         xp.registerFlightLoopCallback(self.performance.fLCallback, 0, None)
 
         self.menu = xp.createMenu('XPPython3', handler=self.menuHandler)
@@ -104,7 +110,7 @@ class PythonInterface(MyConfig):
 
         return self.Name, self.Sig, self.Desc
 
-    def setUpdateMenu(self):
+    def setUpdateMenu(self: Self) -> None:
         try_beta = self.config['beta']
         current = self.Version
         beta_version = self.beta_version
@@ -113,13 +119,14 @@ class PythonInterface(MyConfig):
             uptodate, _version = calc_update(try_beta, current, stable_version, beta_version)
             xp.checkMenuItem(xp.findPluginsMenu(), 0, xp.Menu_Checked if not uptodate else xp.Menu_Unchecked)
 
-        xp.setMenuItemName(self.menu, self.updateMenuIdx, self.menu_update_text())
+        if self.updateMenuIdx is not None:
+            xp.setMenuItemName(self.menu, self.updateMenuIdx, self.menu_update_text())
 
-    def menuHandler(self, _menuRef, itemRef):
+    def menuHandler(self, _menuRef: Any, itemRef: Any) -> None:
         if itemRef == 'samples':
             samples.download()
 
-    def updatePython(self, _inCommand, inPhase, _inRefcon):
+    def updatePython(self, _inCommand: XPLMCommandRef, inPhase: XPLMCommandPhase, _inRefcon: Any):
         if inPhase == xp.CommandBegin:
             if self.do_not_check_for_updates:
                 # (user has selected the menu item, but 'do_not_check' is set...)
@@ -146,10 +153,11 @@ class PythonInterface(MyConfig):
                     return 0
             self.check(forceUpgrade=True)
             xp.checkMenuItem(xp.findPluginsMenu(), 0, xp.Menu_Unchecked)
-            xp.setMenuItemName(self.menu, self.updateMenuIdx, "Will change to new version on restart.")
+            if self.updateMenuIdx is not None:
+                xp.setMenuItemName(self.menu, self.updateMenuIdx, "Will change to new version on restart.")
         return 0
 
-    def XPluginStop(self):
+    def XPluginStop(self: Self) -> None:
         if self.menu:
             xp.destroyMenu(self.menu)
         for cmd in self.cmds:
@@ -167,15 +175,16 @@ class PythonInterface(MyConfig):
                     widgetID = None
 
         self.save()
-        Usage(self)
-        return
+        pref = self.preferences.preferences
+        if not pref['debug'] and pref['collect_python_plugin_stats'] and pref['check_for_update']:
+            Usage(pref)
 
-    def XPluginEnable(self):
+    def XPluginEnable(self: Self) -> int:
         if self.preferences.popup_preferences_dialog:
             xp.commandOnce(self.cmds[4]['commandRef'])
         return 1
 
-    def menu_update_text(self):
+    def menu_update_text(self: Self) -> str:
         try_beta = self.config['beta']
         current = self.Version
         beta_version = self.beta_version

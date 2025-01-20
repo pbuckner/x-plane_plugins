@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import List, Self
 from types import ModuleType
 from XPPython3 import xp
 try:
@@ -17,10 +17,8 @@ except ImportError:
 class Usage:
     UsagePostURL = 'https://maps.avnwx.com/x-plane/usage'
 
-    def __init__(self, interface: Any):
-        pref = interface.preferences.preferences
-        if pref['debug'] or not pref['collect_python_plugin_stats']:
-            # if debug is set, or 'collect_python_plugin_stats is set to False, skip data collection
+    def __init__(self: Self, preferences: dict) -> None:
+        if not preferences.get('collect_python_plugin_stats', False):
             return
 
         plugins: List = []
@@ -36,6 +34,9 @@ class Usage:
         if plugins and requests is not None:
             try:
                 # blast it & not wait for response
-                requests.post(self.UsagePostURL, json={'uuid': interface.uuid, 'plugins': plugins}, timeout=(5, 0.0001))
+                # ( note that interface.uuid may be blank, but pref['uuid'] has value read from preference file
+                #   This occurs when user doesn't want to record xppython_stats, but does want to record pythonplugin stats
+                #   ... though I'd expect this to be a rare occurance.)
+                requests.post(self.UsagePostURL, json={'uuid': preferences.get('uuid', ''), 'plugins': plugins}, timeout=(5, 0.0001))
             except (requests.ReadTimeout, requests.ConnectTimeout, requests.ConnectionError, requests.HTTPError):
                 pass

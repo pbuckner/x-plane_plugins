@@ -1,22 +1,22 @@
+from typing import Self, Any
 import uuid
 import webbrowser
 import os
 import configparser
 from XPPython3 import xp
-from XPPython3.xp_typing import PythonInterfaceType
+from XPPython3.xp_typing import XPLMCommandRef, XPLMCommandPhase, XPWidgetID, XPWidgetMessage
 from .my_widget_window import MyWidgetWindow
 
 
 class Preferences:
-    def __init__(self, interface: PythonInterfaceType):
+    def __init__(self: Self) -> None:
         self.preferences: dict = {}
         self.popup_preferences_dialog = False
         self.temp_preferences: dict = {}
-        self.interface = interface
         self.window = MyWidgetWindow()
         self.config_ini = self.load_config()
 
-    def save_config(self, preferences) -> None:
+    def save_config(self: Self, preferences: dict) -> None:
         ini_file = os.path.join(xp.getSystemPath(), 'Output', 'preferences', 'xppython3.ini')
         parser = configparser.ConfigParser()
         parser.read(ini_file)
@@ -29,7 +29,7 @@ class Preferences:
         except PermissionError:
             xp.log(f"Failed to write preferences to {ini_file}. Permission error")
 
-    def load_config(self) -> configparser.ConfigParser:
+    def load_config(self: Self) -> configparser.ConfigParser:
         # returns configuration as read from .ini file...
         # Which_may_be empty (will not return any error notification)
         ini_file = os.path.join(xp.getSystemPath(), 'Output', 'preferences', 'xppython3.ini')
@@ -65,7 +65,7 @@ class Preferences:
 
         return parser
 
-    def toggleCommand(self, _inCommand, inPhase, _refCon) -> int:
+    def toggleCommand(self: Self, _inCommand: XPLMCommandRef, inPhase: XPLMCommandPhase, _refCon: Any) -> int:
         if inPhase == xp.CommandBegin:
             if not (self.window and self.window.widgetID):
                 self.createWindow()
@@ -78,7 +78,7 @@ class Preferences:
                     xp.bringRootWidgetToFront(self.window.widgetID)
         return 0
 
-    def createWindow(self) -> None:
+    def createWindow(self: Self) -> None:
         self.load_config()
         self.temp_preferences = self.preferences.copy()
         fontID = xp.Font_Proportional
@@ -174,7 +174,7 @@ class Preferences:
                                                                1, s, 0, self.window.widgetID,
                                                                xp.WidgetClass_Button)
 
-    def windowCallback(self, inMessage, _inWidget, inParam1, _inParam2) -> int:
+    def windowCallback(self: Self, inMessage: XPWidgetMessage, _inWidget: XPWidgetID, inParam1: Any, _inParam2: Any) -> int:
         if inMessage == xp.Msg_ButtonStateChanged:
             for x in self.preferences:
                 try:
@@ -187,10 +187,12 @@ class Preferences:
             if inParam1 == self.window.widgets['save_button']:
                 self.preferences = {key: str(value) for key, value in self.temp_preferences.items()}
                 self.save_config(self.preferences)
-                xp.hideWidget(self.window.widgetID)
+                if self.window.widgetID:
+                    xp.hideWidget(self.window.widgetID)
 
             if inParam1 == self.window.widgets['cancel_button']:
-                xp.hideWidget(self.window.widgetID)
+                if self.window.widgetID:
+                    xp.hideWidget(self.window.widgetID)
 
             if inParam1 == self.window.widgets['documentation']:
                 webbrowser.open('https://xppython3.rtfd.io/en/latest/usage/preferences.html')

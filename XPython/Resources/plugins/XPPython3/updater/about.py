@@ -1,15 +1,21 @@
+from typing import Self, Any, Optional, Callable
 import webbrowser
 from XPPython3 import xp
+from XPPython3.xp_typing import XPLMCommandRef, XPLMCommandPhase, XPWidgetMessage, XPWidgetID
 from .my_widget_window import MyWidgetWindow
 from .currency import Currency
 
 
 class About:
-    def __init__(self, interface):
-        self.interface = interface
+    def __init__(self: Self) -> None:
         self.window = MyWidgetWindow()
+        self.config: dict = {}
+        self.new_version = '0.0'
+        self.beta_version = '0.0'
+        self.setUpdateMenu: Optional[Callable] = None
+        self.Version = '0.0'
 
-    def toggleCommand(self, _inCommand, inPhase, _refCon):
+    def toggleCommand(self, _inCommand: XPLMCommandRef, inPhase: XPLMCommandPhase, _refCon: Any) -> int:
         if inPhase == xp.CommandBegin:
             if not (self.window and self.window.widgetID):
                 self.createWindow()
@@ -21,7 +27,7 @@ class About:
                     xp.bringRootWidgetToFront(self.window.widgetID)
         return 0
 
-    def createWindow(self):
+    def createWindow(self: Self) -> None:
         left = 100
         top = 300
         width = 525
@@ -60,7 +66,7 @@ class About:
         xp.setWidgetProperty(self.window.widgets['beta'], xp.Property_ButtonType, xp.RadioButton)
         xp.setWidgetProperty(self.window.widgets['beta'], xp.Property_ButtonBehavior, xp.ButtonBehaviorCheckBox)
         xp.setWidgetProperty(self.window.widgets['beta'],
-                             xp.Property_ButtonState, 1 if self.interface.config.get('beta', 0) else 0)
+                             xp.Property_ButtonState, 1 if self.config.get('beta', 0) else 0)
 
         beta_left = right + 5
         s = "Include Betas "
@@ -70,7 +76,8 @@ class About:
 
         top = bottom - 10
         bottom = int(top - strHeight)
-        s = Currency(self.interface.Version, self.interface.beta_version, self.interface.new_version).get_currency(self.interface.config.get('beta', False))
+        s = Currency(self.Version, self.beta_version,
+                     self.new_version).get_currency(self.config.get('beta', False))
         strWidth = xp.measureString(fontID, s)
         right = int(left + 20 + strWidth)
         self.window.widgets['currency'] = xp.createWidget(left + 20, top, right, bottom, 1, s, 0,
@@ -139,18 +146,20 @@ class About:
                                                            1, s, 0, self.window.widgetID,
                                                            xp.WidgetClass_Button)
 
-    def windowCallback(self, inMessage, _inWidget, inParam1, _inParam2):
+    def windowCallback(self: Self, inMessage: XPWidgetMessage, _inWidget: XPWidgetID, inParam1: Any, _inParam2: Any) -> int:
         if inMessage == xp.Message_CloseButtonPushed:
-            xp.hideWidget(self.window.widgetID)
+            if self.window.widgetID is not None:
+                xp.hideWidget(self.window.widgetID)
             return 1
 
         if inMessage == xp.Msg_ButtonStateChanged:
             if inParam1 == self.window.widgets['beta']:
-                self.interface.config['beta'] = xp.getWidgetProperty(inParam1, xp.Property_ButtonState, None) == 1
+                self.config['beta'] = xp.getWidgetProperty(inParam1, xp.Property_ButtonState, None) == 1
                 xp.setWidgetDescriptor(self.window.widgets['currency'],
-                                       Currency(self.interface.Version, self.interface.beta_version,
-                                                self.interface.new_version).get_currency(self.interface.config.get('beta', False)))
-                self.interface.setUpdateMenu()
+                                       Currency(self.Version, self.beta_version,
+                                                self.new_version).get_currency(self.config.get('beta', False)))
+                if self.setUpdateMenu is not None:
+                    self.setUpdateMenu()
 
         if inMessage == xp.Msg_PushButtonPressed:
             if inParam1 == self.window.widgets['documentation']:

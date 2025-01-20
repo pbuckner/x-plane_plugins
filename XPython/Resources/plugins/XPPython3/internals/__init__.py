@@ -1,5 +1,6 @@
+from typing import List, Any
 from XPPython3 import xp
-
+from XPPython3.xp_typing import PythonInterfaceType, XPLMDataRef, XPLMFlightLoopID
 
 # pluginDict = {<instance>: (PLUGIN_NAME, PLUGIN_SIGNATURE, PLUGIN_DESCRIPTION,
 #                            PLUGIN_MODULE, PLUGIN_MODULE_NAME, PLUGIN_DISABLED})
@@ -12,17 +13,18 @@ from XPPython3 import xp
 #
 # flDict = {<flDictKey> : callback, refcon, module_name, type}
 # flIDDict = {<flDictKey> : <flightLoopCapsule>}
-# 
+#
 # commandCallbackDict = {<cmdCallbackKey>: CAPSULE, CALLBACK, BEFORE, REFCON, MODULE_NAME}
 #
 # MODULE_NAME like 'XPPython3.I_PI_FirstTime' 'PythonPlugins.PI_Other', 'Laminar Research.Cessna 172SP.plugins.PythonPlugins.PI_electrical'
 # dict.items() returns ((key, value), (key, value))
 
-def getModuleName(instance):
+
+def getModuleName(instance: PythonInterfaceType) -> str:
     return [x for x in xp.pythonGetDicts()['plugins'].items() if x[0] == instance][0][1][4]
 
 
-def getAccessors(instance):
+def getAccessors(instance: PythonInterfaceType) -> List[XPLMDataRef]:
     moduleName = getModuleName(instance)
     # print(moduleName)
     accessorDictKeys = [x[0] for x in xp.pythonGetDicts()['accessors'].items() if x[1][0] == moduleName]
@@ -31,7 +33,7 @@ def getAccessors(instance):
     return drefCapsules
 
 
-def getFlightLoops(instance):
+def getFlightLoops(instance: PythonInterfaceType) -> List[XPLMFlightLoopID]:
     moduleName = getModuleName(instance)
     flKeys = [x[0] for x in xp.pythonGetDicts()['flightLoops'].items() if x[1][2] == moduleName and x[1][3] == 1]  # get new style only
     # print(f"{flKeys=}")
@@ -39,8 +41,8 @@ def getFlightLoops(instance):
     # print(f"{flCapsules=}")
     return flCapsules
 
-    
-def getCommands(instance):
+
+def getCommands(instance: PythonInterfaceType) -> List[tuple[Any, Any, Any, Any]]:
     moduleName = getModuleName(instance)
     commands = [(x[1][0], x[1][1], x[1][2], x[1][3]) for x in xp.pythonGetDicts()['commandCallbacks'].items() if x[1][4] == moduleName]
     # print(commands)

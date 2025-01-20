@@ -1,4 +1,6 @@
+from typing import Self, Any
 from XPPython3 import xp
+from XPPython3.xp_typing import XPWidgetID, XPWidgetMessage
 
 
 class XPProgressWindow:
@@ -23,7 +25,7 @@ class XPProgressWindow:
        self.destroy()
     """
 
-    def __init__(self, title, num_captions=2):
+    def __init__(self: Self, title: str, num_captions: int = 2) -> None:
         windowTop = 500
         left = 100
         # make sure the box is wide enough for the title
@@ -56,21 +58,21 @@ class XPProgressWindow:
         xp.setWindowPositioningMode(winID, xp.WindowCenterOnMonitor, -1)
         xp.addWidgetCallback(self.progressWindow, self.progressWindowCallback)
 
-    def progressWindowCallback(self, inMessage, inWidget, inParam1, inParam2):
+    def progressWindowCallback(self: Self, inMessage: XPWidgetMessage, _inWidget: XPWidgetID, inParam1: Any, _inParam2: Any) -> int:
         if inMessage == xp.Msg_PushButtonPressed and inParam1 == self.button:
             self.hide()
             return 1
         return 0
 
-    def calcWindowHeight(self, num_captions):
+    def calcWindowHeight(self: Self, num_captions: int) -> int:
         return self.calcButtonOffset(num_captions)[1] + 8
 
-    def calcButtonOffset(self, num_captions):
-        top, bottom = self.calcCaptionOffset(num_captions - 1)
+    def calcButtonOffset(self: Self, num_captions: int) -> tuple[int, int]:
+        _top, bottom = self.calcCaptionOffset(num_captions - 1)
         # bottom is now bottom of last widget
         return bottom + 15, bottom + 40
 
-    def calcCaptionOffset(self, captionNumber):
+    def calcCaptionOffset(self: Self, captionNumber: int) -> tuple[int, int]:
         """
         captionNumber goes 0..n
         returns (top, bottom), positive offsets from the window's top
@@ -80,22 +82,21 @@ class XPProgressWindow:
         top = 55 + ((7 + strHeight) * captionNumber)
         return top, top + strHeight
 
-    def destroy(self):
+    def destroy(self: Self) -> None:
         xp.destroyWidget(self.progressWindow, 1)
 
-    def hide(self):
+    def hide(self: Self) -> None:
         xp.hideWidget(self.progressWindow)
 
-    def show(self):
+    def show(self: Self) -> None:
         xp.showWidget(self.progressWindow)
 
-    def setProgress(self, value=0):
+    def setProgress(self: Self, value: float = 0) -> None:
         xp.setWidgetProperty(self.progressWidget, xp.Property_ProgressPosition, int(self.maxValue * (value if value < 1 else 1)))
 
-    def setCaption(self, caption=''):
+    def setCaption(self: Self, caption: str = '') -> None:
         caption_text = caption.split('\n')
-        for i in range(len(self.captionWidgets)):
-            if i < len(caption_text):
-                xp.setWidgetDescriptor(self.captionWidgets[i], caption_text[i])
-            else:
-                xp.setWidgetDescriptor(self.captionWidgets[i], '')
+        # update the (rows) of captions & set to blank all remaining caption widgets
+        # which exceed # rows of given caption.
+        for i, v in enumerate(self.captionWidgets):
+            xp.setWidgetDescriptor(v, caption_text[i] if i < len(caption_text) else '')

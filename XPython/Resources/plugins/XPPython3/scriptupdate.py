@@ -2,7 +2,7 @@
 Python Plugin updater, modelled after PI_ScriptUpdater.py by
 Joan Perez i Cauhe
 """
-from typing import Any
+from typing import Any, Self
 import json
 import os
 import os.path
@@ -19,7 +19,8 @@ except ImportError:
 from XPPython3 import xp
 from XPPython3.scriptconfig import Config
 from XPPython3.zip_download import ZipDownload
-from XPPython3.updater.version import calc_update, Version, VersionUnknownException  # (We don't use Version here, but other scripts assume it exists in this module)
+# (We don't use Version or VersionUnknownException in this module, but other scripts assume it exists in this module)
+from XPPython3.updater.version import calc_update, Version, VersionUnknownException  # pylint: disable=unused-import
 
 
 class Updater(Config):
@@ -70,15 +71,15 @@ class Updater(Config):
           "try_beta" indicates the caller has preference to use a more recent beta (or "pre-release")
           if available. Otherwise, betas are ignored. (See documentation of Version for format of numbers)
     """
-    def __init__(self):
+    def __init__(self: Self) -> None:
         self.initial_progress_msg = f"Updating {self.Name} Plugin"
         self.final_progress_msg = "Upgrade complete.\nRestart X-Plane to load new version."
         super(Updater, self).__init__()
         self.download_path = os.path.join(xp.getSystemPath(), 'Resources', 'Downloads', self.Sig)
         self.install_path = os.path.join(xp.getSystemPath(), self.plugin_path)
-        self.new_version = '<Error>'
+        self.new_version: str = '<Error>'
         self.beta_version = '<Error>'
-        self.json_info = {}
+        self.json_info: dict = {}
         try:
             if any([getattr(self, 'do_not_check_for_updates', True),
                     not getattr(getattr(self, 'preferences'), 'preferences').get('check_for_update', False),
@@ -95,10 +96,10 @@ class Updater(Config):
         else:
             xp.log(f"*** Cyclenumber is {xp.getCycleNumber()=}, skipping update checking")
 
-    def check(self, forceUpgrade=False):
+    def check(self: Self, forceUpgrade: bool = False) -> None:
         xp.log(f"Calling Check with version check url: {self.VersionCheckURL}")
         if self.VersionCheckURL:
-            if self.VersionCheckData is not {}:
+            if self.VersionCheckData:
                 if hasattr(self, 'uuid'):
                     self.VersionCheckData['uuid'] = self.uuid
                 data = urlencode(self.VersionCheckData).encode('utf-8')
@@ -122,23 +123,26 @@ class Updater(Config):
                         xp.systemLog(msg)
                         xp.log(msg)
                         return
-                except Exception:
+                except Exception:  # pylint: disable=broad-except
                     pass
                 xp.log("Internet connection error, cannot check version. Will check next time.")
                 return
-            except Exception as e:
+            except Exception as e:   # pylint: disable=broad-except
                 xp.log(f"Failed with urllib: {e}")
                 return
             try:
                 data = ret.read()
                 ret.close()
                 del ret
-            except Exception as e:
+            except Exception as e:   # pylint: disable=broad-except
                 xp.log(f"Failed reading result: {e}")
                 return
             try:
-                self.json_info = json.loads(data)
-            except Exception as e:
+                if data is not None:
+                    self.json_info = json.loads(data)
+                else:
+                    raise ValueError("json data is null")
+            except Exception as e:   # pylint: disable=broad-except
                 xp.log(f"Failed converting to json: {e}")
                 return
             try:

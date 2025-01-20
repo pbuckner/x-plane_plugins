@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Self, Optional
 from XPPython3.utils.version import StrictVersion
 import re
 
@@ -44,9 +44,15 @@ class Version(StrictVersion):
             3.1.10a1
             3.1.10
     """
-    def __init__(self, vstring=None):
+    def __init__(self: Self, vstring: Optional[str] = None) -> None:
+        if vstring is None:
+            raise VersionUnknownException
         try:
-            vstring = re.search(r'\d[\.\dab]*', vstring)[0]
+            m = re.search(r'\d[\.\dab]*', vstring)
+            if m:
+                vstring = m[0]
+            else:
+                raise VersionUnknownException
         except TypeError as e:
             raise VersionUnknownException from e
             # vstring = '0.0'

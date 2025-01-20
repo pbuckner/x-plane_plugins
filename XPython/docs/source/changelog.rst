@@ -40,6 +40,10 @@ Known Bugs
    * **xppython3.ini parser**: Previously XPPython3's parsing of options required "1" or "0" for boolean
      options. It now also supports "Yes", "On", and "True" as equivalents. See :doc:`development/xppython3.ini`.
 
+   * **Type hinting**: Additional python type hinting has been added, including (partial) hinting for ``OpenGL`` and ``imgui``.
+     While type hinting is not required (or even used) by Python, as I'm trying to provide *instructional* examples,
+     I'm adding type hinting as much as possible.
+
    
 4.4.1 (10-Jul-2024)
 -------------------

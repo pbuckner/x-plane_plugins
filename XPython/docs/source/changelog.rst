@@ -9,8 +9,9 @@ Known Bugs
   the wrong python plugin. This may be related to X-Plane calls to internal error reporting callback.
   The message is correct apart from identifying the requesting plugin.
   
-4.4.2 (Beta)
-------------
+4.5.0 (21-Jan-2025)
+-------------------
+
 :Fixes:
    * **Python library update**: For Silicon Macs only (i.e., ARM architecture): All except one python library, included
      with XPPython3's version of Python supported both ARM and Intel architectures.
@@ -22,7 +23,8 @@ Known Bugs
    |
    
 :New Features:
-   * **Preferences Popup**: On first execution and in response to "Preferences" menu item, a :doc:`/usage/preferences` popup
+   * **Preferences Popup**: On first execution and in response to the new "Preferences" menu item,
+     a :doc:`/usage/preferences` popup
      is displayed. This augments the existing :doc:`/development/xppython3.ini` feature.
 
    * **Custom Cursors**: Thanks to guidance from Saso Kiselkov, XPPython3 now includes platform-specific
@@ -40,6 +42,10 @@ Known Bugs
    * **xppython3.ini parser**: Previously XPPython3's parsing of options required "1" or "0" for boolean
      options. It now also supports "Yes", "On", and "True" as equivalents. See :doc:`development/xppython3.ini`.
 
+   * **Required module loading**: On startup, XPPython3 automatically checks for and installs any (XPPython3) required
+     python modules. (Modules will only be installed under the XPPython3 version of python.)
+     This allows us to keep the plugin up-to-date without user intervention.
+     
    * **Type hinting**: Additional python type hinting has been added, including (partial) hinting for ``OpenGL`` and ``imgui``.
      While type hinting is not required (or even used) by Python, as I'm trying to provide *instructional* examples,
      I'm adding type hinting as much as possible.

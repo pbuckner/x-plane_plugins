@@ -5,7 +5,7 @@ SERVER_SDK=400
 XP_SDK=../SDK411
 VERSIONS= 312
 # python versions are like 4.1.1 -> 4.1.2a1 -> 4.1.2a2 -> 4.1.2b1 -> 4.1.2 (letter is [ab], cannot end with letter)
-XPPYTHONVERSION=4.4.2b3
+XPPYTHONVERSION=4.4.2b4
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce 'b')
 ALPHA=$(shell echo $(XPPYTHONVERSION) | grep -ce 'a')
 FMOD=../FMOD
@@ -182,6 +182,7 @@ Resources/plugins/xp3-darwin.zip: win/XPPython3.xpl lin/XPPython3.xpl mac/XPPyth
 		$(ZIP) xp.zip -q -u XPPython3/*.py ; \
 		$(ZIP) xp.zip -q -u XPPython3/*/*.py ; \
 		$(ZIP) xp.zip -q -u XPPython3/*.pyi ; \
+		$(ZIP) xp.zip -q -u XPPython3/*/*.pyi ; \
 		$(ZIP) xp.zip -q -u XPPython3/cursors/*.cur ; \
 		$(ZIP) xp.zip -q -u XPPython3/cursors/*.png ; \
 		$(ZIP) xp.zip -q -u XPPython3/cursors/*.xcf ; \

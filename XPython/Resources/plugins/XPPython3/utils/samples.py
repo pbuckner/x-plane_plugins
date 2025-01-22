@@ -3,7 +3,7 @@ from XPPython3 import xp
 from XPPython3.zip_download import ZipDownload
 
 
-def download():
+def download() -> None:
     # 2) Copy sample python plugins into PythonPlugins/samples directory
     pluginsPath = os.path.normpath(os.path.join(xp.getSystemPath(), xp.PLUGINSPATH))
     samplesPath = os.path.join(pluginsPath, 'samples')

@@ -1,46 +1,60 @@
+from typing import Self, Any, Optional, List
 import shutil
 import os
 from XPPython3 import xp
 from XPPython3.utils import samples, xp_pip
-from XPPython3.scriptupdate import Version
+from XPPython3.scriptupdate import Version, VersionUnknownException
+from XPPython3.xp_typing import XPLMFlightLoopID
+
+PLUGIN_DISABLED = 5
 
 
 class PythonInterface:
-    def __init__(self):
+    def __init__(self: Self) -> None:
         # touch_file stores most recently _executed_ version, which may differ from newly installed version
         self.touch_file = os.path.normpath(os.path.join(xp.getSystemPath(), xp.INTERNALPLUGINSPATH, '.firstTimeComplete'))
         self.version_file = os.path.normpath(os.path.join(xp.getSystemPath(), xp.INTERNALPLUGINSPATH, 'version.txt'))
-        self.flID = None
-        self.current_version = None
+        self.flID: Optional[XPLMFlightLoopID] = None
+        self.current_version: Optional[Version] = None
 
-    def XPluginStart(self):
+    def XPluginStart(self: Self) -> tuple[str, str, str]:
         return 'FirstTime', 'xppython3.firstTime', 'Performs tasks which should be run "first time" for XPPython3 plugin'
 
-    def XPluginEnable(self):
-        # Register flight loop, but set to zero to disable (this way, we know it exists and
-        # can unconditionally unregister it in XPluginDisable).
-        # "Enable" the flight loop, only if touchfile does not exist or is old.
-        self.flID = xp.createFlightLoop(self.flightLoopCallback)
+    def XPluginEnable(self: Self) -> int:
         self.current_version = Version(xp.VERSION)
-        touch_version = get_version(self.touch_file)
+        try:
+            touch_version = get_version(self.touch_file)
+        except VersionUnknownException:
+            touch_version = Version('0.0')
+
+        # Check (and update if necessary) required modules
+        requirements = ['numpy>=1.26.4', 'freetype-py>=2.4.0', 'pillow>=10.3.0', 'charset-normalizer>=3.4.1']
+        xp_pip.load_requirements(requirements, force=False)
+
         if self.current_version > touch_version:
+            self.flID = xp.createFlightLoop(self.flightLoopCallback)
             xp.log(f"Current is {self.current_version} and touchfile is {touch_version}")
             xp.scheduleFlightLoop(self.flID, -1)
-        return 1
+            return 1
 
-    def flightLoopCallback(self, _sinceLastCall, _sinceLastFlightLoop, _counter, _refcon):
+        return 0
+
+    def flightLoopCallback(self: Self, _sinceLastCall: float, _sinceLastFlightLoop: float, _counter: float, _refcon: Any) -> int:
         # we do work within a flight loop so we can display progress / results
         # in a window. The flight loop callback is not enabled & nothing is done if the touch_file exists.
+
         self.firstTime()
         with open(self.touch_file, 'w', encoding="UTF-8") as fp:
             fp.write(f'{self.current_version}\n')
         # execute only once
+        self.disablePlugin()
         return 0
 
-    def XPluginDisable(self):
-        xp.destroyFlightLoop(self.flID)
+    def XPluginDisable(self: Self) -> None:
+        if self.flID:
+            xp.destroyFlightLoop(self.flID)
 
-    def firstTime(self):
+    def firstTime(self: Self) -> None:
         # 1) Create PythonPlugins if not already exists
         pluginsPath = os.path.normpath(os.path.join(xp.getSystemPath(), xp.PLUGINSPATH))
         if not os.path.exists(pluginsPath):
@@ -56,14 +70,24 @@ class PythonInterface:
             xp.log("Found, and removing old XPPython3/imgui directory")
             shutil.rmtree(imgui_dir)
 
-        # 4) add PIL and numpy modules if not already installed
-        requirements = ['numpy>=1.26.4', 'freetype-py>=2.4.0', 'pillow>=10.3.0']
+        # 4) add other modules
+        requirements: List[str] = []
         xp_pip.load_requirements(requirements)
 
-        return
+    def disablePlugin(self: Self) -> None:
+        # Mark this python plugin disabled:
+        # This will cause it to not be included in the XPPython3 performance window.
+        # and this plugin will not be reloaded & will not receive XP messages
+        #
+        # Normally, you'd disable a plugin by returning '0' in XPluginEnable.
+        # Here, we disable the plugin _after_ it's done it's stuff. "Disabled"
+        # is kind of a misnomer therefore. By disabling it "late", we stop
+        # it from receiving futher messages and prevent it from appearing in
+        # the 'performance' popup window.
+        xp.pythonGetDicts()['plugins'][self][PLUGIN_DISABLED] = True
 
 
-def get_version(filename) -> Version:
+def get_version(filename: str) -> Version:
     """
         return Version instance from contents of file (or Version(0.0))
     """

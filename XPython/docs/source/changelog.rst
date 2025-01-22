@@ -4,8 +4,53 @@ Change Log
 Known Bugs
 ----------
 
-  None (prove me wrong!)
+* **Incorrect log message attribution**: In rare occasions XPPython3Log.txt will
+  incorrectly attribute a log message to
+  the wrong python plugin. This may be related to X-Plane calls to internal error reporting callback.
+  The message is correct apart from identifying the requesting plugin.
   
+4.5.0 (21-Jan-2025)
+-------------------
+
+:Fixes:
+   * **Python library update**: For Silicon Macs only (i.e., ARM architecture): All except one python library, included
+     with XPPython3's version of Python supported both ARM and Intel architectures.
+     The ``charset_normalizer`` module supported only Intel
+     (x86_64). Two libraries have been updated to support both architectures: ``md.cpython-312-darwin.so`` and ``md__mypyc.cpython-312-darwin.so``.
+     This is irrelevant if you're using an Intel-based Mac, or Linux or Windows. Code will be automatically
+     updated on first restart. (You'll see a 'PIP Output' window popup with the output.)
+
+   |
+   
+:New Features:
+   * **Preferences Popup**: On first execution and in response to the new "Preferences" menu item,
+     a :doc:`/usage/preferences` popup
+     is displayed. This augments the existing :doc:`/development/xppython3.ini` feature.
+
+   * **Custom Cursors**: Thanks to guidance from Saso Kiselkov, XPPython3 now includes platform-specific
+     code allowing you to load a set custom cursors (See :doc:`/development/modules/cursor`). Additionally, we're
+     providing a number of predefined cursors.
+
+   |
+
+:Improvements:
+   * **Usage Data Collection**: Previously, XPPython3 would check for updates and record basic usage statistics.
+     This version enables users & developers to enable/disable version checking and usage data collection. It
+     also introduces the (optional) collection of per-python plugin usage. See
+     :doc:`/usage/preferences`.
+
+   * **xppython3.ini parser**: Previously XPPython3's parsing of options required "1" or "0" for boolean
+     options. It now also supports "Yes", "On", and "True" as equivalents. See :doc:`development/xppython3.ini`.
+
+   * **Required module loading**: On startup, XPPython3 automatically checks for and installs any (XPPython3) required
+     python modules. (Modules will only be installed under the XPPython3 version of python.)
+     This allows us to keep the plugin up-to-date without user intervention.
+     
+   * **Type hinting**: Additional python type hinting has been added, including (partial) hinting for ``OpenGL`` and ``imgui``.
+     While type hinting is not required (or even used) by Python, as I'm trying to provide *instructional* examples,
+     I'm adding type hinting as much as possible.
+
+   
 4.4.1 (10-Jul-2024)
 -------------------
 :Fixes:
@@ -48,7 +93,7 @@ Known Bugs
      examples will be included in the future.
 
    * **xp_pip module**. This module allows plugin developers to automatically install
-     python modules into the correct location withing XPPython3. See :doc:`/development/modules/xp_pip`.
+     python modules into the correct location within XPPython3. See :doc:`/development/modules/xp_pip`.
 
    |
 

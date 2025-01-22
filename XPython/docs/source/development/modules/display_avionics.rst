@@ -337,11 +337,9 @@ Use any of these device IDs with :py:func:`registerAvionicsCallbacksEx` or :py:f
     bezel or screen drawing callback.
   
     If you want to use a custom OS-based cursor, return :data:`CursorCustom` to ask
-    X-Plane to show the cursor but not affect its image.  You can then use an
-    OS specific call like SetThemeCursor (Mac) or SetCursor/LoadCursor
-    (Windows). [If you can figure out how to actually do this in python3, let
-    me know, so I can provide an example!]
-      
+    X-Plane to show the cursor but not affect its image.  You can then use
+    :py:func:`xp.setCursor` to display a custom cursor you've loaded.
+
     `Official SDK <https://developer.x-plane.com/sdk/XPLMAvionicsCursor_f/>`__ :index:`XPLMAvionicsCursor_f`
 
   .. py:function:: keyboard(key, flags, vKey, refCon, losingFocus) 

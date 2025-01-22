@@ -31,6 +31,19 @@ XPPython3 installs a single menu item, "XPPython3", on the plugin menu.
      re-download the zip file, as if you were doing an initial installation.
 
 
+* **Preferences** menu item pops up a dialog box which allows you to set XPPython3-specific preferences, including
+  version checking and usage data collection. This box is *also* automatically displayed the first time you run
+  XPPython3. See :doc:`preferences`.
+
+  .. image:: /images/prefs.png
+
+  * **Documentation** opens a browser to :doc:`/usage/preferences`.
+
+  * **Save** records your changes to disk and closes the window:
+    you will need to restart X-Plane to have them take effect.
+
+  * **Cancel** discards any changes and closes the window.
+
 * **Performance** menu item displays a list of all loaded XPPython3 plugins with some live performance statistics for each.
 
   .. image:: /images/perf.png
@@ -50,6 +63,10 @@ The next three menu items are:
   This may be useful if you've messed up an installation: It *does not* change anything in your PythonPlugins
   folder.
 
+  .. note:: If you have disabled version-checking under :doc:`preferences`, XPPython3 will be unable to determine
+    which version is available, and will not attempt download a new version of XPPython3. You would need to
+    (at least temporarily) enable version checking.
+  
   If all else fails, you can always re-download the zip file (mentioned at the top of this page) and replace
   your current XPPython3 folder with the contents of the zip file.
 
@@ -73,7 +90,7 @@ The next three menu items are:
   + imgui
   + requests
 
-  With XPPython3 v4.4, I'l attempt to also install:
+  With XPPython3 v4.4, I'll attempt to also install:
 
   + numpy
   + Pillow (PIL)
@@ -92,7 +109,7 @@ Finally:
     4) Started
     5) Enabled
 
-  This allows plugins to clean up after themselves (via XPluginDisable / XPluginStop), and fully re-intialize (via
+  This allows plugins to clean up after themselves (via XPluginDisable / XPluginStop), and fully re-initialize (via
   XPluginStart, XPluginEnable). We also attempt to unregister and delete resources no properly removed by the plugin
   themselves.
   

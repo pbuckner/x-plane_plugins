@@ -16,12 +16,12 @@ class DummyXP:
     @staticmethod
     def generateTextureNumbers(count: int) -> List[int]:
         f = glGenTextures(count)
-        if count == 1:
+        if isinstance(f, int):
             return [f, ]
         return f
 
     @staticmethod
-    def bindTexture2d(textureID, textureUnit) -> None:
+    def bindTexture2d(textureID: int, textureUnit: int) -> None:
         glActiveTexture(GL_TEXTURE0 + textureUnit)
         glBindTexture(GL_TEXTURE_2D, textureID)
 

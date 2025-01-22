@@ -604,7 +604,7 @@ which they bear a striking resemblance to) in the following ways:
               it directly it works, but would seem to add zero benefit over just using :py:func:`createWidget`
               with given ``WidgetClass``.
 
-              Short answer: don't use :py:func:getWidgetClassFunc`.
+              Short answer: don't use :py:func:`getWidgetClassFunc`.
               Instead, create the (non-custom) widget and use :py:func:`addWidgetCallback` to add a python
               callback, and return 0 for some messages, to allow the original callback to handle
               instead.

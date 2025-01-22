@@ -1,0 +1,59 @@
+# pylint: disable=unused-argument
+# flake8: noqa
+from typing import Optional, Any, Callable
+from XPPython3.imgui_typing import IMGUIStyle, IMGUIo, IMGUIContext, IMGUIDrawData
+
+def create_context() -> IMGUIContext: ...
+def destroy_context(_ctx: IMGUIContext) -> None: ...
+def set_current_context(_ctx: IMGUIContext) -> None: ...
+def get_style() -> IMGUIStyle: ...
+def get_io() -> IMGUIo: ...
+
+def new_frame() -> None: ...
+def set_next_window_position(a: float, b: float, flags: int) -> None: ...
+def set_next_window_size(width: float, height: float, flags: int) -> None: ...
+def begin(title: str, flags=int) -> None: ...
+def end() -> None: ...
+def render() -> None: ...
+def get_draw_data() -> IMGUIDrawData: ...
+def text(fmt: str, *args) -> None: ...
+def text_colored(text: str, r: float, g: float, b: float, a: float = 1.) -> None: ...  # pylint: disable=redefined-outer-name
+def button(label: str, width: int = 0, height: int = 0) -> bool: ...
+def input_text(label: str, value: str, buffer_length: int = -1, flags: int = 0, callback: Optional[Callable[[Any], None | int]] = None, user_data = None) -> tuple[int, str]: ...
+def checkbox(label: str, state: bool) -> tuple[bool, bool]: ...
+def radio_button(label: str, active: bool) -> bool: ...
+def same_line(position: float = 0.0, spacing: float = -1.0) -> None: ...
+def slider_float(label: str, value: float, min_value: float, max_value: float, format: str = "%.3f", flags: int = 0, power: float = 0.0) -> tuple[bool, float]: ...  # pylint: disable=redefined-builtin
+
+
+CONFIG_NAV_NO_CAPTURE_KEYBOARD: int
+KEY_TAB: int
+KEY_LEFT_ARROW: int
+KEY_RIGHT_ARROW: int
+KEY_UP_ARROW: int
+KEY_DOWN_ARROW: int
+KEY_PAGE_UP: int
+KEY_PAGE_DOWN: int
+KEY_HOME: int
+KEY_END: int
+KEY_INSERT: int
+KEY_DELETE: int
+KEY_BACKSPACE: int
+KEY_SPACE: int
+KEY_ENTER: int
+KEY_ESCAPE: int
+KEY_A: int
+KEY_C: int
+KEY_V: int
+KEY_X: int
+KEY_Y: int
+KEY_Z: int
+ALWAYS: int
+WINDOW_NO_TITLE_BAR: int
+WINDOW_NO_RESIZE: int
+WINDOW_NO_COLLAPSE: int
+VERTEX_SIZE: int
+VERTEX_BUFFER_POS_OFFSET: int
+VERTEX_BUFFER_UV_OFFSET: int
+VERTEX_BUFFER_COL_OFFSET: int
+INDEX_SIZE: int

@@ -63,7 +63,7 @@ For compatibility with Laminar documentation, this documentation splits the SDK 
 |                        |  basic systems such as G530 and more advanced systems found in      |
 |                        |  airliners.)                                                        |
 +------------------------+---------------------------------------------------------------------+
-|:doc:`planes`           |* Get/Set users's aircraft and initial location.                     |
+|:doc:`planes`           |* Get/Set user's aircraft and initial location.                      |
 |                        |                                                                     |
 |                        |* Disable AI aircraft.                                               |
 +------------------------+---------------------------------------------------------------------+
@@ -114,7 +114,7 @@ For compatibility with Laminar documentation, this documentation splits the SDK 
 X-Planes's Widget modules:
 
 +------------------------+---------------------------------------------------------------------+
-|:doc:`widgets`          |Create, destroy and otherwise manipuated pre-defined ("standard")    |
+|:doc:`widgets`          |Create, destroy and otherwise manipulated pre-defined ("standard")   |
 |                        |widgets. Send (widget) messages, and handle messages through         |
 |                        |callbacks.                                                           |
 +------------------------+---------------------------------------------------------------------+
@@ -204,6 +204,7 @@ And three XPPython-specific additions (also accessible with simple ``import xp``
    standardwidgets
    widgetutils
    utilities
+   cursor
    xp
    xp_imgui
    xp_pip

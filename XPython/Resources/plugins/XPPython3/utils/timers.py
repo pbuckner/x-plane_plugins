@@ -1,5 +1,6 @@
+from typing import Callable, Any, Self, Optional
 from XPPython3 import xp
-from typing import Callable, Any
+from XPPython3.xp_typing import XPLMFlightLoopID
 from . import xlua
 
 # run_at_interval(func, interval) == run_timer(func, interval, interval)
@@ -15,7 +16,7 @@ from . import xlua
 
 
 class Timer:
-    def __init__(self, func: Callable[[], None], delay: float, interval: float):
+    def __init__(self: Self, func: Callable[[], None], delay: float, interval: float) -> None:
         self.func = func
         self.interval = interval
         self.delay = delay
@@ -23,9 +24,9 @@ class Timer:
 
 
 class Timers:
-    _Timers = []
+    _Timers: list[Timer] = []
 
-    def genericTimerCallback(self, _sinceLast: float, _elapsedTime: float, _counter: int, _refCon: Any) -> int:
+    def genericTimerCallback(self: Self, _sinceLast: float, _elapsedTime: float, _counter: int, _refCon: Any) -> int:
         if self._Timers:
             now = xlua.RUNNING_TIME
             for t in self._Timers:
@@ -35,22 +36,22 @@ class Timers:
             self._Timers = [x for x in self._Timers if x.interval > 0]
         return -1
 
-    def __init__(self):
-        self._timerFlightLoop = None
+    def __init__(self) -> None:
+        self._timerFlightLoop: Optional[XPLMFlightLoopID] = None
 
-    def get(self, func: Callable[[], None]) -> Timer | None:
+    def get(self: Self, func: Callable[[], None]) -> Timer | None:
         try:
             return [x for x in self._Timers if x.func == func][0]
         except IndexError:
             return None
 
-    def is_timer_scheduled(self, func: Callable[[], None]) -> bool:
+    def is_timer_scheduled(self: Self, func: Callable[[], None]) -> bool:
         return bool(self.get(func))
 
-    def stop_timer(self, func: Callable[[], None]) -> None:
+    def stop_timer(self: Self, func: Callable[[], None]) -> None:
         self._Timers = [x for x in self._Timers if x.func != func]
 
-    def run_timer(self, func: Callable[[], None], delay: float, interval: float) -> None:
+    def run_timer(self: Self, func: Callable[[], None], delay: float, interval: float) -> None:
         if self._timerFlightLoop is None or not xp.isFlightLoopValid(self._timerFlightLoop):
             self._Timers = []  # delete any existing dead timers (will happen if all plugins are reloaded)
             self._timerFlightLoop = xp.createFlightLoop(self.genericTimerCallback, phase=xp.FlightLoop_Phase_BeforeFlightModel)

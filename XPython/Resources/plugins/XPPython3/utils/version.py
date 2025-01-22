@@ -76,7 +76,7 @@ class Version:
         pass
 
     def __repr__(self):
-        return "{} ('{}')".format(self.__class__.__name__, str(self))
+        return f"{self.__class__.__name__} ('{str(self)}')"
 
     def __eq__(self, other):
         c = self._cmp(other)
@@ -170,7 +170,7 @@ class StrictVersion(Version):
     def parse(self, vstring):
         match = self.version_re.match(vstring)
         if not match:
-            raise ValueError("invalid version number '%s'" % vstring)
+            raise ValueError(f"invalid version number '{vstring}'")
 
         (major, minor, patch, prerelease, prerelease_num) = match.group(1, 2, 4, 5, 6)
 
@@ -355,11 +355,12 @@ class LooseVersion(Version):
         return self.vstring
 
     def __repr__(self):
-        return "LooseVersion ('%s')" % str(self)
+        return f"LooseVersion ('{str(self)}')"
 
     def _cmp(self, other):
         if isinstance(other, str):
-            other = LooseVersion(other)
+            with suppress_known_deprecation():
+                other = LooseVersion(other)
         elif not isinstance(other, LooseVersion):
             return NotImplemented
 

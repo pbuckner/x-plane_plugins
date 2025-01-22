@@ -9,8 +9,9 @@ except ImportError:
     print("[XPPython3] OpenGL not found. Use XPPython3 Pip Package Installer to install 'PyOpenGL' package and restart.")
     HIGHLITE = False
 
-from typing import List
+from typing import List, Self, Any
 from XPPython3 import xp
+from XPPython3.xp_typing import XPWidgetID, XPLMDataRef, XPWidgetMessage
 
 # To use:
 # Where you want a list box widget, call
@@ -62,8 +63,9 @@ class Prop(IntEnum):
 xpMessage_ListBoxItemSelected = 1001900
 
 
-class XPListBox(object):
-    def __init__(self, left, top, right, bottom, visible, descriptor, container, autoScroll=True, leftPad=5):
+class XPListBox:
+    def __init__(self: Self, left: int, top: int, right: int, bottom: int, visible: int,
+                 descriptor: str, container: XPWidgetID, autoScroll: bool = True, leftPad: int = 5) -> None:
         """
         Same parameters as createCustomWidget
         descriptor: Initial entry (can be '')
@@ -82,34 +84,32 @@ class XPListBox(object):
 
         (interface hasn't been updated to support updating / deleting a subset of lines)
         """
-        self.leftPad = leftPad
+        self.leftContentPad = leftPad  # _Content_ within list will be shifted a bit
         self.widgetID = xp.createCustomWidget(left, top, right, bottom, visible, descriptor, 0, container, self.listBoxProc)
         self.autoScroll = autoScroll
 
-    def clear(self):
+    def clear(self: Self) -> None:
         xp.setWidgetProperty(self.widgetID, Prop.ListBoxClear, 1)
 
-    def destroy(self):
+    def destroy(self: Self) -> None:
         if self.widgetID:
             xp.destroyWidget(self.widgetID, 1)
 
-    def get_data(self):
+    def get_data(self: Self) -> list[str]:
         # Should be {'Items': [], 'Lefts': [], 'Rights': []}
         data = xp.getWidgetProperty(self.widgetID, Prop.ListBoxData, None)
-        unwrapped = None
+        unwrapped = ['', ]
         for item, wrap in zip(data['Items'], data['Wraps']):
-            if unwrapped is None:
-                unwrapped = ['', ]
             unwrapped[-1] += item
             if not wrap:
                 unwrapped.append('')
         return unwrapped[:-1]
-        
-    def add(self, s):
+
+    def add(self: Self, s: str) -> None:
         xp.setWidgetDescriptor(self.widgetID, s)
         xp.setWidgetProperty(self.widgetID, Prop.ListBoxAddItem, 1)
 
-    def listBoxProc(self, message, widget, param1, param2):
+    def listBoxProc(self: Self, message: XPWidgetMessage, widget: XPWidgetID, param1: Any, param2: Any) -> int:
         currentItem = 0
         scrollbarMax = 0
         sliderPosition = 0
@@ -118,10 +118,13 @@ class XPListBox(object):
             if xp.selectIfNeeded(message, widget, param1, param2, 0):
                 return 1
         except SystemError:
-            print("Failure in selectIfNeeded for message: {}, {}, {}, {}".format(message, widget, param1, param2))
+            print(f"Failure in selectIfNeeded for message: {message}, {widget}, {param1}, {param2}")
             raise
 
         left, top, right, bottom = xp.getWidgetGeometry(widget)
+        rightContent = right - 20
+        leftContent = left + self.leftContentPad
+        contentWidth = rightContent - leftContent
         sliderPosition = xp.getWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, None)
         scrollbarMin = xp.getWidgetProperty(widget, Prop.ListBoxScrollBarMin, None)
         scrollbarMax = xp.getWidgetProperty(widget, Prop.ListBoxScrollBarMax, None)
@@ -130,6 +133,10 @@ class XPListBox(object):
         maxListBoxItems = xp.getWidgetProperty(widget, Prop.ListBoxMaxListBoxItems, None)
         highlighted = xp.getWidgetProperty(widget, Prop.ListBoxHighlighted, None)
         listBoxDataObj = xp.getWidgetProperty(widget, Prop.ListBoxData, None)
+
+        # "slop" is the small distance from center of thumb to mouse location. When dragging, we'll
+        # use this accurately re-position. Slop is positive, if user clicked _above_ center of vertical thumb
+        #  negative is user clicked _below_ center of vertical thumb.
         scrollBarSlop = xp.getWidgetProperty(widget, Prop.ListBoxScrollBarSlop, None)
         fontWidth, fontHeight, _other = xp.getFontDimensions(xp.Font_Basic)
         listbox_item_height = int(fontHeight * 1.2)
@@ -137,7 +144,7 @@ class XPListBox(object):
         if message == xp.Msg_Create:
             listBoxDataObj = {'Items': [], 'Lefts': [], 'Rights': [], 'Wraps': []}
             descriptor = xp.getWidgetDescriptor(widget)
-            self.listBoxFillWithData(listBoxDataObj, descriptor, (right - (left + self.leftPad) - 20))
+            self.listBoxFillWithData(listBoxDataObj, descriptor, rightContent - leftContent)
             xp.setWidgetProperty(widget, Prop.ListBoxData, listBoxDataObj)
 
             xp.setWidgetProperty(widget, Prop.ListBoxCurrentItem, currentItem)
@@ -170,19 +177,19 @@ class XPListBox(object):
                 xp.setWidgetProperty(widget, Prop.ListBoxAddItem, 0)  # unset it
                 descriptor = xp.getWidgetDescriptor(widget)
 
-                if xp.measureString(xp.Font_Basic, descriptor) > (right - (left + self.leftPad) - 20):
-                    charsPer = int((right - (left + self.leftPad) - 20) / fontWidth)
+                if xp.measureString(xp.Font_Basic, descriptor) > contentWidth:
+                    charsPer = int(contentWidth / fontWidth)
                     for x in range(0, len(descriptor), charsPer):
-                        self.listBoxAddItem(listBoxDataObj, descriptor[x:x + charsPer], (right - (left + self.leftPad) - 20),
+                        self.listBoxAddItem(listBoxDataObj, descriptor[x:x + charsPer], contentWidth,
                                             x + charsPer < len(descriptor))
                 else:
-                    self.listBoxAddItem(listBoxDataObj, descriptor, (right - (left + self.leftPad) - 20), False)
+                    self.listBoxAddItem(listBoxDataObj, descriptor, contentWidth, False)
 
                 scrollbarMax = len(listBoxDataObj['Items'])
                 sliderPosition = scrollbarMax
                 xp.setWidgetProperty(widget, Prop.ListBoxScrollBarMax, scrollbarMax)
                 if self.autoScroll:
-                    if wasViewingBottom and not(maxListBoxItems - sliderPosition > 0):
+                    if wasViewingBottom and sliderPosition >= maxListBoxItems:
                         # print('was, but no more, setting to {}'.format(maxListBoxItems - 1))
                         xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, maxListBoxItems - 1)
                     elif wasViewingBottom:
@@ -198,7 +205,7 @@ class XPListBox(object):
                 xp.setWidgetProperty(widget, Prop.ListBoxAddItemsWithClear, 0)  # unset it
                 descriptor = xp.getWidgetDescriptor(widget)
                 self.listBoxClear(listBoxDataObj)
-                self.listBoxFillWithData(listBoxDataObj, descriptor, (right - (left + self.leftPad) - 20))
+                self.listBoxFillWithData(listBoxDataObj, descriptor, contentWidth)
                 scrollbarMax = len(listBoxDataObj['Items'])
                 sliderPosition = scrollbarMax
                 xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, sliderPosition)
@@ -216,7 +223,7 @@ class XPListBox(object):
             if xp.getWidgetProperty(widget, Prop.ListBoxInsertItem, None):
                 xp.setWidgetProperty(widget, Prop.ListBoxInsertItem, 0)
                 descriptor = xp.getWidgetDescriptor(widget)
-                self.listBoxInsertItem(listBoxDataObj, descriptor, (right - (left + self.leftPad) - 20), currentItem)
+                self.listBoxInsertItem(listBoxDataObj, descriptor, contentWidth, currentItem)
             if xp.getWidgetProperty(widget, Prop.ListBoxDeleteItem, None):
                 xp.setWidgetProperty(widget, Prop.ListBoxDeleteItem, 0)
                 if listBoxDataObj['Items'] and len(listBoxDataObj['Items']) > currentItem:
@@ -225,10 +232,13 @@ class XPListBox(object):
             return 1
 
         if message == xp.Msg_Draw:
-            _x, y = xp.getMouseLocationGlobal()
+            location = xp.getMouseLocationGlobal()
+            y = 0
+            if location is not None:
+                _x, y = location
 
-            xp.drawWindow(left, bottom, right - 20, top, xp.Window_ListView)
-            xp.drawTrack(right - 20, bottom, right, top, scrollbarMin, scrollbarMax, sliderPosition, xp.Track_ScrollBar, highlighted)
+            xp.drawWindow(left, bottom, rightContent, top, xp.Window_ListView)
+            xp.drawTrack(rightContent, bottom, right, top, scrollbarMin, scrollbarMax, sliderPosition, xp.Track_ScrollBar, highlighted)
 
             if HIGHLITE:
                 xp.setGraphicsState(0, 1, 0, 0, 1, 0, 0)
@@ -261,138 +271,99 @@ class XPListBox(object):
                         SetAlphaLevels(1.0)
                         GL.glBegin(GL.GL_QUADS)
                         GL.glVertex2i(left, itemTop)
-                        GL.glVertex2i(right - 20, itemTop)
-                        GL.glVertex2i(right - 20, itemBottom)
+                        GL.glVertex2i(rightContent, itemTop)
+                        GL.glVertex2i(rightContent, itemBottom)
                         GL.glVertex2i(left, itemBottom)
                         GL.glEnd()
 
                     text = SetupAmbientColor(XP_Color.ListText)
 
-                    listBoxWidth = (right - 20) - left
+                    listBoxWidth = rightContent - left  # highlight extends left past 'leftPad' to highlight full line
                     fontWidth, fontHeight, _other = xp.getFontDimensions(xp.Font_Basic)
-                    maxChars = int((listBoxWidth - self.leftPad) / fontWidth)
+                    maxChars = int((listBoxWidth - self.leftContentPad) / fontWidth)
                     buffer = listBoxDataObj['Items'][listBoxIndex][0:maxChars]
                     listBoxIndex += 1
-                    xp.drawString(text,
-                                  left + self.leftPad, itemBottom + 2,
-                                  buffer, None, xp.Font_Basic)
+                    xp.drawString(text, leftContent, itemBottom + 2, buffer, None, xp.Font_Basic)
                 itemNumber += 1
             return 1
 
         if message == xp.Msg_MouseUp:
-            if IN_RECT(MOUSE_X(param1), MOUSE_Y(param1), right - 20, top, right, bottom):
-                highlighted = False
-                xp.setWidgetProperty(widget, Prop.ListBoxHighlighted, highlighted)
-
-            if IN_RECT(MOUSE_X(param1), MOUSE_Y(param1), left, top, right - 20, bottom):
+            x, y = MOUSE_X(param1), MOUSE_Y(param1)
+            if IN_RECT(x, y, left, top, rightContent, bottom):
+                # within content
                 if listBoxDataObj['Items']:
                     if currentItem != -1:
                         xp.setWidgetDescriptor(widget, listBoxDataObj['Items'][currentItem])
                     else:
                         xp.setWidgetDescriptor(widget, "")
                     xp.sendMessageToWidget(widget, xpMessage_ListBoxItemSelected, xp.Mode_UpChain, widget, currentItem)
+            elif IN_RECT(x, y, rightContent, top, right, bottom):
+                # within scroll
+                highlighted = False
+                xp.setWidgetProperty(widget, Prop.ListBoxHighlighted, highlighted)
+
             return 1
 
         if message == xp.Msg_MouseDown:
-            if IN_RECT(MOUSE_X(param1), MOUSE_Y(param1), left, top, right - 20, bottom):
+            x, y = MOUSE_X(param1), MOUSE_Y(param1)
+            if IN_RECT(x, y, left, top, rightContent, bottom):
+                # within content
                 if listBoxDataObj['Items']:
-                    x, y = xp.getMouseLocationGlobal()
+                    location = xp.getMouseLocationGlobal()
+                    x, y = 0, 0
+                    if location is not None:
+                        x, y = location
                     listBoxDataOffset = self.listBoxGetItemNumber(listBoxDataObj, listbox_item_height, x - left, top - y)
                     if listBoxDataOffset != -1:
                         listBoxDataOffset += scrollbarMax - sliderPosition
                         if listBoxDataOffset < len(listBoxDataObj['Items']):
                             xp.setWidgetProperty(widget, Prop.ListBoxCurrentItem, listBoxDataOffset)
 
-            if IN_RECT(MOUSE_X(param1), MOUSE_Y(param1), right - 20, top, right, bottom):
-                tm = xp.getTrackMetrics(right - 20, bottom, right, top, scrollbarMin, scrollbarMax, sliderPosition, xp.Track_ScrollBar)
+            elif IN_RECT(x, y, rightContent, top, right, bottom):
+                # within scroll
+                tm = xp.getTrackMetrics(rightContent, bottom, right, top, scrollbarMin, scrollbarMax, sliderPosition, xp.Track_ScrollBar)
                 scrollbarMin = xp.getWidgetProperty(widget, Prop.ListBoxScrollBarMin, None)
                 scrollbarMax = xp.getWidgetProperty(widget, Prop.ListBoxScrollBarMax, None)
-                if tm.isVertical:
-                    upBtnSelected = IN_RECT(MOUSE_X(param1), MOUSE_Y(param1),
-                                            right - 20, top, right, top - tm.upBtnSize)
-                    downBtnSelected = IN_RECT(MOUSE_X(param1), MOUSE_Y(param1),
-                                              right - 20, bottom + tm.downBtnSize, right, bottom)
-                    upPageSelected = IN_RECT(MOUSE_X(param1), MOUSE_Y(param1),
-                                             right - 20, (top - tm.upBtnSize), right, (bottom + tm.downBtnSize + tm.downPageSize + tm.thumbSize))
-                    downPageSelected = IN_RECT(MOUSE_X(param1), MOUSE_Y(param1),
-                                               right - 20, (top - tm.upBtnSize - tm.upPageSize - tm.thumbSize), right, (bottom + tm.downBtnSize))
-                    thumbSelected = IN_RECT(MOUSE_X(param1), MOUSE_Y(param1),
-                                            right - 20, (top - tm.upBtnSize - tm.upPageSize),
-                                            right, (bottom + tm.downBtnSize + tm.downPageSize))
-                else:
-                    downBtnSelected = IN_RECT(MOUSE_X(param1), MOUSE_Y(param1),
-                                              right - 20, top, right - 20 + tm.upBtnSize, bottom)
-                    upBtnSelected = IN_RECT(MOUSE_X(param1), MOUSE_Y(param1),
-                                            right - 20 - tm.downBtnSize, top, right, bottom)
-                    downPageSelected = IN_RECT(MOUSE_X(param1), MOUSE_Y(param1),
-                                               right - 20 + tm.downBtnSize, top,
-                                               right - tm.upBtnSize - tm.upPageSize - tm.thumbSize, bottom)
-                    upPageSelected = IN_RECT(MOUSE_X(param1), MOUSE_Y(param1),
-                                             right - 20 + tm.downBtnSize + tm.downPageSize + tm.thumbSize, top,
-                                             right - tm.upBtnSize, bottom)
-                    thumbSelected = IN_RECT(MOUSE_X(param1), MOUSE_Y(param1),
-                                            right - 20 + tm.downBtnSize + tm.downPageSize, top,
-                                            right - tm.upBtnSize - tm.upPageSize, bottom)
+                # what is selected in scroll bar?
 
-                if upPageSelected:
-                    sliderPosition += scrollBarPageAmount
-                    if sliderPosition > scrollbarMax:
-                        sliderPosition = scrollbarMax
-                    xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, sliderPosition)
-                elif downPageSelected:
-                    sliderPosition -= scrollBarPageAmount
-                    if sliderPosition < scrollbarMin:
-                        sliderPosition = scrollbarMin
-                    xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, sliderPosition)
-                elif upBtnSelected:
-                    sliderPosition += 1
-                    if sliderPosition > scrollbarMax:
-                        sliderPosition = scrollbarMax
-                    xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, sliderPosition)
-                elif downBtnSelected:
-                    sliderPosition -= 1
-                    if sliderPosition < scrollbarMin:
-                        sliderPosition = scrollbarMin
-                    xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, sliderPosition)
-                elif thumbSelected:
-                    if tm.isVertical:
-                        scrollBarSlop = int(bottom + tm.downBtnSize + tm.downPageSize + (tm.thumbSize / 2) - MOUSE_Y(param1))
-                    else:
-                        scrollBarSlop = int(right - 20 + tm.downBtnSize + tm.downPageSize + (tm.thumbSize / 2) - MOUSE_X(param1))
+                if IN_RECT(x, y, rightContent, top, right, top - tm.upBtnSize):
+                    # upBtnSelected
+                    xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, min(scrollbarMax, sliderPosition + 1))
+                elif IN_RECT(x, y, rightContent, bottom + tm.downBtnSize, right, bottom):
+                    # dnBtnSelected
+                    xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, max(scrollbarMin, sliderPosition - 1))
+                elif IN_RECT(x, y, rightContent, top - tm.upBtnSize, right, top - (tm.upBtnSize + tm.upPageSize)):
+                    # upPageSelected
+                    xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, min(scrollbarMax, sliderPosition + scrollBarPageAmount))
+                elif IN_RECT(x, y, rightContent, bottom + (tm.downBtnSize + tm.downPageSize), right, bottom + tm.downBtnSize):
+                    # dnPageSelected
+                    xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, max(scrollbarMin, sliderPosition - scrollBarPageAmount))
+                elif IN_RECT(x, y, rightContent, (top - tm.upBtnSize - tm.upPageSize), right, (bottom + tm.downBtnSize + tm.downPageSize)):
+                    # thumbSelected
+                    scrollBarSlop = int(bottom + tm.downBtnSize + tm.downPageSize + (tm.thumbSize / 2) - y)
                     highlighted = True
                     xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSlop, scrollBarSlop)
                     xp.setWidgetProperty(widget, Prop.ListBoxHighlighted, highlighted)
-                else:
-                    highlighted = False
-                    xp.setWidgetProperty(widget, Prop.ListBoxHighlighted, highlighted)
             return 1
+
         if message == xp.Msg_MouseDrag:
-            if IN_RECT(MOUSE_X(param1), MOUSE_Y(param1), right - 20, top, right, bottom):
-                tm = xp.getTrackMetrics(right - 20, bottom, right, top, scrollbarMin, scrollbarMax, sliderPosition, xp.Track_ScrollBar)
-                scrollbarMin = xp.getWidgetProperty(widget, Prop.ListBoxScrollBarMin, None)
-                scrollbarMax = xp.getWidgetProperty(widget, Prop.ListBoxScrollBarMax, None)
-
-                thumbSelected = highlighted
-                if thumbSelected:
+            x, y = MOUSE_X(param1), MOUSE_Y(param1)
+            if IN_RECT(x, y, rightContent, top, right, bottom):
+                # in scroll
+                if highlighted:  # i.e., thumb is selected
+                    tm = xp.getTrackMetrics(rightContent, bottom, right, top, scrollbarMin, scrollbarMax, sliderPosition, xp.Track_ScrollBar)
+                    scrollbarMin = xp.getWidgetProperty(widget, Prop.ListBoxScrollBarMin, None)
+                    scrollbarMax = xp.getWidgetProperty(widget, Prop.ListBoxScrollBarMax, None)
+                    sliderRatio = 0.0
                     if param1 != 0:
-                        if tm.isVertical:
-                            y = MOUSE_Y(param1) + scrollBarSlop
-                            sliderPosition = round(float(float(y - (bottom + tm.downBtnSize + tm.thumbSize / 2)) / float((top - tm.upBtnSize - tm.thumbSize / 2) - (bottom + tm.downBtnSize + tm.thumbSize / 2))) * scrollbarMax)
-                        else:
-                            x = MOUSE_X(param1) + scrollBarSlop
-                            sliderPosition = round((float)((float)(x - (right - 20 + tm.downBtnSize + tm.thumbSize / 2)) / (float)((right - tm.upBtnSize - tm.thumbSize / 2) - (right - 20 + tm.downBtnSize + tm.thumbSize / 2))) * scrollbarMax)
-                    else:
-                        sliderPosition = 0
-
-                    if sliderPosition < scrollbarMin:
-                        sliderPosition = scrollbarMin
-                    if sliderPosition > scrollbarMax:
-                        sliderPosition = scrollbarMax
+                        base = bottom + tm.downBtnSize + tm.thumbSize / 2
+                        sliderRatio = (y + scrollBarSlop - base) / (tm.upPageSize + tm.downPageSize)
+                    sliderPosition = min(scrollbarMax, max(scrollbarMin, round(sliderRatio * scrollbarMax)))
                     xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, sliderPosition)
             return 1
         return 0
 
-    def listBoxGetItemNumber(self, data, listbox_item_height, inX, inY):
+    def listBoxGetItemNumber(self: Self, data: dict, listbox_item_height: int, inX: int, inY: int) -> int:
         """
         This routine finds the item that is in a given point, or returns -1 if there is none.
         It simply trolls through all the items.
@@ -405,39 +376,39 @@ class XPListBox(object):
                 return n
         return -1
 
-    def listBoxFillWithData(self, data, items, width):
+    def listBoxFillWithData(self: Self, data: dict, items: str, width: int) -> None:
         for item in items.split(';'):
             data['Items'].append(item)
             data['Lefts'].append(0)
             data['Rights'].append(width)
             data['Wraps'].append(False)
 
-    def listBoxAddItem(self, data, buff, width, wrap):
+    def listBoxAddItem(self: Self, data: dict, buff: str, width: int, wrap: bool) -> None:
         data['Items'].append(buff)
         data['Lefts'].append(0)
         data['Rights'].append(width)
         data['Wraps'].append(wrap)
 
-    def listBoxClear(self, data):
+    def listBoxClear(self: Self, data: dict) -> None:
         data['Items'] = []
         data['Lefts'] = []
         data['Rights'] = []
         data['Wraps'] = []
 
-    def listBoxInsertItem(self, data, buff, width, item):
+    def listBoxInsertItem(self: Self, data: dict, buff: str, width: int, item: int) -> None:
         data['Items'].insert(item, buff)
         data['Lefts'].insert(item, 0)
         data['Rights'].insert(item, width)
         data['Wraps'].insert(item, False)
 
-    def listBoxDeleteItem(self, data, item):
+    def listBoxDeleteItem(self: Self, data: dict, item: int) -> None:
         data['Items'].pop(item)
         data['Lefts'].pop(item)
         data['Rights'].pop(item)
         data['Wraps'].pop(item)
 
 
-def XPCreateListBox(left, top, right, bottom, visible, container):
+def XPCreateListBox(left: int, top: int, right: int, bottom: int, visible: int, container: XPWidgetID) -> XPListBox:
     listBox = XPListBox(left, top, right, bottom, visible, '', container)
     return listBox
 
@@ -485,10 +456,10 @@ kXPlaneColorNames = [
 
 
 # This array contains the resolved datarefs
-gColorRefs = []
+gColorRefs: List[XPLMDataRef] = []
 
 
-def SetupAmbientColor(inColorID, immediate=False):
+def SetupAmbientColor(inColorID: int, immediate: bool = False) -> List[float]:
     """
     This routine sets up a color from the above table.  Pass
     in a float[3] to get the color; pass in NULL to have the
@@ -513,19 +484,19 @@ def SetupAmbientColor(inColorID, immediate=False):
 gAlphaLevel = 1.0
 
 
-def SetAlphaLevels(inAlphaLevel):
+def SetAlphaLevels(inAlphaLevel: float) -> None:
     # Just remember alpha levels for later.
-    global gAlphaLevel
+    global gAlphaLevel  # pylint: disable=global-statement
     gAlphaLevel = inAlphaLevel
 
 
-def IN_RECT(x, y, left, top, right, bottom):
+def IN_RECT(x: int, y: int, left: int, top: int, right: int, bottom: int) -> bool:
     return ((x) >= (left)) and ((x) <= (right)) and ((y) >= (bottom)) and ((y) <= (top))
 
 
-def MOUSE_X(param1):
+def MOUSE_X(param1: tuple[int, int]) -> int:
     return param1[0]
 
 
-def MOUSE_Y(param1):
+def MOUSE_Y(param1: tuple[int, int]) -> int:
     return param1[1]

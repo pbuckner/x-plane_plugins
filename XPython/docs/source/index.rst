@@ -5,7 +5,8 @@ XPPython3 [#why]_ is a plugin for Laminar Research `X-Plane <https://www.x-plane
 of additional plugins using python3. This is a replacement for Sandy Barbour's excellent
 `PythonInterface <http://www.xpluginsdk.org/python_interface.htm>`_ plugin, which supported only python2.
 
-Curious? See `current usage graphs <https://maps.avnwx.com/x-plane/stats>`_.
+Curious? See `current usage graphs <https://maps.avnwx.com/x-plane/stats>`_. (This data
+is optionally collected as described in :doc:`usage/preferences`.)
 
 This is XPPython3 version 4 and includes both the X-Plane plugin as well as a private
 version of Python3. Unlike previous versions of XPPython3, you no longer need to install

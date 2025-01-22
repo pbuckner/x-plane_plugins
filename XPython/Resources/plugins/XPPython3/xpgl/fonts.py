@@ -1,20 +1,22 @@
-from typing import Any, List, Tuple
+from typing import List, Tuple, Self, cast
 from array import array
+import OpenGL.GL as GL
+from OpenGL import error
 from OpenGL.GL import shaders
 import OpenGL.GLUT as GLUT
-from OpenGL import GL, error
+from XPPython3.xp_typing import XPLMFontID
+
 import math
 import ctypes
 from .colors import RGBColor, Colors
 
 try:
-    xp: Any  # this quiets mypy type checking
     from XPPython3 import xp
 
     def enableBlend():
         xp.setGraphicsState(numberTexUnits=1, alphaBlending=1)
 except ModuleNotFoundError:
-    from .mock_xp import xp
+    from .mock_xp import xp  # type: ignore
 
     def enableBlend():
         GL.glEnable(GL.GL_BLEND)
@@ -23,6 +25,144 @@ try:
     from freetype import Face, FT_LOAD_RENDER  # type: ignore
 except ModuleNotFoundError:
     xp.log("Failed to import freetype, use pip and install 'freetype-py'")
+
+
+class Font:
+
+    def measure_text(self: Self, text: str) -> float | int:
+        raise RuntimeError("measure_text() not subclassed")
+
+    def align(self: Self, x: float, y: float, text: str, alignment: str = 'L') -> tuple[float, float]:
+        if alignment.upper()[0] in ('R', 'C', 'M'):
+            length = self.measure_text(text)
+            if alignment.upper()[0] == 'R':
+                x = x - length
+            else:
+                x = x - (length / 2)
+        return x, y
+
+    def unload(self):
+        pass
+
+
+class FontXP(Font):
+    def __init__(self: Self, bitmapFont: XPLMFontID) -> None:
+        self.bitmapFont = bitmapFont
+
+    def measure_text(self: Self, text: str) -> float:
+        return xp.measureString(self.bitmapFont, text)
+
+    def draw_text(self: Self, x: float, y: float, text: str, alignment: str = 'L', color: RGBColor = Colors['white']) -> float:
+        GL.glColor(*color)
+        x, y = self.align(x, y, text, alignment)
+        xp.drawString(color, int(x), int(y), text, fontID=self.bitmapFont)
+        return x + self.measure_text(text)
+
+
+class FontGLUT(Font):
+    def __init__(self: Self, size: int, bitmapFont: str) -> None:
+        self.size = size
+        self.bitmapFont = bitmapFont
+
+    def measure_text(self: Self, text: str) -> float:
+        x = 0.
+        try:
+            for p in text:
+                x += GLUT.glutBitmapWidth(self.bitmapFont, ord(p))
+            return x
+        except error.NullFunctionError:
+            xp.log("GLUT not properly installed")
+            raise
+
+    def draw_text(self: Self, x: float, y: float, text: str, alignment: str = 'L', color: RGBColor = Colors['white']) -> float:
+        # if any part of result would be rendered out-of-bounds (< 0), NOTHING is displayed!
+        # this is not an issue for +x or +y
+        x, y = self.align(x, y, text, alignment)
+        GL.glColor(*color, 1)
+        GL.glRasterPos(x, y)
+        try:
+            for c in text:
+                GLUT.glutBitmapCharacter(self.bitmapFont, ord(c))
+            return x + self.measure_text(text)
+        except error.NullFunctionError:
+            xp.log("GLUT not propery installed")
+            raise
+
+
+class FontTrueType(Font):
+    def __init__(self: Self, font_id: int) -> None:
+        try:
+            self.font_info = Faces.Face_Info[font_id]
+        except KeyError as e:
+            raise ValueError(f"Unknown Face for font_id {font_id}") from e
+
+    def unload(self: Self) -> None:
+        try:
+            for p in range(128):
+                GL.glDeleteTextures(1, [self.font_info['characters'][chr(p)]['texture'], ])
+            del Faces.Face_Info[self.font_info['font_id']]
+        except KeyError as e:
+            raise ValueError("unload_font() Error: Cannot find font") from e
+
+    def measure_text(self: Self, text: str) -> float:
+        x = 0
+        for p in text:
+            x += self.font_info['characters'][p]['advance_x']
+        return x
+
+    def draw_text(self: Self, x: float, y: float, text: str, alignment: str = 'L', color: RGBColor | Tuple | List = None) -> float:
+        # Unlike GLUT, TrueType has no problem drawing < 0
+        x, y = self.align(x, y, text, alignment)
+        GL.glUseProgram(Faces.FontShaderProgram)
+        # Fragment shader allows us to render transparent text, and should be used in combination with blending;
+        enableBlend()
+        GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
+
+        # Intialization: Use a single texture object to render all the glyphs
+        # Set the active texture unit to 0 (GL_TEXTURE0)
+        # generate a texture id and bind current unit's 2D_texture to that id ('tex')
+        # Finally, set 'tex' in the shader to 0 (
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        # set up a VBO for our combined vertex and texture coordinates
+        vbo = cast(list[int], GL.glGenBuffers(1))
+        GL.glEnableVertexAttribArray(Faces.Attribute_Coord)
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo)
+        GL.glVertexAttribPointer(Faces.Attribute_Coord, 4, GL.GL_FLOAT, GL.GL_FALSE, 0, None)
+        # Vertex need to be normalized going -1.0 ... 1.0
+
+        if color and len(color) == 3:
+            color = *color, 1.
+        elif not color:
+            color = (1., 1., 1., 1.)
+
+        GL.glUniform4fv(Faces.Uniform_Color, 1, color)
+
+        for p in text:
+            info = self.font_info['characters'][p]
+            xp.bindTexture2d(info['texture'], 0)
+            x2 = x + info['bitmap_left']
+            y2 = -y - info['bitmap_top']
+
+            w = info['width']
+            h = info['rows']
+
+            box = [x2, -y2, 0, 0,
+                   x2 + w, -y2, 1, 0,
+                   x2, -y2 - h, 0, 1,
+                   x2 + w, -y2 - h, 1, 1]
+
+            x += info['advance_x']
+            y += info['advance_y']
+            vertices = array("f", box).tobytes()
+
+            GL.glBufferData(GL.GL_ARRAY_BUFFER, vertices, GL.GL_DYNAMIC_DRAW)
+            GL.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4)
+
+        GL.glDeleteBuffers(1, [vbo])
+        GL.glDisableVertexAttribArray(Faces.Attribute_Coord)
+        GL.glUseProgram(0)
+        xp.bindTexture2d(0, 0)
+        return x
 
 
 class Faces:
@@ -34,7 +174,7 @@ class Faces:
     Attribute_Coord = None
 
     @classmethod
-    def init(cls):
+    def init(cls) -> None:
         xp.log("initing...")
         if Faces.FontShaderProgram is not None:
             return
@@ -84,33 +224,34 @@ class Faces:
         Faces.Attribute_Coord = GL.glGetAttribLocation(Faces.FontShaderProgram, 'coord')
 
     @classmethod
-    def load_font(cls, filename="/System/Library/Fonts/MarkerFelt.ttc", size=48, angle=0.0):
+    def load_font(cls, filename: XPLMFontID | str = "/System/Library/Fonts/MarkerFelt.ttc", size: int = 48, angle: float = 0.0) -> Font:
         # size in pixels
         # angle in degrees, 0 is "3 o'clock", counter clockwise.
 
         xp.log(f"Loading font: {filename}")
         if filename in (xp.Font_Proportional, xp.Font_Basic):
-            return FontXP(filename)
+            return FontXP(cast(XPLMFontID, filename))
 
-        if filename.upper() == "HELVETICA":
-            if size == 10:
-                bitmapFont = GLUT.GLUT_BITMAP_HELVETICA_10
-            elif size == 12:
-                bitmapFont = GLUT.GLUT_BITMAP_HELVETICA_12
-            elif size == 18:
-                bitmapFont = GLUT.GLUT_BITMAP_HELVETICA_18
-            else:
-                raise ValueError(f"Unknown font filename {filename} [{size}]")
-            return FontGLUT(size, bitmapFont)
+        if isinstance(filename, str):
+            if filename.upper() == "HELVETICA":
+                if size == 10:
+                    bitmapFont = GLUT.GLUT_BITMAP_HELVETICA_10  # pylint: disable=no-member
+                elif size == 12:
+                    bitmapFont = GLUT.GLUT_BITMAP_HELVETICA_12  # pylint: disable=no-member
+                elif size == 18:
+                    bitmapFont = GLUT.GLUT_BITMAP_HELVETICA_18  # pylint: disable=no-member
+                else:
+                    raise ValueError(f"Unknown font filename {filename} [{size}]")
+                return FontGLUT(size, bitmapFont)
 
-        if filename.upper() == "TIMES_ROMAN":
-            if size == 10:
-                bitmapFont = GLUT.GLUT_BITMAP_TIMES_ROMAN_10
-            elif size == 24:
-                bitmapFont = GLUT.GLUT_BITMAP_TIMES_ROMAN_24
-            else:
-                raise ValueError(f"Unknown font filename {filename} [{size}]")
-            return FontGLUT(size, bitmapFont)
+            if filename.upper() == "TIMES_ROMAN":
+                if size == 10:
+                    bitmapFont = GLUT.GLUT_BITMAP_TIMES_ROMAN_10  # pylint: disable=no-member
+                elif size == 24:
+                    bitmapFont = GLUT.GLUT_BITMAP_TIMES_ROMAN_24  # pylint: disable=no-member
+                else:
+                    raise ValueError(f"Unknown font filename {filename} [{size}]")
+                return FontGLUT(size, bitmapFont)
 
         if Faces.FontShaderProgram is None:
             Faces.init()
@@ -188,141 +329,5 @@ class Faces:
         return FontTrueType(Faces.Face_ID_Cntr)
 
     @classmethod
-    def unload_font(cls, font):
+    def unload_font(cls, font: Font):
         font.unload()
-
-
-class Font:
-
-    def measure_text(self, text):
-        raise RuntimeError("measure_text() not subclassed")
-
-    def align(self, x, y, text, alignment='L'):
-        if alignment.upper()[0] in ('R', 'C', 'M'):
-            length = self.measure_text(text)
-            if alignment.upper()[0] == 'R':
-                x = x - length
-            else:
-                x = x - (length / 2)
-        return x, y
-
-    def unload(self):
-        pass
-
-
-class FontXP(Font):
-    def __init__(self, bitmapFont):
-        self.bitmapFont = bitmapFont
-
-    def measure_text(self, text):
-        return xp.measureString(self.bitmapFont, text)
-
-    def draw_text(self, x, y, text, alignment='L', color: RGBColor = Colors['white']):
-        GL.glColor(*color)
-        x, y = self.align(x, y, text, alignment)
-        xp.drawString(color, int(x), int(y), text, fontID=self.bitmapFont)
-        return x + self.measure_text(text)
-
-
-class FontGLUT(Font):
-    def __init__(self, size, bitmapFont):
-        self.size = size
-        self.bitmapFont = bitmapFont
-
-    def measure_text(self, text):
-        x = 0.
-        try:
-            for p in text:
-                x += GLUT.glutBitmapWidth(self.bitmapFont, ord(p))
-            return x
-        except error.NullFunctionError:
-            xp.log("GLUT not properly installed")
-
-    def draw_text(self, x, y, text, alignment='L', color: RGBColor = Colors['white']):
-        # if any part of result would be rendered out-of-bounds (< 0), NOTHING is displayed!
-        # this is not an issue for +x or +y
-        x, y = self.align(x, y, text, alignment)
-        GL.glColor(*color, 1)
-        GL.glRasterPos(x, y)
-        try:
-            for c in text:
-                GLUT.glutBitmapCharacter(self.bitmapFont, ord(c))
-            return x + self.measure_text(text)
-        except error.NullFunctionError:
-            xp.log("GLUT not propery installed")
-
-
-class FontTrueType(Font):
-    def __init__(self, font_id):
-        try:
-            self.font_info = Faces.Face_Info[font_id]
-        except KeyError as e:
-            raise ValueError(f"Unknown Face for font_id {font_id}") from e
-
-    def unload(self):
-        try:
-            for p in range(128):
-                GL.glDeleteTextures(1, [self.font_info['characters'][chr(p)]['texture'], ])
-            del Faces.Face_Info[self.font_info['font_id']]
-        except KeyError as e:
-            raise ValueError("unload_font() Error: Cannot find font") from e
-
-    def measure_text(self, text):
-        x = 0
-        for p in text:
-            x += self.font_info['characters'][p]['advance_x']
-        return x
-
-    def draw_text(self, x, y, text, alignment='L', color: RGBColor | Tuple | List = None):
-        # Unlike GLUT, TrueType has no problem drawing < 0
-        x, y = self.align(x, y, text, alignment)
-        GL.glUseProgram(Faces.FontShaderProgram)
-        # Fragment shader allows us to render transparent text, and should be used in combination with blending;
-        enableBlend()
-        GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
-
-        # Intialization: Use a single texture object to render all the glyphs
-        # Set the active texture unit to 0 (GL_TEXTURE0)
-        # generate a texture id and bind current unit's 2D_texture to that id ('tex')
-        # Finally, set 'tex' in the shader to 0 (
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-        # set up a VBO for our combined vertex and texture coordinates
-        vbo = GL.glGenBuffers(1)
-        GL.glEnableVertexAttribArray(Faces.Attribute_Coord)
-        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo)
-        GL.glVertexAttribPointer(Faces.Attribute_Coord, 4, GL.GL_FLOAT, GL.GL_FALSE, 0, None)
-        # Vertex need to be normalized going -1.0 ... 1.0
-
-        if color and len(color) == 3:
-            color = *color, 1.
-        elif not color:
-            color = (1., 1., 1., 1.)
-
-        GL.glUniform4fv(Faces.Uniform_Color, 1, color)
-
-        for p in text:
-            info = self.font_info['characters'][p]
-            xp.bindTexture2d(info['texture'], 0)
-            x2 = x + info['bitmap_left']
-            y2 = -y - info['bitmap_top']
-
-            w = info['width']
-            h = info['rows']
-
-            box = [x2, -y2, 0, 0,
-                   x2 + w, -y2, 1, 0,
-                   x2, -y2 - h, 0, 1,
-                   x2 + w, -y2 - h, 1, 1]
-
-            x += info['advance_x']
-            y += info['advance_y']
-            vertices = array("f", box).tobytes()
-
-            GL.glBufferData(GL.GL_ARRAY_BUFFER, vertices, GL.GL_DYNAMIC_DRAW)
-            GL.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4)
-
-        GL.glDeleteBuffers(1, [vbo])
-        GL.glDisableVertexAttribArray(Faces.Attribute_Coord)
-        GL.glUseProgram(0)
-        xp.bindTexture2d(0, 0)
-        return x

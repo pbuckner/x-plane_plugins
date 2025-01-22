@@ -93,13 +93,16 @@ Three steps:
 
 Errors are logged, see :doc:`logfiles`.
 
-If it's running, get familiar with :doc:`runtime_menus`.
+If it's running, and this is your first time, we'll popup the XPPython3 :doc:`preferences` box.
+
+Next, get familiar with :doc:`runtime_menus`.
 
 .. toctree::
    :titlesonly:
    :hidden:
 
    common_errors
+   preferences
    getting_support
    
 ----

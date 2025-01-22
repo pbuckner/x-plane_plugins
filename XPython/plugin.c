@@ -100,6 +100,7 @@ extern PyMODINIT_FUNC PyInit_XPLMInstance(void);
 extern PyMODINIT_FUNC PyInit_XPLMMap(void);
 /* extern PyMODINIT_FUNC PyInit_SBU(void); */
 extern PyMODINIT_FUNC PyInit_XPPython(void);
+extern PyMODINIT_FUNC PyInit_XPCursor(void);
 extern PyMODINIT_FUNC PyInit_XPythonLogWriter(void);
 
 static void
@@ -138,6 +139,7 @@ int initPython(void){
   PyImport_AppendInittab("XPLMMap", PyInit_XPLMMap);
   PyImport_AppendInittab("XPLMWeather", PyInit_XPLMWeather);
   PyImport_AppendInittab("XPLMSound", PyInit_XPLMSound);
+  PyImport_AppendInittab("XPCursor", PyInit_XPCursor);
   /* XPythonLogger
      It had to be treated differently from other python modules because we
      wanted it imported first and unloaded last */
@@ -350,7 +352,7 @@ static int stopPython(void)
   char *mods[] = {"XPLMDefs", "XPLMDisplay", "XPLMGraphics", "XPLMUtilities", "XPLMScenery", "XPLMMenus",
                   "XPLMNavigation", "XPLMPlugin", "XPLMPlanes", "XPLMProcessing", "XPLMCamera", "XPWidgetDefs",
                   "XPWidgets", "XPStandardWidgets", "XPUIGraphics", "XPWidgetUtils", "XPLMInstance",
-                  "XPLMMap", "XPLMDataAccess", "XPLMWeather", "XPLMSound", /*"SandyBarbourUtilities", */ "XPPython", NULL};
+                  "XPLMMap", "XPLMDataAccess", "XPLMWeather", "XPLMSound", /*"SandyBarbourUtilities", */ "XPCursor", "XPPython", NULL};
   char **mod_ptr = mods;
 
   while(*mod_ptr != NULL){

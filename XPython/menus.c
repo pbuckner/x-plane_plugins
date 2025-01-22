@@ -22,7 +22,7 @@ static PyObject *menuIDCapsules;  /* XPLMMenuIDRef */
 static PyObject *menuPluginIdxDict; /* plugin -> [list of Laminar menu IDs] */
 
 static int nextXPLMMenuIdx = 0;
-void clearInstanceMenuItems(PyObject*);
+void clearInstanceMenuItems(PyObject *);
 
 static const char menuIDRef[] = "XPLMMenuID"; 
 

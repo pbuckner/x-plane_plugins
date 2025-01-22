@@ -17,24 +17,34 @@ except ImportError:
     print("[XPPython3] OpenGL not found. Use XPPython3 Pip Package Installer to install 'PyOpenGL' package and restart.")
     raise
 import imgui
-from imgui.integrations.opengl import FixedPipelineRenderer
-    
+from imgui.integrations.opengl import FixedPipelineRenderer  # type: ignore
+
 from XPPython3 import xp
+from XPPython3.imgui_typing import IMGUIDrawData
+from typing import Self
 
 
 class XPRenderer(FixedPipelineRenderer):
     _font_texture: int
 
-    def refresh_font_texture(self):
+    def __init__(self, window):
+        self.window = window
+        super().__init__()
+
+    def refresh_font_texture(self: Self):
         # NOTE: as copied from integrations.opengl, but change glGenTextures() to xp.generateTextureNumbers()
         width, height, pixels = self.io.fonts.get_tex_data_as_alpha8()
 
         if self._font_texture is not None:
-            GL.glDeleteTextures([self._font_texture])
+            GL.glDeleteTextures(1, [self._font_texture])
 
         # self._font_texture = GL.glGenTextures(1)
-        self._font_texture = xp.generateTextureNumbers(1)[0]
-
+        numbers = xp.generateTextureNumbers(1)
+        if numbers:
+            self._font_texture = numbers[0]
+        else:
+            xp.log("Unable to generateTextureNumbers() failed")
+            return
         # GL.glBindTexture(GL.GL_TEXTURE_2D, self._font_texture)
         xp.bindTexture2d(self._font_texture, 0)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
@@ -44,8 +54,12 @@ class XPRenderer(FixedPipelineRenderer):
         self.io.fonts.texture_id = self._font_texture
         self.io.fonts.clear_tex_data()
 
-    def render(self, window, draw_data):
-        (mLeft, mTop, mRight, mBottom) = xp.getWindowGeometry(window.windowID)
+    def render(self: Self, draw_data: IMGUIDrawData) -> None:  # pylint: disable=arguments-differ
+        window = self.window
+        geom = xp.getWindowGeometry(window.windowID)
+        if geom is None:
+            return
+        (mLeft, mTop, _mRight, _mBottom) = geom
 
         io = self.io
 

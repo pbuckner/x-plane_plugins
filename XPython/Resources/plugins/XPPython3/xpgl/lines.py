@@ -26,7 +26,7 @@ def drawPolyLine(points: List | Tuple, thickness: float = 1., color: RGBColor = 
     if Pattern != 0xffff:
         GL.glEnable(GL.GL_LINE_STIPPLE)
         GL.glLineStipple(int(thickness), Pattern)
-    width = GL.glGetFloatv(GL.GL_LINE_WIDTH)
+    width = GL.glGetFloat(GL.GL_LINE_WIDTH)
     GL.glLineWidth(thickness)
     if len(color) == 3:
         GL.glColor(*color, 1.)
@@ -42,7 +42,7 @@ def drawPolyLine(points: List | Tuple, thickness: float = 1., color: RGBColor = 
 
 
 def setLinePattern(pattern: int = 0xffff) -> None:
-    global Pattern
+    global Pattern  # pylint: disable=global-statement
     # 0xffff  off
     # 0x5555  evenly spaced dots, same width as line 0101-0101-0101-0101
     # 0x3333

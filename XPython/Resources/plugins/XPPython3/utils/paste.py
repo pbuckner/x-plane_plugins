@@ -16,12 +16,12 @@ from ctypes import c_wchar_p
 from ctypes.wintypes import (HWND, BOOL, HANDLE, UINT)
 
 
-def darwin_paste():
-    p = subprocess.run(['pbpaste', 'r'], capture_output=True)
+def darwin_paste() -> list[str]:
+    p = subprocess.run(['pbpaste', 'r'], check=False, capture_output=True)
     return p.stdout.decode('utf-8').split('\n')
 
 
-def win_paste():
+def win_paste() -> list[str]:
     @contextlib.contextmanager
     def clipboard(hwnd):
         t = time.time() + 0.5
@@ -55,21 +55,21 @@ def win_paste():
     with clipboard(None):
         handle = GetClipboardData(CF_UNICODE_TEXT)
         if not handle:
-            return ""
-        res = c_wchar_p(handle).value
+            return ["", ]
+        res = str(c_wchar_p(handle).value)
         return res.split('\r\n')
 
-    
-def lin_paste():
+
+def lin_paste() -> list[str]:
     try:
-        p = subprocess.run(['xclip', '-o'], capture_output=True)
-    except Exception as e:
-        print("Failed to run xclip successfully")
-        return ""
+        p = subprocess.run(['xclip', '-o'], capture_output=True, check=False)
+    except Exception as e:  # pylint: disable=broad-except
+        print(f"Failed to run xclip successfully {e}")
+        return ["", ]
     return p.stdout.decode('utf-8').split('\n')
 
 
-def getClipboard():
+def getClipboard() -> list[str]:
     if platform.system() == 'Darwin':
         return darwin_paste()
     elif platform.system() == 'Windows':
@@ -78,9 +78,9 @@ def getClipboard():
         return lin_paste()
 
     print("paste not supported on this platform")
-    return ""
+    return ["", ]
 
 
 if __name__ == '__main__':
-    res = getClipboard()
-    print(f"Got {len(res)} lines, {res}")
+    test_res = getClipboard()
+    print(f"Got {len(test_res)} lines, {test_res}")

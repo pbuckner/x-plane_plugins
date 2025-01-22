@@ -43,7 +43,7 @@ your own property IDs as well.
 |  :value: 1                             |                                                                                          |
 | .. py:data:: Property_DragXOff         |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_Dragging>`__    |
 |  :value: 2                             |:index:`xpProperty_Dragging`                                                              |
-| .. py:data:: Propefrty_DragYOff        |                                                                                          |
+| .. py:data:: Property_DragYOff         |                                                                                          |
 |  :value: 3                             |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_DragXOff>`__    |
 |                                        |:index:`xpProperty_DragXOff`                                                              |
 |                                        |                                                                                          |
@@ -63,7 +63,7 @@ your own property IDs as well.
 |                                        |:index:`xpProperty_Object`                                                                |
 +----------------------------------------+------------------------------------------------------------------------------------------+
 | .. py:data:: Property_Clip             |If this property is 1, the widget package will use OpenGL to restrict drawing to the      |
-|  :value: 6                             |Wiget's exposed rectangle.                                                                |
+|  :value: 6                             |Widget's exposed rectangle.                                                               |
 |                                        |                                                                                          |
 |                                        |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_Clip>`__        |
 |                                        |:index:`xpProperty_Clip`                                                                  |
@@ -326,7 +326,7 @@ to the widget, or one of its parents.
   .. note::
     Handling this message consumes the mouse click, not handling it passes it  
     to the next widget. You can act 'transparent' as a window by never handling
-    moues clicks to certain areas.                                             
+    mouse clicks to certain areas.                                             
                                                                               
   Dispatching: Up chain BUT: Technically this is direct dispatched, but the 
   widgets library will shop it to each widget until one consumes the click,  
@@ -371,7 +371,7 @@ to the widget, or one of its parents.
   :value: 10
 
   The mouseup event is sent once when the mouse button is released after a   
-  drag or click. You only receive this message if you accept the mouseDown   
+  drag or click. You only receive this message if you accept the MouseDown   
   message. Parameter one points to a mouse state structure.                  
                                                                               
   .. table::
@@ -581,6 +581,7 @@ to the widget, or one of its parents.
      Up-chain    :ref:`XPMouseState_t`       :ref:`CursorStatus <cursor-status>`
                  tuple.                      Set this to cursor   
                                              result you desire.
+                                             (See also :py:func:`xp.setCursor`)
      =========== =========================== ===================================
 
   `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_CursorAdjust>`__ :index:`xpMsg_CursorAdjust`

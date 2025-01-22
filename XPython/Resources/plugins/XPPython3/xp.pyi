@@ -1,6 +1,8 @@
-from dataclasses import dataclass
-from typing import Any, Callable, Generic, Optional, Type, TypeVar, NewType, Literal, Sequence
-from XPPython3.xp_typing import *    
+# pylint: disable=unused-argument
+# flake8: noqa
+
+from typing import Any, Callable, Optional, Literal, Sequence
+from XPPython3.xp_typing import *
 ControlCameraUntilViewChanges: XPLMCameraControlDuration
 ControlCameraForever: XPLMCameraControlDuration
 Type_Unknown: XPLMDataTypeID
@@ -473,9 +475,9 @@ INTERNALPLUGINSPATH: str
 pythonDebugLevel: int
 pythonExecutable: str
 ModuleMTimes: object
-def controlCamera(howLong:int=ControlCameraUntilViewChanges,
-          controlFunc:Optional[Callable[[list[float], int, Any], int]]=None,
-          refCon:Any=None) -> None:
+def controlCamera(howLong: int = ControlCameraUntilViewChanges,
+                  controlFunc: Optional[Callable[[list[float], int, Any], int]] = None,
+                  refCon: Any = None) -> None:
     """
     Reposition camera on next drawing cycle.
       howLong: 1 = until view changes
@@ -499,7 +501,7 @@ def dontControlCamera() -> None:
 def isCameraBeingControlled() -> tuple[int, int]:
     """
     Returns two integer tuple. (isBeingControlled, howLong).
-    
+
     isBeingControlled is 1 when camera is being controlled, 0 otherwise.
     howLong is
       1: Until View Changes
@@ -592,12 +594,12 @@ def setDatad(dataRef:XPLMDataRef, value:float=0.0) -> None:
 def getDatavi(dataRef:XPLMDataRef, values:Optional[list[int]]=None, offset:int=0, count:int=-1) -> int:
     """
     Get integer array value for dataRef.
-    
+
     If values is None, return number of elements in the array (only).
     Otherwise, values should be a list into which will be copied elements
     from the dataRef, starting at offset, and continuing for count # of elements.
     If count is negative, or unspecified, all elements (relative offset) are copied.
-    
+
     Returns the number of elements copied.
     """
     ...
@@ -605,13 +607,13 @@ def getDatavi(dataRef:XPLMDataRef, values:Optional[list[int]]=None, offset:int=0
 def setDatavi(dataRef:XPLMDataRef, values:list[int], offset:int=0, count:int=-1) -> None:
     """
     Set integer array value for dataRef.
-    
+
     values is a list of integers, to be written into dataRef starting
     at offset. Up to count values are written.
-    
+
     If count is negative (or not provided), all values in the list are copied.
     It is an error for count to be greater than the length of the list.
-    
+
     No return value.
     """
     ...
@@ -619,12 +621,12 @@ def setDatavi(dataRef:XPLMDataRef, values:list[int], offset:int=0, count:int=-1)
 def getDatavf(dataRef:XPLMDataRef, values:Optional[list[float]]=None, offset:int=0, count:int=-1) -> int:
     """
     Get float array value for dataRef.
-    
+
     If values is None, return number of elements in the array (only).
     Otherwise, values should be a list into which will be copied elements
     from the dataRef, starting at offset, and continuing for count # of elements.
     If count is negative, or unspecified, all elements (relative offset) are copied.
-    
+
     Returns the number of elements copied.
     """
     ...
@@ -632,13 +634,13 @@ def getDatavf(dataRef:XPLMDataRef, values:Optional[list[float]]=None, offset:int
 def setDatavf(dataRef:XPLMDataRef, values:list[float], offset:int=0, count:int=-1) -> None:
     """
     Set float array value for dataRef.
-    
+
     values is a list of floats, to be written into dataRef starting
     at offset. Up to count values are written.
-    
+
     If count is negative (or not provided), all values in the list are copied.
     It is an error for count to be greater than the length of the list.
-    
+
     No return value.
     """
     ...
@@ -646,14 +648,14 @@ def setDatavf(dataRef:XPLMDataRef, values:list[float], offset:int=0, count:int=-
 def getDatab(dataRef:XPLMDataRef, values:Optional[list[int]]=None, offset:int=0, count:int=-1) -> int:
     """
     Get byte array value for dataRef.
-    
+
     If values is None, return number of elements in the array (only).
     Otherwise, values should be a list into which will be copied elements
     from the dataRef, starting at offset, and continuing for count # of elements.
     If count is negative, or unspecified, all elements (relative offset) are copied.
-    
+
     See also getDatas().
-    
+
     Returns the number of elements copied.
     """
     ...
@@ -661,15 +663,15 @@ def getDatab(dataRef:XPLMDataRef, values:Optional[list[int]]=None, offset:int=0,
 def setDatab(dataRef:XPLMDataRef, values:list[int] | bytes, offset:int=0, count:int=-1) -> None:
     """
     Set byte array value for dataRef.
-    
+
     values is a list of bytes, to be written into dataRef starting
     at offset. Up to count values are written.
-    
+
     If count is negative (or not provided), all values in the list are copied.
     It is an error for count to be greater than the length of the list.
-    
+
     See also setDatas().
-    
+
     No return value.
     """
     ...
@@ -677,11 +679,11 @@ def setDatab(dataRef:XPLMDataRef, values:list[int] | bytes, offset:int=0, count:
 def getDatas(dataRef:XPLMDataRef, offset:int=0, count:int=-1) -> str | None:
     """
     Returns string value for dataRef.
-    
+
     String is the first null-terminated sequence found in the byte-array
     dataRef, starting at offset. If count is given, string returned is
     restricted to count length (not including a null byte).
-    
+
     Note not all byte-array dataRefs are strings: be sure the requested
     dataRef is storing character information. Otherwise use getDatab().
     """
@@ -690,49 +692,49 @@ def getDatas(dataRef:XPLMDataRef, offset:int=0, count:int=-1) -> str | None:
 def setDatas(dataRef:XPLMDataRef, value:str, offset:int=0, count:int=-1) -> None:
     """
     Set byte array to string value for dataRef.
-    
+
     value is a python unicode string (capable of being encoded as 'UTF-8').
     String is written into the dataRef starting at offset. Up to count
     characters are written. If count is more than len(value), the written
     values are padded with zeros ('\\x00') up to count.
-    
+
     If count is negative (or not provided), value is copied AND the
     remaining length of the dataRef is zero-filled. Use count to limit
     the amount of padding.
-    
+
     If len(value) is greater than existing dataRef value, and count is not
     specified, the underlying dataRef is NOT extended to accommodate the
     full string. Instead the string is copied upto the end of the existing
     data. To extend the underlying dataRef, provide a larger value for count.
-    
-    Caution: extend dataRef only if the underlying dataRef is implemented in 
+
+    Caution: extend dataRef only if the underlying dataRef is implemented in
     python. Attempting to extend non-python dataRefs will cause the sim to
     crash.
-    
+
     No return value.
     """
     ...
 
-def registerDataAccessor(name:str, dataType:int=Type_Unknown, writable:int=-1, 
-          readInt:Optional[Callable[[Any], int]]=None, writeInt:Optional[Callable[[Any, int], None]]=None, 
-          readFloat:Optional[Callable[[Any], float]]=None, writeFloat:Optional[Callable[[Any, float], None]]=None, 
-          readDouble:Optional[Callable[[Any], float]]=None, writeDouble:Optional[Callable[[Any, float], None]]=None, 
-          readIntArray:Optional[Callable[[Any, list[int], int, int], int]]=None, writeIntArray:Optional[Callable[[Any, list[int], int, int], None]]=None, 
-          readFloatArray:Optional[Callable[[Any, list[float], int, int], int]]=None, writeFloatArray:Optional[Callable[[Any, list[float], int, int], None]]=None, 
-          readData:Optional[Callable[[Any, list[int], int, int], int]]=None, writeData:Optional[Callable[[Any, list[int], int, int], None]]=None, 
+def registerDataAccessor(name:str, dataType:int=Type_Unknown, writable:int=-1,
+          readInt:Optional[Callable[[Any], int]]=None, writeInt:Optional[Callable[[Any, int], None]]=None,
+          readFloat:Optional[Callable[[Any], float]]=None, writeFloat:Optional[Callable[[Any, float], None]]=None,
+          readDouble:Optional[Callable[[Any], float]]=None, writeDouble:Optional[Callable[[Any, float], None]]=None,
+          readIntArray:Optional[Callable[[Any, list[int], int, int], int]]=None, writeIntArray:Optional[Callable[[Any, list[int], int, int], None]]=None,
+          readFloatArray:Optional[Callable[[Any, list[float], int, int], int]]=None, writeFloatArray:Optional[Callable[[Any, list[float], int, int], None]]=None,
+          readData:Optional[Callable[[Any, list[int], int, int], int]]=None, writeData:Optional[Callable[[Any, list[int], int, int], None]]=None,
           readRefCon:Any=None, writeRefCon:Any=None) -> XPLMDataRef:
     """
     Register data accessors for provided string name.
-    
+
     Provide one or more read/write callback functions which implement
     get/set access. If dataType is Type_Unknown, or writable is -1, we'll
     calculate their value to match provided callbacks.
-    
+
     Two optional refCon are available, to be passed to your get/set functions.
-    
-    * Scalar get callback functions take single (refCon) parameter 
+
+    * Scalar get callback functions take single (refCon) parameter
       and return the value.
-    * Scalar set callback functions take (refCon, value) parameters 
+    * Scalar set callback functions take (refCon, value) parameters
       with no return.
     * Vector gets take (refCon, values, offset, count), return # elements
       copied into values.
@@ -746,16 +748,16 @@ def unregisterDataAccessor(acccessor:XPLMDataRef) -> None:
     """
     ...
 
-def shareData(name:str, dataType:int, 
+def shareData(name:str, dataType:int,
           dataChanged:Optional[Callable[[Any], None]]=None, refCon:Any=None) -> int:
     """
     Create shared data ref with provided name and dataType.
-    
+
     Optionally provide a callback function which will be called whenever
     this data ref has been changed.
-    
+
     Callback takes single (refCon) parameter
-    
+
     Returns 1 on success 0 otherwise.
     """
     ...
@@ -771,7 +773,7 @@ def getDataRefsByIndex(offset:int=0, count:int=1) -> None | list[XPLMDataRef]:
     Returns list of dataRefs, each similar to return from xp.findDataRef().
     Use xp.getDataRefInfo() to access information about the dataref.
     As a special case, count=-1 returns all datarefs starting from offset to the end.
-    
+
     CAUTION: requesting datarefs greater than countDataRefs() returns garbage. If you
     try to use these, you may crash the sim.
     """
@@ -780,7 +782,7 @@ def getDataRefsByIndex(offset:int=0, count:int=1) -> None | list[XPLMDataRef]:
 def getDataRefInfo(dataRef:XPLMDataRef) -> XPLMDataRefInfo_t:
     """
     Return DataRefInfo object for provided dataRef.
-    
+
     XPLMDataRefInfo_t object is .name, .type, .writable, .owner
       recall type is a bitfield, see xp.getDataRefTypes()
     """
@@ -792,7 +794,7 @@ def unshareData(name:str, dataType:int, dataChanged:Optional[Callable[[Any], Non
     the callback will no longer be called on data changes.
     All parameter values must match those provided with shareData()
     in order to be successful.
-    
+
     Returns 1 on success, 0 otherwise
     """
     ...
@@ -800,50 +802,50 @@ def unshareData(name:str, dataType:int, dataChanged:Optional[Callable[[Any], Non
 def registerDrawCallback(draw:Callable[[XPLMDrawingPhase, int, Any], None | int], phase:XPLMDrawingPhase=Phase_Window, after:int=0, refCon:Any=None) -> int:
     """
     Registers  low-level drawing callback.
-    
+
     The after parameter indicates you want to be called before (0) or after (1) phase.
-    draw() callback function takes three parameters (phase, after, refCon), returning 
+    draw() callback function takes three parameters (phase, after, refCon), returning
     0 to suppress further X-Plane drawing in the phase, or 1 to allow X-Plane to finish.
     (Callback's value is ignored if after=1).
-    
+
     Registration returns 1 on success, 0 otherwise.
     """
     ...
 
-def registerAvionicsCallbacksEx(deviceId:XPLMDeviceID, 
-          before:Optional[Callable[[XPLMDeviceID, int, Any], int]]=None, 
-          after:Optional[Callable[[XPLMDeviceID, int, Any], int]]=None, 
+def registerAvionicsCallbacksEx(deviceId:XPLMDeviceID,
+          before:Optional[Callable[[XPLMDeviceID, int, Any], int]]=None,
+          after:Optional[Callable[[XPLMDeviceID, int, Any], int]]=None,
           refCon:Any=None,
-          bezelClick:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, 
-          bezelRightClick:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, 
-          bezelScroll:Optional[Callable[[int, int, int, int, Any], int]]=None, 
-          bezelCursor:Optional[Callable[[int, int, Any], XPLMCursorStatus]]=None, 
-          screenTouch:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, 
-          screenRightTouch:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, 
-          screenScroll:Optional[Callable[[int, int, int, int, Any], int]]=None, 
-          screenCursor:Optional[Callable[[int, int, Any], XPLMCursorStatus]]=None, 
+          bezelClick:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None,
+          bezelRightClick:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None,
+          bezelScroll:Optional[Callable[[int, int, int, int, Any], int]]=None,
+          bezelCursor:Optional[Callable[[int, int, Any], XPLMCursorStatus]]=None,
+          screenTouch:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None,
+          screenRightTouch:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None,
+          screenScroll:Optional[Callable[[int, int, int, int, Any], int]]=None,
+          screenCursor:Optional[Callable[[int, int, Any], XPLMCursorStatus]]=None,
           keyboard:Optional[Callable[[int, XPLMKeyFlags, int, Any, int], int]]=None) -> XPLMAvionicsID:
     """
     Registers draw callback for particular device.
-    
+
     Registers drawing callback(s) to enhance or replace X-Plane drawing. For
     'before' callback, return 1 to let X-Plane draw or 0 to suppress X-Plane
     drawing. Return value for 'after' callback is ignored.
-    
+
     Upon entry, OpenGL context will be correctly set in panel coordinates for 2d drawing.
     OpenGL state (texturing, etc.) will be unknwon.
-    
+
     Successful registration returns an AvionicsID.
-    
+
     """
     ...
 
 def unregisterAvionicsCallbacks(avionicsId:XPLMAvionicsID) -> None:
     """
     Unregisters avionics draw callback(s) associated with given avionicsId.
-    
+
     Does not return a value.
-    
+
     """
     ...
 
@@ -853,9 +855,9 @@ def getAvionicsHandle(deviceID:int) -> XPLMAvionicsID:
     handle which allows you to interact using other Avionics Device
     API. Use this if you do not wish to intercept drawing, clicks, or
     touches but want to interact with its popup programmatically.
-    
+
     Returns XPLMAvionicsID.
-    
+
     """
     ...
 
@@ -868,7 +870,7 @@ def isAvionicsBound(avionicsID:XPLMAvionicsID) -> int:
 def isCursorOverAvionics(avionicsID:XPLMAvionicsID) -> tuple[int, int] | None:
     """
     Is the cursor over the device with given avionicsID
-    
+
     Returns tuple (x, y) with position or None.
     """
     ...
@@ -877,7 +879,7 @@ def isAvionicsPopupVisible(avionicsID:XPLMAvionicsID) -> int:
     """
     Is the popup window for the device with given avionicsID visible?
     (It may or may not be popped out into an OS window.)
-    
+
     Returns 1 if true.
     """
     ...
@@ -949,11 +951,11 @@ def setAvionicsBrightnessRheo(avionicsID:XPLMAvionicsID, brightness:float=1.0) -
     """
     Sets brightness setting between 0 and 1 for the screen of
     this cockpit device.
-    
+
     If the device is bound to current aircraft, this is equivalent
     to 'sim/cockpit2/switches/instrument_brightness_ratio[]' dataref
     with the correct array slot for the bound device.
-    
+
     If the device is not bound, it sets brightness rheostat for the
     device alone, even though not connected to the dataref.
     """
@@ -968,21 +970,21 @@ def setAvionicsPopupVisible(avionicsID:XPLMAvionicsID, visible:int=1) -> None:
 def registerKeySniffer(sniffer:Callable[[int, XPLMKeyFlags, int, Any], int], before:int=0, refCon:Any=None) -> int:
     """
     Registers a key sniffer callback function.
-    
+
     sniffer() callback takes four parameters (key, flags, vKey, refCon) and
     should return 0 to consume the key, 1 to pass it to next sniffer or X-Plane.
-    
+
     before=1 will intercept keys before windows (i.e., the user may be typing in
     input field), so generally, use before=0 to sniff keys not already consumed.
-    
+
     refCon will be passed to your sniffer callback.
     """
     ...
 
-def unregisterDrawCallback(draw:Callable[[XPLMDrawingPhase, int, Any], None], phase:XPLMDrawingPhase=Phase_Window, after:int=0, refCon:Any=None) -> int:
+def unregisterDrawCallback(draw:Callable[[XPLMDrawingPhase, int, Any], None | int], phase:XPLMDrawingPhase=Phase_Window, after:int=0, refCon:Any=None) -> int:
     """
     Unregisters low-level drawing callback.
-    
+
     Parameters must match those provided  with registerDrawCallback().
     Returns 1 on success, 0 otherwise.
     """
@@ -991,51 +993,51 @@ def unregisterDrawCallback(draw:Callable[[XPLMDrawingPhase, int, Any], None], ph
 def unregisterKeySniffer(sniffer:Callable[[int, XPLMKeyFlags, int, Any], int], before:int=0, refCon:Any=None) -> int:
     """
     Unregisters key sniffer.
-    
+
     Parameters must match those provided with registerKeySniffer().
     Returns 1 on success, 0 otherwise.
     """
     ...
 
-def createAvionicsEx(screenWidth:int=100, screenHeight:int=200, bezelWidth:int=140, bezelHeight:int=250, 
-          screenOffsetX:int=20, screenOffsetY:int=25, drawOnDemand=0, 
-          bezelDraw:Optional[Callable[[float, float, float, Any], None]]=None, 
-          screenDraw:Optional[Callable[[Any], None]]=None, 
-          bezelClick:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, 
-          bezelRightClick:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, 
-          bezelScroll:Optional[Callable[[int, int, int, int, Any], int]]=None, 
-          bezelCursor:Optional[Callable[[int, int, Any], XPLMCursorStatus]]=None, 
-          screenTouch:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, 
-          screenRightTouch:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, 
-          screenScroll:Optional[Callable[[int, int, int, int, Any], int]]=None, 
-          screenCursor:Optional[Callable[[int, int, Any], XPLMCursorStatus]]=None, 
-          keyboard:Optional[Callable[[int, XPLMKeyFlags, int, Any, int], int]]=None, 
-          brightness:Optional[Callable[[float, float, float], float]]=None, 
-          deviceID:str="deviceID", deviceName:str="deviceName", 
+def createAvionicsEx(screenWidth:int=100, screenHeight:int=200, bezelWidth:int=140, bezelHeight:int=250,
+          screenOffsetX:int=20, screenOffsetY:int=25, drawOnDemand=0,
+          bezelDraw:Optional[Callable[[float, float, float, Any], None]]=None,
+          screenDraw:Optional[Callable[[Any], None]]=None,
+          bezelClick:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None,
+          bezelRightClick:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None,
+          bezelScroll:Optional[Callable[[int, int, int, int, Any], int]]=None,
+          bezelCursor:Optional[Callable[[int, int, Any], XPLMCursorStatus]]=None,
+          screenTouch:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None,
+          screenRightTouch:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None,
+          screenScroll:Optional[Callable[[int, int, int, int, Any], int]]=None,
+          screenCursor:Optional[Callable[[int, int, Any], XPLMCursorStatus]]=None,
+          keyboard:Optional[Callable[[int, XPLMKeyFlags, int, Any, int], int]]=None,
+          brightness:Optional[Callable[[float, float, float, float], float]]=None,
+          deviceID:str="deviceID", deviceName:str="deviceName",
           refCon:Any=None,) -> XPLMAvionicsID:
     """
     Creates glass cockpit device for 3D cockpit.
     With 12.0 you needed to call this within your XPluginStart callback
     to ensure your texture would be ready. Since 12.1, you may call this
     at anytime and X-Plane will retroactively map your display to it.
-    
+
     Returns new avionicsID.
     """
     ...
 
 def createWindowEx(left:int=100, top:int=200, right:int=200, bottom:int=100,
-          visible:int=0, 
+          visible:int=0,
           draw:Optional[Callable[[XPLMWindowID, Any], None]]=None,
-          click:Optional[Callable[[XPLMWindowID, int, int, XPLMMouseStatus, Any], int]]=None, 
-          key:Optional[Callable[[XPLMWindowID, int, int, int, Any, int], None]]=None, 
-          cursor:Optional[Callable[[XPLMWindowID, int, int, Any], XPLMCursorStatus]]=None, 
-          wheel:Optional[Callable[[XPLMWindowID, int, int, int, int, Any], int]]=None, 
-          refCon:Any=None, decoration:XPLMWindowDecoration=WindowDecorationRoundRectangle, 
-          layer:XPLMWindowLayer=WindowLayerFloatingWindows, 
+          click:Optional[Callable[[XPLMWindowID, int, int, XPLMMouseStatus, Any], int]]=None,
+          key:Optional[Callable[[XPLMWindowID, int, int, int, Any, int], None]]=None,
+          cursor:Optional[Callable[[XPLMWindowID, int, int, Any], XPLMCursorStatus]]=None,
+          wheel:Optional[Callable[[XPLMWindowID, int, int, int, int, Any], int]]=None,
+          refCon:Any=None, decoration:XPLMWindowDecoration=WindowDecorationRoundRectangle,
+          layer:XPLMWindowLayer=WindowLayerFloatingWindows,
           rightClick:Optional[Callable[[XPLMWindowID, int, int, XPLMMouseStatus, Any], int]]=None, ) -> XPLMWindowID:
     """
     Creates modern window
-    
+
     Callback functions are optional:
       draw(windowID, refCon) with no return value.
       key(windowID, key, flags, vKey, refCon, losingFocus) with no return value.
@@ -1043,15 +1045,15 @@ def createWindowEx(left:int=100, top:int=200, right:int=200, bottom:int=100,
       click(windowID, x, y, mouseStatus, refCon) with 1= consume click, else 0.
       rightClick(windowID, x, y, mouseStatus, refCon) with 1= consume click, else 0.
       wheel(windowID, x, y, wheel, clicks, refCon) with 1= consume click, else 0.
-    
+
     Returns new windowID.
     """
     ...
 
 def createWindow(left:int=100, top:int=200, right:int=200, bottom:int=100, visible:int=0,
           draw:Optional[Callable[[XPLMWindowID, Any], None]]=None,
-          key:Optional[Callable[[XPLMWindowID, int, int, int, Any, int], None]]=None, 
-          mouse:Optional[Callable[[XPLMWindowID, int, int, XPLMMouseStatus, Any], int]]=None, 
+          key:Optional[Callable[[XPLMWindowID, int, int, int, Any, int], None]]=None,
+          mouse:Optional[Callable[[XPLMWindowID, int, int, XPLMMouseStatus, Any], int]]=None,
           refCon:Any=None) -> XPLMWindowID:
     """
     (Deprecated do not use)
@@ -1080,7 +1082,7 @@ def getAllMonitorBoundsGlobal(bounds:Callable[[int, int, int, int, int, Any], No
     """
     Immediately calls bounds() callback once for each monitor to retrieve
     bounds for each monitor running full-screen simulator.
-    
+
     Callback function is
       bounds(index, left, top, right, bottom, refCon)
     """
@@ -1089,7 +1091,7 @@ def getAllMonitorBoundsGlobal(bounds:Callable[[int, int, int, int, int, Any], No
 def getAllMonitorBoundsOS(bounds:Callable[[int, int, int, int, int, Any], None], refCon:Any) -> None:
     """
     Immediately calls bounds() once for each monitor known to OS.
-    
+
     Callback function is
       bounds(index, refCon, left, top, right, bottom, refCon)
     """
@@ -1195,7 +1197,7 @@ def windowIsInVR(windowID:XPLMWindowID) -> int:
 def setWindowGravity(windowID:XPLMWindowID, left:int, top:int, right:int, bottom:int) -> None:
     """
     Set window's gravity (resize window, relative screen size changes.)
-    
+
     values typically range 0.0 - 1.0, and reflect how much the window's
     value will change relative to change in screen size.
     0.0 means zero change relative to the right side (for left/right edges)
@@ -1240,7 +1242,7 @@ def setWindowRefCon(windowID:XPLMWindowID, refCon:Any) -> None:
     """
     ...
 
-def takeKeyboardFocus(windowID:XPLMWindowID) -> None:
+def takeKeyboardFocus(windowID:XPLMWindowID | Literal[0]) -> None:
     """
     Take keyboard focus. 0 to send focus to X-Plane.
     """
@@ -1265,12 +1267,12 @@ def isWindowInFront(windowID:XPLMWindowID) -> int:
     """
     ...
 
-def registerHotKey(vkey:int, flags:XPLMKeyFlags=NoFlag, description:str='', 
-          hotKey:Optional[Callable[[Any], None]]=None, 
+def registerHotKey(vkey:int, flags:XPLMKeyFlags=NoFlag, description:str='',
+          hotKey:Optional[Callable[[Any], None]]=None,
           refCon:Any=None) -> XPLMHotKeyID:
     """
     Registers hot key.
-    
+
     Callback is hotKey(refCon), it does not need to return anything.
     Registration returns a hotKeyID, which can be used with unregisterHotKey()
     """
@@ -1279,7 +1281,7 @@ def registerHotKey(vkey:int, flags:XPLMKeyFlags=NoFlag, description:str='',
 def unregisterHotKey(hotKeyID:XPLMHotKeyID) -> None:
     """
     Unregisters hot key associated with hotKeyID.
-    
+
     hotKeyID must be registered to this plugin using registerHotKey()
     otherwise unregistration will fail.
     """
@@ -1300,7 +1302,7 @@ def getNthHotKey(index:int) -> XPLMHotKeyID:
 def getHotKeyInfo(hotKeyID:XPLMHotKeyID) -> None | HotKeyInfo:
     """
     Return object with hot key information.
-    
+
       .description
       .virtualKey
       .flags
@@ -1317,7 +1319,7 @@ def setHotKeyCombination(hotKeyID:XPLMHotKeyID, vKey:int, flags:XPLMKeyFlags=NoF
 def setGraphicsState(fog:int=0, numberTexUnits:int=0, lighting:int=0, alphaTesting:int=0, alphaBlending:int=0, depthTesting:int=0, depthWriting:int=0) -> None:
     """
     Change OpenGL's graphics state.
-    
+
     Use instead of any glEnable / glDisable calls.
     """
     ...
@@ -1325,7 +1327,7 @@ def setGraphicsState(fog:int=0, numberTexUnits:int=0, lighting:int=0, alphaTesti
 def bindTexture2d(textureID:int, textureUnit:int) -> None:
     """
     Changes currently bound OpenGL texture.
-    
+
     Use instead of glBindTexture(GL_TEXTURE_2D, ...)
     """
     ...
@@ -1333,7 +1335,7 @@ def bindTexture2d(textureID:int, textureUnit:int) -> None:
 def generateTextureNumbers(count:int=1) -> None | list[int]:
     """
     Generate number of textures for a plugin.
-    
+
     Returns list of numbers.
     """
     ...
@@ -1341,7 +1343,7 @@ def generateTextureNumbers(count:int=1) -> None | list[int]:
 def worldToLocal(lat:float, lon:float, alt:float=0.0) -> tuple[float, float, float]:
     """
     Convert Lat/Lon/Alt to local scene coordinates (x, y, z)
-    
+
     Latitude and longitude are decimal degrees, altitude is meters MSL.
     Returns (x, y, z) in meters, in local OpenGL coordinates.
     """
@@ -1350,7 +1352,7 @@ def worldToLocal(lat:float, lon:float, alt:float=0.0) -> tuple[float, float, flo
 def localToWorld(x:float, y:float, z:float) -> tuple[float, float, float]:
     """
     Convert local scene coordinates (x, y, z) into (lat, lon, alt)
-    
+
     Latitude and longitude are decimal degrees, altitude is meters MSL.
     """
     ...
@@ -1361,12 +1363,12 @@ def drawTranslucentDarkBox(left:int, top:int, right:int, bottom:int) -> None:
     """
     ...
 
-def drawString(rgb:Sequence[float]=(1., 1., 1.), 
-          x:int=0, y:int=0, value:str='', 
+def drawString(rgb:Sequence[float]=(1., 1., 1.),
+          x:int=0, y:int=0, value:str='',
           wordWrapWidth:Optional[int]=None, fontID:XPLMFontID=Font_Proportional) -> None:
     """
     Draw a string at location (x, y)
-    
+
     Default color is white (1., 1., 1.)
     """
     ...
@@ -1374,15 +1376,15 @@ def drawString(rgb:Sequence[float]=(1., 1., 1.),
 def drawNumber(rgb:Sequence[float]=(1., 1., 1.), x:int=0, y:int=0, value:float=0.0, digits:int=-1, decimals:int=0, showSign:int=1, fontID:XPLMFontID=Font_Proportional) -> None:
     """
     Draw a number at location (x, y)
-    
+
     Default color is white (1., 1., 1.)
     """
     ...
 
-def getFontDimensions(fontID:XPLMFontID) -> None | tuple[int, int, int]:
+def getFontDimensions(fontID:XPLMFontID) -> tuple[int, int, int]:
     """
     Get information about font
-    
+
     Returns (width, height, digitsOnly). Proportional fonts
     return hopefully average width.
     """
@@ -1397,7 +1399,7 @@ def measureString(fontID:XPLMFontID, string:str) -> float:
 def createInstance(obj:XPLMObjectRef, dataRefs:Optional[tuple[str]]=None) -> XPLMInstanceRef:
     """
     Create Instance for object retrieved by loadObject() or loadObjectAsync().
-    
+
     Provide list of string dataRefs to be registered for this object.
     Returns object instance, to be used with instanceSetPosition().
     """
@@ -1409,31 +1411,31 @@ def destroyInstance(instance:XPLMObjectRef) -> None:
     """
     ...
 
-def instanceSetPosition(instance:XPLMObjectRef, position:XPLMDrawInfo_t | tuple[float, float, float, float, float, float], 
+def instanceSetPosition(instance:XPLMObjectRef, position:XPLMDrawInfo_t | tuple[float, float, float, float, float, float],
           data:Optional[tuple[float]]=None) -> None:
     """
-    Update position (x, y, z, pitch, heading, roll), 
+    Update position (x, y, z, pitch, heading, roll),
     and all datarefs (<float>, <float>, ...)
-    
+
     You should provide values for all registered dataref, otherwise they'll
     be set to 0.0.
-    
+
     """
     ...
 
-def createMapLayer(mapType:str=MAP_USER_INTERFACE, 
-          layerType:XPLMMapLayerType=MapLayer_Markings, 
-          delete:Optional[Callable[[XPLMMapLayerID, Any], None]]=None, 
-          prep:Optional[Callable[[XPLMMapLayerID, float, XPLMMapProjectionID, Any], None]]=None, 
-          draw:Optional[Callable[[XPLMMapLayerID, float, float, float, XPLMMapStyle, XPLMMapProjectionID, Any], None]]=None, 
-          icon:Optional[Callable[[XPLMMapLayerID, float, float, float, XPLMMapStyle, XPLMMapProjectionID, Any], None]]=None, 
-          label:Optional[Callable[[XPLMMapLayerID, float, float, float, XPLMMapStyle, XPLMMapProjectionID, Any], None]]=None, 
-          showToggle:int=1, 
-          name:str='', 
+def createMapLayer(mapType:str=MAP_USER_INTERFACE,
+          layerType:XPLMMapLayerType=MapLayer_Markings,
+          delete:Optional[Callable[[XPLMMapLayerID, Any], None]]=None,
+          prep:Optional[Callable[[XPLMMapLayerID, float, XPLMMapProjectionID, Any], None]]=None,
+          draw:Optional[Callable[[XPLMMapLayerID, float, float, float, XPLMMapStyle, XPLMMapProjectionID, Any], None]]=None,
+          icon:Optional[Callable[[XPLMMapLayerID, float, float, float, XPLMMapStyle, XPLMMapProjectionID, Any], None]]=None,
+          label:Optional[Callable[[XPLMMapLayerID, float, float, float, XPLMMapStyle, XPLMMapProjectionID, Any], None]]=None,
+          showToggle:int=1,
+          name:str='',
           refCon:Any=None) -> XPLMMapLayerID:
     """
     Returns layerID of newly created map layer, setting callbacks.
-    
+
     If map does not currently exist, returns 0.
     """
     ...
@@ -1447,7 +1449,7 @@ def destroyMapLayer(layerID:XPLMMapLayerID) -> int:
 def registerMapCreationHook(mapCreated:Callable[[str, Any], None], refCon:Any=None) -> None:
     """
     Registers mapCreated() callback to notify you when a map is created.
-    
+
     Callback gets two parameters: (mapType, refCon)
     """
     ...
@@ -1455,7 +1457,7 @@ def registerMapCreationHook(mapCreated:Callable[[str, Any], None], refCon:Any=No
 def mapExists(mapType:str) -> int:
     """
     Returns 1 if mapType exists, 0 otherwise.
-    
+
     mapType is either xp.MAP_USER_INTERFACE or xp.MAP_IOS
     """
     ...
@@ -1463,7 +1465,7 @@ def mapExists(mapType:str) -> int:
 def drawMapIconFromSheet(layerID:XPLMMapLayerID, png:str, s:int, t:int, ds:int, dt:int, x:float, y:float, orientation:XPLMMapOrientation, rotationDegrees:float, mapWidth:float) -> None:
     """
     Draws icon into map layer.
-    
+
     Only valid within iconLayer() callback.
     """
     ...
@@ -1471,7 +1473,7 @@ def drawMapIconFromSheet(layerID:XPLMMapLayerID, png:str, s:int, t:int, ds:int, 
 def drawMapLabel(layerID:XPLMMapLayerID, text:str, x:float, y:float, orientation:XPLMMapOrientation, rotationDegrees:float) -> None:
     """
     Draws label within map layer.
-    
+
     Only valid within labelLayer() callback.
     """
     ...
@@ -1479,7 +1481,7 @@ def drawMapLabel(layerID:XPLMMapLayerID, text:str, x:float, y:float, orientation
 def mapProject(projection:XPLMMapProjectionID, latitude:float, longitude:float) -> None | tuple[float, float]:
     """
     Returns map layer (x, y) for given latitude, longitude.
-    
+
     Only valid within map layer callbacks.
     """
     ...
@@ -1487,7 +1489,7 @@ def mapProject(projection:XPLMMapProjectionID, latitude:float, longitude:float) 
 def mapUnproject(projection:XPLMMapProjectionID, x:float, y:float) -> None | tuple[int, int]:
     """
     Returns latitude, longitude for given map coordinates.
-    
+
     Only valid within map layer callbacks.
     """
     ...
@@ -1495,7 +1497,7 @@ def mapUnproject(projection:XPLMMapProjectionID, x:float, y:float) -> None | tup
 def mapScaleMeter(projection:XPLMMapProjectionID, x:float, y:float) -> float:
     """
     Returns number of units for 'one meter' using current projection.
-    
+
     Only valid within map layer callbacks.
     """
     ...
@@ -1503,7 +1505,7 @@ def mapScaleMeter(projection:XPLMMapProjectionID, x:float, y:float) -> float:
 def mapGetNorthHeading(projection:XPLMMapProjectionID, x:float, y:float) -> float:
     """
     Returns mapping angle for map projection at point.
-    
+
     Only valid within map layer callbacks.
     """
     ...
@@ -1517,16 +1519,16 @@ def findPluginsMenu() -> XPLMMenuID:
 def findAircraftMenu() -> XPLMMenuID:
     """
     Returns menuID of currently loaded aircraft plugins menu.
-    
+
     Note this is always 'None' for XPPython3.
     """
     ...
 
-def createMenu(name:Optional[str]=None, parentMenuID:Optional[XPLMMenuID]=None, parentItem:Optional[int]=0, 
+def createMenu(name:Optional[str]=None, parentMenuID:Optional[XPLMMenuID]=None, parentItem:Optional[int]=0,
           handler:Optional[Callable[[Any, Any], None]]=None, refCon:Optional[Any]=None) -> None | XPLMMenuID:
     """
     Creates menu, returning menuID or None on error.
-    
+
     parentMenuID=None adds menu to PluginsMenu.
     """
     ...
@@ -1546,7 +1548,7 @@ def clearAllMenuItems(menuID:Optional[XPLMMenuID]) -> None:
 def appendMenuItem(menuID:Optional[XPLMMenuID]=None, name:str='Item', refCon:Any=None) -> int:
     """
     Appends new menu item to end of existing menuID.
-    
+
     Returns index for created menu item or -1 on error.
     """
     ...
@@ -1554,17 +1556,17 @@ def appendMenuItem(menuID:Optional[XPLMMenuID]=None, name:str='Item', refCon:Any
 def appendMenuItemWithCommand(menuID:Optional[XPLMMenuID]=None, name:str='Command', commandRef:Any=None) -> int:
     """
     Adds menu item to existing menuID, and executes commandRef when selected.
-    
+
     Returns index for created menu item or -1 on error.
     """
     ...
 
-def appendMenuSeparator(menuID:XPLMMenuID=None) -> None | int:
+def appendMenuSeparator(menuID:Optional[XPLMMenuID]=None) -> None | int:
     """
     Adds separator to end of menu.
-    
+
     Returns index of created item for XP11, None for XP12
-    
+
     """
     ...
 
@@ -1577,29 +1579,29 @@ def setMenuItemName(menuID:Optional[XPLMMenuID]=None, index:int=0, name:str='New
 def checkMenuItem(menuID:Optional[XPLMMenuID]=None, index:int=0, checked:XPLMMenuCheck=Menu_Checked) -> None:
     """
     Set checkmark for given menu item.
-    
+
       Menu_NoCheck = 0
       Menu_UnChecked = 1
       Menu_Checked = 2
-    
+
     """
     ...
 
 def checkMenuItemState(menuID:Optional[XPLMMenuID], index:int=0) -> int:
     """
     Returns menu item checked state.
-    
+
       Menu_NoCheck = 0
       Menu_UnChecked = 1
       Menu_Checked = 2
-    
+
     """
     ...
 
 def enableMenuItem(menuID:Optional[XPLMMenuID]=None, index:int=0, enabled:int=1) -> None:
     """
     Enables menu item
-    
+
     Use enabled=0 to disable item, 1 to enable
     """
     ...
@@ -1607,7 +1609,7 @@ def enableMenuItem(menuID:Optional[XPLMMenuID]=None, index:int=0, enabled:int=1)
 def removeMenuItem(menuID:Optional[XPLMMenuID]=None, index:int=0) -> None:
     """
     Removes one item from menu.
-    
+
     Note that all menu items below are moved up one index.
     """
     ...
@@ -1627,7 +1629,7 @@ def getNextNavAid(navRef:XPLMNavRef) -> int:
 def findFirstNavAidOfType(navType:XPLMNavType) -> int:
     """
     Returns navRef of first navAid of given type.
-    
+
     Types are:
       Nav_Unknown        =0
       Nav_Airport        =1
@@ -1643,7 +1645,7 @@ def findFirstNavAidOfType(navType:XPLMNavType) -> int:
       Nav_DME         =1024
       Nav_LatLon      =2048
       Nav_TACAN       =4096
-    
+
     """
     ...
 
@@ -1653,11 +1655,11 @@ def findLastNavAidOfType(navType:XPLMNavType) -> int:
     """
     ...
 
-def findNavAid(name:Optional[str], navAidID:Optional[str], lat:Optional[float], 
+def findNavAid(name:Optional[str], navAidID:Optional[str], lat:Optional[float],
           lon:Optional[float], freq:Optional[int], navType:XPLMNavType=Nav_Any) -> XPLMNavRef:
     """
     Returns navRef of last navAid matching information.
-    
+
     name and navAidID are case-sensitive and will match a fragment of the actual value.
     freq is an integer, 100x the real frequency value (eg. 137.75 -> 13775) except for NDB.
     navType=0xffffffff will match any type value
@@ -1667,7 +1669,7 @@ def findNavAid(name:Optional[str], navAidID:Optional[str], lat:Optional[float],
 def getNavAidInfo(navRef:XPLMNavRef) -> NavAidInfo:
     """
     Returns NavAidInfo object for given navRef
-    
+
     Attibutes are:
      .type        # a NavType
      .latitude
@@ -1713,7 +1715,7 @@ def setDestinationFMSEntry(index:int) -> None:
 def getFMSEntryInfo(index:int) -> FMSEntryInfo:
     """
     Return FMSEntryInfo object for given FMS Entry index.
-    
+
     Attributes are:
      .type      # a NavType
      .navAidID
@@ -1763,7 +1765,7 @@ def countFMSFlightPlanEntries(flightPlan:XPLMNavFlightPlan) -> int:
       Fpl_CoPilot_Approach
       Fpl_Pilot_Temporary
       Fpl_CoPilot_Temporary
-    
+
     """
     ...
 
@@ -1802,7 +1804,7 @@ def setDirectToFMSFlightPlanEntry(flightPlan:XPLMNavFlightPlan, index:int) -> No
 def getFMSFlightPlanEntryInfo(flightPlan:XPLMNavFlightPlan, index:int) -> FMSEntryInfo:
     """
     Returns FMSEntryInfo object for give FMS index for this flightplan.
-    
+
     Attributes are:
      .type      # a NavType
      .navAidID
@@ -1825,7 +1827,7 @@ def setFMSFlightPlanEntryLatLon(flightPlan:XPLMNavFlightPlan, index:int, lat:flo
     """
     ...
 
-def setFMSFlightPlanEntryLatLonWithId(flightPlan:XPLMNavFlightPlan, index:int, lat:float, lon:float, altitude:int=0, ID:str=None) -> None:
+def setFMSFlightPlanEntryLatLonWithId(flightPlan:XPLMNavFlightPlan, index:int, lat:float, lon:float, altitude:int=0, ID:Optional[str]=None) -> None:
     """
     Sets entry in the FMS to a lat/lon entry, with the given coordinates
     and display ID for the waypoint.
@@ -1854,7 +1856,7 @@ def saveFMSFlightPlan(device:Optional[int]=0) -> str:
 def setUsersAircraft(path:str) -> None:
     """
     Change the user's aircraft and reinitialize.
-    
+
     path is either relative X-Plane root, or fully qualified,
     including the .acf extension.
     """
@@ -1863,7 +1865,7 @@ def setUsersAircraft(path:str) -> None:
 def placeUserAtAirport(code:str) -> None:
     """
     Place user at given airport, specified by ICAO code.
-    
+
     Invalid airport code will crash the sim.
     """
     ...
@@ -1871,7 +1873,7 @@ def placeUserAtAirport(code:str) -> None:
 def placeUserAtLocation(latitude:float, longitude:float, elevation:float, heading:float, speed:float) -> None:
     """
     Place user aircraft at location with engines running.
-    
+
     elevation is meters, heading is True, speed is meters per second
     """
     ...
@@ -1891,7 +1893,7 @@ def getNthAircraftModel(index:int) -> tuple[str, str]:
 def acquirePlanes(aircraft:Optional[Sequence[str]]=None, callback:Optional[Callable[[Any], None]]=None, refCon:Any=None) -> int:
     """
     Get exclusive access to aircraft.
-    
+
     1 on success, 0 otherwise. You callback will be called
     with refCon if acquirePlanes() is not immediately successful.
     """
@@ -1906,7 +1908,7 @@ def releasePlanes() -> None:
 def setActiveAircraftCount(count:int) -> None:
     """
     Set number of active planes.
-    
+
     Only sets up to number of available planes. You must
     first have access -- acquirePlanes().
     """
@@ -1915,7 +1917,7 @@ def setActiveAircraftCount(count:int) -> None:
 def setAircraftModel(index:int, path:str) -> None:
     """
     Load aircraft model into index. (Do not use index=0)
-    
+
     Path is absolute, or relative to X-Plane root.
     """
     ...
@@ -1923,7 +1925,7 @@ def setAircraftModel(index:int, path:str) -> None:
 def disableAIForPlane(index:int) -> None:
     """
     Turn off AI for given airplane.
-    
+
     Plane will continue to draw, but will not move itself.
     """
     ...
@@ -1931,7 +1933,7 @@ def disableAIForPlane(index:int) -> None:
 def getMyID() -> int:
     """
     Returns plugin ID of calling plugin.
-    
+
     For XPPython3, this is *always* the ID of the XPPython3 plugin
     not any particular python plugin.
     """
@@ -1952,7 +1954,7 @@ def getNthPlugin(index:int) -> XPLMPluginID:
 def findPluginByPath(path:str) -> XPLMPluginID:
     """
     Return pluginID of (non-python) plugin whose file exists at path.
-    
+
     Path must be absolute.
     """
     ...
@@ -1966,7 +1968,7 @@ def findPluginBySignature(signature:str) -> XPLMPluginID:
 def getPluginInfo(pluginID:XPLMPluginID) -> PluginInfo:
     """
     Return information about plugin.
-    
+
     Return value is an object with attributes:
       .name
       .filePath
@@ -1996,7 +1998,7 @@ def disablePlugin(pluginID:XPLMPluginID) -> None:
 def reloadPlugins() -> None:
     """
     Reload *all* plugins.
-    
+
     Likely crashes the sim. DO NOT USE.
     """
     ...
@@ -2004,7 +2006,7 @@ def reloadPlugins() -> None:
 def sendMessageToPlugin(pluginID:XPLMPluginID, message:int, param:Optional[Any]) -> None:
     """
     Send message to plugin
-    
+
     Messages sent to XPPython3 plugin will be forwarded to all
     python plugins.
     """
@@ -2031,7 +2033,7 @@ def enableFeature(feature:str, enable:int=1) -> None:
 def enumerateFeatures(enumerator:Callable[[str, Any], None], refCon:Any=None) -> None:
     """
     Enumerate supported features
-    
+
     You callback takes (name, refCon) as parameters
     """
     ...
@@ -2051,10 +2053,10 @@ def getCycleNumber() -> int:
 def registerFlightLoopCallback(callback:Callable[[float, float, int, Any], float], interval:float=0.0, refCon:Any=None) -> None:
     """
     Register flight loop callback.
-    
+
     interval indicates when you'll be called next:
-      0= deactivate 
-      >0 seconds 
+      0= deactivate
+      >0 seconds
       <0 flightLoops
     Callback function gets (lastCall, elapsedTime, counter, refCon)
     """
@@ -2063,7 +2065,7 @@ def registerFlightLoopCallback(callback:Callable[[float, float, int, Any], float
 def unregisterFlightLoopCallback(callback:Callable[[float, float, int, Any], float], refCon:Any=None) -> None:
     """
     Unregisters flightloop matching callback and refCon.
-    
+
     Input must match that provided to registerFlightLoopCallback().
     """
     ...
@@ -2071,16 +2073,16 @@ def unregisterFlightLoopCallback(callback:Callable[[float, float, int, Any], flo
 def setFlightLoopCallbackInterval(callback:Callable[[float, float, int, Any], float], interval:float=0.0, relativeToNow:int=1, refCon:Any=None) -> None:
     """
     Change interval associated with callback, refCon.
-    
+
     Must have been previously registered with registerFlightLoopCallback()
     """
     ...
 
-def createFlightLoop(callback:Callable[[float, float, int, Any], float], 
+def createFlightLoop(callback:Callable[[float, float, int, Any], float],
           phase:XPLMFlightLoopPhaseType=FlightLoop_Phase_BeforeFlightModel, refCon:Any=None) -> XPLMFlightLoopID:
     """
     Create flight loop, returning flightLoopID
-    
+
     Callback take (sinceLast, elapsedTime, counter, refCon)
     returning interval (0=stop, >0 seconds, <0 flightloops)
     phase is 0=before or 1=After flight model integration
@@ -2102,7 +2104,7 @@ def destroyFlightLoop(flightLoopID:XPLMFlightLoopID) -> None:
 def scheduleFlightLoop(flightLoopID:XPLMFlightLoopID, interval:float=0.0, relativeToNow:int=1) -> None:
     """
     Change interval associated with flight loop
-    
+
       0= stop
       >0 seconds
       <0 flightLoops
@@ -2126,7 +2128,7 @@ def destroyProbe(probe:XPLMProbeType) -> None:
 def probeTerrainXYZ(probeRef:XPLMProbeRef, x:float, y:float, z:float) -> XPLMProbeInfo_t:
     """
     Probe terrain using probeRef at (x, y, z) location
-    
+
     Object returned as attributes:
       .result:    0=Hit, 1=Error, 2=Missed
       .locationX,
@@ -2163,7 +2165,7 @@ def degMagneticToDegTrue(degrees:float=0.0) -> float:
 def loadObject(path:str) -> XPLMObjectRef:
     """
     Load OBJ file from path, returning objectRef
-    
+
     Path may be absolute, or relative X-Plane Root
     """
     ...
@@ -2171,7 +2173,7 @@ def loadObject(path:str) -> XPLMObjectRef:
 def loadObjectAsync(path:str, loaded:Callable[[XPLMObjectRef, Any], None], refCon:Any=None) -> None:
     """
     Loads OBJ asynchronously, calling callback on completion.
-    
+
     Callback signature is loaded(objecRef, refCon)
     Object path is absolute or relative X-Plane root.
     """
@@ -2183,11 +2185,11 @@ def unloadObject(objectRef:XPLMObjectRef) -> None:
     """
     ...
 
-def lookupObjects(path:str, latitude:float=0.0, longitude:float=0.0, 
+def lookupObjects(path:str, latitude:float=0.0, longitude:float=0.0,
           enumerator:Optional[Callable[[str, Any], None]]=None, refCon:Any=None) -> int:
     """
     Converts virtual path to file paths, calling enumerator with info
-    
+
     Path is virual path, which may have zero or more matching file paths
     in library. Count of results is returned by lookupObjects().
     For each item found, enumerator(path, refCon) is called.
@@ -2209,7 +2211,7 @@ def getFMODChannelGroup(audioType:XPLMAudioBus) -> FMOD_CHANNELGROUP:
     """
     ...
 
-def playPCMOnBus(audioBuffer:Any, bufferSize:int, soundFormat:int, freqHz:int, numChannels:int, loop:int=0, 
+def playPCMOnBus(audioBuffer:Any, bufferSize:int, soundFormat:int, freqHz:int, numChannels:int, loop:int=0,
           audioType:XPLMAudioBus=AudioUI, callback:Optional[Callable[[Any, int], None]]=None, refCon:Any=None) -> None | FMODChannel:
     """
     Play provided data, of length bufferSize on the bus indicatedd by audioType. On
@@ -2217,7 +2219,7 @@ def playPCMOnBus(audioBuffer:Any, bufferSize:int, soundFormat:int, freqHz:int, n
      * soundFormat is # bytes per frame 1=8bit, 2=16bit, etc.
      * freqHz is sample framerate, e.g., 800, 22000, 44100
      * numChannels is e.g., 1=mono, 2=stereo
-    
+
     Return audio FMODChannel on success.
     """
     ...
@@ -2227,14 +2229,14 @@ def stopAudio(channel:FMOD_CHANNEL) -> int:
     Stop playing an active FMOD channel. If you defined a completion callback,
     this will be called. After this, the FMOD::Channel* will no longer be valid
     and must not be used in any future calls
-    
+
     Returns FMOD_RESULT, 0= FMOD_OK
     """
     ...
 
 def setAudioPosition(channel:FMOD_CHANNEL, position:Sequence[float], velocity:Optional[Sequence[float]]=None) -> int:
     """
-    For audio channel, set position (for panning and attenuation) 
+    For audio channel, set position (for panning and attenuation)
     and velocity (for use with doppler).
      * position is OpenGL position (x, y, z) -- list of three float.
      * velocity is (meters/second) change in each (x, y, z) direction. None = (0, 0, 0)
@@ -2248,13 +2250,13 @@ def setAudioFadeDistance(channel:FMOD_CHANNEL, min_distance:float=1.0, max_dista
     will be at it's maximum. As the listener moves from the minimum distance to the
     maximum distance, the sound will attenuate. When outside the maximum distance
     the sound will no longer attenuate.
-    
+
     Use minimum distance to give the impression that the sound is loud or soft: Small
-    quiet objects such as a bumblebee, set minimum to 0.1. This would cause it to 
+    quiet objects such as a bumblebee, set minimum to 0.1. This would cause it to
     attenuate quickly and dissapear when only a few meters away. A jumbo jet minimum
     might be 100 meters, thereby maintaining maximum volume until 100 meters away, with
     fade out over the next hundred meters.
-    
+
     Maximum distance is effectively obsolete unless you need the sound to stop fading
     at a certain point. Do not adjust this from the default if you don't need to. Do
     not confuse maximum distance as the point where the sound will fade to zero, this
@@ -2300,7 +2302,7 @@ def drawWindow(left:int, bottom:int, right:int, top:int, style:XPWindowStyle=Win
 def getWindowDefaultDimensions(style:XPWindowStyle=Window_MainWindow) -> tuple[int, int]:
     """
     Default dimension for indicated style
-    
+
     Returns (width, height)
     """
     ...
@@ -2314,7 +2316,7 @@ def drawElement(left:int, bottom:int, right:int, top:int, style:XPElementStyle, 
 def getElementDefaultDimensions(style:XPElementStyle) -> tuple[int, int, int]:
     """
     Default dimension for indicated element
-    
+
     Returns (width, height, canBeLit)
     """
     ...
@@ -2322,7 +2324,7 @@ def getElementDefaultDimensions(style:XPElementStyle) -> tuple[int, int, int]:
 def drawTrack(left:int, bottom:int, right:int, top:int, minValue:int, maxValue:int, value:int, style:XPTrackStyle, lit:int=0) -> None:
     """
     Draw track at location, with min/max values and current value.
-    
+
     Track may be 'reversed' if minValue > maxValue.
     Styles are:
       Track_Scrollbar=0
@@ -2334,7 +2336,7 @@ def drawTrack(left:int, bottom:int, right:int, top:int, minValue:int, maxValue:i
 def getTrackDefaultDimensions(style:XPTrackStyle) -> tuple[int, int]:
     """
     Default dimension for indicated track style
-    
+
     Returns (width, canBeLit)
     """
     ...
@@ -2342,7 +2344,7 @@ def getTrackDefaultDimensions(style:XPTrackStyle) -> tuple[int, int]:
 def getTrackMetrics(left:int, bottom:int, right:int, top:int, minValue:int, maxValue:int, value:int, style:XPTrackStyle) -> TrackMetrics:
     """
     Return object with metrics about track
-    
+
     Object attributes are:
       .isVertical
       .downBtnSize
@@ -2386,7 +2388,7 @@ def getPrefsPath() -> str:
 def getDirectorySeparator() -> str:
     """
     Get string used for directory separator for the current platform.
-    
+
     Don't use this, use python os.path.join() related routines.
     """
     ...
@@ -2394,7 +2396,7 @@ def getDirectorySeparator() -> str:
 def extractFileAndPath(fullPath:str) -> tuple[str, str]:
     """
     Given a full path, separate path from file
-    
+
     Don't use this, use os.path routines instead
     """
     ...
@@ -2402,7 +2404,7 @@ def extractFileAndPath(fullPath:str) -> tuple[str, str]:
 def getDirectoryContents(dir:str, firstReturn:int=0, bufSize:int=2048, maxFiles:int=100) -> tuple[int, list[str], int]:
     """
     Get contents (files and subdirectories) of directory
-    
+
     Don't use this, use python os.walk() or glob.glob() instead.
     """
     ...
@@ -2410,7 +2412,7 @@ def getDirectoryContents(dir:str, firstReturn:int=0, bufSize:int=2048, maxFiles:
 def getVersions() -> tuple[int, int, int]:
     """
     Return tuple with (X-Plane, XPLM SDK, and hostID)
-    
+
     Host ID is either XPlane=1 or Unknown=0
     """
     ...
@@ -2424,7 +2426,7 @@ def getLanguage() -> int:
 def debugString(string:str) -> None:
     """
     Write string to 'Log.txt' file, with immediate buffer flush
-    
+
     Use xp.systemLog() instead, to add newline and prefix with your
     plugin's name instead. Use xp.log() to write to XPPython3Log.txt file
     """
@@ -2433,7 +2435,7 @@ def debugString(string:str) -> None:
 def setErrorCallback(callback:Callable[[str], None]) -> None:
     """
     Install error-reporting callback for your plugin
-    
+
     Likely not useful for python debugging.
     """
     ...
@@ -2447,7 +2449,7 @@ def findSymbol(symbol:str) -> int:
 def loadDataFile(fileType:XPLMDataFileType, path:str) -> int:
     """
     Load data file given by path
-    
+
     fileType is:
       DataFile_Situation   = 1
       DataFile_ReplayMovie = 2
@@ -2459,7 +2461,7 @@ def loadDataFile(fileType:XPLMDataFileType, path:str) -> int:
 def saveDataFile(fileType:XPLMDataFileType, path:str) -> int:
     """
     Saves data file to disk.
-    
+
     fileType is:
       DataFile_Situation   = 1
       DataFile_ReplayMovie = 2
@@ -2501,7 +2503,7 @@ def createCommand(name:str, description:Optional[str]=None) -> XPLMCommandRef:
 def registerCommandHandler(commandRef:XPLMCommandRef, callback:Callable[[XPLMCommandRef, XPLMCommandPhase, Any], int], before:int=1, refCon:Any=None) -> None:
     """
     Register a callback for given commandRef
-    
+
     command callback is (commandRef, phase, refCon) and should return 0
        to halt processing, or 1 to let X-Plane continue with other callbacks.
        phase indicates current phase of command execution 0=Begin, 1=Continue, 2=End.
@@ -2518,7 +2520,7 @@ def unregisterCommandHandler(commandRef:XPLMCommandRef, callback:Callable[[XPLMC
 def getMETARForAirport(airport_id:str) -> str:
     """
     Returns 'last known' METAR report for given airport.
-    
+
     Note the actual weather may have evolved significantly since
     the last downloaded METAR.
     """
@@ -2529,17 +2531,17 @@ def getWeatherAtLocation(latitude:float, longitude:float, altitude_m:float) -> N
     Returns current weather conditions at given location.
     Note this appears to work world-wide, though accuracy suffers with distance from current
     position.
-    
+
     Returns WeatherInfo object on success, None otherwise. This call
     is not intended to be used per-frame.
     """
     ...
 
-def createWidget(left:int, top:int, right:int, bottom:int, visible:int, descriptor:str, isRoot:int, 
+def createWidget(left:int, top:int, right:int, bottom:int, visible:int, descriptor:str, isRoot:int,
           container:XPWidgetID | Literal[0], widgetClass:XPWidgetClass) -> XPWidgetID:
     """
     Create widget of class at location
-    
+
     isRoot=1 if widget is a root widget, container is None or widgetID of parent widget
     widgetClass is one of predefined classes:
       WidgetClass_MainWindow
@@ -2551,15 +2553,15 @@ def createWidget(left:int, top:int, right:int, bottom:int, visible:int, descript
       WidgetClass_GeneralGraphics
       WidgetClass_Progress
     Returns created widgetID
-    
+
     """
     ...
 
-def createCustomWidget(left:int, top:int, right:int, bottom:int, visible:int, descriptor:str, isRoot:int, container:Optional[XPWidgetID], 
+def createCustomWidget(left:int, top:int, right:int, bottom:int, visible:int, descriptor:str, isRoot:int, container:Optional[XPWidgetID],
           callback:Callable[[XPWidgetMessage, XPWidgetID, int, int], int]) -> XPWidgetID:
     """
     Create widget at location, with custom callback
-    
+
     callback is (message, widget, param1, param2) returning 1 if you've handled
        the message, 0 otherwise.
     Returns created widgetID
@@ -2617,7 +2619,7 @@ def hideWidget(widgetID:XPWidgetID) -> None:
 def isWidgetVisible(widgetID:XPWidgetID) -> int:
     """
     Return 1 if widget is visible
-    
+
     Widget must be itself visible and contained in visible parent.
     Note if widget is outside of parent's geometry it may be clipped
     being reported 'visible' yet still not seen by user.
@@ -2627,7 +2629,7 @@ def isWidgetVisible(widgetID:XPWidgetID) -> int:
 def findRootWidget(widgetID:XPWidgetID) -> XPWidgetID:
     """
     Return top-most widget container for given widgetID
-    
+
     If widget is root widget, it will return itself.
     """
     ...
@@ -2659,7 +2661,7 @@ def setWidgetGeometry(widgetID:XPWidgetID, left:int, top:int, right:int, bottom:
 def getWidgetForLocation(container:XPWidgetID, xOffset:int, yOffset:int, recursive:int=1, visibleOnly:int=1) -> XPWidgetID:
     """
     Return widgetID of the child widget within the container widget at offset
-    
+
     offsets are global coordinates, not relative bounding box of container.
     recursive=1 indicates find 'deepest' child widget
     visibleOnly=1 indicates only visible widgets are considered
@@ -2696,14 +2698,14 @@ def setWidgetProperty(widgetID:XPWidgetID, propertyID:XPWidgetPropertyID | int, 
     """
     ...
 
-def getWidgetProperty(widgetID:XPWidgetID, propertyID:XPWidgetPropertyID | int, exists:int=-1) -> Any:
+def getWidgetProperty(widgetID:XPWidgetID, propertyID:XPWidgetPropertyID | int, exists: None | int=-1) -> Any:
     """
     Returns widget's property value. For XP properties, it is a long, for
     User-defined properties, it can be any python object.
-    
+
     Raise ValueError if exists=-1 and property does not exist / has not been set
     Set exists=None if you don't care if property exists (value will be 0)
-    Set exists to a list object, and we'll set it to [1,] if property exists, 
+    Set exists to a list object, and we'll set it to [1,] if property exists,
       [0, ] otherwise
     """
     ...
@@ -2729,7 +2731,7 @@ def getWidgetWithFocus() -> XPWidgetID:
 def addWidgetCallback(widgetID:XPWidgetID, callback:Callable[[XPWidgetMessage, XPWidgetID, int, int], int]) -> None:
     """
     Add callback to widgetID
-    
+
     Callback has signature (message, widgetID, param1, param2). See
     createCustomWidget()
     """
@@ -2738,7 +2740,7 @@ def addWidgetCallback(widgetID:XPWidgetID, callback:Callable[[XPWidgetMessage, X
 def getWidgetClassFunc(widgetID:XPWidgetID) -> int:
     """
     Given widgetClass, return underlying function.
-    
+
     Not useful with python. Use addWidgetCalback() instead.
     """
     ...
@@ -2758,7 +2760,7 @@ def moveWidgetBy(widgetID:XPWidgetID, dx:int=0, dy:int=0) -> None:
 def fixedLayout(message:XPWidgetMessage, widgetID:XPWidgetID, param1:int, param2:int) -> int:
     """
     Use this as a widgetCallback to have child widgets maintain relative positions
-    
+
     Seems to be completely useless with X-Plane 11.55+
     """
     ...
@@ -2766,7 +2768,7 @@ def fixedLayout(message:XPWidgetMessage, widgetID:XPWidgetID, param1:int, param2
 def selectIfNeeded(message:XPWidgetMessage, widgetID:XPWidgetID, param1:int, param2:int, eatClick:int=1) -> int:
     """
     Call within widget Callback to raise widget, if not already
-    
+
     Seems completely useless with X-Plane 11.55+
     """
     ...
@@ -2774,7 +2776,7 @@ def selectIfNeeded(message:XPWidgetMessage, widgetID:XPWidgetID, param1:int, par
 def defocusKeyboard(message:XPWidgetMessage, widgetID:XPWidgetID, param1:int, param2:int, eatClick:int=1) -> int:
     """
     Send keyboard focus back to X-Plane
-    
+
     Seems completely useless in X-Plane 11.55
     """
     ...
@@ -2782,7 +2784,7 @@ def defocusKeyboard(message:XPWidgetMessage, widgetID:XPWidgetID, param1:int, pa
 def dragWidget(message:XPWidgetMessage, widgetID:XPWidgetID, param1:int, param2:int, left:int, top:int, right:int, bottom:int) -> int:
     """
     Add to your widget callback to support drag areas
-    
+
     (left, top, right, bottom) define area within your widget where, if drag
     is initiated, this callback will cause the widget to move.
     """
@@ -2791,7 +2793,7 @@ def dragWidget(message:XPWidgetMessage, widgetID:XPWidgetID, param1:int, param2:
 def reloadPlugin(signature:str) -> None:
     """
     Reload (python) plugin with provided signature
-    
+
     Plugin will be disabled, stopped, reloaded, then
     started and enabled.
     """
@@ -2800,7 +2802,7 @@ def reloadPlugin(signature:str) -> None:
 def getPluginStats() -> dict:
     """
     Return dictionary of python plugin performance statistics
-    
+
     Keys are different python plugins, with key=None being
     overall performance of XPPython3 plugin.
     """
@@ -2809,7 +2811,7 @@ def getPluginStats() -> dict:
 def pythonGetDicts() -> dict:
     """
     Return dictionary of internal xppython3 dictionaries
-    
+
     See documentation, intended for debugging only
     """
     ...
@@ -2829,7 +2831,7 @@ def systemLog(s:Optional[str]=None) -> None:
 def pythonGetCapsules() -> dict:
     """
     Returns internal dictionary of Capsules
-    
+
     Intended for debugging only
     """
     ...
@@ -2837,8 +2839,7 @@ def pythonGetCapsules() -> dict:
 def derefCapsule(capsule_type:str, capsule:Any) -> int:
     """
     Dereference a capsule to retrieve internal C language pointer
-    
+
     Intended for debugging only
     """
     ...
-

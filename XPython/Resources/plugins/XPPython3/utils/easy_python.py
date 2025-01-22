@@ -1,7 +1,7 @@
-from XPPython3 import xp
-from typing import Any
+from typing import Any, Self, cast, Optional
+from XPPython3 import xp, internals
 from XPPython3.utils import xlua
-from XPPython3 import internals
+from XPPython3.xp_typing import PythonInterfaceType, XPLMFlightLoopID
 import inspect
 import os
 
@@ -45,7 +45,7 @@ class EasyPython:
     #     after_replay() - called every frame that the sim is in replay mode, regardless of pause status.
     #
 
-    def __init__(self):
+    def __init__(self: Self) -> None:
         self.name = os.path.basename(inspect.getfile(self.__class__))
         self.signature = f"easypython.{self.name}"
         self.description = self.name
@@ -56,10 +56,10 @@ class EasyPython:
         self.no_after_replay = False
         self.no_after_physics = False
         self.no_before_physics = False
-        self._startflightloop_before = None
-        self._startflightloop_after = None
+        self._startflightloop_before: Optional[XPLMFlightLoopID] = None
+        self._startflightloop_after: Optional[XPLMFlightLoopID] = None
 
-    def XPluginReceiveMessage(self, _inFromWho, inMessage, _inParam):
+    def XPluginReceiveMessage(self: Self, _inFromWho: int, inMessage: int, _inParam: Any) -> None:
         # xp.log(f"{xlua.RUNNING_TIME=} {xlua.FLIGHT_TIME=}")
         if inMessage == xp.MSG_PLANE_LOADED:
             self.onPlaneLoaded()
@@ -87,16 +87,16 @@ class EasyPython:
             self.onPlaneCrash()
             self.flight_crash()
 
-    def XPluginStart(self):
+    def XPluginStart(self: Self) -> tuple[str, str, str]:
         self._startflightloop_before = None
         self._startflightloop_after = None
         self.onStart()
         return self.name, self.signature, self.description
 
-    def XPluginStop(self):
+    def XPluginStop(self: Self) -> None:
         self.onStop()
 
-    def XPluginDisable(self):
+    def XPluginDisable(self: Self) -> None:
         if self._startflightloop_before:
             xp.destroyFlightLoop(self._startflightloop_before)
             self._startflightloop_before = None
@@ -104,15 +104,14 @@ class EasyPython:
             xp.destroyFlightLoop(self._startflightloop_after)
             self._startflightloop_after = None
         self.onDisable()
-        for accessor in internals.getAccessors(self):
+        for accessor in internals.getAccessors(cast(PythonInterfaceType, self)):
             xp.unregisterDataAccessor(accessor)
-        for command in internals.getCommands(self):
+        for command in internals.getCommands(cast(PythonInterfaceType, self)):
             xp.unregisterCommandHandler(*command)
-        for flightLoop in internals.getFlightLoops(self):
-            print(f"Destroying flightLoop: {flightLoop}")
+        for flightLoop in internals.getFlightLoops(cast(PythonInterfaceType, self)):
             xp.destroyFlightLoop(flightLoop)
 
-    def XPluginEnable(self):
+    def XPluginEnable(self: Self) -> int:
         self._startflightloop_before = xp.createFlightLoop(self._do_flightloop_before, xp.FlightLoop_Phase_BeforeFlightModel)
 
         xp.scheduleFlightLoop(self._startflightloop_before, -1)
@@ -120,7 +119,7 @@ class EasyPython:
         xp.scheduleFlightLoop(self._startflightloop_after, -1)
         return self.onEnable()
 
-    def _do_flightloop_before(self, _lastCall: float, _elapsedTime: float, counter: int, _refCon: Any) -> int:
+    def _do_flightloop_before(self: Self, _lastCall: float, _elapsedTime: float, _counter: int, _refCon: Any) -> int:
         self.update()
         if not xlua.IN_REPLAY and not xlua.PAUSED:
             self.before_physics()
@@ -128,7 +127,7 @@ class EasyPython:
             return 0
         return -1
 
-    def _do_flightloop_after(self, _lastCall: float, _elapsedTime: float, _counter: int, _refCon: Any) -> int:
+    def _do_flightloop_after(self: Self, _lastCall: float, _elapsedTime: float, _counter: int, _refCon: Any) -> int:
         if xlua.IN_REPLAY:
             self.after_replay()
             if self.no_after_replay:
@@ -141,97 +140,117 @@ class EasyPython:
 
     ###############################################
     #  XLUA - type callbacks
-    def aircraft_load(self) -> None:
+    def aircraft_load(self: Self) -> None:
         """ XLUA
         Called once, when user aircraft is loaded. The aircraft is initialized enough
         to set overrides.
         """
-        if VERBOSE: xp.log('aircraft_load')
+        if VERBOSE:
+            xp.log('aircraft_load')
 
-    def aircraft_unload(self) -> None:
+    def aircraft_unload(self: Self) -> None:
         """ XLUA
         Called once, when user aircraft is unloaded.
         """
-        if VERBOSE: xp.log('aircraft_unload')
+        if VERBOSE:
+            xp.log('aircraft_unload')
 
-    def flight_start(self) -> None:
+    def flight_start(self: Self) -> None:
         """ XLUA
         Called once, each time flight is started. The aircraft is already initialized
         and can now be customized. This is always called after aircraft_load().
         """
-        if VERBOSE: xp.log('flight_start')
+        if VERBOSE:
+            xp.log('flight_start')
 
-    def flight_crash(self) -> None:
+    def flight_crash(self: Self) -> None:
         """ XLUA
         Called if X-Plane detects that the user aircraft has crashed.
         and not in replay.
         """
-        if VERBOSE: xp.log('flight_crash')
+        if VERBOSE:
+            xp.log('flight_crash')
 
-    def before_physics(self) -> None:
+    def before_physics(self: Self) -> None:
         """ XLUA
         Called every frame, before physics has been calculated, while the sim is not paused
         and not in replay.
         """
-        if VERBOSE: xp.log('before_physics')
+        if VERBOSE:
+            xp.log('before_physics')
         self.no_before_physics = True
 
-    def after_physics(self) -> None:
+    def after_physics(self: Self) -> None:
         """ XLUA
         Called every frame, after physics has been calculated, while the sim is not paused
         and not in replay.
         """
-        if VERBOSE: xp.log('after_physics')
+        if VERBOSE:
+            xp.log('after_physics')
         self.no_after_physics = True
 
-    def after_replay(self) -> None:
+    def after_replay(self: Self) -> None:
         """ XLUA called every frame that the sim is in reply mode, regardless of pause status"""
-        if VERBOSE: xp.log('after_replay')
+        if VERBOSE:
+            xp.log('after_replay')
         self.no_after_replay = True
 
     #######################################
     # SASL - type callbacks
-    def update(self) -> None:
+    def update(self: Self) -> None:
         """SASL update()"""
-        if VERBOSE: xp.log('update')
+        if VERBOSE:
+            xp.log('update')
         self.no_update = True
 
-    def onAirportLoaded(self, flightNumber: int) -> None:
-        if VERBOSE: xp.log(f'airport loaded {flightNumber=}')
+    def onAirportLoaded(self: Self, flightNumber: int) -> None:
+        if VERBOSE:
+            xp.log(f'airport loaded {flightNumber=}')
 
-    def onAirplaneCountChanged(self) -> None:
-        if VERBOSE: xp.log('plane count changed')
+    def onAirplaneCountChanged(self: Self) -> None:
+        if VERBOSE:
+            xp.log('plane count changed')
 
-    def onDisable(self) -> None:
-        if VERBOSE: xp.log('disable')
+    def onDisable(self: Self) -> None:
+        if VERBOSE:
+            xp.log('disable')
 
-    def onStop(self) -> None:
-        if VERBOSE: xp.log('stop')
+    def onStop(self: Self) -> None:
+        if VERBOSE:
+            xp.log('stop')
 
-    def onEnable(self) -> int:
-        if VERBOSE: xp.log('enable')
+    def onEnable(self: Self) -> int:
+        if VERBOSE:
+            xp.log('enable')
         return 1
 
-    def onStart(self) -> None:
-        if VERBOSE: xp.log('start')
+    def onStart(self: Self) -> None:
+        if VERBOSE:
+            xp.log('start')
 
-    def onLiveryLoaded(self) -> None:
-        if VERBOSE: xp.log('liveryLoaded')
+    def onLiveryLoaded(self: Self) -> None:
+        if VERBOSE:
+            xp.log('liveryLoaded')
 
-    def onPlaneLoaded(self) -> None:
-        if VERBOSE: xp.log('planeLoaded')
+    def onPlaneLoaded(self: Self) -> None:
+        if VERBOSE:
+            xp.log('planeLoaded')
 
-    def onPlaneUnloaded(self) -> None:
-        if VERBOSE: xp.log('planeUnLoaded')
+    def onPlaneUnloaded(self: Self) -> None:
+        if VERBOSE:
+            xp.log('planeUnLoaded')
 
-    def onSceneryLoaded(self) -> None:
-        if VERBOSE: xp.log('sceneryLoaded')
+    def onSceneryLoaded(self: Self) -> None:
+        if VERBOSE:
+            xp.log('sceneryLoaded')
 
-    def onFirstFlight(self) -> None:
-        if VERBOSE: xp.log('onFirstFlight')
+    def onFirstFlight(self: Self) -> None:
+        if VERBOSE:
+            xp.log('onFirstFlight')
 
-    def onPlaneCrash(self) -> None:
-        if VERBOSE: xp.log('onPlaneCrash')
+    def onPlaneCrash(self: Self) -> None:
+        if VERBOSE:
+            xp.log('onPlaneCrash')
 
     onModuleInit = onFirstFlight
     onModuleShutdown = onDisable

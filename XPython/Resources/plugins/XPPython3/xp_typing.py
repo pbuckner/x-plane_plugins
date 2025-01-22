@@ -55,12 +55,14 @@ XPWidgetMessage = NewType('XPWidgetMessage', int)
 XPWidgetPropertyID = NewType('XPWidgetPropertyID', int)
 XPWindowStyle = NewType('XPWindowStyle', int)
 
+
 @dataclass
 class XPLMDataRefInfo_t:
     name: str
     type: int
     writable: bool
     owner: int
+
 
 @dataclass
 class XPLMDrawInfo_t:
@@ -71,6 +73,7 @@ class XPLMDrawInfo_t:
     heading: float
     roll: float
 
+
 @dataclass
 class FMSEntryInfo:
     type: int
@@ -79,6 +82,7 @@ class FMSEntryInfo:
     altitude: int
     lat: float
     lon: float
+
 
 @dataclass
 class NavAidInfo:
@@ -161,10 +165,10 @@ class XPLMWeatherInfo_t:
 
 @dataclass
 class XPLMProbeInfo_t:
-    result:int
-    locationX:float
-    locationY:float
-    locationZ:float
+    result: int
+    locationX: float
+    locationY: float
+    locationZ: float
     normalX: float
     normalY: float
     normalZ: float
@@ -172,3 +176,7 @@ class XPLMProbeInfo_t:
     velocityY: float
     velocityZ: float
     is_wet: int
+
+
+class PythonInterfaceType:
+    pass

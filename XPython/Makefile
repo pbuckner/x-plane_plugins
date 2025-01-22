@@ -2,10 +2,10 @@
 
 PLUGIN_PATH=Resources/plugins/XPPython3
 SERVER_SDK=400
-XP_SDK=../SDK410
+XP_SDK=../SDK411
 VERSIONS= 312
 # python versions are like 4.1.1 -> 4.1.2a1 -> 4.1.2a2 -> 4.1.2b1 -> 4.1.2 (letter is [ab], cannot end with letter)
-XPPYTHONVERSION=4.4.1
+XPPYTHONVERSION=4.5.0
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce 'b')
 ALPHA=$(shell echo $(XPPYTHONVERSION) | grep -ce 'a')
 FMOD=../FMOD
@@ -22,11 +22,11 @@ zipfiles = \
 # COMMON opts
 # eventually....:   -DPy_LIMITED_API=0x030a0000
 CFLAGS=-Wall -Wextra -g -fpic -fPIC -fvisibility=hidden -DXPPYTHON3VERSION=\"$(XPPYTHONVERSION)\"
-XPLM_CPPFLAGS = -DXPLM200 -DXPLM210 -DXPLM300 -DXPLM301 -DXPLM302 -DXPLM303 -DXPLM400 -DXPLM410 \
+XPLM_CPPFLAGS = -DXPLM200 -DXPLM210 -DXPLM300 -DXPLM301 -DXPLM302 -DXPLM303 -DXPLM400 -DXPLM410 -DXPLM411 \
                 -I$(XP_SDK)/CHeaders -I$(XP_SDK)/CHeaders/XPLM -I$(XP_SDK)/CHeaders/Widgets -I$(FMOD)/api/core/inc -I$(FMOD)/api/studio/inc
 
 # "ALPHA" make errCheck() function execute. Otherwise it is removed during compilation and optimization is enabled
-ifeq ($(ALPHA), "1")
+ifeq ("$(ALPHA)", "1")
   CFLAGS+= -DERRCHECK=1
   OPTIMIZATION= -O0
 else
@@ -66,8 +66,9 @@ ifeq ($(TARGET), Darwin)
   PYTHON_CONFIG_FLAGS = -I/Library/Frameworks/Python.framework/Versions/3.12/include/python3.12 -I/Library/Frameworks/Python.framework/Versions/3.12/include/python3.12 -fno-strict-overflow -Wsign-compare -Wunreachable-code -fno-common -dynamic -DNDEBUG -g -Wall -arch arm64 -arch x86_64 -g
 CFLAGS312=$(CFLAGS) $(PYTHON_CONFIG_FLAGS) -DPYTHONVERSION=\"3.12\"
   CFLAGS312+=$(OPTIMIZATION)
-  LDFLAGS += -shared -fPIC -fpic -ldl -g -fvisibility=hidden -undefined dynamic_lookup
-  LDFLAGS312 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.12/bin/python3-config --ldflags) -lpython3.12
+  # LDFLAGS += -shared -fPIC -fpic -ldl -g -fvisibility=hidden -undefined dynamic_lookup
+  LDFLAGS += -shared -fPIC -fpic -ldl -g -fvisibility=hidden 
+  LDFLAGS312 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.12/bin/python3-config --ldflags) -lpython3.12 -F $(XP_SDK)/Libraries/Mac -framework XPLM -framework XPWidgets -framework AppKit
   PLUGIN_DIR=mac_x64
   LD=cc
 endif
@@ -92,7 +93,16 @@ PLUGIN_OBJ = plugin.o defs.o display.o utils.o graphics.o data_access.o utilitie
 	sound.o \
 	weather.o weatherinfo_type.o weatherinfoclouds_type.o weatherinfowinds_type.o \
 	hotkeyinfo_type.o datarefinfo_type.o probeinfo_type.o plugininfo_type.o navaidinfo_type.o fmsentryinfo_type.o \
-	trackmetrics_type.o manage_instance.o manage_instances.o logwriter.o load_modules.o ini_file.o
+	trackmetrics_type.o manage_instance.o manage_instances.o logwriter.o load_modules.o ini_file.o cursor.o
+
+cursor.o : cursor.c
+ifeq ($(TARGET),Darwin)
+	$(CC) -x objective-c -target arm64-apple-macos11 -c $(CFLAGS312) $< -o $@.arm
+	$(CC) -x objective-c -target x86_64-apple-macos10.12 -c $(CFLAGS312)  $< -o $@.x86
+	touch $@
+else
+	$(CC) -c $(CFLAGS312) $< -o $@
+endif
 
 %.o	: %.c
 ifeq ($(TARGET),Darwin)
@@ -170,13 +180,12 @@ Resources/plugins/xp3-darwin.zip: win/XPPython3.xpl lin/XPPython3.xpl mac/XPPyth
 		$(ZIP) xp.zip -q -u XPPython3/*.png; \
 		$(ZIP) xp.zip -q -u XPPython3/*.md; \
 		$(ZIP) xp.zip -q -u XPPython3/*.py ; \
+		$(ZIP) xp.zip -q -u XPPython3/*/*.py ; \
 		$(ZIP) xp.zip -q -u XPPython3/*.pyi ; \
-		$(ZIP) xp.zip -q -u XPPython3/utils/*.py ; \
-		$(ZIP) xp.zip -q -u XPPython3/hooks/*.py ; \
-		$(ZIP) xp.zip -q -u XPPython3/internals/*.py ; \
-		$(ZIP) xp.zip -q -u XPPython3/xp_imgui/*.py ; \
-		$(ZIP) xp.zip -q -u XPPython3/xpgl/*.py ; \
-		$(ZIP) xp.zip -q -u XPPython3/ui/*.py ; \
+		$(ZIP) xp.zip -q -u XPPython3/*/*.pyi ; \
+		$(ZIP) xp.zip -q -u XPPython3/cursors/*.cur ; \
+		$(ZIP) xp.zip -q -u XPPython3/cursors/*.png ; \
+		$(ZIP) xp.zip -q -u XPPython3/cursors/*.xcf ; \
 		$(ZIP) xp.zip -q -u -r XPPython3/Drop\ Q*.app;
 	# That's the same as the 'upgrade' -- python-less -- version
 	cp Resources/plugins/xp.zip Resources/plugins/xp3upgrade-win32.zip
@@ -221,7 +230,7 @@ install_beta : $(zipfiles)
 		./db_updatemd5.py xp3b.zip $(SERVER_SDK) "$(XPPYTHONVERSION)"'
 
 install_remote : $(zipfiles)
-	@if [ "$(BETA)" -gt "0" -o "$(ALPHA)" -gt "0"]; then \
+	@if [ "$(BETA)" -gt "0" -o "$(ALPHA)" -gt "0" ]; then \
 		echo "Current version is BETA: $(XPPYTHONVERSION). Not installing"; \
 		exit 1; \
 	fi

@@ -462,10 +462,8 @@ the window, or using the tuple.
   drawing callback (after :data:`Phase_Window` is probably a good choice).
 
   If you want to use a custom OS-based cursor, return :data:`CursorCustom` to ask
-  X-Plane to show the cursor but not affect its image.  You can then use an
-  OS specific call like SetThemeCursor (Mac) or SetCursor/LoadCursor
-  (Windows). [If you can figure out how to actually do this in python3, let
-  me know, so I can provide an example!]
+  X-Plane to show the cursor but not affect its image.  You can then use
+  :py:func:`xp.setCursor` to display a custom cursor you've loaded.
 
   .. _cursor-status:
 
@@ -498,7 +496,7 @@ the window, or using the tuple.
      |                               | :index:`xplm_CursorArrow`                                             |
      +-------------------------------+-----------------------------------------------------------------------+
      | .. data:: CursorCustom        | X-Plane shows the cursor but lets                                     |
-     |  :value: 3                    | you select an OS cursor.                                              |
+     |  :value: 3                    | you select an OS cursor. See :doc:`cursor`.                           |
      |                               |                                                                       |
      |                               | `Official SDK                                                         |
      |                               | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorCustom>`__ |

@@ -29,7 +29,7 @@ def drawPolygon(points: List | Tuple, isFilled: bool = True, thickness: float = 
     # https://github.com/yaugenst/triangulation/blob/master/sources/main.py
     #  and code in triangulation
 
-    width = GL.glGetFloatv(GL.GL_LINE_WIDTH)
+    width = GL.glGetFloat(GL.GL_LINE_WIDTH)
     GL.glColor(*color, 1)
     if isFilled:
         GL.glLineWidth(1)
@@ -144,4 +144,3 @@ def drawArc(x: float, y: float, radius_inner: float, radius_outer: float,
     else:
         vertices.append((x, y))
     drawPolygon(points=vertices, isFilled=True, color=color)
-    

@@ -9,6 +9,14 @@ Known Bugs
   the wrong python plugin. This may be related to X-Plane calls to internal error reporting callback.
   The message is correct apart from identifying the requesting plugin.
   
+4.5.1 (Beta)
+------------
+
+:Fixes:
+   * **sharedData** Previously, :py:func:`xp.shareData` threw an exception when a shared dataRef was changed, but no callback was registered for it.
+     (Techinically, ``shareData`` didn't throw an exception, the ``setData`` function calling the shared dataRef would throw the exception.)
+     Callbacks are not required, so this fix simply recognizes when a callback is not provided and quietly continues without error.
+
 4.5.0 (21-Jan-2025)
 -------------------
 

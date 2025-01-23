@@ -1423,23 +1423,26 @@ static void genericSharedDataChanged(void *inRefcon)
     return;
   }
   PyObject *callbackFun = PyTuple_GetItem(sharedObj, SHARED_CALLBACK);
-  PyObject *arg = PyTuple_GetItem(sharedObj, SHARED_REFCON);
-  set_moduleName(PyTuple_GetItem(sharedObj, SHARED_MODULE_NAME));
-  PyObject *oRes = PyObject_CallFunctionObjArgs(callbackFun, arg, NULL);
-  PyObject *err = PyErr_Occurred();
-  if(err){
-    char msg[1024];
-    char *s = objToStr(PyTuple_GetItem(sharedObj, SHARED_MODULE_NAME)); 
-    char *s2 = objToStr(callbackFun);
-    sprintf(msg, "[%s] Error in genericSharedDataChanged callback %s", s, s2);
-    free(s);
-    free(s2);
-    pythonLog("%s", msg);
-    pythonLogFlush();
-    PyErr_SetString(err, msg);
-    return;
+
+  if (callbackFun != Py_None) {
+    PyObject *arg = PyTuple_GetItem(sharedObj, SHARED_REFCON);
+    set_moduleName(PyTuple_GetItem(sharedObj, SHARED_MODULE_NAME));
+    PyObject *oRes = PyObject_CallFunctionObjArgs(callbackFun, arg, NULL);
+    PyObject *err = PyErr_Occurred();
+    if(err){
+      char msg[1024];
+      char *s = objToStr(PyTuple_GetItem(sharedObj, SHARED_MODULE_NAME)); 
+      char *s2 = objToStr(callbackFun);
+      sprintf(msg, "[%s] Error in genericSharedDataChanged callback %s", s, s2);
+      free(s);
+      free(s2);
+      pythonLog("%s", msg);
+      pythonLogFlush();
+      PyErr_SetString(err, msg);
+      return;
+    }
+    Py_DECREF(oRes);
   }
-  Py_DECREF(oRes);
 }
 
 My_DOCSTR(_shareData__doc__, "shareData",

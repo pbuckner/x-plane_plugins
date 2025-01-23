@@ -5,7 +5,7 @@ SERVER_SDK=400
 XP_SDK=../SDK411
 VERSIONS= 312
 # python versions are like 4.1.1 -> 4.1.2a1 -> 4.1.2a2 -> 4.1.2b1 -> 4.1.2 (letter is [ab], cannot end with letter)
-XPPYTHONVERSION=4.5.0
+XPPYTHONVERSION=4.5.1a1
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce 'b')
 ALPHA=$(shell echo $(XPPYTHONVERSION) | grep -ce 'a')
 FMOD=../FMOD
@@ -67,7 +67,7 @@ ifeq ($(TARGET), Darwin)
 CFLAGS312=$(CFLAGS) $(PYTHON_CONFIG_FLAGS) -DPYTHONVERSION=\"3.12\"
   CFLAGS312+=$(OPTIMIZATION)
   # LDFLAGS += -shared -fPIC -fpic -ldl -g -fvisibility=hidden -undefined dynamic_lookup
-  LDFLAGS += -shared -fPIC -fpic -ldl -g -fvisibility=hidden 
+  LDFLAGS += -shared -fPIC -fpic -g -fvisibility=hidden 
   LDFLAGS312 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.12/bin/python3-config --ldflags) -lpython3.12 -F $(XP_SDK)/Libraries/Mac -framework XPLM -framework XPWidgets -framework AppKit
   PLUGIN_DIR=mac_x64
   LD=cc

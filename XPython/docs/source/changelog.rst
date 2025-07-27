@@ -17,6 +17,12 @@ Known Bugs
      (Techinically, ``shareData`` didn't throw an exception, the ``setData`` function calling the shared dataRef would throw the exception.)
      Callbacks are not required, so this fix simply recognizes when a callback is not provided and quietly continues without error.
 
+   * **DataRef Callbacks**: If a callback is not defined for a particular dataref, but there is an attempt to use that callback (e.g., calling
+     setDatavi() for a callback which only support a single float), we now log the fact that the callback does not exist, but will
+     *no longer* raise an exception. For get* callbacks, we'll return the value zero, with no indication of success or failure. For set*
+     callbacks we (continue to) return nothing. This more closely aligns with X-Plane behavior.
+     
+
 4.5.0 (21-Jan-2025)
 -------------------
 

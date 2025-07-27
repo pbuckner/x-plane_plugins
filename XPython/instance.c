@@ -191,7 +191,10 @@ static PyObject *XPLMInstanceSetPositionFun(PyObject *self, PyObject *args, PyOb
       inData[i] = PyFloat_AsDouble(PySequence_GetItem(data, i));
     }
   }
-  XPLMInstanceSetPosition_ptr(refToPtr(instance, instanceRefName), &inNewPosition, inData);
+  void *p = refToPtr(instance, instanceRefName);
+  if (p != NULL) {
+    XPLMInstanceSetPosition_ptr(p, &inNewPosition, inData);
+  }
   free(inData);
   Py_RETURN_NONE;
 }

@@ -752,6 +752,10 @@ static int getDatai(void *inRefcon)
     return -1;
   }
   PyObject *oFun = PyTuple_GetItem(pCbks, READINT);
+  if (oFun == Py_None) {
+    pythonLog("getDatai callback not defined.");
+    return 0;
+  }
   PyObject *oArg = PyTuple_GetItem(pCbks, READREFCON);
   set_moduleName(PyTuple_GetItem(pCbks, DATA_MODULE_NAME));
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg, NULL);
@@ -799,6 +803,10 @@ static void setDatai(void *inRefcon, int inValue)
     return;
   }
   PyObject *oFun = PyTuple_GetItem(pCbks, WRITEINT);
+  if (oFun == Py_None) {
+    pythonLog("setDatai callback not defined.");
+    return;
+  }
   PyObject *oArg1 = PyTuple_GetItem(pCbks, WRITEREFCON);
   PyObject *oArg2 = PyLong_FromLong(inValue);
   set_moduleName(PyTuple_GetItem(pCbks, DATA_MODULE_NAME));
@@ -825,6 +833,10 @@ static float getDataf(void *inRefcon)
     return -1;
   }
   PyObject *oFun = PyTuple_GetItem(pCbks, READFLOAT);
+  if (oFun == Py_None) {
+    pythonLog("getDataf callback not defined.");
+    return 0.0;
+  }
   PyObject *oArg1 = PyTuple_GetItem(pCbks, READREFCON);
   set_moduleName(PyTuple_GetItem(pCbks, DATA_MODULE_NAME));
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg1, NULL);
@@ -860,6 +872,10 @@ static void setDataf(void *inRefcon, float inValue)
     return;
   }
   PyObject *oFun = PyTuple_GetItem(pCbks, WRITEFLOAT);
+  if (oFun == Py_None) {
+    pythonLog("setDataf callback not defined.");
+    return;
+  }
   PyObject *oArg1 = PyTuple_GetItem(pCbks, WRITEREFCON);
   PyObject *oArg2 = PyFloat_FromDouble((double)inValue);
   set_moduleName(PyTuple_GetItem(pCbks, DATA_MODULE_NAME));
@@ -883,6 +899,10 @@ static double getDatad(void *inRefcon)
     return -1;
   }
   PyObject *oFun = PyTuple_GetItem(pCbks, READDOUBLE);
+  if (oFun == Py_None) {
+    pythonLog("getDatad callback not defined.");
+    return 0.0;
+  }
   PyObject *oArg = PyTuple_GetItem(pCbks, READREFCON);
   set_moduleName(PyTuple_GetItem(pCbks, DATA_MODULE_NAME));
   PyObject *oRes = PyObject_CallFunctionObjArgs(oFun, oArg, NULL);
@@ -918,6 +938,10 @@ static void setDatad(void *inRefcon, double inValue)
     return;
   }
   PyObject *oFun = PyTuple_GetItem(pCbks, WRITEDOUBLE);
+  if (oFun == Py_None) {
+    pythonLog("setDatad callback not defined.");
+    return;
+  }
   PyObject *oArg1 = PyTuple_GetItem(pCbks, WRITEREFCON);
   PyObject *oArg2 = PyFloat_FromDouble(inValue);
   set_moduleName(PyTuple_GetItem(pCbks, DATA_MODULE_NAME));
@@ -940,6 +964,10 @@ static int getDatavi(void *inRefcon, int *outValues, int inOffset, int inMax)
     return -1;
   }
   PyObject *oFun = PyTuple_GetItem(pCbks, READINTARRAY);
+  if (oFun == Py_None) {
+    pythonLog("getDatavi callback not defined.");
+    return 0;
+  }
   PyObject *oArg1 = PyTuple_GetItem(pCbks, READREFCON);
   PyObject *oArg2 = PyLong_FromLong(inOffset);
   PyObject *oArg3 = PyLong_FromLong(inMax);
@@ -1025,6 +1053,10 @@ static void setDatavi(void *inRefcon, int *inValues, int inOffset, int inCount)
   }
 
   PyObject *oFun = PyTuple_GetItem(pCbks, WRITEINTARRAY);
+  if (oFun == Py_None) {
+    pythonLog("setDatavi callback not defined.");
+    return;
+  }
   PyObject *oArg1 = PyTuple_GetItem(pCbks, WRITEREFCON);
   PyObject *oArg2 = PyLong_FromLong(inOffset);
   PyObject *oArg3 = PyLong_FromLong(inCount);
@@ -1054,6 +1086,10 @@ static int getDatavf(void *inRefcon, float *outValues, int inOffset, int inMax)
     return -1;
   }
   PyObject *oFun = PyTuple_GetItem(pCbks, READFLOATARRAY);
+  if (oFun == Py_None) {
+    pythonLog("getDatavf callback not defined.");
+    return 0;
+  }
   PyObject *oArg1 = PyTuple_GetItem(pCbks, READREFCON);
   PyObject *oArg2 = PyLong_FromLong(inOffset);
   PyObject *oArg3 = PyLong_FromLong(inMax);
@@ -1144,6 +1180,10 @@ static void setDatavf(void *inRefcon, float *inValues, int inOffset, int inCount
   }
 
   PyObject *oFun = PyTuple_GetItem(pCbks, WRITEFLOATARRAY);
+  if (oFun == Py_None) {
+    pythonLog("setDatavf callback not defined.");
+    return;
+  }
   PyObject *oArg1 = PyTuple_GetItem(pCbks, WRITEREFCON);
   PyObject *oArg2 = PyLong_FromLong(inOffset);
   PyObject *oArg3 = PyLong_FromLong(inCount);
@@ -1175,6 +1215,10 @@ static int getDatab(void *inRefcon, void *outValue, int inOffset, int inMax)
   }
 
   PyObject *oFun = PyTuple_GetItem(pCbks, READDATA);
+  if (oFun == Py_None) {
+    pythonLog("getDatab callback not defined.");
+    return 0;
+  }
   PyObject *oArg1 = PyTuple_GetItem(pCbks, READREFCON);
   PyObject *oArg2 = PyLong_FromLong(inOffset);
   PyObject *oArg3 = PyLong_FromLong(inMax);
@@ -1265,6 +1309,10 @@ static void setDatab(void *inRefcon, void *inValue, int inOffset, int inCount)
   }
 
   PyObject *oFun = PyTuple_GetItem(pCbks, WRITEDATA);
+  if (oFun == Py_None) {
+    pythonLog("setDatab callback not defined.");
+    return;
+  }
   PyObject *oArg1 = PyTuple_GetItem(pCbks, WRITEREFCON);
   PyObject *oArg2 = PyLong_FromLong(inOffset);
   PyObject *oArg3 = PyLong_FromLong(inCount);

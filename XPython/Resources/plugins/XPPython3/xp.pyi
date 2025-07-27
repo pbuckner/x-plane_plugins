@@ -1,8 +1,8 @@
-# pylint: disable=unused-argument
+# pylint: disable=unused-argument,unused-import
 # flake8: noqa
 
 from typing import Any, Callable, Optional, Literal, Sequence
-from XPPython3.xp_typing import *
+from XPPython3.xp_typing import *  # pylint: disable=unused-import
 ControlCameraUntilViewChanges: XPLMCameraControlDuration
 ControlCameraForever: XPLMCameraControlDuration
 Type_Unknown: XPLMDataTypeID
@@ -475,7 +475,7 @@ INTERNALPLUGINSPATH: str
 pythonDebugLevel: int
 pythonExecutable: str
 ModuleMTimes: object
-def controlCamera(howLong: int = ControlCameraUntilViewChanges,
+def controlCamera(howLong: int = ControlCameraUntilViewChanges,  # pylint: disable=undefined-variable
                   controlFunc: Optional[Callable[[list[float], int, Any], int]] = None,
                   refCon: Any = None) -> None:
     """
@@ -715,12 +715,14 @@ def setDatas(dataRef:XPLMDataRef, value:str, offset:int=0, count:int=-1) -> None
     """
     ...
 
-def registerDataAccessor(name:str, dataType:int=Type_Unknown, writable:int=-1,
+def registerDataAccessor(name:str, dataType:int=Type_Unknown, writable:int=-1,  # pylint: disable=undefined-variable
           readInt:Optional[Callable[[Any], int]]=None, writeInt:Optional[Callable[[Any, int], None]]=None,
           readFloat:Optional[Callable[[Any], float]]=None, writeFloat:Optional[Callable[[Any, float], None]]=None,
           readDouble:Optional[Callable[[Any], float]]=None, writeDouble:Optional[Callable[[Any, float], None]]=None,
-          readIntArray:Optional[Callable[[Any, list[int], int, int], int]]=None, writeIntArray:Optional[Callable[[Any, list[int], int, int], None]]=None,
-          readFloatArray:Optional[Callable[[Any, list[float], int, int], int]]=None, writeFloatArray:Optional[Callable[[Any, list[float], int, int], None]]=None,
+          readIntArray:Optional[Callable[[Any, list[int], int, int], int]]=None,
+                         writeIntArray:Optional[Callable[[Any, list[int], int, int], None]]=None,
+          readFloatArray:Optional[Callable[[Any, list[float], int, int], int]]=None,
+                         writeFloatArray:Optional[Callable[[Any, list[float], int, int], None]]=None,
           readData:Optional[Callable[[Any, list[int], int, int], int]]=None, writeData:Optional[Callable[[Any, list[int], int, int], None]]=None,
           readRefCon:Any=None, writeRefCon:Any=None) -> XPLMDataRef:
     """
@@ -799,7 +801,8 @@ def unshareData(name:str, dataType:int, dataChanged:Optional[Callable[[Any], Non
     """
     ...
 
-def registerDrawCallback(draw:Callable[[XPLMDrawingPhase, int, Any], None | int], phase:XPLMDrawingPhase=Phase_Window, after:int=0, refCon:Any=None) -> int:
+def registerDrawCallback(draw:Callable[[XPLMDrawingPhase, int, Any], None | int],
+                         phase:XPLMDrawingPhase=Phase_Window, after:int=0, refCon:Any=None) -> int: # pylint: disable=undefined-variable
     """
     Registers  low-level drawing callback.
 
@@ -981,7 +984,8 @@ def registerKeySniffer(sniffer:Callable[[int, XPLMKeyFlags, int, Any], int], bef
     """
     ...
 
-def unregisterDrawCallback(draw:Callable[[XPLMDrawingPhase, int, Any], None | int], phase:XPLMDrawingPhase=Phase_Window, after:int=0, refCon:Any=None) -> int:
+def unregisterDrawCallback(draw:Callable[[XPLMDrawingPhase, int, Any], None | int],
+                           phase:XPLMDrawingPhase=Phase_Window, after:int=0, refCon:Any=None) -> int:
     """
     Unregisters low-level drawing callback.
 
@@ -1032,8 +1036,8 @@ def createWindowEx(left:int=100, top:int=200, right:int=200, bottom:int=100,
           key:Optional[Callable[[XPLMWindowID, int, int, int, Any, int], None]]=None,
           cursor:Optional[Callable[[XPLMWindowID, int, int, Any], XPLMCursorStatus]]=None,
           wheel:Optional[Callable[[XPLMWindowID, int, int, int, int, Any], int]]=None,
-          refCon:Any=None, decoration:XPLMWindowDecoration=WindowDecorationRoundRectangle,
-          layer:XPLMWindowLayer=WindowLayerFloatingWindows,
+          refCon:Any=None, decoration:XPLMWindowDecoration=WindowDecorationRoundRectangle, # pylint: disable=undefined-variable
+          layer:XPLMWindowLayer=WindowLayerFloatingWindows, # pylint: disable=undefined-variable
           rightClick:Optional[Callable[[XPLMWindowID, int, int, XPLMMouseStatus, Any], int]]=None, ) -> XPLMWindowID:
     """
     Creates modern window
@@ -1267,7 +1271,7 @@ def isWindowInFront(windowID:XPLMWindowID) -> int:
     """
     ...
 
-def registerHotKey(vkey:int, flags:XPLMKeyFlags=NoFlag, description:str='',
+def registerHotKey(vkey:int, flags:XPLMKeyFlags=NoFlag, description:str='', # pylint: disable=undefined-variable
           hotKey:Optional[Callable[[Any], None]]=None,
           refCon:Any=None) -> XPLMHotKeyID:
     """
@@ -1316,7 +1320,8 @@ def setHotKeyCombination(hotKeyID:XPLMHotKeyID, vKey:int, flags:XPLMKeyFlags=NoF
     """
     ...
 
-def setGraphicsState(fog:int=0, numberTexUnits:int=0, lighting:int=0, alphaTesting:int=0, alphaBlending:int=0, depthTesting:int=0, depthWriting:int=0) -> None:
+def setGraphicsState(fog:int=0, numberTexUnits:int=0, lighting:int=0, alphaTesting:int=0, alphaBlending:int=0,
+                     depthTesting:int=0, depthWriting:int=0) -> None:
     """
     Change OpenGL's graphics state.
 
@@ -1365,7 +1370,7 @@ def drawTranslucentDarkBox(left:int, top:int, right:int, bottom:int) -> None:
 
 def drawString(rgb:Sequence[float]=(1., 1., 1.),
           x:int=0, y:int=0, value:str='',
-          wordWrapWidth:Optional[int]=None, fontID:XPLMFontID=Font_Proportional) -> None:
+          wordWrapWidth:Optional[int]=None, fontID:XPLMFontID=Font_Proportional) -> None: # pylint: disable=undefined-variable
     """
     Draw a string at location (x, y)
 
@@ -1373,7 +1378,8 @@ def drawString(rgb:Sequence[float]=(1., 1., 1.),
     """
     ...
 
-def drawNumber(rgb:Sequence[float]=(1., 1., 1.), x:int=0, y:int=0, value:float=0.0, digits:int=-1, decimals:int=0, showSign:int=1, fontID:XPLMFontID=Font_Proportional) -> None:
+def drawNumber(rgb:Sequence[float]=(1., 1., 1.), x:int=0, y:int=0, value:float=0.0, digits:int=-1,
+               decimals:int=0, showSign:int=1, fontID:XPLMFontID=Font_Proportional) -> None:
     """
     Draw a number at location (x, y)
 
@@ -1396,7 +1402,7 @@ def measureString(fontID:XPLMFontID, string:str) -> float:
     """
     ...
 
-def createInstance(obj:XPLMObjectRef, dataRefs:Optional[tuple[str]]=None) -> XPLMInstanceRef:
+def createInstance(obj:XPLMObjectRef, dataRefs:Optional[tuple[str, ...]]=None) -> XPLMInstanceRef:
     """
     Create Instance for object retrieved by loadObject() or loadObjectAsync().
 
@@ -1412,7 +1418,7 @@ def destroyInstance(instance:XPLMObjectRef) -> None:
     ...
 
 def instanceSetPosition(instance:XPLMObjectRef, position:XPLMDrawInfo_t | tuple[float, float, float, float, float, float],
-          data:Optional[tuple[float]]=None) -> None:
+          data:Optional[tuple[float, ...]]=None) -> None:
     """
     Update position (x, y, z, pitch, heading, roll),
     and all datarefs (<float>, <float>, ...)
@@ -1423,8 +1429,8 @@ def instanceSetPosition(instance:XPLMObjectRef, position:XPLMDrawInfo_t | tuple[
     """
     ...
 
-def createMapLayer(mapType:str=MAP_USER_INTERFACE,
-          layerType:XPLMMapLayerType=MapLayer_Markings,
+def createMapLayer(mapType:str=MAP_USER_INTERFACE,  # pylint: disable=undefined-variable
+          layerType:XPLMMapLayerType=MapLayer_Markings,  # pylint: disable=undefined-variable
           delete:Optional[Callable[[XPLMMapLayerID, Any], None]]=None,
           prep:Optional[Callable[[XPLMMapLayerID, float, XPLMMapProjectionID, Any], None]]=None,
           draw:Optional[Callable[[XPLMMapLayerID, float, float, float, XPLMMapStyle, XPLMMapProjectionID, Any], None]]=None,
@@ -1462,7 +1468,8 @@ def mapExists(mapType:str) -> int:
     """
     ...
 
-def drawMapIconFromSheet(layerID:XPLMMapLayerID, png:str, s:int, t:int, ds:int, dt:int, x:float, y:float, orientation:XPLMMapOrientation, rotationDegrees:float, mapWidth:float) -> None:
+def drawMapIconFromSheet(layerID:XPLMMapLayerID, png:str, s:int, t:int, ds:int, dt:int, x:float, y:float,
+                         orientation:XPLMMapOrientation, rotationDegrees:float, mapWidth:float) -> None:
     """
     Draws icon into map layer.
 
@@ -1576,7 +1583,7 @@ def setMenuItemName(menuID:Optional[XPLMMenuID]=None, index:int=0, name:str='New
     """
     ...
 
-def checkMenuItem(menuID:Optional[XPLMMenuID]=None, index:int=0, checked:XPLMMenuCheck=Menu_Checked) -> None:
+def checkMenuItem(menuID:Optional[XPLMMenuID]=None, index:int=0, checked:XPLMMenuCheck=Menu_Checked) -> None:  # pylint: disable=undefined-variable
     """
     Set checkmark for given menu item.
 
@@ -1656,7 +1663,7 @@ def findLastNavAidOfType(navType:XPLMNavType) -> int:
     ...
 
 def findNavAid(name:Optional[str], navAidID:Optional[str], lat:Optional[float],
-          lon:Optional[float], freq:Optional[int], navType:XPLMNavType=Nav_Any) -> XPLMNavRef:
+          lon:Optional[float], freq:Optional[int], navType:XPLMNavType=Nav_Any) -> XPLMNavRef:  # pylint: disable=undefined-variable
     """
     Returns navRef of last navAid matching information.
 
@@ -2070,7 +2077,8 @@ def unregisterFlightLoopCallback(callback:Callable[[float, float, int, Any], flo
     """
     ...
 
-def setFlightLoopCallbackInterval(callback:Callable[[float, float, int, Any], float], interval:float=0.0, relativeToNow:int=1, refCon:Any=None) -> None:
+def setFlightLoopCallbackInterval(callback:Callable[[float, float, int, Any], float], interval:float=0.0,
+                                  relativeToNow:int=1, refCon:Any=None) -> None:
     """
     Change interval associated with callback, refCon.
 
@@ -2079,7 +2087,7 @@ def setFlightLoopCallbackInterval(callback:Callable[[float, float, int, Any], fl
     ...
 
 def createFlightLoop(callback:Callable[[float, float, int, Any], float],
-          phase:XPLMFlightLoopPhaseType=FlightLoop_Phase_BeforeFlightModel, refCon:Any=None) -> XPLMFlightLoopID:
+          phase:XPLMFlightLoopPhaseType=FlightLoop_Phase_BeforeFlightModel, refCon:Any=None) -> XPLMFlightLoopID:  # pylint: disable=undefined-variable
     """
     Create flight loop, returning flightLoopID
 
@@ -2113,7 +2121,7 @@ def scheduleFlightLoop(flightLoopID:XPLMFlightLoopID, interval:float=0.0, relati
     """
     ...
 
-def createProbe(probeType:XPLMProbeType=ProbeY) -> XPLMProbeRef:
+def createProbe(probeType:XPLMProbeType=ProbeY) -> XPLMProbeRef:  # pylint: disable=undefined-variable
     """
     Return a probeRef
     """
@@ -2212,7 +2220,7 @@ def getFMODChannelGroup(audioType:XPLMAudioBus) -> FMOD_CHANNELGROUP:
     ...
 
 def playPCMOnBus(audioBuffer:Any, bufferSize:int, soundFormat:int, freqHz:int, numChannels:int, loop:int=0,
-          audioType:XPLMAudioBus=AudioUI, callback:Optional[Callable[[Any, int], None]]=None, refCon:Any=None) -> None | FMODChannel:
+          audioType:XPLMAudioBus=AudioUI, callback:Optional[Callable[[Any, int], None]]=None, refCon:Any=None) -> None | FMODChannel:  # pylint: disable=undefined-variable
     """
     Play provided data, of length bufferSize on the bus indicatedd by audioType. On
     completion, or stoppage, invoke (optional) callback with provided refCon.
@@ -2282,7 +2290,8 @@ def setAudioPitch(channel:FMOD_CHANNEL, pitch:float=1.0) -> int:
     """
     ...
 
-def setAudioCone(channel:FMOD_CHANNEL, inside_angle:float=360.0, outside_angle:float=360.0, outside_volume:float=1.0, orientation:Optional[tuple[float, float, float]]=None) -> int:
+def setAudioCone(channel:FMOD_CHANNEL, inside_angle:float=360.0, outside_angle:float=360.0,
+                 outside_volume:float=1.0, orientation:Optional[tuple[float, float, float]]=None) -> int:
     """
     Set a direction code for an active FMOD channel. The orientation vector is in local coordinates.
     This will set the sound to 3D if it is not already.
@@ -2293,7 +2302,7 @@ def setAudioCone(channel:FMOD_CHANNEL, inside_angle:float=360.0, outside_angle:f
     """
     ...
 
-def drawWindow(left:int, bottom:int, right:int, top:int, style:XPWindowStyle=Window_MainWindow) -> None:
+def drawWindow(left:int, bottom:int, right:int, top:int, style:XPWindowStyle=Window_MainWindow) -> None:  # pylint: disable=undefined-variable
     """
     Draw window at location
     """
@@ -2401,7 +2410,7 @@ def extractFileAndPath(fullPath:str) -> tuple[str, str]:
     """
     ...
 
-def getDirectoryContents(dir:str, firstReturn:int=0, bufSize:int=2048, maxFiles:int=100) -> tuple[int, list[str], int]:
+def getDirectoryContents(dir:str, firstReturn:int=0, bufSize:int=2048, maxFiles:int=100) -> tuple[int, list[str, ...], int]:  # pylint: disable=redefined-builtin
     """
     Get contents (files and subdirectories) of directory
 
@@ -2500,7 +2509,8 @@ def createCommand(name:str, description:Optional[str]=None) -> XPLMCommandRef:
     """
     ...
 
-def registerCommandHandler(commandRef:XPLMCommandRef, callback:Callable[[XPLMCommandRef, XPLMCommandPhase, Any], int], before:int=1, refCon:Any=None) -> None:
+def registerCommandHandler(commandRef:XPLMCommandRef, callback:Callable[[XPLMCommandRef, XPLMCommandPhase, Any], int],
+                           before:int=1, refCon:Any=None) -> None:
     """
     Register a callback for given commandRef
 
@@ -2511,7 +2521,8 @@ def registerCommandHandler(commandRef:XPLMCommandRef, callback:Callable[[XPLMCom
     """
     ...
 
-def unregisterCommandHandler(commandRef:XPLMCommandRef, callback:Callable[[XPLMCommandRef, XPLMCommandPhase, Any], int], before:int=1, refCon:Any=None) -> None:
+def unregisterCommandHandler(commandRef:XPLMCommandRef, callback:Callable[[XPLMCommandRef, XPLMCommandPhase, Any], int],
+                             before:int=1, refCon:Any=None) -> None:
     """
     Unregister commandRef. Parameters must match those provided with registerCommandHandler()
     """
@@ -2574,7 +2585,8 @@ def destroyWidget(widgetID:XPWidgetID, destroyChildren:int=1) -> None:
     """
     ...
 
-def sendMessageToWidget(widgetID:XPWidgetID, message:XPWidgetMessage | int, dispatchMode:XPDispatchMode=Mode_UpChain, param1:int=0, param2:int=0) -> int:
+def sendMessageToWidget(widgetID:XPWidgetID, message:XPWidgetMessage | int, dispatchMode:XPDispatchMode=Mode_UpChain,    # pylint: disable=undefined-variable
+                        param1:int=0, param2:int=0) -> int:
     """
     dispatchMode default is Mode_UpChain
     """

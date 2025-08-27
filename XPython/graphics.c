@@ -6,6 +6,7 @@
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMGraphics.h>
 #include "utils.h"
+#include "plugin_dl.h"
 
 
 My_DOCSTR(_setGraphicsState__doc__, "setGraphicsState",
@@ -287,6 +288,26 @@ static PyObject *XPLMDrawNumberFun(PyObject *self, PyObject *args, PyObject *kwa
   Py_RETURN_NONE;
 }
 
+My_DOCSTR(_getTexture__doc__, "getTexture",
+          "textureID",
+          "textureID:XPLMTextureID",
+          "int"
+          "Return OpenGL texture ID of X-Plane texture\n",
+          "Returns OpenGL texture ID of X-Plane texture based on\n"
+          "a generic identifying code.");
+static PyObject *XPLMGetTextureFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"textureID", NULL};
+  (void) self;
+  int inTextureID;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inTextureID)) {
+    return NULL;
+  }
+
+  int ret = XPLMGetTexture(inTextureID);
+  return PyLong_FromLong(ret);
+}
+
 My_DOCSTR(_getFontDimensions__doc__, "getFontDimensions",
           "fontID",
           "fontID:XPLMFontID",
@@ -369,10 +390,8 @@ static PyMethodDef XPLMGraphicsMethods[] = {
   {"XPLMBindTexture2d", (PyCFunction)XPLMBindTexture2dFun, METH_VARARGS | METH_KEYWORDS, "Bind a 2D texture."},
   {"generateTextureNumbers", (PyCFunction)XPLMGenerateTextureNumbersFun, METH_VARARGS | METH_KEYWORDS, _generateTextureNumbers__doc__},
   {"XPLMGenerateTextureNumbers", (PyCFunction)XPLMGenerateTextureNumbersFun, METH_VARARGS | METH_KEYWORDS, "Generates number of texture IDs."},
-#if defined(XPLM_DEPRECATED)
   {"getTexture", (PyCFunction)XPLMGetTextureFun, METH_VARARGS | METH_KEYWORDS, _getTexture__doc__},
-  {"XPLMGetTexture", (PyCFunction)XPLMGetTextureFun, METH_VARARGS | METH_KEYWORDS, "DEPRECATED"},
-#endif
+  {"XPLMGetTexture", (PyCFunction)XPLMGetTextureFun, METH_VARARGS | METH_KEYWORDS, "Get OpenGL Texture from X-Plane TextureID"},
   {"worldToLocal", (PyCFunction)XPLMWorldToLocalFun, METH_VARARGS | METH_KEYWORDS, _worldToLocal__doc__},
   {"XPLMWorldToLocal", (PyCFunction)XPLMWorldToLocalFun, METH_VARARGS | METH_KEYWORDS, "Transform world coordinates to local."},
   {"localToWorld", (PyCFunction)XPLMLocalToWorldFun, METH_VARARGS | METH_KEYWORDS, _localToWorld__doc__},
@@ -418,6 +437,10 @@ PyInit_XPLMGraphics(void)
     PyModule_AddIntConstant(mod, "xplmFont_Basic", xplmFont_Basic); // XPLMFontID
     PyModule_AddIntConstant(mod, "xplmFont_Proportional", xplmFont_Proportional); // XPLMFontID
     PyModule_AddIntConstant(mod, "Tex_GeneralInterface", xplm_Tex_GeneralInterface); // XPLMTextureID
+    PyModule_AddIntConstant(mod, "Tex_Radar_Pilot", xplm_Tex_Radar_Pilot); //XPLMTextureID
+    PyModule_AddIntConstant(mod, "Tex_Radar_Copilot", xplm_Tex_Radar_Copilot);  //XPLMTextureID
+    PyModule_AddIntConstant(mod, "xplm_Tex_Radar_Pilot", xplm_Tex_Radar_Pilot); //XPLMTextureID
+    PyModule_AddIntConstant(mod, "xplm_Tex_Radar_Copilot", xplm_Tex_Radar_Copilot);  //XPLMTextureID
     PyModule_AddIntConstant(mod, "Font_Basic", xplmFont_Basic); // XPLMFontID
     PyModule_AddIntConstant(mod, "Font_Proportional", xplmFont_Proportional); // XPLMFontID
   }

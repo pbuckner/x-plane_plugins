@@ -240,7 +240,26 @@ t_fcn_info funcs410[] = {
   {NULL, NULL}
 };
 
- 
+typeof(XPLMInstanceSetPositionDouble) *XPLMInstanceSetPositionDouble_ptr = NULL;
+typeof(XPLMInstanceSetAutoShift) *XPLMInstanceSetAutoShift_ptr = NULL;
+typeof(XPLMBeginWeatherUpdate) *XPLMBeginWeatherUpdate_ptr = NULL;
+typeof(XPLMEndWeatherUpdate) *XPLMEndWeatherUpdate_ptr = NULL;
+typeof(XPLMSetWeatherAtLocation) *XPLMSetWeatherAtLocation_ptr = NULL;
+typeof(XPLMSetWeatherAtAirport) *XPLMSetWeatherAtAirport_ptr = NULL;
+typeof(XPLMEraseWeatherAtLocation) *XPLMEraseWeatherAtLocation_ptr = NULL;
+typeof(XPLMEraseWeatherAtAirport) *XPLMEraseWeatherAtAirport_ptr = NULL;
+t_fcn_info funcs420[] = {
+  {"XPLMInstanceSetPositionDouble", (void*) &XPLMInstanceSetPositionDouble_ptr},
+  {"XPLMInstanceSetAutoShift", (void*) &XPLMInstanceSetAutoShift_ptr},
+  {"XPLMBeginWeatherUpdate", (void*) &XPLMBeginWeatherUpdate_ptr},
+  {"XPLMEndWeatherUpdate", (void*) &XPLMEndWeatherUpdate_ptr},
+  {"XPLMSetWeatherAtLocation", (void*) &XPLMSetWeatherAtLocation_ptr},
+  {"XPLMGetWeatherAtLocation", (void*) &XPLMGetWeatherAtLocation_ptr},
+  {"XPLMSetWeatherAtAirport", (void*) &XPLMSetWeatherAtAirport_ptr},
+  {"XPLMEraseWeatherAtLocation", (void*) &XPLMEraseWeatherAtLocation_ptr},
+  {"XPLMEraseWeatherAtAirport", (void*) &XPLMEraseWeatherAtAirport_ptr},
+  {NULL, NULL}
+};
 
 
 
@@ -276,6 +295,9 @@ bool loadSDKFunctions(void)
   XPLMGetVersions(&xp_ver, &xplm_ver, &app);
 
   bool res = true;
+  if(xplm_ver >= 420){
+    res &= loadFunctions(funcs420);
+  }
   if(xplm_ver >= 410){
     res &= loadFunctions(funcs410);
   }

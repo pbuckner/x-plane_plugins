@@ -217,7 +217,8 @@ int initPython(void){
 #endif
 
   if (-1 == asprintf(&msg, "[XPPython3] Python runtime initialized %d.%d.%d\n", major, minor, micro)) {
-    pythonLog("Failed to allocate asprintf memory, cannot initialize.");
+    pythonLog("[XPPython3] Failed to allocate asprintf memory, cannot initialize.");
+    return -1;
   }
   XPLMDebugString(msg);
   if (msg) free(msg);
@@ -235,7 +236,7 @@ int initPython(void){
   XPY3aircraftPlugins = PyList_New(0);
   XPY3sceneryPlugins = PyList_New(0);
 
-  if (! (XPY3pythonDicts || XPY3pythonCapsules || XPY3moduleDict || XPY3pluginDict || XPY3aircraftPlugins || XPY3sceneryPlugins)) {
+  if (! (XPY3pythonDicts && XPY3pythonCapsules && XPY3moduleDict && XPY3pluginDict && XPY3aircraftPlugins && XPY3sceneryPlugins)) {
     pythonLog("[XPPython3] Failed to allocate internal data structures. Fatal Error.");
     return -1;
   }
@@ -569,7 +570,6 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
 
     PyObject *err = PyErr_Occurred();
     if (err) {
-      PyErr_Clear();
       if (PyObject_HasAttrString(pluginInstance, "XPluginReceiveMessage")) {
         pythonLog("[%s] Error occured during the XPluginReceiveMessage call:", CurrentPythonModuleName);
         pythonLogException();
@@ -628,7 +628,10 @@ static int loadLocalPythonLibrary(void)
   pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
   if (!pythonHandle) {
     char cwd[1000];
-    pythonLog("Unable to find python shared library '%s' from %s: %s", library, getcwd(cwd, sizeof(cwd)), dlerror());
+    if (!getcwd(cwd, sizeof(cwd))) {
+      strcpy(cwd, "[unknown current working directory]");
+    }
+    pythonLog("Unable to find python shared library '%s' from %s: %s", library, cwd, dlerror());
     pythonLogFlush();
     return -1;
   }
@@ -673,10 +676,15 @@ static void handleConfigFile(void) {  /* Find and handle config.ini file */
   XPLMGetPrefsPath(xpy_ini_file);
   XPLMExtractFileAndPath(xpy_ini_file);
 #if LIN || APL
-  strlcat(xpy_ini_file, "/xppython3.ini", 512);
-#endif
-#if IBM
-  strcat_s(xpy_ini_file, 512, "/xppython3.ini");
+  if (strlcat(xpy_ini_file, "/xppython3.ini", 512) >= 512) {
+    pythonLog("[XPPython3] Config file path too long");
+    return;
+  }
+#elif IBM
+  if (strcat_s(xpy_ini_file, 512, "/xppython3.ini") != 0) {
+    pythonLog("[XPPython3] Failed to concatenate config file path");
+    return;
+  }
 #endif
   pythonDebugs = xpy_config_get_int("[Main].debug");
   pythonWarnings = xpy_config_get_int("[Main].warning");

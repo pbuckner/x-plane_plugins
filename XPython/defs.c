@@ -64,11 +64,60 @@ PyInit_XPLMDefs(void)
     PyModule_AddIntConstant(mod, "xplm_CursorHidden",  xplm_CursorHidden); //XPLMCursorStatus
     PyModule_AddIntConstant(mod, "xplm_CursorArrow",   xplm_CursorArrow); //XPLMCursorStatus
     PyModule_AddIntConstant(mod, "xplm_CursorCustom",  xplm_CursorCustom); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "xplm_CursorRotateSmall",  xplm_CursorRotateSmall); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "xplm_CursorRotateSmallLeft",  xplm_CursorRotateSmallLeft); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "xplm_CursorRotateSmallRight",  xplm_CursorRotateSmallRight); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "xplm_CursorRotateMedium",  xplm_CursorRotateMedium); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "xplm_CursorRotateMediumLeft",  xplm_CursorRotateMediumLeft); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "xplm_CursorRotateMediumRight",  xplm_CursorRotateMediumRight); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "xplm_CursorRotateLarge",  xplm_CursorRotateLarge); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "xplm_CursorRotateLargeLeft",  xplm_CursorRotateLargeLeft); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "xplm_CursorRotateLargeRight",  xplm_CursorRotateLargeRight); //XPLMCursorStatus
+
+    PyModule_AddIntConstant(mod, "xplm_CursorUpDown",  xplm_CursorUpDown); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "xplm_CursorDown",  xplm_CursorDown); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "xplm_CursorUp",  xplm_CursorUp); //XPLMCursorStatus
+    
+    PyModule_AddIntConstant(mod, "xplm_CursorLeftRight",  xplm_CursorLeftRight); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "xplm_CursorRight",  xplm_CursorRight); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "xplm_CursorLeft",  xplm_CursorLeft); //XPLMCursorStatus
+
+    PyModule_AddIntConstant(mod, "xplm_CursorButton", xplm_CursorButton); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "xplm_CursorHandle", xplm_CursorHandle); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "xplm_CursorFourArrows", xplm_CursorFourArrows); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "xplm_CursorSplitterH", xplm_CursorSplitterH); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "xplm_CursorSplitterV", xplm_CursorSplitterV); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "xplm_CursorText", xplm_CursorText); //XPLMCursorStatus
 
     PyModule_AddIntConstant(mod, "CursorDefault", xplm_CursorDefault); //XPLMCursorStatus
     PyModule_AddIntConstant(mod, "CursorHidden",  xplm_CursorHidden); //XPLMCursorStatus
     PyModule_AddIntConstant(mod, "CursorArrow",   xplm_CursorArrow); //XPLMCursorStatus
     PyModule_AddIntConstant(mod, "CursorCustom",  xplm_CursorCustom); //XPLMCursorStatus
+
+    PyModule_AddIntConstant(mod, "CursorRotateSmall",  xplm_CursorRotateSmall); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "CursorRotateSmallLeft",  xplm_CursorRotateSmallLeft); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "CursorRotateSmallRight",  xplm_CursorRotateSmallRight); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "CursorRotateMedium",  xplm_CursorRotateMedium); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "CursorRotateMediumLeft",  xplm_CursorRotateMediumLeft); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "CursorRotateMediumRight",  xplm_CursorRotateMediumRight); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "CursorRotateLarge",  xplm_CursorRotateLarge); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "CursorRotateLargeLeft",  xplm_CursorRotateLargeLeft); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "CursorRotateLargeRight",  xplm_CursorRotateLargeRight); //XPLMCursorStatus
+
+    PyModule_AddIntConstant(mod, "CursorUpDown",  xplm_CursorUpDown); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "CursorDown",  xplm_CursorDown); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "CursorUp",  xplm_CursorUp); //XPLMCursorStatus
+    
+    PyModule_AddIntConstant(mod, "CursorLeftRight",  xplm_CursorLeftRight); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "CursorRight",  xplm_CursorRight); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "CursorLeft",  xplm_CursorLeft); //XPLMCursorStatus
+
+    PyModule_AddIntConstant(mod, "CursorButton", xplm_CursorButton); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "CursorHandle", xplm_CursorHandle); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "CursorFourArrows", xplm_CursorFourArrows); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "CursorSplitterH", xplm_CursorSplitterH); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "CursorSplitterV", xplm_CursorSplitterV); //XPLMCursorStatus
+    PyModule_AddIntConstant(mod, "CursorText", xplm_CursorText); //XPLMCursorStatus
 
     PyModule_AddIntConstant(mod, "xplm_MouseDown", xplm_MouseDown); // XPLMMouseStatus
     PyModule_AddIntConstant(mod, "xplm_MouseDrag", xplm_MouseDrag); // XPLMMouseStatus

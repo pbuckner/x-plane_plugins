@@ -134,6 +134,19 @@ static PyObject *XPGetPluginStats(PyObject *self, PyObject *args)
   return info;
 }
 
+My_DOCSTR(_getSelfName__doc__, "getSelfName",
+          "",
+          "",
+          "str",
+          "Return the string name of the python module of the\n"
+          "currently executing python plugin.");
+static PyObject *XPGetSelfNameFun(PyObject *self, PyObject *args)
+{
+  (void) self;
+  (void) args;
+  return PyUnicode_FromString(CurrentPythonModuleName);
+}
+
 My_DOCSTR(_pythonGetDicts__doc__, "pythonGetDicts",
           "",
           "",
@@ -343,6 +356,8 @@ static PyMethodDef XPPythonMethods[] = {
   {"XPGetPluginStats", (PyCFunction)XPGetPluginStats, METH_VARARGS | METH_KEYWORDS, ""},
   {"reloadPlugin", (PyCFunction)XPReloadPlugin, METH_VARARGS | METH_KEYWORDS, _reloadPlugin__doc__},
   {"XPReloadPlugin", (PyCFunction)XPReloadPlugin, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getSelfName", (PyCFunction)XPGetSelfNameFun, METH_VARARGS | METH_KEYWORDS, _getSelfName__doc__},
+  {"XPGetSelfName", (PyCFunction)XPGetSelfNameFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };

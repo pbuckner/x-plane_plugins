@@ -107,6 +107,29 @@ static PyObject *XPLMDestroyInstanceFun(PyObject *self, PyObject *args, PyObject
   Py_RETURN_NONE;
 }
 
+My_DOCSTR(_instanceSetAutoShift__doc__, "instanceSetAutoShift",
+          "instance",
+          "instance:XPLMInstanceRef",
+          "None",
+          "Tells X-Plane to move instance location if/when Sim's local coordinate\n"
+          "system changes.");
+static PyObject *XPLMInstanceSetAutoShiftFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {"instance", NULL};
+  (void) self;
+  (void) args;
+  PyObject *instance;
+  if(!XPLMInstanceSetAutoShift_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMInstanceSetAutoShift is available only in XPLM420 and up, and requires at least X-Plane 12.3.0");
+    return NULL;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &instance)){
+    return NULL;
+  }
+  XPLMInstanceSetAutoShift_ptr(refToPtr(instance, instanceRefName));
+  Py_RETURN_NONE;
+}
+
 My_DOCSTR(_instanceSetPosition__doc__, "instanceSetPosition",
           "instance, position, data=None",
           "instance:XPLMObjectRef, position:XPLMDrawInfo_t | tuple[float, float, float, float, float, float], "
@@ -116,7 +139,8 @@ My_DOCSTR(_instanceSetPosition__doc__, "instanceSetPosition",
           "and all datarefs (<float>, <float>, ...)"
           "\n"
           "You should provide values for all registered dataref, otherwise they'll\n"
-          "be set to 0.0."
+          "be set to 0.0. This function is identical to instanceSetPositionDouble\n"
+          "as Python treats all floating point as doubles."
           );
 static PyObject *XPLMInstanceSetPositionFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -124,54 +148,98 @@ static PyObject *XPLMInstanceSetPositionFun(PyObject *self, PyObject *args, PyOb
   (void) self;
   PyObject *instance, *newPositionSeq, *data = Py_None;
   if(!XPLMInstanceSetPosition_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "instanceSetPosition is available only in XPLM300 and up.");
+    PyErr_SetString(PyExc_RuntimeError, "XPLMInstanceSetPosition is available only in XPLM300 and up.");
     return NULL;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|O", keywords, &instance, &newPositionSeq, &data)){
     return NULL;
   }
   XPLMDrawInfo_t inNewPosition;
-  inNewPosition.structSize = sizeof(XPLMDrawInfo_t);
+  XPLMDrawInfoDouble_t inNewPositionDouble;
   if (PySequence_Check(newPositionSeq) && PySequence_Length(newPositionSeq) == 6) {
-    inNewPosition.x = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 0));
-    inNewPosition.y = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 1));
-    inNewPosition.z = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 2));
-    inNewPosition.pitch = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 3));
-    inNewPosition.heading = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 4));
-    inNewPosition.roll = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 5));
+    if (XPLMInstanceSetPositionDouble_ptr) {
+      inNewPositionDouble.structSize = sizeof(XPLMDrawInfoDouble_t);
+      inNewPositionDouble.x = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 0));
+      inNewPositionDouble.y = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 1));
+      inNewPositionDouble.z = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 2));
+      inNewPositionDouble.pitch = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 3));
+      inNewPositionDouble.heading = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 4));
+      inNewPositionDouble.roll = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 5));
+    } else {
+      inNewPosition.structSize = sizeof(XPLMDrawInfo_t);
+      inNewPosition.x = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 0));
+      inNewPosition.y = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 1));
+      inNewPosition.z = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 2));
+      inNewPosition.pitch = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 3));
+      inNewPosition.heading = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 4));
+      inNewPosition.roll = PyFloat_AsDouble(PySequence_GetItem(newPositionSeq, 5));
+    }
   } else if (PyObject_HasAttrString(newPositionSeq, "heading")) {
     PyObject *value;
     value = PyObject_GetAttrString(newPositionSeq, "x");
-    inNewPosition.x = PyFloat_AsDouble(value);
+    if (XPLMInstanceSetPositionDouble_ptr) {
+      inNewPositionDouble.x = PyFloat_AsDouble(value);
+    } else {
+      inNewPosition.x = PyFloat_AsDouble(value);
+    }
     Py_DECREF(value);
 
     value = PyObject_GetAttrString(newPositionSeq, "y");
-    inNewPosition.y = PyFloat_AsDouble(value);
+    if (XPLMInstanceSetPositionDouble_ptr) {
+      inNewPositionDouble.y = PyFloat_AsDouble(value);
+    } else {
+      inNewPosition.y = PyFloat_AsDouble(value);
+    }
     Py_DECREF(value);
 
     value = PyObject_GetAttrString(newPositionSeq, "z");
-    inNewPosition.z = PyFloat_AsDouble(value);
+    if (XPLMInstanceSetPositionDouble_ptr) {
+      inNewPositionDouble.z = PyFloat_AsDouble(value);
+    } else {
+      inNewPosition.z = PyFloat_AsDouble(value);
+    }
     Py_DECREF(value);
 
     value = PyObject_GetAttrString(newPositionSeq, "pitch");
-    inNewPosition.pitch = PyFloat_AsDouble(value);
+    if (XPLMInstanceSetPositionDouble_ptr) {
+      inNewPositionDouble.pitch = PyFloat_AsDouble(value);
+    } else {
+      inNewPosition.pitch = PyFloat_AsDouble(value);
+    }
     Py_DECREF(value);
 
     value = PyObject_GetAttrString(newPositionSeq, "heading");
-    inNewPosition.heading = PyFloat_AsDouble(value);
+    if (XPLMInstanceSetPositionDouble_ptr) {
+      inNewPositionDouble.heading = PyFloat_AsDouble(value);
+    } else {
+      inNewPosition.heading = PyFloat_AsDouble(value);
+    }
     Py_DECREF(value);
 
     value = PyObject_GetAttrString(newPositionSeq, "roll");
-    inNewPosition.roll = PyFloat_AsDouble(value);
+    if (XPLMInstanceSetPositionDouble_ptr) {
+      inNewPositionDouble.roll = PyFloat_AsDouble(value);
+    } else {
+      inNewPosition.roll = PyFloat_AsDouble(value);
+    }
     Py_DECREF(value);
 
   } else if (PyMapping_Check(newPositionSeq)) {
-    inNewPosition.x = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "x"));
-    inNewPosition.y = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "y"));
-    inNewPosition.z = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "z"));
-    inNewPosition.pitch = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "pitch"));
-    inNewPosition.heading = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "heading"));
-    inNewPosition.roll = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "roll"));
+    if (XPLMInstanceSetPositionDouble_ptr) {
+      inNewPositionDouble.x = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "x"));
+      inNewPositionDouble.y = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "y"));
+      inNewPositionDouble.z = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "z"));
+      inNewPositionDouble.pitch = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "pitch"));
+      inNewPositionDouble.heading = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "heading"));
+      inNewPositionDouble.roll = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "roll"));
+    } else {
+      inNewPosition.x = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "x"));
+      inNewPosition.y = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "y"));
+      inNewPosition.z = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "z"));
+      inNewPosition.pitch = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "pitch"));
+      inNewPosition.heading = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "heading"));
+      inNewPosition.roll = PyFloat_AsDouble(PyMapping_GetItemString(newPositionSeq, "roll"));
+    }
   } else {
     PyErr_SetString(PyExc_AttributeError, "instanceSetPosition: unknown data type for position");
     return NULL;
@@ -193,7 +261,11 @@ static PyObject *XPLMInstanceSetPositionFun(PyObject *self, PyObject *args, PyOb
   }
   void *p = refToPtr(instance, instanceRefName);
   if (p != NULL) {
-    XPLMInstanceSetPosition_ptr(p, &inNewPosition, inData);
+    if (XPLMInstanceSetPositionDouble_ptr) {
+      XPLMInstanceSetPositionDouble_ptr(p, &inNewPositionDouble, inData);
+    } else {
+      XPLMInstanceSetPosition_ptr(p, &inNewPosition, inData);
+    }
   }
   free(inData);
   Py_RETURN_NONE;
@@ -215,8 +287,12 @@ static PyMethodDef XPLMInstanceMethods[] = {
   {"XPLMCreateInstance", (PyCFunction)XPLMCreateInstanceFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"destroyInstance", (PyCFunction)XPLMDestroyInstanceFun, METH_VARARGS | METH_KEYWORDS, _destroyInstance__doc__},
   {"XPLMDestroyInstance", (PyCFunction)XPLMDestroyInstanceFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"instanceSetAutoShift", (PyCFunction)XPLMInstanceSetAutoShiftFun, METH_VARARGS | METH_KEYWORDS, _instanceSetAutoShift__doc__},
+  {"XPLMInstanceSetAutoShift", (PyCFunction)XPLMInstanceSetAutoShiftFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"instanceSetPosition", (PyCFunction)XPLMInstanceSetPositionFun, METH_VARARGS | METH_KEYWORDS, _instanceSetPosition__doc__},
+  {"instanceSetPositionDouble", (PyCFunction)XPLMInstanceSetPositionFun, METH_VARARGS | METH_KEYWORDS, _instanceSetPosition__doc__},
   {"XPLMInstanceSetPosition", (PyCFunction)XPLMInstanceSetPositionFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"XPLMInstanceSetPositionDouble", (PyCFunction)XPLMInstanceSetPositionFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {NULL, NULL, 0, NULL}
 };

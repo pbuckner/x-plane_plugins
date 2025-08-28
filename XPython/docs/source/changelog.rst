@@ -9,8 +9,29 @@ Known Bugs
   the wrong python plugin. This may be related to X-Plane calls to internal error reporting callback.
   The message is correct apart from identifying the requesting plugin.
   
-4.5.1 (Beta)
-------------
+4.6.0
+-----
+:New Features:
+   * **Support for SDK420**, valid for X-Plane 12.3.0+. Note XPPython3 dynamically loads these new features
+     where available. That means you can continue to use this version of XPPython3 on older versions of X-Plane,
+     but the new features (of course) won't be available.
+
+     * :doc:`/development/modules/weather`: for Weather API update which now allows you to set weather
+       at locations
+
+     * :doc:`/development/modules/instance`: for :func:`xp.setInstancePositionAutoShift` which may
+       save you some calculation effor for static instances.
+
+     * :doc:`/development/modules/display_window`: for new built-in cursors, especially useful for your custom
+       avionics.
+  
+     * :doc:`/development/modules/graphics`: for :func:`xp.getTexture` and enumerations for weather radar textures.
+       avionics.
+
+   * **PI_MiniPython**: debugger update (find it under ``samples``). Now "remembers" previous window size.
+  
+4.5.1
+-----
 
 :Fixes:
    * **sharedData** Previously, :py:func:`xp.shareData` threw an exception when a shared dataRef was changed, but no callback was registered for it.

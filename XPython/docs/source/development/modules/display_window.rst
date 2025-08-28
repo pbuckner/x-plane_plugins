@@ -472,36 +472,188 @@ the window, or using the tuple.
   .. table::
      :align: left
 
-     +-------------------------------+-----------------------------------------------------------------------+
-     | Cursor Status Value           | SDK Value                                                             |
-     +===============================+=======================================================================+
-     | .. data:: CursorDefault       | X-Plane manages the cursor normally,                                  |
-     |  :value: 0                    | plugins does not affect the cursor.                                   |
-     |                               |                                                                       |
-     |                               | `Official SDK                                                         |
-     |                               | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorDefault>`__|
-     |                               | :index:`xplm_CursorDefault`                                           |
-     +-------------------------------+-----------------------------------------------------------------------+
-     | .. data:: CursorHidden        | X-Plane hides the cursor.                                             |
-     |  :value: 1                    |                                                                       |
-     |                               | `Official SDK                                                         |
-     |                               | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorHidden>`__ |
-     |                               | :index:`xplm_CursorHidden`                                            |
-     +-------------------------------+-----------------------------------------------------------------------+
-     | .. data:: CursorArrow         | X-Plane shows the cursor as the                                       |
-     |  :value: 2                    | default arrow.                                                        |
-     |                               |                                                                       |
-     |                               | `Official SDK                                                         |
-     |                               | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorArrow>`__  |
-     |                               | :index:`xplm_CursorArrow`                                             |
-     +-------------------------------+-----------------------------------------------------------------------+
-     | .. data:: CursorCustom        | X-Plane shows the cursor but lets                                     |
-     |  :value: 3                    | you select an OS cursor. See :doc:`cursor`.                           |
-     |                               |                                                                       |
-     |                               | `Official SDK                                                         |
-     |                               | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorCustom>`__ |
-     |                               | :index:`xplm_CursorCustom`                                            |
-     +-------------------------------+-----------------------------------------------------------------------+
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | Cursor Status Value                 | SDK Value                                                                       |
+     +=====================================+=================================================================================+
+     | .. data:: CursorDefault             | X-Plane manages the cursor normally,                                            |
+     |  :value: 0                          | plugins does not affect the cursor.                                             |
+     |                                     |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorDefault>`__          |
+     |                                     | :index:`xplm_CursorDefault`                                                     |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorHidden              | X-Plane hides the cursor.                                                       |
+     |  :value: 1                          |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorHidden>`__           |
+     |                                     | :index:`xplm_CursorHidden`                                                      |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorArrow               | X-Plane shows the cursor as the                                                 |
+     |  :value: 2                          | default arrow.                                                                  |
+     |                                     |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorArrow>`__            |
+     |                                     | :index:`xplm_CursorArrow`                                                       |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorCustom              | X-Plane shows the cursor but lets                                               |
+     |  :value: 3                          | you select an OS cursor. See :doc:`cursor`.                                     |
+     |                                     |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorCustom>`__           |
+     |                                     | :index:`xplm_CursorCustom`                                                      |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorRotateSmall         | X-Plane shows the small left-right rotation cursor.                             |
+     |  :value: 4                          |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateSmall>`__      |
+     |                                     | :index:`xplm_CursorRotateSmall`                                                 |
+     |                                     |                                                                                 |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorRotateSmallLeft     | X-Plane shows the small left rotation cursor.                                   |
+     |  :value: 5                          |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateSmallLeft>`__  |
+     |                                     | :index:`xplm_CursorRorateSmallLeft`                                             |
+     |                                     |                                                                                 |
+     |                                     |                                                                                 |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorRotateSmallRight    | X-Plane shows the small right rotation cursor.                                  |
+     |  :value: 6                          |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateSmallRight>`__ |
+     |                                     | :index:`xplm_CursorRotateSmallRight`                                            |
+     |                                     |                                                                                 |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorRotateMedium        | X-Plane shows the medium left-right rotation cursor.                            |
+     |  :value: 7                          |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateMedium>`__     |
+     |                                     | :index:`xplm_CursorRotateMedium`                                                |
+     |                                     |                                                                                 |
+     |                                     |                                                                                 |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorRotateMediumLeft    | X-Plane shows the medium left rotation cursor.                                  |
+     |  :value: 8                          |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateMediumLeft>`__ |
+     |                                     | :index:`xplm_CursorRotateMediumLeft`                                            |
+     |                                     |                                                                                 |
+     |                                     |                                                                                 |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorRotateMediumRight   | X-Plane shows the medium right rotation cursor.                                 |
+     |  :value: 9                          |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateMediumRight>`__|
+     |                                     | :index:`xplm_CursorRotateMediumRight`                                           |
+     |                                     |                                                                                 |
+     |                                     |                                                                                 |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorRotateLarge         | X-Plane shows the large left-right rotation cursor.                             |
+     |  :value: 10                         |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateLarge>`__      |
+     |                                     | :index:`xplm_CursorRotateLarge`                                                 |
+     |                                     |                                                                                 |
+     |                                     |                                                                                 |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorRotateLargeLeft     | X-Plane shows the learge left rotation cursor.                                  |
+     |  :value: 11                         |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateLargeLeft>`__  |
+     |                                     | :index:`xplm_CursorRotateLargeeft`                                              |
+     |                                     |                                                                                 |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorRotateLargeRight    | X-Plane shows the large right rotation cursor.                                  |
+     |  :value: 12                         |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateLargeRight>`__ |
+     |                                     | :index:`xplm_CursorRotateLargeRight`                                            |
+     |                                     |                                                                                 |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorUpDown              | X-Plane shows the up-down arrow cursor.                                         |
+     |  :value: 13                         |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorUpDown>`__           |
+     |                                     | :index:`xplm_CursorUpDown`                                                      |
+     |                                     |                                                                                 |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorDown                | X-Plane shows the down arrow cursor.                                            |
+     |  :value: 14                         |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorDown>`__             |
+     |                                     | :index:`xplm_CursorDown`                                                        |
+     |                                     |                                                                                 |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorUp                  | X-Plane shows the up arrow cursor.                                              |
+     |  :value: 15                         |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorUp>`__               |
+     |                                     | :index:`xplm_CursorUp`                                                          |
+     |                                     |                                                                                 |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorLeftRight           | X-Plane shows the left-right arrow cursor.                                      |
+     |  :value: 16                         |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorLeftRight>`__        |
+     |                                     | :index:`xplm_CursorLeftRight`                                                   |
+     |                                     |                                                                                 |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorLeft                | X-Plane shows the left arrow cursor.                                            |
+     |  :value: 17                         |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorLeft>`__             |
+     |                                     | :index:`xplm_CursorLeft`                                                        |
+     |                                     |                                                                                 |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorRight               | X-Plane shows the right arrow cursor.                                           |
+     |  :value: 18                         |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRight>`__            |
+     |                                     | :index:`xplm_CursorRight`                                                       |
+     |                                     |                                                                                 |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorButton              | X-Plane shows the button-pushing cursor.                                        |
+     |  :value: 19                         |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorButton>`__           |
+     |                                     | :index:`xplm_CursorButton`                                                      |
+     |                                     |                                                                                 |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorHandle              | X-Plane shows the handle-grabbing cursor.                                       |
+     |  :value: 20                         |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorHandle>`__           |
+     |                                     | :index:`xplm_CursorHandle`                                                      |
+     |                                     |                                                                                 |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorFourArrows          | X-Plane shows the four-arrows cursor.                                           |
+     |  :value: 21                         |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorFourArrows>`__       |
+     |                                     | :index:`xplm_CursorFourArrows`                                                  |
+     |                                     |                                                                                 |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorSplitterH           | X-Plane shows the cursor to drag a horizontal splitter bar.                     |
+     |  :value: 22                         |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorSplitterH>`__        |
+     |                                     | :index:`xplm_CursorSplitterH`                                                   |
+     |                                     |                                                                                 |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorSplitterV           | X-Plane shows the cursor to drag a vertical splitter bar.                       |
+     |  :value: 23                         |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorSplitterV>`__        |
+     |                                     | :index:`xplm_CursorSplitterV`                                                   |
+     |                                     |                                                                                 |
+     +-------------------------------------+---------------------------------------------------------------------------------+
+     | .. data:: CursorText                | X-Plane shows the I-Beam cursor for text editing.                               |
+     |  :value: 24                         |                                                                                 |
+     |                                     | `Official SDK                                                                   |
+     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorText>`__             |
+     |                                     | :index:`xplm_CursorText`                                                        |
+     |                                     |                                                                                 |
+     +-------------------------------------+---------------------------------------------------------------------------------+
 
 .. py:function:: wheel(windowID, x, y, wheel, clicks, refCon)
  

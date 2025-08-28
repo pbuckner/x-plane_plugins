@@ -114,5 +114,36 @@ Functions
     >>> xp.instanceSetPosition(instance, position, [20, 0.0])
     >>> xp.instanceSetPosition(instance, position, [40, 0.0])
 
-
     `Official SDK <https://developer.x-plane.com/sdk/XPLMInstance/#XPLMInstanceSetPosition>`__ :index:`XPLMInstanceSetPosition`
+
+.. py:function:: instanceSetPositionDouble(instance, position, data=None)
+
+    Laminar provides two C functions, one taking floats (``XPLMInstanceSetPosition``)
+    and the other taking doubles (``XPLMInstanceSetPositionDouble``). Because
+    Python floating point numbers are always double, both of this interfaces are the same. For
+    convenience, we provide this "double" api interface, though it is identical to :func:`instanceSetPosition`.
+
+    Technically, the XPPython3 code will pass doubles to X-Plane, if the double interface is available,
+    otherwise it will pass floats. Both functions use the same XPPython3 code.
+    
+    `Official SDK <https://developer.x-plane.com/sdk/XPLMInstance/#XPLMInstanceSetPositionDouble>`__ :index:`XPLMInstanceSetPositionDouble`
+
+.. py:function:: instanceSetPositionAutoShift(instance)
+
+    Tell X-Plane to move the (local) location of this instance every time the sim's
+    local coordinate system changes, so that a static instance does move globally.
+    Without this, a plugin is responsible for updating an instance's local position
+    using :func:`instanceSetPosition` when the coordincate system shifts. Use
+    this for static instances that you would not otherwise have to move. (Always
+    call :func:`instanceSetPosition` first.)
+
+    Autoshift remains active until the next :func:`instanceSetPosition` is called for this
+    instance. You would have to repeat the call to :func:`instanceSetPositionAutoShift` to
+    re-enable this feature.
+
+    If your instance requires passing datarefs (which is done using :func:`instanceSetPosition`)
+    this function isn't helpful as you will have to re-calculate position information on each
+    call.
+
+    `Official SDK <https://developer.x-plane.com/sdk/XPLMInstance/#XPLMInstanceSetPositionAutoShift>`__ :index:`XPLMInstanceSetPositionAutoShift`
+    

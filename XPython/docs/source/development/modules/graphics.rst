@@ -148,7 +148,11 @@ OpenGL Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMGraphics/#XPLMGenerateTextureNumbers>`__ :index:`XPLMGenerateTextureNumbers`
 
+.. py:function:: getTexture(textureID)
 
+ Return the OpenGL texture ID of an X-Plane texture based on a generic identifying code (:ref:`XPLMTextureID`). For example,
+ you can get the texture for X-Plane's weather radar using the :data:`Tex_Radar_Pilot`. 
+ 
 .. _coordinate_functions:
 
 Coordinate Conversion Functions
@@ -361,3 +365,24 @@ metrics.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMGraphics/#xplm_Font_Proportional>`__ :index:`xplm_Font_Proportional`         
 
+.. _XPLMTextureID:
+
+XPLMTextureID
+*************
+
+Predefined texture bitmaps for use with :func:`getTexture`.
+
++-----------------------------------------+---------------------------------------+
+|.. data:: Tex_GeneralInterface           | Window outlines, button outlines,     |
+| :value: 0                               | fonts, etc.                           |
++-----------------------------------------+---------------------------------------+
+|.. data:: Tex_Radar_Pilot                | Weather radar instrument texture as   |
+| :value: 3                               | controlled by the pilot-side radar    |
+|                                         | controls.                             |
++-----------------------------------------+---------------------------------------+
+|.. data:: Tex_Radar_Copilot              | Weather radar instrument texture as   |
+| :value: 4                               | controlled by the copilot-side radar  |
+|                                         | controls                              |
++-----------------------------------------+---------------------------------------+
+
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMGraphics/#XPLMTextureID>`__ :index:`XPLMTextureID`         

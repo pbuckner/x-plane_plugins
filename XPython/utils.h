@@ -1,8 +1,11 @@
 #ifndef UTILS__H
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include <Python.h>
 #define UTILS__H
 
-#define My_DOCSTR(name,method,parms,params_doc,return,str) static const char name[] = method"($module, /, "parms")\n--\n\n"str
+#define My_DOCSTR(name,method,parms,params_doc,return,str) static const char name[] = method"($module, /, " parms ")\n--\n\n" str
 extern const char *objRefName;
 extern const char *commandRefName;
 extern const char *widgetRefName;
@@ -44,4 +47,7 @@ void MyPyRun_String(const char *str, int start, PyObject *globals, PyObject *loc
 void MyPyRun_File(FILE *fp, const char *filename, int start, PyObject *globals, PyObject *locals);
 void errCheck_f(const char *fmt, ...);
 #define errCheck(fmt, ...) do { if (ERRCHECK) errCheck_f(fmt, ##__VA_ARGS__); } while(0)
+#endif
+#ifdef __cplusplus
+}
 #endif

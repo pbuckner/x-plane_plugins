@@ -232,32 +232,6 @@ void xpy_disableInstance(PyObject *moduleName, PyObject *pluginInstance) {
   }
 }
 
-void xpy_stopInstance(PyObject *moduleName, PyObject *pluginInstance) {
-  set_moduleName(moduleName);
-  pythonDebug("%*s Stopping instance: %s", 2, " ", CurrentPythonModuleName);
-
-  int has_attr = PyObject_HasAttrString(pluginInstance, "XPluginStop");
-  if (!has_attr) {
-    /* ignore error, if XPluginStop is not defined in the PythonInterface class */
-    pythonDebug("%*s (no XPluginStop for this module)", 4, " ");
-  } else {
-    PyObject *pRes = PyObject_CallMethod(pluginInstance, "XPluginStop", NULL);
-    PyObject *err = PyErr_Occurred();
-    if (err) {
-      pythonLogException();
-      char *s = objToStr(moduleName);
-      pythonLog("[XPPython3] Error occurred during call to %s XPluginStop", s);
-      free(s);
-    }
-    if (pRes != Py_None && pRes != NULL) {
-      pythonDebug("XPluginStop for %s returned '%s' rather than None. Value ignored\n", CurrentPythonModuleName, objDebug(pRes));
-    }
-    Py_XDECREF(pRes);
-  }
-
-  xpy_cleanUpInstance(moduleName, pluginInstance);
-}
-
 void xpy_cleanUpInstance(PyObject *moduleName, PyObject *pluginInstance) {
   set_moduleName(moduleName);
   pythonDebug("%*s Cleaning instance: %s", 4, " ", CurrentPythonModuleName);
@@ -306,3 +280,30 @@ void xpy_cleanUpInstance(PyObject *moduleName, PyObject *pluginInstance) {
     pythonLog("[XPPython3] Error inside cleanUpInstance() for %s", CurrentPythonModuleName);
   }
 }
+
+void xpy_stopInstance(PyObject *moduleName, PyObject *pluginInstance) {
+  set_moduleName(moduleName);
+  pythonDebug("%*s Stopping instance: %s", 2, " ", CurrentPythonModuleName);
+
+  int has_attr = PyObject_HasAttrString(pluginInstance, "XPluginStop");
+  if (!has_attr) {
+    /* ignore error, if XPluginStop is not defined in the PythonInterface class */
+    pythonDebug("%*s (no XPluginStop for this module)", 4, " ");
+  } else {
+    PyObject *pRes = PyObject_CallMethod(pluginInstance, "XPluginStop", NULL);
+    PyObject *err = PyErr_Occurred();
+    if (err) {
+      pythonLogException();
+      char *s = objToStr(moduleName);
+      pythonLog("[XPPython3] Error occurred during call to %s XPluginStop", s);
+      free(s);
+    }
+    if (pRes != Py_None && pRes != NULL) {
+      pythonDebug("XPluginStop for %s returned '%s' rather than None. Value ignored\n", CurrentPythonModuleName, objDebug(pRes));
+    }
+    Py_XDECREF(pRes);
+  }
+
+  xpy_cleanUpInstance(moduleName, pluginInstance);
+}
+

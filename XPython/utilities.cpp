@@ -1,0 +1,922 @@
+#define _GNU_SOURCE 1
+#include <Python.h>
+#include <sys/time.h>
+#include <stdio.h>
+#include <XPLM/XPLMDefs.h>
+#include <XPLM/XPLMUtilities.h>
+#include <unordered_map>
+#include <string>
+#include <vector>
+#include "utils.h"
+#include "utilities.h"
+#include "cpp_utilities.hpp"
+
+struct ErrorCallbackInfo {
+    PyObject* callback;
+    std::string module_name;
+};
+
+struct CommandCallbackInfo {
+    XPLMCommandRef command;
+    PyObject* callback;
+    int before;
+    PyObject* refcon;
+    std::string module_name;
+    intptr_t refcon_id;
+};
+
+static std::unordered_map<std::string, ErrorCallbackInfo> errorCallbacks;
+
+static std::unordered_map<intptr_t, CommandCallbackInfo> commandCallbacks;
+static intptr_t commandCallbackCounter = 0;
+
+PyObject *commandCapsules;
+
+void resetCommands(void) {
+  /* commands are reset by clearInstanceCommands */
+  commandCallbacks.clear();
+}
+
+static void error_callback(const char *inMessage)
+{
+  //TODO: send the error only to the active plugin?
+  // for now, pass to all registered
+  PyObject *msg = PyUnicode_DecodeUTF8(inMessage, strlen(inMessage), NULL);
+  
+  for (const auto& pair : errorCallbacks) {
+    const ErrorCallbackInfo& info = pair.second;
+    
+    PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
+    set_moduleName(module_name_obj);
+    Py_DECREF(module_name_obj);
+    
+    PyObject *oRes = PyObject_CallFunctionObjArgs(info.callback, msg, NULL);
+    PyObject *err = PyErr_Occurred();
+    if(err){
+      pythonLogException();
+    }else{
+      Py_DECREF(oRes);
+    }
+  }
+  Py_DECREF(msg);
+}
+
+
+My_DOCSTR(_speakString__doc__, "speakString",
+          "string",
+          "string:str",
+          "None",
+          "Display string in translucent overlay and speak string");
+static PyObject *XPLMSpeakStringFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"string"};
+  char **keywords = stringVectorToCharArray(params);
+
+  (void) self;
+  const char *inString;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inString)){
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+  XPLMSpeakString(inString);
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_getVirtualKeyDescription__doc__, "getVirtualKeyDescription",
+          "vKey",
+          "vKey:int",
+          "str",
+          "Return human-readable string describing virtual key");
+static PyObject *XPLMGetVirtualKeyDescriptionFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  (void) self;
+  int inVirtualKey;
+  std::vector<std::string> params = {"vKey"};
+  char **keywords = stringVectorToCharArray(params);
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inVirtualKey)){
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+  const char *res = XPLMGetVirtualKeyDescription(inVirtualKey);
+  return PyUnicode_DecodeUTF8(res, strlen(res), NULL);
+}
+
+My_DOCSTR(_reloadScenery__doc__, "reloadScenery",
+          "",
+          "",
+          "None",
+          "Reload current set of scenery");
+static PyObject *XPLMReloadSceneryFun(PyObject *self, PyObject *args)
+{
+  (void)self;
+  (void)args;
+  XPLMReloadScenery();
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_getSystemPath__doc__, "getSystemPath",
+          "",
+          "",
+          "str",
+          "Return full page to X-Plane folder, with trailing '/'");
+static PyObject *XPLMGetSystemPathFun(PyObject *self, PyObject *args)
+{
+  (void) self;
+  (void) args;
+  char outSystemPath[1024];
+  XPLMGetSystemPath(outSystemPath);
+
+  return PyUnicode_DecodeUTF8(outSystemPath, strlen(outSystemPath), NULL);
+}
+
+My_DOCSTR(_getPrefsPath__doc__, "getPrefsPath",
+          "",
+          "",
+          "str",
+          "Get path the *file* within X-Plane's preferences directory.");
+static PyObject *XPLMGetPrefsPathFun(PyObject *self, PyObject *args)
+{
+  (void) self;
+  (void) args;
+  char outPrefsPath[1024];
+  XPLMGetPrefsPath(outPrefsPath);
+
+  return PyUnicode_DecodeUTF8(outPrefsPath, strlen(outPrefsPath), NULL);
+}
+
+My_DOCSTR(_getDirectorySeparator__doc__, "getDirectorySeparator",
+          "",
+          "",
+          "str",
+          "Get string used for directory separator for the current platform.\n"
+          "\n"
+          "Don't use this, use python os.path.join() related routines.");
+static PyObject *XPLMGetDirectorySeparatorFun(PyObject *self, PyObject *args)
+{
+  (void) self;
+  (void) args;
+  
+  const char *res = XPLMGetDirectorySeparator();
+
+  return PyUnicode_DecodeUTF8(res, 1, NULL);
+}
+
+
+My_DOCSTR(_extractFileAndPath__doc__, "extractFileAndPath",
+          "fullPath",
+          "fullPath:str",
+          "tuple[str, str]",
+          "Given a full path, separate path from file\n"
+          "\n"
+          "Don't use this, use os.path routines instead");
+static PyObject *XPLMExtractFileAndPathFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"fullPath"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  const char *inFullPathConst;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inFullPathConst)){
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+  char *inFullPath = strdup(inFullPathConst);
+  const char *res = XPLMExtractFileAndPath(inFullPath);
+  
+  PyObject *resObj = Py_BuildValue("(ss)", res, inFullPath);
+  free(inFullPath);
+  return resObj;
+}
+
+My_DOCSTR(_getDirectoryContents__doc__, "getDirectoryContents",
+          "dir, firstReturn=0, bufSize=2048, maxFiles=100",
+          "dir:str, firstReturn:int=0, bufSize:int=2048, maxFiles:int=100",
+          "tuple[int, list[str], int]",
+          "Get contents (files and subdirectories) of directory\n"
+          "\n"
+          "Don't use this, use python os.walk() or glob.glob() instead.");
+static PyObject *XPLMGetDirectoryContentsFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"dir", "firstReturn", "bufSize", "maxFiles"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  const char *inDirectoryPath;
+  int inFirstReturn=0;
+  int inFileNameBufSize=2048;
+  int inIndexCount=100;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s|iii", keywords, &inDirectoryPath, &inFirstReturn, &inFileNameBufSize, &inIndexCount)){
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+  char *outFileNames = static_cast<char*>(malloc(inFileNameBufSize));
+  char **outIndices = static_cast<char**>(malloc(inIndexCount * sizeof(char *)));
+  int outTotalFiles;
+  int outReturnedFiles;
+
+  int res = XPLMGetDirectoryContents(inDirectoryPath, inFirstReturn, outFileNames, inFileNameBufSize,
+                                     outIndices, inIndexCount, &outTotalFiles, &outReturnedFiles);
+  
+  PyObject *namesList = PyList_New(0);
+  PyObject *tmp;
+  for(int i = 0; i < outReturnedFiles; ++i){
+    if(outIndices[i] != NULL){
+      tmp = PyUnicode_DecodeUTF8(outIndices[i], strlen(outIndices[i]), NULL);
+      PyList_Append(namesList, tmp);
+      Py_DECREF(tmp);
+    }else{
+      break;
+    }
+  }
+
+  PyObject *retObj = Py_BuildValue("(iOi)", res, namesList, outTotalFiles);
+
+  free(outFileNames);
+  free(outIndices);
+  return retObj;
+}
+
+My_DOCSTR(_getVersions__doc__, "getVersions",
+          "",
+          "",
+          "tuple[int, int, int]",
+          "Return tuple with (X-Plane, XPLM SDK, and hostID)\n"
+          "\n"
+          "Host ID is either XPlane=1 or Unknown=0");
+static PyObject *XPLMGetVersionsFun(PyObject *self, PyObject *args)
+{
+  (void) self;
+  (void) args;
+  int outXPlaneVersion;
+  int outXPLMVersion;
+  XPLMHostApplicationID outHostID;
+
+  XPLMGetVersions(&outXPlaneVersion, &outXPLMVersion, &outHostID);
+  return Py_BuildValue("(iii)", outXPlaneVersion, outXPLMVersion, (int)outHostID);
+}
+
+My_DOCSTR(_getLanguage__doc__, "getLanguage",
+          "",
+          "",
+          "int",
+          "Return language code the sim is running in.");
+static PyObject *XPLMGetLanguageFun(PyObject *self, PyObject *args)
+{
+  (void) self;
+  (void) args;
+  
+  XPLMLanguageCode res = XPLMGetLanguage();
+
+  return PyLong_FromLong(res);
+}
+
+My_DOCSTR(_debugString__doc__, "debugString",
+          "string",
+          "string:str",
+          "None",
+          "Write string to 'Log.txt' file, with immediate buffer flush\n"
+          "\n"
+          "Use xp.systemLog() instead, to add newline and prefix with your\n"
+          "plugin's name instead. Use xp.log() to write to XPPython3Log.txt file");
+static PyObject *XPLMDebugStringFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"string"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  const char *inString;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inString)){
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+  XPLMDebugString(inString);
+  Py_RETURN_NONE;
+}
+
+
+//Assumption:
+// Single error reporting callback per PI_* plugin!
+My_DOCSTR(_setErrorCallback__doc__, "setErrorCallback",
+          "callback",
+          "callback:Callable[[str], None]",
+          "None",
+          "Install error-reporting callback for your plugin\n"
+          "\n"
+          "Likely not useful for python debugging.");
+static PyObject *XPLMSetErrorCallbackFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"callback"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+
+  if(errorCallbacks.empty()){
+    XPLMSetErrorCallback(error_callback);
+  }
+
+  PyObject *callback;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &callback)) {
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+  
+  std::string module_name(CurrentPythonModuleName);
+  
+  // Remove old callback if exists
+  auto it = errorCallbacks.find(module_name);
+  if (it != errorCallbacks.end()) {
+    Py_DECREF(it->second.callback);
+  }
+  
+  // Add new callback
+  Py_INCREF(callback);
+  errorCallbacks[module_name] = {
+    .callback = callback,
+    .module_name = module_name
+  };
+  
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_findSymbol__doc__, "findSymbol",
+          "symbol",
+          "symbol:str",
+          "int",
+          "Find C-API symbol. See documentation.");
+static PyObject *XPLMFindSymbolFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"symbol"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  
+  const char *inString;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inString)){
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+  return PyLong_FromVoidPtr(XPLMFindSymbol(inString));
+}
+
+My_DOCSTR(_loadDataFile__doc__, "loadDataFile",
+          "fileType, path",
+          "fileType:XPLMDataFileType, path:str",
+          "int",
+          "Load data file given by path\n"
+          "\n"
+          "fileType is:\n"
+          "  DataFile_Situation   = 1\n"
+          "  DataFile_ReplayMovie = 2\n"
+          "Path is either absolute or relative X-Plane root.\n"
+          "Returns 1 on success (file found), 0 otherwise.");
+static PyObject *XPLMLoadDataFileFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"fileType", "path"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  int inFileType;
+  const char *inFilePath;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "is", keywords, &inFileType, &inFilePath)){
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+  int res = XPLMLoadDataFile(inFileType, inFilePath);
+  return PyLong_FromLong(res);
+}
+
+My_DOCSTR(_saveDataFile__doc__, "saveDataFile",
+          "fileType, path",
+          "fileType:XPLMDataFileType, path:str",
+          "int",
+          "Saves data file to disk.\n"
+          "\n"
+          "fileType is:\n"
+          "  DataFile_Situation   = 1\n"
+          "  DataFile_ReplayMovie = 2\n"
+          "Path is either absolute or relative X-Plane root.\n"
+          "Returns 1 on success (file found), 0 otherwise.");
+static PyObject *XPLMSaveDataFileFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"fileType", "path"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  int inFileType;
+  const char *inFilePath;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "is", keywords, &inFileType, &inFilePath)){
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+  int res = XPLMSaveDataFile(inFileType, inFilePath);
+  return PyLong_FromLong(res);
+}
+
+static int genericCommandCallback(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void *inRefcon)
+{
+  intptr_t refcon_id = (intptr_t)inRefcon;
+  auto it = commandCallbacks.find(refcon_id);
+  if (it == commandCallbacks.end()) {
+    printf("Received unknown commandCallback refCon (%p).\n", inRefcon);
+    return -1;
+  }
+  
+  CommandCallbackInfo& info = it->second;
+  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
+  set_moduleName(module_name_obj);
+  Py_DECREF(module_name_obj);
+
+  PyObject *arg1 = getPtrRef(inCommand, commandCapsules, commandRefName);
+  PyObject *arg2 = PyLong_FromLong(inPhase);
+  PyObject *oRes = PyObject_CallFunctionObjArgs(info.callback, arg1, arg2, info.refcon, NULL);
+  Py_DECREF(arg1);
+  Py_DECREF(arg2);
+  PyObject *err = PyErr_Occurred();
+  if(err){
+    char *s2 = objToStr(info.callback);
+    pythonLog("Error in CommandCallback [%s] %s", info.module_name.c_str(), s2);
+    free(s2);
+    return 0;
+  }
+  if (!(oRes && PyLong_Check(oRes))) {
+    char *s2 = objToStr(info.callback);
+    char *s3 = objToStr(oRes); 
+    pythonLog("[%s] %s CommandCallback returned '%s' rather than an integer.", info.module_name.c_str(), s2, s3);
+    free(s2);
+    free(s3);
+    return 1;
+  }
+  int res = PyLong_AsLong(oRes);
+  Py_DECREF(oRes);
+  return res;
+}
+
+My_DOCSTR(_findCommand__doc__, "findCommand",
+          "name",
+          "name:str",
+          "XPLMCommandRef",
+          "Return commandRef for named command or None");
+static PyObject *XPLMFindCommandFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"name"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  const char *inName;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inName)){
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+  XPLMCommandRef res = XPLMFindCommand(inName);
+  return getPtrRef(res, commandCapsules, commandRefName);
+}
+
+My_DOCSTR(_commandBegin__doc__, "commandBegin",
+          "commandRef",
+          "commandRef:XPLMCommandRef",
+          "None",
+          "Start execution of command specified by commandRef");
+static PyObject *XPLMCommandBeginFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"commandRef"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  PyObject *inCommand;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &inCommand)){
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+  XPLMCommandBegin(refToPtr(inCommand, commandRefName));
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_commandEnd__doc__, "commandEnd",
+          "commandRef",
+          "commandRef:XPLMCommandRef",
+          "None",
+          "Ends execution of command specified by commandRef");
+static PyObject *XPLMCommandEndFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"commandRef"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  PyObject *inCommand;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &inCommand)){
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+  XPLMCommandEnd(refToPtr(inCommand, commandRefName));
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_commandOnce__doc__, "commandOnce",
+          "commandRef",
+          "commandRef:XPLMCommandRef",
+          "None",
+          "Executes given commandRef, doing both CommandBegin and CommandEnd");
+static PyObject *XPLMCommandOnceFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"commandRef"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  PyObject *inCommand;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &inCommand)){
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+  XPLMCommandOnce(refToPtr(inCommand, commandRefName));
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_createCommand__doc__, "createCommand",
+          "name, description=None",
+          "name:str, description:Optional[str]=None",
+          "XPLMCommandRef",
+          "Create a named command: You'll still need to registerCommandHandler()");
+static PyObject *XPLMCreateCommandFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"name", "description"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  const char *inName;
+  const char *inDescription = NULL;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s|s", keywords, &inName, &inDescription)){
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+  if (!inDescription) {
+    inDescription = inName;
+  }
+  XPLMCommandRef res = XPLMCreateCommand(inName, inDescription);
+  return getPtrRef(res, commandCapsules, commandRefName);
+}
+
+My_DOCSTR(_registerCommandHandler__doc__, "registerCommandHandler",
+          "commandRef, callback, before=1, refCon=None",
+          "commandRef:XPLMCommandRef, callback:Callable[[XPLMCommandRef, XPLMCommandPhase, Any], int], before:int=1, refCon:Any=None",
+          "None",
+          "Register a callback for given commandRef\n"
+          "\n"
+          "command callback is (commandRef, phase, refCon) and should return 0\n"
+          "   to halt processing, or 1 to let X-Plane continue with other callbacks.\n"
+          "   phase indicates current phase of command execution 0=Begin, 1=Continue, 2=End.\n"
+          "before indicates you want to be called prior to X-Plane handling the command.");
+static PyObject *XPLMRegisterCommandHandlerFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"commandRef", "callback", "before", "refCon"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  PyObject *inCommand;
+  PyObject *inHandler;
+  int inBefore=1;
+  PyObject *inRefcon=Py_None;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|iO", keywords, &inCommand, &inHandler, &inBefore, &inRefcon)) {
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+  intptr_t refcon = commandCallbackCounter++;
+  XPLMCommandRef commandRef = refToPtr(inCommand, commandRefName);
+  XPLMRegisterCommandHandler(commandRef, genericCommandCallback, inBefore, (void *)refcon);
+
+  commandCallbacks[refcon] = {
+    .command = commandRef,
+    .callback = inHandler,
+    .before = inBefore,
+    .refcon = inRefcon,
+    .module_name = std::string(CurrentPythonModuleName),
+    .refcon_id = refcon
+  };
+  Py_INCREF(inHandler);
+  Py_INCREF(inRefcon);
+  
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_unregisterCommandHandler__doc__, "unregisterCommandHandler",
+          "commandRef, callback, before=1, refCon=None",
+          "commandRef:XPLMCommandRef, callback:Callable[[XPLMCommandRef, XPLMCommandPhase, Any], int], before:int=1, refCon:Any=None",
+          "None",
+          "Unregister commandRef. Parameters must match those provided with registerCommandHandler()");
+static PyObject *XPLMUnregisterCommandHandlerFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"commandRef", "callback", "before", "refCon"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  PyObject *inCommand;
+  PyObject *inHandler;
+  int inBefore=1;
+  PyObject *inRefcon=Py_None;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|iO", keywords, &inCommand, &inHandler, &inBefore, &inRefcon)) {
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+  
+  XPLMCommandRef commandRef = refToPtr(inCommand, commandRefName);
+  
+  for (auto it = commandCallbacks.begin(); it != commandCallbacks.end(); ++it) {
+    CommandCallbackInfo& info = it->second;
+    if (info.command == commandRef &&
+        info.callback == inHandler &&
+        info.before == inBefore &&
+        info.refcon == inRefcon) {
+        
+        XPLMUnregisterCommandHandler(info.command, genericCommandCallback,
+                                   info.before, (void*)it->first);
+        Py_DECREF(info.callback);
+        Py_DECREF(info.refcon);
+        commandCallbacks.erase(it);
+        break;
+    }
+  }
+  
+  Py_RETURN_NONE;
+}
+
+PyObject* buildCommandCallbacksDict(void)
+{
+  PyObject *dict = PyDict_New();
+  if (!dict) {
+    return NULL;
+  }
+  
+  bool error_occurred = false;
+  
+  for (const auto& pair : commandCallbacks) {
+    const CommandCallbackInfo& info = pair.second;
+    intptr_t refcon_id = pair.first;
+    
+    // Initialize all pointers to NULL
+    PyObject *key = NULL;
+    PyObject *command_capsule = NULL;
+    PyObject *module_name = NULL;
+    PyObject *before = NULL;
+    PyObject *value = NULL;
+    
+    // Create all Python objects
+    key = PyLong_FromLong(refcon_id);
+    if (!key) {
+      error_occurred = true;
+      goto cleanup_iteration;
+    }
+    
+    command_capsule = getPtrRef(info.command, commandCapsules, commandRefName);
+    if (!command_capsule) {
+      error_occurred = true;
+      goto cleanup_iteration;
+    }
+    
+    module_name = PyUnicode_FromString(info.module_name.c_str());
+    if (!module_name) {
+      error_occurred = true;
+      goto cleanup_iteration;
+    }
+    
+    before = PyLong_FromLong(info.before);
+    if (!before) {
+      error_occurred = true;
+      goto cleanup_iteration;
+    }
+    
+    // Build tuple: (command, callback, before, refcon, module_name)
+    value = PyTuple_New(5);
+    if (!value) {
+      error_occurred = true;
+      goto cleanup_iteration;
+    }
+    
+    // Set tuple items (PyTuple_SetItem steals references)
+    PyTuple_SetItem(value, 0, command_capsule);     // steals ref
+    command_capsule = NULL; // Mark as stolen
+    
+    Py_INCREF(info.callback);                       // increment for tuple
+    PyTuple_SetItem(value, 1, info.callback);       // steals ref
+    
+    PyTuple_SetItem(value, 2, before);              // steals ref
+    before = NULL; // Mark as stolen
+    
+    Py_INCREF(info.refcon);                         // increment for tuple
+    PyTuple_SetItem(value, 3, info.refcon);         // steals ref
+    
+    PyTuple_SetItem(value, 4, module_name);         // steals ref
+    module_name = NULL; // Mark as stolen
+    
+    // Add to dictionary (PyDict_SetItem does NOT steal references)
+    if (PyDict_SetItem(dict, key, value) < 0) {
+      error_occurred = true;
+      goto cleanup_iteration;
+    }
+    
+    // Clean up our references for this iteration
+    Py_DECREF(key);
+    Py_DECREF(value);
+    continue;
+    
+cleanup_iteration:
+    // Clean up any non-NULL objects that weren't stolen
+    if (key) Py_DECREF(key);
+    if (command_capsule) Py_DECREF(command_capsule);
+    if (module_name) Py_DECREF(module_name);
+    if (before) Py_DECREF(before);
+    if (value) Py_DECREF(value);
+    break; // Exit the loop on error
+  }
+  
+  if (error_occurred) {
+    Py_DECREF(dict);
+    return NULL;
+  }
+  
+  return dict;
+}
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+void clearInstanceCommands(PyObject *module_name_p)
+{
+  char *module_name_str = objToStr(module_name_p);
+  std::string target_module(module_name_str);
+  free(module_name_str);
+  
+  pythonDebug("%*s Clearing commands for [%s]", 6, " ", target_module.c_str());
+  int count = 0;
+  
+  for (auto it = commandCallbacks.begin(); it != commandCallbacks.end();) {
+    CommandCallbackInfo& info = it->second;
+    if (info.module_name == target_module) {
+      count++;
+      pythonDebug("%*s Removing command handler for [%ld] [%s]", 8, " ", info.refcon_id, info.module_name.c_str());
+      
+      XPLMUnregisterCommandHandler(info.command, genericCommandCallback,
+                                   info.before, (void*)info.refcon_id);
+      Py_DECREF(info.callback);
+      Py_DECREF(info.refcon);
+      it = commandCallbacks.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  
+  pythonDebug("%*s Cleared %d commands for [%s]", 8, " ", count, target_module.c_str());
+}
+
+static PyObject *cleanup(PyObject *self, PyObject *args)
+{
+  (void) self;
+  (void) args;
+  
+  // Clean up error callbacks
+  for (auto& pair : errorCallbacks) {
+    Py_DECREF(pair.second.callback);
+  }
+  errorCallbacks.clear();
+  
+  // Clean up command callbacks
+  for (auto& pair : commandCallbacks) {
+    Py_DECREF(pair.second.callback);
+    Py_DECREF(pair.second.refcon);
+  }
+  commandCallbacks.clear();
+  
+  PyDict_Clear(commandCapsules);
+  Py_DECREF(commandCapsules);
+  Py_RETURN_NONE;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+static PyMethodDef XPLMUtilitiesMethods[] = {
+  {"speakString", (PyCFunction)XPLMSpeakStringFun, METH_VARARGS | METH_KEYWORDS, _speakString__doc__},
+  {"XPLMSpeakString", (PyCFunction)XPLMSpeakStringFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getVirtualKeyDescription", (PyCFunction)XPLMGetVirtualKeyDescriptionFun, METH_VARARGS | METH_KEYWORDS, _getVirtualKeyDescription__doc__},
+  {"XPLMGetVirtualKeyDescription", (PyCFunction)XPLMGetVirtualKeyDescriptionFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"reloadScenery", (PyCFunction)XPLMReloadSceneryFun, METH_VARARGS, _reloadScenery__doc__},
+  {"XPLMReloadScenery", (PyCFunction)XPLMReloadSceneryFun, METH_VARARGS, ""},
+  {"getSystemPath", (PyCFunction)XPLMGetSystemPathFun, METH_VARARGS, _getSystemPath__doc__},
+  {"XPLMGetSystemPath", (PyCFunction)XPLMGetSystemPathFun, METH_VARARGS, ""},
+  {"getPrefsPath", (PyCFunction)XPLMGetPrefsPathFun, METH_VARARGS, _getPrefsPath__doc__},
+  {"XPLMGetPrefsPath", (PyCFunction)XPLMGetPrefsPathFun, METH_VARARGS, ""},
+  {"getDirectorySeparator", (PyCFunction)XPLMGetDirectorySeparatorFun, METH_VARARGS, _getDirectorySeparator__doc__},
+  {"XPLMGetDirectorySeparator", (PyCFunction)XPLMGetDirectorySeparatorFun, METH_VARARGS, ""},
+  {"extractFileAndPath", (PyCFunction)XPLMExtractFileAndPathFun, METH_VARARGS | METH_KEYWORDS, _extractFileAndPath__doc__},
+  {"XPLMExtractFileAndPath", (PyCFunction)XPLMExtractFileAndPathFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getDirectoryContents", (PyCFunction)XPLMGetDirectoryContentsFun, METH_VARARGS | METH_KEYWORDS, _getDirectoryContents__doc__},
+  {"XPLMGetDirectoryContents", (PyCFunction)XPLMGetDirectoryContentsFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getVersions", (PyCFunction)XPLMGetVersionsFun, METH_VARARGS, _getVersions__doc__},
+  {"XPLMGetVersions", (PyCFunction)XPLMGetVersionsFun, METH_VARARGS, ""},
+  {"getLanguage", (PyCFunction)XPLMGetLanguageFun, METH_VARARGS, _getLanguage__doc__},
+  {"XPLMGetLanguage", (PyCFunction)XPLMGetLanguageFun, METH_VARARGS, ""},
+  {"debugString", (PyCFunction)XPLMDebugStringFun, METH_VARARGS | METH_KEYWORDS, _debugString__doc__},
+  {"XPLMDebugString", (PyCFunction)XPLMDebugStringFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"setErrorCallback", (PyCFunction)XPLMSetErrorCallbackFun, METH_VARARGS | METH_KEYWORDS, _setErrorCallback__doc__},
+  {"XPLMSetErrorCallback", (PyCFunction)XPLMSetErrorCallbackFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"findSymbol", (PyCFunction)XPLMFindSymbolFun, METH_VARARGS | METH_KEYWORDS, _findSymbol__doc__},
+  {"XPLMFindSymbol", (PyCFunction)XPLMFindSymbolFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"loadDataFile", (PyCFunction)XPLMLoadDataFileFun, METH_VARARGS | METH_KEYWORDS, _loadDataFile__doc__},
+  {"XPLMLoadDataFile", (PyCFunction)XPLMLoadDataFileFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"saveDataFile", (PyCFunction)XPLMSaveDataFileFun, METH_VARARGS | METH_KEYWORDS, _saveDataFile__doc__},
+  {"XPLMSaveDataFile", (PyCFunction)XPLMSaveDataFileFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"findCommand", (PyCFunction)XPLMFindCommandFun, METH_VARARGS | METH_KEYWORDS, _findCommand__doc__},
+  {"XPLMFindCommand", (PyCFunction)XPLMFindCommandFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"commandBegin", (PyCFunction)XPLMCommandBeginFun, METH_VARARGS | METH_KEYWORDS, _commandBegin__doc__},
+  {"XPLMCommandBegin", (PyCFunction)XPLMCommandBeginFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"commandEnd", (PyCFunction)XPLMCommandEndFun, METH_VARARGS | METH_KEYWORDS, _commandEnd__doc__},
+  {"XPLMCommandEnd", (PyCFunction)XPLMCommandEndFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"commandOnce", (PyCFunction)XPLMCommandOnceFun, METH_VARARGS | METH_KEYWORDS, _commandOnce__doc__},
+  {"XPLMCommandOnce", (PyCFunction)XPLMCommandOnceFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"createCommand", (PyCFunction)XPLMCreateCommandFun, METH_VARARGS | METH_KEYWORDS, _createCommand__doc__},
+  {"XPLMCreateCommand", (PyCFunction)XPLMCreateCommandFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"registerCommandHandler", (PyCFunction)XPLMRegisterCommandHandlerFun, METH_VARARGS | METH_KEYWORDS, _registerCommandHandler__doc__},
+  {"XPLMRegisterCommandHandler", (PyCFunction)XPLMRegisterCommandHandlerFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"unregisterCommandHandler", (PyCFunction)XPLMUnregisterCommandHandlerFun, METH_VARARGS | METH_KEYWORDS, _unregisterCommandHandler__doc__},
+  {"XPLMUnregisterCommandHandler", (PyCFunction)XPLMUnregisterCommandHandlerFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"_cleanup", cleanup, METH_VARARGS, ""},
+  {NULL, NULL, 0, NULL}
+};
+#pragma GCC diagnostic pop
+
+
+static struct PyModuleDef XPLMUtilitiesModule = {
+  PyModuleDef_HEAD_INIT,
+  "XPLMUtilities",
+  "Laminar documentation: \n"
+  "   https://developer.x-plane.com/sdk/XPLMUtilities/\n"
+  "XPPython3 documentation: \n"
+  "   https://xppython3.rtfd.io/en/stable/development/modules/utilities.html",
+  -1,
+  XPLMUtilitiesMethods,
+  NULL,
+  NULL,
+  NULL,
+  NULL
+};
+
+PyMODINIT_FUNC
+PyInit_XPLMUtilities(void)
+{
+  if(!(commandCapsules = PyDict_New())){
+    return NULL;
+  }
+  PyDict_SetItemString(XPY3pythonCapsules, commandRefName, commandCapsules);
+
+  PyObject *mod = PyModule_Create(&XPLMUtilitiesModule);
+  if(mod){
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
+    PyModule_AddIntConstant(mod, "xplm_Host_Unknown", xplm_Host_Unknown); // XPLMHostApplicationID
+    PyModule_AddIntConstant(mod, "xplm_Host_XPlane", xplm_Host_XPlane); // XPLMHostApplicationID
+    PyModule_AddIntConstant(mod, "Host_Unknown", xplm_Host_Unknown); // XPLMHostApplicationID
+    PyModule_AddIntConstant(mod, "Host_XPlane", xplm_Host_XPlane); // XPLMHostApplicationID
+
+    PyModule_AddIntConstant(mod, "xplm_Language_Unknown", xplm_Language_Unknown); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "xplm_Language_English", xplm_Language_English); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "xplm_Language_French", xplm_Language_French); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "xplm_Language_German", xplm_Language_German); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "xplm_Language_Italian", xplm_Language_Italian); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "xplm_Language_Spanish", xplm_Language_Spanish); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "xplm_Language_Korean", xplm_Language_Korean); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "xplm_Language_Russian", xplm_Language_Russian); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "xplm_Language_Greek", xplm_Language_Greek); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "xplm_Language_Japanese", xplm_Language_Japanese); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_Unknown", xplm_Language_Unknown); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_English", xplm_Language_English); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_French", xplm_Language_French); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_German", xplm_Language_German); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_Italian", xplm_Language_Italian); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_Spanish", xplm_Language_Spanish); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_Korean", xplm_Language_Korean); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_Russian", xplm_Language_Russian); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_Greek", xplm_Language_Greek); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_Japanese", xplm_Language_Japanese); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "xplm_Language_Chinese", xplm_Language_Chinese); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_Chinese", xplm_Language_Chinese); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "xplm_Language_Ukrainian", xplm_Language_Ukrainian); // XPLMLanguageCode
+    PyModule_AddIntConstant(mod, "Language_Ukrainian", xplm_Language_Ukrainian); // XPLMLanguageCode
+
+    PyModule_AddIntConstant(mod, "xplm_DataFile_Situation", xplm_DataFile_Situation); // XPLMDataFileType
+    PyModule_AddIntConstant(mod, "xplm_DataFile_ReplayMovie", xplm_DataFile_ReplayMovie); // XPLMDataFileType
+    PyModule_AddIntConstant(mod, "DataFile_Situation", xplm_DataFile_Situation); // XPLMDataFileType
+    PyModule_AddIntConstant(mod, "DataFile_ReplayMovie", xplm_DataFile_ReplayMovie); // XPLMDataFileType
+    
+    PyModule_AddIntConstant(mod, "xplm_CommandBegin", xplm_CommandBegin); // XPLMCommandPhase
+    PyModule_AddIntConstant(mod, "xplm_CommandContinue", xplm_CommandContinue); // XPLMCommandPhase
+    PyModule_AddIntConstant(mod, "xplm_CommandEnd", xplm_CommandEnd); // XPLMCommandPhase
+    PyModule_AddIntConstant(mod, "CommandBegin", xplm_CommandBegin); // XPLMCommandPhase
+    PyModule_AddIntConstant(mod, "CommandContinue", xplm_CommandContinue); // XPLMCommandPhase
+    PyModule_AddIntConstant(mod, "CommandEnd", xplm_CommandEnd); // XPLMCommandPhase
+
+  }
+
+  return mod;
+}

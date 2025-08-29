@@ -159,6 +159,7 @@ static PyObject *XPPythonGetDictsFun(PyObject *self, PyObject *args)
   (void) self;
   (void) args;
   Py_INCREF(XPY3pythonDicts);
+  //PyDict_SetItemString(XPY3pythonDicts, "commandCallbacks", buildCommandCallbacksDict())
   return XPY3pythonDicts;
 }
 

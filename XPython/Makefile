@@ -70,7 +70,7 @@ CFLAGS312=$(CFLAGS) $(PYTHON_CONFIG_FLAGS) -DPYTHONVERSION=\"3.12\"
   LDFLAGS += -shared -fPIC -fpic -g -fvisibility=hidden 
   LDFLAGS312 = $(LDFLAGS) $(shell /Library/Frameworks/Python.framework/Versions/3.12/bin/python3-config --ldflags) -lpython3.12 -F $(XP_SDK)/Libraries/Mac -framework XPLM -framework XPWidgets -framework AppKit
   PLUGIN_DIR=mac_x64
-  LD=cc
+  LD=g++
 endif
 
 #########
@@ -93,7 +93,8 @@ PLUGIN_OBJ = plugin.o defs.o display.o utils.o graphics.o data_access.o utilitie
 	sound.o \
 	weather.o weatherinfo_type.o weatherinfoclouds_type.o weatherinfowinds_type.o \
 	hotkeyinfo_type.o datarefinfo_type.o probeinfo_type.o plugininfo_type.o navaidinfo_type.o fmsentryinfo_type.o \
-	trackmetrics_type.o manage_instance.o manage_instances.o logwriter.o load_modules.o ini_file.o cursor.o
+	trackmetrics_type.o manage_instance.o manage_instances.o logwriter.o load_modules.o ini_file.o cursor.o \
+	cpp_utilities.o
 
 cursor.o : cursor.c
 ifeq ($(TARGET),Darwin)
@@ -105,6 +106,15 @@ else
 endif
 
 %.o	: %.c
+ifeq ($(TARGET),Darwin)
+	$(CC) -target arm64-apple-macos11 -c $(CFLAGS312) $< -o $@.arm
+	$(CC) -target x86_64-apple-macos10.12 -c $(CFLAGS312) $< -o $@.x86
+	touch $@
+else
+	$(CC) -c $(CFLAGS312) $< -o $@
+endif
+
+%.o	: %.cpp
 ifeq ($(TARGET),Darwin)
 	$(CC) -target arm64-apple-macos11 -c $(CFLAGS312) $< -o $@.arm
 	$(CC) -target x86_64-apple-macos10.12 -c $(CFLAGS312) $< -o $@.x86

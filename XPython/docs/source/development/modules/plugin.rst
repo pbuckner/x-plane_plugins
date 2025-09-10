@@ -334,15 +334,6 @@ On startup, you'll see::
   is enabled/disabled through the use of the ``XPLM_WANTS_DATAREF_NOTIFICATIONS`` feature,
   but as XPPython3 requires this to be enabled, you'll always get these messages.
 
-  .. Warning:: This appears to be broken in 12.04r3. You'll get the message, but the value
-               of ``param`` is not the new count of dataRefs: it appears to be a pointer to the
-               value, rather than the value itself. Bug `XPD-13931 <https://developer.x-plane.com/x-plane-bug-database/?issue=XPD-13931>`_
-               filed with Laminar 11-March-2023.
-
-  .. Note:: To work around XPD-13931, we'll automatically convert the pointer value to the
-            actual count, the the value you receive with ``param`` is the count of the
-            current dataRefs.
-  
 .. py:function:: sendMessageToPlugin(pluginID, message, param=None)
 
  Send plugin *message* (as opposed to, say, a Widget message) to another *pluginID*.  Pass

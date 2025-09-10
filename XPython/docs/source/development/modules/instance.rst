@@ -135,14 +135,14 @@ Functions
     Without this, a plugin is responsible for updating an instance's local position
     using :func:`instanceSetPosition` when the coordincate system shifts. Use
     this for static instances that you would not otherwise have to move. (Always
-    call :func:`instanceSetPosition` first.)
+    call :func:`instanceSetPosition`, once, first.)
 
     Autoshift remains active until the next :func:`instanceSetPosition` is called for this
-    instance. You would have to repeat the call to :func:`instanceSetPositionAutoShift` to
-    re-enable this feature.
+    instance. If you call :func:`instanceSetPosition` you will have to repeat the call
+    to :func:`instanceSetPositionAutoShift` to re-enable this feature.
 
     If your instance requires passing datarefs (which is done using :func:`instanceSetPosition`)
-    this function isn't helpful as you will have to re-calculate position information on each
+    this function isn't helpful as you will still have to re-calculate position information on each
     call.
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMInstance/#XPLMInstanceSetPositionAutoShift>`__ :index:`XPLMInstanceSetPositionAutoShift`

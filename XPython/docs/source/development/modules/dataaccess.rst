@@ -1158,7 +1158,7 @@ data is changed, use shared data references.
  tragedy.
 
 Types
---------------------
+-----
 
 .. data:: XPLMDataTypeID
    :annotation: bitfield used to identify the type of data

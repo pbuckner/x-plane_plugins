@@ -85,6 +85,11 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
     mouseState = (XPMouseState_t *)inParam1;
     param1 = Py_BuildValue("(iiii)", mouseState->x, mouseState->y,
                            mouseState->button, mouseState->delta);
+    if (inMessage == xpMsg_CursorAdjust) {
+      PyObject *val = param2;
+      param2 = PyList_New(1);
+      PyList_SetItem(param2, 0, val);
+    }
     break;
   case xpMsg_Reshape:
     param1 =  getPtrRef((void *)inParam1, widgetIDCapsules, widgetRefName);
@@ -172,7 +177,7 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
     }
     if(res != 0){
       if(inMessage == xpMsg_CursorAdjust){
-        *(XPLMCursorStatus *)inParam2 = (int)PyLong_AsLong(param2);
+        *(XPLMCursorStatus *)inParam2 = (int)PyLong_AsLong(PyList_GetItem(param2, 0));
       }
       break;
     }

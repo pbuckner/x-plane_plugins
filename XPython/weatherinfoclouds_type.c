@@ -49,7 +49,7 @@ static int
 WeatherInfoClouds_init(WeatherInfoCloudsObject *self, PyObject *args, PyObject *kwds)
 {
   static char *kwlist[] = {"cloud_type", "coverage", "alt_top", "alt_base", NULL};
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "ffff", kwlist,
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ffff", kwlist,
                                    &self->cloud_type, &self->coverage, &self->alt_top, &self->alt_base))
     return -1;
   return 0;

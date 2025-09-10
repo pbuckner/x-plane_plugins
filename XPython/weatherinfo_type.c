@@ -1,6 +1,8 @@
 #define _GNU_SOURCE 1
 #include <Python.h>
 #include <structmember.h>
+#include "XPLMWeather.h"
+#include "xppythontypes.h"
 #include "utils.h"
 
 /* WeatherInfo Type */
@@ -82,7 +84,11 @@ WeatherInfo_init(WeatherInfoObject *self, PyObject *args, PyObject *kwds)
                            "precip_rate", "thermal_climb", "pressure_sl", "wind_layers", "cloud_layers",
                            "temp_layers", "dewp_layers", "troposphere_alt", "troposphere_temp",
                            "age", "radius_nm", "max_altitude_msl_ft", NULL};
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "ifffffffffifffffOO|OOfffff", kwlist,
+
+  self->detail_found = -1;
+  self->radius_nm = XPLM_DEFAULT_WXR_RADIUS_NM;
+  self->max_altitude_msl_ft = XPLM_DEFAULT_WXR_RADIUS_MSL_FT;
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ifffffffffifffffOOOOfffff", kwlist,
                                    &self->detail_found,
                                    &self->temperature_alt, &self->dewpoint_alt, &self->pressure_alt, &self->precip_rate_alt,
                                    &self->wind_dir_alt, &self->wind_spd_alt, &self->turbulence_alt, &self->wave_height,
@@ -92,6 +98,40 @@ WeatherInfo_init(WeatherInfoObject *self, PyObject *args, PyObject *kwds)
                                    &self->temp_layers, &self->dewp_layers, &self->troposphere_alt, &self->troposphere_temp,
                                    &self->age, &self->radius_nm, &self->max_altitude_msl_ft))
     return -1;
+  if (self->temp_layers == 0) {
+    self->temp_layers = PyList_New(XPLM_NUM_TEMPERATURE_LAYERS);
+    for(int i=0; i< XPLM_NUM_TEMPERATURE_LAYERS; i++ ){
+      PyList_SET_ITEM(self->temp_layers, i, Py_None);
+      Py_INCREF(Py_None);
+    }
+    Py_INCREF(self->temp_layers);
+  }
+  if (self->dewp_layers == 0) {
+    self->dewp_layers = PyList_New(XPLM_NUM_TEMPERATURE_LAYERS);
+    for(int i=0; i< XPLM_NUM_TEMPERATURE_LAYERS; i++ ){
+      PyList_SET_ITEM(self->dewp_layers, i, Py_None);
+      Py_INCREF(Py_None);
+    }
+    Py_INCREF(self->dewp_layers);
+  }
+  if (self->cloud_layers == 0) {
+    self->cloud_layers = PyList_New(XPLM_NUM_CLOUD_LAYERS);
+    for(int i=0; i< XPLM_NUM_CLOUD_LAYERS; i++ ){
+      PyObject *obj = PyWeatherInfoClouds_New(0, 0, 0, 0);
+      Py_INCREF(obj);
+      PyList_SET_ITEM(self->cloud_layers, i, obj);
+    }
+    Py_INCREF(self->cloud_layers);
+  }
+  if(self->wind_layers == 0) {
+    self->wind_layers = PyList_New(XPLM_NUM_WIND_LAYERS);
+    for(int i=0; i< XPLM_NUM_WIND_LAYERS; i++) {
+      PyObject *obj = PyWeatherInfoWinds_New(0, -1, 0, 0, 0, 0);
+      Py_INCREF(obj);
+      PyList_SET_ITEM(self->wind_layers, i, obj);
+    }
+    Py_INCREF(self->wind_layers);
+  }
   return 0;
 }
 
@@ -99,8 +139,10 @@ static PyMemberDef WeatherInfo_members[] = {
   {"detail_found", T_INT, offsetof(WeatherInfoObject, detail_found), 0,
    "Return value from XPLMGetWeatherAtLocation(), 1='detailed weather found'"},
   {"temperature_alt", T_FLOAT, offsetof(WeatherInfoObject, temperature_alt), 0,
-   "Temperature at altitude (Celsius). On set this is ground temperature. \n"
-   "Set temp_layers[0] to -100. to use existing temp_layers at (other) altitudes."},
+   "Temperature at altitude (Celsius).\n"
+   "To set temperature, either use 'temp_layers', or set temp_layer[0] = -100\n"
+   "and set this for ground level temperature: existing weather data will be\n"
+   "used for temperatures at altitude."},
   {"dewpoint_alt", T_FLOAT, offsetof(WeatherInfoObject, dewpoint_alt), 0,
    "Dewpoint at altitude (Celsius). On set, similiar to 'temperature_alt'\n"
    "and 'temp_layers'."},

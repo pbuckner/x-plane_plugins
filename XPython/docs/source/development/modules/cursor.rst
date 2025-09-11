@@ -149,7 +149,7 @@ Preloaded Custom Cursors
 
 XPPython3 pre-loads a number of basic cursors with hard-coded ``cursor_id``. You can use these with :py:func:`setCursor`. Please
 do not unload them as that would make them unavailable to other python plugins. These constants
-*should not* be used as a :ref:`CursorStatus <cursor-status>` return. Cursor Status should be set
+*should not* be used as a :ref:`CursorStatus <XPLMCursorStatus>` return. Cursor Status should be set
 to :data:`xp.CursorCustom`.
 
 .. table::

@@ -11,7 +11,7 @@ def createProbe(probeType:XPLMProbeType=ProbeY) -> XPLMProbeRef:
     """
     ...
 
-def destroyProbe(probe:XPLMProbeType) -> None:
+def destroyProbe(probe:XPLMProbeRef) -> None:
     """
     Destroy a probeRef
     """

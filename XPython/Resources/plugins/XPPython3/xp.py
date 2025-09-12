@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 import XPLMCamera
 controlCamera = XPLMCamera.controlCamera
 dontControlCamera = XPLMCamera.dontControlCamera
@@ -39,6 +40,27 @@ countDataRefs = XPLMDataAccess.countDataRefs
 getDataRefsByIndex = XPLMDataAccess.getDataRefsByIndex
 getDataRefInfo = XPLMDataAccess.getDataRefInfo
 import XPLMDefs
+CursorRotateSmall = XPLMDefs.CursorRotateSmall
+CursorRotateSmallLeft = XPLMDefs.CursorRotateSmallLeft
+CursorRotateSmallRight = XPLMDefs.CursorRotateSmallRight
+CursorRotateMedium = XPLMDefs.CursorRotateMedium
+CursorRotateMediumLeft = XPLMDefs.CursorRotateMediumLeft
+CursorRotateMediumRight = XPLMDefs.CursorRotateMediumRight
+CursorRotateLarge = XPLMDefs.CursorRotateLarge
+CursorRotateLargeLeft = XPLMDefs.CursorRotateLargeLeft
+CursorRotateLargeRight = XPLMDefs.CursorRotateLargeRight
+CursorUpDown = XPLMDefs.CursorUpDown
+CursorUp = XPLMDefs.CursorUp
+CursorDown = XPLMDefs.CursorDown
+CursorLeftRight = XPLMDefs.CursorLeftRight
+CursorLeft = XPLMDefs.CursorLeft
+CursorRight = XPLMDefs.CursorRight
+CursorButton = XPLMDefs.CursorButton
+CursorHandle = XPLMDefs.CursorHandle
+CursorFourArrows = XPLMDefs.CursorFourArrows
+CursorSplitterH = XPLMDefs.CursorSplitterH
+CursorSplitterV = XPLMDefs.CursorSplitterV
+CursorText = XPLMDefs.CursorText
 ShiftFlag = XPLMDefs.ShiftFlag
 OptionAltFlag = XPLMDefs.OptionAltFlag
 ControlFlag = XPLMDefs.ControlFlag
@@ -250,6 +272,7 @@ CursorDefault = XPLMDisplay.CursorDefault
 CursorHidden = XPLMDisplay.CursorHidden
 CursorArrow = XPLMDisplay.CursorArrow
 CursorCustom = XPLMDisplay.CursorCustom
+# More Cursors are defined in XPLMGraphics...
 WindowLayerFlightOverlay = XPLMDisplay.WindowLayerFlightOverlay
 WindowLayerFloatingWindows = XPLMDisplay.WindowLayerFloatingWindows
 WindowLayerModal = XPLMDisplay.WindowLayerModal
@@ -295,12 +318,18 @@ drawString = XPLMGraphics.drawString
 drawNumber = XPLMGraphics.drawNumber
 getFontDimensions = XPLMGraphics.getFontDimensions
 measureString = XPLMGraphics.measureString
+getTexture = XPLMGraphics.getTexture
 Font_Basic = XPLMGraphics.Font_Basic
 Font_Proportional = XPLMGraphics.Font_Proportional
+Tex_GeneralInterface = XPLMGraphics.Tex_GeneralInterface
+Tex_Radar_Pilot = XPLMGraphics.Tex_Radar_Pilot
+Tex_Radar_Copilot = XPLMGraphics.Tex_Radar_Copilot
 import XPLMInstance
 createInstance = XPLMInstance.createInstance
 destroyInstance = XPLMInstance.destroyInstance
+instanceSetAutoShift = XPLMInstance.instanceSetAutoShift
 instanceSetPosition = XPLMInstance.instanceSetPosition
+instanceSetPositionDouble = XPLMInstance.instanceSetPositionDouble
 import XPLMMap
 createMapLayer = XPLMMap.createMapLayer
 destroyMapLayer = XPLMMap.destroyMapLayer
@@ -517,6 +546,7 @@ import XPPython
 pythonExecutable = XPPython.pythonExecutable
 pythonGetDicts = XPPython.pythonGetDicts
 pythonGetCapsules = XPPython.pythonGetCapsules
+getSelfName = XPPython.getSelfName
 pythonLog = XPPython.log
 getPluginStats = XPPython.getPluginStats
 log = XPPython.log
@@ -747,6 +777,18 @@ PARAM_PARENT = XPWidgetUtils.PARAM_PARENT
 import XPLMWeather
 getMETARForAirport = XPLMWeather.getMETARForAirport
 getWeatherAtLocation = XPLMWeather.getWeatherAtLocation
+setWeatherAtLocation = XPLMWeather.setWeatherAtLocation
+setWeatherAtAirport = XPLMWeather.setWeatherAtAirport
+eraseWeatherAtLocation = XPLMWeather.eraseWeatherAtLocation
+eraseWeatherAtAirport = XPLMWeather.eraseWeatherAtAirport
+beginWeatherUpdate = XPLMWeather.beginWeatherUpdate
+endWeatherUpdate = XPLMWeather.endWeatherUpdate
+NumWindLayers = XPLMWeather.NumWindLayers
+NumCloudLayers = XPLMWeather.NumCloudLayers
+NumTemperatureLayers = XPLMWeather.NumTemperatureLayers
+WindUndefinedLayer = XPLMWeather.WindUndefinedLayer
+DefaultWxrRadiusNm = XPLMWeather.DefaultWxrRadiusNm
+DefaultWxrRadiusMslFt = XPLMWeather.DefaultWxrRadiusMslFt
 import XPLMSound
 stopAudio = XPLMSound.stopAudio
 playPCMOnBus = XPLMSound.playPCMOnBus
@@ -809,3 +851,16 @@ class PluginItem:
 def getAccessors(self):
     plugin = PluginItem(self).module_name  # e.g., PythonPlugins.PI_MiniPython
     return [x for x in pythonGetDicts()['accessors'].items() if x[0] == plugin]
+
+
+@contextmanager
+def weatherUpdateContext(isIncremental: int = 1, updateImmediately: int = 0):
+    """
+    context manager for begin/end weather update. Defaults to incrementally updating
+    weather using a transition rather than immediately.
+    """
+    beginWeatherUpdate()
+    try:
+        yield
+    finally:
+        endWeatherUpdate(isIncremental, updateImmediately)

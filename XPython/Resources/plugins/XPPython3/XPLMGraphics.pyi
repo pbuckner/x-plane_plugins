@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from typing import Any, Callable, Generic, Optional, Type, TypeVar, NewType, Literal, Sequence
 from XPPython3.xp_typing import *    
 Tex_GeneralInterface: XPLMTextureID
+Tex_Radar_Pilot: XPLMTextureID
+Tex_Radar_Copilot: XPLMTextureID
 Font_Basic: XPLMFontID
 Font_Proportional: XPLMFontID
 def setGraphicsState(fog:int=0, numberTexUnits:int=0, lighting:int=0, alphaTesting:int=0, alphaBlending:int=0, depthTesting:int=0, depthWriting:int=0) -> None:
@@ -84,3 +86,8 @@ def measureString(fontID:XPLMFontID, string:str) -> float:
     """
     ...
 
+def getTexture(textureID:XPLMTextureID) -> int:
+    """
+    Returns OpenGL texture ID for X-Plane Texture.
+    """
+    ...

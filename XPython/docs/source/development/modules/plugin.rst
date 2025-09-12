@@ -235,7 +235,9 @@ On startup, you'll see::
 
  This message is sent to your plugin whenever a new plane is loaded. The
  parameter is the number of the plane being loaded; 0 indicates the user's
- plane.
+ plane. Note that on startup, the user airplane is loaded *before* it is
+ placed within the sim. If you want to query where the aircraft is loaded,
+ wait at least for ``MSG_AIRPORT_LOADED``.
 
 .. py:data:: MSG_AIRPORT_LOADED
  :value: 103
@@ -254,7 +256,7 @@ On startup, you'll see::
  :value: 105
 
  This message is sent whenever the user adjusts the number of X-Plane
- aircraft models. You must use :py:func:`countPlanes` to find out how many planes
+ aircraft models. You must use :py:func:`countAircraft` to find out how many planes
  are now available. This message will only be sent in XP7 and higher
  because in XP6 the number of aircraft is not user-adjustable.
 

@@ -68,112 +68,73 @@ Get Weather
 
 .. py:function:: getMETARForAirport(airport_id)
 
+  :param str airport_id: ICAO code
+  :return: Last known METAR for airport (`str`)
+
   Get the last known METAR report for an airport by ICAO code. Note that the
   actual weather at that airport may have evolved significantly since the last
-  downloaded METAR. This call is not intended to be used per-frame.
+  downloaded METAR. This call is not intended to be used per-frame.::
 
-  >>> xp.getMETARForAirport('KJFK')
-  'KJFK 111451Z 01012KT 7SM -RA OVC011 03/02 A2974 RMK AO2 SNB1356E02 SLP070 P0005 60015 T00280017 51024'
-  >>> xp.getMETARForAirport('JFK')
-  ''
-  >>> xp.getMETARForAirport('KNYC')
-  ''
+    >>> xp.getMETARForAirport('KJFK')
+    'KJFK 111451Z 01012KT 7SM -RA OVC011 03/02 A2974 RMK AO2 SNB1356E02 SLP070 P0005 60015 T00280017 51024'
+    >>> xp.getMETARForAirport('JFK')
+    ''
+    >>> xp.getMETARForAirport('KNYC')
+    ''
 
   Note that valid METAR codes which *are not airports* such as Central Park NYC (KNYC) do not
   return values.
 
   Note also that "Download Real Weather" must be enabled in order for X-Plane to have
   downloaded *any* METARs. If real weather was not enabled, the query will return an empty
-  string with no indication that real weather is disabled.:
+  string with no indication that real weather is disabled.::
 
-  >>> xp.getMETARForAirport('KJFK')
-  ''
+    >>> xp.getMETARForAirport('KJFK')
+    ''
 
- `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLMGetMETARForAirport>`__ :index:`XPLMGetMETARForAirport`
+  `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLMGetMETARForAirport>`__ :index:`XPLMGetMETARForAirport`
 
 .. py:function:: getWeatherAtLocation(latitude, longitude, altitude_m)
 
-  Get the current weather conditions at a given location. Note that this does not work
-  world-wide, only within the surrounding region.
+  :param float latitude:
+  :param float longitude: A "nearby" location   
+  :param float altitude_m: Altitude (MSL) in meters
+  :return: :data:`XPLMWeatherInfo_t` or None on error.                         
+
+  Get the current weather conditions at a given location. Note that this is not effective outside
+  the surrounding region.
 
   This call is not intended to be used per-frame (use datarefs if at all possible instead).
   
   Returns ``None`` on error.
 
-  .. note::
+  * This function will appear to *execute* world-wide, with latitudes +/- 90 degrees and longitudes +/- 180 degrees.
+    **However**, weather outside the current region will be less accurate, due to math errors
+    and METAR information. (There is no way of knowing the extent of the *current region*, so
+    the understanding should be "nearby weather is more accurate that far-away weather". Generally,
+    within 50nm of current location has good accuracy.)
+    Using values with illegal latitude/longitude range will result in a ``None`` return value.
 
-     The above information is from Laminar's documentation, but it needs to be *clarified*. (`XPD-14674 <https://developer.x-plane.com/x-plane-bug-database/?issue=XPD-14674>`_)
+  * The ``XPLMWeatherInfo_t.detail_found`` attribute, on a successful return, is the *actual*
+    return value from X-Plane's XPLMGetWeatherAtLocation() call. This, I'm told,
+    indicates "if detail weather is found", where *detail weather* refers to the
+    existence of a METAR within about 50 miles of the queried location. It is **not**
+    a success/failure return value of the actual XPLMWeatherInfo_t object. (Nor is it an
+    indication of "weather in region" vs. "weather out of region".)
 
-     * It appears to *execute* world-wide, with latitudes +/- 90 degrees and longitudes +/- 180 degrees.
-       **However**, weather outside the current region will be less accurate, due to math errors
-       and METAR information. (There is no way of knowing the extent of the *current region*, so
-       the understanding should be "nearby weather is more accurate that far-away weather". Generally,
-       within 50nm of current location has good accuracy.)
-       Using values with illegal latitude/longitude range will result in a ``None`` return value.
+    What to do with this ``detail_found`` value? Beats me. It won't tell you which METAR
+    is nearby, or which of multiple nearby METARs are used perhaps to alter the world-wide
+    GRIB weather data. Bug Report has been filed requesting clarification.
 
-     * The ``XPLMWeatherInfo_t.detail_found`` attribute, on a successful return, is the *actual*
-       return value from X-Plane's XPLMGetWeatherAtLocation() call. This, I'm told,
-       indicates "if detail weather is found", where *detail weather* refers to the
-       existence of a METAR within about 50 miles of the queried location. It is **not**
-       a success/failure return value of the actual XPLMWeatherInfo_t object. (Nor is it an
-       indication of "weather in region" vs. "weather out of region".)
+    Because ``detail_found`` does not indicate success or failure, XPPython3 uses
+    a flag to attempt to detect if data is valid. (We set an internal data structure
+    temperature to a bogus number and if post-query it is still bad, we assume
+    data was not successfully obtained, and return ``None``.)
 
-       What to do with this ``detail_found`` value? Beats me. It won't tell you which METAR
-       is nearby, or which of multiple nearby METARs are used perhaps to alter the world-wide
-       GRIB weather data. Bug Report has been filed requesting clarification.
-
-     Because ``detail_found`` does not indicate success or failure, XPPython3 uses
-     a flag to attempt to detect if data is valid. (We set an internal data structure
-     temperature to a bogus number and if post-query it is still bad, we assume
-     data was not successfully obtained, and return ``None``.)
-
-     Please, if any of this makes sense to you let me know!
-
-  On success, returns a XPLMWeatherInfo_t object:
-
-  >>> help(xp.XPLMWeatherInfo_t)
-  class XPLMWeatherInfo_t(builtin.object)
-  |  ----------------------------------
-  |  Data descriptors defined here:
-  |  detail_found:     actual return value from X-Plane XPLMGetWeatherAtLocation()
-  |  temperature_alt:  temperature at altitude (Celsius)
-  |  dewpoint_alt:     dewpoint at altitude (Celsius)
-  |  pressure_alt:     pressure at altitude (Pascals)
-  |  precip_rate_alt:  precipitation ratio at altitude
-  |  wind_dir_alt:     wind direction at altitude (True, presumably)
-  |  wind_spd_alt:     wind speed at altitude (meters/second)
-  |  turbulence_alt:   turbulence ratio at altitude (units?)
-  |  wave_dir:         wave direction (waves moving from...)
-  |  wave_length:      wave length (meters)
-  |  wave_speed:       wave speed (meters/second)
-  |  visibility:       base visibility at 0 altitude (meters)
-  |  precip_rate:      base precipitation ratio at 0 altitude
-  |  thermal_climb:    climb rate due to thermals (meters/second)
-  |  pressure_sl:      pressure at 0 altitude (Pascals)
-  |  wind_layers:      List of XPLMWeatherInfoWinds_t objects
-  |  cloud_layers:     List of XPLMWeatherInfoClouds_t objects
-
-  Which include a list of objects for `wind_layer` and `cloud_layers`:
-
-  >>> help(xp.XPLMWeatherInfoWinds_t)
-  class XPLMWeatherInfoWinds_t(builtin.object)
-  |  ------------------------------------
-  |  Data descriptors defined here:
-  |  alt_msl:        Altitude MSL (meters)
-  |  speed:          Speed (meters/second)
-  |  direction:      Direction (degrees true)
-  |  gust_speed:     Gust speed (meters/second)
-  |  shear:          Shear arc i.e., 50% of this arc in either direction from base (degrees)
-  |  turbulence:     Turbulence ratio
-
-  >>> help(xp.XPLMWeatherInfoClouds_t)
-  class XPLMWeatherInfoClouds_t(builtin.object)
-  |  ------------------------------------
-  |  Data descriptors defined here:
-  |  cloud_type:     Cloud type (float enum)
-  |  coverage:       Coverage ratio
-  |  alt_top:        Cloud top altitude MSL (meters)
-  |  alt_base:       Cloud base altitude MSL (meters)
+  On success, :func:`getWeatherAtLocation` returns a :data:`XPLMWeatherInfo_t` object. See below for details or
+  interactively using ``help(xp.XPLMWeatherInfo_t)``. The WeatherInfo object includes
+  a list of wind layers :data:`XPLMWeatherInfoWinds_t`, a list of cloud layers :data:`XPLMWeatherInfoClouds_t`,
+  and a list of floats for temperature and dewpoint layers.
 
   For example:
 
@@ -216,7 +177,7 @@ Get Weather
 Set Weather
 -----------
 
-.. note:: "Setting Weather" is available only with X-Plane 12.3.0 and above, which is currently in beta. There
+.. warning:: "Setting Weather" is available only with X-Plane 12.3.0 and above, which is currently in beta. There
           remain some bugs in the X-Plane implementation, so the following API and/or explanations may
           change.
 
@@ -224,11 +185,22 @@ Set Weather
 The following functions are *only* available with X-Plane 12.3.0+. Calling them on earlier
 versions of X-Plane will log an error.
 
+The weather updates you provide, be they new observation using ``setWeatherAt*()`` or removing previous observations
+using ``eraseWeatherAt*()`` are transitioned over the next few minutes, unless they are surrounded with an "updateImmediately"
+begin/end context. Additionally, bare ``setWeatherAt*()`` calls result in incremental updates to plugin weather data already provided
+(i.e., "isIncremental") for the given location. If you want to reset weather ("now dammit!") use a weather context, and erase
+previous updates to be sure::
+
+  >>> with xp.weatherUpdateContext(isIncremental=0, updateImmediately=1):
+  ...     xp.eraseWeatherAtLocation(34, -117)
+  ...     xp.setWeatherAtLocation(34, -117, 2000, info)
+  ...
+
 .. py:function:: setWeatherAtLocation(latitude, longitude, altitude_m, info)
                  
   :param float latitude:
   :param float longitude: floating point latitude and longitude
-  :param float altitude_m: altitude in meters, where the weather is to be changed
+  :param float altitude_m: altitude in meters MSL, where the weather is to be changed
   :param XPLMWeatherInfo_t info: :data:`XPLMWeatherInfo_t` data structure containing requested change. Note not all element members are applicable for "set".
                                   
   `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLMSetWeatherAtLocation>`__ :index:`XPLMSetWeatherAtLocation`
@@ -267,7 +239,7 @@ versions of X-Plane will log an error.
   **You must call** :func:`endWeatherUpdate` **prior to exiting your callback**. Failure to
   do so will result in error and performance issues. For this reason, we suggest you use :func:`weatherUpdateContext` instead.
 
-  Because this function must be used at the same time as :func:`endWeatherUpdate`, you cannot type this function directly
+  Because this function **must be used at the same time** as :func:`endWeatherUpdate`, you cannot type this function directly
   into the python debugger (though you can, if you place it within a function definition.) Use :func:`weatherUpdateContext`
   if you want to experiment within the debugger.
 
@@ -284,6 +256,14 @@ versions of X-Plane will log an error.
      ...
      >>> changeWeather()
 
+  or, using the context manager::
+
+     >>> with xp.weatherUpdateContext():
+     ...   info = xp.getWeatherAtLocation(35, -172, 100)
+     ...   info.thermal_climb += .5
+     ...   xp.setWeatherAtLocation(35, -172, 100, info)
+     ...
+     
   `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLMBeginWeatherUpdate>`__ :index:`XPLMBeginWeatherUpdate`
 
 .. py:function:: endWeatherUpdate(isIncremental=1, updateImmediately=0)
@@ -326,13 +306,41 @@ versions of X-Plane will log an error.
 Types
 -----
 
+Weather data is stored within an instance of
+
+* :data:`XPLMWeatherInfo_t`, which includes lists of
+
+  * :data:`XPLMWeatherInfoWinds_t` and
+
+  * :data:`XPLMWeatherInfoClouds_t`.
+
+Each of these types are described below.
+
 .. data:: XPLMWeatherInfo_t
 
 Weather information is stored in the XPLMWeatherInfo_t type. It is represented in XPPython3 as a class.
 As with most python, you can get more information about it using ``help(xp.XPLMWeatherInfo_t)``.
 
 This type was introduced in X-Plane 12.0, and then expanded with more fields in X-Plane 12.3.0. You
-can use with any X-Plane 12.0+, though some of the fields will not have meaning unless used with 12.3.0+
+can use this class with any X-Plane 12.0+, though some of the fields will not have meaning unless used with 12.3.0+
+
+Various fields within this class interact with each other. For example, the value for ``.dewpoint_alt`` is ignored unless
+``.dewp_layers[0] <= -100``. Be sure to fully understand all of the fields to get full value.
+
+You can create a "blank" instance of this class, including associated lists by normal python means.::
+
+  >>> info = xp.XPLMWeatherInfo_t()
+
+The instance will be intialized to useful defaults including:
+
+| .age = 0
+| .detail_found = -1
+| .radius_nm = :data:`DefaultWxrRadiusNm`
+| .max_altitude_msl_ft = :data:`DefaultWxrRadiusMslFt`
+| .temp_layers = [None, None, ..., None]
+| .dewp_layers = [None, None, ..., None]
+| .cloud_layers = [xp.XPLMWeatherInfoClouds_t(0, 0, 0, 0),  ... ]
+| .wind_layers = [xp.XPLMWeatherInfoWinds_t(0, -1, 0, 0, 0, 0),  ... ]
 
 +----------------------------------+------+------------------------------------------------+------------+-------------------+
 | Field                            | Type | Description                                    |  Get/Set   |  X_Plane_Version  |
@@ -526,7 +534,7 @@ can use with any X-Plane 12.0+, though some of the fields will not have meaning 
 |              speed               |float |Wind speed (meters/second)                      |Get/Set     | | 12.0-Read       |
 |                                  |      |                                                |            | | 12.3-R/W        |
 |                                  |      |On **set** if this is                           |            |                   |
-|                                  |      |:data:`WindUndefinedLayer`, this layer is       |            |                   |
+|                                  |      |:data:`WindUndefinedLayer` (-1), this layer is  |            |                   |
 |                                  |      |undefined and (effectively) skipped.            |            |                   |
 |                                  |      |                                                |            |                   |
 |                                  |      |You can have defined layers above undefined     |            |                   |
@@ -539,7 +547,7 @@ can use with any X-Plane 12.0+, though some of the fields will not have meaning 
 |                                  |      |speed, not the amount of increase over the wind |            | | 12.3-R/W        |
 |                                  |      |speed.                                          |            |                   |
 +----------------------------------+------+------------------------------------------------+------------+-------------------+
-|shear                             |float |Searh arc, degrees. The wind will shear 50% of  |Get/Set     | | 12.0-Read       |
+|shear                             |float |Search arc, degrees. The wind will shear 50% of |Get/Set     | | 12.0-Read       |
 |                                  |      |this arc in either direction from base          |            | | 12.3-R/W        |
 |                                  |      |direction.                                      |            |                   |
 +----------------------------------+------+------------------------------------------------+------------+-------------------+
@@ -553,21 +561,29 @@ Constants
 .. py:data:: NumWindLayers
    :value: 13
 
+   Length of the list of ``.wind_layers`` in :data:`XPLMWeatherInfo_t`.
+
    `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLM_NUM_WIND_LAYERS>`__ :index:`XPLM_NUM_WIND_LAYERS`
 
 .. py:data:: NumCloudLayers
    :value: 3
+
+   Length of the list of ``.cloud_layers`` in :data:`XPLMWeatherInfo_t`.
 
    `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLM_NUM_CLOUD_LAYERS>`__ :index:`XPLM_NUM_CLOUD_LAYERS`
 
 .. py:data:: NumTemperatureLayers
    :value: 13
 
+   Length of the list of ``.temp_layers`` and ``.dewp_layers`` in :data:`XPLMWeatherInfo_t`.
+
    `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLM_NUM_TEMPERATURE_LAYERS>`__ :index:`XPLM_NUM_TEMPERATURE_LAYERS`
 
 .. py:data:: WindUndefinedLayer
    :value: -1
 
+   Value to use as the wind speed in ``.wind_layer`` item to cause this layer to be ignored (i.e., "no data" vs. "zero wind").
+   
    `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLM_NUM_UNDEFINED_LAYER>`__ :index:`XPLM_NUM_UNDEFINED_LAYER`
 
 .. py:data:: DefaultWxrRadiusNm

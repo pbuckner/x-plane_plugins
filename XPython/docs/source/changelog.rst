@@ -46,7 +46,14 @@ Known Bugs
      * :doc:`/development/modules/graphics`: for :func:`xp.getTexture` and enumerations for weather radar textures.
        avionics.
 
+     |
 
+:Improvements:
+   * **XPPython3/utils/datarefs.py**: Previous version had major implementation issues: how it got released is beyond me.
+     We've updated the module and extensively updated the documentation at :doc:`/development/modules/datarefs` and included
+     many more examples.
+     
+   
 4.5.0 (21-Jan-2025)
 -------------------
 

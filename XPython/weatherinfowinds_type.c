@@ -61,7 +61,7 @@ WeatherInfoWinds_init(WeatherInfoWindsObject *self, PyObject *args, PyObject *kw
 }
 
 static PyMemberDef WeatherInfoWinds_members[] = {
-  {"alt_msl", T_FLOAT, offsetof(WeatherInfoWindsObject, alt_msl), 0, "Altitude MSL (meters)"},
+  {"alt_msl", T_FLOAT, offsetof(WeatherInfoWindsObject, alt_msl), 0, "Altitude MSL (meters). (Depth of layer is not specified.)"},
   {"speed", T_FLOAT, offsetof(WeatherInfoWindsObject, speed), 0, "Speed (meters/second). On set, use negative value to signify 'undefined' for the layer."},
   {"direction", T_FLOAT, offsetof(WeatherInfoWindsObject, direction), 0, "Direction (degrees true)"},
   {"gust_speed", T_FLOAT, offsetof(WeatherInfoWindsObject, gust_speed), 0, "Gust speed (meters/second). Total speed, not incremental over wind speed."},

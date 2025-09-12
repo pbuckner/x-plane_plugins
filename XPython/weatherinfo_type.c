@@ -148,7 +148,7 @@ static PyMemberDef WeatherInfo_members[] = {
    "and 'temp_layers'."},
   {"pressure_alt", T_FLOAT, offsetof(WeatherInfoObject, pressure_alt), 0,
    "Pressure at altitude (Pascals). On set, should be QNH as reported\n"
-   "by station at the ground altitude give, or 0 if you\n"
+   "by station at the ground altitude given, or 0 if you\n"
    "are passing sealevel pressure in 'pressure_sl' instead."},
   {"precip_rate_alt", T_FLOAT, offsetof(WeatherInfoObject, precip_rate_alt), 0,
    "Precipitation ratio at altitude (0.0 - 1.0)"},
@@ -157,25 +157,24 @@ static PyMemberDef WeatherInfo_members[] = {
   {"wind_spd_alt", T_FLOAT, offsetof(WeatherInfoObject, wind_spd_alt), 0,
    "Wind speed at altitude (meters/second). Ignored on set (derived from other data)."},
   {"turbulence_alt", T_FLOAT, offsetof(WeatherInfoObject, turbulence_alt), 0,
-   "Turbulence ratio at altitude"},
+   "Turbulence ratio at altitude. Ignored on set (derived from other data)."},
   {"wave_height", T_FLOAT, offsetof(WeatherInfoObject, wave_height), 0,
    "Wave height (meters)"},
   {"wave_length", T_FLOAT, offsetof(WeatherInfoObject, wave_length), 0,
-   "Wave length (meters)"},
+   "Wave length (meters). Ignored on set (Derived from other data)."},
   {"wave_dir", T_INT, offsetof(WeatherInfoObject, wave_dir), 0,
-   "Wave direction (waves moving from...) degrees. Ignored on set (derived from\n"
-   "other data)."},
+   "Wave direction (waves moving from...) True degrees."},
   {"wave_speed", T_FLOAT, offsetof(WeatherInfoObject, wave_speed), 0,
    "Wave speed (meters/second). Ignored on set (derived from other data)."},
   {"visibility", T_FLOAT, offsetof(WeatherInfoObject, visibility), 0,
-   "Base visibility at 0 altitude (meters)"},
+   "Base visibility at 0 altitude (distance in meters)"},
   {"precip_rate", T_FLOAT, offsetof(WeatherInfoObject, precip_rate), 0,
-   "Base precipitation ratio at 0 altitude"},
+   "Base precipitation ratio at 0 altitude (0.0 - 1.0)"},
   {"thermal_climb", T_FLOAT, offsetof(WeatherInfoObject, thermal_climb), 0,
    "Climb rate due to thermals (meters/second)"},
   {"pressure_sl", T_FLOAT, offsetof(WeatherInfoObject, pressure_sl), 0,
    "Pressure at 0 altitude (Pascals). On set, this is ignored if\n"
-   "'pressure_alt' is given."},
+   "'pressure_alt' is non-zero."},
   {"wind_layers", T_OBJECT_EX, offsetof(WeatherInfoObject, wind_layers), 0,
    "List of XPLMWeatherInfoWinds_t objects"},
   {"cloud_layers", T_OBJECT_EX, offsetof(WeatherInfoObject, cloud_layers), 0,
@@ -195,11 +194,11 @@ static PyMemberDef WeatherInfo_members[] = {
    "Temperature in degrees C of troposphere. Except see 'troposphere_alt'."},
   {"age", T_FLOAT, offsetof(WeatherInfoObject, age), 0,
    "Age in seconds of this weather report. Age affects how strongly the\n"
-   "report affects the weather"},
+   "report affects the weather. Not meaningful on get."},
   {"radius_nm", T_FLOAT, offsetof(WeatherInfoObject, radius_nm), 0,
-   "Vertical radius of efect of this weather report, feet MSL"},
+   "Horizontal radius of effect of this weather report, nautical miles"},
   {"max_altitude_msl_ft", T_FLOAT, offsetof(WeatherInfoObject, max_altitude_msl_ft), 0,
-   "Pressure at 0 altitude (Pascals)"},
+   "Vertical radius of effect of this weather report, feet MSL."},
   {NULL, T_INT, 0, 0, ""} /* Sentinel */
 };
 

@@ -1,4 +1,5 @@
 from typing import List
+import numpy as np
 from OpenGL.GL import glGenTextures, glActiveTexture, glBindTexture, GL_TEXTURE_2D, GL_TEXTURE0, glEnable, glDisable, \
     GL_FALSE, GL_TRUE, GL_ALPHA_TEST, GL_BLEND, GL_DEPTH_TEST, glDepthMask
 
@@ -16,7 +17,7 @@ class DummyXP:
     @staticmethod
     def generateTextureNumbers(count: int) -> List[int]:
         f = glGenTextures(count)
-        if isinstance(f, int):
+        if isinstance(f, (int, np.uint32)):
             return [f, ]
         return f
 

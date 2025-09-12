@@ -85,7 +85,9 @@ Functions
     >>> my_cmd.once()
 
   You can retrieve this command later using :py:func:`find_command` or further modify it using
-  the other command functions.
+  the other command functions. If you need the X-Plane ``XPLMCommandRef`` value, for example to
+  use this command with :py:func:`appendMenuWithCommand`, use the ``.commandRef`` attribut of
+  the returned Command instance.
 
 .. py:function:: find_command(name)
 
@@ -101,6 +103,10 @@ Functions
     >>> pause.once()  # sim is not paused
     >>> fail_cmd = find_command('sim/operation/double_my_FPS!!!!')
     ValueError: Command not found.
+
+  If you need the X-Plane ``XPLMCommandRef`` value, for example to
+  use this command with :py:func:`appendMenuWithCommand`, use the ``.commandRef`` attribute of the
+  returned Command instance.
 
 .. py:function:: replace_command(name, callback)
 

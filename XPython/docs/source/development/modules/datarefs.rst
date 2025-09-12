@@ -98,6 +98,10 @@ The set the dataref value, simply assign a new value::
   >>> is_paused.value
   1
 
+(``is_paused`` is a read-only dataref; setting the ``sim_speed.value`` to zero will cause the sim
+to be paused & ``is_paused.value`` will be reflect this. To "unpause" the sim via dataref
+you cannot write to ``is_paused.value``. Instead, set ``sim_speed.value`` to 1.)
+
 Data is immediately updated in X-Plane.
 
 If the dataref is an array type, and you specified it
@@ -164,7 +168,7 @@ To create an array of 6 (numeric) elements, provide the dimension::
   >>> print(dr_tank_capacity[3] = 42
   >>> print(dr_tank_capacity.value)
   [0.0, 0.0, 0.0, 42.0, 0.0, 0.0]
-  >>> print(dr_tank_capacity[3].value)
+  >>> print(dr_tank_capacity[3])
   42
   >>> print(dr_tank_capacity.value[3])
   42    

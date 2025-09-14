@@ -1,11 +1,32 @@
 from dataclasses import dataclass
 from typing import Any, Callable, Generic, Optional, Type, TypeVar, NewType, Literal, Sequence
-from XPPython3.xp_typing import *    
+from XPPython3.xp_typing import *
 NoFlag: XPLMKeyFlags
 CursorDefault: XPLMCursorStatus
 CursorHidden: XPLMCursorStatus
 CursorArrow: XPLMCursorStatus
 CursorCustom: XPLMCursorStatus
+CursorRotateSmall: XPLMCursorStatus
+CursorRotateSmallLeft: XPLMCursorStatus
+CursorRotateSmallRight: XPLMCursorStatus
+CursorRotateMedium: XPLMCursorStatus
+CursorRotateMediumLeft: XPLMCursorStatus
+CursorRotateMediumRight: XPLMCursorStatus
+CursorRotateLarge: XPLMCursorStatus
+CursorRotateLargeLeft: XPLMCursorStatus
+CursorRotateLargeRight: XPLMCursorStatus
+CursorUpDown: XPLMCursorStatus
+CursorUp: XPLMCursorStatus
+CursorDown: XPLMCursorStatus
+CursorLeftRight: XPLMCursorStatus
+CursorLeft: XPLMCursorStatus
+CursorRight: XPLMCursorStatus
+CursorButton: XPLMCursorStatus
+CursorHandle: XPLMCursorStatus
+CursorFourArrows: XPLMCursorStatus
+CursorSplitterH: XPLMCursorStatus
+CursorSplitterV: XPLMCursorStatus
+CursorText: XPLMCursorStatus
 MouseDown: XPLMMouseStatus
 MouseDrag: XPLMMouseStatus
 MouseUp: XPLMMouseStatus

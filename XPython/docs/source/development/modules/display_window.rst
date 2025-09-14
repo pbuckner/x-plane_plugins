@@ -465,10 +465,12 @@ the window, or using the tuple.
   X-Plane to show the cursor but not affect its image.  You can then use
   :py:func:`xp.setCursor` to display a custom cursor you've loaded.
 
-  .. _cursor-status:
+
+  .. _XPLMCursorStatus:
 
   :index:`XPLMCursorStatus`
- 
+  =========================       
+
   .. table::
      :align: left
 
@@ -729,6 +731,10 @@ within bounds in :doc:`/development/window_position`.
    monitor 1’s upper right, your global desktop area would be the rectangle from
    (0, 0) to (3840, 2160).
 
+ If the X-Plane is running in a window (i.e., not full screen), the values
+ returned are the size of the within in boxels (:func:`getScreenSize` returns pixels)
+ with the (0, 0) origin in the bottom left corner.
+ 
  Note that popped-out windows (windows drawn in their own operating system
  windows, rather than “floating” within X-Plane) are not included in these bounds.
 

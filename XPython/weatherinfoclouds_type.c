@@ -49,7 +49,7 @@ static int
 WeatherInfoClouds_init(WeatherInfoCloudsObject *self, PyObject *args, PyObject *kwds)
 {
   static char *kwlist[] = {"cloud_type", "coverage", "alt_top", "alt_base", NULL};
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "ffff", kwlist,
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ffff", kwlist,
                                    &self->cloud_type, &self->coverage, &self->alt_top, &self->alt_base))
     return -1;
   return 0;
@@ -58,7 +58,7 @@ WeatherInfoClouds_init(WeatherInfoCloudsObject *self, PyObject *args, PyObject *
 static PyMemberDef WeatherInfoClouds_members[] = {
   {"cloud_type", T_FLOAT, offsetof(WeatherInfoCloudsObject, cloud_type), 0, "Cloud type (float enum)"},
   {"coverage", T_FLOAT, offsetof(WeatherInfoCloudsObject, coverage), 0, "Coverage ratio (0.0 - 1.0)"},
-  {"alt_top", T_FLOAT, offsetof(WeatherInfoCloudsObject, alt_top), 0, "Cloud top altitude MSL (meters)"},
+  {"alt_top", T_FLOAT, offsetof(WeatherInfoCloudsObject, alt_top), 0, "Cloud top altitude MSL (meters). If alt_top == alt_base, this layer is ignored."},
   {"alt_base", T_FLOAT, offsetof(WeatherInfoCloudsObject, alt_base), 0, "Cloud base altitude MSL (meters)"},
   {NULL, T_INT, 0, 0, ""} /* Sentinel */
 };

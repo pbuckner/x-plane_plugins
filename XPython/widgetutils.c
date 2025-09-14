@@ -281,7 +281,11 @@ static PyObject *XPUSelectIfNeededFun(PyObject *self, PyObject *args, PyObject *
       pythonLog("Don't know what param1 is for message %d: %s ", inMessage, Py_TYPE(param1)->tp_name);
     }
     inParam1 = (intptr_t) &mouseState;
-    inParam2 = PyLong_AsLong(param2);
+    if (inMessage == xpMsg_CursorAdjust) {
+      inParam2 = PyLong_AsLong(PySequence_GetItem(param2, 0));
+    } else {
+      inParam2 = PyLong_AsLong(param2);
+    }
     break;
   case xpMsg_Reshape:
     inParam1 = (intptr_t) refToPtr(param1, widgetRefName);

@@ -153,6 +153,8 @@ OpenGL Functions
  Return the OpenGL texture ID of an X-Plane texture based on a generic identifying code (:ref:`XPLMTextureID`). For example,
  you can get the texture for X-Plane's weather radar using the :data:`Tex_Radar_Pilot`. 
  
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMGraphics/#XPLMGetTexture>`__ :index:`XPLMGetTexture`
+
 .. _coordinate_functions:
 
 Coordinate Conversion Functions

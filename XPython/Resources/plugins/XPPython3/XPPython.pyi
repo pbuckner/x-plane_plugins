@@ -61,3 +61,9 @@ def derefCapsule(capsule_type:str, capsule:Any) -> int:
     """
     ...
 
+def getSelfName() -> str:
+    """
+    Return module name of currently executing python plugin.
+    """
+    ...
+    

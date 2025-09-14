@@ -66,7 +66,7 @@ def extractFileAndPath(fullPath:str) -> tuple[str, str]:
     """
     ...
 
-def getDirectoryContents(dir:str, firstReturn:int=0, bufSize:int=2048, maxFiles:int=100) -> tuple[int, list[str], int]:
+def getDirectoryContents(dir:str, firstReturn:int=0, bufSize:int=2048, maxFiles:int=100) -> tuple[int, list[str, ...], int]:
     """
     Get contents (files and subdirectories) of directory
     

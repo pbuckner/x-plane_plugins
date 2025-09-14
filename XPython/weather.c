@@ -132,7 +132,7 @@ static int extractDewpLayersFromPyList(PyObject *dewpLayersList, float *dewp_lay
       return 0;
     }
     
-    dewp_layers[i] = PyFloat_AsDouble(dewpValue);
+    dewp_layers[i] = (dewpValue == Py_None ? 0.0 : PyFloat_AsDouble(dewpValue));
     if (PyErr_Occurred()) {
       return 0;
     }
@@ -170,7 +170,7 @@ static int extractTempLayersFromPyList(PyObject *tempLayersList, float *temp_lay
       return 0;
     }
     
-    temp_layers[i] = PyFloat_AsDouble(tempValue);
+    temp_layers[i] = (tempValue == Py_None ? 0.0 : PyFloat_AsDouble(tempValue));
     if (PyErr_Occurred()) {
       return 0;
     }

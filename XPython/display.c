@@ -1087,20 +1087,23 @@ static void genericWindowKey(XPLMWindowID  inWindowID,
     pythonLog("%s", msg);
     return;
   }
-  PyObject *arg1 = PyLong_FromLong(inKey);
-  PyObject *arg2 = PyLong_FromLong(inFlags);
-  PyObject *arg3 = PyLong_FromLong((unsigned int)inVirtualKey);
-  PyObject *arg4 = PyLong_FromLong(losingFocus);
-  /* char *s = objToStr(pID); */
-  /* printf("Calling genericWindowKey callback. inWindowID = %p, pPID = %s, losingFocus = %d\n", inWindowID, s, losingFocus); */
-  /* free(s); */
-  set_moduleName(PyTuple_GetItem(pCbks, WINDOW_MODULE_NAME));
-  PyObject *oRes = PyObject_CallFunctionObjArgs(PyTuple_GetItem(pCbks, WINDOW_KEY), pID, arg1, arg2, arg3, inRefcon, arg4, NULL);
-  Py_XDECREF(arg1);
-  Py_XDECREF(arg2);
-  Py_XDECREF(arg3);
-  Py_XDECREF(arg4);
-  Py_XDECREF(oRes);
+  PyObject *func = PyTuple_GetItem(pCbks, WINDOW_KEY);  /* borrowed */
+  if (func != Py_None) {
+    PyObject *arg1 = PyLong_FromLong(inKey);
+    PyObject *arg2 = PyLong_FromLong(inFlags);
+    PyObject *arg3 = PyLong_FromLong((unsigned int)inVirtualKey);
+    PyObject *arg4 = PyLong_FromLong(losingFocus);
+    /* char *s = objToStr(pID); */
+    /* printf("Calling genericWindowKey callback. inWindowID = %p, pPID = %s, losingFocus = %d\n", inWindowID, s, losingFocus); */
+    /* free(s); */
+    set_moduleName(PyTuple_GetItem(pCbks, WINDOW_MODULE_NAME));
+    PyObject *oRes = PyObject_CallFunctionObjArgs(func, pID, arg1, arg2, arg3, inRefcon, arg4, NULL);
+    Py_XDECREF(arg1);
+    Py_XDECREF(arg2);
+    Py_XDECREF(arg3);
+    Py_XDECREF(arg4);
+    Py_XDECREF(oRes);
+  }
   errCheck("end genericWindowKey");
   Py_DECREF(pID);
 }
@@ -1123,6 +1126,7 @@ static int genericWindowMouseClick(XPLMWindowID     inWindowID,
   set_moduleName(PyTuple_GetItem(pCbks, WINDOW_MODULE_NAME));
   if (func == Py_None) {
     /* consume click */
+    Py_DECREF(pID);
     errCheck("no func genericWindowMouseClick");
     return 1;
   }
@@ -1175,6 +1179,7 @@ static int genericWindowRightClick(XPLMWindowID     inWindowID,
   PyObject *func = PyTuple_GetItem(pCbks, WINDOW_RIGHTCLICK);
   set_moduleName(PyTuple_GetItem(pCbks, WINDOW_MODULE_NAME));
   if (func == Py_None) {
+    Py_DECREF(pID);
     return 1; /* consume click in window */
   }
     
@@ -1222,14 +1227,15 @@ static XPLMCursorStatus genericWindowCursor(XPLMWindowID  inWindowID,
     printf("Unknown window passed to genericWindowCursor (%p).\n", inWindowID);
     return 0;
   }
-  PyObject *cbk = PyTuple_GetItem(pCbks, WINDOW_CURSOR);
+  PyObject *func = PyTuple_GetItem(pCbks, WINDOW_CURSOR);
   set_moduleName(PyTuple_GetItem(pCbks, WINDOW_MODULE_NAME));
-  if((cbk == NULL) || (cbk == Py_None)){
+  if((func == NULL) || (func == Py_None)){
+    Py_DECREF(pID);
     return 0;
   }
   PyObject *arg1 = PyLong_FromLong(x);
   PyObject *arg2 = PyLong_FromLong(y);
-  PyObject *pRes = PyObject_CallFunctionObjArgs(cbk, pID, arg1, arg2, inRefcon, NULL);
+  PyObject *pRes = PyObject_CallFunctionObjArgs(func, pID, arg1, arg2, inRefcon, NULL);
   PyObject *err = PyErr_Occurred();
   Py_DECREF(arg1);
   Py_DECREF(arg2);
@@ -1259,16 +1265,17 @@ static int genericWindowMouseWheel(XPLMWindowID  inWindowID,
     printf("Unknown window passed to genericWindowMouseWheel (%p).\n", inWindowID);
     return 1;
   }
-  PyObject *cbk = PyTuple_GetItem(pCbks, WINDOW_WHEEL);
+  PyObject *func = PyTuple_GetItem(pCbks, WINDOW_WHEEL);
   set_moduleName(PyTuple_GetItem(pCbks, WINDOW_MODULE_NAME));
-  if((cbk == NULL) || (cbk == Py_None)){
+  if((func == NULL) || (func == Py_None)){
+    Py_DECREF(pID);
     return 1;
   }
   PyObject *arg1 = PyLong_FromLong(x);
   PyObject *arg2 = PyLong_FromLong(y);
   PyObject *arg3 = PyLong_FromLong(wheel);
   PyObject *arg4 = PyLong_FromLong(clicks);
-  PyObject *pRes = PyObject_CallFunctionObjArgs(cbk, pID, arg1, arg2, arg3, arg4, inRefcon, NULL);
+  PyObject *pRes = PyObject_CallFunctionObjArgs(func, pID, arg1, arg2, arg3, arg4, inRefcon, NULL);
   PyObject *err = PyErr_Occurred();
   Py_DECREF(arg1);
   Py_DECREF(arg2);
@@ -3775,6 +3782,10 @@ static XPLMCursorStatus genericAvionicsScreenCursor(int x, int y, void *inRefcon
     goto cleanup;
   }
   PyObject *fun = PyTuple_GetItem(tup, AVIONICS_SCREEN_CURSOR); /* borrowed */
+  if (fun == Py_None) {
+    Py_XDECREF(pl);
+    return xplm_CursorDefault;
+  }
   PyObject *refCon = PyTuple_GetItem(tup, AVIONICS_REFCON);/* borrowed */
   set_moduleName(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME));
 
@@ -3829,6 +3840,10 @@ static int genericAvionicsKeyboard(char inKey, XPLMKeyFlags inFlags, char inVirt
     goto cleanup;
   }
   PyObject *fun = PyTuple_GetItem(tup, AVIONICS_KEYBOARD); /* borrowed */
+  if (fun == Py_None) {
+    Py_XDECREF(pl);
+    return 1;
+  }
   PyObject *refCon = PyTuple_GetItem(tup, AVIONICS_REFCON);/* borrowed */
   set_moduleName(PyTuple_GetItem(tup, AVIONICS_MODULE_NAME));
 

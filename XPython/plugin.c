@@ -113,9 +113,7 @@ int initPython(void){
   /* Initalize Python and internal modules
    * return 0: success, otherwise: fail... all failures are fatal */
 
-  printf("getting pthread_self\n");
   pythonThread = pthread_self();
-  printf("got pthread_self\n");
   
   PyImport_AppendInittab("XPPython", PyInit_XPPython);
   PyImport_AppendInittab("XPLMDefs", PyInit_XPLMDefs);
@@ -539,19 +537,14 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
   Py_ssize_t pos = 0;
   PyObject *param;
   errCheck("receiveMessage start");
-  param = PyLong_FromLong((long)inParam);
-  pythonDebug("XPPython3 received message, forwarding to all plugins: From: %d, Msg: %ld, inParam: %ld",
-              inFromWho, inMessage, (long)inParam);
-  if (inMessage == XPLM_MSG_DATAREFS_ADDED && (long) inParam > 100000) {
-    /* bug -- inParam is sent as pointer to value, rather than value itself. We'll
-       convert to value and send _that_ to python plugins */
-    pythonDebug("...Sending %ld instead. See bug XPD-13931\n", *(long*)inParam);
-    if (*(long*)inParam > 100000) {
-      pythonLog("Totally bogus value sent with XPLM_MSG_DATAREFS_ADDED (%ld). See bug XPD-13931", (long)inParam);
-      /* ... passing original value for param -- what else can I do?  */
-    } else {
-      param = PyLong_FromLong(*(long*)inParam);
-    }
+  if (inMessage == XPLM_MSG_DATAREFS_ADDED) {
+    param = PyLong_FromLong(*(int*)inParam);
+    pythonDebug("XPPython3 received message, forwarding to all plugins: From: %d, Msg: %ld, inParam: %d",
+                inFromWho, inMessage, *(int*)inParam);
+  } else {
+    param = PyLong_FromLong((long)inParam);
+    pythonDebug("XPPython3 received message, forwarding to all plugins: From: %d, Msg: %ld, inParam: %ld",
+                inFromWho, inMessage, (long)inParam);
   }
 
   if (inMessage == XPLM_MSG_PLANE_LOADED && inParam == XPLM_USER_AIRCRAFT) {

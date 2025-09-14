@@ -121,31 +121,35 @@ Functions
     probably already have a callback routine if you're doing much of anything with widgets.) That callback
     will receive a series of messages. When it receives the :data:`xp.Msg_CursorAdjust`, you should check
     to see if the mouse is over the widget you're interested in, or at the correct X, Y location. Then
-    call :py:func:`setCursor` and return :data:`xp.CursorCustom`.::
+    call :py:func:`setCursor`, update param2 to indicate :data:`xp.CursorCustom`, and return 1 to indicate
+    you've consumed the event.::
 
       >>> widgetID = xp.createWidget(100, 200, 300, 100, 1, "My Widget", 1, 0, xp.WidgetClass_MainWindow)
       >>> subwidgetID = xp.createWidget(110, 190, 130, 170, 1, "WIDE", 0, widgetID, xp.WidgetClass_Caption)
       >>> def myCallback(message, widgetID, param1, param2):
       ...     if message == xp.Msg_CursorAdjust:
       ...         xp.setCursor(10)
-      ...         return xp.CursorCustom
+      ...         param2[0] = xp.CursorCustom
+      ...         return 1
       ...     return 0
       ...
       >>> xp.addWidgetCallback(subwidgetID, myCallback)
-          
-    .. note:: Actually this is broken for widgets. The callback will correctly change to use the custom
-              cursor, but the image gets "stuck" and X-Plane continues to display the custom cursor even
-              when the mouse is no longer over the widget. If/When the mouse if move over a different
-              region which changes the cursor (e.g., an avionics device, or the Pause icon in the top
-              toolbar), the image becomes "unstuck" resulting in the correct default behavior. Bug
-              has been filed with Laminar. For now, don't use custom cursors with widgets.
+
+    *Why is it* ``param2[0]`` *and not* ``param2`` *like everywhere else?*
+
+      Because we need to effectively
+      pass by reference instead of pass by value for this parameter. This is a C vs. Python thing which
+      we generally don't need to worry about. But for ``MSG_CursorAdjust``, we need a mutable ``param2``. The best
+      way to achieve that is using a single-element list: ``param2`` stays unchanged, but its first element
+      may be changed. Otherwise, your callback could change ``param2`` to anything, but the calling program
+      wouldn't ever see the update!)
 
 Preloaded Custom Cursors
 ------------------------
 
 XPPython3 pre-loads a number of basic cursors with hard-coded ``cursor_id``. You can use these with :py:func:`setCursor`. Please
 do not unload them as that would make them unavailable to other python plugins. These constants
-*should not* be used as a :ref:`CursorStatus <cursor-status>` return. Cursor Status should be set
+*should not* be used as a :ref:`CursorStatus <XPLMCursorStatus>` return. Cursor Status should be set
 to :data:`xp.CursorCustom`.
 
 .. table::

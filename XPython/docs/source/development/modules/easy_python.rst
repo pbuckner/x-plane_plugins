@@ -43,7 +43,9 @@ inheriting from the ``EasyPython`` class, you'll gain the following callback int
 .. py:function:: EasyPython.aircraft_load(self)
 
    Run one when your aircraft (user aircraft) is loaded. This is
-   run after the aircraft is initialized enough to set overrides.
+   run after the aircraft is initialized enough to set overrides. (Note that the aircraft
+   isn't placed at the airport yet, so don't query it's location: wait until flight_start()
+   if you need that.)
 
 .. py:function:: EasyPython.aircraft_unload(self)
 

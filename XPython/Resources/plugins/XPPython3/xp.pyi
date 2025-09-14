@@ -3,6 +3,12 @@
 
 from typing import Any, Callable, Optional, Literal, Sequence
 from XPPython3.xp_typing import *  # pylint: disable=unused-import
+NumWindLayers: int
+NumCloudLayers: int
+NumTemperatureLayers: int
+WindUndefinedLayer: int
+DefaultWxrRadiusNm: int
+DefaultWxrRadiusMslFt: int
 ControlCameraUntilViewChanges: XPLMCameraControlDuration
 ControlCameraForever: XPLMCameraControlDuration
 Type_Unknown: XPLMDataTypeID
@@ -26,6 +32,27 @@ CursorDefault: XPLMCursorStatus
 CursorHidden: XPLMCursorStatus
 CursorArrow: XPLMCursorStatus
 CursorCustom: XPLMCursorStatus
+CursorRotateSmall: XPLMCursorStatus
+CursorRotateSmallLeft: XPLMCursorStatus
+CursorRotateSmallRight: XPLMCursorStatus
+CursorRotateMedium: XPLMCursorStatus
+CursorRotateMediumLeft: XPLMCursorStatus
+CursorRotateMediumRight: XPLMCursorStatus
+CursorRotateLarge: XPLMCursorStatus
+CursorRotateLargeLeft: XPLMCursorStatus
+CursorRotateLargeRight: XPLMCursorStatus
+CursorUpDown: XPLMCursorStatus
+CursorUp: XPLMCursorStatus
+CursorDown: XPLMCursorStatus
+CursorLeftRight: XPLMCursorStatus
+CursorLeft: XPLMCursorStatus
+CursorRight: XPLMCursorStatus
+CursorButton: XPLMCursorStatus
+CursorHandle: XPLMCursorStatus
+CursorFourArrows: XPLMCursorStatus
+CursorSplitterH: XPLMCursorStatus
+CursorSplitterV: XPLMCursorStatus
+CursorText: XPLMCursorStatus
 MouseDown: XPLMMouseStatus
 MouseDrag: XPLMMouseStatus
 MouseUp: XPLMMouseStatus
@@ -203,6 +230,8 @@ Device_Primus_RMU_2: XPLMDeviceID
 Device_MCDU_1: XPLMDeviceID
 Device_MCDU_2: XPLMDeviceID
 Tex_GeneralInterface: XPLMTextureID
+Tex_Radar_Pilot: XPLMTextureID
+Tex_Radar_Copilot: XPLMTextureID
 Font_Basic: XPLMFontID
 Font_Proportional: XPLMFontID
 MapStyle_VFR_Sectional: XPLMMapStyle
@@ -1402,6 +1431,12 @@ def measureString(fontID:XPLMFontID, string:str) -> float:
     """
     ...
 
+def getTexture(textureID:XPLMTextureID) -> int:
+    """
+    Returns OpenGL texture ID for X-Plane Texture.
+    """
+    ...
+
 def createInstance(obj:XPLMObjectRef, dataRefs:Optional[tuple[str, ...]]=None) -> XPLMInstanceRef:
     """
     Create Instance for object retrieved by loadObject() or loadObjectAsync().
@@ -1417,7 +1452,26 @@ def destroyInstance(instance:XPLMObjectRef) -> None:
     """
     ...
 
+def instanceSetAutoShift(instance:XPLMInstanceRef) -> None:
+    """
+    Tells X-Plane to move instance location if/when local coordinate
+    system changes, keeping the instance in the same global location.
+    """
+    ...
+
 def instanceSetPosition(instance:XPLMObjectRef, position:XPLMDrawInfo_t | tuple[float, float, float, float, float, float],
+          data:Optional[tuple[float, ...]]=None) -> None:
+    """
+    Update position (x, y, z, pitch, heading, roll),
+    and all datarefs (<float>, <float>, ...)
+
+    You should provide values for all registered dataref, otherwise they'll
+    be set to 0.0.
+
+    """
+    ...
+
+def instanceSetPositionDouble(instance:XPLMObjectRef, position:XPLMDrawInfoDouble_t | tuple[float, float, float, float, float, float],
           data:Optional[tuple[float, ...]]=None) -> None:
     """
     Update position (x, y, z, pitch, heading, roll),
@@ -2410,7 +2464,7 @@ def extractFileAndPath(fullPath:str) -> tuple[str, str]:
     """
     ...
 
-def getDirectoryContents(dir:str, firstReturn:int=0, bufSize:int=2048, maxFiles:int=100) -> tuple[int, list[str, ...], int]:  # pylint: disable=redefined-builtin
+def getDirectoryContents(dir:str, firstReturn:int=0, bufSize:int=2048, maxFiles:int=100) -> tuple[int, list[str], int]:  # pylint: disable=redefined-builtin
     """
     Get contents (files and subdirectories) of directory
 
@@ -2547,6 +2601,39 @@ def getWeatherAtLocation(latitude:float, longitude:float, altitude_m:float) -> N
     is not intended to be used per-frame.
     """
     ...
+
+def setWeatherAtLocation(latitude:float, longitude: float, altitude_m:float, info: XPLMWeatherInfo_t) -> None:
+    """
+    Set the current weather conditions at given location. See documentation
+    for information on use of fields in XPLMWeatherInfo_t
+    """
+    ...
+
+def setWeatherAtAirport(airport_id: str, info: XPLMWeatherInfo_t) -> None:
+    """
+    Set the current weather conditions at given airport. See documentation
+    for information on use of fields in XPLMWeatherInfo_t
+    """
+    ...
+    
+def beginWeatherUpdate() -> None:
+    """
+    Inform the simulator that you are string a batch update of weather information.
+    You much call endWeatherUpdate() prior to exiting your callback in order for
+    changes to be recorded.
+    """
+    ...
+
+
+def endWeatherUpdate(isIncremental:int=1, updateImmediately:int=0) -> None:
+    """
+    Inform the simulator that you are ending a batch update of weather information.
+    Incremental updates add to any previous weather updates you've provided, otherwise
+    previous update passed by plugin are ignored. Immediate updates may cause a sudden
+    jump in the weather: otherwise weather is transitioned to new data.
+    """
+    ...
+
 
 def createWidget(left:int, top:int, right:int, bottom:int, visible:int, descriptor:str, isRoot:int,
           container:XPWidgetID | Literal[0], widgetClass:XPWidgetClass) -> XPWidgetID:
@@ -2853,5 +2940,30 @@ def derefCapsule(capsule_type:str, capsule:Any) -> int:
     Dereference a capsule to retrieve internal C language pointer
 
     Intended for debugging only
+    """
+    ...
+
+
+def getSelfName() -> str:
+    """
+    Return module name of currently executing python plugin.
+    """
+    ...
+
+def loadCursor(name: str) -> int:
+    """
+    Load a custom cursor from file with provided name
+    """
+    ...
+
+def unloadCursor(cursor_id: int) -> None:
+    """
+    Unload image data associated with custom cursor provided id
+    """
+    ...
+    
+def setCursor(cursor_id: int) -> None:
+    """
+    Temporarily replaces system cursor with the given custom cursor.
     """
     ...

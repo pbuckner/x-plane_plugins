@@ -59,15 +59,15 @@ class EasyPython:
         self._startflightloop_before: Optional[XPLMFlightLoopID] = None
         self._startflightloop_after: Optional[XPLMFlightLoopID] = None
 
-    def XPluginReceiveMessage(self: Self, _inFromWho: int, inMessage: int, _inParam: Any) -> None:
+    def XPluginReceiveMessage(self: Self, _inFromWho: int, inMessage: int, inParam: Any) -> None:
         # xp.log(f"{xlua.RUNNING_TIME=} {xlua.FLIGHT_TIME=}")
-        if inMessage == xp.MSG_PLANE_LOADED:
+        if inMessage == xp.MSG_PLANE_LOADED and inParam == 0:
             self.onPlaneLoaded()
             self.aircraft_load()
             self.no_after_replay = False
             self.no_after_physics = False
             self.no_before_physics = False
-        elif inMessage == xp.MSG_PLANE_UNLOADED:
+        elif inMessage == xp.MSG_PLANE_UNLOADED and inParam == 0:
             self.onPlaneUnloaded()
             self.aircraft_unload()
         elif inMessage == xp.MSG_LIVERY_LOADED:

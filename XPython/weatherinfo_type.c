@@ -1,6 +1,8 @@
 #define _GNU_SOURCE 1
 #include <Python.h>
 #include <structmember.h>
+#include "XPLMWeather.h"
+#include "xppythontypes.h"
 #include "utils.h"
 
 /* WeatherInfo Type */
@@ -82,7 +84,11 @@ WeatherInfo_init(WeatherInfoObject *self, PyObject *args, PyObject *kwds)
                            "precip_rate", "thermal_climb", "pressure_sl", "wind_layers", "cloud_layers",
                            "temp_layers", "dewp_layers", "troposphere_alt", "troposphere_temp",
                            "age", "radius_nm", "max_altitude_msl_ft", NULL};
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "ifffffffffifffffOO|OOfffff", kwlist,
+
+  self->detail_found = -1;
+  self->radius_nm = XPLM_DEFAULT_WXR_RADIUS_NM;
+  self->max_altitude_msl_ft = XPLM_DEFAULT_WXR_RADIUS_MSL_FT;
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ifffffffffifffffOOOOfffff", kwlist,
                                    &self->detail_found,
                                    &self->temperature_alt, &self->dewpoint_alt, &self->pressure_alt, &self->precip_rate_alt,
                                    &self->wind_dir_alt, &self->wind_spd_alt, &self->turbulence_alt, &self->wave_height,
@@ -92,6 +98,40 @@ WeatherInfo_init(WeatherInfoObject *self, PyObject *args, PyObject *kwds)
                                    &self->temp_layers, &self->dewp_layers, &self->troposphere_alt, &self->troposphere_temp,
                                    &self->age, &self->radius_nm, &self->max_altitude_msl_ft))
     return -1;
+  if (self->temp_layers == 0) {
+    self->temp_layers = PyList_New(XPLM_NUM_TEMPERATURE_LAYERS);
+    for(int i=0; i< XPLM_NUM_TEMPERATURE_LAYERS; i++ ){
+      PyList_SET_ITEM(self->temp_layers, i, Py_None);
+      Py_INCREF(Py_None);
+    }
+    Py_INCREF(self->temp_layers);
+  }
+  if (self->dewp_layers == 0) {
+    self->dewp_layers = PyList_New(XPLM_NUM_TEMPERATURE_LAYERS);
+    for(int i=0; i< XPLM_NUM_TEMPERATURE_LAYERS; i++ ){
+      PyList_SET_ITEM(self->dewp_layers, i, Py_None);
+      Py_INCREF(Py_None);
+    }
+    Py_INCREF(self->dewp_layers);
+  }
+  if (self->cloud_layers == 0) {
+    self->cloud_layers = PyList_New(XPLM_NUM_CLOUD_LAYERS);
+    for(int i=0; i< XPLM_NUM_CLOUD_LAYERS; i++ ){
+      PyObject *obj = PyWeatherInfoClouds_New(0, 0, 0, 0);
+      Py_INCREF(obj);
+      PyList_SET_ITEM(self->cloud_layers, i, obj);
+    }
+    Py_INCREF(self->cloud_layers);
+  }
+  if(self->wind_layers == 0) {
+    self->wind_layers = PyList_New(XPLM_NUM_WIND_LAYERS);
+    for(int i=0; i< XPLM_NUM_WIND_LAYERS; i++) {
+      PyObject *obj = PyWeatherInfoWinds_New(0, -1, 0, 0, 0, 0);
+      Py_INCREF(obj);
+      PyList_SET_ITEM(self->wind_layers, i, obj);
+    }
+    Py_INCREF(self->wind_layers);
+  }
   return 0;
 }
 
@@ -99,14 +139,16 @@ static PyMemberDef WeatherInfo_members[] = {
   {"detail_found", T_INT, offsetof(WeatherInfoObject, detail_found), 0,
    "Return value from XPLMGetWeatherAtLocation(), 1='detailed weather found'"},
   {"temperature_alt", T_FLOAT, offsetof(WeatherInfoObject, temperature_alt), 0,
-   "Temperature at altitude (Celsius). On set this is ground temperature. \n"
-   "Set temp_layers[0] to -100. to use existing temp_layers at (other) altitudes."},
+   "Temperature at altitude (Celsius).\n"
+   "To set temperature, either use 'temp_layers', or set temp_layer[0] = -100\n"
+   "and set this for ground level temperature: existing weather data will be\n"
+   "used for temperatures at altitude."},
   {"dewpoint_alt", T_FLOAT, offsetof(WeatherInfoObject, dewpoint_alt), 0,
    "Dewpoint at altitude (Celsius). On set, similiar to 'temperature_alt'\n"
    "and 'temp_layers'."},
   {"pressure_alt", T_FLOAT, offsetof(WeatherInfoObject, pressure_alt), 0,
    "Pressure at altitude (Pascals). On set, should be QNH as reported\n"
-   "by station at the ground altitude give, or 0 if you\n"
+   "by station at the ground altitude given, or 0 if you\n"
    "are passing sealevel pressure in 'pressure_sl' instead."},
   {"precip_rate_alt", T_FLOAT, offsetof(WeatherInfoObject, precip_rate_alt), 0,
    "Precipitation ratio at altitude (0.0 - 1.0)"},
@@ -115,25 +157,24 @@ static PyMemberDef WeatherInfo_members[] = {
   {"wind_spd_alt", T_FLOAT, offsetof(WeatherInfoObject, wind_spd_alt), 0,
    "Wind speed at altitude (meters/second). Ignored on set (derived from other data)."},
   {"turbulence_alt", T_FLOAT, offsetof(WeatherInfoObject, turbulence_alt), 0,
-   "Turbulence ratio at altitude"},
+   "Turbulence ratio at altitude. Ignored on set (derived from other data)."},
   {"wave_height", T_FLOAT, offsetof(WeatherInfoObject, wave_height), 0,
    "Wave height (meters)"},
   {"wave_length", T_FLOAT, offsetof(WeatherInfoObject, wave_length), 0,
-   "Wave length (meters)"},
+   "Wave length (meters). Ignored on set (Derived from other data)."},
   {"wave_dir", T_INT, offsetof(WeatherInfoObject, wave_dir), 0,
-   "Wave direction (waves moving from...) degrees. Ignored on set (derived from\n"
-   "other data)."},
+   "Wave direction (waves moving from...) True degrees."},
   {"wave_speed", T_FLOAT, offsetof(WeatherInfoObject, wave_speed), 0,
    "Wave speed (meters/second). Ignored on set (derived from other data)."},
   {"visibility", T_FLOAT, offsetof(WeatherInfoObject, visibility), 0,
-   "Base visibility at 0 altitude (meters)"},
+   "Base visibility at 0 altitude (distance in meters)"},
   {"precip_rate", T_FLOAT, offsetof(WeatherInfoObject, precip_rate), 0,
-   "Base precipitation ratio at 0 altitude"},
+   "Base precipitation ratio at 0 altitude (0.0 - 1.0)"},
   {"thermal_climb", T_FLOAT, offsetof(WeatherInfoObject, thermal_climb), 0,
    "Climb rate due to thermals (meters/second)"},
   {"pressure_sl", T_FLOAT, offsetof(WeatherInfoObject, pressure_sl), 0,
    "Pressure at 0 altitude (Pascals). On set, this is ignored if\n"
-   "'pressure_alt' is given."},
+   "'pressure_alt' is non-zero."},
   {"wind_layers", T_OBJECT_EX, offsetof(WeatherInfoObject, wind_layers), 0,
    "List of XPLMWeatherInfoWinds_t objects"},
   {"cloud_layers", T_OBJECT_EX, offsetof(WeatherInfoObject, cloud_layers), 0,
@@ -153,11 +194,11 @@ static PyMemberDef WeatherInfo_members[] = {
    "Temperature in degrees C of troposphere. Except see 'troposphere_alt'."},
   {"age", T_FLOAT, offsetof(WeatherInfoObject, age), 0,
    "Age in seconds of this weather report. Age affects how strongly the\n"
-   "report affects the weather"},
+   "report affects the weather. Not meaningful on get."},
   {"radius_nm", T_FLOAT, offsetof(WeatherInfoObject, radius_nm), 0,
-   "Vertical radius of efect of this weather report, feet MSL"},
+   "Horizontal radius of effect of this weather report, nautical miles"},
   {"max_altitude_msl_ft", T_FLOAT, offsetof(WeatherInfoObject, max_altitude_msl_ft), 0,
-   "Pressure at 0 altitude (Pascals)"},
+   "Vertical radius of effect of this weather report, feet MSL."},
   {NULL, T_INT, 0, 0, ""} /* Sentinel */
 };
 

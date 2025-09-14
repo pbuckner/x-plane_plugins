@@ -147,7 +147,7 @@ plugins
 
     PythonInterface object (e.g., "self" for each plugins)
 
-  :value:
+ :value:
 
     List consisting of the Name, Signature, Description are as provided by the Python Plugin in
     the return from ``XPluginStart()``. The Module is package + module as loaded by

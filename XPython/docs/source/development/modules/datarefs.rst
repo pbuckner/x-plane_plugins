@@ -341,4 +341,3 @@ Functions
   You will not get any indication `within the callback` as to what was changed. You could
   determine this information by storing previous value within the class (e.g., ``self.capacity_previous``)
   and then making the comparison within the callback, as you'll have access to `self`.
-  

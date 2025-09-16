@@ -10,8 +10,6 @@ extern const char *objRefName;
 extern const char *commandRefName;
 extern const char *widgetRefName;
 extern const char *windowIDRef;
-extern PyObject *widgetIDCapsules;
-extern PyObject *windowIDCapsules;
 extern PyObject *XPY3pythonDicts;
 extern PyObject *XPY3pythonCapsules;
 extern int pythonDebugs;
@@ -50,4 +48,7 @@ void errCheck_f(const char *fmt, ...);
 #endif
 #ifdef __cplusplus
 }
+#include <unordered_map>
+extern std::unordered_map<void*, PyObject*> widgetIDCapsules;
+extern std::unordered_map<void*, PyObject*> windowIDCapsules;
 #endif

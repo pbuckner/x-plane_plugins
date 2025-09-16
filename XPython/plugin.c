@@ -17,6 +17,7 @@
 #endif
 
 #include "utils.h"
+#include "widgets.h"
 #include "plugin_dl.h"
 #include "manage_instances.h"
 #include "load_modules.h"
@@ -302,26 +303,7 @@ static int stopPython(void)
           char *key_s = objToStr(key);
           char *value_s = objToStr(value);
           if (! strcmp(*dict_ptr, "widgetProperties") ) {
-#if ERRCHECK
-            /* widgetProperites key is Tuple<capsule, propID> */
-            PyObject *capsule = PyTuple_GetItem(key, 0);
-            /* widgetIDCapsules is <PyLong *ptr> : (<capsule> <module>)
-               So we have to iterate through all items to find the module */
-            Py_ssize_t capsule_pos = 0;
-            PyObject *capsule_key, *capsule_value;
-            PyObject *module = NULL;
-            while(PyDict_Next(widgetIDCapsules, &capsule_pos, &capsule_key, &capsule_value)) {
-              if (capsule == PyTuple_GetItem(capsule_value, 0)) {
-                module = PyTuple_GetItem(capsule_value, 1);
-                break;
-              }
-            }
-            char *module_s = objToStr(module);
-            pythonLog("  %s / %s:%s%s", key_s, module_s, strlen(value_s) > 10 ? "\n    " : " ", value_s);
-            free(module_s);
-#else
-            pythonLog("  %s:%s %s", key_s, strlen(value_s) > 10 ? "\n    " : " ", value_s);
-#endif            
+            logWidgets(key, key_s, value_s);
           } else {
             pythonLog("  %s:%s %s", key_s, strlen(value_s) > 10 ? "\n    " : " ", value_s);
           }

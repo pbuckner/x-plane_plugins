@@ -30,10 +30,14 @@ static std::unordered_map<std::string, ErrorCallbackInfo> errorCallbacks;
 static std::unordered_map<intptr_t, CommandCallbackInfo> commandCallbacks;
 static intptr_t commandCallbackCounter = 0;
 
-PyObject *commandCapsules;
+static std::unordered_map<void*, PyObject*> commandCapsules;
 
 void resetCommands(void) {
   /* commands are reset by clearInstanceCommands */
+  for (auto& pair: commandCallbacks) {
+    Py_DECREF(pair.second.callback);
+    Py_DECREF(pair.second.refcon);
+  }
   commandCallbacks.clear();
 }
 
@@ -428,7 +432,7 @@ static int genericCommandCallback(XPLMCommandRef inCommand, XPLMCommandPhase inP
   set_moduleName(module_name_obj);
   Py_DECREF(module_name_obj);
 
-  PyObject *arg1 = getPtrRef(inCommand, commandCapsules, commandRefName);
+  PyObject *arg1 = getPtrRefCPP(inCommand, commandCapsules, commandRefName);
   PyObject *arg2 = PyLong_FromLong(inPhase);
   PyObject *oRes = PyObject_CallFunctionObjArgs(info.callback, arg1, arg2, info.refcon, NULL);
   Py_DECREF(arg1);
@@ -470,7 +474,7 @@ static PyObject *XPLMFindCommandFun(PyObject *self, PyObject *args, PyObject *kw
   }
   freeCharArray(keywords, params.size());
   XPLMCommandRef res = XPLMFindCommand(inName);
-  return getPtrRef(res, commandCapsules, commandRefName);
+  return getPtrRefCPP(res, commandCapsules, commandRefName);
 }
 
 My_DOCSTR(_commandBegin__doc__, "commandBegin",
@@ -554,7 +558,7 @@ static PyObject *XPLMCreateCommandFun(PyObject *self, PyObject *args, PyObject *
     inDescription = inName;
   }
   XPLMCommandRef res = XPLMCreateCommand(inName, inDescription);
-  return getPtrRef(res, commandCapsules, commandRefName);
+  return getPtrRefCPP(res, commandCapsules, commandRefName);
 }
 
 My_DOCSTR(_registerCommandHandler__doc__, "registerCommandHandler",
@@ -667,7 +671,7 @@ PyObject* buildCommandCallbacksDict(void)
       goto cleanup_iteration;
     }
     
-    command_capsule = getPtrRef(info.command, commandCapsules, commandRefName);
+    command_capsule = getPtrRefCPP(info.command, commandCapsules, commandRefName);
     if (!command_capsule) {
       error_occurred = true;
       goto cleanup_iteration;
@@ -785,9 +789,12 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
     Py_DECREF(pair.second.refcon);
   }
   commandCallbacks.clear();
-  
-  PyDict_Clear(commandCapsules);
-  Py_DECREF(commandCapsules);
+
+  // Clean up command capsules
+  for (auto& pair : commandCapsules) {
+    Py_DECREF(pair.second);
+  }
+  commandCapsules.clear();
   Py_RETURN_NONE;
 }
 
@@ -866,10 +873,8 @@ static struct PyModuleDef XPLMUtilitiesModule = {
 PyMODINIT_FUNC
 PyInit_XPLMUtilities(void)
 {
-  if(!(commandCapsules = PyDict_New())){
-    return NULL;
-  }
-  PyDict_SetItemString(XPY3pythonCapsules, commandRefName, commandCapsules);
+  // commandCapsules is now a C++ unordered_map, no need to initialize
+  // PyDict_SetItemString(XPY3pythonCapsules, commandRefName, commandCapsules);
 
   PyObject *mod = PyModule_Create(&XPLMUtilitiesModule);
   if(mod){

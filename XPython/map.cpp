@@ -1,0 +1,938 @@
+#define _GNU_SOURCE 1
+#include <Python.h>
+#include <sys/time.h>
+#include <stdio.h>
+#include <string>
+#include <unordered_map>
+#include <XPLM/XPLMDefs.h>
+#include <XPLM/XPLMMap.h>
+#include "plugin_dl.h"
+#include "utils.h"
+#include "map.h"
+#include "cpp_utilities.hpp"
+
+struct MapCallbackInfo {
+  std::string module_name;     // MAP_MODULE_NAME
+  XPLMMapLayerType layerType;  // MAP_LAYER
+  PyObject *deleted;           // MAP_DELETE
+  PyObject *prep;              // MAP_PREP
+  PyObject *draw;              // MAP_DRAW
+  PyObject *icon;              // MAP_ICON
+  PyObject *label;             // MAP_LABEL
+  int showToggle;              // MAP_TOGGLE
+  PyObject *name;              // MAP_NAME
+  PyObject *refCon;            // MAP_REFCON
+  XPLMMapLayerID layerID;
+  intptr_t refcon_id;          // The key used for lookup
+};
+  
+static std::unordered_map<intptr_t, MapCallbackInfo> mapCallbacks;
+
+#define MAP_MODULE_NAME 0
+#define MAP_TYPE 1
+#define MAP_LAYER 2
+#define MAP_DELETE 3
+#define MAP_PREP 4
+#define MAP_DRAW 5
+#define MAP_ICON 6
+#define MAP_LABEL 7
+#define MAP_TOGGLE 8
+#define MAP_NAME 9
+#define MAP_REFCON 10
+intptr_t mapCntr;
+
+// static PyObject *mapRefDict; /* {
+//                                   <mapLayerIDCapsule1> : mapDictKey1
+//                                   <mapLayerIDCapsule2> : mapDictKey2,
+//                                 }
+//                              */
+
+
+struct MapCreateInfo {
+  PyObject *callback;          // MAPCREATE_CALLBACK
+  PyObject *refCon;            // MAPCREATE_REFCON
+  std::string module_name;     // MAPCREATE_MODULE_NAME
+  intptr_t refcon_id;          // The key used for lookup
+};
+static std::unordered_map<intptr_t, MapCreateInfo> mapCreateCallbacks;
+
+
+intptr_t mapCreateCntr;
+static std::unordered_map<void*, PyObject*> mapLayerIDCapsules;
+static std::unordered_map<void*, PyObject*> mapProjectionCapsules;
+
+static const char layerIDRefName[] = "XPLMMapLayerID";
+static const char projectionRefName[] = "XPLMMapProjectionID";
+
+
+void resetMap(void) {
+  for (const auto& pair : mapCallbacks) {
+    const MapCallbackInfo& info = pair.second;
+    char *moduleName = const_cast<char*>(info.module_name.c_str());
+    char *layerName = objToStr(info.name);
+    void *inRefcon = (void*)pair.first;
+    XPLMDestroyMapLayer((XPLMMapLayerID)inRefcon);
+    pythonDebug("     Reset --     %s - (%s)", moduleName, layerName);
+    free(layerName);
+  }
+
+  // Clean up all MapCallbackInfo objects
+  for (auto& pair : mapCallbacks) {
+    Py_DECREF(pair.second.deleted);
+    Py_DECREF(pair.second.prep);
+    Py_DECREF(pair.second.draw);
+    Py_DECREF(pair.second.icon);
+    Py_DECREF(pair.second.label);
+    Py_DECREF(pair.second.name);
+    Py_DECREF(pair.second.refCon);
+  }
+  mapCallbacks.clear();
+
+  // Clean up all MapCreateInfo objects
+  for (auto& pair : mapCreateCallbacks) {
+    Py_DECREF(pair.second.callback);
+    Py_DECREF(pair.second.refCon);
+  }
+  mapCreateCallbacks.clear();
+
+  //PyDict_Clear(mapRefDict);
+}
+
+static inline void mapCallback(int whichCallback, XPLMMapLayerID inLayer, const float *inMapBoundsLeftTopRightBottom, float zoomRatio,
+                        float mapUnitsPerUserInterfaceUnit, XPLMMapStyle mapStyle, XPLMMapProjectionID projection,
+                        void *inRefcon)
+{
+  PyObject *layerObj, *boundsObj, *refconObj, *callback;
+  intptr_t refcon_id = (intptr_t)inRefcon;
+  auto it = mapCallbacks.find(refcon_id);
+  if (it == mapCallbacks.end()) {
+    printf("Couldn't find map callback with id = %p., destroying it insted", inRefcon);
+    XPLMDestroyMapLayer(inLayer);
+    return;
+  }
+
+  const MapCallbackInfo& info = it->second;
+  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
+  set_moduleName(module_name_obj);
+  Py_DECREF(module_name_obj);
+
+  if (whichCallback < MAP_DRAW || whichCallback > MAP_LABEL) {
+    pythonLog("mapCallback called with bad index %d", whichCallback);
+    return;
+  }
+
+  // Select the appropriate callback based on whichCallback
+  switch (whichCallback) {
+    case MAP_DRAW: callback = info.draw; break;
+    case MAP_ICON: callback = info.icon; break;
+    case MAP_LABEL: callback = info.label; break;
+    default:
+      pythonLog("mapCallback called with invalid callback type %d", whichCallback);
+      return;
+  }
+
+  if (callback == Py_None) {
+    return;
+  }
+  layerObj = getPtrRefCPP(inLayer, mapLayerIDCapsules, layerIDRefName);
+  PyObject *mapProjectionCapsule = getPtrRefCPP(projection, mapProjectionCapsules, projectionRefName);
+  refconObj = info.refCon;
+  
+  boundsObj = PyTuple_New(4);
+  //Steals the ref!
+  PyTuple_SetItem(boundsObj, 0, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[0]));
+  PyTuple_SetItem(boundsObj, 1, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[1]));
+  PyTuple_SetItem(boundsObj, 2, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[2]));
+  PyTuple_SetItem(boundsObj, 3, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[3]));
+
+  PyObject *zoomRatioObj = PyFloat_FromDouble(zoomRatio);
+  PyObject *mapUnitsPerUserInterfaceUnitObj = PyFloat_FromDouble(mapUnitsPerUserInterfaceUnit);
+  PyObject *mapStyleObj = PyLong_FromLong(mapStyle);
+  PyObject *pRes = PyObject_CallFunctionObjArgs(callback, layerObj, boundsObj, zoomRatioObj,
+                                         mapUnitsPerUserInterfaceUnitObj, mapStyleObj, mapProjectionCapsule, refconObj,NULL);
+  if(!pRes){
+    PyObject *err = PyErr_Occurred();
+    if(err){
+      pythonLogException();
+    }
+  }
+  Py_DECREF(zoomRatioObj);
+  Py_DECREF(mapUnitsPerUserInterfaceUnitObj);
+  Py_DECREF(mapStyleObj);
+  Py_DECREF(boundsObj);
+  Py_DECREF(layerObj);
+  Py_DECREF(mapProjectionCapsule);
+  Py_XDECREF(pRes);
+}
+
+static inline void mapPrepareCacheCallback(XPLMMapLayerID inLayer, const float *inMapBoundsLeftTopRightBottom,
+                                           XPLMMapProjectionID projection, void *inRefcon)
+{
+  PyObject *layerObj, *boundsObj, *refconObj, *callback;
+  intptr_t refcon_id = (intptr_t)inRefcon;
+  auto it = mapCallbacks.find(refcon_id);
+  if (it == mapCallbacks.end()) {
+    return;
+  }
+
+  const MapCallbackInfo& info = it->second;
+  callback = info.prep;
+  if (callback == Py_None) {
+    return;
+  }
+
+  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
+  set_moduleName(module_name_obj);
+  Py_DECREF(module_name_obj);
+
+  layerObj = getPtrRefCPP(inLayer, mapLayerIDCapsules, layerIDRefName);
+  PyObject *mapProjectionCapsule = getPtrRefCPP(projection, mapProjectionCapsules, projectionRefName);
+  refconObj = info.refCon;
+  
+  boundsObj = PyTuple_New(4);
+  PyTuple_SetItem(boundsObj, 0, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[0]));
+  PyTuple_SetItem(boundsObj, 1, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[1]));
+  PyTuple_SetItem(boundsObj, 2, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[2]));
+  PyTuple_SetItem(boundsObj, 3, PyFloat_FromDouble((double)inMapBoundsLeftTopRightBottom[3]));
+
+  PyObject *pRes = PyObject_CallFunctionObjArgs(callback, layerObj, boundsObj, mapProjectionCapsule, refconObj, NULL);
+  if(!pRes){
+    printf("MapPrepareCacheCallback callback failed.\n");
+    PyObject *err = PyErr_Occurred();
+    if(err){
+      pythonLogException();
+    }
+  }
+  Py_DECREF(boundsObj);
+  Py_DECREF(layerObj);
+  Py_DECREF(mapProjectionCapsule);
+  Py_XDECREF(pRes);
+}
+
+static inline void mapWillBeDeletedCallback(XPLMMapLayerID inLayer, void *inRefcon)
+{
+  PyObject *layerObj, *refconObj, *callback;
+  intptr_t refcon_id = (intptr_t)inRefcon;
+  auto it = mapCallbacks.find(refcon_id);
+  if (it == mapCallbacks.end()) {
+    printf("Couldn't find map callback with id = %p.", inRefcon);
+    return;
+  }
+
+  const MapCallbackInfo& info = it->second;
+  callback = info.deleted;
+  if (callback == Py_None) {
+    return;
+  }
+
+  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
+  set_moduleName(module_name_obj);
+  Py_DECREF(module_name_obj);
+
+  layerObj = getPtrRefCPP(inLayer, mapLayerIDCapsules, layerIDRefName);
+  refconObj = info.refCon;
+  
+  PyObject *pRes = PyObject_CallFunctionObjArgs(callback, layerObj, refconObj, NULL);
+  if(!pRes){
+    printf("MapWillBeDeletedCallback callback failed.\n");
+    PyObject *err = PyErr_Occurred();
+    if(err){
+      pythonLogException();
+    }
+  }
+  Py_DECREF(layerObj);
+  Py_XDECREF(pRes);
+}
+
+static inline void mapCreatedCallback(const char *mapType, void *inRefcon)
+{
+  PyObject *mapTypeObj, *refconObj, *callback;
+  intptr_t refcon_id = (intptr_t)inRefcon;
+  auto it = mapCreateCallbacks.find(refcon_id);
+  if (it == mapCreateCallbacks.end()) {
+    printf("Couldn't find map created callback with id = %p.", inRefcon);
+    return;
+  }
+
+  const MapCreateInfo& info = it->second;
+  mapTypeObj = PyUnicode_DecodeUTF8(mapType, strlen(mapType), NULL);
+  callback = info.callback;
+  refconObj = info.refCon;
+
+  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
+  set_moduleName(module_name_obj);
+  Py_DECREF(module_name_obj);
+  
+  PyObject *pRes = PyObject_CallFunctionObjArgs(callback, mapTypeObj, refconObj, NULL);
+  if(!pRes){
+    printf("mapCreatedCallback callback failed.\n");
+    PyObject *err = PyErr_Occurred();
+    if(err){
+      pythonLogException();
+    }
+  }
+  Py_DECREF(mapTypeObj);
+  Py_XDECREF(pRes);
+}
+
+static void mapDrawingCallback(XPLMMapLayerID inLayer, const float *inMapBoundsLeftTopRightBottom, float zoomRatio,
+                        float mapUnitsPerUserInterfaceUnit, XPLMMapStyle mapStyle, XPLMMapProjectionID projection,
+                        void *inRefcon)
+{
+  mapCallback(MAP_DRAW, inLayer, inMapBoundsLeftTopRightBottom, zoomRatio,
+              mapUnitsPerUserInterfaceUnit, mapStyle, projection, inRefcon);
+}
+
+static void mapIconDrawingCallback(XPLMMapLayerID inLayer, const float *inMapBoundsLeftTopRightBottom, float zoomRatio,
+                        float mapUnitsPerUserInterfaceUnit, XPLMMapStyle mapStyle, XPLMMapProjectionID projection,
+                        void *inRefcon)
+{
+  mapCallback(MAP_ICON, inLayer, inMapBoundsLeftTopRightBottom, zoomRatio,
+              mapUnitsPerUserInterfaceUnit, mapStyle, projection, inRefcon);
+}
+
+static void mapLabelDrawingCallback(XPLMMapLayerID inLayer, const float *inMapBoundsLeftTopRightBottom, float zoomRatio,
+                        float mapUnitsPerUserInterfaceUnit, XPLMMapStyle mapStyle, XPLMMapProjectionID projection,
+                        void *inRefcon)
+{
+  mapCallback(MAP_LABEL, inLayer, inMapBoundsLeftTopRightBottom, zoomRatio,
+              mapUnitsPerUserInterfaceUnit, mapStyle, projection, inRefcon);
+}
+
+My_DOCSTR(_createMapLayer__doc__, "createMapLayer",
+          "mapType=MAP_USER_INTERFACE, layerType=MapLayer_Markings, delete=None, prep=None, draw=None, icon=None, label=None, showToggle=1, name='', refCon=None",
+          "mapType:str=MAP_USER_INTERFACE, "
+          "layerType:XPLMMapLayerType=MapLayer_Markings, "
+          "delete:Optional[Callable[[XPLMMapLayerID, Any], None]]=None, "
+          "prep:Optional[Callable[[XPLMMapLayerID, float, XPLMMapProjectionID, Any], None]]=None, "
+          "draw:Optional[Callable[[XPLMMapLayerID, float, float, float, XPLMMapStyle, XPLMMapProjectionID, Any], None]]=None, "
+          "icon:Optional[Callable[[XPLMMapLayerID, float, float, float, XPLMMapStyle, XPLMMapProjectionID, Any], None]]=None, "
+          "label:Optional[Callable[[XPLMMapLayerID, float, float, float, XPLMMapStyle, XPLMMapProjectionID, Any], None]]=None, "
+          "showToggle:int=1, "
+          "name:str='', "
+          "refCon:Any=None",
+          "XPLMMapLayerID",
+          "Returns layerID of newly created map layer, setting callbacks.\n"
+          "\n"
+          "If map does not currently exist, returns 0.");
+static PyObject *XPLMCreateMapLayerFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"mapType", "layerType", "delete", "prep", "draw", "icon", "label", "showToggle", "name", "refCon"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  PyObject *map=Py_None, *deleted=Py_None, *prep=Py_None, *draw=Py_None, *icon=Py_None, *label=Py_None, *refCon=Py_None;
+  PyObject *firstObj=Py_None;
+  int layerType=xplm_MapLayer_Markings, showToggle=1;
+  PyObject *name=Py_None;
+
+  PyObject *paramsObj=Py_None;
+
+  if(!XPLMCreateMapLayer_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMCreateMapLayer is available only in XPLM300 and up.");
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OiOOOOOiOO", keywords, &firstObj, &layerType, &deleted, &prep, &draw, &icon, &label, &showToggle, &name, &refCon)){
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+  if (firstObj == Py_None) {
+    ;
+  } else if (PySequence_Check(firstObj)) {
+    /* First items is sequence... BUT, first item could be mapType which is a string... which is a sequence
+     * So, IF the first item is a sequence, we check to see if element #1 of THAT sequence is
+     * an integer... If it is, then this appears to be a single-argument call, where a
+     * list of values is passed (with integer 'layerType' is passed as element #1)
+     * If _not_ integer, we assume first element is mapType (... a string).
+     */
+    if (PySequence_Length(firstObj) > 2) {
+      PyObject *item = PySequence_GetItem(firstObj, 1);
+      if (PyLong_Check(item)) {
+        paramsObj = firstObj;
+        if (PySequence_Length(paramsObj) != 10) {
+          PyErr_SetString(PyExc_AttributeError, "createMapLayer tuple did not contain 10 values.\n");
+          return NULL;
+        }
+      }
+      Py_XDECREF(item);
+    } else {
+      map = firstObj;
+    }
+  } else {
+    map = firstObj;
+  }
+
+  XPLMCreateMapLayer_t inParams;
+  inParams.structSize = sizeof(inParams);
+  PyObject *tmpObjMap;
+  char *tmpMap;
+  PyObject *tmpObjLayerName;
+  char *tmpLayerName;
+  PyObject *paramsTuple;
+  if (paramsObj == Py_None) {
+    if (map == Py_None) {
+      map = PyUnicode_DecodeUTF8(XPLM_MAP_USER_INTERFACE, strlen(XPLM_MAP_USER_INTERFACE), NULL);
+    }
+    if (name == Py_None) {
+      name = PyUnicode_DecodeUTF8("", 0, NULL);
+    }
+    paramsTuple = Py_BuildValue("(sOiOOOOOiOO)", CurrentPythonModuleName, map, layerType, deleted, prep, draw, icon, label, showToggle, name, refCon);
+  } else {
+    PyObject *paramsList = PySequence_List(paramsObj);
+    PyObject *tmp = Py_BuildValue("[s]", CurrentPythonModuleName);
+    PyObject *concat = PySequence_Concat(tmp, paramsList);
+    Py_DECREF(tmp);
+    Py_DECREF(paramsList);
+    paramsTuple = PySequence_Tuple(concat);
+    Py_DECREF(concat);
+  }
+
+  tmpObjMap = PyUnicode_AsUTF8String(PyTuple_GetItem(paramsTuple, MAP_TYPE));
+  tmpMap = PyBytes_AsString(tmpObjMap);
+  
+  if (PyErr_Occurred()) {
+    Py_DECREF(tmpObjMap);
+    Py_DECREF(paramsTuple);
+    return NULL;
+  }
+  inParams.mapToCreateLayerIn = tmpMap;
+  inParams.layerType = PyLong_AsLong(PyTuple_GetItem(paramsTuple, MAP_LAYER));
+  inParams.showUiToggle = PyLong_AsLong(PyTuple_GetItem(paramsTuple, MAP_TOGGLE));
+  
+  tmpObjLayerName = PyUnicode_AsUTF8String(PyTuple_GetItem(paramsTuple, MAP_NAME));
+  tmpLayerName = PyBytes_AsString(tmpObjLayerName);
+  
+  if (PyErr_Occurred()) {
+    Py_DECREF(tmpObjMap);
+    Py_DECREF(tmpObjLayerName);
+    Py_DECREF(paramsTuple);
+    return NULL;
+  }
+
+  inParams.refcon = (void *)++mapCntr;
+  inParams.layerName = tmpLayerName;
+  inParams.mapToCreateLayerIn = tmpMap;
+  inParams.willBeDeletedCallback = mapWillBeDeletedCallback;
+  inParams.prepCacheCallback = mapPrepareCacheCallback;
+  inParams.drawCallback = mapDrawingCallback;
+  inParams.iconCallback = mapIconDrawingCallback;
+  inParams.labelCallback = mapLabelDrawingCallback;
+
+  /* !!!!
+   * XPLMCreateMapLayer() will immediately call prep_cache, so
+   * make sure we set mapCallbacks prior to call.
+   */
+  intptr_t refcon_id = mapCntr;
+
+  // Create MapCallbackInfo struct from the paramsTuple data
+  MapCallbackInfo callbackInfo;
+  callbackInfo.module_name = std::string(CurrentPythonModuleName);
+  callbackInfo.layerType = (XPLMMapLayerType)PyLong_AsLong(PyTuple_GetItem(paramsTuple, MAP_LAYER));
+  callbackInfo.deleted = PyTuple_GetItem(paramsTuple, MAP_DELETE);
+  callbackInfo.prep = PyTuple_GetItem(paramsTuple, MAP_PREP);
+  callbackInfo.draw = PyTuple_GetItem(paramsTuple, MAP_DRAW);
+  callbackInfo.icon = PyTuple_GetItem(paramsTuple, MAP_ICON);
+  callbackInfo.label = PyTuple_GetItem(paramsTuple, MAP_LABEL);
+  callbackInfo.showToggle = PyLong_AsLong(PyTuple_GetItem(paramsTuple, MAP_TOGGLE));
+  callbackInfo.name = PyTuple_GetItem(paramsTuple, MAP_NAME);
+  callbackInfo.refCon = PyTuple_GetItem(paramsTuple, MAP_REFCON);
+  callbackInfo.refcon_id = refcon_id;
+
+  // Increment reference counts for PyObject fields since we're storing them
+  Py_INCREF(callbackInfo.deleted);
+  Py_INCREF(callbackInfo.prep);
+  Py_INCREF(callbackInfo.draw);
+  Py_INCREF(callbackInfo.icon);
+  Py_INCREF(callbackInfo.label);
+  Py_INCREF(callbackInfo.name);
+  Py_INCREF(callbackInfo.refCon);
+
+  XPLMMapLayerID mapLayerID = XPLMCreateMapLayer_ptr(&inParams);
+  callbackInfo.layerID = mapLayerID;
+
+  if(!mapLayerID){
+    char msg[1024];
+    if (!XPLMMapExists(inParams.mapToCreateLayerIn)) {
+      snprintf(msg, sizeof(msg), "Map [%s] does not (yet) exist.\n", inParams.mapToCreateLayerIn);
+      PyErr_SetString(PyExc_RuntimeError, msg);
+    } else {
+      snprintf(msg, sizeof(msg), "Unknown map creation error.\n");
+      PyErr_SetString(PyExc_ValueError, msg);
+    }
+    // Clean up the callback info we just added
+    auto it = mapCallbacks.find(refcon_id);
+    if (it != mapCallbacks.end()) {
+      Py_DECREF(it->second.deleted);
+      Py_DECREF(it->second.prep);
+      Py_DECREF(it->second.draw);
+      Py_DECREF(it->second.icon);
+      Py_DECREF(it->second.label);
+      Py_DECREF(it->second.name);
+      Py_DECREF(it->second.refCon);
+      mapCallbacks.erase(it);
+    }
+    Py_DECREF(tmpObjMap);
+    Py_DECREF(tmpObjLayerName);
+    Py_DECREF(paramsTuple);
+    return NULL;
+  }
+  mapCallbacks[refcon_id] = callbackInfo;
+  PyObject *mapLayerCapsule = getPtrRefCPP(mapLayerID, mapLayerIDCapsules, layerIDRefName);
+  Py_DECREF(tmpObjMap);
+  Py_DECREF(tmpObjLayerName);
+  Py_DECREF(paramsTuple);
+  return mapLayerCapsule;
+}
+
+My_DOCSTR(_destroyMapLayer__doc__, "destroyMapLayer",
+          "layerID",
+          "layerID:XPLMMapLayerID",
+          "int",
+          "Destroys map layer given by layerID.");
+static PyObject *XPLMDestroyMapLayerFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"layerID"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  PyObject *layer;
+
+  if(!XPLMDestroyMapLayer_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMDestroyMapLayer is available only in XPLM300 and up.");
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &layer)){
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+
+  XPLMMapLayerID inLayer = refToPtr(layer, layerIDRefName);
+  int res = XPLMDestroyMapLayer_ptr(inLayer);
+  if(res){
+    for (auto&pair: mapCallbacks) {
+      if(inLayer == pair.second.layerID) {
+        Py_DECREF(pair.second.deleted);
+        Py_DECREF(pair.second.prep);
+        Py_DECREF(pair.second.draw);
+        Py_DECREF(pair.second.icon);
+        Py_DECREF(pair.second.label);
+        Py_DECREF(pair.second.name);
+        Py_DECREF(pair.second.refCon);
+        mapCallbacks.erase(pair.first);
+      }
+    }
+  }
+
+  return PyLong_FromLong(res);
+}
+
+My_DOCSTR(_registerMapCreationHook__doc__, "registerMapCreationHook",
+          "mapCreated, refCon=None",
+          "mapCreated:Callable[[str, Any], None], refCon:Any=None",
+          "None",
+          "Registers mapCreated() callback to notify you when a map is created.\n"
+          "\n"
+          "Callback gets two parameters: (mapType, refCon)");
+static PyObject *XPLMRegisterMapCreationHookFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"mapCreated", "refCon"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  PyObject *callback, *inRefCon=Py_None;
+  if(!XPLMRegisterMapCreationHook_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMRegisterMapCreationHook is available only in XPLM300 and up.");
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O", keywords, &callback, &inRefCon)){
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+
+  intptr_t refcon_id = ++mapCreateCntr;
+
+  // Create MapCreateInfo struct
+  MapCreateInfo createInfo;
+  createInfo.callback = callback;
+  createInfo.refCon = inRefCon;
+  createInfo.module_name = std::string(CurrentPythonModuleName);
+  createInfo.refcon_id = refcon_id;
+
+  // Increment reference counts for PyObject fields since we're storing them
+  Py_INCREF(createInfo.callback);
+  Py_INCREF(createInfo.refCon);
+
+  mapCreateCallbacks[refcon_id] = createInfo;
+
+  XPLMRegisterMapCreationHook_ptr(mapCreatedCallback, (void*)refcon_id);
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_mapExists__doc__, "mapExists",
+          "mapType",
+          "mapType:str",
+          "int",
+          "Returns 1 if mapType exists, 0 otherwise."
+          "\n"
+          "mapType is either xp.MAP_USER_INTERFACE or xp.MAP_IOS");
+static PyObject *XPLMMapExistsFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"mapType"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  const char *mapType;
+
+  if(!XPLMMapExists_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMMapExists is available only in XPLM300 and up.");
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &mapType)){
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+  int res = XPLMMapExists_ptr(mapType);
+  return PyLong_FromLong(res);
+}
+
+My_DOCSTR(_drawMapIconFromSheet__doc__, "drawMapIconFromSheet",
+          "layerID, png, s, t, ds, dt, x, y, orientation, rotationDegrees, mapWidth",
+          "layerID:XPLMMapLayerID, png:str, s:int, t:int, ds:int, dt:int, x:float, y:float, orientation:XPLMMapOrientation, rotationDegrees:float, mapWidth:float",
+          "None",
+          "Draws icon into map layer.\n"
+          "\n"
+          "Only valid within iconLayer() callback.");
+static PyObject *XPLMDrawMapIconFromSheetFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"layerID", "png", "s", "t", "ds", "dt", "x", "y", "orientation", "rotationDegrees", "mapWidth"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  PyObject *layerObj;
+  const char *inPngPath;
+  int s, t, ds, dt;
+  float mapX, mapY, rotationDegrees, mapWidth;
+  XPLMMapOrientation orientation;
+
+  if(!XPLMDrawMapIconFromSheet_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMDrawMapIconFromSheet is available only in XPLM300 and up.");
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Osiiiiffiff", keywords, &layerObj, &inPngPath, &s, &t, &ds, &dt, &mapX, &mapY,
+                       &orientation, &rotationDegrees, &mapWidth)){
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+  XPLMMapLayerID layer = refToPtr(layerObj, layerIDRefName);
+  XPLMDrawMapIconFromSheet_ptr(layer, inPngPath, s, t, ds, dt, mapX, mapY,
+                       orientation, rotationDegrees, mapWidth);
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_drawMapLabel__doc__, "drawMapLabel",
+          "layerID, text, x, y, orientation, rotationDegrees",
+          "layerID:XPLMMapLayerID, text:str, x:float, y:float, orientation:XPLMMapOrientation, rotationDegrees:float",
+          "None",
+          "Draws label within map layer.\n"
+          "\n"
+          "Only valid within labelLayer() callback.");
+static PyObject *XPLMDrawMapLabelFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"layerID", "text", "x", "y", "orientation", "rotationDegrees"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  PyObject *layerObj;
+  const char *inText;
+  float mapX, mapY, rotationDegrees;
+  XPLMMapOrientation orientation;
+
+  if(!XPLMDrawMapLabel_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMDrawMapLabel is available only in XPLM300 and up.");
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Osffif", keywords, &layerObj, &inText, &mapX, &mapY,
+                       &orientation, &rotationDegrees)){
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+  XPLMMapLayerID layer = refToPtr(layerObj, layerIDRefName);
+  XPLMDrawMapLabel_ptr(layer, inText, mapX, mapY, orientation, rotationDegrees);
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_mapProject__doc__, "mapProject",
+          "projection, latitude, longitude",
+          "projection:XPLMMapProjectionID, latitude:float, longitude:float",
+          "None | tuple[float, float]",
+          "Returns map layer (x, y) for given latitude, longitude.\n"
+          "\n"
+          "Only valid within map layer callbacks.");
+static PyObject *XPLMMapProjectFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"projection", "latitude", "longitude", "x", "y"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  PyObject *projectionObj, *outX, *outY;
+  double latitude, longitude;
+  int returnValues = 0;
+  if(!XPLMMapProject_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMMapProject is available only in XPLM300 and up.");
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OddOO", keywords, &projectionObj, &latitude, &longitude, &outX, &outY)) {
+    PyErr_Clear();
+    returnValues = 1;
+    freeCharArray(keywords, params.size());
+    std::vector<std::string> nparams = {"projection", "latitude", "longitude"};
+    char **nkeywords = stringVectorToCharArray(nparams);
+    if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Odd", nkeywords, &projectionObj, &latitude, &longitude)) {
+      freeCharArray(nkeywords, nparams.size());
+      return NULL;
+    }
+    freeCharArray(nkeywords, nparams.size());
+  } else {
+    freeCharArray(keywords, params.size());
+  }
+  XPLMMapProjectionID projection = refToPtr(projectionObj, projectionRefName);
+  float x, y;
+  XPLMMapProject_ptr(projection, latitude, longitude, &x, &y);
+  if (returnValues) {
+    return Py_BuildValue("(ff)", x, y);
+  }
+  pythonLogWarning("XPLMMapProject no longer require final (x, y) parameters");
+
+  if (outX != Py_None)
+    PyList_Append(outX, PyFloat_FromDouble((double) x));
+  if (outY != Py_None)
+    PyList_Append(outY, PyFloat_FromDouble((double) y));
+    
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_mapUnproject__doc__, "mapUnproject",
+          "projection, x, y",
+          "projection:XPLMMapProjectionID, x:float, y:float",
+          "None | tuple[int, int]",
+          "Returns latitude, longitude for given map coordinates.\n"
+          "\n"
+          "Only valid within map layer callbacks.");
+static PyObject *XPLMMapUnprojectFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"projection", "x", "y", "latitude", "longitude"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  PyObject *projectionObj, *outLatitude, *outLongitude;
+  float mapX, mapY;
+  int returnValues = 0;
+
+  if(!XPLMMapUnproject_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMMapUnproject is available only in XPLM300 and up.");
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OffOO", keywords, &projectionObj, &mapX, &mapY, &outLatitude, &outLongitude)){
+    PyErr_Clear();
+    returnValues = 1;
+    freeCharArray(keywords, params.size());
+    std::vector<std::string> nparams = {"projection", "x", "y"};
+    char **nkeywords = stringVectorToCharArray(nparams);
+    if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Off", nkeywords, &projectionObj, &mapX, &mapY)){
+      freeCharArray(nkeywords, nparams.size());
+      return NULL;
+    }
+    freeCharArray(nkeywords, nparams.size());
+  } else {
+    freeCharArray(keywords, params.size());
+  }
+  XPLMMapProjectionID projection = refToPtr(projectionObj, projectionRefName);
+  double longitude, latitude;
+  XPLMMapUnproject_ptr(projection, mapX, mapY, &latitude, &longitude);
+  if (returnValues) 
+    return Py_BuildValue("(dd)", latitude, longitude);
+  pythonLogWarning("XPLMMapUnproject no longer requires final latitude, longitude parameters.");
+  if (outLatitude != Py_None)
+    PyList_Append(outLatitude, PyFloat_FromDouble(latitude));
+  if (outLongitude != Py_None)
+    PyList_Append(outLongitude, PyFloat_FromDouble(longitude));
+    
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_mapScaleMeter__doc__, "mapScaleMeter",
+          "projection, x, y",
+          "projection:XPLMMapProjectionID, x:float, y:float",
+          "float",
+          "Returns number of units for 'one meter' using current projection.\n"
+          "\n"
+          "Only valid within map layer callbacks.");
+static PyObject *XPLMMapScaleMeterFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"projection", "x", "y"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  PyObject *projectionObj;
+  float mapX, mapY;
+
+  if(!XPLMMapScaleMeter_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMMapScaleMeter is available only in XPLM300 and up.");
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Off", keywords, &projectionObj, &mapX, &mapY)){
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+  XPLMMapProjectionID projection = refToPtr(projectionObj, projectionRefName);
+  float res = XPLMMapScaleMeter_ptr(projection, mapX, mapY);
+  return PyFloat_FromDouble(res);
+}
+
+My_DOCSTR(_mapGetNorthHeading__doc__, "mapGetNorthHeading",
+          "projection, x, y",
+          "projection:XPLMMapProjectionID, x:float, y:float",
+          "float",
+          "Returns mapping angle for map projection at point.\n"
+          "\n"
+          "Only valid within map layer callbacks.");
+static PyObject *XPLMMapGetNorthHeadingFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  std::vector<std::string> params = {"projection", "x", "y"};
+  char **keywords = stringVectorToCharArray(params);
+  (void) self;
+  PyObject *projectionObj;
+  float mapX, mapY;
+
+  if(!XPLMMapGetNorthHeading_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMMapGetNorthHeading is available only in XPLM300 and up.");
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Off", keywords, &projectionObj, &mapX, &mapY)){
+    freeCharArray(keywords, params.size());
+    return NULL;
+  }
+  freeCharArray(keywords, params.size());
+  XPLMMapProjectionID projection = refToPtr(projectionObj, projectionRefName);
+  float res = XPLMMapGetNorthHeading_ptr(projection, mapX, mapY);
+  return PyFloat_FromDouble(res);
+}
+
+static PyObject *cleanup(PyObject *self, PyObject *args)
+{
+  (void) self;
+  (void) args;
+
+  // Clean up map callbacks
+  for (auto& pair : mapCallbacks) {
+    Py_DECREF(pair.second.deleted);
+    Py_DECREF(pair.second.prep);
+    Py_DECREF(pair.second.draw);
+    Py_DECREF(pair.second.icon);
+    Py_DECREF(pair.second.label);
+    Py_DECREF(pair.second.name);
+    Py_DECREF(pair.second.refCon);
+  }
+  mapCallbacks.clear();
+
+  // Clean up map creation callbacks
+  for (auto& pair : mapCreateCallbacks) {
+    Py_DECREF(pair.second.callback);
+    Py_DECREF(pair.second.refCon);
+  }
+  mapCreateCallbacks.clear();
+
+  // Clean up unordered_maps
+  for (auto& pair : mapLayerIDCapsules) {
+    Py_DECREF(pair.second);
+  }
+  mapLayerIDCapsules.clear();
+
+  for (auto& pair : mapProjectionCapsules) {
+    Py_DECREF(pair.second);
+  }
+  mapProjectionCapsules.clear();
+
+  Py_RETURN_NONE;
+}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+static PyMethodDef XPLMMapMethods[] = {
+  {"createMapLayer", (PyCFunction)XPLMCreateMapLayerFun, METH_VARARGS | METH_KEYWORDS, _createMapLayer__doc__},
+  {"XPLMCreateMapLayer", (PyCFunction)XPLMCreateMapLayerFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"destroyMapLayer", (PyCFunction)XPLMDestroyMapLayerFun, METH_VARARGS | METH_KEYWORDS, _destroyMapLayer__doc__},
+  {"XPLMDestroyMapLayer", (PyCFunction)XPLMDestroyMapLayerFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"registerMapCreationHook", (PyCFunction)XPLMRegisterMapCreationHookFun, METH_VARARGS | METH_KEYWORDS, _registerMapCreationHook__doc__},
+  {"XPLMRegisterMapCreationHook", (PyCFunction)XPLMRegisterMapCreationHookFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"mapExists", (PyCFunction)XPLMMapExistsFun, METH_VARARGS | METH_KEYWORDS, _mapExists__doc__},
+  {"XPLMMapExists", (PyCFunction)XPLMMapExistsFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"drawMapIconFromSheet", (PyCFunction)XPLMDrawMapIconFromSheetFun, METH_VARARGS | METH_KEYWORDS, _drawMapIconFromSheet__doc__},
+  {"XPLMDrawMapIconFromSheet", (PyCFunction)XPLMDrawMapIconFromSheetFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"drawMapLabel", (PyCFunction)XPLMDrawMapLabelFun, METH_VARARGS | METH_KEYWORDS, _drawMapLabel__doc__},
+  {"XPLMDrawMapLabel", (PyCFunction)XPLMDrawMapLabelFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"mapProject", (PyCFunction)XPLMMapProjectFun, METH_VARARGS | METH_KEYWORDS, _mapProject__doc__},
+  {"XPLMMapProject", (PyCFunction)XPLMMapProjectFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"mapUnproject", (PyCFunction)XPLMMapUnprojectFun, METH_VARARGS | METH_KEYWORDS, _mapUnproject__doc__},
+  {"XPLMMapUnproject", (PyCFunction)XPLMMapUnprojectFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"mapScaleMeter", (PyCFunction)XPLMMapScaleMeterFun, METH_VARARGS | METH_KEYWORDS, _mapScaleMeter__doc__},
+  {"XPLMMapScaleMeter", (PyCFunction)XPLMMapScaleMeterFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"mapGetNorthHeading", (PyCFunction)XPLMMapGetNorthHeadingFun, METH_VARARGS | METH_KEYWORDS, _mapGetNorthHeading__doc__},
+  {"XPLMMapGetNorthHeading", (PyCFunction)XPLMMapGetNorthHeadingFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"_cleanup", cleanup, METH_VARARGS, ""},
+  {NULL, NULL, 0, NULL}
+};
+#pragma GCC diagnostic pop
+
+
+static struct PyModuleDef XPLMMapModule = {
+  PyModuleDef_HEAD_INIT,
+  "XPLMMap",
+  "Laminar documentation: \n"
+  "   https://developer.x-plane.com/sdk/XPLMMap/\n"
+  "XPPython3 documentation: \n"
+  "   https://xppython3.rtfd.io/en/stable/development/modules/map.html",
+  -1,
+  XPLMMapMethods,
+  NULL,
+  NULL,
+  NULL,
+  NULL
+};
+
+PyMODINIT_FUNC
+PyInit_XPLMMap(void)
+{
+  PyObject *mod = PyModule_Create(&XPLMMapModule);
+  if(mod){
+    PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
+    PyModule_AddIntConstant(mod, "xplm_MapStyle_VFR_Sectional", xplm_MapStyle_VFR_Sectional); // XPLMMapStyle
+    PyModule_AddIntConstant(mod, "xplm_MapStyle_IFR_LowEnroute", xplm_MapStyle_IFR_LowEnroute); // XPLMMapStyle
+    PyModule_AddIntConstant(mod, "xplm_MapStyle_IFR_HighEnroute", xplm_MapStyle_IFR_HighEnroute); // XPLMMapStyle
+    PyModule_AddIntConstant(mod, "xplm_MapLayer_Fill", xplm_MapLayer_Fill); // XPLMMapLayerType
+    PyModule_AddIntConstant(mod, "xplm_MapLayer_Markings", xplm_MapLayer_Markings); // XPLMMapLayerType
+    PyModule_AddStringConstant(mod, "XPLM_MAP_USER_INTERFACE", XPLM_MAP_USER_INTERFACE);
+    PyModule_AddStringConstant(mod, "XPLM_MAP_IOS", XPLM_MAP_IOS);
+    PyModule_AddIntConstant(mod, "xplm_MapOrientation_Map", xplm_MapOrientation_Map); // XPLMMapOrientation
+    PyModule_AddIntConstant(mod, "xplm_MapOrientation_UI", xplm_MapOrientation_UI); // XPLMMapOrientation
+
+    PyModule_AddIntConstant(mod, "MapStyle_VFR_Sectional", xplm_MapStyle_VFR_Sectional); // XPLMMapStyle
+    PyModule_AddIntConstant(mod, "MapStyle_IFR_LowEnroute", xplm_MapStyle_IFR_LowEnroute); // XPLMMapStyle
+    PyModule_AddIntConstant(mod, "MapStyle_IFR_HighEnroute", xplm_MapStyle_IFR_HighEnroute); // XPLMMapStyle
+    PyModule_AddIntConstant(mod, "MapLayer_Fill", xplm_MapLayer_Fill); // XPLMMapLayerType
+    PyModule_AddIntConstant(mod, "MapLayer_Markings", xplm_MapLayer_Markings); // XPLMMapLayerType
+    PyModule_AddStringConstant(mod, "MAP_USER_INTERFACE", XPLM_MAP_USER_INTERFACE);
+    PyModule_AddStringConstant(mod, "MAP_IOS", XPLM_MAP_IOS);
+    PyModule_AddIntConstant(mod, "MapOrientation_Map", xplm_MapOrientation_Map); // XPLMMapOrientation
+    PyModule_AddIntConstant(mod, "MapOrientation_UI", xplm_MapOrientation_UI); // XPLMMapOrientation
+  }
+  return mod;
+}

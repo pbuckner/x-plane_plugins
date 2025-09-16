@@ -96,7 +96,7 @@ PLUGIN_OBJ = plugin.o defs.o display.o utils.o graphics.o data_access.o utilitie
 	trackmetrics_type.o manage_instance.o manage_instances.o logwriter.o load_modules.o ini_file.o cursor.o \
 	cpp_utilities.o
 
-cursor.o : cursor.c
+cursor.o : cursor.cpp
 ifeq ($(TARGET),Darwin)
 	$(CC) -x objective-c -target arm64-apple-macos11 -c $(CFLAGS312) $< -o $@.arm
 	$(CC) -x objective-c -target x86_64-apple-macos10.12 -c $(CFLAGS312)  $< -o $@.x86

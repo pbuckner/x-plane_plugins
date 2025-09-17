@@ -53,3 +53,15 @@ PyObject* getPtrRefCPP(void *ptr, std::unordered_map<void*, PyObject*>& dict, co
   Py_INCREF(capsule);
   return capsule;
 }
+
+void removePtrRefCPP(void *ptr, std::unordered_map<void *,PyObject *>& dict)
+{
+  errCheck("prior removePtrRefCPP");
+  if(!ptr) return;
+  auto it = dict.find(ptr);
+  if (it == dict.end()) return;
+
+  Py_DECREF(it->second);
+  dict.erase(it->first);
+  errCheck("end removePtrRef");
+}

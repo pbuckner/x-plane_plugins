@@ -1,7 +1,11 @@
 #define _GNU_SOURCE 1
 #include <Python.h>
 #include <structmember.h>
+#include <vector>
+#include <string>
+#include "xppythontypes.h"
 #include "utils.h"
+#include "cpp_utilities.hpp"
 
 /* WeatherInfoClouds Type */
 typedef struct {
@@ -48,9 +52,12 @@ WeatherInfoClouds_dealloc(WeatherInfoCloudsObject *self)
 static int
 WeatherInfoClouds_init(WeatherInfoCloudsObject *self, PyObject *args, PyObject *kwds)
 {
-  static char *kwlist[] = {"cloud_type", "coverage", "alt_top", "alt_base", NULL};
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ffff", kwlist,
-                                   &self->cloud_type, &self->coverage, &self->alt_top, &self->alt_base))
+  std::vector<std::string> params = {"cloud_type", "coverage", "alt_top", "alt_base"};
+  char **kwlist = stringVectorToCharArray(params);
+  int result = PyArg_ParseTupleAndKeywords(args, kwds, "|ffff", kwlist,
+                                   &self->cloud_type, &self->coverage, &self->alt_top, &self->alt_base);
+  freeCharArray(kwlist, params.size());
+  if (!result)
     return -1;
   return 0;
 }

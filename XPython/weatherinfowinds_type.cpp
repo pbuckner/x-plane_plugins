@@ -1,8 +1,12 @@
 #define _GNU_SOURCE 1
 #include <Python.h>
 #include <structmember.h>
+#include <vector>
+#include <string>
 #include "XPLMWeather.h"
+#include "xppythontypes.h"
 #include "utils.h"
+#include "cpp_utilities.hpp"
 
 /* WeatherInfoWinds Type */
 typedef struct {
@@ -51,11 +55,14 @@ WeatherInfoWinds_dealloc(WeatherInfoWindsObject *self)
 static int
 WeatherInfoWinds_init(WeatherInfoWindsObject *self, PyObject *args, PyObject *kwds)
 {
-  static char *kwlist[] = {"alt_msl", "speed", "direction", "gust_speed", "shear", "turbulence", NULL};
+  std::vector<std::string> params = {"alt_msl", "speed", "direction", "gust_speed", "shear", "turbulence"};
+  char **kwlist = stringVectorToCharArray(params);
   self->speed = XPLM_WIND_UNDEFINED_LAYER;
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ffffff", kwlist,
+  int result = PyArg_ParseTupleAndKeywords(args, kwds, "|ffffff", kwlist,
                                    &self->alt_msl, &self->speed, &self->direction, &self->gust_speed,
-                                   &self->shear, &self->turbulence))
+                                   &self->shear, &self->turbulence);
+  freeCharArray(kwlist, params.size());
+  if (!result)
     return -1;
   return 0;
 }
@@ -73,7 +80,10 @@ static PyMemberDef WeatherInfoWinds_members[] = {
 static PyObject *WeatherInfoWinds_str(WeatherInfoWindsObject *obj) {
   char *msg = NULL;
   if (obj->speed < 0) {
-    msg = "<XPLMWeatherInfoWinds_t object> layer undefined";
+    if (-1 == asprintf(&msg, "<XPLMWeatherInfoWinds_t object> layer undefined")) {
+      pythonLog("Failed to allocate asprintf memory for WeatherInfoWinds.");
+      return (PyObject *)obj;
+    };
   } else {
     if (-1 == asprintf(&msg, "<XPLMWeatherInfoWinds_t object> %03.0f@%.0f at %.1fm MSL",
                        obj->direction, obj->speed * 1.94384, obj->alt_msl)) {

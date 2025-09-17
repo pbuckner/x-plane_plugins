@@ -1,9 +1,12 @@
 #define _GNU_SOURCE 1
 #include <Python.h>
 #include <structmember.h>
+#include <vector>
+#include <string>
 #include "XPLMWeather.h"
 #include "xppythontypes.h"
 #include "utils.h"
+#include "cpp_utilities.hpp"
 
 /* WeatherInfo Type */
 typedef struct {
@@ -77,18 +80,19 @@ WeatherInfo_dealloc(WeatherInfoObject *self)
 static int
 WeatherInfo_init(WeatherInfoObject *self, PyObject *args, PyObject *kwds)
 {
-  static char *kwlist[] = {"detail_found",
+  std::vector<std::string> params = {"detail_found",
                            "temperature_alt", "dewpoint_alt", "pressure_alt", "precip_rate_alt",
                            "wind_dir_alt", "wind_spd_alt", "turbulence_alt", "wave_height",
                            "wave_length", "wave_dir", "wave_speed", "visibility",
                            "precip_rate", "thermal_climb", "pressure_sl", "wind_layers", "cloud_layers",
                            "temp_layers", "dewp_layers", "troposphere_alt", "troposphere_temp",
-                           "age", "radius_nm", "max_altitude_msl_ft", NULL};
+                           "age", "radius_nm", "max_altitude_msl_ft"};
+  char **kwlist = stringVectorToCharArray(params);
 
   self->detail_found = -1;
   self->radius_nm = XPLM_DEFAULT_WXR_RADIUS_NM;
   self->max_altitude_msl_ft = XPLM_DEFAULT_WXR_RADIUS_MSL_FT;
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ifffffffffifffffOOOOfffff", kwlist,
+  int result = PyArg_ParseTupleAndKeywords(args, kwds, "|ifffffffffifffffOOOOfffff", kwlist,
                                    &self->detail_found,
                                    &self->temperature_alt, &self->dewpoint_alt, &self->pressure_alt, &self->precip_rate_alt,
                                    &self->wind_dir_alt, &self->wind_spd_alt, &self->turbulence_alt, &self->wave_height,
@@ -96,7 +100,9 @@ WeatherInfo_init(WeatherInfoObject *self, PyObject *args, PyObject *kwds)
                                    &self->precip_rate, &self->thermal_climb, &self->pressure_sl, &self->wind_layers,
                                    &self->cloud_layers,
                                    &self->temp_layers, &self->dewp_layers, &self->troposphere_alt, &self->troposphere_temp,
-                                   &self->age, &self->radius_nm, &self->max_altitude_msl_ft))
+                                   &self->age, &self->radius_nm, &self->max_altitude_msl_ft);
+  freeCharArray(kwlist, params.size());
+  if (!result)
     return -1;
   if (self->temp_layers == 0) {
     self->temp_layers = PyList_New(XPLM_NUM_TEMPERATURE_LAYERS);

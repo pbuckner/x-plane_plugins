@@ -1,6 +1,10 @@
 #define _GNU_SOURCE 1
 #include <Python.h>
 #include <structmember.h>
+#include <vector>
+#include <string>
+#include "xppythontypes.h"
+#include "cpp_utilities.hpp"
 
 /* TrackMetrics TYPE */
 typedef struct {
@@ -56,10 +60,13 @@ TrackMetrics_dealloc(TrackMetricsObject *self)
 static int
 TrackMetrics_init(TrackMetricsObject *self, PyObject *args, PyObject *kwds)
 {
-  static char *kwlist[] = {"isVertical", "downBtnSize", "downPageSize", "thumbSize", "upPageSize", "upBtnSize", NULL};
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iiiiii", kwlist,
+  std::vector<std::string> params = {"isVertical", "downBtnSize", "downPageSize", "thumbSize", "upPageSize", "upBtnSize"};
+  char **kwlist = stringVectorToCharArray(params);
+  int result = PyArg_ParseTupleAndKeywords(args, kwds, "|iiiiii", kwlist,
                                    &self->isVertical, &self->downBtnSize, &self->downPageSize, &self->thumbSize,
-                                   &self->upPageSize, &self->upBtnSize))
+                                   &self->upPageSize, &self->upBtnSize);
+  freeCharArray(kwlist, params.size());
+  if (!result)
     return -1;
   return 0;
 }
@@ -106,7 +113,7 @@ static PyMemberDef TrackMetrics_members[] = {
 
 static PyObject* TrackMetrics_str(TrackMetricsObject *self) {
   char s[1024];
-  sprintf(s, "<TrackMetrics {isVertical: %d, downBtnSize: %d, downPageSize: %d, thumbSize: %d, upPageSize: %d, upBtnSize: %d}>",
+  snprintf(s, sizeof(s), "<TrackMetrics {isVertical: %d, downBtnSize: %d, downPageSize: %d, thumbSize: %d, upPageSize: %d, upBtnSize: %d}>",
           self->isVertical, self->downBtnSize, self->downPageSize, self->thumbSize, self->upPageSize, self->upBtnSize);
   return PyUnicode_FromString(s);
 }

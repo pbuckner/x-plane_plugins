@@ -4,16 +4,23 @@
 #include <stdio.h>
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMPlanes.h>
+#include <string>
+#include <vector>
+#include <unordered_map>
 #include "utils.h"
 #include "plugin_dl.h"
+#include "cpp_utilities.hpp"
 
 static intptr_t availableCntr;
-static PyObject *availableDict;
-#define AVAILABLE_PLUGIN 0
-#define AVAILABLE_AIRCRAFT 1
-#define AVAILABLE_CALLBACK 2
-#define AVAILABLE_REFCON 3
-#define AVAILABLE_MODULE_NAME 4
+struct AvailableInfo {
+  PyObject* plugin;
+  PyObject* aircraft;
+  PyObject* callback;
+  PyObject* refCon;
+  std::string module_name;
+};
+
+static std::unordered_map<intptr_t, AvailableInfo> availableCallbacks;
 
 My_DOCSTR(_setUsersAircraft__doc__, "setUsersAircraft",
           "path",
@@ -25,12 +32,15 @@ My_DOCSTR(_setUsersAircraft__doc__, "setUsersAircraft",
           "including the .acf extension.");
 static PyObject *XPLMSetUsersAircraftFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"path", NULL};
+  std::vector<std::string> params = {"path"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   const char *inAircraftPath;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inAircraftPath)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMSetUsersAircraft(inAircraftPath);
   Py_RETURN_NONE;
 }
@@ -44,12 +54,15 @@ My_DOCSTR(_placeUserAtAirport__doc__, "placeUserAtAirport",
           "Invalid airport code will crash the sim.");
 static PyObject *XPLMPlaceUserAtAirportFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"code", NULL};
+  std::vector<std::string> params = {"code"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   const char *inAirportCode;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inAirportCode)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMPlaceUserAtAirport(inAirportCode);
   Py_RETURN_NONE;
 }
@@ -63,18 +76,22 @@ My_DOCSTR(_placeUserAtLocation__doc__, "placeUserAtLocation",
           "elevation is meters, heading is True, speed is meters per second");
 static PyObject *XPLMPlaceUserAtLocationFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"latitude", "longitude", "elevation", "heading", "speed", NULL};
+  std::vector<std::string> params = {"latitude", "longitude", "elevation", "heading", "speed"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   double latitudeDegrees, longitudeDegrees;
   float elevationMetersMSL, headingDegreesTrue, speedMetersPerSecond;
   if(!XPLMPlaceUserAtLocation_ptr){
+    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPLMPlaceUserAtLocation is available only in XPLM300 and up.");
     return NULL;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ddfff", keywords, &latitudeDegrees, &longitudeDegrees,
                        &elevationMetersMSL, &headingDegreesTrue, &speedMetersPerSecond)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMPlaceUserAtLocation_ptr(latitudeDegrees, longitudeDegrees,
                               elevationMetersMSL, headingDegreesTrue, speedMetersPerSecond);
   Py_RETURN_NONE;
@@ -103,14 +120,17 @@ My_DOCSTR(_getNthAircraftModel__doc__, "getNthAircraftModel",
           "Return (filename, fullPath) of aircraft at index");
 static PyObject *XPLMGetNthAircraftModelFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"index", NULL};
+  std::vector<std::string> params = {"index"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   int inIndex;
   char outFileName[512];
   char outPath[512];
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inIndex)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
 
   XPLMGetNthAircraftModel(inIndex, outFileName, outPath);
   return Py_BuildValue("(ss)", outFileName, outPath);
@@ -118,17 +138,21 @@ static PyObject *XPLMGetNthAircraftModelFun(PyObject *self, PyObject *args, PyOb
 
 void planesAvailable(void *inRefcon)
 {
-  PyObject *pID = PyLong_FromVoidPtr(inRefcon);
-  PyObject *callback = PyDict_GetItem(availableDict, pID);
-  Py_XDECREF(pID);
-  if(callback == NULL){
+  intptr_t refcon_id = (intptr_t)inRefcon;
+  auto it = availableCallbacks.find(refcon_id);
+  if (it == availableCallbacks.end()) {
     printf("Unknown callback (%p) requested in planesAvailable.", inRefcon);
     return;
   }
-  PyObject *func = PyTuple_GetItem(callback, AVAILABLE_CALLBACK);
-  if (func == Py_None) return;
-  set_moduleName(PyTuple_GetItem(callback, AVAILABLE_MODULE_NAME));
-  PyObject *res = PyObject_CallFunctionObjArgs(func, PyTuple_GetItem(callback, AVAILABLE_REFCON), NULL);
+
+  AvailableInfo& info = it->second;
+  if (info.callback == Py_None) return;
+
+  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
+  set_moduleName(module_name_obj);
+  Py_DECREF(module_name_obj);
+
+  PyObject *res = PyObject_CallFunctionObjArgs(info.callback, info.refCon, NULL);
   PyObject *err = PyErr_Occurred();
   if(err){
     printf("Error occured during the planesAvailable callback(inRefcon = %p):\n", inRefcon);
@@ -147,22 +171,31 @@ My_DOCSTR(_acquirePlanes__doc__, "acquirePlanes",
           "with refCon if acquirePlanes() is not immediately successful.");
 static PyObject *XPLMAcquirePlanesFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"aircraft", "callback", "refCon", NULL};
+  std::vector<std::string> params = {"aircraft", "callback", "refCon"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   PyObject *pluginSelf, *aircraft=Py_None, *inCallback=Py_None, *inRefcon=Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOO", keywords, &aircraft, &inCallback, &inRefcon)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   pluginSelf = get_moduleName_p();
   int res;
-  void *refcon = (void*)++availableCntr;
-  PyObject *refObj = PyLong_FromVoidPtr(refcon);
-  PyObject *argsObj = Py_BuildValue( "(OOOOs)", pluginSelf, aircraft, inCallback, inRefcon, CurrentPythonModuleName);
-  PyDict_SetItem(availableDict, refObj, argsObj);
-  Py_DECREF(argsObj);
-  Py_DECREF(refObj);
+  intptr_t refcon = ++availableCntr;
+  availableCallbacks[refcon] = {
+    .plugin = pluginSelf,
+    .aircraft = aircraft,
+    .callback = inCallback,
+    .refCon = inRefcon,
+    .module_name = std::string(CurrentPythonModuleName)
+  };
+  Py_INCREF(pluginSelf);
+  Py_INCREF(aircraft);
+  Py_INCREF(inCallback);
+  Py_INCREF(inRefcon);
   if(aircraft == Py_None){
-    res = XPLMAcquirePlanes(NULL, planesAvailable, refcon);
+    res = XPLMAcquirePlanes(NULL, planesAvailable, (void*)refcon);
   }else{
     Py_ssize_t len = PySequence_Length(aircraft);
     char **inAircraft = (char **)malloc((len + 1) * sizeof(char *));
@@ -186,7 +219,7 @@ static PyObject *XPLMAcquirePlanesFun(PyObject *self, PyObject *args, PyObject *
       Py_DECREF(tmpObj);
     }
     inAircraft[i] = NULL;
-    res = XPLMAcquirePlanes(inAircraft, planesAvailable, refcon);
+    res = XPLMAcquirePlanes(inAircraft, planesAvailable, (void*)refcon);
     i = 0;
     while(inAircraft[i]){
       free(inAircraft[i]);
@@ -224,12 +257,15 @@ My_DOCSTR(_setActiveAircraftCount__doc__, "setActiveAircraftCount",
           "first have access -- acquirePlanes().");
 static PyObject *XPLMSetActiveAircraftCountFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"count", NULL};
+  std::vector<std::string> params = {"count"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   int inCount;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inCount)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
 
   XPLMSetActiveAircraftCount(inCount);
   Py_RETURN_NONE;
@@ -244,13 +280,16 @@ My_DOCSTR(_setAircraftModel__doc__, "setAircraftModel",
           "Path is absolute, or relative to X-Plane root.");
 static PyObject *XPLMSetAircraftModelFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"index", "path", NULL};
+  std::vector<std::string> params = {"index", "path"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   int inIndex;
   const char *inAircraftPath;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "is", keywords, &inIndex, &inAircraftPath)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMSetAircraftModel(inIndex, inAircraftPath);
   Py_RETURN_NONE;
 }
@@ -264,12 +303,15 @@ My_DOCSTR(_disableAIForPlane__doc__, "disableAIForPlane",
           "Plane will continue to draw, but will not move itself.");
 static PyObject *XPLMDisableAIForPlaneFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"index", NULL};
+  std::vector<std::string> params = {"index"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   int inPlaneIndex;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inPlaneIndex)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
 
   XPLMDisableAIForPlane(inPlaneIndex);
   Py_RETURN_NONE;
@@ -279,8 +321,13 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 {
   (void) self;
   (void) args;
-  PyDict_Clear(availableDict);
-  Py_DECREF(availableDict);
+  for (auto& pair : availableCallbacks) {
+    Py_DECREF(pair.second.plugin);
+    Py_DECREF(pair.second.aircraft);
+    Py_DECREF(pair.second.callback);
+    Py_DECREF(pair.second.refCon);
+  }
+  availableCallbacks.clear();
   Py_RETURN_NONE;
 }
 
@@ -339,9 +386,6 @@ static struct PyModuleDef XPLMPlanesModule = {
 PyMODINIT_FUNC
 PyInit_XPLMPlanes(void)
 {
-  if(!(availableDict = PyDict_New())){
-    return NULL;
-  }
   PyObject *mod = PyModule_Create(&XPLMPlanesModule);
   if(mod){
     PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");

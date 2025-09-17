@@ -4,9 +4,12 @@
 #include <stdio.h>
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMNavigation.h>
+#include <vector>
+#include <string>
 #include "plugin_dl.h"
 #include "utils.h"
 #include "xppythontypes.h"
+#include "cpp_utilities.hpp"
 
 My_DOCSTR(_getFirstNavAid__doc__, "getFirstNavAid",
           "",
@@ -27,12 +30,15 @@ My_DOCSTR(_getNextNavAid__doc__, "getNextNavAid",
           "Returns next navRef after the provided value.");
 static PyObject *XPLMGetNextNavAidFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"navRef", NULL};
+  std::vector<std::string> params = {"navRef"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   int inNavAidRef;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inNavAidRef)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   return PyLong_FromLong(XPLMGetNextNavAid(inNavAidRef));
 }
 
@@ -60,12 +66,15 @@ My_DOCSTR(_findFirstNavAidOfType__doc__, "findFirstNavAidOfType",
           );
 static PyObject *XPLMFindFirstNavAidOfTypeFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"navType", NULL};
+  std::vector<std::string> params = {"navType"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   int inType;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inType)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   return PyLong_FromLong(XPLMFindFirstNavAidOfType(inType));
 }
 
@@ -76,12 +85,15 @@ My_DOCSTR(_findLastNavAidOfType__doc__, "findLastNavAidOfType",
           "Returns navRef of last navAid of given type.");
 static PyObject *XPLMFindLastNavAidOfTypeFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"navType", NULL};
+  std::vector<std::string> params = {"navType"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   int inType;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inType)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   return PyLong_FromLong(XPLMFindLastNavAidOfType(inType));
 }
 
@@ -97,7 +109,8 @@ My_DOCSTR(_findNavAid__doc__, "findNavAid",
           "navType=0xffffffff will match any type value");
 static PyObject *XPLMFindNavAidFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"name", "navAidID", "lat", "lon", "freq", "navType", NULL};
+  std::vector<std::string> params = {"name", "navAidID", "lat", "lon", "freq", "navType"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   const char *inNameFragment = NULL;
   const char *inIDFragment = NULL;
@@ -107,8 +120,10 @@ static PyObject *XPLMFindNavAidFun(PyObject *self, PyObject *args, PyObject *kwa
   int frequency, *inFrequency = NULL;
   int inType=0xffffff;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|zzOOOi", keywords, &inNameFragment, &inIDFragment, &objLat, &objLon, &objFreq, &inType)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   if(objLat != Py_None){
     lat = PyFloat_AsDouble(objLat);
     inLat = &lat;
@@ -141,12 +156,15 @@ My_DOCSTR(_getNavAidInfo__doc__, "getNavAidInfo",
           " .reg        # =1 if navaid is within local 'region' of loaded DSFs");
 static PyObject *XPLMGetNavAidInfoFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"navRef", NULL};
+  std::vector<std::string> params = {"navRef"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   XPLMNavRef inRef;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inRef)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMNavType type;
   float latitude = 0, longitude = 0, height = 0, heading = 0;
   int frequency = 0;
@@ -200,12 +218,15 @@ My_DOCSTR(_setDisplayedFMSEntry__doc__, "setDisplayedFMSEntry",
           "Sets index number for FMS Entry to be displayed.");
 static PyObject *XPLMSetDisplayedFMSEntryFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"index", NULL};
+  std::vector<std::string> params = {"index"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   int inIndex;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inIndex)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMSetDisplayedFMSEntry(inIndex);
   Py_RETURN_NONE;
 }
@@ -217,12 +238,15 @@ My_DOCSTR(_setDestinationFMSEntry__doc__, "setDestinationFMSEntry",
           "Sets index number for FMS Entry to become the current destination.");
 static PyObject *XPLMSetDestinationFMSEntryFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"index", NULL};
+  std::vector<std::string> params = {"index"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   int inIndex;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inIndex)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMSetDestinationFMSEntry(inIndex);
   Py_RETURN_NONE;
 }
@@ -242,12 +266,15 @@ My_DOCSTR(_getFMSEntryInfo__doc__, "getFMSEntryInfo",
           " .lon");
 static PyObject *XPLMGetFMSEntryInfoFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"index", NULL};
+  std::vector<std::string> params = {"index"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   int inIndex;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inIndex)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
 
   XPLMNavType type;
   float lat, lon;
@@ -266,14 +293,17 @@ My_DOCSTR(_setFMSEntryInfo__doc__, "setFMSEntryInfo",
           "Set given FMS Entry to provided navRef and altitude (feet)");
 static PyObject *XPLMSetFMSEntryInfoFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"index", "navRef", "altitude", NULL};
+  std::vector<std::string> params = {"index", "navRef", "altitude"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   int inIndex;
   XPLMNavRef inRef;
   int inAltitude=0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ii|i", keywords, &inIndex, &inRef, &inAltitude)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMSetFMSEntryInfo(inIndex, inRef, inAltitude);
   Py_RETURN_NONE;
 }
@@ -285,15 +315,18 @@ My_DOCSTR(_setFMSEntryLatLon__doc__, "setFMSEntryLatLon",
           "Set given FMS Entry to provided (lat, lon) and altitude(feet).");
 static PyObject *XPLMSetFMSEntryLatLonFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"index", "lat", "lon", "altitude", NULL};
+  std::vector<std::string> params = {"index", "lat", "lon", "altitude"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   int inIndex;
   float inLat;
   float inLon;
   int inAltitude =0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iff|i", keywords, &inIndex, &inLat, &inLon, &inAltitude)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMSetFMSEntryLatLon(inIndex, inLat, inLon, inAltitude);
   Py_RETURN_NONE;
 }
@@ -305,12 +338,15 @@ My_DOCSTR(_clearFMSEntry__doc__, "clearFMSEntry",
           "Clear given FMS entry.");
 static PyObject *XPLMClearFMSEntryFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"index", NULL};
+  std::vector<std::string> params = {"index"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   int inIndex;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inIndex)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMClearFMSEntry(inIndex);
   Py_RETURN_NONE;
 }
@@ -354,17 +390,21 @@ My_DOCSTR(_countFMSFlightPlanEntries__doc__, "countFMSFlightPlanEntries",
 );
 static PyObject *XPLMCountFMSFlightPlanEntriesFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  std::vector<std::string> params = {"flightPlan"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
-  static char *keywords[] = {"flightPlan", NULL};
   int inFlightPlan;
   if (!XPLMCountFMSFlightPlanEntries_ptr){
+    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPLMCountFMSFlightPlanEntries is available only in XPLM410 and up.");
     return NULL;
   }
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inFlightPlan)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
 
   return PyLong_FromLong(XPLMCountFMSFlightPlanEntries_ptr(inFlightPlan));
 }
@@ -377,18 +417,22 @@ My_DOCSTR(_getDisplayedFMSFlightPlanEntry__doc__, "getDisplayedFMSFlightPlanEntr
           "Returns index number of the entry the pilot is viewing.");
 static PyObject *XPLMGetDisplayedFMSFlightPlanEntryFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  std::vector<std::string> params = {"flightPlan"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   if (!XPLMGetDisplayedFMSFlightPlanEntry_ptr) {
+    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError, "XPLMGetDisplayedFMSFlightPlanEntry is available only in XPLM410 and up.");
     return NULL;
   }
 
-  static char *keywords[] = {"flightPlan", NULL};
   int inFlightPlan;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inFlightPlan)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   return PyLong_FromLong(XPLMGetDisplayedFMSFlightPlanEntry_ptr(inFlightPlan));
 
 }
@@ -400,17 +444,21 @@ My_DOCSTR(_getDestinationFMSFlightPlanEntry__doc__, "getDestinationFMSFlightPlan
           "Returns the index number of the flight plan destination.");
 static PyObject *XPLMGetDestinationFMSFlightPlanEntryFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  std::vector<std::string> params = {"flightPlan"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   if (!XPLMGetDestinationFMSFlightPlanEntry_ptr) {
+    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError, "XPLMGetDestinationFMSFlightPlanEntry is available only in XPLM410 and up.");
     return NULL;
   }
-  static char *keywords[] = {"flightPlan", NULL};
   int inFlightPlan;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inFlightPlan)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   return PyLong_FromLong(XPLMGetDestinationFMSFlightPlanEntry_ptr(inFlightPlan));
 }
 
@@ -421,18 +469,22 @@ My_DOCSTR(_setDisplayedFMSFlightPlanEntry__doc__, "setDisplayedFMSFlightPlanEntr
           "Sets index number for FMS Entry to be displayed for this flight plan.");
 static PyObject *XPLMSetDisplayedFMSFlightPlanEntryFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  std::vector<std::string> params = {"flightPlan", "index"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   if (!XPLMSetDisplayedFMSFlightPlanEntry_ptr) {
+    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError, "XPLMSetDisplayedFMSFlightPlanEntry is available only in XPLM410 and up.");
     return NULL;
   }
-  static char *keywords[] = {"flightPlan", "index", NULL};
   int inFlightPlan;
   int index;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ii", keywords, &inFlightPlan, &index)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
 
   XPLMSetDisplayedFMSFlightPlanEntry_ptr(inFlightPlan, index);
   Py_RETURN_NONE;
@@ -446,18 +498,22 @@ My_DOCSTR(_setDestinationFMSFlightPlanEntry__doc__, "setDestinationFMSFlightPlan
           "is from the n-1'th point to this point.");
 static PyObject *XPLMSetDestinationFMSFlightPlanEntryFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  std::vector<std::string> params = {"flightPlan", "index"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   if (!XPLMSetDestinationFMSFlightPlanEntry_ptr) {
+    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError, "XPLMSetDestinationFMSFlightPlanEntry is available only in XPLM410 and up.");
     return NULL;
   }
-  static char *keywords[] = {"flightPlan", "index", NULL};
   int inFlightPlan;
   int index;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ii", keywords, &inFlightPlan, &index)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMSetDestinationFMSFlightPlanEntry_ptr(inFlightPlan, index);
   Py_RETURN_NONE;
 }
@@ -470,19 +526,23 @@ My_DOCSTR(_setDirectToFMSFlightPlanEntry__doc__, "setDirectToFMSFlightPlanEntry"
           "position directly to this point, ignoring the point before it in the flight plan.");
 static PyObject *XPLMSetDirectToFMSFlightPlanEntryFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  std::vector<std::string> params = {"flightPlan", "index"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   if (!XPLMSetDirectToFMSFlightPlanEntry_ptr) {
+    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError, "XPLMSetDirectToFMSFlightPlanEntry is available only in XPLM410 and up.");
     return NULL;
   }
 
-  static char *keywords[] = {"flightPlan", "index", NULL};
   int inFlightPlan;
   int index;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ii", keywords, &inFlightPlan, &index)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
 
   XPLMSetDirectToFMSFlightPlanEntry_ptr(inFlightPlan, index);
   Py_RETURN_NONE;
@@ -503,19 +563,23 @@ My_DOCSTR(_getFMSFlightPlanEntryInfo__doc__, "getFMSFlightPlanEntryInfo",
           " .lon");
 static PyObject *XPLMGetFMSFlightPlanEntryInfoFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  std::vector<std::string> params = {"flightPlan", "index"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   if (!XPLMGetFMSFlightPlanEntryInfo_ptr) {
+    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError, "XPLMGetFMSFlightPlanEntryInfo is available only in XPLM410 and up.");
     return NULL;
   }
 
-  static char *keywords[] = {"flightPlan", "index", NULL};
   int inFlightPlan;
   int index;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ii", keywords, &inFlightPlan, &index)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMNavType type = xplm_Nav_Unknown;
   float lat, lon;
   char ID[512];
@@ -533,21 +597,25 @@ My_DOCSTR(_setFMSFlightPlanEntryInfo__doc__, "setFMSFlightPlanEntryInfo",
           "Sets given FMS entry to provided navRef and altitude (feet).");
 static PyObject *XPLMSetFMSFlightPlanEntryInfoFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  std::vector<std::string> params = {"flightPlan", "index", "navRef", "altitude"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   if (!XPLMSetFMSFlightPlanEntryInfo_ptr) {
+    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError, "XPLMSetFMSFlightPlanEntryInfo is available only in XPLM410 and up.");
     return NULL;
   }
 
-  static char *keywords[] = {"flightPlan", "index", "navRef", "altitude", NULL};
   int inFlightPlan;
   int index;
   XPLMNavRef inRef;
   int inAltitude=0;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iii|i", keywords, &inFlightPlan, &index, &inRef, &inAltitude)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMSetFMSFlightPlanEntryInfo_ptr(inFlightPlan, index, inRef, inAltitude);
   Py_RETURN_NONE;
 
@@ -560,13 +628,15 @@ My_DOCSTR(_setFMSFlightPlanEntryLatLon__doc__, "setFMSFlightPlanEntryLatLon",
           "Set given FMS Entry to provided (lat, lon) and altitude(feet).");
 static PyObject *XPLMSetFMSFlightPlanEntryLatLonFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  std::vector<std::string> params = {"flightPlan", "index", "lat", "lon", "altitude"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   if (!XPLMSetFMSFlightPlanEntryLatLon_ptr) {
+    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError, "XPLMSetFMSFlightPlanEntryLatLon is available only in XPLM410 and up.");
     return NULL;
   }
 
-  static char *keywords[] = {"flightPlan", "index", "lat", "lon", "altitude", NULL};
   int index;
   float inLat;
   float inLon;
@@ -574,8 +644,10 @@ static PyObject *XPLMSetFMSFlightPlanEntryLatLonFun(PyObject *self, PyObject *ar
   int inFlightPlan;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiff|i", keywords, &inFlightPlan, &index, &inLat, &inLon, &inAltitude)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMSetFMSFlightPlanEntryLatLon_ptr(inFlightPlan, index, inLat, inLon, inAltitude);
   Py_RETURN_NONE;
 }
@@ -588,13 +660,15 @@ My_DOCSTR(_setFMSFlightPlanEntryLatLonWithId__doc__, "setFMSFlightPlanEntryLatLo
           "and display ID for the waypoint.");
 static PyObject *XPLMSetFMSFlightPlanEntryLatLonWithIdFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  std::vector<std::string> params = {"flightPlan", "index", "lat", "lon", "altitude", "ID"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   if (!XPLMSetFMSFlightPlanEntryLatLonWithId_ptr) {
+    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError, "XPLMSetFMSFlightPlanEntryLatLonWithId is available only in XPLM410 and up.");
     return NULL;
   }
 
-  static char *keywords[] = {"flightPlan", "index", "lat", "lon", "altitude", "ID", NULL};
   int index;
   float inLat;
   float inLon;
@@ -603,8 +677,10 @@ static PyObject *XPLMSetFMSFlightPlanEntryLatLonWithIdFun(PyObject *self, PyObje
   const char *inID = "Lat/Lon";
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiff|iz", keywords, &inFlightPlan, &index, &inLat, &inLon, &inAltitude, &inID)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   unsigned int length = strlen(inID);
   XPLMSetFMSFlightPlanEntryLatLonWithId_ptr(inFlightPlan, index, inLat, inLon, inAltitude, inID, length);
   Py_RETURN_NONE;
@@ -617,19 +693,23 @@ My_DOCSTR(_clearFMSFlightPlanEntry__doc__, "clearFMSFlightPlanEntry",
           "Clears given FMS Entry.");
 static PyObject *XPLMClearFMSFlightPlanEntryFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  std::vector<std::string> params = {"flightPlan", "index"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   if (!XPLMClearFMSFlightPlanEntry_ptr) {
+    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError, "XPLMClearFMSFlightPlanEntry is available only in XPLM410 and up.");
     return NULL;
   }
 
-  static char *keywords[] = {"flightPlan", "index", NULL};
   int inFlightPlan;
   int index;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ii", keywords, &inFlightPlan, &index)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMClearFMSFlightPlanEntry_ptr(inFlightPlan, index);
   Py_RETURN_NONE;
 }
@@ -641,19 +721,23 @@ My_DOCSTR(_loadFMSFlightPlan__doc__, "loadFMSFlightPlan",
           "Loads provided flightplan into pilot (device=0) or co-pilot (device=1) unit.");
 static PyObject *XPLMLoadFMSFlightPlanFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  std::vector<std::string> params = {"device", "plan"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   if (!XPLMLoadFMSFlightPlan_ptr) {
+    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError, "XPLMLoadFMSFlightPlan is available only in XPLM410 and up.");
     return NULL;
   }
 
-  static char *keywords[] = {"device", "plan", NULL};
   int device;
   char *flightPlan;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iz", keywords, &device, &flightPlan)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMLoadFMSFlightPlan_ptr(device, flightPlan, strlen(flightPlan));
   Py_RETURN_NONE;
 }
@@ -666,22 +750,26 @@ My_DOCSTR(_saveFMSFlightPlan__doc__, "saveFMSFlightPlan",
           "Use device=0 for pilot, device=1 for co-pilot side unit.");
 static PyObject *XPLMSaveFMSFlightPlanFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  std::vector<std::string> params = {"device"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   if (!XPLMSaveFMSFlightPlan_ptr) {
+    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError, "XPLMSaveFMSFlightPlan is available only in XPLM410 and up.");
     return NULL;
   }
-  static char *keywords[] = {"device", NULL};
   int device=0;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", keywords, &device)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
 
   char *buffer;
   int buffer_size = 1000;
   while (1) {
-    buffer = malloc(buffer_size);
+    buffer = (char *)malloc(buffer_size);
     int ret = XPLMSaveFMSFlightPlan_ptr(device, buffer, buffer_size);
     if (ret < buffer_size) break;
     buffer_size = buffer_size * 2;
@@ -848,5 +936,3 @@ PyInit_XPLMNavigation(void)
 
   return mod;
 }
-
-

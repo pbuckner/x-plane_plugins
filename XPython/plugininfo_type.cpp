@@ -2,7 +2,11 @@
 #include <Python.h>
 #include <XPLM/XPLMDefs.h>
 #include <structmember.h>
+#include <vector>
+#include <string>
 #include "utils.h"
+#include "xppythontypes.h"
+#include "cpp_utilities.hpp"
 
 /* Plugininfo Type */
 typedef struct {
@@ -76,11 +80,15 @@ PluginInfo_dealloc(PluginInfoObject *self)
 static int
 PluginInfo_init(PluginInfoObject *self, PyObject *args, PyObject *kwds)
 {
-  static char *kwlist[] = {"name", "filePath", "signature", "description", NULL};
+  std::vector<std::string> params = {"name", "filePath", "signature", "description"};
+  char **kwlist = stringVectorToCharArray(params);
   PyObject *description = NULL, *name = NULL, *filePath = NULL, *signature = NULL, *tmp;
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "|UUUU", kwlist,
-                                   &name, &filePath, &signature, &description))
+                                   &name, &filePath, &signature, &description)) {
+    freeCharArray(kwlist, params.size());
     return -1;
+  }
+  freeCharArray(kwlist, params.size());
   if (description) {
     tmp = self->description;
     Py_INCREF(description);

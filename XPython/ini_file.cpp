@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <vector>
+#include <string>
 #include <ctype.h>
+#include "ini_file.h"
 
 
 char xpy_ini_file[512] = "xppython3.ini";  /* by design, this will get changed to include full path in handleConfigFile() */
@@ -77,17 +80,31 @@ char *xpy_config_get(char *item)
 
 int xpy_config_get_int_default(char *item, int if_not_found) {
   char *foo = xpy_config_get(item);
-  char *truevalues[] = {"ON", "On", "on", "True", "TRUE", "true", "T", "t", "YES", "Yes", "yes", "Y", "y", ""};
-  char **v;
-  v = truevalues;
+
   if (foo) {
-    while (**v != 0) {
-      if (0 == strcmp(foo, *v++)) {
+    // Convert to string for easier comparison
+    std::string value(foo);
+
+    // Define true values using std::vector<std::string>
+    const std::vector<std::string> truevalues = {
+      "ON", "On", "on",
+      "True", "TRUE", "true",
+      "T", "t",
+      "YES", "Yes", "yes",
+      "Y", "y"
+    };
+
+    // Check if value matches any true value
+    for (const auto& truevalue : truevalues) {
+      if (value == truevalue) {
         return 1;
       }
     }
+
+    // If not a boolean true value, try to parse as integer
     return atoi(foo);
   }
+
   return if_not_found;
 }  
 

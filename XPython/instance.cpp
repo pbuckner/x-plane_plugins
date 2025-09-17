@@ -7,23 +7,26 @@
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMScenery.h>
 #include <XPLM/XPLMInstance.h>
+#include <vector>
+#include <string>
+#include <unordered_map>
 #include "instance.h"
+#include "cpp_utilities.hpp"
 
 
 static const char instanceRefName[] = "XPLMInstanceRef";
-static PyObject *instanceRefCapsules;
+static std::unordered_map<void*, PyObject*> instanceCapsules;
 
 void resetInstances(void) {
   /* loaded instances need to be destroyed */
-  PyObject *key, *value;
-  Py_ssize_t pos = 0;
-  while(PyDict_Next(instanceRefCapsules, &pos, &key, &value)) {
-    char *s = objToStr(value);
+  for (auto& pair : instanceCapsules) {
+    char *s = objToStr(pair.second);
     pythonDebug("     Reset --     %s", s);
     free(s);
-    XPLMDestroyInstance(PyLong_AsVoidPtr(key));
+    XPLMDestroyInstance(pair.first);
+    Py_DECREF(pair.second);
   }
-  PyDict_Clear(instanceRefCapsules);
+  instanceCapsules.clear();
 }
 
 My_DOCSTR(_createInstance__doc__, "createInstance",
@@ -36,23 +39,27 @@ My_DOCSTR(_createInstance__doc__, "createInstance",
           "Returns object instance, to be used with instanceSetPosition().");
 static PyObject *XPLMCreateInstanceFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"obj", "dataRefs", NULL};
+  std::vector<std::string> params = {"obj", "dataRefs"};
+  char **keywords = stringVectorToCharArray(params);
   (void) self;
   PyObject *obj, *drefList=Py_None;
   if(!XPLMCreateInstance_ptr){
+    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "createInstance is available only in XPLM300 and up.");
     return NULL;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O", keywords, &obj, &drefList)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   Py_ssize_t len = 0;
   /* PyObject *drefListTuple = Py_None; */
   if (drefList != Py_None) {
     len = PySequence_Length(drefList);
     /* drefListTuple = PySequence_Tuple(drefList); */
   }
-  const char **datarefs = malloc(sizeof(char *) * (len + 1));
+  const char **datarefs = (const char **)malloc(sizeof(char *) * (len + 1));
   if(datarefs == NULL){
     return NULL;
   }
@@ -81,7 +88,7 @@ static PyObject *XPLMCreateInstanceFun(PyObject *self, PyObject *args, PyObject 
 
   XPLMInstanceRef res = XPLMCreateInstance_ptr(inObj, datarefs);
   free(datarefs);
-  return getPtrRef(res, instanceRefCapsules, instanceRefName);
+  return getPtrRefCPP(res, instanceCapsules, instanceRefName);
 }
 
 My_DOCSTR(_destroyInstance__doc__, "destroyInstance",
@@ -91,19 +98,23 @@ My_DOCSTR(_destroyInstance__doc__, "destroyInstance",
           "Destroys instance created by createInstance().");
 static PyObject *XPLMDestroyInstanceFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"instance", NULL};
+  std::vector<std::string> params = {"instance"};
+  char **keywords = stringVectorToCharArray(params);
   (void) self;
   (void) args;
   PyObject *instance;
   if(!XPLMDestroyInstance_ptr){
+    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "destroyInstance is available only in XPLM300 and up.");
     return NULL;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &instance)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMDestroyInstance_ptr(refToPtr(instance, instanceRefName));
-  removePtrRef(refToPtr(instance, instanceRefName), instanceRefCapsules);
+  removePtrRefCPP(refToPtr(instance, instanceRefName), instanceCapsules);
   Py_RETURN_NONE;
 }
 
@@ -115,17 +126,21 @@ My_DOCSTR(_instanceSetAutoShift__doc__, "instanceSetAutoShift",
           "system changes.");
 static PyObject *XPLMInstanceSetAutoShiftFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"instance", NULL};
+  std::vector<std::string> params = {"instance"};
+  char **keywords = stringVectorToCharArray(params);
   (void) self;
   (void) args;
   PyObject *instance;
   if(!XPLMInstanceSetAutoShift_ptr){
+    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPLMInstanceSetAutoShift is available only in XPLM420 and up, and requires at least X-Plane 12.3.0");
     return NULL;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &instance)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMInstanceSetAutoShift_ptr(refToPtr(instance, instanceRefName));
   Py_RETURN_NONE;
 }
@@ -144,16 +159,20 @@ My_DOCSTR(_instanceSetPosition__doc__, "instanceSetPosition",
           );
 static PyObject *XPLMInstanceSetPositionFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"instance", "position", "data", NULL};
+  std::vector<std::string> params = {"instance", "position", "data"};
+  char **keywords = stringVectorToCharArray(params);
   (void) self;
   PyObject *instance, *newPositionSeq, *data = Py_None;
   if(!XPLMInstanceSetPosition_ptr){
+    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError, "XPLMInstanceSetPosition is available only in XPLM300 and up.");
     return NULL;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|O", keywords, &instance, &newPositionSeq, &data)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMDrawInfo_t inNewPosition;
   XPLMDrawInfoDouble_t inNewPositionDouble;
   if (PySequence_Check(newPositionSeq) && PySequence_Length(newPositionSeq) == 6) {
@@ -249,7 +268,7 @@ static PyObject *XPLMInstanceSetPositionFun(PyObject *self, PyObject *args, PyOb
   if (data != Py_None) {
     len = PySequence_Length(data);
   }
-  float *inData = malloc(sizeof(float) * len);
+  float *inData = (float*)malloc(sizeof(float) * len);
   if(len && inData == NULL){
     return NULL;
   }
@@ -275,8 +294,10 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 {
   (void) self;
   (void) args;
-  PyDict_Clear(instanceRefCapsules);
-  Py_DECREF(instanceRefCapsules);
+  for (auto& pair : instanceCapsules) {
+    Py_DECREF(pair.second);
+  }
+  instanceCapsules.clear();
   Py_RETURN_NONE;
 }
 
@@ -321,8 +342,6 @@ PyInit_XPLMInstance(void)
   if(mod) {
     PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
   }
-  if(!(instanceRefCapsules = PyDict_New())){return NULL;}
-  PyDict_SetItemString(XPY3pythonCapsules, instanceRefName, instanceRefCapsules);
   return mod;
 }
 

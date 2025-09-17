@@ -1,7 +1,11 @@
 #define _GNU_SOURCE 1
 #include <Python.h>
 #include <structmember.h>
+#include <vector>
+#include <string>
 #include "utils.h"
+#include "xppythontypes.h"
+#include "cpp_utilities.hpp"
 
 /* HotKeyInfo Type */
 typedef struct {
@@ -57,11 +61,15 @@ HotKeyInfo_dealloc(HotKeyInfoObject *self)
 static int
 HotKeyInfo_init(HotKeyInfoObject *self, PyObject *args, PyObject *kwds)
 {
-  static char *kwlist[] = {"virtualKey", "flags", "description", "plugin", NULL};
+  std::vector<std::string> params = {"virtualKey", "flags", "description", "plugin"};
+  char **kwlist = stringVectorToCharArray(params);
   PyObject *description = NULL, *tmp;
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iiUi", kwlist,
-                                   &self->virtualKey, &self->flags, &description, &self->plugin))
+                                   &self->virtualKey, &self->flags, &description, &self->plugin)) {
+    freeCharArray(kwlist, params.size());
     return -1;
+  }
+  freeCharArray(kwlist, params.size());
   if (description) {
     tmp = self->description;
     Py_INCREF(description);

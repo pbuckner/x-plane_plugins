@@ -7,6 +7,7 @@
 #include <XPLM/XPLMGraphics.h>
 #include "utils.h"
 #include "plugin_dl.h"
+#include "cpp_utilities.hpp"
 
 
 My_DOCSTR(_setGraphicsState__doc__, "setGraphicsState",
@@ -18,7 +19,8 @@ My_DOCSTR(_setGraphicsState__doc__, "setGraphicsState",
           "Use instead of any glEnable / glDisable calls.");
 static PyObject *XPLMSetGraphicsStateFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"fog", "numberTexUnits", "lighting", "alphaTesting", "alphaBlending", "depthTesting", "depthWriting", NULL};
+  std::vector<std::string> params = {"fog", "numberTexUnits", "lighting", "alphaTesting", "alphaBlending", "depthTesting", "depthWriting"};
+  char **keywords = stringVectorToCharArray(params);
   (void) self;
 
   int inEnableFog = 0;
@@ -31,8 +33,10 @@ static PyObject *XPLMSetGraphicsStateFun(PyObject *self, PyObject *args, PyObjec
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|iiiiiii", keywords, &inEnableFog, &inNumberTexUnits, &inEnableLighting, &inEnableAlphaTesting,
                                   &inEnableAlphaBlending, &inEnableDepthTesting, &inEnableDepthWriting)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
 
   XPLMSetGraphicsState(inEnableFog, inNumberTexUnits, inEnableLighting,
                        inEnableAlphaTesting, inEnableAlphaBlending,
@@ -49,14 +53,17 @@ My_DOCSTR(_bindTexture2d__doc__, "bindTexture2d",
           "Use instead of glBindTexture(GL_TEXTURE_2D, ...)");
 static PyObject *XPLMBindTexture2dFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"textureID", "textureUnit", NULL};
+  std::vector<std::string> params = {"textureID", "textureUnit"};
+  char **keywords = stringVectorToCharArray(params);
   (void) self;
   int inTextureNum;
   int inTextureUnit;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ii", keywords, &inTextureNum, &inTextureUnit)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
 
   XPLMBindTexture2d(inTextureNum, inTextureUnit); 
   Py_RETURN_NONE;
@@ -71,19 +78,26 @@ My_DOCSTR(_generateTextureNumbers__doc__, "generateTextureNumbers",
           "Returns list of numbers.");
 static PyObject *XPLMGenerateTextureNumbersFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"idlist", "count", NULL};
+  std::vector<std::string> params = {"idlist", "count"};
+  char **keywords = stringVectorToCharArray(params);
   (void) self;
   PyObject *outTextureIds;
   int inCount=1;
   int returnValues = 0;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi", keywords, &outTextureIds, &inCount)){
+    freeCharArray(keywords, params.size());
     PyErr_Clear();
     returnValues = 1;
-    static char *nkeywords[] = {"count", NULL};
+    std::vector<std::string> nparams = {"count"};
+    char **nkeywords = stringVectorToCharArray(nparams);
     if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", nkeywords, &inCount)){
+      freeCharArray(nkeywords, nparams.size());
       return NULL;
     }
+    freeCharArray(nkeywords, nparams.size());
+  } else {
+    freeCharArray(keywords, params.size());
   }
 
   int *array = (int *)malloc(sizeof(int) * inCount);
@@ -121,15 +135,18 @@ My_DOCSTR(_worldToLocal__doc__, "worldToLocal",
           "Returns (x, y, z) in meters, in local OpenGL coordinates.");
 static PyObject *XPLMWorldToLocalFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"lat", "lon", "alt", NULL};
+  std::vector<std::string> params = {"lat", "lon", "alt"};
+  char **keywords = stringVectorToCharArray(params);
   (void) self;
   double inLatitude;
   double inLongitude;
   double inAltitude = 0.0;
   double outX, outY, outZ;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ddd", keywords, &inLatitude, &inLongitude, &inAltitude)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMWorldToLocal(inLatitude, inLongitude, inAltitude, &outX, &outY, &outZ);
   
   PyObject *res = PyTuple_New(3);
@@ -148,15 +165,18 @@ My_DOCSTR(_localToWorld__doc__, "localToWorld",
           "Latitude and longitude are decimal degrees, altitude is meters MSL.");
 static PyObject *XPLMLocalToWorldFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"x", "y", "z", NULL};
+  std::vector<std::string> params = {"x", "y", "z"};
+  char **keywords = stringVectorToCharArray(params);
   (void) self;
   double inX;
   double inY;
   double inZ;
   double outLatitude, outLongitude, outAltitude;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ddd", keywords, &inX, &inY, &inZ)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMLocalToWorld(inX, inY, inZ, &outLatitude, &outLongitude, &outAltitude);
   
   PyObject *res = PyTuple_New(3);
@@ -173,7 +193,8 @@ My_DOCSTR(_drawTranslucentDarkBox__doc__, "drawTranslucentDarkBox",
           "Draw translucent dark box at location.");
 static PyObject *XPLMDrawTranslucentDarkBoxFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"left", "top", "right", "bottom", NULL};
+  std::vector<std::string> params = {"left", "top", "right", "bottom"};
+  char **keywords = stringVectorToCharArray(params);
   (void) self;
   int inLeft;
   int inTop;
@@ -181,8 +202,10 @@ static PyObject *XPLMDrawTranslucentDarkBoxFun(PyObject *self, PyObject *args, P
   int inBottom;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiii", keywords, &inLeft, &inTop, &inRight, &inBottom)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMDrawTranslucentDarkBox(inLeft, inTop, inRight, inBottom);
   Py_RETURN_NONE;
 }
@@ -198,7 +221,8 @@ My_DOCSTR(_drawString__doc__, "drawString",
           "Default color is white (1., 1., 1.)");
 static PyObject *XPLMDrawStringFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"rgb", "x", "y", "value", "wordWrapWidth", "fontID", NULL};
+  std::vector<std::string> params = {"rgb", "x", "y", "value", "wordWrapWidth", "fontID"};
+  char **keywords = stringVectorToCharArray(params);
   (void) self;
   PyObject *rgbList = Py_None;
   int inXOffset = 0;
@@ -211,8 +235,10 @@ static PyObject *XPLMDrawStringFun(PyObject *self, PyObject *args, PyObject *kwa
   int inFontID = xplmFont_Proportional;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OiisOi", keywords, &rgbList, &inXOffset, &inYOffset, &inCharC, &wordWrapWidthObj, &inFontID)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   float inColorRGB[3];
   if (rgbList == Py_None) {
     inColorRGB[0] = 1.0;
@@ -247,7 +273,8 @@ My_DOCSTR(_drawNumber__doc__, "drawNumber",
           "Default color is white (1., 1., 1.)");
 static PyObject *XPLMDrawNumberFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"rgb", "x", "y", "value", "digits", "decimals", "showSign", "fontID", NULL};
+  std::vector<std::string> params = {"rgb", "x", "y", "value", "digits", "decimals", "showSign", "fontID"};
+  char **keywords = stringVectorToCharArray(params);
   (void) self;
   PyObject *rgbList = Py_None;
   int inXOffset = 0;
@@ -260,8 +287,10 @@ static PyObject *XPLMDrawNumberFun(PyObject *self, PyObject *args, PyObject *kwa
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|Oiidiiii", keywords, &rgbList, &inXOffset, &inYOffset, &inValue,
                        &inDigits, &inDecimals, &inShowSign, &inFontID)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   float inColorRGB[3];
   if (rgbList == Py_None) {
     inColorRGB[0] = 1.0;
@@ -297,12 +326,15 @@ My_DOCSTR(_getTexture__doc__, "getTexture",
           "a generic identifying code.");
 static PyObject *XPLMGetTextureFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"textureID", NULL};
+  std::vector<std::string> params = {"textureID"};
+  char **keywords = stringVectorToCharArray(params);
   (void) self;
   int inTextureID;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inTextureID)) {
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
 
   int ret = XPLMGetTexture(inTextureID);
   return PyLong_FromLong(ret);
@@ -318,18 +350,25 @@ My_DOCSTR(_getFontDimensions__doc__, "getFontDimensions",
           "return hopefully average width.");
 static PyObject *XPLMGetFontDimensionsFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"fontID", "width", "height", "digitsOnly", NULL};
+  std::vector<std::string> params = {"fontID", "width", "height", "digitsOnly"};
+  char **keywords = stringVectorToCharArray(params);
   (void) self;
   int inFontID;
   PyObject *outCharWidth, *outCharHeight, *outDigitsOnly;
   int returnValues = 0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iOOO", keywords, &inFontID, &outCharWidth, &outCharHeight, &outDigitsOnly)) {
+    freeCharArray(keywords, params.size());
     PyErr_Clear();
     returnValues = 1;
-    static char *nkeywords[] = {"fontID", NULL};
+    std::vector<std::string> nparams = {"fontID"};
+    char **nkeywords = stringVectorToCharArray(nparams);
     if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", nkeywords, &inFontID)) {
+      freeCharArray(nkeywords, nparams.size());
       return NULL;
     }
+    freeCharArray(nkeywords, nparams.size());
+  } else {
+    freeCharArray(keywords, params.size());
   }
 
   int charWidth, charHeight, digitsOnly;
@@ -354,20 +393,26 @@ My_DOCSTR(_measureString__doc__, "measureString",
           "Returns floating point width of string, with indicated font.");
 static PyObject *XPLMMeasureStringFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"fontID", "string", "numChars", NULL};
+  std::vector<std::string> params = {"fontID", "string", "numChars"};
+  char **keywords = stringVectorToCharArray(params);
   (void) self;
   int inFontID;
   char *inChar;
   int inNumChars;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "isi", keywords, &inFontID, &inChar, &inNumChars)) {
+    freeCharArray(keywords, params.size());
     PyErr_Clear();
-    static char *nkeywords[] = {"fontID", "string", NULL};
+    std::vector<std::string> nparams = {"fontID", "string"};
+    char **nkeywords = stringVectorToCharArray(nparams);
     if(!PyArg_ParseTupleAndKeywords(args, kwargs, "is", nkeywords, &inFontID, &inChar)) {
+      freeCharArray(nkeywords, nparams.size());
       return NULL;
     }
+    freeCharArray(nkeywords, nparams.size());
     inNumChars = strlen(inChar);
   } else {
+    freeCharArray(keywords, params.size());
     pythonLogWarning("'numChar' unnecessary as final parameter of XPLMMeasureString");
   }
   return PyFloat_FromDouble(XPLMMeasureString(inFontID, inChar, inNumChars));

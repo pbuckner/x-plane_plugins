@@ -2,7 +2,11 @@
 #include <Python.h>
 #include <XPLM/XPLMNavigation.h>
 #include <structmember.h>
+#include <string>
+#include <vector>
 #include "utils.h"
+#include "xppythontypes.h"
+#include "cpp_utilities.hpp"
 
 /* FMSEntryInfo TYPE */
 typedef struct {
@@ -60,11 +64,12 @@ FMSEntryInfo_dealloc(FMSEntryInfoObject *self)
 }
 
 static int
-FMSEntryInfo_init(FMSEntryInfoObject *self, PyObject *args, PyObject *kwds)
+FMSEntryInfo_init(FMSEntryInfoObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *kwlist[] = {"type", "navAidID", "ref", "altitude", "lat", "lon", NULL};
+  std::vector<std::string> params = {"type", "navAidID", "ref", "altitude", "lat", "lon"};
+  char **keywords = stringVectorToCharArray(params);
   PyObject *navAidID = NULL,  *tmp;
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iUiiff", kwlist,
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|iUiiff", keywords,
                                    &self->type, &navAidID, &self->ref, &self->altitude, &self->lat, &self->lon))
     return -1;
   if (navAidID) {
@@ -93,7 +98,7 @@ static int max(int a, int b) {
 #endif
 
 static PyObject *FMSEntryInfo_str(FMSEntryInfoObject *obj) {
-  char *navAidType;
+  std::string navAidType;
   char *floats;
   switch(obj->type) {
   case xplm_Nav_Airport:
@@ -132,9 +137,9 @@ static PyObject *FMSEntryInfo_str(FMSEntryInfoObject *obj) {
     pythonLog("Failed to allocate memory for asprintf, FMSEntryInfo");
   }
   if (obj->type == xplm_Nav_LatLon || obj->type == xplm_Nav_Unknown) {
-    ret = PyUnicode_FromFormat("%s:%*s %6S, %s", navAidType, 11 + max(0, 9-strlen(navAidType)), " ", obj->navAidID, floats);
+    ret = PyUnicode_FromFormat("%s:%*s %6S, %s", navAidType.c_str(), 11 + max(0, 9-strlen(navAidType.c_str())), " ", obj->navAidID, floats);
   } else {
-    ret = PyUnicode_FromFormat("%s:%*s [%8d] %6S, %s", navAidType, max(0, 9-strlen(navAidType)), " ", obj->ref, obj->navAidID, floats);
+    ret = PyUnicode_FromFormat("%s:%*s [%8d] %6S, %s", navAidType.c_str(), max(0, 9-strlen(navAidType.c_str())), " ", obj->ref, obj->navAidID, floats);
   }
   free(floats);
   return ret;

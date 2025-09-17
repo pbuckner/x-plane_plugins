@@ -1,7 +1,11 @@
 #define _GNU_SOURCE 1
 #include <Python.h>
 #include <structmember.h>
+#include <vector>
+#include <string>
+#include "xppythontypes.h"
 #include "utils.h"
+#include "cpp_utilities.hpp"
 
 /* ProbeInfo Type */
 typedef struct {
@@ -44,7 +48,7 @@ ProbeInfo_clear(ProbeInfoObject *self)
   (void) self;
   return 0;
 }
-    
+
 static void
 ProbeInfo_dealloc(ProbeInfoObject *self)
 {
@@ -56,18 +60,22 @@ ProbeInfo_dealloc(ProbeInfoObject *self)
 static int
 ProbeInfo_init(ProbeInfoObject *self, PyObject *args, PyObject *kwds)
 {
-  static char *kwlist[] = {"result",
-                           "locationX", "locationY", "locationZ",
-                           "normalX", "normalY", "normalZ",
-                           "velocityX", "velocityY", "velocityZ",
-                           "is_wet", NULL};
+  std::vector<std::string> params = {"result",
+                                     "locationX", "locationY", "locationZ",
+                                     "normalX", "normalY", "normalZ",
+                                     "velocityX", "velocityY", "velocityZ",
+                                     "is_wet"};
+  char **kwlist = stringVectorToCharArray(params);
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ifffffffffi", kwlist,
                                    &self->result,
                                    &self->locationX, &self->locationY, &self->locationZ,
                                    &self->normalX, &self->normalY, &self->normalZ,
                                    &self->velocityX, &self->velocityY, &self->velocityZ,
-                                   &self->is_wet))
+                                   &self->is_wet)) {
+    freeCharArray(kwlist, params.size());
     return -1;
+  }
+  freeCharArray(kwlist, params.size());
   return 0;
 }
 

@@ -3,7 +3,11 @@
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMNavigation.h>
 #include <structmember.h>
+#include <string>
+#include <vector>
 #include "utils.h"
+#include "xppythontypes.h"
+#include "cpp_utilities.hpp"
 
 /* NavAidInfo TYPE */
 typedef struct {
@@ -75,12 +79,16 @@ NavAidInfo_dealloc(NavAidInfoObject *self)
 static int
 NavAidInfo_init(NavAidInfoObject *self, PyObject *args, PyObject *kwds)
 {
-  static char *kwlist[] = {"type", "latitude", "longitude", "height", "frequency", "heading", "navaAidID", "name", "reg", NULL};
+  std::vector<std::string> params = {"type", "latitude", "longitude", "height", "frequency", "heading", "navaAidID", "name", "reg"};
+  char **kwlist = stringVectorToCharArray(params);
   PyObject *navAidID = NULL, *name, *tmp;
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ifffifUUi", kwlist,
                                    &self->type, &self->latitude, &self->longitude, &self->height, &self->frequency, &self->heading,
-                                   &navAidID, &name, &self->reg))
+                                   &navAidID, &name, &self->reg)) {
+    freeCharArray(kwlist, params.size());
     return -1;
+  }
+  freeCharArray(kwlist, params.size());
   if (navAidID) {
     tmp = self->navAidID;
     Py_INCREF(navAidID);
@@ -112,7 +120,7 @@ static PyMemberDef NavAidInfo_members[] = {
 
 static PyObject *NavAidInfo_str(NavAidInfoObject *obj) {
   /* Name (<ID>), type, (lat, lon), frequncy*/
-  char *navAidType;
+  std::string navAidType;
   char *floats;
   int asprintf_ret;
   if (obj->frequency == 0.0) {
@@ -164,7 +172,7 @@ static PyObject *NavAidInfo_str(NavAidInfoObject *obj) {
   PyObject *ret = PyUnicode_FromFormat("%S (%S) %s %s",
                                        obj->name,
                                        obj->navAidID,
-                                       navAidType,
+                                       navAidType.c_str(),
                                        floats);
   free(floats);
   return ret;

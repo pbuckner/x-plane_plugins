@@ -4,17 +4,21 @@
 #include <stdio.h>
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMScenery.h>
+#include <vector>
+#include <string>
+#include <unordered_map>
 #include "utils.h"
 #include "plugin_dl.h"
 #include "xppythontypes.h"
+#include "cpp_utilities.hpp"
 
-static PyObject *loaderDict; /* {
-                                   <loaderCntr1>: ([0]path, [1]callback, [2]refcon, [3]module),
-                                } */
-#define LOADER_PATH 0
-#define LOADER_CALLBACK 1
-#define LOADER_REFCON 2
-#define LOADER_MODULE_NAME 3
+struct LoaderInfo {
+  std::string module_name;
+  PyObject *refCon;
+  PyObject *callback;
+  std::string path;
+};
+static std::unordered_map<intptr_t, LoaderInfo> objectLoadCallbacks;
 static intptr_t loaderCntr;
 static void genericObjectLoaded(XPLMObjectRef inObject, void *inRefcon);
 
@@ -28,12 +32,15 @@ My_DOCSTR(_createProbe__doc__, "createProbe",
           "Return a probeRef");
 static PyObject *XPLMCreateProbeFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"probeType", NULL};
+  std::vector<std::string> params = {"probeType"};
+  char **keywords = stringVectorToCharArray(params);
   (void) self;
   int inProbeType = xplm_ProbeY;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", keywords, &inProbeType)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   return getPtrRefOneshot(XPLMCreateProbe(inProbeType), probeName);
 }
 
@@ -44,12 +51,15 @@ My_DOCSTR(_destroyProbe__doc__, "destroyProbe",
           "Destroy a probeRef");
 static PyObject *XPLMDestroyProbeFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"probe", NULL};
+  std::vector<std::string> params = {"probe"};
+  char **keywords = stringVectorToCharArray(params);
   (void) self;
   PyObject *inProbe = NULL;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &inProbe)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMDestroyProbe(refToPtr(inProbe, probeName));
   Py_RETURN_NONE;
 }
@@ -74,14 +84,17 @@ My_DOCSTR(_probeTerrainXYZ__doc__, "probeTerrainXYZ",
           "  .is_set:    1=we hit water");
 static PyObject *XPLMProbeTerrainXYZFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"probeRef", "x", "y", "z", NULL};
+  std::vector<std::string> params = {"probeRef", "x", "y", "z"};
+  char **keywords = stringVectorToCharArray(params);
   (void) self;
   PyObject *probe;
   float inX, inY, inZ;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Offf", keywords, &probe, &inX, &inY, &inZ)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
 
   XPLMProbeRef inProbe = refToPtr(probe, probeName);
   XPLMProbeInfo_t info;
@@ -102,16 +115,20 @@ My_DOCSTR(_getMagneticVariation__doc__, "getMagneticVariation",
           "Magnetic declination at point");
 static PyObject *XPLMGetMagneticVariationFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"latitude", "longitude", NULL};
+  std::vector<std::string> params = {"latitude", "longitude"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   if(!XPLMGetMagneticVariation_ptr){
+    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetMagneticVariation is available only in XPLM300 and up.");
     return NULL;
   }
   double latitude, longitude;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "dd", keywords, &latitude, &longitude)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   return PyFloat_FromDouble(XPLMGetMagneticVariation_ptr(latitude, longitude));
 }
 
@@ -122,16 +139,20 @@ My_DOCSTR(_degTrueToDegMagnetic__doc__, "degTrueToDegMagnetic",
           "Convert degrees True to degrees Magnetic, at user's current location");
 static PyObject *XPLMDegTrueToDegMagneticFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"degrees", NULL};
+  std::vector<std::string> params = {"degrees"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   if(!XPLMDegTrueToDegMagnetic_ptr){
+    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPLMDegTrueToDegMagnetic is available only in XPLM300 and up.");
     return NULL;
   }
   float headingDegreesTrue = 0.0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|f", keywords, &headingDegreesTrue)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   return PyFloat_FromDouble(XPLMDegTrueToDegMagnetic_ptr(headingDegreesTrue));
 }
 
@@ -142,16 +163,20 @@ My_DOCSTR(_degMagneticToDegTrue__doc__, "degMagneticToDegTrue",
           "Convert degrees Magnetic to degrees True, at user's current location");
 static PyObject *XPLMDegMagneticToDegTrueFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"degrees", NULL};
+  std::vector<std::string> params = {"degrees"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   if(!XPLMDegMagneticToDegTrue_ptr){
+    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPLMDegMagneticToDegTrue is available only in XPLM300 and up.");
     return NULL;
   }
   float headingDegreesMagnetic=0.0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|f", keywords, &headingDegreesMagnetic)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   return PyFloat_FromDouble(XPLMDegMagneticToDegTrue_ptr(headingDegreesMagnetic));
 }
 
@@ -165,12 +190,15 @@ My_DOCSTR(_loadObject__doc__, "loadObject",
           "Path may be absolute, or relative X-Plane Root");
 static PyObject *XPLMLoadObjectFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"path", NULL};
+  std::vector<std::string> params = {"path"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   const char *inPath;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inPath)){
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   XPLMObjectRef res = XPLMLoadObject(inPath);
   return getPtrRefOneshot(res, objRefName);
 }
@@ -179,16 +207,20 @@ static PyObject *XPLMLoadObjectFun(PyObject *self, PyObject *args, PyObject *kwa
 
 static void genericObjectLoaded(XPLMObjectRef inObject, void *inRefcon)
 {
-  PyObject *object = getPtrRefOneshot(inObject, objRefName);
-  PyObject *loaderDictKey = PyLong_FromVoidPtr(inRefcon);
-  PyObject *loaderCallbackInfo = PyDict_GetItem(loaderDict, loaderDictKey);
-  if(loaderCallbackInfo == NULL){
+  intptr_t refcon_id = (intptr_t)inRefcon;
+  auto it = objectLoadCallbacks.find(refcon_id);
+  if (it == objectLoadCallbacks.end()) {
     printf("Unknown callback requested in objectLoaded(%p).\n", inRefcon);
     return;
   }
-  set_moduleName(PyTuple_GetItem(loaderCallbackInfo, LOADER_MODULE_NAME));
-  PyObject *res = PyObject_CallFunctionObjArgs(PyTuple_GetItem(loaderCallbackInfo, LOADER_CALLBACK),
-                                           object, PyTuple_GetItem(loaderCallbackInfo, LOADER_REFCON), NULL);
+
+  LoaderInfo& info = it->second;
+  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
+  set_moduleName(module_name_obj);
+  Py_DECREF(module_name_obj);
+
+  PyObject *object = getPtrRefOneshot(inObject, objRefName);
+  PyObject *res = PyObject_CallFunctionObjArgs(info.callback, object, info.refCon, NULL);
   PyObject *err = PyErr_Occurred();
   if(err){
     printf("Error occured during the objectLoaded callback(inRefcon = %p):\n", inRefcon);
@@ -196,8 +228,11 @@ static void genericObjectLoaded(XPLMObjectRef inObject, void *inRefcon)
   }else{
     Py_DECREF(res);
   }
-  PyDict_DelItem(loaderDict, loaderDictKey);
-  Py_DECREF(loaderDictKey);
+
+  // Cleanup
+  Py_DECREF(info.callback);
+  Py_DECREF(info.refCon);
+  objectLoadCallbacks.erase(it);
   Py_DECREF(object);
 }
 
@@ -212,9 +247,11 @@ My_DOCSTR(_loadObjectAsync__doc__, "loadObjectAsync",
           "Object path is absolute or relative X-Plane root.");
 static PyObject *XPLMLoadObjectAsyncFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"path", "loaded", "refCon", NULL};
+  std::vector<std::string> params = {"path", "loaded", "refCon"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   if(!XPLMLoadObjectAsync_ptr){
+    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPLMLoadObjectAsync is available only in XPLM210 and up.");
     return NULL;
   }
@@ -222,17 +259,21 @@ static PyObject *XPLMLoadObjectAsyncFun(PyObject *self, PyObject *args, PyObject
   PyObject *callback, *inRefcon=Py_None;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "sO|O", keywords, &inPath, &callback, &inRefcon)) {
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
 
-  PyObject *argsObj = Py_BuildValue("(sOOs)", inPath, callback, inRefcon, CurrentPythonModuleName);
-
-  void *refcon = (void *)++loaderCntr;
-  PyObject *key = PyLong_FromVoidPtr(refcon);
-  PyDict_SetItem(loaderDict, key, argsObj);
-  Py_DECREF(key);
-  XPLMLoadObjectAsync_ptr(inPath, genericObjectLoaded, refcon); /* path, callback, refcon */
-  Py_DECREF(argsObj);
+  intptr_t refcon = ++loaderCntr;
+  objectLoadCallbacks[refcon] = {
+    .module_name = std::string(CurrentPythonModuleName),
+    .refCon = inRefcon,
+    .callback = callback,
+    .path = std::string(inPath)
+  };
+  Py_INCREF(callback);
+  Py_INCREF(inRefcon);
+  XPLMLoadObjectAsync_ptr(inPath, genericObjectLoaded, (void*)refcon); /* path, callback, refcon */
   Py_RETURN_NONE;
 }
 
@@ -244,41 +285,50 @@ My_DOCSTR(_unloadObject__doc__, "unloadObject",
           "Unloads objectRef");
 static PyObject *XPLMUnloadObjectFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"objectRef", NULL};
+  std::vector<std::string> params = {"objectRef"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
 
   PyObject *objectRef;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &objectRef)) {
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
 
   XPLMObjectRef inObject = refToPtr(objectRef, objRefName);
   XPLMUnloadObject(inObject);
   Py_RETURN_NONE;
 }
 
-static PyObject *libEnumDict;
-#define LIBRARY_PLUGIN 0
-#define LIBRARY_PATH 1
-#define LIBRARY_LATITUDE 2
-#define LIBRARY_LONGITUDE 3
-#define LIBRARY_CALLBACK 4
-#define LIBRARY_REFCON 5
-#define LIBRARY_MODULE_NAME 6
+struct LibraryInfo {
+  PyObject *plugin;
+  std::string path;
+  float latitude;
+  float longitude;
+  PyObject *callback;
+  PyObject *refCon;
+  std::string module_name;
+};
+
+static std::unordered_map<intptr_t, LibraryInfo> libraryEnumCallbacks;
 static intptr_t libEnumCntr;
 
 static void libraryEnumerator(const char *inFilePath, void *inRef)
 {
-  PyObject *pID = PyLong_FromVoidPtr(inRef);
-  PyObject *libEnumCallbackInfo = PyDict_GetItem(libEnumDict, pID);
-  Py_XDECREF(pID);
-  if(libEnumCallbackInfo == NULL){
+  intptr_t refcon_id = (intptr_t)inRef;
+  auto it = libraryEnumCallbacks.find(refcon_id);
+  if (it == libraryEnumCallbacks.end()) {
     printf("Unknown callback requested from libraryEnumerator(%p).\n", inRef);
     return;
   }
-  set_moduleName(PyTuple_GetItem(libEnumCallbackInfo, LIBRARY_MODULE_NAME));
-  PyObject *res = PyObject_CallFunction(PyTuple_GetItem(libEnumCallbackInfo, LIBRARY_CALLBACK), "(sO)",
-                                        inFilePath, PyTuple_GetItem(libEnumCallbackInfo, LIBRARY_REFCON));
+
+  LibraryInfo& info = it->second;
+  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
+  set_moduleName(module_name_obj);
+  Py_DECREF(module_name_obj);
+
+  PyObject *res = PyObject_CallFunction(info.callback, "(sO)", inFilePath, info.refCon);
   Py_XDECREF(res);
 }
 
@@ -294,7 +344,8 @@ My_DOCSTR(_lookupObjects__doc__, "lookupObjects",
           "For each item found, enumerator(path, refCon) is called.");
 static PyObject *XPLMLookupObjectsFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {"path", "latitude", "longitude", "enumerator", "refCon", NULL};
+  std::vector<std::string> params = {"path", "latitude", "longitude", "enumerator", "refCon"};
+  char **keywords = stringVectorToCharArray(params);
   (void)self;
   const char *inPath;
   float inLatitude=0.0, inLongitude=0.0;
@@ -302,22 +353,30 @@ static PyObject *XPLMLookupObjectsFun(PyObject *self, PyObject *args, PyObject *
   PyObject *ref=Py_None;
   PyObject *pluginSelf;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s|ffOO", keywords, &inPath, &inLatitude, &inLongitude, &enumerator, &ref)) {
+    freeCharArray(keywords, params.size());
     return NULL;
   }
+  freeCharArray(keywords, params.size());
   if (!PyCallable_Check(enumerator)) {
     PyErr_SetString(PyExc_RuntimeError , "lookupObject() enumerator callback not callable function.");
     return NULL;
   }
 
   pluginSelf = get_moduleName_p();
-  void *myRef = (void *)++libEnumCntr;
-  PyObject *refObj = PyLong_FromVoidPtr(myRef);
-  
-  PyObject *argsObj = Py_BuildValue("(OsffOOs)", pluginSelf, inPath, inLatitude, inLongitude, enumerator, ref, CurrentPythonModuleName);
-  PyDict_SetItem(libEnumDict, refObj, argsObj);
-  Py_DECREF(argsObj);
-  Py_XDECREF(refObj);
-  int res = XPLMLookupObjects(inPath, inLatitude, inLongitude, libraryEnumerator, myRef);
+  intptr_t myRef = ++libEnumCntr;
+  libraryEnumCallbacks[myRef] = {
+    .plugin = pluginSelf,
+    .path = std::string(inPath),
+    .latitude = inLatitude,
+    .longitude = inLongitude,
+    .callback = enumerator,
+    .refCon = ref,
+    .module_name = std::string(CurrentPythonModuleName)
+  };
+  Py_INCREF(pluginSelf);
+  Py_INCREF(enumerator);
+  Py_INCREF(ref);
+  int res = XPLMLookupObjects(inPath, inLatitude, inLongitude, libraryEnumerator, (void*)myRef);
   return PyLong_FromLong(res);
 }
 
@@ -325,10 +384,17 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 {
   (void) self;
   (void) args;
-  PyDict_Clear(loaderDict);
-  Py_DECREF(loaderDict);
-  PyDict_Clear(libEnumDict);
-  Py_DECREF(libEnumDict);
+  for (auto& pair : objectLoadCallbacks) {
+    Py_DECREF(pair.second.callback);
+    Py_DECREF(pair.second.refCon);
+  }
+  objectLoadCallbacks.clear();
+  for (auto& pair : libraryEnumCallbacks) {
+    Py_DECREF(pair.second.plugin);
+    Py_DECREF(pair.second.callback);
+    Py_DECREF(pair.second.refCon);
+  }
+  libraryEnumCallbacks.clear();
   Py_RETURN_NONE;
 }
 
@@ -383,13 +449,6 @@ static struct PyModuleDef XPLMSceneryModule = {
 PyMODINIT_FUNC
 PyInit_XPLMScenery(void)
 {
-  if(!(loaderDict = PyDict_New())){
-    return NULL;
-  }
-  if(!(libEnumDict = PyDict_New())){
-    return NULL;
-  }
-
   PyObject *mod = PyModule_Create(&XPLMSceneryModule);
   if(mod){
     PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");

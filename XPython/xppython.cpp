@@ -9,6 +9,8 @@
 #include <XPLM/XPLMUtilities.h>
 #include <XPLM/XPLMNavigation.h>
 #include <XPLM/XPLMProcessing.h>
+#include <vector>
+#include <string>
 #include "menus.h"
 #include "display.h"
 #include "processing.h"
@@ -21,6 +23,7 @@
 #include "widgets.h"
 #include "xppython.h"
 #include "manage_instance.h"
+#include "cpp_utilities.hpp"
 
 PyObject *XPY3pythonDicts = NULL, *XPY3pythonCapsules = NULL;
 PyObject *PythonModuleMTimes = NULL;
@@ -77,9 +80,10 @@ My_DOCSTR(_reloadPlugin__doc__, "reloadPlugin",
 static PyObject *XPReloadPlugin(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void) self;
-  static char *kwlist[] = {"signature", NULL};
+  std::vector<std::string> params = {"signature"};
+  char **keywords = stringVectorToCharArray(params);
   PyObject *signature;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", kwlist, &signature)) {
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &signature)) {
     return NULL;
   }
   xpy_reloadInstance(signature);

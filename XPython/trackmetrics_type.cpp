@@ -127,18 +127,18 @@ PyTypeObject
 TrackMetricsType = {
   PyVarObject_HEAD_INIT(NULL, 0)
   .tp_name = "XPPython.TrackMetrics",
-  .tp_doc = PyDoc_STR("TrackMetrics, return from xp.getTrackMetrics"),
   .tp_basicsize = sizeof(TrackMetricsObject),
   .tp_itemsize = 0,
-  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
-  .tp_new = TrackMetrics_new,
-  .tp_init = (initproc) TrackMetrics_init,
   .tp_dealloc = (destructor) TrackMetrics_dealloc,
   .tp_as_sequence = &TrackMetrics_SequenceMethods,
   .tp_str = (reprfunc) TrackMetrics_str,
+  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+  .tp_doc = PyDoc_STR("TrackMetrics, return from xp.getTrackMetrics"),
   .tp_traverse = (traverseproc) TrackMetrics_traverse,
   .tp_clear = (inquiry) TrackMetrics_clear,
   .tp_members = TrackMetrics_members,
+  .tp_init = (initproc) TrackMetrics_init,
+  .tp_new = TrackMetrics_new,
 };
 
 

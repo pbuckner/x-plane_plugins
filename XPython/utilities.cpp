@@ -741,9 +741,6 @@ cleanup_iteration:
   return dict;
 }
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 void clearInstanceCommands(PyObject *module_name_p)
 {
   char *module_name_str = objToStr(module_name_p);
@@ -797,10 +794,6 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   commandCapsules.clear();
   Py_RETURN_NONE;
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-function-type"

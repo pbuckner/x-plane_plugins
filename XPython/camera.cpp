@@ -17,9 +17,6 @@ static std::unordered_map<void*, PyObject*> camDict;
 #define CAMERA_REFCON 3
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 void resetCamera(void) {
 /* we don't 'reset' camera control on reload.
    Camera is controlled only by the most resent call to XPLMControlCamera.
@@ -37,9 +34,6 @@ void resetCamera(void) {
   }
   camDict.clear();
 }
-#ifdef __cplusplus
-}
-#endif
 
 static int genericCameraControl(XPLMCameraPosition_t *outCameraPosition, int inIsLosingControl, void *inRefcon)
 {

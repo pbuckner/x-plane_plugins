@@ -101,17 +101,17 @@ PyTypeObject
 WeatherInfoWindsType = {
   PyVarObject_HEAD_INIT(NULL, 0)
   .tp_name = "XPPython.XPLMWeatherInfoWinds_t",
-  .tp_doc = "XPLMWeatherInfoWinds_t, class of objects listed in XPLMWeatherInfo_t class, one for each wind layer",
   .tp_basicsize = sizeof(WeatherInfoWindsObject),
   .tp_itemsize = 0,
-  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
-  .tp_new = WeatherInfoWinds_new,
-  .tp_init = (initproc) WeatherInfoWinds_init,
   .tp_dealloc = (destructor) WeatherInfoWinds_dealloc,
+  .tp_str = (reprfunc) WeatherInfoWinds_str,
+  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+  .tp_doc = "XPLMWeatherInfoWinds_t, class of objects listed in XPLMWeatherInfo_t class, one for each wind layer",
   .tp_traverse = (traverseproc) WeatherInfoWinds_traverse,
   .tp_clear = (inquiry) WeatherInfoWinds_clear,
-  .tp_str = (reprfunc) WeatherInfoWinds_str,
   .tp_members = WeatherInfoWinds_members,
+  .tp_init = (initproc) WeatherInfoWinds_init,
+  .tp_new = WeatherInfoWinds_new,
 };
 
 PyObject *

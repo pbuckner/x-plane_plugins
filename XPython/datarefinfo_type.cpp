@@ -109,17 +109,17 @@ PyTypeObject
 DataRefInfoType = {
   PyVarObject_HEAD_INIT(NULL, 0)
   .tp_name = "XPPython.XPLMDataRefInfo_t",
-  .tp_doc = PyDoc_STR("XPLMDataRefInfo_t, return from xp.getDataRefInfo()"),
   .tp_basicsize = sizeof(DataRefInfoObject),
   .tp_itemsize = 0,
-  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
-  .tp_new = DataRefInfo_new,
-  .tp_init = (initproc) DataRefInfo_init,
   .tp_dealloc = (destructor) DataRefInfo_dealloc,
+  .tp_str = (reprfunc) DataRefInfo_str,
+  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+  .tp_doc = PyDoc_STR("XPLMDataRefInfo_t, return from xp.getDataRefInfo()"),
   .tp_traverse = (traverseproc) DataRefInfo_traverse,
   .tp_clear = (inquiry) DataRefInfo_clear,
-  .tp_str = (reprfunc) DataRefInfo_str,
   .tp_members = DataRefInfo_members,
+  .tp_init = (initproc) DataRefInfo_init,
+  .tp_new = DataRefInfo_new,
 };
 
 PyObject *

@@ -98,16 +98,16 @@ PyTypeObject
 ProbeInfoType = {
   PyVarObject_HEAD_INIT(NULL, 0)
   .tp_name = "XPPython.XPLMProbeInfo_t",
-  .tp_doc = PyDoc_STR("XPLMProbeInfo_t, return from xp.probeTerrainXYZ()"),
   .tp_basicsize = sizeof(ProbeInfoObject),
   .tp_itemsize = 0,
-  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
-  .tp_new = ProbeInfo_new,
-  .tp_init = (initproc) ProbeInfo_init,
   .tp_dealloc = (destructor) ProbeInfo_dealloc,
+  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+  .tp_doc = PyDoc_STR("XPLMProbeInfo_t, return from xp.probeTerrainXYZ()"),
   .tp_traverse = (traverseproc) ProbeInfo_traverse,
   .tp_clear = (inquiry) ProbeInfo_clear,
   .tp_members = ProbeInfo_members,
+  .tp_init = (initproc) ProbeInfo_init,
+  .tp_new = ProbeInfo_new,
 };
 
 

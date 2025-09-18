@@ -41,7 +41,7 @@ ifeq ($(TARGET), Windows)
   # Do to the way we build for windows against 'python3.dll', the resulting binaries (3.6, 3.7, 3.8) are identical
   # except for the embedded 'version' value
   PYDEV312=/c/Program\ Files/Python312
-  PY_CFLAGS = -Wno-unused-result -Wno-pointer-to-int-cast -Wno-cast-function-type -Wsign-compare -Wunreachable-code -fno-common -DNDEBUG -fwrapv -O3 -D_GNU_SOURCE
+  PY_CFLAGS = -Wno-missing-field-initializers -Wno-unused-result -Wno-cast-function-type -Wsign-compare -Wunreachable-code -fno-common -DNDEBUG -fwrapv -O3 -D_GNU_SOURCE
   PY_LDFLAGS = 
   CFLAGS+= ${PY_CFLAGS} ${XPLM_CPPFLAGS} -DIBM=1 -DAPL=0 -DLIN=0 -I/c/msys64/mingw64/include -I/usr/include
   CFLAGS312=-I${PYDEV312}/include $(CFLAGS) -DPYTHONVERSION=\"3.12\"
@@ -54,7 +54,7 @@ endif
 ifeq ($(TARGET), Linux)
   # apt-get install python3.6 python3.6-dev python3.7 python3.7-dev python3.8 python3.8-dev
   CFLAGS +=  ${XPLM_CPPFLAGS} -DIBM=0 -DAPL=0 -DLIN=1
-  CFLAGS312= $(CFLAGS) $(shell python3.12-config --cflags) -DPYTHONVERSION=\"3.12\"
+  CFLAGS312= $(CFLAGS) -Wno-missing-field-initializers $(shell python3.12-config --cflags) -DPYTHONVERSION=\"3.12\"
   LDFLAGS +=  -shared -fPIC -fpic -ldl -lbsd -g -fvisibility=hidden -Wl,--export-dynamic
   LDFLAGS312 = $(LDFLAGS) $(shell python3.12-config --ldflags) -lpython3.12
   PLUGIN_DIR=lin_x64
@@ -98,17 +98,17 @@ PLUGIN_OBJ = plugin.o defs.o display.o utils.o graphics.o data_access.o utilitie
 
 cursor.o : cursor.cpp
 ifeq ($(TARGET),Darwin)
-	$(CC) -x objective-c -target arm64-apple-macos11 -c $(CFLAGS312) $< -o $@.arm
-	$(CC) -x objective-c -target x86_64-apple-macos10.12 -c $(CFLAGS312)  $< -o $@.x86
+	$(CC) -x objective-c++ -std=gnu++17 -target arm64-apple-macos11 -c $(CFLAGS312) $< -o $@.arm
+	$(CC) -x objective-c++ -std=gnu++17 -target x86_64-apple-macos10.15 -c $(CFLAGS312)  $< -o $@.x86
 	touch $@
 else
-	$(CC) -c $(CFLAGS312) $< -o $@
+	$(CC) -std=gnu++17 -c $(CFLAGS312) $< -o $@
 endif
 
 %.o	: %.c
 ifeq ($(TARGET),Darwin)
 	$(CC) -target arm64-apple-macos11 -c $(CFLAGS312) $< -o $@.arm
-	$(CC) -target x86_64-apple-macos10.12 -c $(CFLAGS312) $< -o $@.x86
+	$(CC) -target x86_64-apple-macos10.15 -c $(CFLAGS312) $< -o $@.x86
 	touch $@
 else
 	$(CC) -c $(CFLAGS312) $< -o $@
@@ -116,11 +116,11 @@ endif
 
 %.o	: %.cpp
 ifeq ($(TARGET),Darwin)
-	$(CC) -target arm64-apple-macos11 -c $(CFLAGS312) $< -o $@.arm
-	$(CC) -target x86_64-apple-macos10.12 -c $(CFLAGS312) $< -o $@.x86
+	$(CC) -std=gnu++17 -target arm64-apple-macos11 -c $(CFLAGS312) $< -o $@.arm
+	$(CC) -std=gnu++17 -target x86_64-apple-macos10.15 -c $(CFLAGS312) $< -o $@.x86
 	touch $@
 else
-	$(CC) -c $(CFLAGS312) $< -o $@
+	$(CC) -std=gnu++17 -c $(CFLAGS312) $< -o $@
 endif
 
 # Modifying *.xpl to "find" python shared object:
@@ -139,9 +139,9 @@ endif
 XPPython3.xpl: $(PLUGIN_OBJ)
 ifeq ($(TARGET), Darwin)
 	# $(LD) -headerpad_max_install_names -target arm64-apple-macos11 $(^:.o=.o.arm) $(LDFLAGS312) -o $@.arm
-	# $(LD) -headerpad_max_install_names -target x86_64-apple-macos10.12 $(^:.o=.o.x86) $(LDFLAGS312) -o $@.x86
+	# $(LD) -headerpad_max_install_names -target x86_64-apple-macos10.15 $(^:.o=.o.x86) $(LDFLAGS312) -o $@.x86
 	$(LD) -target arm64-apple-macos11 $(^:.o=.o.arm) $(LDFLAGS312) -o $@.arm
-	$(LD) -target x86_64-apple-macos10.12 $(^:.o=.o.x86) $(LDFLAGS312) -o $@.x86
+	$(LD) -target x86_64-apple-macos10.15 $(^:.o=.o.x86) $(LDFLAGS312) -o $@.x86
 	lipo -create -output $@ $@.arm $@.x86
 	install_name_tool \
 		-change /Library/Frameworks/Python.framework/Versions/3.12/Python  \

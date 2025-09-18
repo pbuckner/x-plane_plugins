@@ -11,13 +11,7 @@ typedef struct {
 
 extern PyObject *PythonModuleMTimes;
 extern PluginStats pluginStats[];
-#ifdef __cplusplus
-extern "C" {
-#endif
 int getPluginIndex(PyObject *);
 void resetInternals();
-#ifdef __cplusplus
-}
-#endif
 extern pthread_t pythonThread;
 #endif

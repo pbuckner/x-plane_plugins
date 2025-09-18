@@ -9,6 +9,7 @@
 #include <Widgets/XPWidgetUtils.h>
 #include <Widgets/XPStandardWidgets.h>
 #include "utils.h"
+#include "widgets.h"
 #include "widgetutils.h"
 #include "cpp_utilities.hpp"
 

@@ -167,9 +167,6 @@ static std::unordered_map<void*, PyObject*> avionicsIDCapsules;
 static const char avionicsIDRef[] = "XPLMAvionicsID";
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif  
 void resetHotKeyCallbacks(void) {
   errCheck("prior resethotkey");
 
@@ -189,14 +186,7 @@ void resetHotKeyCallbacks(void) {
   }
   errCheck("post reset hotkey");
 }
-#ifdef __cplusplus
-}
-#endif
-  
 
-#ifdef __cplusplus
-extern "C" {
-#endif  
 void resetAvionicsCallbacks(void) {
   if(!XPLMUnregisterAvionicsCallbacks_ptr){
     return;
@@ -238,13 +228,7 @@ void resetAvionicsCallbacks(void) {
   }
   avionicsIDCapsules.clear();
 }
-#ifdef __cplusplus
-}
-#endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif  
 void resetDrawCallbacks(void) {
   for (const auto& pair : drawCallbackDict) {
     char *callback = objToStr(pair.second.callback);
@@ -260,13 +244,7 @@ void resetDrawCallbacks(void) {
 
   drawCallbackDict.clear();
 }
-#ifdef __cplusplus
-}
-#endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif  
 void resetKeySniffCallbacks(void) {
   for (const auto& pair : keySniffCallbackDict) {
     char *callback = objToStr(pair.second.callback);
@@ -282,13 +260,7 @@ void resetKeySniffCallbacks(void) {
 
   keySniffCallbackDict.clear();
 }
-#ifdef __cplusplus
-}
-#endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif  
 void resetWindows(void) {
   for (const auto& pair : windowDict) {
     pythonDebug("     Reset --     (%s)", pair.second.module_name.c_str());
@@ -302,9 +274,6 @@ void resetWindows(void) {
   }
   windowDict.clear();
 }
-#ifdef __cplusplus
-}
-#endif
 
 static void receiveMonitorBounds(int inMonitorIndex, int inLeftBx, int inTopBx,
                                        int inRightBx, int inBottomBx, void *refcon)
@@ -514,8 +483,8 @@ static PyObject *XPLMRegisterAvionicsCallbacksExFun(PyObject *self, PyObject *ar
 
   avionicsCallbacksDict[(intptr_t)avionics_params.refcon] = {
     .module_name = std::string(CurrentPythonModuleName),
-    .avionicsID = avionicsId,
     .deviceID = deviceId,
+    .avionicsID = avionicsId,
     .before = before,
     .after = after,
     .refCon = refcon,
@@ -530,6 +499,7 @@ static PyObject *XPLMRegisterAvionicsCallbacksExFun(PyObject *self, PyObject *ar
     .screen_scroll = screenScroll,
     .screen_cursor = screenCursor,
     .keyboard = keyboard,
+    .brightness = Py_None,
     .create = 0
   };
 
@@ -661,8 +631,23 @@ static PyObject *XPLMGetAvionicsHandleFun(PyObject *self, PyObject *args, PyObje
 
   avionicsCallbacksDict[avionicsCallbacksCntr] = {
     .module_name = std::string(CurrentPythonModuleName),
-    .avionicsID = avionicsId,
     .deviceID = deviceID,
+    .avionicsID = avionicsId,
+    .before = Py_None,
+    .after = Py_None,
+    .refCon = Py_None,
+    .bezel_draw = Py_None,
+    .draw = Py_None,
+    .bezel_click = Py_None,
+    .bezel_rightclick = Py_None,
+    .bezel_scroll = Py_None,
+    .bezel_cursor = Py_None,
+    .screen_touch = Py_None,
+    .screen_righttouch = Py_None,
+    .screen_scroll = Py_None,
+    .screen_cursor = Py_None,
+    .keyboard = Py_None,
+    .brightness = Py_None,
     .create = 0
   };
 
@@ -1072,8 +1057,8 @@ static PyObject *XPLMRegisterKeySnifferFun(PyObject *self, PyObject *args, PyObj
   keySniffCallbackDict[idx] = {
     .module_name = std::string(CurrentPythonModuleName),
     .callback = callback,
-    .refCon = refcon,
-    .before = inBeforeWindows
+    .before = inBeforeWindows,
+    .refCon = refcon
   };
   int res = XPLMRegisterKeySniffer(genericKeySnifferCallback, inBeforeWindows, (void *)keySniffCallbackCntr);
   if(!res){
@@ -1260,7 +1245,7 @@ static void genericWindowKey(XPLMWindowID  inWindowID,
       errCheck("no callback, losing focus, genericWindowKey");
       return;
     }
-    snprintf(msg, sizeof(msg), "Unknown window passed to genericWindowKey (%p) [%ld] -- losingFocus is %d.\n", inWindowID, (long)inWindowID, losingFocus);
+    snprintf(msg, sizeof(msg), "Unknown window passed to genericWindowKey (%p) -- losingFocus is %d.\n", inWindowID, losingFocus);
     pythonLog("%s", msg);
     return;
   }
@@ -1676,8 +1661,8 @@ static PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObjec
   XPLMAvionicsID avionicsId = XPLMCreateAvionicsEx_ptr(&avionics_params);
   avionicsCallbacksDict[avionicsCallbacksCntr] = {
     .module_name = std::string(CurrentPythonModuleName),
-    .avionicsID = avionicsId,
     .deviceID = 0,
+    .avionicsID = avionicsId,
     .before = Py_None,
     .after = Py_None,
     .refCon = refcon,
@@ -3627,6 +3612,7 @@ static float genericAvionicsBrightness(float inRheoValue, float inAmbiantBrightn
   module_name_obj = PyUnicode_FromString(info.module_name.c_str());
   set_moduleName(module_name_obj);
   struct timespec stop, start;
+  clock_gettime(CLOCK_MONOTONIC, &start);
   if (info.brightness != Py_None)
     pRes = PyObject_CallFunctionObjArgs(info.brightness,
                                         PyFloat_FromDouble(inRheoValue),

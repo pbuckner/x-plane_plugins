@@ -136,17 +136,17 @@ PyTypeObject
 PluginInfoType = {
   PyVarObject_HEAD_INIT(NULL, 0)
   .tp_name = "XPPython.PluginInfo",
-  .tp_doc = PyDoc_STR("PluginInfo, return from xp.getPluginInfo()"),
   .tp_basicsize = sizeof(PluginInfoObject),
   .tp_itemsize = 0,
-  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
-  .tp_new = PluginInfo_new,
-  .tp_init = (initproc) PluginInfo_init,
   .tp_dealloc = (destructor) PluginInfo_dealloc,
+  .tp_str = (reprfunc) PluginInfo_str,
+  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+  .tp_doc = PyDoc_STR("PluginInfo, return from xp.getPluginInfo()"),
   .tp_traverse = (traverseproc) PluginInfo_traverse,
   .tp_clear = (inquiry) PluginInfo_clear,
-  .tp_str = (reprfunc) PluginInfo_str,
   .tp_members = PluginInfo_members,
+  .tp_init = (initproc) PluginInfo_init,
+  .tp_new = PluginInfo_new,
 };
 
 

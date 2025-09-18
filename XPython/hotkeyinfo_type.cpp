@@ -91,16 +91,16 @@ PyTypeObject
 HotKeyInfoType = {
   PyVarObject_HEAD_INIT(NULL, 0)
   .tp_name = "XPPython.HotKeyInfo",
-  .tp_doc = PyDoc_STR("HotKeyInfo, return from xp.getHotKeyInfo()"),
   .tp_basicsize = sizeof(HotKeyInfoObject),
   .tp_itemsize = 0,
-  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
-  .tp_new = HotKeyInfo_new,
-  .tp_init = (initproc) HotKeyInfo_init,
   .tp_dealloc = (destructor) HotKeyInfo_dealloc,
+  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+  .tp_doc = PyDoc_STR("HotKeyInfo, return from xp.getHotKeyInfo()"),
   .tp_traverse = (traverseproc) HotKeyInfo_traverse,
   .tp_clear = (inquiry) HotKeyInfo_clear,
   .tp_members = HotKeyInfo_members,
+  .tp_init = (initproc) HotKeyInfo_init,
+  .tp_new = HotKeyInfo_new,
 };
 
 

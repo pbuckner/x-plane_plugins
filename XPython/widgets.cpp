@@ -14,6 +14,7 @@
 #include "utils.h"
 #include "widgetutils.h"
 #include "widgets.h"
+#include "display.h"
 #include "xppython.h"
 #include "cpp_utilities.hpp"
 
@@ -41,9 +42,6 @@ struct WidgetPropertyEqual {
 
 static std::unordered_map<std::pair<PyObject*, int>, PyObject*, WidgetPropertyHash, WidgetPropertyEqual> widgetPropertyDict;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 void resetWidgets(void) {
   for (auto& pair : widgetIDCapsules) {
     PyObject *capsuleInfo = pair.second;
@@ -74,9 +72,6 @@ void resetWidgets(void) {
   }
   widgetPropertyDict.clear();
 }
-#ifdef __cplusplus
-}
-#endif
 
 static void clearChildrenXPWidgetData(PyObject *widget);
 static void clearXPWidgetData(PyObject *widget);
@@ -1200,25 +1195,23 @@ PyInit_XPWidgets(void)
 }
 
 
-extern "C" {
-  void logWidgets(PyObject *key, char *key_s, char * value_s) {
+void logWidgets(PyObject *key, char *key_s, char * value_s) {
 #if ERRCHECK
-    /* widgetProperites key is Tuple<capsule, propID> */
-    PyObject *capsule = PyTuple_GetItem(key, 0);
-    /* widgetIDCapsules is <PyLong *ptr> : (<capsule> <module>)
-       So we have to iterate through all items to find the module */
-    PyObject *module = NULL;
-    for (auto & pair:widgetIDCapsules) {
-      if (capsule == PyTuple_GetItem(pair.second, 0)) {
-        module = PyTuple_GetItem(pair.second, 1);
-        break;
-      }
+  /* widgetProperites key is Tuple<capsule, propID> */
+  PyObject *capsule = PyTuple_GetItem(key, 0);
+  /* widgetIDCapsules is <PyLong *ptr> : (<capsule> <module>)
+     So we have to iterate through all items to find the module */
+  PyObject *module = NULL;
+  for (auto & pair:widgetIDCapsules) {
+    if (capsule == PyTuple_GetItem(pair.second, 0)) {
+      module = PyTuple_GetItem(pair.second, 1);
+      break;
     }
-    char *module_s = objToStr(module);
-    pythonLog("  %s / %s:%s%s", key_s, module_s, strlen(value_s) > 10 ? "\n    " : " ", value_s);
-    free(module_s);
-#else
-    pythonLog("  %s:%s %s", key_s, strlen(value_s) > 10 ? "\n    " : " ", value_s);
-#endif
   }
+  char *module_s = objToStr(module);
+  pythonLog("  %s / %s:%s%s", key_s, module_s, strlen(value_s) > 10 ? "\n    " : " ", value_s);
+  free(module_s);
+#else
+  pythonLog("  %s:%s %s", key_s, strlen(value_s) > 10 ? "\n    " : " ", value_s);
+#endif
 }

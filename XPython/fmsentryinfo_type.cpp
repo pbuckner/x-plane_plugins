@@ -91,11 +91,9 @@ static PyMemberDef FMSEntryInfo_members[] = {
     {NULL, T_INT, 0, 0, ""}  /* Sentinel */
 };
 
-#if APL || LIN
 static int max(int a, int b) {
   return a > b ? a : b;
 }
-#endif
 
 static PyObject *FMSEntryInfo_str(FMSEntryInfoObject *obj) {
   std::string navAidType;
@@ -151,17 +149,17 @@ PyTypeObject
 FMSEntryInfoType = {
   PyVarObject_HEAD_INIT(NULL, 0)
   .tp_name = "XPPython.FMSEntryInfo",
-  .tp_doc = PyDoc_STR("FMSEntryInfo, return from xp.getFMSFlightPlanEntryInfo()"),
   .tp_basicsize = sizeof(FMSEntryInfoObject),
   .tp_itemsize = 0,
-  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
-  .tp_new = FMSEntryInfo_new,
-  .tp_init = (initproc) FMSEntryInfo_init,
   .tp_dealloc = (destructor) FMSEntryInfo_dealloc,
+  .tp_str = (reprfunc) FMSEntryInfo_str,
+  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+  .tp_doc = PyDoc_STR("FMSEntryInfo, return from xp.getFMSFlightPlanEntryInfo()"),
   .tp_traverse = (traverseproc) FMSEntryInfo_traverse,
   .tp_clear = (inquiry) FMSEntryInfo_clear,
-  .tp_str = (reprfunc) FMSEntryInfo_str,
   .tp_members = FMSEntryInfo_members,
+  .tp_init = (initproc) FMSEntryInfo_init,
+  .tp_new = FMSEntryInfo_new,
 };
 
 

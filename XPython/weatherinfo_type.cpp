@@ -227,17 +227,17 @@ PyTypeObject
 WeatherInfoType = {
   PyVarObject_HEAD_INIT(NULL, 0)
   .tp_name = "XPPython.XPLMWeatherInfo_t",
-  .tp_doc = "XPLMWeatherInfo_t class, return value of xp.getWeatherAtLocation(), input to setWeather*()",
   .tp_basicsize = sizeof(WeatherInfoObject),
   .tp_itemsize = 0,
-  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
-  .tp_new = WeatherInfo_new,
-  .tp_init = (initproc) WeatherInfo_init,
   .tp_dealloc = (destructor) WeatherInfo_dealloc,
+  .tp_str = (reprfunc) WeatherInfo_str,
+  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+  .tp_doc = "XPLMWeatherInfo_t class, return value of xp.getWeatherAtLocation(), input to setWeather*()",
   .tp_traverse = (traverseproc) WeatherInfo_traverse,
   .tp_clear = (inquiry) WeatherInfo_clear,
-  .tp_str = (reprfunc) WeatherInfo_str,
   .tp_members = WeatherInfo_members,
+  .tp_init = (initproc) WeatherInfo_init,
+  .tp_new = WeatherInfo_new,
 };
 
 PyObject *

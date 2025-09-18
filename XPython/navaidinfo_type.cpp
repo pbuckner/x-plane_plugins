@@ -183,17 +183,17 @@ PyTypeObject
 NavAidInfoType = {
   PyVarObject_HEAD_INIT(NULL, 0)
   .tp_name = "XPPython.NavAidInfo",
-  .tp_doc = PyDoc_STR("NavAidInfo, return from xp.getNavAidInfo()"),
   .tp_basicsize = sizeof(NavAidInfoObject),
   .tp_itemsize = 0,
-  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
-  .tp_new = NavAidInfo_new,
-  .tp_init = (initproc) NavAidInfo_init,
   .tp_dealloc = (destructor) NavAidInfo_dealloc,
+  .tp_str = (reprfunc) NavAidInfo_str,
+  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+  .tp_doc = PyDoc_STR("NavAidInfo, return from xp.getNavAidInfo()"),
   .tp_traverse = (traverseproc) NavAidInfo_traverse,
   .tp_clear = (inquiry) NavAidInfo_clear,
-  .tp_str = (reprfunc) NavAidInfo_str,
   .tp_members = NavAidInfo_members,
+  .tp_init = (initproc) NavAidInfo_init,
+  .tp_new = NavAidInfo_new,
 };
 
 

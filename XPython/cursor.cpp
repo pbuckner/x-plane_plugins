@@ -2,6 +2,9 @@
 #include <Python.h>
 #include "utils.h"
 #include "cursor.h"
+#include <string>
+#include "cpp_utilities.hpp"
+#include <vector>
 #include <errno.h>
 #include <stdlib.h>
 
@@ -28,9 +31,10 @@ My_DOCSTR(_setCursor__doc__, "setCursor",
 static PyObject *setCursor(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void) self;
-  static char *kwlist[] = {"cursor_id", NULL};
+  std::vector<std::string> params = {"cursor_id"};
+  static char **keywords = stringVectorToCharArray(params);
   int inCursorID = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &inCursorID)) {
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inCursorID)) {
     return NULL;
   }
   
@@ -52,9 +56,10 @@ static PyObject *unloadCursor(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void) self;
 
-  static char *kwlist[] = {"cursor_id", NULL};
+  std::vector<std::string> params  = {"cursor_id"};
+  char **keywords = stringVectorToCharArray(params);
   int inCursorID = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &inCursorID)) {
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inCursorID)) {
     return NULL;
   }
   if (inCursorID < MAX_CURSORS && Cursors[inCursorID] != NULL) {
@@ -80,9 +85,10 @@ My_DOCSTR(_loadCursor__doc__, "loadCursor",
 static PyObject *loadCursor(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void) self;
-  static char *kwlist[] = {"name", NULL};
+  std::vector<std::string> params = {"name"};
+  char **keywords = stringVectorToCharArray(params);
   const char *cursorFileName;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s", kwlist, &cursorFileName)) {
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &cursorFileName)) {
     return NULL;
   }
   
@@ -110,7 +116,7 @@ static PyObject *loadCursor(PyObject *self, PyObject *args, PyObject *kwargs)
 static cursor_t *
 cursor_read_from_file(const char *filename)
 {
-  cursor_t *cursor = malloc(sizeof (cursor_t));
+  cursor_t *cursor = (cursor_t *)malloc(sizeof (cursor_t));
   NSString *path;
   NSImage *img;
   NSImageRep *rep;
@@ -170,7 +176,7 @@ static uint8_t *png_load_from_file_rgba(const char *filename, int *width, int *h
   *height = png_get_image_height(png_ptr, info_ptr);
   int rowbytes = png_get_rowbytes(png_ptr, info_ptr);
   uint8_t *pixels = NULL;
-  pixels = malloc(*height * rowbytes);
+  pixels = (uint8_t*)malloc(*height * rowbytes);
   if (pixels == NULL) {
     pythonLog("Failed to allocate cursor pixels for %d x %d", width, height);
     return NULL;
@@ -220,7 +226,7 @@ cursor_read_from_file(const char *filename)
   img.xhot = w / 2;
   img.yhot = h / 2;
   img.pixels = (XcursorPixel *)buf;
-  cursor = calloc(1, sizeof (*cursor));
+  cursor = (cursor_t *)calloc(1, sizeof (*cursor));
   cursor->crs = XcursorImageLoadCursor(dpy, &img);
   
   free(buf);
@@ -272,7 +278,7 @@ cursor_make_current(cursor_t *cursor)
 static cursor_t *
 cursor_read_from_file(const char *filename)
 {
-  cursor_t *cursor = calloc(1, sizeof(*cursor));
+  cursor_t *cursor = (cursor_t *)calloc(1, sizeof(*cursor));
 
   char *filename_ext = (char *)malloc(strlen(filename) + 5);
   strcpy(filename_ext, filename);
@@ -351,7 +357,7 @@ PyInit_XPCursor(void)
 {
   PyObject *mod = PyModule_Create(&XPCursorModule);
 
-  Cursors = calloc(MAX_CURSORS, sizeof(cursor_t*));
+  Cursors = (cursor_t **)calloc(MAX_CURSORS, sizeof(cursor_t*));
   Cursors[cursorIdx++] = cursor_read_from_file("Resources/plugins/XPPython3/cursors/Arrow_Down_Black");
   Cursors[cursorIdx++] = cursor_read_from_file("Resources/plugins/XPPython3/cursors/Arrow_Up_Black");
   Cursors[cursorIdx++] = cursor_read_from_file("Resources/plugins/XPPython3/cursors/Arrow_Down_White");

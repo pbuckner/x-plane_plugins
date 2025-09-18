@@ -87,17 +87,17 @@ PyTypeObject
 WeatherInfoCloudsType = {
   PyVarObject_HEAD_INIT(NULL, 0)
   .tp_name = "xppython3.XPLMWeatherInfoClouds_t",
-  .tp_doc = "XPLMWeatherInfoClouds_t, class of objects listed in XPLMWeatherInfo_t class, one for each cloud layer",
   .tp_basicsize = sizeof(WeatherInfoCloudsObject),
   .tp_itemsize = 0,
-  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
-  .tp_new = WeatherInfoClouds_new,
-  .tp_init = (initproc) WeatherInfoClouds_init,
   .tp_dealloc = (destructor) WeatherInfoClouds_dealloc,
+  .tp_str = (reprfunc) WeatherInfoClouds_str,
+  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+  .tp_doc = "XPLMWeatherInfoClouds_t, class of objects listed in XPLMWeatherInfo_t class, one for each cloud layer",
   .tp_traverse = (traverseproc) WeatherInfoClouds_traverse,
   .tp_clear = (inquiry) WeatherInfoClouds_clear,
-  .tp_str = (reprfunc) WeatherInfoClouds_str,
   .tp_members = WeatherInfoClouds_members,
+  .tp_init = (initproc) WeatherInfoClouds_init,
+  .tp_new = WeatherInfoClouds_new,
 };
 
 PyObject *

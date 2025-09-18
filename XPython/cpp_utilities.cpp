@@ -1,10 +1,7 @@
+#define _GNU_SOURCE 1
 #include <vector>
-#include <unordered_map>
-#include <Python.h>
 #include <string>
-#include "utils.h"
-
-static std::unordered_map<void*, PyObject*> commandCapsulesCPP;
+#include "cpp_utilities.hpp"
 
 // Function that takes vector of std::string and returns null-terminated char* array
 char** stringVectorToCharArray(const std::vector<std::string>& stringVector) {
@@ -32,36 +29,4 @@ void freeCharArray(char** charArray, size_t size) {
     delete[] charArray[i];
   }
   delete[] charArray;
-}
-
-PyObject* getPtrRefCPP(void *ptr, std::unordered_map<void*, PyObject*>& dict, const char *refName)
-{
-  if(!ptr){
-    Py_RETURN_NONE;
-  }
-
-  auto it = dict.find(ptr);
-  PyObject *capsule;
-
-  if(it == dict.end()){
-    capsule = PyCapsule_New(ptr, refName, NULL);
-    dict[ptr] = capsule;
-  } else {
-    capsule = it->second;
-  }
-
-  Py_INCREF(capsule);
-  return capsule;
-}
-
-void removePtrRefCPP(void *ptr, std::unordered_map<void *,PyObject *>& dict)
-{
-  errCheck("prior removePtrRefCPP");
-  if(!ptr) return;
-  auto it = dict.find(ptr);
-  if (it == dict.end()) return;
-
-  Py_DECREF(it->second);
-  dict.erase(it->first);
-  errCheck("end removePtrRef");
 }

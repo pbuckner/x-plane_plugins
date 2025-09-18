@@ -1,5 +1,7 @@
 //Python comes first!
 #include <Python.h>
+#include <vector>
+#include <string>
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/time.h>
@@ -40,6 +42,7 @@ static int pythonVerbose = 0;
 /**********************
  * Plugin configuration
  */
+
 const char *pythonPluginsPath = "Resources/plugins/PythonPlugins";
 const char *pythonInternalPluginsPath = "Resources/plugins/XPPython3";
 const char *pythonInternalHooksPath =   "Resources/plugins/XPPython3/hooks";
@@ -78,31 +81,31 @@ static void *pythonHandle = NULL;
 
 pthread_t pythonThread = (pthread_t) NULL;
 
-extern PyMODINIT_FUNC PyInit_XPLMDefs(void);
-extern PyMODINIT_FUNC PyInit_XPLMDisplay(void);
-extern PyMODINIT_FUNC PyInit_XPLMGraphics(void);
-extern PyMODINIT_FUNC PyInit_XPLMDataAccess(void);
-extern PyMODINIT_FUNC PyInit_XPLMUtilities(void);
-extern PyMODINIT_FUNC PyInit_XPLMScenery(void);
-extern PyMODINIT_FUNC PyInit_XPLMMenus(void);
-extern PyMODINIT_FUNC PyInit_XPLMNavigation(void);
-extern PyMODINIT_FUNC PyInit_XPLMPlugin(void);
-extern PyMODINIT_FUNC PyInit_XPLMPlanes(void);
-extern PyMODINIT_FUNC PyInit_XPLMProcessing(void);
-extern PyMODINIT_FUNC PyInit_XPLMCamera(void);
-extern PyMODINIT_FUNC PyInit_XPLMSound(void);
-extern PyMODINIT_FUNC PyInit_XPWidgetDefs(void);
-extern PyMODINIT_FUNC PyInit_XPWidgets(void);
-extern PyMODINIT_FUNC PyInit_XPLMWeather(void);
-extern PyMODINIT_FUNC PyInit_XPStandardWidgets(void);
-extern PyMODINIT_FUNC PyInit_XPUIGraphics(void);
-extern PyMODINIT_FUNC PyInit_XPWidgetUtils(void);
-extern PyMODINIT_FUNC PyInit_XPLMInstance(void);
-extern PyMODINIT_FUNC PyInit_XPLMMap(void);
+PyMODINIT_FUNC PyInit_XPLMDefs(void);
+PyMODINIT_FUNC PyInit_XPLMDisplay(void);
+PyMODINIT_FUNC PyInit_XPLMGraphics(void);
+PyMODINIT_FUNC PyInit_XPLMDataAccess(void);
+PyMODINIT_FUNC PyInit_XPLMUtilities(void);
+PyMODINIT_FUNC PyInit_XPLMScenery(void);
+PyMODINIT_FUNC PyInit_XPLMMenus(void);
+PyMODINIT_FUNC PyInit_XPLMNavigation(void);
+PyMODINIT_FUNC PyInit_XPLMPlugin(void);
+PyMODINIT_FUNC PyInit_XPLMPlanes(void);
+PyMODINIT_FUNC PyInit_XPLMProcessing(void);
+PyMODINIT_FUNC PyInit_XPLMCamera(void);
+PyMODINIT_FUNC PyInit_XPLMSound(void);
+PyMODINIT_FUNC PyInit_XPWidgetDefs(void);
+PyMODINIT_FUNC PyInit_XPWidgets(void);
+PyMODINIT_FUNC PyInit_XPLMWeather(void);
+PyMODINIT_FUNC PyInit_XPStandardWidgets(void);
+PyMODINIT_FUNC PyInit_XPUIGraphics(void);
+PyMODINIT_FUNC PyInit_XPWidgetUtils(void);
+PyMODINIT_FUNC PyInit_XPLMInstance(void);
+PyMODINIT_FUNC PyInit_XPLMMap(void);
 /* extern PyMODINIT_FUNC PyInit_SBU(void); */
-extern PyMODINIT_FUNC PyInit_XPPython(void);
-extern PyMODINIT_FUNC PyInit_XPCursor(void);
-extern PyMODINIT_FUNC PyInit_XPythonLogWriter(void);
+PyMODINIT_FUNC PyInit_XPPython(void);
+PyMODINIT_FUNC PyInit_XPCursor(void);
+PyMODINIT_FUNC PyInit_XPythonLogWriter(void);
 
 static void
 debugErrorCallback(const char *inMessage) {
@@ -288,21 +291,21 @@ static int stopPython(void)
        This is output only -- we're not deleting them here.
      */
     pythonLog("Undeleted items: begin vvvvv");
-    char *dicts [] = {"plugins", "modules", "accessors", "drefs", "sharedDrefs", "drawCallbacks",
-      "keySniffCallbacks", "windows", "hotkeys", "hotkeyIDs", "mapCreates", "mapRefs", "maps",
-      "menus", "menuRefs", "menuPluginIdx", "errCallbacks", "commandCallbacks", "commandRevDict",
-      "widgetCallbacks", "widgetProperties", "flightLoops", "flightLoopIDs", NULL};
-    char **dict_ptr = dicts;
-    while(*dict_ptr != NULL) {
-      PyObject *dict = PyDict_GetItemString(XPY3pythonDicts, *dict_ptr); // borrowed
+    std::vector<std::string> dicts = {"plugins", "modules", "accessors", "drefs", "sharedDrefs", "drawCallbacks",
+                                      "keySniffCallbacks", "windows", "hotkeys", "hotkeyIDs", "mapCreates", "mapRefs", "maps",
+                                      "menus", "menuRefs", "menuPluginIdx", "errCallbacks", "commandCallbacks", "commandRevDict",
+                                      "widgetCallbacks", "widgetProperties", "flightLoops", "flightLoopIDs"};
+    size_t size = dicts.size();
+    for(size_t i = 0; i < size; i++) {
+      PyObject *dict = PyDict_GetItemString(XPY3pythonDicts, dicts[i].c_str()); // borrowed
       if (PyDict_Size(dict) > 0) {
-        pythonLog("{%s}: [%d]", *dict_ptr, PyDict_Size(dict));
+        pythonLog("{%s}: [%d]", dicts[i].c_str(), PyDict_Size(dict));
         Py_ssize_t pos = 0;
         PyObject *key,  *value;
         while(PyDict_Next(dict, &pos, &key, &value)){
           char *key_s = objToStr(key);
           char *value_s = objToStr(value);
-          if (! strcmp(*dict_ptr, "widgetProperties") ) {
+          if (! strcmp(dicts[i].c_str(), "widgetProperties") ) {
             logWidgets(key, key_s, value_s);
           } else {
             pythonLog("  %s:%s %s", key_s, strlen(value_s) > 10 ? "\n    " : " ", value_s);
@@ -311,7 +314,6 @@ static int stopPython(void)
           free(value_s);
         }
       }
-      ++dict_ptr;
     }
     pythonLog("Undeleted items: end   ^^^^");
   }
@@ -330,26 +332,25 @@ static int stopPython(void)
   Py_DECREF(XPY3pluginDict);
   
   // Invoke cleanup method of all built-in modules
-  char *mods[] = {"XPLMDefs", "XPLMDisplay", "XPLMGraphics", "XPLMUtilities", "XPLMScenery", "XPLMMenus",
-                  "XPLMNavigation", "XPLMPlugin", "XPLMPlanes", "XPLMProcessing", "XPLMCamera", "XPWidgetDefs",
-                  "XPWidgets", "XPStandardWidgets", "XPUIGraphics", "XPWidgetUtils", "XPLMInstance",
-                  "XPLMMap", "XPLMDataAccess", "XPLMWeather", "XPLMSound", /*"SandyBarbourUtilities", */ "XPCursor", "XPPython", NULL};
-  char **mod_ptr = mods;
-
-  while(*mod_ptr != NULL){
-    PyObject *mod = PyImport_ImportModule(*mod_ptr);
+  std::vector<std::string> mods = {"XPLMDefs", "XPLMDisplay", "XPLMGraphics", "XPLMUtilities", "XPLMScenery", "XPLMMenus",
+                                   "XPLMNavigation", "XPLMPlugin", "XPLMPlanes", "XPLMProcessing", "XPLMCamera", "XPWidgetDefs",
+                                   "XPWidgets", "XPStandardWidgets", "XPUIGraphics", "XPWidgetUtils", "XPLMInstance",
+                                   "XPLMMap", "XPLMDataAccess", "XPLMWeather", "XPLMSound", /*"SandyBarbourUtilities", */ "XPCursor", "XPPython"};
+  size_t size = mods.size();
+  for (size_t i = 0; i < size; i++) {
+    PyObject *mod = PyImport_ImportModule(mods[i].c_str());
     fflush(stdout);
     if (PyErr_Occurred()) {
-      pythonLog("[XPPython3] Failed during stop of internal module %s", *mod_ptr);
+      pythonLog("[XPPython3] Failed during stop of internal module %s", mods[i].c_str());
       pythonLogException();
       return 1;
     }
       
     if(mod){
-      set_moduleName(PyUnicode_FromString(*mod_ptr));
+      set_moduleName(PyUnicode_FromString(mods[i].c_str()));
       PyObject *pRes = PyObject_CallMethod(mod, "_cleanup", NULL);
       if (PyErr_Occurred() ) {
-        pythonLog("[XPPython3] Failed during cleanup of internal module %s", *mod_ptr);
+        pythonLog("[XPPython3] Failed during cleanup of internal module %s", mods[i].c_str());
         pythonLogException();
         return 1;
       }
@@ -357,7 +358,6 @@ static int stopPython(void)
       Py_DECREF(pRes);
       Py_DECREF(mod);
     }
-    ++mod_ptr;
   }
   Py_DECREF(loggerModuleObj);
   Py_Finalize();
@@ -524,9 +524,9 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
     pythonDebug("XPPython3 received message, forwarding to all plugins: From: %d, Msg: %ld, inParam: %d",
                 inFromWho, inMessage, *(int*)inParam);
   } else {
-    param = PyLong_FromLong((long)inParam);
+    param = PyLong_FromLong((intptr_t)inParam);
     pythonDebug("XPPython3 received message, forwarding to all plugins: From: %d, Msg: %ld, inParam: %ld",
-                inFromWho, inMessage, (long)inParam);
+                inFromWho, inMessage, (intptr_t)inParam);
   }
 
   if (inMessage == XPLM_MSG_PLANE_LOADED && inParam == XPLM_USER_AIRCRAFT) {
@@ -592,14 +592,14 @@ static int loadLocalPythonLibrary(void)
 */
 #if APL || LIN
 #if APL
-  char *suffix = "dylib";
-  char *path = "Resources/plugins/XPPython3/mac_x64/python" PYTHONVERSION "/lib/";
+  std::string suffix = "dylib";
+  std::string path = "Resources/plugins/XPPython3/mac_x64/python" PYTHONVERSION "/lib/";
 #elif LIN
-  char *suffix = "so";
-  char *path = "Resources/plugins/XPPython3/lin_x64/python" PYTHONVERSION "/lib/";
+  std::string suffix = "so";
+  std::string path = "Resources/plugins/XPPython3/lin_x64/python" PYTHONVERSION "/lib/";
 #endif  
   char library[1024];
-  sprintf(library, "%slibpython%s.%s", path, PYTHONVERSION, suffix);
+  snprintf(library, sizeof(library), "%slibpython%s.%s", path.c_str(), PYTHONVERSION, suffix.c_str());
   pythonHandle = dlopen(library, RTLD_LAZY | RTLD_GLOBAL);
   if (!pythonHandle) {
     char cwd[1000];
@@ -647,6 +647,7 @@ static void setSysPath(void) {
   Py_DECREF(xPlaneDirObj);
 }
 
+
 static void handleConfigFile(void) {  /* Find and handle config.ini file */
   XPLMGetPrefsPath(xpy_ini_file);
   XPLMExtractFileAndPath(xpy_ini_file);
@@ -661,14 +662,14 @@ static void handleConfigFile(void) {  /* Find and handle config.ini file */
     return;
   }
 #endif
-  pythonDebugs = xpy_config_get_int("[Main].debug");
-  pythonWarnings = xpy_config_get_int("[Main].warning");
-  pythonStats = xpy_config_get_int_default("[Main].stats", 1);
+  pythonDebugs = xpy_config_get_int("Main.debug");
+  pythonWarnings = xpy_config_get_int("Main.warning");
+  pythonStats = xpy_config_get_int_default("Main.stats", 1);
 #if !defined(Py_LIMITED_API)
-  pythonVerbose = xpy_config_get_int("[Main].py_verbose");/* 0= off, 1= each file as loaded, 2= each file that is checked when searching for module */
+  pythonVerbose = xpy_config_get_int("Main.py_verbose");/* 0= off, 1= each file as loaded, 2= each file that is checked when searching for module */
 #endif
   pythonDebug("Read config file: %s", xpy_ini_file);
-  pythonCapsuleRegistration = xpy_config_get_int("[Main].capsule_registrations");  /* 0= off, 1= log every Capsule registration */
+  pythonCapsuleRegistration = xpy_config_get_int("Main.capsule_registrations");  /* 0= off, 1= log every Capsule registration */
 }
 
 static void initMtimes(void) {

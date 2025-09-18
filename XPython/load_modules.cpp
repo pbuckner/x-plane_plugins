@@ -29,7 +29,7 @@ void xpy_loadModules(const char *path, const char *package, const char *pattern,
         char *modName = strdup(de->d_name);
         if(modName){
           modName[strlen(de->d_name) - 3] = '\0';
-          char *pkgModName = malloc(strlen(modName) + strlen(package) + 2);
+          char *pkgModName = (char*)malloc(strlen(modName) + strlen(package) + 2);
           strcpy(pkgModName, package);
           strcat(pkgModName, ".");
           strcat(pkgModName, modName);

@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <string>
 #include "utils.h"
 #include "ini_file.h"
 #include <XPLM/XPLMUtilities.h>
@@ -52,27 +53,28 @@ void setLogFile(void) {
      If we cannot open log file, it is set to stdout
   */
   
-  static char *ENV_logFileVar = "XPPYTHON3_LOG";  // set this environment to override logFileName
-  static char *ENV_logPreserve = "XPPYTHON3_PRESERVE";  // DO NOT truncate XPPython log on startup. If set, we preserve, if unset, we truncate
-  static char *logFileName = "XPPython3Log.txt";
-  char *log;
-  pythonFlushLog = xpy_config_get_int("[Main].flush_log");/* 0= off, 1= on */
-  log = xpy_config_get("[Main].log_file_name");
+  static std::string ENV_logFileVar = "XPPYTHON3_LOG";  // set this environment to override logFileName
+  static std::string ENV_logPreserve = "XPPYTHON3_PRESERVE";  // DO NOT truncate XPPython log on startup. If set, we preserve, if unset, we truncate
+  static std::string logFileName = "XPPython3Log.txt";
+  const char *log;
+
+  pythonFlushLog = xpy_config_get_int("Main.flush_log");/* 0= off, 1= on */
+  log = xpy_config_get("Main.log_file_name").c_str();
   if (log != NULL) {
     logFileName = log;
   }
-  log = getenv(ENV_logFileVar);
+  log = getenv(ENV_logFileVar.c_str());
   if(log != NULL){
     logFileName = log;
   }
   
   char *msg;
   int preserve = 0;
-  if (0 == strcmp(logFileName, "Log.txt")) {     /* Special case, combine python log an Log.txt */
+  if (0 == strcmp(logFileName.c_str(), "Log.txt")) {     /* Special case, combine python log an Log.txt */
     pythonLog_fp = NULL;
   } else { /* Not 'Log.txt'... -- try to open provided logFileName */
-    preserve = getenv(ENV_logPreserve) != NULL || xpy_config_get_int("[Main].log_file_preserve") != 0;
-    pythonLog_fp = fopen(logFileName, preserve ? "a" : "w");
+    preserve = getenv(ENV_logPreserve.c_str()) != NULL || xpy_config_get_int("Main.log_file_preserve") != 0;
+    pythonLog_fp = fopen(logFileName.c_str(), preserve ? "a" : "w");
     if(pythonLog_fp == NULL) {
       preserve = 0;
       pythonLog_fp = stdout;
@@ -81,7 +83,7 @@ void setLogFile(void) {
   }
 
   if (-1 == asprintf(&msg, "[XPPython3] Starting %s (compiled: %0x)... Logging to %s%s\n",
-                     pythonPluginVersion, PY_VERSION_HEX, logFileName, preserve ? "+" : "")) {
+                     pythonPluginVersion, PY_VERSION_HEX, logFileName.c_str(), preserve ? "+" : "")) {
     pythonLog("Failed to allocate asprintf memory, failed to start.");
   }
   XPLMDebugString(msg);
@@ -107,14 +109,14 @@ void pythonLog(const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     if (-1 == vasprintf(&msg, fmt, ap)) {
-      msg = "Failed to allocation vasprintf memory in pythonDebug";
+      std::string err_msg = "Failed to allocation vasprintf memory in pythonDebug";
       if (pythonLog_fp) {
-        fprintf(pythonLog_fp, "%s\n", msg);
+        fprintf(pythonLog_fp, "%s\n", err_msg.c_str());
         if (pythonFlushLog) {
           fflush(pythonLog_fp);
         }
       } else {
-        XPLMDebugString(msg);
+        XPLMDebugString(err_msg.c_str());
         XPLMDebugString("\n");
       }
       return;
@@ -146,8 +148,7 @@ void pythonDebug(const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     if (-1 == vasprintf(&msg, fmt, ap)) {
-      msg = "Failed to allocation vasprintf memory in pythonDebug";
-      pythonLog("%s", msg);
+      pythonLog("Failed to allocation vasprintf memory in pythonDebug");
       return;
     }
     va_end(ap);
@@ -194,7 +195,7 @@ char * objDebug(PyObject *item) {
     Py_DECREF(pyBytes);
     return res;
   }
-  return "";
+  return (char *) '\0';
 }
 
 void pythonLogException()
@@ -351,7 +352,7 @@ PyObject *get_pythonline() {
   PyGILState_Release(gilState);
   if (token) {
     char msg[1024];
-    sprintf(msg, "%s:%d", ++token, line);
+    snprintf(msg, sizeof(msg), "%s:%d", ++token, line);
     PyObject *ret = PyUnicode_FromString(msg); // return new item, we then free the char*
     free(last_filename);
     return ret;
@@ -437,7 +438,7 @@ void *refToPtr(PyObject *ref, const char *refName)
       char *s = objToStr(ref);
       pythonDebug("Failed to convert '%s' capsule (%s) to pointer\n", refName, s);
       char msg[1024];
-      sprintf(msg, "Failed to convert '%s' capsule (%s) to pointer\n", refName, s);
+      snprintf(msg, sizeof(msg), "Failed to convert '%s' capsule (%s) to pointer\n", refName, s);
       PyErr_SetString(PyExc_ValueError , msg);
       free(s);
       return NULL;
@@ -514,7 +515,7 @@ void MyPyRun_File(FILE *fp, const char *filename, int start, PyObject *globals, 
     fseek(fp, 0, SEEK_END);
     length = ftell(fp);
     fseek(fp, 0, SEEK_SET);
-    buffer = malloc(length+1);
+    buffer = (char *)malloc(length+1);
     if (buffer) {
       if (length != fread(buffer, 1, length, fp)) {
         pythonLog("Failed to fully read %s for MyPyRun_File. Expected %ul bytes\n", filename, length);
@@ -550,8 +551,7 @@ void errCheck_f(const char *fmt, ...) {
   if (err) {
     va_start(ap, fmt);
     if (-1 == vasprintf(&msg, fmt, ap)) {
-      msg = "Failed to allocation vasprintf memory in errCheck";
-      pythonLog(msg);
+      pythonLog("Failed to allocation vasprintf memory in errCheck");
       return;
     }
     va_end(ap);

@@ -94,7 +94,7 @@ PLUGIN_OBJ = plugin.o defs.o display.o utils.o graphics.o data_access.o utilitie
 	weather.o weatherinfo_type.o weatherinfoclouds_type.o weatherinfowinds_type.o \
 	hotkeyinfo_type.o datarefinfo_type.o probeinfo_type.o plugininfo_type.o navaidinfo_type.o fmsentryinfo_type.o \
 	trackmetrics_type.o manage_instance.o manage_instances.o logwriter.o load_modules.o ini_file.o cursor.o \
-	cpp_utilities.o
+	cpp_utilities.o capsules.o
 
 cursor.o : cursor.cpp
 ifeq ($(TARGET),Darwin)

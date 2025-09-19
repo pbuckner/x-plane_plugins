@@ -16,6 +16,7 @@
 #include "widgets.h"
 #include "display.h"
 #include "xppython.h"
+#include "capsules.h"
 #include "cpp_utilities.hpp"
 
 std::unordered_map<void*, PyObject*> widgetIDCapsules;
@@ -57,7 +58,7 @@ void resetWidgets(void) {
 #if ERRCHECK
     free(moduleName);
 #endif
-    XPDestroyWidget(refToPtr(capsule, widgetRefName), 0);
+    XPDestroyWidget(getVoidPtr(capsule, "XPWidgetID"), 0);
     Py_DECREF(pair.second);
   }
   widgetIDCapsules.clear();
@@ -83,8 +84,8 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
   struct timespec all_stop, all_start;
   clock_gettime(CLOCK_MONOTONIC, &all_start);
 
-  PyObject *widget = getPtrRefCPP(inWidget, widgetIDCapsules, widgetRefName);
-  errCheck("Error after getPtrRef");
+  PyObject *widget = makeCapsule(inWidget, "XPWidgetID");
+  errCheck("Error after makeCapsule");
   
   PyObject *param1, *param2;
   XPKeyState_t *keyState;
@@ -113,7 +114,7 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
     }
     break;
   case xpMsg_Reshape:
-    param1 =  getPtrRefCPP((void *)inParam1, widgetIDCapsules, widgetRefName);
+    param1 =  makeCapsule((void *)inParam1, "XPWidgetID");
     wChange = (XPWidgetGeometryChange_t *)inParam2;
     param2 = Py_BuildValue("(iiii)", wChange->dx, wChange->dy,
                            wChange->dwidth, wChange->dheight);
@@ -127,7 +128,7 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
   case xpMsg_PushButtonPressed:
   case xpMsg_ButtonStateChanged:
   case xpMsg_ScrollBarSliderPositionChanged:
-    param1 =  getPtrRefCPP((void *)inParam1, widgetIDCapsules, widgetRefName);
+    param1 =  makeCapsule((void *)inParam1, "XPWidgetID");
     break;
     
   case xpMsg_PropertyChanged:
@@ -142,7 +143,7 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
 
   errCheck("Error after message parse for msg %d", inMessage);
   
-  void* widgetPtr = refToPtr(widget, widgetRefName);
+  void* widgetPtr = getVoidPtr(widget, "XPWidgetID");
   auto it = widgetCallbacks.find(widgetPtr);
   if(it == widgetCallbacks.end()){
     /* we'll get an xpMsg_Create that we can't handle from a CustomWidget (because the widgetCallbacks
@@ -289,11 +290,12 @@ static PyObject *XPCreateWidgetFun(PyObject *self, PyObject *args, PyObject *kwa
   } else if ((PyLong_Check(container) && PyLong_AsLong(container) == 0) || container == Py_None) {
     inContainer = 0;
   } else {
-    inContainer = refToPtr(container, widgetRefName);
+    inContainer = getVoidPtr(container, "XPWidgetID");
   }
 
   XPWidgetID res = XPCreateWidget(inLeft, inTop, inRight, inBottom, inVisible, inDescriptor, inIsRoot, inContainer, inClass);
-  PyObject *ret = getPtrRefCPP(res, widgetIDCapsules, widgetRefName);
+
+  PyObject *ret = makeCapsule(res, "XPWidgetID");
   errCheck("end createWidget");
   freeCharArray(keywords, params.size());
   return ret;
@@ -331,7 +333,7 @@ static PyObject *XPCreateCustomWidgetFun(PyObject *self, PyObject *args, PyObjec
   } else if ((PyLong_Check(container) && PyLong_AsLong(container) == 0) || container == Py_None) {
     inContainer = 0;
   } else {
-    inContainer = refToPtr(container, widgetRefName);
+    inContainer = getVoidPtr(container, "XPWidgetID");
   }
 
   /* vvvvvvvvvvvvvvvvvv widgetCallback will be immediately called with Create msg BUT
@@ -341,7 +343,7 @@ static PyObject *XPCreateCustomWidgetFun(PyObject *self, PyObject *args, PyObjec
    */
   XPWidgetID res = XPCreateCustomWidget(inLeft, inTop, inRight, inBottom, inVisible, inDescriptor, inIsRoot,
                                         inContainer, widgetCallback);
-  PyObject *resObj = getPtrRefCPP(res, widgetIDCapsules, widgetRefName);
+  PyObject *resObj = makeCapsule(res, "XPWidgetID");
 
   WidgetCallbackInfo callbackInfo;
   callbackInfo.module_name = CurrentPythonModuleName;
@@ -372,7 +374,7 @@ static PyObject *XPDestroyWidgetFun(PyObject *self, PyObject *args, PyObject *kw
     freeCharArray(keywords, params.size());
     return NULL;
   }
-  XPWidgetID wid = refToPtr(widget, widgetRefName);
+  XPWidgetID wid = getVoidPtr(widget, "XPWidgetID");
   XPDestroyWidget(wid, inDestroyChildren);
   if (inDestroyChildren) {
     clearChildrenXPWidgetData(widget);
@@ -384,11 +386,11 @@ static PyObject *XPDestroyWidgetFun(PyObject *self, PyObject *args, PyObject *kw
 
 
 static void clearChildrenXPWidgetData(PyObject *widget) {
-  XPWidgetID wid = refToPtr(widget, widgetRefName);
+  XPWidgetID wid = getVoidPtr(widget, "XPWidgetID");
   int numChildren = XPCountChildWidgets(wid);
   pythonDebug("Clearing children xp widget data [%d] for %s", numChildren, objDebug(widget));
   for (int i=0; i<numChildren; i++) {
-    PyObject *child_widget = getPtrRefCPP(XPGetNthChildWidget(wid, i), widgetIDCapsules, widgetRefName);
+    PyObject *child_widget = makeCapsule(XPGetNthChildWidget(wid, i), "XPWidgetID");
     clearChildrenXPWidgetData(child_widget);
     clearXPWidgetData(child_widget);
   }
@@ -396,7 +398,7 @@ static void clearChildrenXPWidgetData(PyObject *widget) {
 
 static void clearXPWidgetData(PyObject *widget) {
   pythonDebug(" ... clearing xp widgetdata for %s", objDebug(widget));
-  XPWidgetID wid = refToPtr(widget, widgetRefName);
+  XPWidgetID wid = getVoidPtr(widget, "XPWidgetID");
   auto callbackIt = widgetCallbacks.find(wid);
   if (callbackIt != widgetCallbacks.end()) {
     pythonDebug(" widget found in callback dict");
@@ -443,7 +445,7 @@ static PyObject *XPSendMessageToWidgetFun(PyObject *self, PyObject *args, PyObje
     return NULL;
   }
   errCheck("sendMessage post parse");
-  XPWidgetID inWidget = refToPtr(widget, widgetRefName);
+  XPWidgetID inWidget = getVoidPtr(widget, "XPWidgetID");
   intptr_t inParam1;
   intptr_t inParam2;
   errCheck("before convertMessage");
@@ -473,7 +475,7 @@ static PyObject *XPPlaceWidgetWithinFun(PyObject *self, PyObject *args, PyObject
   if (container == Py_None) {
     container = PyLong_FromLong(0);
   }
-  XPPlaceWidgetWithin(refToPtr(subWidget, widgetRefName), refToPtr(container, widgetRefName));
+  XPPlaceWidgetWithin(getVoidPtr(subWidget, "XPWidgetID"), getVoidPtr(container, "XPWidgetID"));
   freeCharArray(keywords, params.size());
   Py_RETURN_NONE;
 }
@@ -493,7 +495,7 @@ static PyObject *XPCountChildWidgetsFun(PyObject *self, PyObject *args, PyObject
     freeCharArray(keywords, params.size());
     return NULL;
   }
-  int res = XPCountChildWidgets(refToPtr(widget, widgetRefName));
+  int res = XPCountChildWidgets(getVoidPtr(widget, "XPWidgetID"));
   freeCharArray(keywords, params.size());
   return PyLong_FromLong(res);
 }
@@ -514,9 +516,9 @@ static PyObject *XPGetNthChildWidgetFun(PyObject *self, PyObject *args, PyObject
     freeCharArray(keywords, params.size());
     return NULL;
   }
-  XPWidgetID res = XPGetNthChildWidget(refToPtr(widget, widgetRefName), inIndex);
+  XPWidgetID res = XPGetNthChildWidget(getVoidPtr(widget, "XPWidgetID"), inIndex);
   freeCharArray(keywords, params.size());
-  return getPtrRefCPP(res, widgetIDCapsules, widgetRefName);
+  return makeCapsule(res, "XPWidgetID");
 }
 
 My_DOCSTR(_getParentWidget__doc__, "getParentWidget",
@@ -534,9 +536,9 @@ static PyObject *XPGetParentWidgetFun(PyObject *self, PyObject *args, PyObject *
     freeCharArray(keywords, params.size());
     return NULL;
   }
-  XPWidgetID res = XPGetParentWidget(refToPtr(widget, widgetRefName));
+  XPWidgetID res = XPGetParentWidget(getVoidPtr(widget, "XPWidgetID"));
   freeCharArray(keywords, params.size());
-  return getPtrRefCPP(res, widgetIDCapsules, widgetRefName);
+  return makeCapsule(res, "XPWidgetID");
 }
 
 My_DOCSTR(_showWidget__doc__, "showWidget",
@@ -554,7 +556,7 @@ static PyObject *XPShowWidgetFun(PyObject *self, PyObject *args, PyObject *kwarg
     freeCharArray(keywords, params.size());
     return NULL;
   }
-  XPShowWidget(refToPtr(widget, widgetRefName));
+  XPShowWidget(getVoidPtr(widget, "XPWidgetID"));
   freeCharArray(keywords, params.size());
   Py_RETURN_NONE;
 }
@@ -574,7 +576,7 @@ static PyObject *XPHideWidgetFun(PyObject *self, PyObject *args, PyObject *kwarg
     freeCharArray(keywords, params.size());
     return NULL;
   }
-  XPHideWidget(refToPtr(widget, widgetRefName));
+  XPHideWidget(getVoidPtr(widget, "XPWidgetID"));
   freeCharArray(keywords, params.size());
   Py_RETURN_NONE;
 }
@@ -598,7 +600,7 @@ static PyObject *XPIsWidgetVisibleFun(PyObject *self, PyObject *args, PyObject *
     freeCharArray(keywords, params.size());
     return NULL;
   }
-  int res = XPIsWidgetVisible(refToPtr(widget, widgetRefName));
+  int res = XPIsWidgetVisible(getVoidPtr(widget, "XPWidgetID"));
   freeCharArray(keywords, params.size());
   return(PyLong_FromLong(res));
 }
@@ -620,9 +622,9 @@ static PyObject *XPFindRootWidgetFun(PyObject *self, PyObject *args, PyObject *k
     freeCharArray(keywords, params.size());
     return NULL;
   }
-  XPWidgetID res = XPFindRootWidget(refToPtr(widget, widgetRefName));
+  XPWidgetID res = XPFindRootWidget(getVoidPtr(widget, "XPWidgetID"));
   freeCharArray(keywords, params.size());
-  return(getPtrRefCPP(res, widgetIDCapsules, widgetRefName));
+  return makeCapsule(res, "XPWidgetID");
 }
 
 My_DOCSTR(_bringRootWidgetToFront__doc__, "bringRootWidgetToFront",
@@ -640,7 +642,7 @@ static PyObject *XPBringRootWidgetToFrontFun(PyObject *self, PyObject *args, PyO
     freeCharArray(keywords, params.size());
     return NULL;
   }
-  XPBringRootWidgetToFront(refToPtr(widget, widgetRefName));
+  XPBringRootWidgetToFront(getVoidPtr(widget, "XPWidgetID"));
   freeCharArray(keywords, params.size());
   Py_RETURN_NONE;
 }
@@ -660,7 +662,7 @@ static PyObject *XPIsWidgetInFrontFun(PyObject *self, PyObject *args, PyObject *
     freeCharArray(keywords, params.size());
     return NULL;
   }
-  int res = XPIsWidgetInFront(refToPtr(widget, widgetRefName));
+  int res = XPIsWidgetInFront(getVoidPtr(widget, "XPWidgetID"));
   freeCharArray(keywords, params.size());
   return(PyLong_FromLong(res));
 }
@@ -681,7 +683,7 @@ static PyObject *XPGetWidgetGeometryFun(PyObject *self, PyObject *args, PyObject
     return NULL;
   }
   int left, top, right, bottom;
-  XPGetWidgetGeometry(refToPtr(widget, widgetRefName), &left, &top, &right, &bottom);
+  XPGetWidgetGeometry(getVoidPtr(widget, "XPWidgetID"), &left, &top, &right, &bottom);
   freeCharArray(keywords, params.size());
   return Py_BuildValue("(iiii)", left, top, right, bottom);
 }
@@ -702,7 +704,7 @@ static PyObject *XPSetWidgetGeometryFun(PyObject *self, PyObject *args, PyObject
     freeCharArray(keywords, params.size());
     return NULL;
   }
-  XPSetWidgetGeometry(refToPtr(widget, widgetRefName), inLeft, inTop, inRight, inBottom);
+  XPSetWidgetGeometry(getVoidPtr(widget, "XPWidgetID"), inLeft, inTop, inRight, inBottom);
   freeCharArray(keywords, params.size());
   Py_RETURN_NONE;
 }
@@ -727,9 +729,9 @@ static PyObject *XPGetWidgetForLocationFun(PyObject *self, PyObject *args, PyObj
     freeCharArray(keywords, params.size());
     return NULL;
   }
-  XPWidgetID res = XPGetWidgetForLocation(refToPtr(container, widgetRefName), xOffset, yOffset, recursive, visibleOnly);
+  XPWidgetID res = XPGetWidgetForLocation(getVoidPtr(container, "XPWidgetID"), xOffset, yOffset, recursive, visibleOnly);
   freeCharArray(keywords, params.size());
-  return getPtrRefCPP(res, widgetIDCapsules, widgetRefName);
+  return makeCapsule(res, "XPWidgetID");
 }
 
 My_DOCSTR(_getWidgetExposedGeometry__doc__, "getWidgetExposedGeometry",
@@ -748,7 +750,7 @@ static PyObject *XPGetWidgetExposedGeometryFun(PyObject *self, PyObject *args, P
     return NULL;
   }
   int left, top, right, bottom;
-  XPGetWidgetExposedGeometry(refToPtr(widget, widgetRefName), &left, &top, &right, &bottom);
+  XPGetWidgetExposedGeometry(getVoidPtr(widget, "XPWidgetID"), &left, &top, &right, &bottom);
   freeCharArray(keywords, params.size());
   return Py_BuildValue("(iiii)", left, top, right, bottom);
 }
@@ -770,7 +772,7 @@ static PyObject *XPSetWidgetDescriptorFun(PyObject *self, PyObject *args, PyObje
     freeCharArray(keywords, params.size());
     return NULL;
   }
-  XPSetWidgetDescriptor(refToPtr(widget, widgetRefName), inDescriptor);
+  XPSetWidgetDescriptor(getVoidPtr(widget, "XPWidgetID"), inDescriptor);
   errCheck("end setwidgetdescriptor");
   freeCharArray(keywords, params.size());
   Py_RETURN_NONE;
@@ -793,9 +795,9 @@ static PyObject *XPGetWidgetDescriptorFun(PyObject *self, PyObject *args, PyObje
     return NULL;
   }
   int res;
-  int length = XPGetWidgetDescriptor(refToPtr(widget, widgetRefName), NULL, 0);
+  int length = XPGetWidgetDescriptor(getVoidPtr(widget, "XPWidgetID"), NULL, 0);
   char *buffer = (char *)malloc(length + 1);
-  res = XPGetWidgetDescriptor(refToPtr(widget, widgetRefName), buffer, length);
+  res = XPGetWidgetDescriptor(getVoidPtr(widget, "XPWidgetID"), buffer, length);
   if (res > length) {
     printf("Warning: xppython descriptor for widget exceeds buffer size\n");
   }
@@ -825,9 +827,9 @@ static PyObject *XPGetWidgetUnderlyingWindowFun(PyObject *self, PyObject *args, 
     freeCharArray(keywords, params.size());
     return NULL;
   }
-  XPLMWindowID res = XPGetWidgetUnderlyingWindow_ptr(refToPtr(widget, widgetRefName));
+  XPLMWindowID res = XPGetWidgetUnderlyingWindow_ptr(getVoidPtr(widget, "XPWidgetID"));
   freeCharArray(keywords, params.size());
-  return getPtrRefCPP(res, windowIDCapsules, windowIDRef);
+  return makeCapsule(res, "XPLMWindowID");
 }
 
 
@@ -869,11 +871,11 @@ static PyObject *XPSetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject
 
     if (comparison == 0) {
       /* not found, or they're different */
-      XPSendMessageToWidget(refToPtr(widget, widgetRefName), xpMsg_PropertyChanged, xpMode_Direct, property, (intptr_t) value);
+      XPSendMessageToWidget(getVoidPtr(widget, "XPWidgetID"), xpMsg_PropertyChanged, xpMode_Direct, property, (intptr_t) value);
       errCheck("after comparison == 0 setwidgetproperty");
     }
   } else {
-    XPSetWidgetProperty(refToPtr(widget, widgetRefName), inProperty, value == Py_None ? 0: PyLong_AsLong(value));
+    XPSetWidgetProperty(getVoidPtr(widget, "XPWidgetID"), inProperty, value == Py_None ? 0: PyLong_AsLong(value));
     err = PyErr_Occurred();
     if(err){
       char *s = objToStr(value);
@@ -937,7 +939,7 @@ static PyObject *XPGetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject
       inExists = 1;
     }
   } else {
-    intptr_t res = XPGetWidgetProperty(refToPtr(widget, widgetRefName), inProperty, &inExists);
+    intptr_t res = XPGetWidgetProperty(getVoidPtr(widget, "XPWidgetID"), inProperty, &inExists);
     resObj = PyLong_FromLong(res);
   }
     
@@ -976,8 +978,8 @@ static PyObject *XPSetKeyboardFocusFun(PyObject *self, PyObject *args, PyObject 
     freeCharArray(keywords, params.size());
     return NULL;
   }
-  XPWidgetID res = XPSetKeyboardFocus(refToPtr(widget, widgetRefName));
-  PyObject *resObj = getPtrRefCPP(res, widgetIDCapsules, widgetRefName);
+  XPWidgetID res = XPSetKeyboardFocus(getVoidPtr(widget, "XPWidgetID"));
+  PyObject *resObj = makeCapsule(res, "XPWidgetID");
   freeCharArray(keywords, params.size());
   if (resObj == Py_None) {
     return PyLong_FromLong(0);
@@ -1000,7 +1002,7 @@ static PyObject *XPLoseKeyboardFocusFun(PyObject *self, PyObject *args, PyObject
     freeCharArray(keywords, params.size());
     return NULL;
   }
-  XPLoseKeyboardFocus(refToPtr(widget, widgetRefName));
+  XPLoseKeyboardFocus(getVoidPtr(widget, "XPWidgetID"));
   freeCharArray(keywords, params.size());
   Py_RETURN_NONE;
 }
@@ -1015,7 +1017,7 @@ static PyObject *XPGetWidgetWithFocusFun(PyObject *self, PyObject *args)
   (void) self;
   (void) args;
   XPWidgetID res = XPGetWidgetWithFocus();
-  PyObject *resObj = getPtrRefCPP(res, widgetIDCapsules, widgetRefName);
+  PyObject *resObj = makeCapsule(res, "XPWidgetID");
   return resObj;
 }
 
@@ -1040,7 +1042,7 @@ static PyObject *XPAddWidgetCallbackFun(PyObject *self, PyObject *args, PyObject
     freeCharArray(keywords, params.size());
     return NULL;
   }
-  void* widgetPtr = refToPtr(widget, widgetRefName);
+  void* widgetPtr = getVoidPtr(widget, "XPWidgetID");
   auto it = widgetCallbacks.find(widgetPtr);
   Py_INCREF(callback);
 

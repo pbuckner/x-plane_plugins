@@ -3,10 +3,6 @@
 #define UTILS__H
 
 #define My_DOCSTR(name,method,parms,params_doc,return,str) static const char name[] = method"($module, /, " parms ")\n--\n\n" str
-extern const char *objRefName;
-extern const char *commandRefName;
-extern const char *widgetRefName;
-extern const char *windowIDRef;
 extern PyObject *XPY3pythonDicts;
 extern PyObject *XPY3pythonCapsules;
 extern int pythonDebugs;
@@ -19,12 +15,9 @@ extern char CurrentPythonModuleName[];
 void dbg(const char *msg);
 void pythonLogException(void);
 
-PyObject *getPtrRef(void *ptr, PyObject *dict, const char *refName);
-PyObject *getPtrRefOneshot(void *ptr, const char *refName);
-void *refToPtr(PyObject *ref, const char *refName);
-void removePtrRef(void *ptr, PyObject *dict);
 void set_moduleName(PyObject *);
 PyObject *get_moduleName_p();
+PyObject *get_pythonline();
 char *objToStr(PyObject *item);
 char *objDebug(PyObject *item);
 void pythonLogWarning(const char *msg);

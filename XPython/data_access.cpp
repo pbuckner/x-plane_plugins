@@ -13,6 +13,7 @@
 #include "data_access.h"
 #include "cpp_utilities.hpp"
 #include "xppythontypes.h"
+#include "capsules.h"
 #include "plugin_dl.h"
 
 struct SharedInfo {
@@ -27,8 +28,6 @@ static std::unordered_map<intptr_t, SharedInfo> sharedCallbacks;
 static void genericSharedDataChanged(void *inRefcon);
 
 static intptr_t sharedCntr = 0;
-
-static const char dataRefName[] = "XPLMDataRef";
 
 struct AccessorInfo {
   std::string module_name;
@@ -98,7 +97,7 @@ void resetDataRefs(void) {
 
 static inline XPLMDataRef drefFromObj(PyObject *obj)
 {
-  XPLMDataRef ret = (XPLMDataRef)refToPtr(obj, dataRefName);
+  XPLMDataRef ret = (XPLMDataRef)getVoidPtr(obj, "XPLMDataRef");
   if (! ret) {
     PyErr_SetString(PyExc_TypeError, "invalid dataRef");
   }
@@ -125,7 +124,7 @@ static PyObject *XPLMFindDataRefFun(PyObject *self, PyObject *args, PyObject *kw
   freeCharArray(keywords, params.size());
   XPLMDataRef ref = XPLMFindDataRef(inDataRefName);
   if(ref){
-    return getPtrRefOneshot(ref, dataRefName);
+    return makeCapsule(ref, "XPLMDataRef");
   }else{
     Py_RETURN_NONE;
   }
@@ -1513,7 +1512,7 @@ static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args, PyO
     .dataRef = res
   };
 
-  PyObject *dataRefCapsule = getPtrRefOneshot(res, dataRefName);
+  PyObject *dataRefCapsule = makeCapsule(res, "XPLMDataRef");;
   PyObject *accessorDictKey = PyLong_FromVoidPtr(refcon);
   Py_DECREF(accessorDictKey);
   return dataRefCapsule;
@@ -1736,7 +1735,7 @@ static PyObject *XPLMGetDataRefsByIndexFun(PyObject *self, PyObject *args, PyObj
       free(outDataRefs);
       Py_RETURN_NONE;
     }
-    PyList_Append(outValuesObj, getPtrRefOneshot(outDataRefs[i], dataRefName));
+    PyList_Append(outValuesObj, makeCapsule(outDataRefs[i], "XPLMDataRef"));
   }
   free(outDataRefs);
   return outValuesObj;

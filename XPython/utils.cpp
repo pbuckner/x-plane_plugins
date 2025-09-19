@@ -108,6 +108,8 @@ void pythonLog(const char *fmt, ...) {
     char *msg;
     va_list ap;
     va_start(ap, fmt);
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
     if (-1 == vasprintf(&msg, fmt, ap)) {
       std::string err_msg = "Failed to allocation vasprintf memory in pythonDebug";
       if (pythonLog_fp) {
@@ -123,7 +125,7 @@ void pythonLog(const char *fmt, ...) {
     }
     va_end(ap);
     if (pythonLog_fp) {
-      fprintf(pythonLog_fp, "%s\n", msg);
+      fprintf(pythonLog_fp, "[%ld,%ld] %s\n", now.tv_sec, now.tv_nsec, msg);
       pythonLogFlush();
     } else {
       XPLMDebugString(msg);
@@ -362,103 +364,6 @@ PyObject *get_pythonline() {
 }
 #endif
 
-// To avoid Python code messing with raw pointers (when passed
-//   in using PyLong_FromVoidPtr), these are hidden in the capsules.
-
-// Can be used where no callbacks are involved in passing the capsule
-PyObject *getPtrRefOneshot(void *ptr, const char *refName)
-{
-  if(!ptr){
-    Py_RETURN_NONE;
-  }
-  errCheck("prior getPtrRefOneshot: %s", refName);
-  PyObject *ret = PyCapsule_New(ptr, refName, NULL);
-  errCheck("end getPtrRefOneShot");
-  return ret;
-}
-
-PyObject *getPtrRef(void *ptr, PyObject *dict, const char *refName)
-{
-  /* converts a 'C' pointer to a Capsule reference of <refName> type,
-     IF, pointer has been convereted before, we return the given Capsule.
-     ELSE, we create a new capsule, storing info in dict, for later retrieval.
-  */
-  if(!ptr){
-    Py_RETURN_NONE;
-  }
-  // Check if the refernece is known
-  errCheck("prior getPtrRef %s", refName);
-  PyObject *key = PyLong_FromVoidPtr(ptr);
-#if ERRCHECK
-  PyObject *tuple = PyDict_GetItemWithError(dict, key); /* borrowed, NULL w/out exception, if not found */
-  PyObject *capsule = tuple == NULL ? NULL : PyTuple_GetItem(tuple, CAPSULE_CAPSULE);
-#else
-  PyObject *capsule = PyDict_GetItemWithError(dict, key); /* borrowed */
-#endif
-  if(capsule == NULL){
-    // New ref, register it
-    capsule = getPtrRefOneshot(ptr, refName);
-#if ERRCHECK
-    if (pythonCapsuleRegistration) {
-      char *res_s = objToStr(capsule);
-      pythonLog("  (%s registering %s for %p)", CurrentPythonModuleName, res_s, ptr);
-      free(res_s);
-    }
-#endif
-#if ERRCHECK
-    PyObject *tuple = PyTuple_Pack(2, capsule, get_moduleName_p());
-    PyDict_SetItem(dict, key, tuple);
-#else
-    PyDict_SetItem(dict, key, capsule);
-#endif
-  }
-  Py_INCREF(capsule);
-  errCheck("end getPtrRef");
-  return capsule;
-}
-
-void *refToPtr(PyObject *ref, const char *refName)
-{
-  errCheck("prior refToPtr %s", refName);
-  /* XPWidgetID can be 0, refering to underlying X-Plane window, need to keep that */
-  if (ref == Py_None) return NULL;
-  if (refName == NULL) {
-    refName = PyCapsule_GetName(ref);
-    errCheck("Bad PyCapsule_GetName()");
-  }
-  if (PyLong_Check(ref) && PyLong_AsLong(ref) == 0 && !strcmp(widgetRefName, refName)){
-    return NULL;
-  }
-
-  void *ptr = PyCapsule_GetPointer(ref, refName);
-  if (pythonDebugs) {
-    PyObject *err = PyErr_Occurred();
-    if(err){
-      pythonLogException();
-      char *s = objToStr(ref);
-      pythonDebug("Failed to convert '%s' capsule (%s) to pointer\n", refName, s);
-      char msg[1024];
-      snprintf(msg, sizeof(msg), "Failed to convert '%s' capsule (%s) to pointer\n", refName, s);
-      PyErr_SetString(PyExc_ValueError , msg);
-      free(s);
-      return NULL;
-    }
-  }
-  errCheck("end refToPtr");
-  return ptr;
-}
-
-void removePtrRef(void *ptr, PyObject *dict)
-{
-  errCheck("prior removePtrRef");
-  if(!ptr){
-    return;
-  }
-  PyObject *key = PyLong_FromVoidPtr(ptr);
-  PyDict_DelItem(dict, key);
-  Py_DECREF(key);
-  errCheck("end removePtrRef");
-}
 
 /* char *get_module(PyThreadState *tstate) { */
 /*   /\* returns filename of top most frame -- this will be the Plugin's file *\/ */

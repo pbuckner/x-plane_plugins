@@ -11,6 +11,7 @@
 #include "utils.h"
 #include "widgets.h"
 #include "widgetutils.h"
+#include "capsules.h"
 #include "cpp_utilities.hpp"
 
 My_DOCSTR(_createWidgets__doc__, "createWidgets",
@@ -48,7 +49,7 @@ static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args, PyObject *k
   }
   XPWidgetID inParamParent = 0;
   if (paramParent != Py_None) {
-    inParamParent = refToPtr(paramParent, widgetRefName);
+    inParamParent = getVoidPtr(paramParent, "XPWidgetID");
   }
 
   XPWidgetID *ioWidgets = (XPWidgetID *)malloc(sizeof(XPWidgetID) * inCount);
@@ -95,7 +96,7 @@ static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args, PyObject *k
 
   for(i = 0; i < inCount; ++i){
     Py_DECREF(tmpObjs[i]);
-    PyObject *tmp = getPtrRefCPP(ioWidgets[i], widgetIDCapsules, widgetRefName);
+    PyObject *tmp = makeCapsule(ioWidgets[i], "XPWidgetID");
     PyList_Append(widgets, tmp);
     Py_DECREF(tmp);
   }
@@ -122,7 +123,7 @@ static PyObject *XPUMoveWidgetByFun(PyObject *self, PyObject *args, PyObject *kw
     freeCharArray(keywords, params.size());
     return NULL;
   }
-  inWidget = refToPtr(widget, widgetRefName);
+  inWidget = getVoidPtr(widget, "XPWidgetID");
   XPUMoveWidgetBy(inWidget, inDeltaX, inDeltaY);
   freeCharArray(keywords, params.size());
   Py_RETURN_NONE;
@@ -160,7 +161,7 @@ void convertMessagePythonToC(XPWidgetMessage msg, PyObject *widget, PyObject *pa
                                     XPWidgetID *widget_ptr, intptr_t *param1_ptr, intptr_t *param2_ptr)
 {
   /* generically: */
-  *widget_ptr = refToPtr(widget, widgetRefName);
+  *widget_ptr = getVoidPtr(widget, "XPWidgetID");
 
   /* Modifications, based on message type */
   XPKeyState_t *keyState = NULL;
@@ -197,8 +198,7 @@ void convertMessagePythonToC(XPWidgetMessage msg, PyObject *widget, PyObject *pa
     break;
 
   case xpMsg_Reshape:
-    /* param1 =  getPtrRef((void *)inParam1, widgetIDCapsules, widgetRefName); */
-    *param1_ptr = (intptr_t) refToPtr(param1, widgetRefName);/*PyCapsule_GetPointer(param1, widgetRefName);*/
+    *param1_ptr = (intptr_t) getVoidPtr(param1, "XPWidgetID");
 
     /* wChange = (XPWidgetGeometryChange_t *)inParam2; */
     /* param2 = Py_BuildValue("(iiii)", wChange->dx, wChange->dy, */
@@ -220,7 +220,7 @@ void convertMessagePythonToC(XPWidgetMessage msg, PyObject *widget, PyObject *pa
   case xpMsg_PushButtonPressed:
   case xpMsg_ButtonStateChanged:
   case xpMsg_ScrollBarSliderPositionChanged:
-    *param1_ptr = (intptr_t) refToPtr(param1, widgetRefName);
+    *param1_ptr = (intptr_t) getVoidPtr(param1, "XPWidgetID");
     *param2_ptr = PyLong_AsLong(param2);
     break;
     
@@ -231,8 +231,8 @@ void convertMessagePythonToC(XPWidgetMessage msg, PyObject *widget, PyObject *pa
     errCheck("Failed to convert param2 pointer for msg %d", msg);
     break;
   default:
-    *param1_ptr = PyCapsule_CheckExact(param1) ? (intptr_t) refToPtr(param1, NULL) : PyLong_AsLong(param1);
-    *param2_ptr = PyCapsule_CheckExact(param2) ? (intptr_t) refToPtr(param2, NULL) : PyLong_AsLong(param2);
+    *param1_ptr = PyCapsule_CheckExact(param1) ? (intptr_t) getVoidPtr(param1) : PyLong_AsLong(param1);
+    *param2_ptr = PyCapsule_CheckExact(param2) ? (intptr_t) getVoidPtr(param2) : PyLong_AsLong(param2);
     errCheck("Failed to convert param pointers for msg %d", msg);
     break;
   }
@@ -270,7 +270,7 @@ static PyObject *XPUSelectIfNeededFun(PyObject *self, PyObject *args, PyObject *
      For the params, we're reading a python object & we'll need to convert them (back)
      to their int form. This is the reverse of widgetCallback() in widgets.c
    */
-  inWidget = refToPtr(widget, widgetRefName);
+  inWidget = getVoidPtr(widget, "XPWidgetID");
   errCheck("selectifneeded inWidget");
   XPKeyState_t keyState;
   XPMouseState_t mouseState;
@@ -305,7 +305,7 @@ static PyObject *XPUSelectIfNeededFun(PyObject *self, PyObject *args, PyObject *
     }
     break;
   case xpMsg_Reshape:
-    inParam1 = (intptr_t) refToPtr(param1, widgetRefName);
+    inParam1 = (intptr_t) getVoidPtr(param1, "XPWidgetID");
     if (PyTuple_Check(param2) || PyList_Check(param2)) {
         wChange.dx = PyLong_AsLong(PySequence_GetItem(param2, 0));
         wChange.dy = PyLong_AsLong(PySequence_GetItem(param2, 1));
@@ -322,7 +322,7 @@ static PyObject *XPUSelectIfNeededFun(PyObject *self, PyObject *args, PyObject *
   case xpMsg_TextFieldChanged:
   case xpMsg_PushButtonPressed:
   case xpMsg_ButtonStateChanged:
-    inParam1 = (intptr_t) refToPtr(param1, widgetRefName);
+    inParam1 = (intptr_t) getVoidPtr(param1, "XPWidgetID");
     inParam2 = PyLong_AsLong(param2);
     break;
   case xpMsg_PropertyChanged:

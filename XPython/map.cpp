@@ -9,6 +9,7 @@
 #include "plugin_dl.h"
 #include "utils.h"
 #include "map.h"
+#include "capsules.h"
 #include "cpp_utilities.hpp"
 
 struct MapCallbackInfo {
@@ -26,8 +27,6 @@ struct MapCallbackInfo {
   intptr_t refcon_id;          // The key used for lookup
 };
   
-static std::unordered_map<intptr_t, MapCallbackInfo> mapCallbacks;
-
 #define MAP_MODULE_NAME 0
 #define MAP_TYPE 1
 #define MAP_LAYER 2
@@ -39,14 +38,10 @@ static std::unordered_map<intptr_t, MapCallbackInfo> mapCallbacks;
 #define MAP_TOGGLE 8
 #define MAP_NAME 9
 #define MAP_REFCON 10
-intptr_t mapCntr;
 
-// static PyObject *mapRefDict; /* {
-//                                   <mapLayerIDCapsule1> : mapDictKey1
-//                                   <mapLayerIDCapsule2> : mapDictKey2,
-//                                 }
-//                              */
+static std::unordered_map<intptr_t, MapCallbackInfo> mapCallbacks;
 
+intptr_t mapCntr = 0;
 
 struct MapCreateInfo {
   PyObject *callback;          // MAPCREATE_CALLBACK
@@ -60,10 +55,6 @@ static std::unordered_map<intptr_t, MapCreateInfo> mapCreateCallbacks;
 intptr_t mapCreateCntr;
 static std::unordered_map<void*, PyObject*> mapLayerIDCapsules;
 static std::unordered_map<void*, PyObject*> mapProjectionCapsules;
-
-static const char layerIDRefName[] = "XPLMMapLayerID";
-static const char projectionRefName[] = "XPLMMapProjectionID";
-
 
 void resetMap(void) {
   for (const auto& pair : mapCallbacks) {
@@ -134,8 +125,8 @@ static inline void mapCallback(int whichCallback, XPLMMapLayerID inLayer, const 
   if (callback == Py_None) {
     return;
   }
-  layerObj = getPtrRefCPP(inLayer, mapLayerIDCapsules, layerIDRefName);
-  PyObject *mapProjectionCapsule = getPtrRefCPP(projection, mapProjectionCapsules, projectionRefName);
+  layerObj = makeCapsule(inLayer, "XPLMMapLayerID");
+  PyObject *mapProjectionCapsule = makeCapsule(projection, "XPLMMapProjectionID");
   refconObj = info.refCon;
   
   boundsObj = PyTuple_New(4);
@@ -185,8 +176,8 @@ static inline void mapPrepareCacheCallback(XPLMMapLayerID inLayer, const float *
   set_moduleName(module_name_obj);
   Py_DECREF(module_name_obj);
 
-  layerObj = getPtrRefCPP(inLayer, mapLayerIDCapsules, layerIDRefName);
-  PyObject *mapProjectionCapsule = getPtrRefCPP(projection, mapProjectionCapsules, projectionRefName);
+  layerObj = makeCapsule(inLayer, "XPLMMapLayerID");
+  PyObject *mapProjectionCapsule = makeCapsule(projection, "XPLMMapProjectionID");
   refconObj = info.refCon;
   
   boundsObj = PyTuple_New(4);
@@ -229,7 +220,7 @@ static inline void mapWillBeDeletedCallback(XPLMMapLayerID inLayer, void *inRefc
   set_moduleName(module_name_obj);
   Py_DECREF(module_name_obj);
 
-  layerObj = getPtrRefCPP(inLayer, mapLayerIDCapsules, layerIDRefName);
+  layerObj = makeCapsule(inLayer, "XPLMMapLayerID");
   refconObj = info.refCon;
   
   PyObject *pRes = PyObject_CallFunctionObjArgs(callback, layerObj, refconObj, NULL);
@@ -478,7 +469,7 @@ static PyObject *XPLMCreateMapLayerFun(PyObject *self, PyObject *args, PyObject 
     return NULL;
   }
   mapCallbacks[refcon_id] = callbackInfo;
-  PyObject *mapLayerCapsule = getPtrRefCPP(mapLayerID, mapLayerIDCapsules, layerIDRefName);
+  PyObject *mapLayerCapsule = makeCapsule(mapLayerID, "XPLMMapLayerID");
   Py_DECREF(tmpObjMap);
   Py_DECREF(tmpObjLayerName);
   Py_DECREF(paramsTuple);
@@ -508,7 +499,7 @@ static PyObject *XPLMDestroyMapLayerFun(PyObject *self, PyObject *args, PyObject
   }
   freeCharArray(keywords, params.size());
 
-  XPLMMapLayerID inLayer = refToPtr(layer, layerIDRefName);
+  XPLMMapLayerID inLayer = getVoidPtr(layer, "XPLMMapLayerID");
   int res = XPLMDestroyMapLayer_ptr(inLayer);
   if(res){
     for (auto&pair: mapCallbacks) {
@@ -628,7 +619,7 @@ static PyObject *XPLMDrawMapIconFromSheetFun(PyObject *self, PyObject *args, PyO
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  XPLMMapLayerID layer = refToPtr(layerObj, layerIDRefName);
+  XPLMMapLayerID layer = getVoidPtr(layerObj, "XPLMMapLayerID");
   XPLMDrawMapIconFromSheet_ptr(layer, inPngPath, s, t, ds, dt, mapX, mapY,
                        orientation, rotationDegrees, mapWidth);
   Py_RETURN_NONE;
@@ -662,7 +653,7 @@ static PyObject *XPLMDrawMapLabelFun(PyObject *self, PyObject *args, PyObject *k
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  XPLMMapLayerID layer = refToPtr(layerObj, layerIDRefName);
+  XPLMMapLayerID layer = getVoidPtr(layerObj, "XPLMMapLayerID");
   XPLMDrawMapLabel_ptr(layer, inText, mapX, mapY, orientation, rotationDegrees);
   Py_RETURN_NONE;
 }
@@ -701,7 +692,7 @@ static PyObject *XPLMMapProjectFun(PyObject *self, PyObject *args, PyObject *kwa
   } else {
     freeCharArray(keywords, params.size());
   }
-  XPLMMapProjectionID projection = refToPtr(projectionObj, projectionRefName);
+  XPLMMapProjectionID projection = getVoidPtr(projectionObj, "XPLMMapProjectionID");
   float x, y;
   XPLMMapProject_ptr(projection, latitude, longitude, &x, &y);
   if (returnValues) {
@@ -752,7 +743,7 @@ static PyObject *XPLMMapUnprojectFun(PyObject *self, PyObject *args, PyObject *k
   } else {
     freeCharArray(keywords, params.size());
   }
-  XPLMMapProjectionID projection = refToPtr(projectionObj, projectionRefName);
+  XPLMMapProjectionID projection = getVoidPtr(projectionObj, "XPLMMapProjectionID");
   double longitude, latitude;
   XPLMMapUnproject_ptr(projection, mapX, mapY, &latitude, &longitude);
   if (returnValues) 
@@ -791,7 +782,7 @@ static PyObject *XPLMMapScaleMeterFun(PyObject *self, PyObject *args, PyObject *
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  XPLMMapProjectionID projection = refToPtr(projectionObj, projectionRefName);
+  XPLMMapProjectionID projection = getVoidPtr(projectionObj, "XPLMMapProjectionID");
   float res = XPLMMapScaleMeter_ptr(projection, mapX, mapY);
   return PyFloat_FromDouble(res);
 }
@@ -821,7 +812,7 @@ static PyObject *XPLMMapGetNorthHeadingFun(PyObject *self, PyObject *args, PyObj
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  XPLMMapProjectionID projection = refToPtr(projectionObj, projectionRefName);
+  XPLMMapProjectionID projection = getVoidPtr(projectionObj, "XPLMMapProjectionID");
   float res = XPLMMapGetNorthHeading_ptr(projection, mapX, mapY);
   return PyFloat_FromDouble(res);
 }

@@ -8,9 +8,8 @@
 #include <unordered_map>
 #include "plugin_dl.h"
 #include "utils.h"
+#include "capsules.h"
 #include "cpp_utilities.hpp"
-
-static const char fmodChannelRefName[] = "FMOD_CHANNEL";
 
 static intptr_t callbackCntr;
 struct SoundCallbackInfo {
@@ -57,7 +56,7 @@ static PyObject *XPLMGetFMODStudioFun(PyObject *self, PyObject *args)
     return NULL;
   }
   FMOD_STUDIO_SYSTEM *ret = XPLMGetFMODStudio_ptr();
-  return getPtrRefOneshot(ret, "FMOD_STUDIO_SYSTEM");
+  return makeCapsule(ret,"FMOD_STUDIO_SYSTEM");
 }
   
 My_DOCSTR(_getFMODChannelGroup__doc__, "getFMODChannelGroup",
@@ -83,7 +82,7 @@ static PyObject *XPLMGetFMODChannelGroupFun(PyObject *self, PyObject *args, PyOb
   freeCharArray(keywords, params.size());
 
   FMOD_CHANNELGROUP *ret = XPLMGetFMODChannelGroup_ptr(audioType);
-  return getPtrRefOneshot(ret, "FMOD_CHANNELGROUP");
+  return makeCapsule(ret, "FMOD_CHANNELGROUP");
 }
 #endif
 
@@ -187,7 +186,7 @@ static PyObject *XPLMPlayPCMOnBusFun(PyObject *self, PyObject *args, PyObject *k
   FMOD_CHANNEL *fmod_channel = XPLMPlayPCMOnBus_ptr(audioBuffer,
                                                     bufferSize, soundFormat, freqHz, numChannels, loop, audioType,
                                                     callback, inRefcon);
-  return getPtrRefOneshot(fmod_channel, fmodChannelRefName);
+  return makeCapsule(fmod_channel, "FMOD_CHANNEL");
 }
 
 static void soundCallback(void *inRefcon, FMOD_RESULT status)
@@ -240,7 +239,7 @@ static PyObject *XPLMStopAudioFun(PyObject *self, PyObject *args, PyObject *kwar
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  FMOD_CHANNEL *fmod_channel = (FMOD_CHANNEL *)refToPtr(fmod_channel_obj, fmodChannelRefName);
+  FMOD_CHANNEL *fmod_channel = (FMOD_CHANNEL *)getVoidPtr(fmod_channel_obj, "FMOD_CHANNEL");
   FMOD_RESULT res = XPLMStopAudio_ptr(fmod_channel);
   return PyLong_FromLong(res);
 }
@@ -308,7 +307,7 @@ static PyObject *XPLMSetAudioPositionFun(PyObject *self, PyObject *args, PyObjec
     velocity.x = velocity.y = velocity.z = 0;
   }
 
-  FMOD_CHANNEL *fmod_channel = (FMOD_CHANNEL *)refToPtr(fmod_channel_obj, fmodChannelRefName);
+  FMOD_CHANNEL *fmod_channel = (FMOD_CHANNEL *)getVoidPtr(fmod_channel_obj, "FMOD_CHANNEL");
   FMOD_RESULT res = XPLMSetAudioPosition_ptr(fmod_channel, &position, &velocity);
   return PyLong_FromLong(res);
 }
@@ -351,7 +350,7 @@ static PyObject *XPLMSetAudioFadeDistanceFun(PyObject *self, PyObject *args, PyO
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  FMOD_CHANNEL *fmod_channel = (FMOD_CHANNEL *)refToPtr(fmod_channel_obj, fmodChannelRefName);
+  FMOD_CHANNEL *fmod_channel = (FMOD_CHANNEL *)getVoidPtr(fmod_channel_obj, "FMOD_CHANNEL");
   FMOD_RESULT res = XPLMSetAudioFadeDistance_ptr(fmod_channel, min, max);
   return PyLong_FromLong(res);
 }
@@ -382,7 +381,7 @@ static PyObject *XPLMSetAudioVolumeFun(PyObject *self, PyObject *args, PyObject 
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  FMOD_CHANNEL *fmod_channel = (FMOD_CHANNEL *)refToPtr(fmod_channel_obj, fmodChannelRefName);
+  FMOD_CHANNEL *fmod_channel = (FMOD_CHANNEL *)getVoidPtr(fmod_channel_obj, "FMOD_CHANNEL");
   FMOD_RESULT res = XPLMSetAudioVolume_ptr(fmod_channel, volume);
   return PyLong_FromLong(res);
 }
@@ -413,7 +412,7 @@ static PyObject *XPLMSetAudioPitchFun(PyObject *self, PyObject *args, PyObject *
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  FMOD_CHANNEL *fmod_channel = (FMOD_CHANNEL *)refToPtr(fmod_channel_obj, fmodChannelRefName);
+  FMOD_CHANNEL *fmod_channel = (FMOD_CHANNEL *)getVoidPtr(fmod_channel_obj, "FMOD_CHANNEL");
   FMOD_RESULT res = XPLMSetAudioPitch_ptr(fmod_channel, herz);
   return PyLong_FromLong(res);
 }
@@ -451,7 +450,7 @@ static PyObject *XPLMSetAudioConeFun(PyObject *self, PyObject *args, PyObject *k
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  FMOD_CHANNEL *fmod_channel = (FMOD_CHANNEL *)refToPtr(fmod_channel_obj, fmodChannelRefName);
+  FMOD_CHANNEL *fmod_channel = (FMOD_CHANNEL *)getVoidPtr(fmod_channel_obj, "FMOD_CHANNEL");
   FMOD_VECTOR orientation;
   if (orientation_obj != Py_None) {
     if (!PySequence_Check(orientation_obj)) {

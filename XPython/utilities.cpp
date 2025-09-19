@@ -9,6 +9,7 @@
 #include <vector>
 #include "utils.h"
 #include "utilities.h"
+#include "capsules.h"
 #include "cpp_utilities.hpp"
 
 struct ErrorCallbackInfo {
@@ -432,7 +433,7 @@ static int genericCommandCallback(XPLMCommandRef inCommand, XPLMCommandPhase inP
   set_moduleName(module_name_obj);
   Py_DECREF(module_name_obj);
 
-  PyObject *arg1 = getPtrRefCPP(inCommand, commandCapsules, commandRefName);
+  PyObject *arg1 = makeCapsule(inCommand, "XPLMCommandRef");
   PyObject *arg2 = PyLong_FromLong(inPhase);
   PyObject *oRes = PyObject_CallFunctionObjArgs(info.callback, arg1, arg2, info.refcon, NULL);
   Py_DECREF(arg1);
@@ -474,7 +475,7 @@ static PyObject *XPLMFindCommandFun(PyObject *self, PyObject *args, PyObject *kw
   }
   freeCharArray(keywords, params.size());
   XPLMCommandRef res = XPLMFindCommand(inName);
-  return getPtrRefCPP(res, commandCapsules, commandRefName);
+  return makeCapsule(res, "XPLMCommandRef");
 }
 
 My_DOCSTR(_commandBegin__doc__, "commandBegin",
@@ -493,7 +494,7 @@ static PyObject *XPLMCommandBeginFun(PyObject *self, PyObject *args, PyObject *k
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  XPLMCommandBegin(refToPtr(inCommand, commandRefName));
+  XPLMCommandBegin(getVoidPtr(inCommand, "XPLMCommandRef"));
   Py_RETURN_NONE;
 }
 
@@ -513,7 +514,7 @@ static PyObject *XPLMCommandEndFun(PyObject *self, PyObject *args, PyObject *kwa
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  XPLMCommandEnd(refToPtr(inCommand, commandRefName));
+  XPLMCommandEnd(getVoidPtr(inCommand, "XPLMCommandRef"));
   Py_RETURN_NONE;
 }
 
@@ -533,7 +534,7 @@ static PyObject *XPLMCommandOnceFun(PyObject *self, PyObject *args, PyObject *kw
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  XPLMCommandOnce(refToPtr(inCommand, commandRefName));
+  XPLMCommandOnce(getVoidPtr(inCommand, "XPLMCommandRef"));
   Py_RETURN_NONE;
 }
 
@@ -558,7 +559,7 @@ static PyObject *XPLMCreateCommandFun(PyObject *self, PyObject *args, PyObject *
     inDescription = inName;
   }
   XPLMCommandRef res = XPLMCreateCommand(inName, inDescription);
-  return getPtrRefCPP(res, commandCapsules, commandRefName);
+  return makeCapsule(res, "XPLMCommandRef");
 }
 
 My_DOCSTR(_registerCommandHandler__doc__, "registerCommandHandler",
@@ -586,9 +587,8 @@ static PyObject *XPLMRegisterCommandHandlerFun(PyObject *self, PyObject *args, P
   }
   freeCharArray(keywords, params.size());
   intptr_t refcon = commandCallbackCounter++;
-  XPLMCommandRef commandRef = refToPtr(inCommand, commandRefName);
+  XPLMCommandRef commandRef = getVoidPtr(inCommand, "XPLMCommandRef");
   XPLMRegisterCommandHandler(commandRef, genericCommandCallback, inBefore, (void *)refcon);
-
   commandCallbacks[refcon] = {
     .command = commandRef,
     .callback = inHandler,
@@ -623,7 +623,7 @@ static PyObject *XPLMUnregisterCommandHandlerFun(PyObject *self, PyObject *args,
   }
   freeCharArray(keywords, params.size());
   
-  XPLMCommandRef commandRef = refToPtr(inCommand, commandRefName);
+  XPLMCommandRef commandRef = getVoidPtr(inCommand, "XPLMCommandRef");
   
   for (auto it = commandCallbacks.begin(); it != commandCallbacks.end(); ++it) {
     CommandCallbackInfo& info = it->second;
@@ -637,6 +637,7 @@ static PyObject *XPLMUnregisterCommandHandlerFun(PyObject *self, PyObject *args,
         Py_DECREF(info.callback);
         Py_DECREF(info.refcon);
         commandCallbacks.erase(it);
+        deleteCapsule(inCommand);
         break;
     }
   }
@@ -671,7 +672,7 @@ PyObject* buildCommandCallbacksDict(void)
       goto cleanup_iteration;
     }
     
-    command_capsule = getPtrRefCPP(info.command, commandCapsules, commandRefName);
+    command_capsule = makeCapsule(info.command, "XPLMCommandRef");
     if (!command_capsule) {
       error_occurred = true;
       goto cleanup_iteration;

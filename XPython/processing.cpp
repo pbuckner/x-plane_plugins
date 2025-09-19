@@ -12,6 +12,7 @@
 #include "xppython.h"
 #include "xppythontypes.h"
 #include "processing.h"
+#include "capsules.h"
 #include "cpp_utilities.hpp"
 
 static intptr_t flCntr;
@@ -47,7 +48,6 @@ static PyObject *flIDDict;  /* {
                                   flCntr: <capsule XPLMFlightLoopID>
                                } */
 
-static const char flIDRef[] = "XPLMFlightLoopID";
 static float genericFlightLoopCallbackStats(float inElapsedSinceLastCall, float inElapsedTimeSinceLastFlightLoop, 
                                        int counter, void * inRefcon);
 static float genericFlightLoopCallbackNoStats(float inElapsedSinceLastCall, float inElapsedTimeSinceLastFlightLoop, 
@@ -68,7 +68,8 @@ void resetFlightLoops()
                                        (void*)pair.first);
     } else {
       PyObject *pKey = PyLong_FromLong(pair.first);
-      XPLMDestroyFlightLoop(refToPtr(PyDict_GetItem(flIDDict, pKey), "XPLMFlightLoopID"));
+      XPLMDestroyFlightLoop(getVoidPtr(PyDict_GetItem(flIDDict, pKey), "XPLMFlightLoopID"));
+      deleteCapsule(pKey);
       Py_DECREF(pKey);
     }
     Py_DECREF(info.callback);
@@ -446,7 +447,7 @@ static PyObject *XPLMCreateFlightLoopFun(PyObject* self, PyObject *args, PyObjec
   Py_INCREF(callback);
   Py_INCREF(refCon);
 
-  PyObject *flightLoopIDObj = getPtrRefOneshot(flightLoopID, flIDRef);
+  PyObject *flightLoopIDObj = makeCapsule(flightLoopID, "XPLMFlightLoopID");
   PyDict_SetItem(flIDDict, flDictKeyObj, flightLoopIDObj);
   Py_DECREF(flDictKeyObj);
   return flightLoopIDObj;
@@ -477,7 +478,7 @@ static PyObject *isFlightLoopValidFun(PyObject *self, PyObject *args, PyObject *
   PyObject *pKey, *pValue;
   Py_ssize_t pos = 0;
   while(PyDict_Next(flIDDict, &pos, &pKey, &pValue)){
-    if (refToPtr(pValue, flIDRef) == refToPtr(revId, flIDRef)) {
+    if (getVoidPtr(pValue, "XPLMFlightLoopID") == getVoidPtr(revId, "XPLMFlightLoopID")) {
       return Py_True;
     }
   }
@@ -510,7 +511,7 @@ static PyObject *XPLMDestroyFlightLoopFun(PyObject *self, PyObject *args, PyObje
   Py_ssize_t pos = 0;
   PyObject *found = Py_None;
   while(PyDict_Next(flIDDict, &pos, &pKey, &pValue)){
-    if (refToPtr(pValue, flIDRef) == refToPtr(revId, flIDRef)) {
+    if (getVoidPtr(pValue, "XPLMFlightLoopID") == getVoidPtr(revId, "XPLMFlightLoopID")) {
       found = pKey;
       break;
     }
@@ -519,9 +520,10 @@ static PyObject *XPLMDestroyFlightLoopFun(PyObject *self, PyObject *args, PyObje
     PyErr_SetString(PyExc_ValueError , "destroyFlightLoop: Unknown FlightLoopID");
     return NULL;
   }
-  XPLMDestroyFlightLoop_ptr(refToPtr(revId, flIDRef));
+  XPLMDestroyFlightLoop_ptr(getVoidPtr(revId, "XPLMFlightLoopID"));
   PyDict_DelItem(flIDDict, found);
   flightLoopCallbacks.erase((intptr_t)found);
+  deleteCapsule(revId);
   Py_RETURN_NONE;
 }
 
@@ -555,7 +557,7 @@ static PyObject *XPLMScheduleFlightLoopFun(PyObject *self, PyObject*args, PyObje
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  XPLMFlightLoopID inFlightLoopID = refToPtr(flightLoopID, flIDRef);
+  XPLMFlightLoopID inFlightLoopID = getVoidPtr(flightLoopID, "XPLMFlightLoopID");
   if (inFlightLoopID == NULL) {
     PyErr_SetString(PyExc_ValueError, "scheduleFlightLoop: bad flightLoopID.");
     return NULL;

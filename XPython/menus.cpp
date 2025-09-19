@@ -10,6 +10,7 @@
 #include "utils.h"
 #include "plugin_dl.h"
 #include "menus.h"
+#include "capsules.h"
 #include "cpp_utilities.hpp"
 
 static intptr_t menuRefConCntr;
@@ -29,8 +30,6 @@ static std::unordered_map<void*, PyObject*> menuCapsules;
 static PyObject *menuPluginIdxDict; /* plugin -> [list of Laminar menu IDs] */
 
 static int nextXPLMMenuIdx = 0;
-
-static const char menuIDRef[] = "XPLMMenuID"; 
 
 void resetMenus() {
   /* NOTE: stopping an instance, which is done (also) on reload
@@ -79,7 +78,7 @@ static PyObject *XPLMFindPluginsMenuFun(PyObject *self, PyObject *args)
   (void)self;
   (void)args;
   errCheck("prior findPluginsMenu");
-  PyObject *ret = getPtrRefCPP(XPLMFindPluginsMenu(), menuCapsules, menuIDRef);
+  PyObject *ret = makeCapsule(XPLMFindPluginsMenu(), "XPLMMenuID");
   errCheck("end findPluginsMenu");
   return ret;
 }
@@ -99,7 +98,7 @@ static PyObject *XPLMFindAircraftMenuFun(PyObject *self, PyObject *args)
     PyErr_SetString(PyExc_RuntimeError , "XPLMFindAircraftMenu is available only in XPLM300 and up.");
     return NULL;
   }
-  return getPtrRefCPP(XPLMFindAircraftMenu_ptr(), menuCapsules, menuIDRef);
+  return makeCapsule(XPLMFindAircraftMenu_ptr(), "XPLMMenuID");
 }
 
 My_DOCSTR(_createMenu__doc__, "createMenu",
@@ -131,7 +130,7 @@ static PyObject *XPLMCreateMenuFun(PyObject *self, PyObject *args, PyObject *kwa
   /* pythonLog("Creating menu for plugin self: %s, parent is: %s", s, s2); */
   /* free(s); */
   /* free(s2); */
-  if (refToPtr(parentMenu, menuIDRef) == XPLMFindPluginsMenu()) {
+  if (getVoidPtr(parentMenu, "XPLMMenuID") == XPLMFindPluginsMenu()) {
     idxList = PyDict_GetItem(menuPluginIdxDict, pluginSelf);
     if (! idxList) {
       Py_DECREF(pluginSelf);
@@ -151,7 +150,7 @@ static PyObject *XPLMCreateMenuFun(PyObject *self, PyObject *args, PyObject *kwa
   menuRef = PyLong_FromVoidPtr((void*)refcon);
 
   XPLMMenuHandler_f handler = (pythonHandler != Py_None) ? menuHandler : NULL;
-  XPLMMenuID rawMenuID = XPLMCreateMenu(inName, refToPtr(parentMenu, menuIDRef),
+  XPLMMenuID rawMenuID = XPLMCreateMenu(inName, getVoidPtr(parentMenu, "XPLMMenuID"),
                                         inParentItem, handler, (void*)refcon);
   if(!rawMenuID){
     Py_DECREF(pluginSelf);
@@ -163,7 +162,7 @@ static PyObject *XPLMCreateMenuFun(PyObject *self, PyObject *args, PyObject *kwa
   menuCallbacks[refcon] = {
     .name = std::string(inName ? inName : ""),
     .module_name = std::string(CurrentPythonModuleName),
-    .parent_id = refToPtr(parentMenu, menuIDRef),
+    .parent_id = getVoidPtr(parentMenu, "XPLMMenuID"),
     .parent_item = inParentItem,
     .callback = pythonHandler,
     .refCon = menuRef
@@ -187,7 +186,7 @@ static PyObject *XPLMCreateMenuFun(PyObject *self, PyObject *args, PyObject *kwa
   }
   Py_DECREF(pluginSelf);
 
-  PyObject *menuID = getPtrRefCPP(rawMenuID, menuCapsules, menuIDRef);
+  PyObject *menuID = makeCapsule(rawMenuID, "XPLMMenuID");
   PyDict_SetItem(menuRefDict, menuID, menuRef);
   Py_DECREF(menuRef);
   errCheck("end CreateMenu");
@@ -227,9 +226,9 @@ static PyObject *XPLMDestroyMenuFun(PyObject *self, PyObject *args, PyObject *kw
 
     PyDict_DelItem(menuRefDict, menuID);
 
-    XPLMMenuID id = refToPtr(menuID, menuIDRef);
+    XPLMMenuID id = getVoidPtr(menuID, "XPLMMenuID");
     XPLMDestroyMenu(id);
-    removePtrRefCPP(id, menuCapsules);
+    deleteCapsule(menuID);
   }
   
   Py_RETURN_NONE;
@@ -251,7 +250,7 @@ static PyObject *XPLMClearAllMenuItemsFun(PyObject *self, PyObject *args, PyObje
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  if (menuID == Py_None || refToPtr(menuID, menuIDRef) == XPLMFindPluginsMenu()) {
+  if (menuID == Py_None || getVoidPtr(menuID, "XPLMMenuID") == XPLMFindPluginsMenu()) {
     // pythonLog("Clearing top level");
     PyObject *pluginSelf = get_moduleName_p();
     clearInstanceMenuItems(pluginSelf);
@@ -260,7 +259,7 @@ static PyObject *XPLMClearAllMenuItemsFun(PyObject *self, PyObject *args, PyObje
     /* char *s = objToStr(menuID); */
     /* pythonLog("Clearing item from menu: %s", s); */
     /* free(s); */
-    XPLMClearAllMenuItems(refToPtr(menuID, menuIDRef));
+    XPLMClearAllMenuItems(getVoidPtr(menuID, "XPLMMenuID"));
   }
 
   Py_RETURN_NONE;
@@ -338,8 +337,8 @@ void clearInstanceMenuItems(PyObject *pluginSelf) {
         PyObject *mrd_value = PyDict_GetItem(menuRefDict, mrd_key);
         if (PyLong_AsVoidPtr(mrd_value) == (void*)it->first) {
           pythonDebug("%*s Clearing menu items for %ld", 10, " ", it->first);
-          XPLMClearAllMenuItems(refToPtr(mrd_key, menuIDRef));
-          XPLMDestroyMenu(refToPtr(mrd_key, menuIDRef));
+          XPLMClearAllMenuItems(getVoidPtr(mrd_key, "XPLMMenuID"));
+          XPLMDestroyMenu(getVoidPtr(mrd_key, "XPLMMenuID"));
           PyDict_DelItem(menuRefDict, mrd_key);
         }
         Py_DECREF(mrd_key);
@@ -388,7 +387,7 @@ static PyObject *XPLMAppendMenuItemFun(PyObject *self, PyObject *args, PyObject 
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : refToPtr(menuID, menuIDRef);
+  XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : getVoidPtr(menuID, "XPLMMenuID");
   int res = XPLMAppendMenuItem(inMenu, inItemName, inItemRef, 0);
 
   if (inMenu == XPLMFindPluginsMenu()) {
@@ -441,8 +440,8 @@ static PyObject *XPLMAppendMenuItemWithCommandFun(PyObject *self, PyObject *args
     PyErr_SetString(PyExc_RuntimeError, "appendMenuItemWithCommand, commandRef not provided.\n");
     return NULL;
   }
-  XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : refToPtr(menuID, menuIDRef);
-  XPLMCommandRef inCommandToExecute = (XPLMCommandRef)refToPtr(commandToExecute, commandRefName);
+  XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : getVoidPtr(menuID, "XPLMMenuID");
+  XPLMCommandRef inCommandToExecute = (XPLMCommandRef)getVoidPtr(commandToExecute, "XPLMCommandRef");
   int res = XPLMAppendMenuItemWithCommand_ptr(inMenu, inItemName, inCommandToExecute);
   if (inMenu == XPLMFindPluginsMenu()) {
     // pythonLog("Appending with Command to PluginsMenus: [%d], next: [%d]", res, nextXPLMMenuIdx);
@@ -481,7 +480,7 @@ static PyObject *XPLMAppendMenuSeparatorFun(PyObject *self, PyObject *args, PyOb
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : refToPtr(menuID, menuIDRef);
+  XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : getVoidPtr(menuID, "XPLMMenuID");
 
 #if defined(XPLM400)  
   XPLMAppendMenuSeparator(inMenu);
@@ -528,7 +527,7 @@ static PyObject *XPLMSetMenuItemNameFun(PyObject *self, PyObject *args, PyObject
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : refToPtr(menuID, menuIDRef);
+  XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : getVoidPtr(menuID, "XPLMMenuID");
   if (inMenu == XPLMFindPluginsMenu()) {
     PyObject *pluginSelf = get_moduleName_p();
     PyObject *idxList = PyDict_GetItem(menuPluginIdxDict, pluginSelf);
@@ -572,7 +571,7 @@ static PyObject *XPLMCheckMenuItemFun(PyObject *self, PyObject *args, PyObject *
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : refToPtr(menuID, menuIDRef);
+  XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : getVoidPtr(menuID, "XPLMMenuID");
   if (inMenu == XPLMFindPluginsMenu()) {
     PyObject *pluginSelf = get_moduleName_p();
     PyObject *idxList = PyDict_GetItem(menuPluginIdxDict, pluginSelf);
@@ -616,7 +615,7 @@ static PyObject *XPLMCheckMenuItemStateFun(PyObject *self, PyObject *args, PyObj
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : refToPtr(menuID, menuIDRef);
+  XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : getVoidPtr(menuID, "XPLMMenuID");
   if (inMenu == XPLMFindPluginsMenu()) {
     PyObject *pluginSelf = get_moduleName_p();
     PyObject *idxList = PyDict_GetItem(menuPluginIdxDict, pluginSelf);
@@ -658,7 +657,7 @@ static PyObject *XPLMEnableMenuItemFun(PyObject *self, PyObject *args, PyObject 
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : refToPtr(menuID, menuIDRef);
+  XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : getVoidPtr(menuID, "XPLMMenuID");
   if (inMenu == XPLMFindPluginsMenu()) {
     PyObject *pluginSelf = get_moduleName_p();
     PyObject *idxList = PyDict_GetItem(menuPluginIdxDict, pluginSelf);
@@ -704,7 +703,7 @@ static PyObject *XPLMRemoveMenuItemFun(PyObject *self, PyObject *args, PyObject 
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : refToPtr(menuID, menuIDRef);
+  XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : getVoidPtr(menuID, "XPLMMenuID");
   if (inMenu == XPLMFindPluginsMenu()) {
     PyObject *pluginSelf = get_moduleName_p();
     PyObject *idxList = PyDict_GetItem(menuPluginIdxDict, pluginSelf);

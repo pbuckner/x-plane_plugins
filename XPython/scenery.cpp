@@ -11,6 +11,7 @@
 #include "plugin_dl.h"
 #include "xppythontypes.h"
 #include "cpp_utilities.hpp"
+#include "capsules.h"
 
 struct LoaderInfo {
   std::string module_name;
@@ -21,9 +22,6 @@ struct LoaderInfo {
 static std::unordered_map<intptr_t, LoaderInfo> objectLoadCallbacks;
 static intptr_t loaderCntr;
 static void genericObjectLoaded(XPLMObjectRef inObject, void *inRefcon);
-
-
-static const char probeName[] = "XPLMProbeRef";
 
 My_DOCSTR(_createProbe__doc__, "createProbe",
           "probeType=0",
@@ -41,12 +39,12 @@ static PyObject *XPLMCreateProbeFun(PyObject *self, PyObject *args, PyObject *kw
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  return getPtrRefOneshot(XPLMCreateProbe(inProbeType), probeName);
+  return makeCapsule(XPLMCreateProbe(inProbeType), "XPLMProbeRef");
 }
 
 My_DOCSTR(_destroyProbe__doc__, "destroyProbe",
           "probe",
-          "probe:XPLMProbeType",
+          "probe:XPLMProbeRef",
           "None",
           "Destroy a probeRef");
 static PyObject *XPLMDestroyProbeFun(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -60,7 +58,7 @@ static PyObject *XPLMDestroyProbeFun(PyObject *self, PyObject *args, PyObject *k
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  XPLMDestroyProbe(refToPtr(inProbe, probeName));
+  XPLMDestroyProbe(getVoidPtr(inProbe, "XPLMProbeRef"));
   Py_RETURN_NONE;
 }
 
@@ -96,7 +94,7 @@ static PyObject *XPLMProbeTerrainXYZFun(PyObject *self, PyObject *args, PyObject
   }
   freeCharArray(keywords, params.size());
 
-  XPLMProbeRef inProbe = refToPtr(probe, probeName);
+  XPLMProbeRef inProbe = getVoidPtr(probe, "XPLMProbeRef");
   XPLMProbeInfo_t info;
   info.structSize = sizeof(info);
   XPLMProbeResult res = XPLMProbeTerrainXYZ(inProbe, inX, inY, inZ, &info);
@@ -200,7 +198,7 @@ static PyObject *XPLMLoadObjectFun(PyObject *self, PyObject *args, PyObject *kwa
   }
   freeCharArray(keywords, params.size());
   XPLMObjectRef res = XPLMLoadObject(inPath);
-  return getPtrRefOneshot(res, objRefName);
+  return makeCapsule(res, "XPLMObjectRef");
 }
 
 
@@ -219,7 +217,7 @@ static void genericObjectLoaded(XPLMObjectRef inObject, void *inRefcon)
   set_moduleName(module_name_obj);
   Py_DECREF(module_name_obj);
 
-  PyObject *object = getPtrRefOneshot(inObject, objRefName);
+  PyObject *object = makeCapsule(inObject, "XPLMObjectRef");
   PyObject *res = PyObject_CallFunctionObjArgs(info.callback, object, info.refCon, NULL);
   PyObject *err = PyErr_Occurred();
   if(err){
@@ -296,8 +294,10 @@ static PyObject *XPLMUnloadObjectFun(PyObject *self, PyObject *args, PyObject *k
   }
   freeCharArray(keywords, params.size());
 
-  XPLMObjectRef inObject = refToPtr(objectRef, objRefName);
+  XPLMObjectRef inObject = getVoidPtr(objectRef, "XPLMObjectRef");
   XPLMUnloadObject(inObject);
+  deleteCapsule(objectRef);
+  
   Py_RETURN_NONE;
 }
 

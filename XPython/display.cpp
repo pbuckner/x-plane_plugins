@@ -10,6 +10,7 @@
 #include "display.h"
 #include "xppythontypes.h"
 #include "xppython.h"
+#include "capsules.h"
 #include "cpp_utilities.hpp"
 
 static intptr_t drawCallbackCntr;
@@ -157,22 +158,13 @@ static void genericHotkeyCallback(void *inRefcon);
 
 static PyObject *monitorBndsCallback;
 
-std::unordered_map<void*, PyObject*> windowIDCapsules; /* cannot be static as it's used by widgets */
-const char *windowIDRef = "XPLMWindowID";
-
-static std::unordered_map<void*, PyObject*> hotkeyIDCapsules;
-static const char hotkeyIDRef[] = "XPLMHotkeyID";
-
-static std::unordered_map<void*, PyObject*> avionicsIDCapsules;
-static const char avionicsIDRef[] = "XPLMAvionicsID";
-
-
 void resetHotKeyCallbacks(void) {
   errCheck("prior resethotkey");
 
   for (const auto& pair : hotkeyDict) {
     char *callback = objToStr(pair.second.callback);
     XPLMUnregisterHotKey((XPLMHotKeyID) pair.first);
+    deleteCapsule(makeCapsule((XPLMHotKeyID)pair.first, "XPLMHotKeyID"));
     pythonDebug("     Reset --     %s - (%s)", pair.second.module_name.c_str(), callback);
     Py_DECREF(pair.second.refCon);
     Py_DECREF(pair.second.callback);
@@ -181,9 +173,6 @@ void resetHotKeyCallbacks(void) {
   hotkeyDict.clear();
   errCheck("post while resethotkey");
 
-  for (auto& pair : hotkeyIDCapsules) {
-    Py_DECREF(pair.second);
-  }
   errCheck("post reset hotkey");
 }
 
@@ -218,15 +207,11 @@ void resetAvionicsCallbacks(void) {
       errCheck("after XPLMUnregisterAvionicsCallbacks in reset");
     }
     pythonDebug("     Reset --     %s - (%d)", info.module_name.c_str(), info.avionicsID);
+    deleteCapsule(makeCapsule((XPLMAvionicsID)pair.first, "XPLMAvionicsID"));
     avionicsCallbacksDict.erase(pair.first);
     
   }
   avionicsCallbacksDict.clear();
-
-  for (auto& pair : avionicsIDCapsules) {
-    Py_DECREF(pair.second);
-  }
-  avionicsIDCapsules.clear();
 }
 
 void resetDrawCallbacks(void) {
@@ -503,7 +488,7 @@ static PyObject *XPLMRegisterAvionicsCallbacksExFun(PyObject *self, PyObject *ar
     .create = 0
   };
 
-  PyObject *avIDCapsule = getPtrRefCPP(avionicsId, avionicsIDCapsules, avionicsIDRef);
+  PyObject *avIDCapsule = makeCapsule(avionicsId, "XPLMAvionicsID");
   if(!avIDCapsule){
     PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterAvionicsCallbacksEx failed.\n");
     return NULL;
@@ -541,7 +526,7 @@ static PyObject *XPLMUnregisterAvionicsCallbacksFun(PyObject *self, PyObject *ar
     PyErr_SetString(PyExc_RuntimeError, "XPLMUnregisterAvionicsCallback bad avionicsID\n");
     return NULL;
   }
-  XPLMAvionicsID avionicsId = refToPtr(avIDCapsule, avionicsIDRef);
+  XPLMAvionicsID avionicsId = getVoidPtr(avIDCapsule, "XPLMAvionicsID");
   Py_DECREF(avIDCapsule);
 
   int found = 0;
@@ -563,6 +548,7 @@ static PyObject *XPLMUnregisterAvionicsCallbacksFun(PyObject *self, PyObject *ar
       Py_DECREF(info.screen_scroll);
       Py_DECREF(info.screen_cursor);
       Py_DECREF(info.keyboard);
+      deleteCapsule(makeCapsule((XPLMAvionicsID)avionicsId, "XPLMAvionicsID"));
       avionicsCallbacksDict.erase(pair.first);
       break;
     }
@@ -573,12 +559,7 @@ static PyObject *XPLMUnregisterAvionicsCallbacksFun(PyObject *self, PyObject *ar
   }
     
   /* and... remove from data structures */
-  auto capsuleIt = avionicsIDCapsules.find(avionicsId);
-  if(capsuleIt != avionicsIDCapsules.end()) {
-    Py_DECREF(capsuleIt->second);
-    avionicsIDCapsules.erase(capsuleIt);
-  }
-
+  
   Py_RETURN_NONE;
 }
           
@@ -623,7 +604,7 @@ static PyObject *XPLMGetAvionicsHandleFun(PyObject *self, PyObject *args, PyObje
     return NULL;
   }    
 
-  PyObject *avIDCapsule = getPtrRefCPP(avionicsId, avionicsIDCapsules, avionicsIDRef);
+  PyObject *avIDCapsule = makeCapsule(avionicsId, "XPLMAvionicsID");
   if(!avIDCapsule){
     PyErr_SetString(PyExc_RuntimeError ,"XPLMGetAvionicsHandle failed.\n");
     return NULL;
@@ -676,7 +657,7 @@ static PyObject *XPLMIsAvionicsBoundFun(PyObject *self, PyObject *args, PyObject
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
   int ret = XPLMIsAvionicsBound_ptr(avionics_id);
   return PyLong_FromLong(ret);
 }
@@ -704,7 +685,7 @@ static PyObject *XPLMIsCursorOverAvionicsFun(PyObject *self, PyObject *args, PyO
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
   int x=0, y=0;
   int ret = XPLMIsCursorOverAvionics_ptr(avionics_id, &x, &y);
   if (!ret) {
@@ -742,7 +723,7 @@ static PyObject *XPLMIsAvionicsPopupVisibleFun(PyObject *self, PyObject *args, P
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
   return PyLong_FromLong(XPLMIsAvionicsPopupVisible_ptr(avionics_id));
 }
 
@@ -768,7 +749,7 @@ static PyObject *XPLMIsAvionicsPoppedOutFun(PyObject *self, PyObject *args, PyOb
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
   return PyLong_FromLong(XPLMIsAvionicsPoppedOut_ptr(avionics_id));
 }
 
@@ -793,7 +774,7 @@ static PyObject *XPLMHasAvionicsKeyboardFocusFun(PyObject *self, PyObject *args,
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
   return PyLong_FromLong(XPLMHasAvionicsKeyboardFocus_ptr(avionics_id));
 }
 
@@ -821,7 +802,7 @@ static PyObject *XPLMAvionicsNeedsDrawingFun(PyObject *self, PyObject *args, PyO
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
   XPLMAvionicsNeedsDrawing_ptr(avionics_id);
   Py_RETURN_NONE;
 }
@@ -847,7 +828,7 @@ static PyObject *XPLMPopOutAvionicsFun(PyObject *self, PyObject *args, PyObject 
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
   XPLMPopOutAvionics_ptr(avionics_id);
   Py_RETURN_NONE;
 }
@@ -874,7 +855,7 @@ static PyObject *XPLMTakeAvionicsKeyboardFocusFun(PyObject *self, PyObject *args
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
   XPLMTakeAvionicsKeyboardFocus_ptr(avionics_id);
   Py_RETURN_NONE;
 }
@@ -902,7 +883,7 @@ static PyObject *XPLMDestroyAvionicsFun(PyObject *self, PyObject *args, PyObject
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
   XPLMDestroyAvionics_ptr(avionics_id);
   Py_RETURN_NONE;
 }
@@ -930,7 +911,7 @@ static PyObject *XPLMGetAvionicsBusVoltsRatioFun(PyObject *self, PyObject *args,
   }
   freeCharArray(keywords, params.size());
 
-  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
   return PyFloat_FromDouble(XPLMGetAvionicsBusVoltsRatio_ptr(avionics_id));
 }
 
@@ -961,7 +942,7 @@ static PyObject *XPLMGetAvionicsBrightnessRheoFun(PyObject *self, PyObject *args
   }
   freeCharArray(keywords, params.size());
 
-  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
   return PyFloat_FromDouble(XPLMGetAvionicsBrightnessRheo_ptr(avionics_id));
 }
 
@@ -992,7 +973,7 @@ static PyObject *XPLMSetAvionicsBrightnessRheoFun(PyObject *self, PyObject *args
     return NULL;
   }
 
-  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
   XPLMSetAvionicsBrightnessRheo_ptr(avionics_id, brightness);
   Py_RETURN_NONE;
 }
@@ -1017,7 +998,7 @@ static PyObject *XPLMSetAvionicsPopupVisibleFun(PyObject *self, PyObject *args, 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", keywords, &avionicsID, &visible)) {
     return NULL;
   }
-  void *avionics_id = refToPtr(avionicsID, avionicsIDRef);
+  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
   XPLMSetAvionicsPopupVisible_ptr(avionics_id, visible);
   Py_RETURN_NONE;
 }
@@ -1187,7 +1168,7 @@ static void genericWindowDraw(XPLMWindowID  inWindowID,
   if (func != Py_None) {
     struct timespec stop, start;
     clock_gettime(CLOCK_MONOTONIC, &start);
-    PyObject *pID = getPtrRefCPP(inWindowID, windowIDCapsules, windowIDRef);
+    PyObject *pID = makeCapsule(inWindowID, "XPLMWindowID");
     PyObject *module_name_obj = PyUnicode_FromString(it->second.module_name.c_str());
     set_moduleName(module_name_obj);
 
@@ -1258,7 +1239,7 @@ static void genericWindowKey(XPLMWindowID  inWindowID,
     /* char *s = objToStr(pID); */
     /* printf("Calling genericWindowKey callback. inWindowID = %p, pPID = %s, losingFocus = %d\n", inWindowID, s, losingFocus); */
     /* free(s); */
-    PyObject *pID = getPtrRefCPP(inWindowID, windowIDCapsules, windowIDRef);
+    PyObject *pID = makeCapsule(inWindowID, "XPLMWindowID");
     PyObject *module_name_obj = PyUnicode_FromString(it->second.module_name.c_str());
     set_moduleName(module_name_obj);
     Py_DECREF(module_name_obj);
@@ -1299,7 +1280,7 @@ static int genericWindowMouseClick(XPLMWindowID     inWindowID,
   PyObject *arg1 = PyLong_FromLong(x);
   PyObject *arg2 = PyLong_FromLong(y);
   PyObject *arg3 = PyLong_FromLong(inMouse);
-  PyObject *pID = getPtrRefCPP(inWindowID, windowIDCapsules, windowIDRef);
+  PyObject *pID = makeCapsule(inWindowID, "XPLMWindowID");
   PyObject *pRes = PyObject_CallFunctionObjArgs(func, pID, arg1, arg2, arg3, inRefcon, NULL);
   PyObject *err = PyErr_Occurred();
   Py_DECREF(arg1);
@@ -1349,7 +1330,7 @@ static int genericWindowRightClick(XPLMWindowID     inWindowID,
   PyObject *module_name_obj = PyUnicode_FromString(it->second.module_name.c_str());
   set_moduleName(module_name_obj);
   Py_DECREF(module_name_obj);
-  PyObject *pID = getPtrRefCPP(inWindowID, windowIDCapsules, windowIDRef);
+  PyObject *pID = makeCapsule(inWindowID, "XPLMWindowID");
   PyObject *arg1 = PyLong_FromLong(x);
   PyObject *arg2 = PyLong_FromLong(y);
   PyObject *arg3 = PyLong_FromLong(inMouse);
@@ -1401,7 +1382,7 @@ static XPLMCursorStatus genericWindowCursor(XPLMWindowID  inWindowID,
     return 0;
   }
 
-  PyObject *pID = getPtrRefCPP(inWindowID, windowIDCapsules, windowIDRef);
+  PyObject *pID = makeCapsule(inWindowID, "XPLMWindowID");
   PyObject *arg1 = PyLong_FromLong(x);
   PyObject *arg2 = PyLong_FromLong(y);
   PyObject *pRes = PyObject_CallFunctionObjArgs(func, pID, arg1, arg2, inRefcon, NULL);
@@ -1441,7 +1422,7 @@ static int genericWindowMouseWheel(XPLMWindowID  inWindowID,
     return 1;
   }
 
-  PyObject *pID = getPtrRefCPP(inWindowID, windowIDCapsules, windowIDRef);
+  PyObject *pID = makeCapsule(inWindowID, "XPLMWindowID");
   PyObject *arg1 = PyLong_FromLong(x);
   PyObject *arg2 = PyLong_FromLong(y);
   PyObject *arg3 = PyLong_FromLong(wheel);
@@ -1681,7 +1662,7 @@ static PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObjec
     .create = 1
   };
 
-  PyObject *avIDCapsule = getPtrRefCPP(avionicsId, avionicsIDCapsules, avionicsIDRef);
+  PyObject *avIDCapsule = makeCapsule(avionicsId, "XPLMAvionicsID");
   if(!avIDCapsule){
     PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterAvionicsCallbacksEx failed.\n");
     return NULL;
@@ -1832,7 +1813,7 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
   window_params.handleRightClickFunc = genericWindowRightClick;
 
   XPLMWindowID id = XPLMCreateWindowEx(&window_params);
-  PyObject *pID = getPtrRefCPP(id, windowIDCapsules, windowIDRef);
+  PyObject *pID = makeCapsule(id, "XPLMWindowID");
 
   windowDict[id] = {
     .draw = draw,
@@ -1875,7 +1856,7 @@ static PyObject *XPLMCreateWindowFun(PyObject *self, PyObject *args, PyObject *k
   Py_INCREF(refcon);
   XPLMWindowID id = XPLMCreateWindow(left, top, right, bottom, visible, genericWindowDraw, genericWindowKey, genericWindowMouseClick, refcon);
 
-  PyObject *pID = getPtrRefCPP(id, windowIDCapsules, windowIDRef);
+  PyObject *pID = makeCapsule(id, "XPLMWindowID");
   windowDict[id] = {
     .draw = drawCallback,
     .click = mouseCallback,
@@ -1905,7 +1886,7 @@ static PyObject *XPLMDestroyWindowFun(PyObject *self, PyObject *args, PyObject *
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  XPLMWindowID winID = refToPtr(pID, windowIDRef);
+  XPLMWindowID winID = getVoidPtr(pID, "XPLMWindowID");
   auto it = windowDict.find(winID);
   if(it != windowDict.end()){
     PyObject *tmp = (PyObject *)XPLMGetWindowRefCon(winID);
@@ -2118,7 +2099,7 @@ static PyObject *XPLMGetWindowGeometryFun(PyObject *self, PyObject *args, PyObje
     }
   }
   int left, top, right, bottom;
-  XPLMGetWindowGeometry(refToPtr(win, windowIDRef), &left, &top, &right, &bottom);
+  XPLMGetWindowGeometry(getVoidPtr(win, "XPLMWindowID"), &left, &top, &right, &bottom);
   if (returnValues) {
     return Py_BuildValue("(iiii)", left, top, right, bottom);
   }
@@ -2155,7 +2136,7 @@ static PyObject *XPLMGetAvionicsGeometryFun(PyObject *self, PyObject *args, PyOb
     return NULL;
   }
   int left=0, top=0, right=0, bottom=0;
-  XPLMGetAvionicsGeometry_ptr(refToPtr(avionicsID, avionicsIDRef), &left, &top, &right, &bottom);
+  XPLMGetAvionicsGeometry_ptr(getVoidPtr(avionicsID, "XPLMAvionicsID"), &left, &top, &right, &bottom);
   return Py_BuildValue("(iiii)", left, top, right, bottom);
 }
   
@@ -2174,7 +2155,7 @@ static PyObject *XPLMSetWindowGeometryFun(PyObject *self, PyObject *args, PyObje
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oiiii", keywords, &win, &inLeft, &inTop, &inRight, &inBottom)){
     return NULL;
   }
-  void *inWindowID = refToPtr(win, windowIDRef);
+  void *inWindowID = getVoidPtr(win, "XPLMWindowID");
   XPLMSetWindowGeometry(inWindowID, inLeft, inTop, inRight, inBottom);
   Py_RETURN_NONE;
 }
@@ -2199,7 +2180,7 @@ static PyObject *XPLMSetAvionicsGeometryFun(PyObject *self, PyObject *args, PyOb
     return NULL;
   }
     
-  void *inAvionicsID = refToPtr(avionicsID, avionicsIDRef);
+  void *inAvionicsID = getVoidPtr(avionicsID, "XPLMAvionicsID");
   XPLMSetAvionicsGeometry_ptr(inAvionicsID, inLeft, inTop, inRight, inBottom);
   Py_RETURN_NONE;
 }
@@ -2231,7 +2212,7 @@ static PyObject *XPLMGetWindowGeometryOSFun(PyObject *self, PyObject *args, PyOb
     }
   }
   int left, top, right, bottom;
-  XPLMGetWindowGeometryOS_ptr(refToPtr(win, windowIDRef), &left, &top, &right, &bottom);
+  XPLMGetWindowGeometryOS_ptr(getVoidPtr(win, "XPLMWindowID"), &left, &top, &right, &bottom);
   if (returnValues) {
     return Py_BuildValue("(iiii)", left, top, right, bottom);
   }
@@ -2266,7 +2247,7 @@ static PyObject *XPLMGetAvionicsGeometryOSFun(PyObject *self, PyObject *args, Py
     return NULL;
   }
   int left=0, top=0, right=0, bottom=0;
-  XPLMGetAvionicsGeometryOS_ptr(refToPtr(avionicsID, avionicsIDRef), &left, &top, &right, &bottom);
+  XPLMGetAvionicsGeometryOS_ptr(getVoidPtr(avionicsID, "XPLMAvionicsID"), &left, &top, &right, &bottom);
   return Py_BuildValue("(iiii)", left, top, right, bottom);
 }
 
@@ -2289,7 +2270,7 @@ static PyObject *XPLMSetAvionicsGeometryOSFun(PyObject *self, PyObject *args, Py
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oiiii", keywords, &avionicsID, &inLeft, &inTop, &inRight, &inBottom)){
     return NULL;
   }
-  XPLMSetAvionicsGeometryOS_ptr(refToPtr(avionicsID, avionicsIDRef), inLeft, inTop, inRight, inBottom);
+  XPLMSetAvionicsGeometryOS_ptr(getVoidPtr(avionicsID, "XPLMAvionicsID"), inLeft, inTop, inRight, inBottom);
   Py_RETURN_NONE;
 }
 
@@ -2312,7 +2293,7 @@ static PyObject *XPLMSetWindowGeometryOSFun(PyObject *self, PyObject *args, PyOb
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oiiii", keywords, &win, &inLeft, &inTop, &inRight, &inBottom)){
     return NULL;
   }
-  void *inWindowID = refToPtr(win, windowIDRef);
+  void *inWindowID = getVoidPtr(win, "XPLMWindowID");
   XPLMSetWindowGeometryOS_ptr(inWindowID, inLeft, inTop, inRight, inBottom);
   Py_RETURN_NONE;
 }
@@ -2341,7 +2322,7 @@ static PyObject *XPLMGetWindowGeometryVRFun(PyObject *self, PyObject *args, PyOb
     }
   }
   int widthBoxels, heightBoxels;
-  XPLMGetWindowGeometryVR_ptr(refToPtr(win, windowIDRef), &widthBoxels, &heightBoxels);
+  XPLMGetWindowGeometryVR_ptr(getVoidPtr(win, "XPLMWindowID"), &widthBoxels, &heightBoxels);
   if (returnValues) {
     return Py_BuildValue("(ii)", widthBoxels, heightBoxels);
   }
@@ -2372,7 +2353,7 @@ static PyObject *XPLMSetWindowGeometryVRFun(PyObject *self, PyObject *args, PyOb
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oii", keywords, &win, &widthBoxels, &heightBoxels)){
     return NULL;
   }
-  void *inWindowID = refToPtr(win, windowIDRef);
+  void *inWindowID = getVoidPtr(win, "XPLMWindowID");
   XPLMSetWindowGeometryVR_ptr(inWindowID, widthBoxels, heightBoxels);
   Py_RETURN_NONE;
 }
@@ -2393,7 +2374,7 @@ static PyObject *XPLMGetWindowIsVisibleFun(PyObject *self, PyObject *args, PyObj
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  void *inWindowID = refToPtr(win, windowIDRef);
+  void *inWindowID = getVoidPtr(win, "XPLMWindowID");
   return PyLong_FromLong(XPLMGetWindowIsVisible(inWindowID));
 }
 
@@ -2412,7 +2393,7 @@ static PyObject *XPLMSetWindowIsVisibleFun(PyObject *self, PyObject *args, PyObj
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", keywords, &win, &inIsVisible)){
     return NULL;
   }
-  XPLMWindowID inWindowID = refToPtr(win, windowIDRef);
+  XPLMWindowID inWindowID = getVoidPtr(win, "XPLMWindowID");
   XPLMSetWindowIsVisible(inWindowID, inIsVisible);
   Py_RETURN_NONE;
 }
@@ -2437,7 +2418,7 @@ static PyObject *XPLMWindowIsPoppedOutFun(PyObject *self, PyObject *args, PyObje
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  void *inWindowID = refToPtr(win, windowIDRef);
+  void *inWindowID = getVoidPtr(win, "XPLMWindowID");
   return PyLong_FromLong(XPLMWindowIsPoppedOut_ptr(inWindowID));
 }
 
@@ -2461,7 +2442,7 @@ static PyObject *XPLMWindowIsInVRFun(PyObject *self, PyObject *args, PyObject *k
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  void *inWindowID = refToPtr(win, windowIDRef);
+  void *inWindowID = getVoidPtr(win, "XPLMWindowID");
   return PyLong_FromLong(XPLMWindowIsInVR_ptr(inWindowID));
 }
 
@@ -2490,7 +2471,7 @@ static PyObject *XPLMSetWindowGravityFun(PyObject *self, PyObject *args, PyObjec
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Offff", keywords, &win, &inLeftGravity, &inTopGravity, &inRightGravity, &inBottomGravity)){
     return NULL;
   }
-  XPLMWindowID inWindowID = refToPtr(win, windowIDRef);
+  XPLMWindowID inWindowID = getVoidPtr(win, "XPLMWindowID");
   XPLMSetWindowGravity_ptr(inWindowID, inLeftGravity, inTopGravity, inRightGravity, inBottomGravity);
   Py_RETURN_NONE;
 }
@@ -2514,7 +2495,7 @@ static PyObject *XPLMSetWindowResizingLimitsFun(PyObject *self, PyObject *args, 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|iiii", keywords, &win, &inMinWidthBoxels, &inMinHeightBoxels, &inMaxWidthBoxels, &inMaxHeightBoxels)){
     return NULL;
   }
-  XPLMWindowID inWindowID = refToPtr(win, windowIDRef);
+  XPLMWindowID inWindowID = getVoidPtr(win, "XPLMWindowID");
   inMinWidthBoxels = inMinWidthBoxels < 0 ? 0 : inMinWidthBoxels;
   XPLMSetWindowResizingLimits_ptr(inWindowID, inMinWidthBoxels, inMinHeightBoxels, inMaxWidthBoxels, inMaxHeightBoxels);
   Py_RETURN_NONE;
@@ -2545,7 +2526,7 @@ static PyObject *XPLMSetWindowPositioningModeFun(PyObject *self, PyObject *args,
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi|i", keywords, &win, &inPositioningMode, &inMonitorIndex)){
     return NULL;
   }
-  XPLMWindowID inWindowID = refToPtr(win, windowIDRef);
+  XPLMWindowID inWindowID = getVoidPtr(win, "XPLMWindowID");
   XPLMSetWindowPositioningMode_ptr(inWindowID, inPositioningMode, inMonitorIndex);
   Py_RETURN_NONE;
 }
@@ -2569,7 +2550,7 @@ static PyObject *XPLMSetWindowTitleFun(PyObject *self, PyObject *args, PyObject 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Os", keywords, &win, &inWindowTitle)){
     return NULL;
   }
-  XPLMWindowID inWindowID = refToPtr(win, windowIDRef);
+  XPLMWindowID inWindowID = getVoidPtr(win, "XPLMWindowID");
   XPLMSetWindowTitle_ptr(inWindowID, strdup(inWindowTitle));
   Py_RETURN_NONE;
 }
@@ -2590,7 +2571,7 @@ static PyObject *XPLMGetWindowRefConFun(PyObject *self, PyObject *args, PyObject
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  XPLMWindowID inWindowID = refToPtr(win, windowIDRef);
+  XPLMWindowID inWindowID = getVoidPtr(win, "XPLMWindowID");
   PyObject *res = (PyObject *)XPLMGetWindowRefCon(inWindowID);
   // Needs to be done, because python decrefs it when the function
   //   that called us returns; otherwise all hell breaks loose!!!
@@ -2613,7 +2594,7 @@ static PyObject *XPLMSetWindowRefConFun(PyObject *self, PyObject *args, PyObject
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO", keywords, &win, &inRefcon)){
     return NULL;
   }
-  XPLMWindowID inWindowID = refToPtr(win, windowIDRef);
+  XPLMWindowID inWindowID = getVoidPtr(win, "XPLMWindowID");
   // Decref the old refcon
   PyObject *tmp = (PyObject *)XPLMGetWindowRefCon(inWindowID);
   Py_DECREF(tmp);
@@ -2644,7 +2625,7 @@ static PyObject *XPLMTakeKeyboardFocusFun(PyObject *self, PyObject *args, PyObje
   if (PyLong_Check(win) && PyLong_AsLong(win) == 0) {
     inWindowID = 0;
   } else {
-    inWindowID = refToPtr(win, windowIDRef);
+    inWindowID = getVoidPtr(win, "XPLMWindowID");
   }
   XPLMTakeKeyboardFocus(inWindowID);
   Py_RETURN_NONE;
@@ -2676,7 +2657,7 @@ static PyObject *XPLMHasKeyboardFocusFun(PyObject *self, PyObject *args, PyObjec
   if (PyLong_Check(win) && PyLong_AsLong(win) == 0) {
     inWindowID = 0;
   } else {
-    inWindowID = refToPtr(win, windowIDRef);
+    inWindowID = getVoidPtr(win, "XPLMWindowID");
   }
   
   return PyLong_FromLong(XPLMHasKeyboardFocus_ptr(inWindowID));
@@ -2698,7 +2679,7 @@ static PyObject *XPLMBringWindowToFrontFun(PyObject *self, PyObject *args, PyObj
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  XPLMWindowID inWindowID = refToPtr(win, windowIDRef);
+  XPLMWindowID inWindowID = getVoidPtr(win, "XPLMWindowID");
   XPLMBringWindowToFront(inWindowID);
   Py_RETURN_NONE;
 }
@@ -2719,7 +2700,7 @@ static PyObject *XPLMIsWindowInFrontFun(PyObject *self, PyObject *args, PyObject
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  XPLMWindowID inWindowID = refToPtr(win, windowIDRef);
+  XPLMWindowID inWindowID = getVoidPtr(win, "XPLMWindowID");
   return PyLong_FromLong(XPLMIsWindowInFront(inWindowID));
 }
 
@@ -2783,7 +2764,7 @@ static PyObject *XPLMRegisterHotKeyFun(PyObject *self, PyObject *args, PyObject 
     .module_name = std::string(CurrentPythonModuleName)
   };
 
-  PyObject *hkIDCapsule = getPtrRefCPP(id, hotkeyIDCapsules, hotkeyIDRef);
+  PyObject *hkIDCapsule = makeCapsule(id, "XPLMHotKeyID");
 
   errCheck("end registerHotKey");
   PyObject *err = PyErr_Occurred();
@@ -2812,7 +2793,7 @@ static PyObject *XPLMUnregisterHotKeyFun(PyObject *self, PyObject *args, PyObjec
     return NULL;
   }
 
-  XPLMHotKeyID hotKeyID = refToPtr(hkIDCapsule, hotkeyIDRef);
+  XPLMHotKeyID hotKeyID = getVoidPtr(hkIDCapsule, "XPLMHotKeyID");
 
   int found = 0;
   for(auto& pair: hotkeyDict) {
@@ -2822,6 +2803,7 @@ static PyObject *XPLMUnregisterHotKeyFun(PyObject *self, PyObject *args, PyObjec
       Py_DECREF(pair.second.callback);
       Py_DECREF(pair.second.refCon);
       hotkeyDict.erase(pair.first);
+      deleteCapsule(makeCapsule(hotKeyID, "XPLMAvionicsID"));
       break;
     }
   }
@@ -2831,11 +2813,6 @@ static PyObject *XPLMUnregisterHotKeyFun(PyObject *self, PyObject *args, PyObjec
     return NULL;
   }
 
-  auto capsuleIt = hotkeyIDCapsules.find(hotKeyID);
-  if(capsuleIt != hotkeyIDCapsules.end()) {
-    Py_DECREF(capsuleIt->second);
-    hotkeyIDCapsules.erase(capsuleIt);
-  }
   Py_RETURN_NONE;
 } 
 
@@ -2865,7 +2842,7 @@ static PyObject *XPLMGetNthHotKeyFun(PyObject *self, PyObject *args, PyObject *k
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inIndex)){
     return NULL;
   }
-  return getPtrRefCPP(XPLMGetNthHotKey(inIndex), hotkeyIDCapsules, hotkeyIDRef);
+  return makeCapsule(XPLMGetNthHotKey(inIndex), "XPLMHotKeyID");
 } 
 
 My_DOCSTR(_getHotKeyInfo__doc__, "getHotKeyInfo",
@@ -2894,7 +2871,7 @@ static PyObject *XPLMGetHotKeyInfoFun(PyObject *self, PyObject *args, PyObject *
       return NULL;
     }
   }
-  XPLMHotKeyID inHotKey = refToPtr(hotKey, hotkeyIDRef);
+  XPLMHotKeyID inHotKey = getVoidPtr(hotKey, "XPLMHotKeyID");
   char virtualKey;
   XPLMKeyFlags flags;
   char description[1024];
@@ -2931,7 +2908,7 @@ static PyObject *XPLMSetHotKeyCombinationFun(PyObject *self, PyObject *args, PyO
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi|i", keywords, &hotKey, &inVirtualKey, &inFlags)){
     return NULL;
   }
-  void *inHotkey = refToPtr(hotKey, hotkeyIDRef);
+  void *inHotkey = getVoidPtr(hotKey, "XPLMHotKeyID");
   XPLMSetHotKeyCombination(inHotkey, (char)inVirtualKey, inFlags);
   Py_RETURN_NONE;
 } 
@@ -2998,25 +2975,6 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
     avionicsCallbacksDict.erase(pair.first);
   }
   avionicsCallbacksDict.clear();
-
-  // Clean up windowIDCapsules
-  for (auto& pair : windowIDCapsules) {
-    Py_DECREF(pair.second);
-  }
-  windowIDCapsules.clear();
-
-  // Clean up hotkeyIDCapsules
-  for (auto& pair : hotkeyIDCapsules) {
-    Py_DECREF(pair.second);
-  }
-  hotkeyIDCapsules.clear();
-
-  // Clean up avionicsIDCapsules
-  for (auto& pair : avionicsIDCapsules) {
-    Py_DECREF(pair.second);
-  }
-  avionicsIDCapsules.clear();
-
   Py_RETURN_NONE;
 }
 

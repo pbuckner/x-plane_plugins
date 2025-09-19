@@ -138,3 +138,15 @@ PyObject *makeCapsule(void *ptr, std::string name)
   Py_INCREF(capsule);
   return capsule;
 }
+
+// // Can be used where no callbacks are involved in passing the capsule
+// PyObject *getPtrRefOneshot(void *ptr, const char *refName)
+// {
+//   if(!ptr){
+//     Py_RETURN_NONE;
+//   }
+//   errCheck("prior getPtrRefOneshot: %s", refName);
+//   PyObject *ret = PyCapsule_New(ptr, refName, NULL);
+//   errCheck("end getPtrRefOneShot");
+//   return ret;
+// }

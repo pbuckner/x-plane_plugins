@@ -11,10 +11,10 @@
 #include <string>
 #include <unordered_map>
 #include "instance.h"
+#include "capsules.h"
 #include "cpp_utilities.hpp"
 
 
-static const char instanceRefName[] = "XPLMInstanceRef";
 static std::unordered_map<void*, PyObject*> instanceCapsules;
 
 void resetInstances(void) {
@@ -84,11 +84,11 @@ static PyObject *XPLMCreateInstanceFun(PyObject *self, PyObject *args, PyObject 
   /* if (len) { */
   /*   Py_DECREF(drefListTuple); */
   /* } */
-  XPLMObjectRef inObj = refToPtr(obj, objRefName);
+  XPLMObjectRef inObj = getVoidPtr(obj, "XPLMObjectRef");
 
   XPLMInstanceRef res = XPLMCreateInstance_ptr(inObj, datarefs);
   free(datarefs);
-  return getPtrRefCPP(res, instanceCapsules, instanceRefName);
+  return makeCapsule(res, "XPLMInstanceRef");
 }
 
 My_DOCSTR(_destroyInstance__doc__, "destroyInstance",
@@ -113,8 +113,8 @@ static PyObject *XPLMDestroyInstanceFun(PyObject *self, PyObject *args, PyObject
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  XPLMDestroyInstance_ptr(refToPtr(instance, instanceRefName));
-  removePtrRefCPP(refToPtr(instance, instanceRefName), instanceCapsules);
+  XPLMDestroyInstance_ptr(getVoidPtr(instance, "XPLMInstanceRef"));
+  deleteCapsule(instance);
   Py_RETURN_NONE;
 }
 
@@ -141,7 +141,7 @@ static PyObject *XPLMInstanceSetAutoShiftFun(PyObject *self, PyObject *args, PyO
     return NULL;
   }
   freeCharArray(keywords, params.size());
-  XPLMInstanceSetAutoShift_ptr(refToPtr(instance, instanceRefName));
+  XPLMInstanceSetAutoShift_ptr(getVoidPtr(instance, "XPLMInstanceRef"));
   Py_RETURN_NONE;
 }
 
@@ -278,7 +278,7 @@ static PyObject *XPLMInstanceSetPositionFun(PyObject *self, PyObject *args, PyOb
       inData[i] = PyFloat_AsDouble(PySequence_GetItem(data, i));
     }
   }
-  void *p = refToPtr(instance, instanceRefName);
+  void *p = getVoidPtr(instance, "XPLMInstanceRef");
   if (p != NULL) {
     if (XPLMInstanceSetPositionDouble_ptr) {
       XPLMInstanceSetPositionDouble_ptr(p, &inNewPositionDouble, inData);

@@ -108,7 +108,7 @@ static float genericFlightLoopCallbackStats(float inElapsedSinceLastCall, float 
 
   PyObject *res = PyObject_CallFunctionObjArgs(flInfo.callback, inElapsedSinceLastCallObj,
                                                inElapsedTimeSinceLastFlightLoopObj, counterObj,
-                                               flInfo.refCon, NULL);
+                                               flInfo.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
   PyObject *module_name_for_stats = PyUnicode_FromString(flInfo.module_name.c_str());
   pluginStats[getPluginIndex(module_name_for_stats)].fl_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
@@ -167,7 +167,7 @@ static float genericFlightLoopCallbackNoStats(float inElapsedSinceLastCall, floa
 
   PyObject *res = PyObject_CallFunctionObjArgs(flInfo.callback, inElapsedSinceLastCallObj,
                                                inElapsedTimeSinceLastFlightLoopObj, counterObj,
-                                               flInfo.refCon, NULL);
+                                               flInfo.refCon, nullptr);
   float tmp;
   PyObject *err = PyErr_Occurred();
   Py_DECREF(inElapsedSinceLastCallObj);
@@ -254,7 +254,7 @@ static PyObject *XPLMRegisterFlightLoopCallbackFun(PyObject* self, PyObject *arg
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|fO", keywords, &callback, &interval, &refCon)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
@@ -293,7 +293,7 @@ static PyObject *XPLMUnregisterFlightLoopCallbackFun(PyObject *self, PyObject *a
   PyObject *callback, *refcon=Py_None;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O", keywords, &callback, &refcon)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
@@ -319,7 +319,7 @@ static PyObject *XPLMUnregisterFlightLoopCallbackFun(PyObject *self, PyObject *a
 
   if (!found) {
     PyErr_SetString(PyExc_ValueError , "unregisterFlightLoopCallback: Unknown flight loop callback.");
-    return NULL;
+    return nullptr;
   }
 
   auto it = flightLoopCallbacks.find(found_refcon);
@@ -352,7 +352,7 @@ static PyObject *XPLMSetFlightLoopCallbackIntervalFun(PyObject *self, PyObject *
   int inRelativeToNow=1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|fiO", keywords, &callback, &inInterval, &inRelativeToNow, &refcon)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
@@ -378,7 +378,7 @@ static PyObject *XPLMSetFlightLoopCallbackIntervalFun(PyObject *self, PyObject *
 
   if (!found) {
     PyErr_SetString(PyExc_ValueError , "setFlightLoopCallbackInterval: Unknown FlightLoopID");
-    return NULL;
+    return nullptr;
   }
 
   XPLMSetFlightLoopCallbackInterval(pythonStats ? genericFlightLoopCallbackStats : genericFlightLoopCallbackNoStats,
@@ -409,12 +409,12 @@ static PyObject *XPLMCreateFlightLoopFun(PyObject* self, PyObject *args, PyObjec
   if(!XPLMCreateFlightLoop_ptr){
     freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPLMCreateFlightLoop is available only in XPLM210 and up.");
-    return NULL;
+    return nullptr;
   }
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|iO", keywords, &firstObj, &phase, &refCon)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
@@ -467,12 +467,12 @@ static PyObject *isFlightLoopValidFun(PyObject *self, PyObject *args, PyObject *
   if(!XPLMDestroyFlightLoop_ptr){
     freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "isFlightLoopValid is available only in XPLM210 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &revId)){
     freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_ValueError , "xp.isFlightLoopValid: missing flightLoopID.");
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   PyObject *pKey, *pValue;
@@ -499,12 +499,12 @@ static PyObject *XPLMDestroyFlightLoopFun(PyObject *self, PyObject *args, PyObje
   if(!XPLMDestroyFlightLoop_ptr){
     freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPLMDestroyFlightLoop is available only in XPLM210 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &revId)){
     freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_ValueError , "xp.destroyFlightLoop: missing flightLoopID.");
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   PyObject *pKey, *pValue;
@@ -518,7 +518,7 @@ static PyObject *XPLMDestroyFlightLoopFun(PyObject *self, PyObject *args, PyObje
   }
   if (found == Py_None) {
     PyErr_SetString(PyExc_ValueError , "destroyFlightLoop: Unknown FlightLoopID");
-    return NULL;
+    return nullptr;
   }
   XPLMDestroyFlightLoop_ptr(getVoidPtr(revId, "XPLMFlightLoopID"));
   PyDict_DelItem(flIDDict, found);
@@ -549,18 +549,18 @@ static PyObject *XPLMScheduleFlightLoopFun(PyObject *self, PyObject*args, PyObje
   if(!XPLMScheduleFlightLoop_ptr){
     freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPLMScheduleFlightLoop is available only in XPLM210 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|fi", keywords, &flightLoopID, &inInterval, &inRelativeToNow)){
     freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_TypeError, "scheduleFlightLoop signature is (flightLoopID: XPLMFlightLoopID, interval: Float=0.0, relativeToNow: int=1).");
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMFlightLoopID inFlightLoopID = getVoidPtr(flightLoopID, "XPLMFlightLoopID");
-  if (inFlightLoopID == NULL) {
+  if (inFlightLoopID == nullptr) {
     PyErr_SetString(PyExc_ValueError, "scheduleFlightLoop: bad flightLoopID.");
-    return NULL;
+    return nullptr;
   }
   XPLMScheduleFlightLoop_ptr(inFlightLoopID, inInterval, inRelativeToNow);
   Py_RETURN_NONE;
@@ -602,7 +602,7 @@ static PyMethodDef XPLMProcessingMethods[] = {
   {"XPLMScheduleFlightLoop", (PyCFunction)XPLMScheduleFlightLoopFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"isFlightLoopValid", (PyCFunction)isFlightLoopValidFun, METH_VARARGS | METH_KEYWORDS, _isFlightLoopValid__doc__},
   {"_cleanup", cleanup, METH_VARARGS, ""},
-  {NULL, NULL, 0, NULL}
+  {nullptr, nullptr, 0, nullptr}
 };
 #pragma GCC diagnostic pop
 
@@ -616,17 +616,17 @@ static struct PyModuleDef XPLMProcessingModule = {
   "   https://xppython3.rtfd.io/en/stable/development/modules/processing.html",
   -1,
   XPLMProcessingMethods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr
 };
 
 PyMODINIT_FUNC
 PyInit_XPLMProcessing(void)
 {
   if(!(flIDDict = PyDict_New())){
-    return NULL;
+    return nullptr;
   }
   PyDict_SetItemString(XPY3pythonDicts, "flightLoopIDs", flIDDict);
   PyObject *mod = PyModule_Create(&XPLMProcessingModule);
@@ -639,7 +639,7 @@ PyInit_XPLMProcessing(void)
     PyModule_AddIntConstant(mod, "FlightLoop_Phase_AfterFlightModel", xplm_FlightLoop_Phase_AfterFlightModel); // XPLMFlightLoopPhaseType
   }
 
-  /* XPLMRegisterFlightLoopCallback(flightLoopStats, -1, NULL); */
+  /* XPLMRegisterFlightLoopCallback(flightLoopStats, -1, nullptr); */
 
   return mod;
 }

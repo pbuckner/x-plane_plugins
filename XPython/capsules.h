@@ -5,4 +5,5 @@ void deleteCapsule(PyObject *);
 void *getVoidPtr(PyObject *);
 void *getVoidPtr(PyObject *, std::string);
 PyObject *makeCapsule(void *, std::string);
+void logCapsules();
 extern int pythonCapsuleRegistration;

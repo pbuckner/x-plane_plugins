@@ -24,7 +24,7 @@ TrackMetrics_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
   (void) kwds;
   TrackMetricsObject *self;
   self = (TrackMetricsObject *) type->tp_alloc(type, 0);
-  if (self != NULL) {
+  if (self != nullptr) {
     self->isVertical = 0;
     self->downBtnSize = 0;
     self->downPageSize = 0;
@@ -96,7 +96,7 @@ TrackMetrics_getitem(TrackMetricsObject *self, Py_ssize_t i) {
     ;
   }
   PyErr_SetString(PyExc_IndexError, "list index out of range");
-  return NULL;
+  return nullptr;
 }
 
                  
@@ -108,7 +108,7 @@ static PyMemberDef TrackMetrics_members[] = {
     {"thumbSize", T_INT, offsetof(TrackMetricsObject, thumbSize), 0, "Size of thumb (pixels)"},
     {"upPageSize", T_INT, offsetof(TrackMetricsObject, upPageSize), 0, "Up page size, thumb and button (pixels)"},
     {"upBtnSize", T_INT, offsetof(TrackMetricsObject, upBtnSize), 0, "Up (or right) button size (pixels)"},
-    {NULL, T_INT, 0, 0, ""}  /* Sentinel */
+    {nullptr, T_INT, 0, 0, ""}  /* Sentinel */
 };
 
 static PyObject* TrackMetrics_str(TrackMetricsObject *self) {
@@ -125,7 +125,7 @@ static PySequenceMethods TrackMetrics_SequenceMethods = {
 
 PyTypeObject
 TrackMetricsType = {
-  PyVarObject_HEAD_INIT(NULL, 0)
+  PyVarObject_HEAD_INIT(nullptr, 0)
   .tp_name = "XPPython.TrackMetrics",
   .tp_basicsize = sizeof(TrackMetricsObject),
   .tp_itemsize = 0,

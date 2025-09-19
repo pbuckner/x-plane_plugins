@@ -26,16 +26,16 @@ FMSEntryInfo_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
   (void) kwds;
   FMSEntryInfoObject *self;
   self = (FMSEntryInfoObject *) type->tp_alloc(type, 0);
-  if (self != NULL) {
+  if (self != nullptr) {
     self->type = 0;
     self->lat = 0;
     self->lon = 0;
     self->altitude = 0;
     self->ref = 0;
     self->navAidID = PyUnicode_FromString("");
-    if (self->navAidID == NULL) {
+    if (self->navAidID == nullptr) {
       Py_DECREF(self);
-      return NULL;
+      return nullptr;
     }
   }
   return (PyObject *) self;
@@ -68,7 +68,7 @@ FMSEntryInfo_init(FMSEntryInfoObject *self, PyObject *args, PyObject *kwargs)
 {
   std::vector<std::string> params = {"type", "navAidID", "ref", "altitude", "lat", "lon"};
   char **keywords = stringVectorToCharArray(params);
-  PyObject *navAidID = NULL,  *tmp;
+  PyObject *navAidID = nullptr,  *tmp;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|iUiiff", keywords,
                                    &self->type, &navAidID, &self->ref, &self->altitude, &self->lat, &self->lon))
     return -1;
@@ -88,7 +88,7 @@ static PyMemberDef FMSEntryInfo_members[] = {
     {"altitude", T_INT, offsetof(FMSEntryInfoObject, altitude), 0, "Altitude (in feet)"},
     {"lat", T_FLOAT, offsetof(FMSEntryInfoObject, lat), 0, "Latitude"},
     {"lon", T_FLOAT, offsetof(FMSEntryInfoObject, lon), 0, "Longitude"},
-    {NULL, T_INT, 0, 0, ""}  /* Sentinel */
+    {nullptr, T_INT, 0, 0, ""}  /* Sentinel */
 };
 
 static int max(int a, int b) {
@@ -147,7 +147,7 @@ static PyObject *FMSEntryInfo_str(FMSEntryInfoObject *obj) {
 
 PyTypeObject
 FMSEntryInfoType = {
-  PyVarObject_HEAD_INIT(NULL, 0)
+  PyVarObject_HEAD_INIT(nullptr, 0)
   .tp_name = "XPPython.FMSEntryInfo",
   .tp_basicsize = sizeof(FMSEntryInfoObject),
   .tp_itemsize = 0,
@@ -171,7 +171,7 @@ PyFMSEntryInfo_New(int type, char *navAidID, int ref, int altitude, float lat, f
   if (PyErr_Occurred()) {
     PyErr_SetString(PyExc_RuntimeError, "FMSEntryInfo invalid data.");
     Py_XDECREF(argsList);
-    return NULL;
+    return nullptr;
   }
   Py_XDECREF(argsList);
   return (PyObject*)obj;

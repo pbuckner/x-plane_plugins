@@ -25,11 +25,11 @@ DataRefInfo_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
   (void) kwds;
   DataRefInfoObject *self;
   self = (DataRefInfoObject *) type->tp_alloc(type, 0);
-  if (self != NULL) {
+  if (self != nullptr) {
     self->name = PyUnicode_FromString("");
-    if (self->name == NULL) {
+    if (self->name == nullptr) {
       Py_DECREF(self);
-      return NULL;
+      return nullptr;
     }
   }
   return (PyObject *) self;
@@ -66,7 +66,7 @@ DataRefInfo_init(DataRefInfoObject *self, PyObject *args, PyObject *kwds)
 {
   std::vector<std::string> params = {"name", "type", "writable", "owner"};
   char **keywords = stringVectorToCharArray(params);
-  PyObject *name = NULL, *writable = NULL;
+  PyObject *name = nullptr, *writable = nullptr;
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "|UiOi", keywords,
                                    &name, &self->type, &writable, &self->owner)) {
     freeCharArray(keywords, params.size());
@@ -94,7 +94,7 @@ static PyMemberDef DataRefInfo_members[] = {
   {"type", T_INT, offsetof(DataRefInfoObject, type), 0, "DataRef type (bitwise 1=Int, 2=Float, 4=Double, 8=FloatArray, 16=IntArray, 32=Data"},
   {"writable", T_OBJECT_EX, offsetof(DataRefInfoObject, writable), 0, "DataRef is Writable"},
   {"owner", T_INT, offsetof(DataRefInfoObject, owner), 0, "PluginID of owner: 0 is X-Plane built-in"},
-  {NULL, T_INT, 0, 0, ""}  /* Sentinel */
+  {nullptr, T_INT, 0, 0, ""}  /* Sentinel */
 };
 
 static PyObject *DataRefInfo_str(DataRefInfoObject *obj) {
@@ -107,7 +107,7 @@ static PyObject *DataRefInfo_str(DataRefInfoObject *obj) {
 
 PyTypeObject
 DataRefInfoType = {
-  PyVarObject_HEAD_INIT(NULL, 0)
+  PyVarObject_HEAD_INIT(nullptr, 0)
   .tp_name = "XPPython.XPLMDataRefInfo_t",
   .tp_basicsize = sizeof(DataRefInfoObject),
   .tp_itemsize = 0,

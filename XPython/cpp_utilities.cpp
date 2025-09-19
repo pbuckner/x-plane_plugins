@@ -7,7 +7,7 @@
 char** stringVectorToCharArray(const std::vector<std::string>& stringVector) {
   size_t size = stringVector.size();
   
-  // Allocate array of char* pointers (size + 1 for NULL terminator)
+  // Allocate array of char* pointers (size + 1 for nullptr terminator)
   char** result = new char*[size + 1];
   
   // Copy each string to dynamically allocated char arrays
@@ -17,7 +17,7 @@ char** stringVectorToCharArray(const std::vector<std::string>& stringVector) {
     strcpy(result[i], stringVector[i].c_str());
   }
   
-  // Set the final element to NULL for null termination
+  // Set the final element to nullptr for null termination
   result[size] = nullptr;
   
   return result;

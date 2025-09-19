@@ -36,7 +36,7 @@ static PyObject *XPLMCreateProbeFun(PyObject *self, PyObject *args, PyObject *kw
   int inProbeType = xplm_ProbeY;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", keywords, &inProbeType)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   return makeCapsule(XPLMCreateProbe(inProbeType), "XPLMProbeRef");
@@ -52,10 +52,10 @@ static PyObject *XPLMDestroyProbeFun(PyObject *self, PyObject *args, PyObject *k
   std::vector<std::string> params = {"probe"};
   char **keywords = stringVectorToCharArray(params);
   (void) self;
-  PyObject *inProbe = NULL;
+  PyObject *inProbe = nullptr;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &inProbe)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDestroyProbe(getVoidPtr(inProbe, "XPLMProbeRef"));
@@ -90,7 +90,7 @@ static PyObject *XPLMProbeTerrainXYZFun(PyObject *self, PyObject *args, PyObject
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Offf", keywords, &probe, &inX, &inY, &inZ)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
@@ -119,12 +119,12 @@ static PyObject *XPLMGetMagneticVariationFun(PyObject *self, PyObject *args, PyO
   if(!XPLMGetMagneticVariation_ptr){
     freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetMagneticVariation is available only in XPLM300 and up.");
-    return NULL;
+    return nullptr;
   }
   double latitude, longitude;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "dd", keywords, &latitude, &longitude)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   return PyFloat_FromDouble(XPLMGetMagneticVariation_ptr(latitude, longitude));
@@ -143,12 +143,12 @@ static PyObject *XPLMDegTrueToDegMagneticFun(PyObject *self, PyObject *args, PyO
   if(!XPLMDegTrueToDegMagnetic_ptr){
     freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPLMDegTrueToDegMagnetic is available only in XPLM300 and up.");
-    return NULL;
+    return nullptr;
   }
   float headingDegreesTrue = 0.0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|f", keywords, &headingDegreesTrue)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   return PyFloat_FromDouble(XPLMDegTrueToDegMagnetic_ptr(headingDegreesTrue));
@@ -167,12 +167,12 @@ static PyObject *XPLMDegMagneticToDegTrueFun(PyObject *self, PyObject *args, PyO
   if(!XPLMDegMagneticToDegTrue_ptr){
     freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPLMDegMagneticToDegTrue is available only in XPLM300 and up.");
-    return NULL;
+    return nullptr;
   }
   float headingDegreesMagnetic=0.0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|f", keywords, &headingDegreesMagnetic)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   return PyFloat_FromDouble(XPLMDegMagneticToDegTrue_ptr(headingDegreesMagnetic));
@@ -194,7 +194,7 @@ static PyObject *XPLMLoadObjectFun(PyObject *self, PyObject *args, PyObject *kwa
   const char *inPath;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inPath)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMObjectRef res = XPLMLoadObject(inPath);
@@ -218,7 +218,7 @@ static void genericObjectLoaded(XPLMObjectRef inObject, void *inRefcon)
   Py_DECREF(module_name_obj);
 
   PyObject *object = makeCapsule(inObject, "XPLMObjectRef");
-  PyObject *res = PyObject_CallFunctionObjArgs(info.callback, object, info.refCon, NULL);
+  PyObject *res = PyObject_CallFunctionObjArgs(info.callback, object, info.refCon, nullptr);
   PyObject *err = PyErr_Occurred();
   if(err){
     printf("Error occured during the objectLoaded callback(inRefcon = %p):\n", inRefcon);
@@ -251,14 +251,14 @@ static PyObject *XPLMLoadObjectAsyncFun(PyObject *self, PyObject *args, PyObject
   if(!XPLMLoadObjectAsync_ptr){
     freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPLMLoadObjectAsync is available only in XPLM210 and up.");
-    return NULL;
+    return nullptr;
   }
   const char *inPath;
   PyObject *callback, *inRefcon=Py_None;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "sO|O", keywords, &inPath, &callback, &inRefcon)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
@@ -290,7 +290,7 @@ static PyObject *XPLMUnloadObjectFun(PyObject *self, PyObject *args, PyObject *k
   PyObject *objectRef;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &objectRef)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
@@ -354,12 +354,12 @@ static PyObject *XPLMLookupObjectsFun(PyObject *self, PyObject *args, PyObject *
   PyObject *pluginSelf;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s|ffOO", keywords, &inPath, &inLatitude, &inLongitude, &enumerator, &ref)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   if (!PyCallable_Check(enumerator)) {
     PyErr_SetString(PyExc_RuntimeError , "lookupObject() enumerator callback not callable function.");
-    return NULL;
+    return nullptr;
   }
 
   pluginSelf = get_moduleName_p();
@@ -426,7 +426,7 @@ static PyMethodDef XPLMSceneryMethods[] = {
   {"lookupObjects", (PyCFunction)XPLMLookupObjectsFun, METH_VARARGS | METH_KEYWORDS, _lookupObjects__doc__},
   {"XPLMLookupObjects", (PyCFunction)XPLMLookupObjectsFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"_cleanup", cleanup, METH_VARARGS, ""},
-  {NULL, NULL, 0, NULL}
+  {nullptr, nullptr, 0, nullptr}
 };
 #pragma GCC diagnostic pop
 
@@ -440,10 +440,10 @@ static struct PyModuleDef XPLMSceneryModule = {
   "   https://xppython3.rtfd.io/en/stable/development/modules/scenery.html",
   -1,
   XPLMSceneryMethods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr
 };
 
 PyMODINIT_FUNC

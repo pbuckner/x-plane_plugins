@@ -8,7 +8,7 @@ static PyObject *SandyBarbourDisplayFun(PyObject *self, PyObject *args)
   (void) self;
   const char *msg;
   if(!PyArg_ParseTuple(args, "s", &msg)){
-    return NULL;
+    return nullptr;
   }
   //TODO
   printf("SBD: %s\n", msg);
@@ -29,7 +29,7 @@ static PyObject *SandyBarbourPrintFun(PyObject *self, PyObject *args)
   (void) self;
   const char *msg;
   if(!PyArg_ParseTuple(args, "s", &msg)){
-    return NULL;
+    return nullptr;
   }
   //TODO
   printf("SBP: %s\n", msg);
@@ -58,19 +58,19 @@ static PyMethodDef SBUMethods[] = {
   {"SandyBarbourPrint", SandyBarbourPrintFun, METH_VARARGS, ""},
   {"SandyBarbourClear", SandyBarbourClearPrintFun, METH_VARARGS, ""},
   {"_cleanup", cleanup, METH_VARARGS, ""},
-  {NULL, NULL, 0, NULL}
+  {nullptr, nullptr, 0, nullptr}
 };
 
 static struct PyModuleDef SBUModule = {
   PyModuleDef_HEAD_INIT,
   "SandyBarbourUtilities",
-  NULL,
+  nullptr,
   -1,
   SBUMethods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr
 };
 
 PyMODINIT_FUNC

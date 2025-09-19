@@ -17,7 +17,7 @@ static PyObject *PI_GetMouseStateFun(PyObject *self, PyObject *args) {
   (void) self;
   PyObject *param1;
   if(!PyArg_ParseTuple(args, "O", &param1)) {
-    return NULL;
+    return nullptr;
   }
   return param1;
 }
@@ -26,7 +26,7 @@ static PyObject *PI_GetKeyStateFun(PyObject *self, PyObject *args) {
   (void) self;
   PyObject *param1;
   if(!PyArg_ParseTuple(args, "O", &param1)) {
-    return NULL;
+    return nullptr;
   }
   return param1;
 }
@@ -35,7 +35,7 @@ static PyMethodDef XPWidgetDefsMethods[] = {
   {"PI_GetMouseState", PI_GetMouseStateFun, METH_VARARGS, ""},
   {"PI_GetKeyState", PI_GetKeyStateFun, METH_VARARGS, ""},
   {"_cleanup", cleanup, METH_VARARGS, ""},
-  {NULL, NULL, 0, NULL}
+  {nullptr, nullptr, 0, nullptr}
 };
 
 static struct PyModuleDef XPWidgetDefsModule = {
@@ -47,10 +47,10 @@ static struct PyModuleDef XPWidgetDefsModule = {
   "   https://xppython3.rtfd.io/en/stable/development/modules/widgetdefs.html",
   -1,
   XPWidgetDefsMethods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr
 };
 
 PyMODINIT_FUNC

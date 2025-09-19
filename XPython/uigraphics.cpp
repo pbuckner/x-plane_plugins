@@ -23,7 +23,7 @@ static PyObject *XPDrawWindowFun(PyObject *self, PyObject *args, PyObject *kwarg
   int inX1, inY1, inX2, inY2, inStyle=xpWindow_MainWindow;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiii|i", keywords, &inX1, &inY1, &inX2, &inY2, &inStyle)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPDrawWindow(inX1, inY1, inX2, inY2, inStyle);
@@ -45,7 +45,7 @@ static PyObject *XPGetWindowDefaultDimensionsFun(PyObject *self, PyObject *args,
   int inStyle=xpWindow_MainWindow, width, height;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", keywords, &inStyle)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPGetWindowDefaultDimensions(inStyle, &width, &height);
@@ -65,7 +65,7 @@ static PyObject *XPDrawElementFun(PyObject *self, PyObject *args, PyObject *kwar
   int inX1, inY1, inX2, inY2, inStyle, inLit=0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiiii|i", keywords, &inX1, &inY1, &inX2, &inY2, &inStyle, &inLit)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPDrawElement(inX1, inY1, inX2, inY2, inStyle, inLit);
@@ -87,7 +87,7 @@ static PyObject *XPGetElementDefaultDimensionsFun(PyObject *self, PyObject *args
   int inStyle, width, height, canBeLit;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inStyle)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPGetElementDefaultDimensions(inStyle, &width, &height, &canBeLit);
@@ -114,7 +114,7 @@ static PyObject *XPDrawTrackFun(PyObject *self, PyObject *args, PyObject *kwargs
   int inX1, inY1, inX2, inY2, inMin, inMax, inValue, inStyle, inLit=0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiiiiiii|i", keywords, &inX1, &inY1, &inX2, &inY2, &inMin, &inMax, &inValue, &inStyle, &inLit)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPDrawTrack(inX1, inY1, inX2, inY2, inMin, inMax, inValue, inStyle, inLit);
@@ -136,7 +136,7 @@ static PyObject *XPGetTrackDefaultDimensionsFun(PyObject *self, PyObject *args, 
   int inStyle, width, canBeLit;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inStyle)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPGetTrackDefaultDimensions(inStyle, &width, &canBeLit);
@@ -166,7 +166,7 @@ static PyObject *XPGetTrackMetricsFun(PyObject *self, PyObject *args, PyObject *
   int outIsVertical, outDownBtnSize, outDownPageSize, outThumbSize, outUpPageSize, outUpBtnSize;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiiiiiii", keywords, &inX1, &inY1, &inX2, &inY2, &inMin, &inMax, &inValue, &inStyle)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPGetTrackMetrics(inX1, inY1, inX2, inY2, inMin, inMax, inValue, inStyle, &outIsVertical, &outDownBtnSize,
@@ -199,7 +199,7 @@ static PyMethodDef XPUIGraphicsMethods[] = {
   {"getTrackMetrics", (PyCFunction)XPGetTrackMetricsFun, METH_VARARGS | METH_KEYWORDS, _getTrackMetrics__doc__},
   {"XPGetTrackMetrics", (PyCFunction)XPGetTrackMetricsFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"_cleanup", cleanup, METH_VARARGS, ""},
-  {NULL, NULL, 0, NULL}
+  {nullptr, nullptr, 0, nullptr}
 };
 #pragma GCC diagnostic pop
 
@@ -214,10 +214,10 @@ static struct PyModuleDef XPUIGraphicsModule = {
   "   https://xppython3.rtfd.io/en/stable/development/modules/uigraphics.html",
   -1,
   XPUIGraphicsMethods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr
 };
 
 PyMODINIT_FUNC

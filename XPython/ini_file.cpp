@@ -29,7 +29,7 @@ std::string xpy_config_get(std::string item) {
         # foo         ==> ignored  (returning '')
         foo # bar     ==> foo:     (returning '')
         foo: bar #zoo ==> foo: bar (returning 'bar')
-     Not found will return NULL
+     Not found will return nullptr
 
      For now, we re-read the file on each "get"... we're assuming it's
      not a common operation and the file is small.

@@ -13,7 +13,7 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 
 static PyMethodDef XPLMDefsMethods[] = {
   {"_cleanup", cleanup, METH_VARARGS, ""},
-  {NULL, NULL, 0, NULL}
+  {nullptr, nullptr, 0, nullptr}
 };
 
 
@@ -27,17 +27,17 @@ static struct PyModuleDef XPLMDefsModule = {
   "   https://xppython3.rtfd.io/en/stable/development/modules/defs.html",
   -1,
   XPLMDefsMethods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr
 };
 
 PyMODINIT_FUNC
 PyInit_XPLMDefs(void)
 {
   PyObject *mod = PyModule_Create(&XPLMDefsModule);
-  if(mod != NULL){
+  if(mod != nullptr){
     PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
     PyModule_AddIntConstant(mod, "XPLM_NO_PLUGIN_ID", XPLM_NO_PLUGIN_ID);
     PyModule_AddIntConstant(mod, "XPLM_PLUGIN_XPLANE", XPLM_PLUGIN_XPLANE);

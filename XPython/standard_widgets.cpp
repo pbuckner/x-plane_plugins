@@ -17,7 +17,7 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 
 static PyMethodDef XPStandardWidgetsMethods[] = {
   {"_cleanup", cleanup, METH_VARARGS, ""},
-  {NULL, NULL, 0, NULL}
+  {nullptr, nullptr, 0, nullptr}
 };
 
 
@@ -30,10 +30,10 @@ static struct PyModuleDef XPStandardWidgetsModule = {
   "   https://xppython3.rtfd.io/en/stable/development/modules/standardwidgets.html",
   -1,
   XPStandardWidgetsMethods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr
 };
 
 PyMODINIT_FUNC

@@ -91,12 +91,12 @@ static PyMemberDef ProbeInfo_members[] = {
     {"velocityY", T_FLOAT, offsetof(ProbeInfoObject, velocityY), 0, "Velocity vector 'y' (meters/second) of movement of terrain"},
     {"velocityZ", T_FLOAT, offsetof(ProbeInfoObject, velocityZ), 0, "Velocity vector 'z' (meters/second) of movement of terrain"},
     {"is_wet", T_INT, offsetof(ProbeInfoObject, is_wet), 0, "1=Location at surface is water"},
-    {NULL, T_INT, 0, 0, ""}  /* Sentinel */
+    {nullptr, T_INT, 0, 0, ""}  /* Sentinel */
 };
 
 PyTypeObject
 ProbeInfoType = {
-  PyVarObject_HEAD_INIT(NULL, 0)
+  PyVarObject_HEAD_INIT(nullptr, 0)
   .tp_name = "XPPython.XPLMProbeInfo_t",
   .tp_basicsize = sizeof(ProbeInfoObject),
   .tp_itemsize = 0,

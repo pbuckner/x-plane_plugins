@@ -27,7 +27,7 @@ int pythonStats = 1;  /* 1= collect timing information, 0=do not */
 int pythonDebugs = 0; /* 1= issue DEBUG messages, 0= do not */
 int pythonFlushLog = 0; /* 1= flush python log after every wrinte, 0= buffer writes */
 int pythonCapsuleRegistration = 0;  /* 1= log registration of all capsules (REQUIRES ERRCHECK) */
-FILE *pythonLog_fp = NULL;
+FILE *pythonLog_fp = nullptr;
 
 #define CAPSULE_CAPSULE 0
 #define CAPSULE_MODULE 1
@@ -60,22 +60,22 @@ void setLogFile(void) {
 
   pythonFlushLog = xpy_config_get_int("Main.flush_log");/* 0= off, 1= on */
   log = xpy_config_get("Main.log_file_name").c_str();
-  if (log != NULL) {
+  if (log != nullptr) {
     logFileName = log;
   }
   log = getenv(ENV_logFileVar.c_str());
-  if(log != NULL){
+  if(log != nullptr){
     logFileName = log;
   }
   
   char *msg;
   int preserve = 0;
   if (0 == strcmp(logFileName.c_str(), "Log.txt")) {     /* Special case, combine python log an Log.txt */
-    pythonLog_fp = NULL;
+    pythonLog_fp = nullptr;
   } else { /* Not 'Log.txt'... -- try to open provided logFileName */
-    preserve = getenv(ENV_logPreserve.c_str()) != NULL || xpy_config_get_int("Main.log_file_preserve") != 0;
+    preserve = getenv(ENV_logPreserve.c_str()) != nullptr || xpy_config_get_int("Main.log_file_preserve") != 0;
     pythonLog_fp = fopen(logFileName.c_str(), preserve ? "a" : "w");
-    if(pythonLog_fp == NULL) {
+    if(pythonLog_fp == nullptr) {
       preserve = 0;
       pythonLog_fp = stdout;
       logFileName = "standard out";
@@ -103,13 +103,16 @@ void pythonLogFlush(void) {
   } /* else... we're writing to DebugString, which is already flushed each time */
 }
 
+#define INCLUDE_TIME 0
 void pythonLog(const char *fmt, ...) {
   /* do not include terminating newline */
     char *msg;
     va_list ap;
     va_start(ap, fmt);
+#ifdef INCLUDE_TIME
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
+#endif
     if (-1 == vasprintf(&msg, fmt, ap)) {
       std::string err_msg = "Failed to allocation vasprintf memory in pythonDebug";
       if (pythonLog_fp) {
@@ -125,7 +128,11 @@ void pythonLog(const char *fmt, ...) {
     }
     va_end(ap);
     if (pythonLog_fp) {
+#ifdef INCLUDE_TIME
       fprintf(pythonLog_fp, "[%ld,%ld] %s\n", now.tv_sec, now.tv_nsec, msg);
+#else
+      fprintf(pythonLog_fp, "%s\n", msg);
+#endif
       pythonLogFlush();
     } else {
       XPLMDebugString(msg);
@@ -213,7 +220,7 @@ void pythonLogException()
   }
   PyErr_Clear();
 
-  if (ptraceback != NULL) {
+  if (ptraceback != nullptr) {
     PyException_SetTraceback(pvalue, ptraceback);
   }
 
@@ -225,22 +232,22 @@ void pythonLogException()
   PyObject *tb_module_name = PyUnicode_DecodeFSDefault("traceback"); /* new */
   PyObject *tb_module = PyImport_Import(tb_module_name); /* new */
   Py_DECREF(tb_module_name);
-  if (tb_module != NULL) {
+  if (tb_module != nullptr) {
     PyObject *fmt_exception = PyObject_GetAttrString(tb_module, "format_exception");
     if (fmt_exception && PyCallable_Check(fmt_exception)) {
       PyObject *vals;
       if (pvalue && ptraceback) {
-        vals = PyObject_CallFunctionObjArgs(fmt_exception, ptype, pvalue, ptraceback, NULL);
+        vals = PyObject_CallFunctionObjArgs(fmt_exception, ptype, pvalue, ptraceback, nullptr);
       } else if (pvalue) {
         pythonDebug("(logging exception without traceback)\n");
         PyObject *fmt_exception_only = PyObject_GetAttrString(tb_module, "format_exception_only");
-        vals = PyObject_CallFunctionObjArgs(fmt_exception_only, ptype, pvalue, NULL);
+        vals = PyObject_CallFunctionObjArgs(fmt_exception_only, ptype, pvalue, nullptr);
         Py_DECREF(fmt_exception_only);
       } else {
         pythonDebug("(logging exception without traceback or pvalue)\n");
-        vals = PyObject_CallFunctionObjArgs(fmt_exception, ptype, pvalue, NULL);
+        vals = PyObject_CallFunctionObjArgs(fmt_exception, ptype, pvalue, nullptr);
       }
-      if (vals == NULL) {
+      if (vals == nullptr) {
         if(PyErr_Occurred()) {
           pythonLog("[XPPython3] Unable to format exception");
           PyErr_Print();
@@ -325,7 +332,7 @@ PyObject *get_pythonline() {
   PyObject *last_filenameObj = Py_None;
   int line = 0;
 #if PY_VERSION_HEX > 0x030b0000
-  if (NULL != tstate && NULL != PyThreadState_GetFrame(tstate)) {
+  if (nullptr != tstate && nullptr != PyThreadState_GetFrame(tstate)) {
     PyFrameObject *frame = PyThreadState_GetFrame(tstate);
     if (frame) {
       last_filenameObj = PyFrame_GetCode(frame)->co_filename;
@@ -334,7 +341,7 @@ PyObject *get_pythonline() {
     }
   }
 #else
-    if (NULL != tstate && NULL != tstate->frame) {
+    if (nullptr != tstate && nullptr != tstate->frame) {
     PyFrameObject *frame = tstate->frame;
     if (frame) {
       last_filenameObj = frame->f_code->co_filename;
@@ -345,9 +352,9 @@ PyObject *get_pythonline() {
 #endif
   char *last_filename = objToStr(last_filenameObj); // allocates new string on heap
   char *token = strrchr(last_filename, '/');
-  if (token == NULL) {
+  if (token == nullptr) {
     token = strrchr(last_filename, '\\');
-    if (token == NULL) {
+    if (token == nullptr) {
       token = strrchr(last_filename, ':');
     }
   }
@@ -368,10 +375,10 @@ PyObject *get_pythonline() {
 /* char *get_module(PyThreadState *tstate) { */
 /*   /\* returns filename of top most frame -- this will be the Plugin's file *\/ */
 /*   char *last_filename = "[unknown]"; */
-/*   if (NULL != tstate && NULL != tstate->frame) { */
+/*   if (nullptr != tstate && nullptr != tstate->frame) { */
 /*     PyFrameObject *frame = tstate->frame; */
     
-/*     while (NULL != frame) { */
+/*     while (nullptr != frame) { */
 /*       // int line = frame->f_lineno; */
 /*       /\* */
 /*         frame->f_lineno will not always return the correct line number */
@@ -393,9 +400,9 @@ PyObject *get_pythonline() {
 /*   } */
 
 /*   char *token = strrchr(last_filename, '/'); */
-/*   if (token == NULL) { */
+/*   if (token == nullptr) { */
 /*     token = strrchr(last_filename, '\\'); */
-/*     if (token == NULL) { */
+/*     if (token == nullptr) { */
 /*       token = strrchr(last_filename, ':'); */
 /*     } */
 /*   } */

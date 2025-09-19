@@ -31,15 +31,15 @@ char outSig[512];
 char outDesc[512];
 
 typedef int  (*XPluginStart_proto)(char *outName, char *outSig, char *outDesc);
-XPluginStart_proto XPluginStart = NULL;
+XPluginStart_proto XPluginStart = nullptr;
 typedef void (*XPluginStop_proto)(void);
-XPluginStop_proto XPluginStop = NULL;
+XPluginStop_proto XPluginStop = nullptr;
 typedef int  (*XPluginEnable_proto)(void);
-XPluginEnable_proto XPluginEnable = NULL;
+XPluginEnable_proto XPluginEnable = nullptr;
 typedef void (*XPluginDisable_proto)(void);
-XPluginDisable_proto XPluginDisable = NULL;
+XPluginDisable_proto XPluginDisable = nullptr;
 typedef void (*XPluginReceiveMessage_proto)(XPLMPluginID inFromWho, long inMessage, void* inParam);
-XPluginReceiveMessage_proto XPluginReceiveMessage = NULL;
+XPluginReceiveMessage_proto XPluginReceiveMessage = nullptr;
 
 #if LIN
 #if __x86_64__
@@ -58,7 +58,7 @@ void *loadFunction(void *libHandle, const char *funcName)
   void *fun;
   dlerror();
   fun = dlsym(libHandle, funcName);
-  if(fun == NULL){
+  if(fun == nullptr){
     std::cout<<"Can't find symbol " << funcName << "(" << dlerror() << ")." << std::endl;
   }
   return fun;
@@ -74,10 +74,10 @@ int main(int argc, char *argv[])
   (void) argc;
   (void) argv;
   dlerror();
-  void *plugin = NULL;
+  void *plugin = nullptr;
   plugin = dlopen(plugin_path, RTLD_NOW | RTLD_GLOBAL);
   std::cout << "Plugin: " << plugin << std::endl;
-  if(plugin == NULL){
+  if(plugin == nullptr){
     std::cout << "Can't load plugin (" << dlerror() << ")" << std::endl;
     return 1;
   }

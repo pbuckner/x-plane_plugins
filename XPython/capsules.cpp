@@ -49,7 +49,7 @@ void *getVoidPtr(PyObject *capsule, std::string name)
 
   /* replaces refToPtr(PyObject *ref, const char *name) */
   errCheck("prior getVoidPtr %s", name.c_str());
-  if (capsule == Py_None) return NULL;
+  if (capsule == Py_None) return nullptr;
   if (name == "") {
     name = PyCapsule_GetName(capsule);
     errCheck("Bad PyCapsule_GetName()");
@@ -61,7 +61,7 @@ void *getVoidPtr(PyObject *capsule, std::string name)
   }
   if (PyLong_Check(capsule) && PyLong_AsLong(capsule) == 0 && !strcmp(name.c_str(), "XPWidgetID")) {
     /* XPWidgetID can be 0, refering to underlying X-Plane window, need to keep that */
-    return NULL;
+    return nullptr;
   }
 
   if (pythonDebugs) {
@@ -74,7 +74,7 @@ void *getVoidPtr(PyObject *capsule, std::string name)
       snprintf(msg, sizeof(msg), "Failed to convert '%s' capsule (%s) to pointer\n", name.c_str(), s);
       PyErr_SetString(PyExc_ValueError , msg);
       free(s);
-      return NULL;
+      return nullptr;
     }
   }
 
@@ -116,7 +116,7 @@ PyObject *makeCapsule(void *ptr, std::string name)
   PyObject *capsule;
   auto it = CapsuleDict.find(ptr);
   if (it == CapsuleDict.end()) {
-    capsule = PyCapsule_New(ptr, strdup(name.c_str()), NULL); // the 'name' must outlive the capsule
+    capsule = PyCapsule_New(ptr, strdup(name.c_str()), nullptr); // the 'name' must outlive the capsule
     if (pythonCapsuleRegistration) {
       pythonLog("Capsule: New      %s > %s at: %s", CurrentPythonModuleName, name.c_str(),
                 objToStr(get_pythonline()));
@@ -139,6 +139,17 @@ PyObject *makeCapsule(void *ptr, std::string name)
   return capsule;
 }
 
+void logCapsules()
+{
+  for(auto& item : CapsuleDict) {
+    PyObject *capsule = item.second;
+    const char *name = PyCapsule_GetName(capsule);
+    void *context = PyCapsule_GetContext(capsule);
+    void *ptr = PyCapsule_GetPointer(capsule, name);
+
+    pythonLog("%-20s %p: %s", name, ptr, (char *)context);
+  }
+}
 // // Can be used where no callbacks are involved in passing the capsule
 // PyObject *getPtrRefOneshot(void *ptr, const char *refName)
 // {
@@ -146,7 +157,7 @@ PyObject *makeCapsule(void *ptr, std::string name)
 //     Py_RETURN_NONE;
 //   }
 //   errCheck("prior getPtrRefOneshot: %s", refName);
-//   PyObject *ret = PyCapsule_New(ptr, refName, NULL);
+//   PyObject *ret = PyCapsule_New(ptr, refName, nullptr);
 //   errCheck("end getPtrRefOneShot");
 //   return ret;
 // }

@@ -46,11 +46,11 @@ static PyObject *XPLMCreateInstanceFun(PyObject *self, PyObject *args, PyObject 
   if(!XPLMCreateInstance_ptr){
     freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "createInstance is available only in XPLM300 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O", keywords, &obj, &drefList)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   Py_ssize_t len = 0;
@@ -60,11 +60,11 @@ static PyObject *XPLMCreateInstanceFun(PyObject *self, PyObject *args, PyObject 
     /* drefListTuple = PySequence_Tuple(drefList); */
   }
   const char **datarefs = (const char **)malloc(sizeof(char *) * (len + 1));
-  if(datarefs == NULL){
-    return NULL;
+  if(datarefs == nullptr){
+    return nullptr;
   }
   // Malloced len + 1, so we're not overflowing!
-  datarefs[len] = NULL;
+  datarefs[len] = nullptr;
 
   Py_ssize_t i;
   char *tmp;
@@ -76,7 +76,7 @@ static PyObject *XPLMCreateInstanceFun(PyObject *self, PyObject *args, PyObject 
     Py_DECREF(s);
     if (PyErr_Occurred()) {
       Py_XDECREF(tmpObj);
-      return NULL;
+      return nullptr;
     }
     datarefs[i] = tmp;
     Py_DECREF(tmpObj);
@@ -106,11 +106,11 @@ static PyObject *XPLMDestroyInstanceFun(PyObject *self, PyObject *args, PyObject
   if(!XPLMDestroyInstance_ptr){
     freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "destroyInstance is available only in XPLM300 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &instance)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDestroyInstance_ptr(getVoidPtr(instance, "XPLMInstanceRef"));
@@ -134,11 +134,11 @@ static PyObject *XPLMInstanceSetAutoShiftFun(PyObject *self, PyObject *args, PyO
   if(!XPLMInstanceSetAutoShift_ptr){
     freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPLMInstanceSetAutoShift is available only in XPLM420 and up, and requires at least X-Plane 12.3.0");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &instance)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMInstanceSetAutoShift_ptr(getVoidPtr(instance, "XPLMInstanceRef"));
@@ -166,11 +166,11 @@ static PyObject *XPLMInstanceSetPositionFun(PyObject *self, PyObject *args, PyOb
   if(!XPLMInstanceSetPosition_ptr){
     freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError, "XPLMInstanceSetPosition is available only in XPLM300 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|O", keywords, &instance, &newPositionSeq, &data)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDrawInfo_t inNewPosition;
@@ -261,7 +261,7 @@ static PyObject *XPLMInstanceSetPositionFun(PyObject *self, PyObject *args, PyOb
     }
   } else {
     PyErr_SetString(PyExc_AttributeError, "instanceSetPosition: unknown data type for position");
-    return NULL;
+    return nullptr;
   }
     
   Py_ssize_t len = 0;
@@ -269,8 +269,8 @@ static PyObject *XPLMInstanceSetPositionFun(PyObject *self, PyObject *args, PyOb
     len = PySequence_Length(data);
   }
   float *inData = (float*)malloc(sizeof(float) * len);
-  if(len && inData == NULL){
-    return NULL;
+  if(len && inData == nullptr){
+    return nullptr;
   }
   if (len) {
     Py_ssize_t i;
@@ -279,7 +279,7 @@ static PyObject *XPLMInstanceSetPositionFun(PyObject *self, PyObject *args, PyOb
     }
   }
   void *p = getVoidPtr(instance, "XPLMInstanceRef");
-  if (p != NULL) {
+  if (p != nullptr) {
     if (XPLMInstanceSetPositionDouble_ptr) {
       XPLMInstanceSetPositionDouble_ptr(p, &inNewPositionDouble, inData);
     } else {
@@ -315,7 +315,7 @@ static PyMethodDef XPLMInstanceMethods[] = {
   {"XPLMInstanceSetPosition", (PyCFunction)XPLMInstanceSetPositionFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"XPLMInstanceSetPositionDouble", (PyCFunction)XPLMInstanceSetPositionFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"_cleanup", cleanup, METH_VARARGS, ""},
-  {NULL, NULL, 0, NULL}
+  {nullptr, nullptr, 0, nullptr}
 };
 #pragma GCC diagnostic pop
 
@@ -329,10 +329,10 @@ static struct PyModuleDef XPLMInstanceModule = {
   "   https://xppython3.rtfd.io/en/stable/development/modules/instance.html",
   -1,
   XPLMInstanceMethods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr
 };
 
 PyMODINIT_FUNC

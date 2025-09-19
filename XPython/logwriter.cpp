@@ -9,7 +9,7 @@ static PyObject *logWriterWrite(PyObject *self, PyObject *args)
   (void) self;
   char *msg;
   if(!PyArg_ParseTuple(args, "s", &msg)){
-    return NULL;
+    return nullptr;
   }
   pythonLogRaw(msg);
   pythonLogFlush();
@@ -29,7 +29,7 @@ static PyObject *logWriterAddAllErrors(PyObject *self, PyObject *args)
   (void) self;
   int errs;
   if(!PyArg_ParseTuple(args, "i", &errs)){
-    return NULL;
+    return nullptr;
   }
   printf("Adding %d errors...\n", errs);
   allErrorsEncountered += errs;
@@ -41,19 +41,19 @@ static PyMethodDef logWriterMethods[] = {
   {"write", logWriterWrite, METH_VARARGS, ""},
   {"flush", logWriterFlush, METH_VARARGS, ""},
   {"addAllErrors", logWriterAddAllErrors, METH_VARARGS, ""},
-  {NULL, NULL, 0, NULL}
+  {nullptr, nullptr, 0, nullptr}
 };
 
 static struct PyModuleDef XPythonLogWriterModule = {
   PyModuleDef_HEAD_INIT,
   "XPythonLogWriter",
-  NULL,
+  nullptr,
   -1,
   logWriterMethods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr
 };
 
 PyMODINIT_FUNC

@@ -38,7 +38,7 @@ static PyObject *XPLMSetUsersAircraftFun(PyObject *self, PyObject *args, PyObjec
   const char *inAircraftPath;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inAircraftPath)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMSetUsersAircraft(inAircraftPath);
@@ -60,7 +60,7 @@ static PyObject *XPLMPlaceUserAtAirportFun(PyObject *self, PyObject *args, PyObj
   const char *inAirportCode;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inAirportCode)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMPlaceUserAtAirport(inAirportCode);
@@ -84,12 +84,12 @@ static PyObject *XPLMPlaceUserAtLocationFun(PyObject *self, PyObject *args, PyOb
   if(!XPLMPlaceUserAtLocation_ptr){
     freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPLMPlaceUserAtLocation is available only in XPLM300 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ddfff", keywords, &latitudeDegrees, &longitudeDegrees,
                        &elevationMetersMSL, &headingDegreesTrue, &speedMetersPerSecond)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMPlaceUserAtLocation_ptr(latitudeDegrees, longitudeDegrees,
@@ -128,7 +128,7 @@ static PyObject *XPLMGetNthAircraftModelFun(PyObject *self, PyObject *args, PyOb
   char outPath[512];
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inIndex)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
@@ -152,7 +152,7 @@ void planesAvailable(void *inRefcon)
   set_moduleName(module_name_obj);
   Py_DECREF(module_name_obj);
 
-  PyObject *res = PyObject_CallFunctionObjArgs(info.callback, info.refCon, NULL);
+  PyObject *res = PyObject_CallFunctionObjArgs(info.callback, info.refCon, nullptr);
   PyObject *err = PyErr_Occurred();
   if(err){
     printf("Error occured during the planesAvailable callback(inRefcon = %p):\n", inRefcon);
@@ -177,7 +177,7 @@ static PyObject *XPLMAcquirePlanesFun(PyObject *self, PyObject *args, PyObject *
   PyObject *pluginSelf, *aircraft=Py_None, *inCallback=Py_None, *inRefcon=Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOO", keywords, &aircraft, &inCallback, &inRefcon)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   pluginSelf = get_moduleName_p();
@@ -195,7 +195,7 @@ static PyObject *XPLMAcquirePlanesFun(PyObject *self, PyObject *args, PyObject *
   Py_INCREF(inCallback);
   Py_INCREF(inRefcon);
   if(aircraft == Py_None){
-    res = XPLMAcquirePlanes(NULL, planesAvailable, (void*)refcon);
+    res = XPLMAcquirePlanes(nullptr, planesAvailable, (void*)refcon);
   }else{
     Py_ssize_t len = PySequence_Length(aircraft);
     char **inAircraft = (char **)malloc((len + 1) * sizeof(char *));
@@ -209,7 +209,7 @@ static PyObject *XPLMAcquirePlanesFun(PyObject *self, PyObject *args, PyObject *
       Py_DECREF(tmpItem);
       Py_DECREF(tmpStr);
 
-      if (PyErr_Occurred()) return NULL;
+      if (PyErr_Occurred()) return nullptr;
       if(tmp[0] == '\0'){
         Py_DECREF(tmpObj);
         break;
@@ -218,7 +218,7 @@ static PyObject *XPLMAcquirePlanesFun(PyObject *self, PyObject *args, PyObject *
       }
       Py_DECREF(tmpObj);
     }
-    inAircraft[i] = NULL;
+    inAircraft[i] = nullptr;
     res = XPLMAcquirePlanes(inAircraft, planesAvailable, (void*)refcon);
     i = 0;
     while(inAircraft[i]){
@@ -263,7 +263,7 @@ static PyObject *XPLMSetActiveAircraftCountFun(PyObject *self, PyObject *args, P
   int inCount;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inCount)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
@@ -287,7 +287,7 @@ static PyObject *XPLMSetAircraftModelFun(PyObject *self, PyObject *args, PyObjec
   const char *inAircraftPath;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "is", keywords, &inIndex, &inAircraftPath)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMSetAircraftModel(inIndex, inAircraftPath);
@@ -309,7 +309,7 @@ static PyObject *XPLMDisableAIForPlaneFun(PyObject *self, PyObject *args, PyObje
   int inPlaneIndex;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inPlaneIndex)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
@@ -363,7 +363,7 @@ static PyMethodDef XPLMPlanesMethods[] = {
   {"XPLMReinitUsersPlane", (PyCFunction)XPLMReinitUsersPlaneFun, METH_VARARGS | METH_KEYWORDS, ""},
 #endif
   {"_cleanup", cleanup, METH_VARARGS, ""},
-  {NULL, NULL, 0, NULL}
+  {nullptr, nullptr, 0, nullptr}
 };
 #pragma GCC diagnostic pop
 
@@ -377,10 +377,10 @@ static struct PyModuleDef XPLMPlanesModule = {
   "   https://xppython3.rtfd.io/en/stable/development/modules/planes.html",
   -1,
   XPLMPlanesMethods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr
 };
 
 PyMODINIT_FUNC

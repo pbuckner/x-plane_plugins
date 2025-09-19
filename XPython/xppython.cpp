@@ -25,8 +25,8 @@
 #include "manage_instance.h"
 #include "cpp_utilities.hpp"
 
-PyObject *XPY3pythonDicts = NULL, *XPY3pythonCapsules = NULL;
-PyObject *PythonModuleMTimes = NULL;
+PyObject *XPY3pythonDicts = nullptr, *XPY3pythonCapsules = nullptr;
+PyObject *PythonModuleMTimes = nullptr;
 extern const char *pythonPluginVersion, *pythonPluginsPath, *pythonInternalPluginsPath;
 static PyObject *getExecutable(void);
 
@@ -43,7 +43,7 @@ int getPluginIndex(PyObject *pluginInstance)
     numPlugins++;
   }
   for (int i = 0; i < numPlugins; i++) {
-    if(pluginStats[i].pluginInstance != NULL && PyObject_RichCompareBool(pluginStats[i].pluginInstance, pluginInstance, Py_EQ)) {
+    if(pluginStats[i].pluginInstance != nullptr && PyObject_RichCompareBool(pluginStats[i].pluginInstance, pluginInstance, Py_EQ)) {
       return i;
     }
   }
@@ -84,7 +84,7 @@ static PyObject *XPReloadPlugin(PyObject *self, PyObject *args, PyObject *kwargs
   char **keywords = stringVectorToCharArray(params);
   PyObject *signature;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &signature)) {
-    return NULL;
+    return nullptr;
   }
   xpy_reloadInstance(signature);
   Py_RETURN_NONE;
@@ -258,7 +258,7 @@ static PyObject *XPPythonDerefCapsuleFun(PyObject *self, PyObject *args)
   const char *capsule_type;
   PyObject *capsule;
   if(!PyArg_ParseTuple(args, "sO", &capsule_type, &capsule)) {
-    return NULL;
+    return nullptr;
   }
   /* pythonLog("Capsule Name: %s", PyCapsule_GetName(capsule)); */
   /* pythonLog("Capsule Context: %p", PyCapsule_GetContext(capsule)); */
@@ -364,7 +364,7 @@ static PyMethodDef XPPythonMethods[] = {
   {"getSelfName", (PyCFunction)XPGetSelfNameFun, METH_VARARGS | METH_KEYWORDS, _getSelfName__doc__},
   {"XPGetSelfName", (PyCFunction)XPGetSelfNameFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"_cleanup", cleanup, METH_VARARGS, ""},
-  {NULL, NULL, 0, NULL}
+  {nullptr, nullptr, 0, nullptr}
 };
 #pragma GCC diagnostic pop
 
@@ -376,40 +376,40 @@ static struct PyModuleDef XPPythonModule = {
   "   https://xppython3.rtfd.io/en/stable/development/modules/xppython.html",
   -1,
   XPPythonMethods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr
 };
 
 PyMODINIT_FUNC
 PyInit_XPPython(void)
 {
   if (PyType_Ready(&HotKeyInfoType) < 0)
-    return NULL;
+    return nullptr;
   if (PyType_Ready(&ProbeInfoType) < 0)
-    return NULL;
+    return nullptr;
   if (PyType_Ready(&DataRefInfoType) < 0)
-    return NULL;
+    return nullptr;
   if (PyType_Ready(&WeatherInfoType) < 0)
-    return NULL;
+    return nullptr;
   if (PyType_Ready(&WeatherInfoCloudsType) < 0)
-    return NULL;
+    return nullptr;
   if (PyType_Ready(&WeatherInfoWindsType) < 0)
-    return NULL;
+    return nullptr;
   if (PyType_Ready(&PluginInfoType) < 0)
-    return NULL;
+    return nullptr;
   if (PyType_Ready(&TrackMetricsType) < 0)
-    return NULL;
+    return nullptr;
   if (PyType_Ready(&NavAidInfoType) < 0)
-    return NULL;
+    return nullptr;
   if (PyType_Ready(&FMSEntryInfoType) < 0)
-    return NULL;
+    return nullptr;
 
   PyObject *mod = PyModule_Create(&XPPythonModule);
   PythonModuleMTimes = PyDict_New();
 
-  if (mod != NULL) {
+  if (mod != nullptr) {
     PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
     PyModule_AddStringConstant(mod, "VERSION", pythonPluginVersion);
     PyModule_AddStringConstant(mod, "PLUGINSPATH", pythonPluginsPath);

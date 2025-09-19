@@ -46,7 +46,7 @@ static void error_callback(const char *inMessage)
 {
   //TODO: send the error only to the active plugin?
   // for now, pass to all registered
-  PyObject *msg = PyUnicode_DecodeUTF8(inMessage, strlen(inMessage), NULL);
+  PyObject *msg = PyUnicode_DecodeUTF8(inMessage, strlen(inMessage), nullptr);
   
   for (const auto& pair : errorCallbacks) {
     const ErrorCallbackInfo& info = pair.second;
@@ -55,7 +55,7 @@ static void error_callback(const char *inMessage)
     set_moduleName(module_name_obj);
     Py_DECREF(module_name_obj);
     
-    PyObject *oRes = PyObject_CallFunctionObjArgs(info.callback, msg, NULL);
+    PyObject *oRes = PyObject_CallFunctionObjArgs(info.callback, msg, nullptr);
     PyObject *err = PyErr_Occurred();
     if(err){
       pythonLogException();
@@ -81,7 +81,7 @@ static PyObject *XPLMSpeakStringFun(PyObject *self, PyObject *args, PyObject *kw
   const char *inString;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inString)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMSpeakString(inString);
@@ -101,11 +101,11 @@ static PyObject *XPLMGetVirtualKeyDescriptionFun(PyObject *self, PyObject *args,
   char **keywords = stringVectorToCharArray(params);
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inVirtualKey)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   const char *res = XPLMGetVirtualKeyDescription(inVirtualKey);
-  return PyUnicode_DecodeUTF8(res, strlen(res), NULL);
+  return PyUnicode_DecodeUTF8(res, strlen(res), nullptr);
 }
 
 My_DOCSTR(_reloadScenery__doc__, "reloadScenery",
@@ -133,7 +133,7 @@ static PyObject *XPLMGetSystemPathFun(PyObject *self, PyObject *args)
   char outSystemPath[1024];
   XPLMGetSystemPath(outSystemPath);
 
-  return PyUnicode_DecodeUTF8(outSystemPath, strlen(outSystemPath), NULL);
+  return PyUnicode_DecodeUTF8(outSystemPath, strlen(outSystemPath), nullptr);
 }
 
 My_DOCSTR(_getPrefsPath__doc__, "getPrefsPath",
@@ -148,7 +148,7 @@ static PyObject *XPLMGetPrefsPathFun(PyObject *self, PyObject *args)
   char outPrefsPath[1024];
   XPLMGetPrefsPath(outPrefsPath);
 
-  return PyUnicode_DecodeUTF8(outPrefsPath, strlen(outPrefsPath), NULL);
+  return PyUnicode_DecodeUTF8(outPrefsPath, strlen(outPrefsPath), nullptr);
 }
 
 My_DOCSTR(_getDirectorySeparator__doc__, "getDirectorySeparator",
@@ -165,7 +165,7 @@ static PyObject *XPLMGetDirectorySeparatorFun(PyObject *self, PyObject *args)
   
   const char *res = XPLMGetDirectorySeparator();
 
-  return PyUnicode_DecodeUTF8(res, 1, NULL);
+  return PyUnicode_DecodeUTF8(res, 1, nullptr);
 }
 
 
@@ -184,7 +184,7 @@ static PyObject *XPLMExtractFileAndPathFun(PyObject *self, PyObject *args, PyObj
   const char *inFullPathConst;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inFullPathConst)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   char *inFullPath = strdup(inFullPathConst);
@@ -213,7 +213,7 @@ static PyObject *XPLMGetDirectoryContentsFun(PyObject *self, PyObject *args, PyO
   int inIndexCount=100;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s|iii", keywords, &inDirectoryPath, &inFirstReturn, &inFileNameBufSize, &inIndexCount)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   char *outFileNames = static_cast<char*>(malloc(inFileNameBufSize));
@@ -227,8 +227,8 @@ static PyObject *XPLMGetDirectoryContentsFun(PyObject *self, PyObject *args, PyO
   PyObject *namesList = PyList_New(0);
   PyObject *tmp;
   for(int i = 0; i < outReturnedFiles; ++i){
-    if(outIndices[i] != NULL){
-      tmp = PyUnicode_DecodeUTF8(outIndices[i], strlen(outIndices[i]), NULL);
+    if(outIndices[i] != nullptr){
+      tmp = PyUnicode_DecodeUTF8(outIndices[i], strlen(outIndices[i]), nullptr);
       PyList_Append(namesList, tmp);
       Py_DECREF(tmp);
     }else{
@@ -293,7 +293,7 @@ static PyObject *XPLMDebugStringFun(PyObject *self, PyObject *args, PyObject *kw
   const char *inString;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inString)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDebugString(inString);
@@ -323,7 +323,7 @@ static PyObject *XPLMSetErrorCallbackFun(PyObject *self, PyObject *args, PyObjec
   PyObject *callback;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &callback)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   
@@ -359,7 +359,7 @@ static PyObject *XPLMFindSymbolFun(PyObject *self, PyObject *args, PyObject *kwa
   const char *inString;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inString)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   return PyLong_FromVoidPtr(XPLMFindSymbol(inString));
@@ -385,7 +385,7 @@ static PyObject *XPLMLoadDataFileFun(PyObject *self, PyObject *args, PyObject *k
   const char *inFilePath;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "is", keywords, &inFileType, &inFilePath)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   int res = XPLMLoadDataFile(inFileType, inFilePath);
@@ -412,7 +412,7 @@ static PyObject *XPLMSaveDataFileFun(PyObject *self, PyObject *args, PyObject *k
   const char *inFilePath;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "is", keywords, &inFileType, &inFilePath)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   int res = XPLMSaveDataFile(inFileType, inFilePath);
@@ -435,7 +435,7 @@ static int genericCommandCallback(XPLMCommandRef inCommand, XPLMCommandPhase inP
 
   PyObject *arg1 = makeCapsule(inCommand, "XPLMCommandRef");
   PyObject *arg2 = PyLong_FromLong(inPhase);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.callback, arg1, arg2, info.refcon, NULL);
+  PyObject *oRes = PyObject_CallFunctionObjArgs(info.callback, arg1, arg2, info.refcon, nullptr);
   Py_DECREF(arg1);
   Py_DECREF(arg2);
   PyObject *err = PyErr_Occurred();
@@ -471,7 +471,7 @@ static PyObject *XPLMFindCommandFun(PyObject *self, PyObject *args, PyObject *kw
   const char *inName;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inName)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMCommandRef res = XPLMFindCommand(inName);
@@ -491,7 +491,7 @@ static PyObject *XPLMCommandBeginFun(PyObject *self, PyObject *args, PyObject *k
   PyObject *inCommand;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &inCommand)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMCommandBegin(getVoidPtr(inCommand, "XPLMCommandRef"));
@@ -511,7 +511,7 @@ static PyObject *XPLMCommandEndFun(PyObject *self, PyObject *args, PyObject *kwa
   PyObject *inCommand;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &inCommand)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMCommandEnd(getVoidPtr(inCommand, "XPLMCommandRef"));
@@ -531,7 +531,7 @@ static PyObject *XPLMCommandOnceFun(PyObject *self, PyObject *args, PyObject *kw
   PyObject *inCommand;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &inCommand)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMCommandOnce(getVoidPtr(inCommand, "XPLMCommandRef"));
@@ -549,10 +549,10 @@ static PyObject *XPLMCreateCommandFun(PyObject *self, PyObject *args, PyObject *
   char **keywords = stringVectorToCharArray(params);
   (void) self;
   const char *inName;
-  const char *inDescription = NULL;
+  const char *inDescription = nullptr;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s|s", keywords, &inName, &inDescription)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   if (!inDescription) {
@@ -583,7 +583,7 @@ static PyObject *XPLMRegisterCommandHandlerFun(PyObject *self, PyObject *args, P
   PyObject *inRefcon=Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|iO", keywords, &inCommand, &inHandler, &inBefore, &inRefcon)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   intptr_t refcon = commandCallbackCounter++;
@@ -619,7 +619,7 @@ static PyObject *XPLMUnregisterCommandHandlerFun(PyObject *self, PyObject *args,
   PyObject *inRefcon=Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|iO", keywords, &inCommand, &inHandler, &inBefore, &inRefcon)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   
@@ -649,7 +649,7 @@ PyObject* buildCommandCallbacksDict(void)
 {
   PyObject *dict = PyDict_New();
   if (!dict) {
-    return NULL;
+    return nullptr;
   }
   
   bool error_occurred = false;
@@ -658,12 +658,12 @@ PyObject* buildCommandCallbacksDict(void)
     const CommandCallbackInfo& info = pair.second;
     intptr_t refcon_id = pair.first;
     
-    // Initialize all pointers to NULL
-    PyObject *key = NULL;
-    PyObject *command_capsule = NULL;
-    PyObject *module_name = NULL;
-    PyObject *before = NULL;
-    PyObject *value = NULL;
+    // Initialize all pointers to nullptr
+    PyObject *key = nullptr;
+    PyObject *command_capsule = nullptr;
+    PyObject *module_name = nullptr;
+    PyObject *before = nullptr;
+    PyObject *value = nullptr;
     
     // Create all Python objects
     key = PyLong_FromLong(refcon_id);
@@ -699,19 +699,19 @@ PyObject* buildCommandCallbacksDict(void)
     
     // Set tuple items (PyTuple_SetItem steals references)
     PyTuple_SetItem(value, 0, command_capsule);     // steals ref
-    command_capsule = NULL; // Mark as stolen
+    command_capsule = nullptr; // Mark as stolen
     
     Py_INCREF(info.callback);                       // increment for tuple
     PyTuple_SetItem(value, 1, info.callback);       // steals ref
     
     PyTuple_SetItem(value, 2, before);              // steals ref
-    before = NULL; // Mark as stolen
+    before = nullptr; // Mark as stolen
     
     Py_INCREF(info.refcon);                         // increment for tuple
     PyTuple_SetItem(value, 3, info.refcon);         // steals ref
     
     PyTuple_SetItem(value, 4, module_name);         // steals ref
-    module_name = NULL; // Mark as stolen
+    module_name = nullptr; // Mark as stolen
     
     // Add to dictionary (PyDict_SetItem does NOT steal references)
     if (PyDict_SetItem(dict, key, value) < 0) {
@@ -725,7 +725,7 @@ PyObject* buildCommandCallbacksDict(void)
     continue;
     
 cleanup_iteration:
-    // Clean up any non-NULL objects that weren't stolen
+    // Clean up any non-nullptr objects that weren't stolen
     if (key) Py_DECREF(key);
     if (command_capsule) Py_DECREF(command_capsule);
     if (module_name) Py_DECREF(module_name);
@@ -736,7 +736,7 @@ cleanup_iteration:
   
   if (error_occurred) {
     Py_DECREF(dict);
-    return NULL;
+    return nullptr;
   }
   
   return dict;
@@ -844,7 +844,7 @@ static PyMethodDef XPLMUtilitiesMethods[] = {
   {"unregisterCommandHandler", (PyCFunction)XPLMUnregisterCommandHandlerFun, METH_VARARGS | METH_KEYWORDS, _unregisterCommandHandler__doc__},
   {"XPLMUnregisterCommandHandler", (PyCFunction)XPLMUnregisterCommandHandlerFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"_cleanup", cleanup, METH_VARARGS, ""},
-  {NULL, NULL, 0, NULL}
+  {nullptr, nullptr, 0, nullptr}
 };
 #pragma GCC diagnostic pop
 
@@ -858,10 +858,10 @@ static struct PyModuleDef XPLMUtilitiesModule = {
   "   https://xppython3.rtfd.io/en/stable/development/modules/utilities.html",
   -1,
   XPLMUtilitiesMethods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr
 };
 
 PyMODINIT_FUNC

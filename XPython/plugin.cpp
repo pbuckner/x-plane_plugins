@@ -25,6 +25,7 @@
 #include "load_modules.h"
 #include "xppython.h"
 #include "ini_file.h"
+#include "capsules.h"
 
 #if !defined(Py_LIMITED_API)
 static int pythonVerbose = 0;
@@ -77,9 +78,9 @@ static bool xpy3_started = false;
 
 // extern int allErrorsEncountered;
 static PyObject *loggerModuleObj;
-static void *pythonHandle = NULL;
+static void *pythonHandle = nullptr;
 
-pthread_t pythonThread = (pthread_t) NULL;
+pthread_t pythonThread = (pthread_t) nullptr;
 
 PyMODINIT_FUNC PyInit_XPLMDefs(void);
 PyMODINIT_FUNC PyInit_XPLMDisplay(void);
@@ -316,14 +317,17 @@ static int stopPython(void)
       }
     }
     pythonLog("Undeleted items: end   ^^^^");
+    pythonLog("Remaining capsules: begin vvvvv");
+    logCapsules();
+    pythonLog("Remaining capsules: end   ^^^^^");
   }
               
   XPLMClearAllMenuItems(XPLMFindPluginsMenu());
 
   PyDict_Clear(XPY3moduleDict);
   PyDict_Clear(XPY3pluginDict);
-  PyList_SetSlice(XPY3aircraftPlugins, 0, PyList_Size(XPY3aircraftPlugins), NULL);
-  PyList_SetSlice(XPY3sceneryPlugins, 0, PyList_Size(XPY3sceneryPlugins), NULL);
+  PyList_SetSlice(XPY3aircraftPlugins, 0, PyList_Size(XPY3aircraftPlugins), nullptr);
+  PyList_SetSlice(XPY3sceneryPlugins, 0, PyList_Size(XPY3sceneryPlugins), nullptr);
 
   PyDict_DelItemString(XPY3pythonDicts, "modules");
   PyDict_DelItemString(XPY3pythonDicts, "plugins");
@@ -348,7 +352,7 @@ static int stopPython(void)
       
     if(mod){
       set_moduleName(PyUnicode_FromString(mods[i].c_str()));
-      PyObject *pRes = PyObject_CallMethod(mod, "_cleanup", NULL);
+      PyObject *pRes = PyObject_CallMethod(mod, "_cleanup", nullptr);
       if (PyErr_Occurred() ) {
         pythonLog("[XPPython3] Failed during cleanup of internal module %s", mods[i].c_str());
         pythonLogException();
@@ -391,7 +395,7 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
 
   setLogFile();
 
-  SymStartTime = time(NULL);
+  SymStartTime = time(nullptr);
   
   pythonLog("[%s] Version %s Started -- %.24s", pythonPluginName, pythonPluginVersion, ctime(&SymStartTime));
 
@@ -438,7 +442,7 @@ PLUGIN_API void XPluginStop(void)
   /*   pythonLog("Total errors encountered: %d", allErrorsEncountered); */
   /* } */
 
-  time_t current_time = time(NULL);
+  time_t current_time = time(nullptr);
   pythonLog("[%s] Stopped. %.24s", pythonPluginName, ctime(&current_time));
   pythonLogClose();
 }
@@ -466,7 +470,7 @@ static int commandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, vo
     }
   }else if(inCommand == reloadScripts){
     if (! xpy3_disabled) {
-      time_t current_time = time(NULL);
+      time_t current_time = time(nullptr);
       pythonLog("[XPPython3] Reloading Scripts.======= %.24s", ctime(&current_time));
       pythonLog("[XPPython3] Reload -- 1) Disable existing scripts.=======");
       xpy_disableInstances();/* Internal, PythonPlugins, scenery, aircraft */
@@ -617,28 +621,28 @@ static int loadLocalPythonLibrary(void)
 
 static void setSysPath(void) {
   PyObject *path = PySys_GetObject("path"); //Borrowed!
-  PyObject *pathStrObj = NULL, *absolutePathStrObj = NULL, *xPlaneDirObj = NULL;
+  PyObject *pathStrObj = nullptr, *absolutePathStrObj = nullptr, *xPlaneDirObj = nullptr;
 
   char x_plane_dir[512];
   XPLMGetSystemPath(x_plane_dir);
   xPlaneDirObj = PyUnicode_FromString(x_plane_dir);  // new
 
   /* Resources/plugins */
-  pathStrObj = PyUnicode_DecodeUTF8(pythonPluginsPath, (strrchr(pythonPluginsPath, '/') - pythonPluginsPath), NULL); // new
+  pathStrObj = PyUnicode_DecodeUTF8(pythonPluginsPath, (strrchr(pythonPluginsPath, '/') - pythonPluginsPath), nullptr); // new
   absolutePathStrObj = PyUnicode_Concat(xPlaneDirObj, pathStrObj);  // new
   PyList_Insert(path, 0, absolutePathStrObj);
   Py_DECREF(pathStrObj);
   Py_DECREF(absolutePathStrObj);
 
   /* Resources/plugins/XPPython3 */
-  pathStrObj = PyUnicode_DecodeUTF8(pythonInternalPluginsPath, strlen(pythonInternalPluginsPath), NULL); // new
+  pathStrObj = PyUnicode_DecodeUTF8(pythonInternalPluginsPath, strlen(pythonInternalPluginsPath), nullptr); // new
   absolutePathStrObj = PyUnicode_Concat(xPlaneDirObj, pathStrObj);  // new
   PyList_Insert(path, 0, absolutePathStrObj);
   Py_DECREF(pathStrObj);
   Py_DECREF(absolutePathStrObj);
 
   /* Resources/plugins/PythonPlugins */
-  pathStrObj = PyUnicode_DecodeUTF8(pythonPluginsPath, strlen(pythonPluginsPath), NULL); // new
+  pathStrObj = PyUnicode_DecodeUTF8(pythonPluginsPath, strlen(pythonPluginsPath), nullptr); // new
   absolutePathStrObj = PyUnicode_Concat(xPlaneDirObj, pathStrObj);  // new
   PyList_Insert(path, 0, absolutePathStrObj);
   Py_DECREF(pathStrObj);

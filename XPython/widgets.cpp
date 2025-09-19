@@ -188,7 +188,7 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
     }else{
       PyObject *inMessageObj = PyLong_FromLong(inMessage);
       // clock_gettime(CLOCK_MONOTONIC, &start);
-      PyObject *resObj = PyObject_CallFunctionObjArgs(callback, inMessageObj, widget, param1, param2, NULL);
+      PyObject *resObj = PyObject_CallFunctionObjArgs(callback, inMessageObj, widget, param1, param2, nullptr);
       // clock_gettime(CLOCK_MONOTONIC, &stop);
       Py_DECREF(inMessageObj);
       if(!resObj || resObj == Py_None){
@@ -281,7 +281,7 @@ static PyObject *XPCreateWidgetFun(PyObject *self, PyObject *args, PyObject *kwa
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiiiisiOi", keywords, &inLeft, &inTop, &inRight, &inBottom, &inVisible, &inDescriptor, &inIsRoot,
                                          &container, &inClass)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   // use inContainer 0, if passed in value of 0
   XPWidgetID inContainer;
@@ -324,7 +324,7 @@ static PyObject *XPCreateCustomWidgetFun(PyObject *self, PyObject *args, PyObjec
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiiiisiOO", keywords, &inLeft, &inTop, &inRight, &inBottom, &inVisible, &inDescriptor,
                        &inIsRoot, &container, &inCallback)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   // use inContainer 0, if passed in value of 0
   XPWidgetID inContainer;
@@ -372,7 +372,7 @@ static PyObject *XPDestroyWidgetFun(PyObject *self, PyObject *args, PyObject *kw
   int inDestroyChildren=1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", keywords, &widget, &inDestroyChildren)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   XPWidgetID wid = getVoidPtr(widget, "XPWidgetID");
   XPDestroyWidget(wid, inDestroyChildren);
@@ -442,7 +442,7 @@ static PyObject *XPSendMessageToWidgetFun(PyObject *self, PyObject *args, PyObje
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi|iOO", keywords, &widget, &inMessage, &inMode, &param1, &param2)){
     errCheck("Failed to parse tuple sendMessage");
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   errCheck("sendMessage post parse");
   XPWidgetID inWidget = getVoidPtr(widget, "XPWidgetID");
@@ -470,7 +470,7 @@ static PyObject *XPPlaceWidgetWithinFun(PyObject *self, PyObject *args, PyObject
   PyObject *subWidget, *container=Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O", keywords, &subWidget, &container)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   if (container == Py_None) {
     container = PyLong_FromLong(0);
@@ -493,7 +493,7 @@ static PyObject *XPCountChildWidgetsFun(PyObject *self, PyObject *args, PyObject
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   int res = XPCountChildWidgets(getVoidPtr(widget, "XPWidgetID"));
   freeCharArray(keywords, params.size());
@@ -514,7 +514,7 @@ static PyObject *XPGetNthChildWidgetFun(PyObject *self, PyObject *args, PyObject
   int inIndex;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi", keywords, &widget, &inIndex)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   XPWidgetID res = XPGetNthChildWidget(getVoidPtr(widget, "XPWidgetID"), inIndex);
   freeCharArray(keywords, params.size());
@@ -534,7 +534,7 @@ static PyObject *XPGetParentWidgetFun(PyObject *self, PyObject *args, PyObject *
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   XPWidgetID res = XPGetParentWidget(getVoidPtr(widget, "XPWidgetID"));
   freeCharArray(keywords, params.size());
@@ -554,7 +554,7 @@ static PyObject *XPShowWidgetFun(PyObject *self, PyObject *args, PyObject *kwarg
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   XPShowWidget(getVoidPtr(widget, "XPWidgetID"));
   freeCharArray(keywords, params.size());
@@ -574,7 +574,7 @@ static PyObject *XPHideWidgetFun(PyObject *self, PyObject *args, PyObject *kwarg
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   XPHideWidget(getVoidPtr(widget, "XPWidgetID"));
   freeCharArray(keywords, params.size());
@@ -598,7 +598,7 @@ static PyObject *XPIsWidgetVisibleFun(PyObject *self, PyObject *args, PyObject *
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   int res = XPIsWidgetVisible(getVoidPtr(widget, "XPWidgetID"));
   freeCharArray(keywords, params.size());
@@ -620,7 +620,7 @@ static PyObject *XPFindRootWidgetFun(PyObject *self, PyObject *args, PyObject *k
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   XPWidgetID res = XPFindRootWidget(getVoidPtr(widget, "XPWidgetID"));
   freeCharArray(keywords, params.size());
@@ -640,7 +640,7 @@ static PyObject *XPBringRootWidgetToFrontFun(PyObject *self, PyObject *args, PyO
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   XPBringRootWidgetToFront(getVoidPtr(widget, "XPWidgetID"));
   freeCharArray(keywords, params.size());
@@ -660,7 +660,7 @@ static PyObject *XPIsWidgetInFrontFun(PyObject *self, PyObject *args, PyObject *
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   int res = XPIsWidgetInFront(getVoidPtr(widget, "XPWidgetID"));
   freeCharArray(keywords, params.size());
@@ -680,7 +680,7 @@ static PyObject *XPGetWidgetGeometryFun(PyObject *self, PyObject *args, PyObject
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   int left, top, right, bottom;
   XPGetWidgetGeometry(getVoidPtr(widget, "XPWidgetID"), &left, &top, &right, &bottom);
@@ -702,7 +702,7 @@ static PyObject *XPSetWidgetGeometryFun(PyObject *self, PyObject *args, PyObject
   int inLeft, inTop, inRight, inBottom;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oiiii", keywords, &widget, &inLeft, &inTop, &inRight, &inBottom)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   XPSetWidgetGeometry(getVoidPtr(widget, "XPWidgetID"), inLeft, inTop, inRight, inBottom);
   freeCharArray(keywords, params.size());
@@ -727,7 +727,7 @@ static PyObject *XPGetWidgetForLocationFun(PyObject *self, PyObject *args, PyObj
   int xOffset, yOffset, recursive=1, visibleOnly=1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oii|ii", keywords, &container, &xOffset, &yOffset, &recursive, &visibleOnly)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   XPWidgetID res = XPGetWidgetForLocation(getVoidPtr(container, "XPWidgetID"), xOffset, yOffset, recursive, visibleOnly);
   freeCharArray(keywords, params.size());
@@ -747,7 +747,7 @@ static PyObject *XPGetWidgetExposedGeometryFun(PyObject *self, PyObject *args, P
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   int left, top, right, bottom;
   XPGetWidgetExposedGeometry(getVoidPtr(widget, "XPWidgetID"), &left, &top, &right, &bottom);
@@ -770,7 +770,7 @@ static PyObject *XPSetWidgetDescriptorFun(PyObject *self, PyObject *args, PyObje
   const char *inDescriptor;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Os", keywords, &widget, &inDescriptor)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   XPSetWidgetDescriptor(getVoidPtr(widget, "XPWidgetID"), inDescriptor);
   errCheck("end setwidgetdescriptor");
@@ -792,10 +792,10 @@ static PyObject *XPGetWidgetDescriptorFun(PyObject *self, PyObject *args, PyObje
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   int res;
-  int length = XPGetWidgetDescriptor(getVoidPtr(widget, "XPWidgetID"), NULL, 0);
+  int length = XPGetWidgetDescriptor(getVoidPtr(widget, "XPWidgetID"), nullptr, 0);
   char *buffer = (char *)malloc(length + 1);
   res = XPGetWidgetDescriptor(getVoidPtr(widget, "XPWidgetID"), buffer, length);
   if (res > length) {
@@ -821,11 +821,11 @@ static PyObject *XPGetWidgetUnderlyingWindowFun(PyObject *self, PyObject *args, 
   if(!XPGetWidgetUnderlyingWindow_ptr){
     freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPGetWidgetUnderlyingWindow is available only in XPLM301 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   XPLMWindowID res = XPGetWidgetUnderlyingWindow_ptr(getVoidPtr(widget, "XPWidgetID"));
   freeCharArray(keywords, params.size());
@@ -850,7 +850,7 @@ static PyObject *XPSetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi|O", keywords, &widget, &property, &value)){
     errCheck("Failed to parse setWidgetProperty");
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   XPWidgetPropertyID inProperty = property;
   if (property >= xpProperty_UserStart) {
@@ -918,7 +918,7 @@ static PyObject *XPGetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject
 
     if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi|O", keywords, &widget, &property, &exists)){
       freeCharArray(keywords, params.size());
-      return NULL;
+      return nullptr;
     }
     exception_on_error = 1;
   }
@@ -946,7 +946,7 @@ static PyObject *XPGetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject
   if (exception_on_error && !inExists) {
     freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_ValueError, "Widget does not have this property");
-    return NULL;
+    return nullptr;
   }
   if(exists != Py_None && !exception_on_error) {
     PyObject *e = PyLong_FromLong(inExists);
@@ -976,7 +976,7 @@ static PyObject *XPSetKeyboardFocusFun(PyObject *self, PyObject *args, PyObject 
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   XPWidgetID res = XPSetKeyboardFocus(getVoidPtr(widget, "XPWidgetID"));
   PyObject *resObj = makeCapsule(res, "XPWidgetID");
@@ -1000,7 +1000,7 @@ static PyObject *XPLoseKeyboardFocusFun(PyObject *self, PyObject *args, PyObject
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   XPLoseKeyboardFocus(getVoidPtr(widget, "XPWidgetID"));
   freeCharArray(keywords, params.size());
@@ -1040,7 +1040,7 @@ static PyObject *XPAddWidgetCallbackFun(PyObject *self, PyObject *args, PyObject
   PyObject *widget, *callback;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO", keywords, &widget, &callback)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   void* widgetPtr = getVoidPtr(widget, "XPWidgetID");
   auto it = widgetCallbacks.find(widgetPtr);
@@ -1075,7 +1075,7 @@ static PyObject *XPGetWidgetClassFuncFun(PyObject *self, PyObject *args, PyObjec
   int inWidgetClass;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inWidgetClass)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   XPWidgetFunc_t res = XPGetWidgetClassFunc(inWidgetClass);
   freeCharArray(keywords, params.size());
@@ -1163,7 +1163,7 @@ static PyMethodDef XPWidgetsMethods[] = {
   {"getWidgetClassFunc", (PyCFunction)XPGetWidgetClassFuncFun, METH_VARARGS | METH_KEYWORDS, _getWidgetClassFunc__doc__},
   {"XPGetWidgetClassFunc", (PyCFunction)XPGetWidgetClassFuncFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"_cleanup", cleanup, METH_VARARGS, ""},
-  {NULL, NULL, 0, NULL}
+  {nullptr, nullptr, 0, nullptr}
 };
 #pragma GCC diagnostic pop
 
@@ -1176,10 +1176,10 @@ static struct PyModuleDef XPWidgetsModule = {
   "   https://xppython3.rtfd.io/en/stable/development/modules/widgets.html",
   -1,
   XPWidgetsMethods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr
 };
 
 PyMODINIT_FUNC
@@ -1203,7 +1203,7 @@ void logWidgets(PyObject *key, char *key_s, char * value_s) {
   PyObject *capsule = PyTuple_GetItem(key, 0);
   /* widgetIDCapsules is <PyLong *ptr> : (<capsule> <module>)
      So we have to iterate through all items to find the module */
-  PyObject *module = NULL;
+  PyObject *module = nullptr;
   for (auto & pair:widgetIDCapsules) {
     if (capsule == PyTuple_GetItem(pair.second, 0)) {
       module = PyTuple_GetItem(pair.second, 1);

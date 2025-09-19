@@ -35,13 +35,13 @@ static PyObject *setCursor(PyObject *self, PyObject *args, PyObject *kwargs)
   static char **keywords = stringVectorToCharArray(params);
   int inCursorID = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inCursorID)) {
-    return NULL;
+    return nullptr;
   }
   
-  if (Cursors[inCursorID] == NULL) {
+  if (Cursors[inCursorID] == nullptr) {
     pythonLog("setCursor: unknown cursor enumeration #%d", inCursorID);
     PyErr_SetString(PyExc_ValueError , "setCursor: Unknown cursor enumeration.");
-    return NULL;
+    return nullptr;
   }
   cursor_make_current(Cursors[inCursorID]);
   Py_RETURN_NONE;
@@ -60,11 +60,11 @@ static PyObject *unloadCursor(PyObject *self, PyObject *args, PyObject *kwargs)
   char **keywords = stringVectorToCharArray(params);
   int inCursorID = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inCursorID)) {
-    return NULL;
+    return nullptr;
   }
-  if (inCursorID < MAX_CURSORS && Cursors[inCursorID] != NULL) {
+  if (inCursorID < MAX_CURSORS && Cursors[inCursorID] != nullptr) {
     cursor_free(Cursors[inCursorID]);
-    Cursors[inCursorID] = NULL;
+    Cursors[inCursorID] = nullptr;
   }
   Py_RETURN_NONE;
 }
@@ -89,13 +89,13 @@ static PyObject *loadCursor(PyObject *self, PyObject *args, PyObject *kwargs)
   char **keywords = stringVectorToCharArray(params);
   const char *cursorFileName;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &cursorFileName)) {
-    return NULL;
+    return nullptr;
   }
   
   cursor_t *cursor = cursor_read_from_file(cursorFileName);
-  if (cursor == NULL) {
+  if (cursor == nullptr) {
     PyErr_SetString(PyExc_ValueError , "loadCursor: Failed to read cursor from filename.");
-    return NULL;
+    return nullptr;
   }
 
   Cursors[cursorIdx] = cursor;
@@ -132,7 +132,7 @@ cursor_read_from_file(const char *filename)
     pythonLog("Can't open cursor image file %s: %s", filename_ext, strerror(errno));
     free(filename_ext);
     free(cursor);
-    return NULL;
+    return nullptr;
   }
   rep = [[img representations] objectAtIndex: 0];
  
@@ -145,9 +145,9 @@ cursor_read_from_file(const char *filename)
   return cursor;
 }
 
-static void cursor_free(cursor_t *cursor) {if (cursor == NULL || cursor->crs == NULL) {return;}[cursor->crs release];free(cursor);}
+static void cursor_free(cursor_t *cursor) {if (cursor == nullptr || cursor->crs == nullptr) {return;}[cursor->crs release];free(cursor);}
 
-static void cursor_make_current(cursor_t *cursor) {if (cursor == NULL || cursor->crs == NULL) {return;}[cursor->crs set];}
+static void cursor_make_current(cursor_t *cursor) {if (cursor == nullptr || cursor->crs == nullptr) {return;}[cursor->crs set];}
 
 #endif
 
@@ -156,35 +156,35 @@ static void cursor_make_current(cursor_t *cursor) {if (cursor == NULL || cursor-
    thread, it is safe to use a simple unprotected global with refcount.
 */
 static int dpy_refcount = 0;
-static Display *dpy = NULL;
+static Display *dpy = nullptr;
 static XPLMDataRef drSystemWindow;
 
 static uint8_t *png_load_from_file_rgba(const char *filename, int *width, int *height) {
   png_infop info_ptr;
   png_bytepp row_pointers;
   FILE *fp = fopen(filename, "rb");
-  if (fp == NULL) {
+  if (fp == nullptr) {
     pythonLog("Can't open cursor image file %s: %s", filename, strerror(errno));
-    return NULL;
+    return nullptr;
   }
-  png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+  png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
   info_ptr = png_create_info_struct(png_ptr);
   png_init_io(png_ptr, fp);
-  png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
+  png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, nullptr);
   row_pointers = png_get_rows(png_ptr, info_ptr);
   *width = png_get_image_width(png_ptr, info_ptr);
   *height = png_get_image_height(png_ptr, info_ptr);
   int rowbytes = png_get_rowbytes(png_ptr, info_ptr);
-  uint8_t *pixels = NULL;
+  uint8_t *pixels = nullptr;
   pixels = (uint8_t*)malloc(*height * rowbytes);
-  if (pixels == NULL) {
+  if (pixels == nullptr) {
     pythonLog("Failed to allocate cursor pixels for %d x %d", width, height);
-    return NULL;
+    return nullptr;
   }
   for (int i = 0; i < *height; i++) {
     memcpy(&pixels[i * rowbytes], row_pointers[i], rowbytes);
   }
-  png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+  png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
   fclose(fp);
   return pixels;
 }
@@ -195,7 +195,7 @@ cursor_read_from_file(const char *filename)
   cursor_t *cursor;
   uint8_t *buf;
   int w, h;
-  XcursorImage img = { .pixels = NULL };
+  XcursorImage img = { .pixels = nullptr };
 
   char *filename_ext = (char *)malloc(strlen(filename) + 5);
   strcpy(filename_ext, filename);
@@ -203,20 +203,20 @@ cursor_read_from_file(const char *filename)
 
   buf = png_load_from_file_rgba(filename_ext, &w, &h);
   
-  if (buf == NULL) {
+  if (buf == nullptr) {
     pythonLog("Can't open cursor image file %s", filename_ext);
-    return NULL;
+    return nullptr;
   }
   
   free(filename_ext);
 
   if (dpy_refcount == 0) {
-    dpy = XOpenDisplay(NULL);
+    dpy = XOpenDisplay(nullptr);
   }
-  if (dpy == NULL) {
+  if (dpy == nullptr) {
     pythonLog("Can't open X11 display for cursor");
     free(buf);
-    return NULL;
+    return nullptr;
   }
   dpy_refcount++;
   
@@ -237,7 +237,7 @@ cursor_read_from_file(const char *filename)
 void
 cursor_free(cursor_t *cursor)
 {
-  if (cursor == NULL) {
+  if (cursor == nullptr) {
     return;
   }
   
@@ -248,7 +248,7 @@ cursor_free(cursor_t *cursor)
 
   if (dpy_refcount == 0) {
     XCloseDisplay(dpy);
-    dpy = NULL;
+    dpy = nullptr;
   }
 }
 
@@ -258,7 +258,7 @@ cursor_make_current(cursor_t *cursor)
   int win_ptr[2];
   Window win;
   
-  if (cursor == NULL || dpy == NULL) {
+  if (cursor == nullptr || dpy == nullptr) {
     return;
   }
 
@@ -285,11 +285,11 @@ cursor_read_from_file(const char *filename)
   strcat(filename_ext, ".cur");
 
   cursor->crs = LoadCursorFromFileA(filename_ext);
-  if (cursor->crs == NULL) {
+  if (cursor->crs == nullptr) {
     pythonLog("Failed to load cursor image from %s", filename_ext);
     free(cursor);
     free(filename_ext);
-    return NULL;
+    return nullptr;
   }
   free(filename_ext);
   return cursor;
@@ -297,7 +297,7 @@ cursor_read_from_file(const char *filename)
 
 static void cursor_free(cursor_t *cursor)
 {
-  if (cursor == NULL || cursor->crs == NULL) {
+  if (cursor == nullptr || cursor->crs == nullptr) {
     return;
   }
   DestroyCursor(cursor->crs);
@@ -306,8 +306,8 @@ static void cursor_free(cursor_t *cursor)
 
 static void cursor_make_current(cursor_t *cursor)
 {
-  if (cursor == NULL || cursor->crs == NULL) {
-    pythonLog("cursor or crs is NULL: %p", cursor);
+  if (cursor == nullptr || cursor->crs == nullptr) {
+    pythonLog("cursor or crs is nullptr: %p", cursor);
     return;
   }
   SetCursor(cursor->crs);
@@ -320,7 +320,7 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   (void) args;
   for (int i = 0; i < cursorIdx; i++) {
     cursor_free(Cursors[i]);
-    Cursors[i] = NULL;
+    Cursors[i] = nullptr;
   }
   cursorIdx = 0;
 
@@ -334,7 +334,7 @@ static PyMethodDef XPCursorMethods[] = {
   {"loadCursor", (PyCFunction)loadCursor, METH_VARARGS | METH_KEYWORDS, _loadCursor__doc__},
   {"unloadCursor", (PyCFunction)unloadCursor, METH_VARARGS | METH_KEYWORDS, _unloadCursor__doc__},
   {"_cleanup", cleanup, METH_VARARGS, ""},
-  {NULL, NULL, 0, NULL}
+  {nullptr, nullptr, 0, nullptr}
 };
 #pragma GCC diagnostic pop
 
@@ -346,10 +346,10 @@ static struct PyModuleDef XPCursorModule = {
   "   https://xppython3.rtfd.io/en/stable/development/modules/cursor.html",
   -1,
   XPCursorMethods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr
 };
 
 PyMODINIT_FUNC
@@ -381,7 +381,7 @@ PyInit_XPCursor(void)
   drSystemWindow = XPLMFindDataRef("sim/operation/windows/system_window_64");
 #endif
 
-  if (mod != NULL) {
+  if (mod != nullptr) {
     PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
   }
   return mod;

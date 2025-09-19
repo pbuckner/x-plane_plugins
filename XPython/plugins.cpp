@@ -51,7 +51,7 @@ static PyObject *XPLMGetNthPluginFun(PyObject *self, PyObject *args, PyObject *k
   int inIndex;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inIndex)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   return PyLong_FromLong(XPLMGetNthPlugin(inIndex));
@@ -72,7 +72,7 @@ static PyObject *XPLMFindPluginByPathFun(PyObject *self, PyObject *args, PyObjec
   const char *inPath;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inPath)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   return PyLong_FromLong(XPLMFindPluginByPath(inPath));
@@ -91,7 +91,7 @@ static PyObject *XPLMFindPluginBySignatureFun(PyObject *self, PyObject *args, Py
   const char *inSignature;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inSignature)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   return PyLong_FromLong(XPLMFindPluginBySignature(inSignature));
@@ -116,7 +116,7 @@ static PyObject *XPLMGetPluginInfoFun(PyObject *self, PyObject *args, PyObject *
   int inPluginID;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inPluginID)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   char name[512];
@@ -140,7 +140,7 @@ static PyObject *XPLMIsPluginEnabledFun(PyObject *self, PyObject *args, PyObject
   int inPluginID;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inPluginID)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   return PyLong_FromLong(XPLMIsPluginEnabled(inPluginID));
@@ -159,7 +159,7 @@ static PyObject *XPLMEnablePluginFun(PyObject *self, PyObject *args, PyObject *k
   int inPluginID;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inPluginID)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   return PyLong_FromLong(XPLMEnablePlugin(inPluginID));
@@ -178,7 +178,7 @@ static PyObject *XPLMDisablePluginFun(PyObject *self, PyObject *args, PyObject *
   int inPluginID;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inPluginID)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDisablePlugin(inPluginID);
@@ -224,12 +224,12 @@ static PyObject *XPLMSendMessageToPluginFun(PyObject *self, PyObject *args, PyOb
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ll|O", keywords, &inPluginID, &inMessage, &inParam)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   void *msgParam;
   if (inParam == Py_None) {
-    msgParam = NULL;
+    msgParam = nullptr;
     XPLMSendMessageToPlugin(inPluginID, inMessage, msgParam);
   } else if (PyLong_Check(inParam)) {
     msgParam = PyLong_AsVoidPtr(inParam);
@@ -264,7 +264,7 @@ static PyObject *XPLMHasFeatureFun(PyObject *self, PyObject *args, PyObject *kwa
   const char *inFeature;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inFeature)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   return PyLong_FromLong(XPLMHasFeature(inFeature));
@@ -283,7 +283,7 @@ static PyObject *XPLMIsFeatureEnabledFun(PyObject *self, PyObject *args, PyObjec
   const char *inFeature;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inFeature)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   return PyLong_FromLong(XPLMIsFeatureEnabled(inFeature));
@@ -303,7 +303,7 @@ static PyObject *XPLMEnableFeatureFun(PyObject *self, PyObject *args, PyObject *
   int inEnable=1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s|i", keywords, &inFeature, &inEnable)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   if (!inEnable && ! (strcmp(inFeature, "XPLM_USE_NATIVE_PATHS") &&
@@ -340,7 +340,7 @@ static void featureEnumerator(const char *inFeature, void *inRef)
   Py_DECREF(module_name_obj);
 
   PyObject *inFeatureObj = PyUnicode_FromString(inFeature);
-  PyObject *res = PyObject_CallFunctionObjArgs(info.callback, inFeatureObj, info.refCon, NULL);
+  PyObject *res = PyObject_CallFunctionObjArgs(info.callback, inFeatureObj, info.refCon, nullptr);
   PyObject *err = PyErr_Occurred();
   Py_DECREF(inFeatureObj);
   if(err){
@@ -367,7 +367,7 @@ static PyObject *XPLMEnumerateFeaturesFun(PyObject *self, PyObject *args, PyObje
   PyObject *refCon=Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O", keywords, &fun, &refCon)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   intptr_t refcon = ++feCntr;
@@ -428,7 +428,7 @@ static PyMethodDef XPLMPluginMethods[] = {
   {"enumerateFeatures", (PyCFunction)XPLMEnumerateFeaturesFun, METH_VARARGS | METH_KEYWORDS, _enumerateFeatures__doc__},
   {"XPLMEnumerateFeatures", (PyCFunction)XPLMEnumerateFeaturesFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"_cleanup", cleanup, METH_VARARGS, ""},
-  {NULL, NULL, 0, NULL}
+  {nullptr, nullptr, 0, nullptr}
 };
 #pragma GCC diagnostic pop
 
@@ -442,10 +442,10 @@ static struct PyModuleDef XPLMPluginModule = {
   "   https://xppython3.rtfd.io/en/stable/development/modules/plugin.html",
   -1,
   XPLMPluginMethods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr
 };
 
 PyMODINIT_FUNC

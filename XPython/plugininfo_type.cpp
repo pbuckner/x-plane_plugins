@@ -24,26 +24,26 @@ PluginInfo_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
   (void) kwds;
   PluginInfoObject *self;
   self = (PluginInfoObject *) type->tp_alloc(type, 0);
-  if (self != NULL) {
+  if (self != nullptr) {
     self->filePath = PyUnicode_FromString("");
-    if (self->filePath == NULL) {
+    if (self->filePath == nullptr) {
       Py_DECREF(self);
-      return NULL;
+      return nullptr;
     }
     self->signature = PyUnicode_FromString("");
-    if (self->signature == NULL) {
+    if (self->signature == nullptr) {
       Py_DECREF(self);
-      return NULL;
+      return nullptr;
     }
     self->name = PyUnicode_FromString("");
-    if (self->name == NULL) {
+    if (self->name == nullptr) {
       Py_DECREF(self);
-      return NULL;
+      return nullptr;
     }
     self->description = PyUnicode_FromString("");
-    if (self->description == NULL) {
+    if (self->description == nullptr) {
       Py_DECREF(self);
-      return NULL;
+      return nullptr;
     }
   }
   return (PyObject *) self;
@@ -82,7 +82,7 @@ PluginInfo_init(PluginInfoObject *self, PyObject *args, PyObject *kwds)
 {
   std::vector<std::string> params = {"name", "filePath", "signature", "description"};
   char **kwlist = stringVectorToCharArray(params);
-  PyObject *description = NULL, *name = NULL, *filePath = NULL, *signature = NULL, *tmp;
+  PyObject *description = nullptr, *name = nullptr, *filePath = nullptr, *signature = nullptr, *tmp;
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "|UUUU", kwlist,
                                    &name, &filePath, &signature, &description)) {
     freeCharArray(kwlist, params.size());
@@ -121,7 +121,7 @@ static PyMemberDef PluginInfo_members[] = {
     {"filePath", T_OBJECT_EX, offsetof(PluginInfoObject, filePath), 0, "Full path to the plugin's .xpl file"},
     {"signature", T_OBJECT_EX, offsetof(PluginInfoObject, signature), 0, "Plugin signature"},
     {"description", T_OBJECT_EX, offsetof(PluginInfoObject, description), 0, "Description of the plugin"},
-    {NULL, T_INT, 0, 0, ""}  /* Sentinel */
+    {nullptr, T_INT, 0, 0, ""}  /* Sentinel */
 };
 
 static PyObject *PluginInfo_str(PluginInfoObject *obj) {
@@ -134,7 +134,7 @@ static PyObject *PluginInfo_str(PluginInfoObject *obj) {
 
 PyTypeObject
 PluginInfoType = {
-  PyVarObject_HEAD_INIT(NULL, 0)
+  PyVarObject_HEAD_INIT(nullptr, 0)
   .tp_name = "XPPython.PluginInfo",
   .tp_basicsize = sizeof(PluginInfoObject),
   .tp_itemsize = 0,

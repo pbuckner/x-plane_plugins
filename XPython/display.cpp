@@ -296,7 +296,7 @@ static PyObject *XPLMRegisterDrawCallbackFun(PyObject *self, PyObject *args, PyO
   PyObject *refcon = Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|iiO", keywords, &callback, &inPhase, &inWantsBefore, &refcon)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   intptr_t idx = ++drawCallbackCntr;
@@ -314,7 +314,7 @@ static PyObject *XPLMRegisterDrawCallbackFun(PyObject *self, PyObject *args, PyO
   int res = XPLMRegisterDrawCallback(genericDrawCallback, inPhase, inWantsBefore, (void *)drawCallbackCntr);
   if(!res){
     PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterDrawCallback failed.\n");
-    return NULL;
+    return nullptr;
   }
   errCheck("end of registerDrawCallback");
   return PyLong_FromLong(res);
@@ -380,7 +380,7 @@ static PyObject *XPLMRegisterAvionicsCallbacksExFun(PyObject *self, PyObject *ar
 
   if(!XPLMRegisterAvionicsCallbacksEx_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMRegisterAvionicsCallbacksEx is available only in XPLM400 and up.");
-    return NULL;
+    return nullptr;
   }
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOOOOOOOOOOOO", keywords,
@@ -389,29 +389,29 @@ static PyObject *XPLMRegisterAvionicsCallbacksExFun(PyObject *self, PyObject *ar
                                   &screenTouch, &screenRightTouch, &screenScroll, &screenCursor,
                                   &keyboard)){
     freeCharArray(keywords, kw_params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, kw_params.size());
 
   /* if (beforeCallback == Py_None && afterCallback == Py_None) { */
   /*   PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterAviationCallbacksEx: Both before and after callbacks cannot be None."); */
-  /*   return NULL; */
+  /*   return nullptr; */
   /* } */
 
   if (firstObj == Py_None) {
     /* deviceID is _required_, so if firstObj isn't specified, this is simply an error */
-    return NULL;
+    return nullptr;
   } else if (PyLong_Check(firstObj)) {
     deviceId = PyLong_AsLong(firstObj);
   } else if (PySequence_Check(firstObj)) {
     paramsObj = firstObj;
     if (PySequence_Length(paramsObj) != 13) {
       PyErr_SetString(PyExc_AttributeError ,"registerAvionicsEx tuple did not contain 13 values\n.");
-      return NULL;
+      return nullptr;
     }
   } else {
     PyErr_SetString(PyExc_AttributeError ,"registerAvionicsEx could not parse arguments.\n");
-    return NULL;
+    return nullptr;
   }
 
   XPLMCustomizeAvionics_t avionics_params;
@@ -437,17 +437,17 @@ static PyObject *XPLMRegisterAvionicsCallbacksExFun(PyObject *self, PyObject *ar
   }
 
   avionics_params.refcon = (void *)++avionicsCallbacksCntr;
-  avionics_params.drawCallbackBefore = before != Py_None ? genericAvionicsCallback : NULL;
-  avionics_params.drawCallbackAfter = after != Py_None ? genericAvionicsCallback : NULL;
-  avionics_params.bezelClickCallback = bezelClick != Py_None ? genericAvionicsBezelClick : NULL;
-  avionics_params.bezelRightClickCallback = bezelRightClick != Py_None ? genericAvionicsBezelRightClick : NULL;
-  avionics_params.bezelScrollCallback = bezelScroll != Py_None ? genericAvionicsBezelScroll : NULL;
-  avionics_params.bezelCursorCallback = bezelCursor != Py_None ? genericAvionicsBezelCursor : NULL;
-  avionics_params.screenTouchCallback = screenTouch != Py_None ? genericAvionicsScreenTouch : NULL;
-  avionics_params.screenRightTouchCallback = screenRightTouch != Py_None ? genericAvionicsScreenRightTouch : NULL;
-  avionics_params.screenScrollCallback = screenScroll != Py_None ? genericAvionicsScreenScroll : NULL;
-  avionics_params.screenCursorCallback = screenCursor != Py_None ? genericAvionicsScreenCursor : NULL;
-  avionics_params.keyboardCallback = keyboard != Py_None ? genericAvionicsKeyboard : NULL;
+  avionics_params.drawCallbackBefore = before != Py_None ? genericAvionicsCallback : nullptr;
+  avionics_params.drawCallbackAfter = after != Py_None ? genericAvionicsCallback : nullptr;
+  avionics_params.bezelClickCallback = bezelClick != Py_None ? genericAvionicsBezelClick : nullptr;
+  avionics_params.bezelRightClickCallback = bezelRightClick != Py_None ? genericAvionicsBezelRightClick : nullptr;
+  avionics_params.bezelScrollCallback = bezelScroll != Py_None ? genericAvionicsBezelScroll : nullptr;
+  avionics_params.bezelCursorCallback = bezelCursor != Py_None ? genericAvionicsBezelCursor : nullptr;
+  avionics_params.screenTouchCallback = screenTouch != Py_None ? genericAvionicsScreenTouch : nullptr;
+  avionics_params.screenRightTouchCallback = screenRightTouch != Py_None ? genericAvionicsScreenRightTouch : nullptr;
+  avionics_params.screenScrollCallback = screenScroll != Py_None ? genericAvionicsScreenScroll : nullptr;
+  avionics_params.screenCursorCallback = screenCursor != Py_None ? genericAvionicsScreenCursor : nullptr;
+  avionics_params.keyboardCallback = keyboard != Py_None ? genericAvionicsKeyboard : nullptr;
 
   PyObject *callbackList[] = {before, after, bezelDraw, screenDraw, bezelClick, bezelRightClick, bezelScroll,
                               bezelCursor, screenTouch, screenRightTouch, screenScroll, screenCursor, keyboard};
@@ -457,7 +457,7 @@ static PyObject *XPLMRegisterAvionicsCallbacksExFun(PyObject *self, PyObject *ar
         Py_INCREF(callbackList[i]);
       } else {
         PyErr_SetString(PyExc_ValueError ,"registerAvionicsEx callback is not callable.\n");
-        return NULL;
+        return nullptr;
       }
     }
   }
@@ -491,7 +491,7 @@ static PyObject *XPLMRegisterAvionicsCallbacksExFun(PyObject *self, PyObject *ar
   PyObject *avIDCapsule = makeCapsule(avionicsId, "XPLMAvionicsID");
   if(!avIDCapsule){
     PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterAvionicsCallbacksEx failed.\n");
-    return NULL;
+    return nullptr;
   }
 
   return avIDCapsule;
@@ -514,17 +514,17 @@ static PyObject *XPLMUnregisterAvionicsCallbacksFun(PyObject *self, PyObject *ar
 
   if(!XPLMUnregisterAvionicsCallbacks_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMUnregisterAvionicsCallbacks is available only in XPLM400 and up.");
-    return NULL;
+    return nullptr;
   }
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avIDCapsule)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
-  if (avIDCapsule == NULL) {
+  if (avIDCapsule == nullptr) {
     PyErr_SetString(PyExc_RuntimeError, "XPLMUnregisterAvionicsCallback bad avionicsID\n");
-    return NULL;
+    return nullptr;
   }
   XPLMAvionicsID avionicsId = getVoidPtr(avIDCapsule, "XPLMAvionicsID");
   Py_DECREF(avIDCapsule);
@@ -555,7 +555,7 @@ static PyObject *XPLMUnregisterAvionicsCallbacksFun(PyObject *self, PyObject *ar
   }
   if (found == 0 ) {
     PyErr_SetString(PyExc_RuntimeError, "XPLMUnregisterAvionicsCallback failed to find avionicsID\n");
-    return NULL;
+    return nullptr;
   }
     
   /* and... remove from data structures */
@@ -584,30 +584,30 @@ static PyObject *XPLMGetAvionicsHandleFun(PyObject *self, PyObject *args, PyObje
   int deviceID;
   if (!XPLMGetAvionicsHandle_ptr) {
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetAvionicsHandle is available only in XPLM410 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &deviceID)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
   PyObject *avDictsKey = PyLong_FromLong(++avionicsCallbacksCntr);
   if(!avDictsKey){
     PyErr_SetString(PyExc_RuntimeError ,"Couldn't create long.\n");
-    return NULL;
+    return nullptr;
   }
 
   XPLMAvionicsID avionicsId = XPLMGetAvionicsHandle_ptr(deviceID);
-  if (avionicsId == NULL) {
-    PyErr_SetString(PyExc_RuntimeError ,"XPLMGetAvionicsHandle() returned NULL. (bug filed)\n");
-    return NULL;
+  if (avionicsId == nullptr) {
+    PyErr_SetString(PyExc_RuntimeError ,"XPLMGetAvionicsHandle() returned nullptr. (bug filed)\n");
+    return nullptr;
   }    
 
   PyObject *avIDCapsule = makeCapsule(avionicsId, "XPLMAvionicsID");
   if(!avIDCapsule){
     PyErr_SetString(PyExc_RuntimeError ,"XPLMGetAvionicsHandle failed.\n");
-    return NULL;
+    return nullptr;
   }
 
   avionicsCallbacksDict[avionicsCallbacksCntr] = {
@@ -649,12 +649,12 @@ static PyObject *XPLMIsAvionicsBoundFun(PyObject *self, PyObject *args, PyObject
   PyObject *avionicsID;
   if (!XPLMIsAvionicsBound_ptr) {
     PyErr_SetString(PyExc_RuntimeError , "XPLMIsAvionicsBound is available only in XPLM410 and up.");
-    return NULL;
+    return nullptr;
   }
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
@@ -677,12 +677,12 @@ static PyObject *XPLMIsCursorOverAvionicsFun(PyObject *self, PyObject *args, PyO
   PyObject *avionicsID;
   if (!XPLMIsCursorOverAvionics_ptr) {
     PyErr_SetString(PyExc_RuntimeError , "XPLMIsCursorOverAvionics is available only in XPLM410 and up.");
-    return NULL;
+    return nullptr;
   }
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
@@ -715,12 +715,12 @@ static PyObject *XPLMIsAvionicsPopupVisibleFun(PyObject *self, PyObject *args, P
   PyObject *avionicsID;
   if (!XPLMIsAvionicsPopupVisible_ptr) {
     PyErr_SetString(PyExc_RuntimeError , "XPLMIsAvionicsPopupVisible is available only in XPLM410 and up.");
-    return NULL;
+    return nullptr;
   }
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
@@ -741,12 +741,12 @@ static PyObject *XPLMIsAvionicsPoppedOutFun(PyObject *self, PyObject *args, PyOb
   PyObject *avionicsID;
   if (!XPLMIsAvionicsPoppedOut_ptr) {
     PyErr_SetString(PyExc_RuntimeError , "XPLMIsAvionicsPoppedOut is available only in XPLM410 and up.");
-    return NULL;
+    return nullptr;
   }
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
@@ -766,12 +766,12 @@ static PyObject *XPLMHasAvionicsKeyboardFocusFun(PyObject *self, PyObject *args,
   PyObject *avionicsID;
   if (!XPLMHasAvionicsKeyboardFocus_ptr) {
     PyErr_SetString(PyExc_RuntimeError , "XPLMHasAvionicsKeyboardFocus is available only in XPLM410 and up.");
-    return NULL;
+    return nullptr;
   }
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
@@ -794,12 +794,12 @@ static PyObject *XPLMAvionicsNeedsDrawingFun(PyObject *self, PyObject *args, PyO
   PyObject *avionicsID;
   if (!XPLMAvionicsNeedsDrawing_ptr) {
     PyErr_SetString(PyExc_RuntimeError , "XPLMAvionicsNeedsDrawing is available only in XPLM410 and up.");
-    return NULL;
+    return nullptr;
   }
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
@@ -820,12 +820,12 @@ static PyObject *XPLMPopOutAvionicsFun(PyObject *self, PyObject *args, PyObject 
   PyObject *avionicsID;
   if (!XPLMPopOutAvionics_ptr) {
     PyErr_SetString(PyExc_RuntimeError , "XPLMPopOutAvionics is available only in XPLM410 and up.");
-    return NULL;
+    return nullptr;
   }
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
@@ -847,12 +847,12 @@ static PyObject *XPLMTakeAvionicsKeyboardFocusFun(PyObject *self, PyObject *args
   PyObject *avionicsID;
   if (!XPLMTakeAvionicsKeyboardFocus_ptr) {
     PyErr_SetString(PyExc_RuntimeError , "XPLMTakeAvionicsKeyboardFocus is available only in XPLM410 and up.");
-    return NULL;
+    return nullptr;
   }
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
@@ -875,12 +875,12 @@ static PyObject *XPLMDestroyAvionicsFun(PyObject *self, PyObject *args, PyObject
   PyObject *avionicsID;
   if (!XPLMDestroyAvionics_ptr) {
     PyErr_SetString(PyExc_RuntimeError , "XPLMDestroyAvionics is available only in XPLM410 and up.");
-    return NULL;
+    return nullptr;
   }
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
@@ -903,11 +903,11 @@ static PyObject *XPLMGetAvionicsBusVoltsRatioFun(PyObject *self, PyObject *args,
   PyObject *avionicsID;
   if (!XPLMGetAvionicsBusVoltsRatio_ptr) {
     PyErr_SetString(PyExc_RuntimeError, "XPLMGetAvionicsBusVoltsRatio is available only in XPLM410 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
@@ -934,11 +934,11 @@ static PyObject *XPLMGetAvionicsBrightnessRheoFun(PyObject *self, PyObject *args
   PyObject *avionicsID;
   if (!XPLMGetAvionicsBrightnessRheo_ptr) {
     PyErr_SetString(PyExc_RuntimeError, "XPLMGetAvionicsBrightnessRheo is available only in XPLM410 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
@@ -966,11 +966,11 @@ static PyObject *XPLMSetAvionicsBrightnessRheoFun(PyObject *self, PyObject *args
   float brightness=1.0;
   if (!XPLMSetAvionicsBrightnessRheo_ptr) {
     PyErr_SetString(PyExc_RuntimeError, "XPLMSetAvionicsBrightnessRheo is available only in XPLM410 and up.");
-    return NULL;
+    return nullptr;
   }
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|f", keywords, &avionicsID, &brightness)) {
-    return NULL;
+    return nullptr;
   }
 
   void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
@@ -992,11 +992,11 @@ static PyObject *XPLMSetAvionicsPopupVisibleFun(PyObject *self, PyObject *args, 
   int visible=1;
   if (!XPLMSetAvionicsPopupVisible_ptr) {
     PyErr_SetString(PyExc_RuntimeError , "XPLMSetAvionicsPopupVisible is available only in XPLM410 and up.");
-    return NULL;
+    return nullptr;
   }
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", keywords, &avionicsID, &visible)) {
-    return NULL;
+    return nullptr;
   }
   void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
   XPLMSetAvionicsPopupVisible_ptr(avionics_id, visible);
@@ -1027,7 +1027,7 @@ static PyObject *XPLMRegisterKeySnifferFun(PyObject *self, PyObject *args, PyObj
   int inBeforeWindows=0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|iO", keywords, &callback, &inBeforeWindows, &refcon)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
     
@@ -1044,7 +1044,7 @@ static PyObject *XPLMRegisterKeySnifferFun(PyObject *self, PyObject *args, PyObj
   int res = XPLMRegisterKeySniffer(genericKeySnifferCallback, inBeforeWindows, (void *)keySniffCallbackCntr);
   if(!res){
     PyErr_SetString(PyExc_RuntimeError ,"registerKeySniffer failed.\n");
-    return NULL;
+    return nullptr;
   }
   errCheck("at end registerKeySniffer");
   return PyLong_FromLong(res);
@@ -1070,7 +1070,7 @@ static PyObject *XPLMUnregisterDrawCallbackFun(PyObject *self, PyObject *args, P
   PyObject *refcon = Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|iiO", keywords, &callback, &inPhase, &inWantsBefore, &refcon)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   int res = -1;
@@ -1117,7 +1117,7 @@ static PyObject *XPLMUnregisterKeySnifferFun(PyObject *self, PyObject *args, PyO
   int inBeforeWindows = 0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|iO", keywords, &callback, &inBeforeWindows, &refcon)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
@@ -1172,7 +1172,7 @@ static void genericWindowDraw(XPLMWindowID  inWindowID,
     PyObject *module_name_obj = PyUnicode_FromString(it->second.module_name.c_str());
     set_moduleName(module_name_obj);
 
-    PyObject *oRes = PyObject_CallFunctionObjArgs(func, pID, inRefcon, NULL);
+    PyObject *oRes = PyObject_CallFunctionObjArgs(func, pID, inRefcon, nullptr);
     Py_DECREF(pID);
     clock_gettime(CLOCK_MONOTONIC, &stop);
     pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
@@ -1214,7 +1214,7 @@ static void genericWindowKey(XPLMWindowID  inWindowID,
   char msg[2024];
   auto it = windowDict.find(inWindowID);
   if(it == windowDict.end()){
-    if (inWindowID == NULL && losingFocus) {
+    if (inWindowID == nullptr && losingFocus) {
       /* This occurs only when I have a window with keyboard focus and then
          I destroy the window (or otherwise lose focus.)
          I get callback to handle key but the window ID set zero.
@@ -1222,7 +1222,7 @@ static void genericWindowKey(XPLMWindowID  inWindowID,
          So far, it appears safe to just ignore.
          Filed with Laminar 18-May-2020 as XPD-10834
       */
-      XPLMDebugString("NULL window passed to genericWindowKey. Ignoring\n");
+      XPLMDebugString("nullptr window passed to genericWindowKey. Ignoring\n");
       errCheck("no callback, losing focus, genericWindowKey");
       return;
     }
@@ -1243,7 +1243,7 @@ static void genericWindowKey(XPLMWindowID  inWindowID,
     PyObject *module_name_obj = PyUnicode_FromString(it->second.module_name.c_str());
     set_moduleName(module_name_obj);
     Py_DECREF(module_name_obj);
-    PyObject *oRes = PyObject_CallFunctionObjArgs(func, pID, arg1, arg2, arg3, inRefcon, arg4, NULL);
+    PyObject *oRes = PyObject_CallFunctionObjArgs(func, pID, arg1, arg2, arg3, inRefcon, arg4, nullptr);
     Py_DECREF(pID);
     Py_XDECREF(arg1);
     Py_XDECREF(arg2);
@@ -1281,7 +1281,7 @@ static int genericWindowMouseClick(XPLMWindowID     inWindowID,
   PyObject *arg2 = PyLong_FromLong(y);
   PyObject *arg3 = PyLong_FromLong(inMouse);
   PyObject *pID = makeCapsule(inWindowID, "XPLMWindowID");
-  PyObject *pRes = PyObject_CallFunctionObjArgs(func, pID, arg1, arg2, arg3, inRefcon, NULL);
+  PyObject *pRes = PyObject_CallFunctionObjArgs(func, pID, arg1, arg2, arg3, inRefcon, nullptr);
   PyObject *err = PyErr_Occurred();
   Py_DECREF(arg1);
   Py_DECREF(arg2);
@@ -1334,7 +1334,7 @@ static int genericWindowRightClick(XPLMWindowID     inWindowID,
   PyObject *arg1 = PyLong_FromLong(x);
   PyObject *arg2 = PyLong_FromLong(y);
   PyObject *arg3 = PyLong_FromLong(inMouse);
-  PyObject *pRes = PyObject_CallFunctionObjArgs(func, pID, arg1, arg2, arg3, inRefcon, NULL);
+  PyObject *pRes = PyObject_CallFunctionObjArgs(func, pID, arg1, arg2, arg3, inRefcon, nullptr);
   Py_DECREF(arg1);
   Py_DECREF(arg2);
   Py_DECREF(arg3);
@@ -1378,14 +1378,14 @@ static XPLMCursorStatus genericWindowCursor(XPLMWindowID  inWindowID,
   PyObject *module_name_obj = PyUnicode_FromString(it->second.module_name.c_str());
   set_moduleName(module_name_obj);
   Py_DECREF(module_name_obj);
-  if((func == NULL) || (func == Py_None)){
+  if((func == nullptr) || (func == Py_None)){
     return 0;
   }
 
   PyObject *pID = makeCapsule(inWindowID, "XPLMWindowID");
   PyObject *arg1 = PyLong_FromLong(x);
   PyObject *arg2 = PyLong_FromLong(y);
-  PyObject *pRes = PyObject_CallFunctionObjArgs(func, pID, arg1, arg2, inRefcon, NULL);
+  PyObject *pRes = PyObject_CallFunctionObjArgs(func, pID, arg1, arg2, inRefcon, nullptr);
   PyObject *err = PyErr_Occurred();
   Py_DECREF(arg1);
   Py_DECREF(arg2);
@@ -1418,7 +1418,7 @@ static int genericWindowMouseWheel(XPLMWindowID  inWindowID,
   PyObject *module_name_obj = PyUnicode_FromString(it->second.module_name.c_str());
   set_moduleName(module_name_obj);
   Py_DECREF(module_name_obj);
-  if((func == NULL) || (func == Py_None)){
+  if((func == nullptr) || (func == Py_None)){
     return 1;
   }
 
@@ -1427,7 +1427,7 @@ static int genericWindowMouseWheel(XPLMWindowID  inWindowID,
   PyObject *arg2 = PyLong_FromLong(y);
   PyObject *arg3 = PyLong_FromLong(wheel);
   PyObject *arg4 = PyLong_FromLong(clicks);
-  PyObject *pRes = PyObject_CallFunctionObjArgs(func, pID, arg1, arg2, arg3, arg4, inRefcon, NULL);
+  PyObject *pRes = PyObject_CallFunctionObjArgs(func, pID, arg1, arg2, arg3, arg4, inRefcon, nullptr);
   PyObject *err = PyErr_Occurred();
   Py_DECREF(arg1);
   Py_DECREF(arg2);
@@ -1524,7 +1524,7 @@ static PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObjec
   /* not used with create */
   if(!XPLMCreateAvionicsEx_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMCreateAvionicsEx() is available only in XPLM410 and up.");
-    return NULL;
+    return nullptr;
   }
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OiiiiiiOOOOOOOOOOOOssO", keywords,
@@ -1539,7 +1539,7 @@ static PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObjec
                                   &refcon
                                   )){
     freeCharArray(keywords, kw_params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, kw_params.size());
   if (firstObj == Py_None) {
@@ -1550,11 +1550,11 @@ static PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObjec
     paramsObj = firstObj;
     if (PySequence_Length(paramsObj) != 22) {
       PyErr_SetString(PyExc_AttributeError ,"createAvionicsEx tuple did not contain 21 values\n.");
-      return NULL;
+      return nullptr;
     }
   } else {
     PyErr_SetString(PyExc_AttributeError ,"createAvionicsEx could not parse arguments.\n");
-    return NULL;
+    return nullptr;
   }
 
   XPLMCreateAvionics_t avionics_params;
@@ -1600,22 +1600,22 @@ static PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObjec
 
   if (avionics_params.bezelWidth < (avionics_params.screenWidth + avionics_params.screenOffsetX) || avionics_params.bezelHeight < (avionics_params.screenHeight + avionics_params.screenOffsetY)) {
     PyErr_SetString(PyExc_ValueError ,"createAvionicsEx() requires bezelWidth >= screenWidth + offsetX; and bezelHeight >= screenHeight + offsetY.\n");
-    return NULL;
+    return nullptr;
   }
 
   avionics_params.refcon = (void *) ++avionicsCallbacksCntr;
-  avionics_params.bezelDrawCallback = bezelDraw != Py_None ? genericAvionicsBezelDraw : NULL;
-  avionics_params.drawCallback = screenDraw != Py_None ? genericAvionicsScreenDraw : NULL;
-  avionics_params.bezelClickCallback = bezelClick != Py_None ? genericAvionicsBezelClick : NULL;
-  avionics_params.bezelRightClickCallback = bezelRightClick != Py_None ? genericAvionicsBezelRightClick : NULL;
-  avionics_params.bezelScrollCallback = bezelScroll != Py_None ? genericAvionicsBezelScroll : NULL;
-  avionics_params.bezelCursorCallback = bezelCursor != Py_None ? genericAvionicsBezelCursor : NULL;
-  avionics_params.screenTouchCallback = screenTouch != Py_None ? genericAvionicsScreenTouch : NULL;
-  avionics_params.screenRightTouchCallback = screenRightTouch != Py_None ? genericAvionicsScreenRightTouch : NULL;
-  avionics_params.screenScrollCallback = screenScroll != Py_None ? genericAvionicsScreenScroll : NULL;
-  avionics_params.screenCursorCallback = screenCursor != Py_None ? genericAvionicsScreenCursor : NULL;
-  avionics_params.keyboardCallback = keyboard != Py_None ? genericAvionicsKeyboard : NULL;
-  avionics_params.brightnessCallback = brightness != Py_None ? genericAvionicsBrightness : NULL;
+  avionics_params.bezelDrawCallback = bezelDraw != Py_None ? genericAvionicsBezelDraw : nullptr;
+  avionics_params.drawCallback = screenDraw != Py_None ? genericAvionicsScreenDraw : nullptr;
+  avionics_params.bezelClickCallback = bezelClick != Py_None ? genericAvionicsBezelClick : nullptr;
+  avionics_params.bezelRightClickCallback = bezelRightClick != Py_None ? genericAvionicsBezelRightClick : nullptr;
+  avionics_params.bezelScrollCallback = bezelScroll != Py_None ? genericAvionicsBezelScroll : nullptr;
+  avionics_params.bezelCursorCallback = bezelCursor != Py_None ? genericAvionicsBezelCursor : nullptr;
+  avionics_params.screenTouchCallback = screenTouch != Py_None ? genericAvionicsScreenTouch : nullptr;
+  avionics_params.screenRightTouchCallback = screenRightTouch != Py_None ? genericAvionicsScreenRightTouch : nullptr;
+  avionics_params.screenScrollCallback = screenScroll != Py_None ? genericAvionicsScreenScroll : nullptr;
+  avionics_params.screenCursorCallback = screenCursor != Py_None ? genericAvionicsScreenCursor : nullptr;
+  avionics_params.keyboardCallback = keyboard != Py_None ? genericAvionicsKeyboard : nullptr;
+  avionics_params.brightnessCallback = brightness != Py_None ? genericAvionicsBrightness : nullptr;
 
   /* check which are callable & Py_INCREF as appropriate */
   PyObject *callbackList[] = {bezelDraw, screenDraw, bezelClick, bezelRightClick, bezelScroll,
@@ -1626,7 +1626,7 @@ static PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObjec
         Py_INCREF(callbackList[i]);
       } else {
         PyErr_SetString(PyExc_ValueError ,"createAvionicsEx callback is not callable.\n");
-        return NULL;
+        return nullptr;
       }
     }
   }
@@ -1636,7 +1636,7 @@ static PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObjec
   PyObject *avDictsKey = PyLong_FromLong(avionicsCallbacksCntr);
   if(!avDictsKey){
     PyErr_SetString(PyExc_RuntimeError ,"Couldn't create long.\n");
-    return NULL;
+    return nullptr;
   }
 
   XPLMAvionicsID avionicsId = XPLMCreateAvionicsEx_ptr(&avionics_params);
@@ -1665,7 +1665,7 @@ static PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObjec
   PyObject *avIDCapsule = makeCapsule(avionicsId, "XPLMAvionicsID");
   if(!avIDCapsule){
     PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterAvionicsCallbacksEx failed.\n");
-    return NULL;
+    return nullptr;
   }
 
   Py_DECREF(avDictsKey);
@@ -1718,7 +1718,7 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
                                   &draw, &click, &key, &cursor, &wheel, &refCon,
                                   &decoration, &layer, &rightClick)){
     freeCharArray(keywords, kw_params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, kw_params.size());
   if (firstObj == Py_None) {
@@ -1729,11 +1729,11 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
     paramsObj = firstObj;
     if (PySequence_Length(paramsObj) != 14) {
       PyErr_SetString(PyExc_AttributeError ,"createWindowEx tuple did not contain 14 values\n.");
-      return NULL;
+      return nullptr;
     }
   } else {
     PyErr_SetString(PyExc_AttributeError ,"createWindowEx could not parse arguments.\n");
-    return NULL;
+    return nullptr;
   }
     
   XPLMCreateWindow_t window_params;
@@ -1770,30 +1770,30 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
 
   if (!PyCallable_Check(draw) && draw != Py_None) {
     PyErr_SetString(PyExc_ValueError ,"createWindowEx draw() is not callable.\n");
-    return NULL;
+    return nullptr;
   }
   if (!PyCallable_Check(click) && click != Py_None) {
     PyErr_SetString(PyExc_ValueError ,"createWindowEx click() is not callable.\n");
-    return NULL;
+    return nullptr;
   }
   if (!PyCallable_Check(key) && key != Py_None) {
     PyErr_SetString(PyExc_ValueError ,"createWindowEx key() is not callable.\n");
-    return NULL;
+    return nullptr;
   }
   
   if (!PyCallable_Check(cursor) && cursor != Py_None) {
     PyErr_SetString(PyExc_ValueError ,"createWindowEx cursor() is not callable.\n");
-    return NULL;
+    return nullptr;
   }
   
   if (!PyCallable_Check(wheel) && wheel != Py_None) {
     PyErr_SetString(PyExc_ValueError ,"createWindowEx wheel() is not callable.\n");
-    return NULL;
+    return nullptr;
   }
   
   if (!PyCallable_Check(rightClick) && rightClick != Py_None) {
     PyErr_SetString(PyExc_ValueError ,"createWindowEx rightClick() is not callable.\n");
-    return NULL;
+    return nullptr;
   }
   
   Py_INCREF(draw);
@@ -1849,7 +1849,7 @@ static PyObject *XPLMCreateWindowFun(PyObject *self, PyObject *args, PyObject *k
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|iiiiiOOOO", keywords, &left, &top, &right, &bottom, &visible,
                                   &drawCallback, &keyCallback, &mouseCallback, &refcon)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
@@ -1883,7 +1883,7 @@ static PyObject *XPLMDestroyWindowFun(PyObject *self, PyObject *args, PyObject *
   PyObject *pID;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &pID)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMWindowID winID = getVoidPtr(pID, "XPLMWindowID");
@@ -1900,7 +1900,7 @@ static PyObject *XPLMDestroyWindowFun(PyObject *self, PyObject *args, PyObject *
     windowDict.erase(winID);
   }else{
     PyErr_SetString(PyExc_RuntimeError ,"XPLMDestroyWindow couldn't find the window to destroy.\n");
-    return NULL;
+    return nullptr;
   }
   Py_RETURN_NONE;
 }
@@ -1945,7 +1945,7 @@ static PyObject *XPLMGetScreenBoundsGlobalFun(PyObject *self, PyObject *args, Py
   (void) args;
   if(!XPLMGetScreenBoundsGlobal_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetScreenBoundsGlobal is available only in XPLM300 and up.");
-    return NULL;
+    return nullptr;
   }
   PyObject *outLeft, *outTop, *outRight, *outBottom;
   int left, top, right, bottom;
@@ -1985,10 +1985,10 @@ static PyObject *XPLMGetAllMonitorBoundsGlobalFun(PyObject *self, PyObject *args
   PyObject *refconObj;
   if(!XPLMGetAllMonitorBoundsGlobal_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetAllMonitorBoundsGlobal is available only in XPLM300 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO", keywords, &monitorBndsCallback, &refconObj)){
-    return NULL;
+    return nullptr;
   }
   XPLMGetAllMonitorBoundsGlobal_ptr(receiveMonitorBounds, (void *)refconObj);
   Py_RETURN_NONE;
@@ -2010,10 +2010,10 @@ static PyObject *XPLMGetAllMonitorBoundsOSFun(PyObject *self, PyObject *args, Py
   PyObject *refconObj;
   if(!XPLMGetAllMonitorBoundsOS_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetAllMonitorBoundsOS is available only in XPLM300 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO", keywords, &monitorBndsCallback, &refconObj)){
-    return NULL;
+    return nullptr;
   }
   XPLMGetAllMonitorBoundsOS_ptr(receiveMonitorBounds, (void *)refconObj);
   Py_RETURN_NONE;
@@ -2060,7 +2060,7 @@ static PyObject *XPLMGetMouseLocationGlobalFun(PyObject *self, PyObject *args, P
   int x, y;
   if(!XPLMGetMouseLocationGlobal_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetMouseLocationGlobal is available only in XPLM300 and up.");
-    return NULL;
+    return nullptr;
   }
   XPLMGetMouseLocationGlobal_ptr(&x, &y);
   PyObject *outX, *outY;
@@ -2095,7 +2095,7 @@ static PyObject *XPLMGetWindowGeometryFun(PyObject *self, PyObject *args, PyObje
     std::vector<std::string> nparams = {"windowID"};
     char **nkeywords = stringVectorToCharArray(nparams);
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", nkeywords, &win)) {
-      return NULL;
+      return nullptr;
     }
   }
   int left, top, right, bottom;
@@ -2130,10 +2130,10 @@ static PyObject *XPLMGetAvionicsGeometryFun(PyObject *self, PyObject *args, PyOb
 
   if (!XPLMGetAvionicsGeometry_ptr) {
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetAvionicsGeometry is available only in XPLM410 and up.");
-    return NULL;
+    return nullptr;
   }
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
-    return NULL;
+    return nullptr;
   }
   int left=0, top=0, right=0, bottom=0;
   XPLMGetAvionicsGeometry_ptr(getVoidPtr(avionicsID, "XPLMAvionicsID"), &left, &top, &right, &bottom);
@@ -2153,7 +2153,7 @@ static PyObject *XPLMSetWindowGeometryFun(PyObject *self, PyObject *args, PyObje
   PyObject *win;
   int inLeft, inTop, inRight, inBottom;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oiiii", keywords, &win, &inLeft, &inTop, &inRight, &inBottom)){
-    return NULL;
+    return nullptr;
   }
   void *inWindowID = getVoidPtr(win, "XPLMWindowID");
   XPLMSetWindowGeometry(inWindowID, inLeft, inTop, inRight, inBottom);
@@ -2173,11 +2173,11 @@ static PyObject *XPLMSetAvionicsGeometryFun(PyObject *self, PyObject *args, PyOb
   PyObject *avionicsID;
   int inLeft, inTop, inRight, inBottom;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oiiii", keywords, &avionicsID, &inLeft, &inTop, &inRight, &inBottom)){
-    return NULL;
+    return nullptr;
   }
   if(!XPLMSetAvionicsGeometry_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMSetAvionicsGeometry is available only in XPLM410 and up.");
-    return NULL;
+    return nullptr;
   }
     
   void *inAvionicsID = getVoidPtr(avionicsID, "XPLMAvionicsID");
@@ -2200,7 +2200,7 @@ static PyObject *XPLMGetWindowGeometryOSFun(PyObject *self, PyObject *args, PyOb
   int returnValues = 0;
   if(!XPLMGetWindowGeometryOS_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetWindowGeometryOS is available only in XPLM300 and up.");
-    return NULL;
+    return nullptr;
   }
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOOOO", keywords, &win, &outLeft, &outTop, &outRight, &outBottom)) {
     returnValues = 1;
@@ -2208,7 +2208,7 @@ static PyObject *XPLMGetWindowGeometryOSFun(PyObject *self, PyObject *args, PyOb
     std::vector<std::string> nparams = {"windowID"};
     char **nkeywords = stringVectorToCharArray(nparams);
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", nkeywords, &win)) {
-      return NULL;
+      return nullptr;
     }
   }
   int left, top, right, bottom;
@@ -2241,10 +2241,10 @@ static PyObject *XPLMGetAvionicsGeometryOSFun(PyObject *self, PyObject *args, Py
   PyObject *avionicsID;
   if(!XPLMGetAvionicsGeometryOS_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetAvionicsGeometryOS is available only in XPLM410 and up.");
-    return NULL;
+    return nullptr;
   }
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
-    return NULL;
+    return nullptr;
   }
   int left=0, top=0, right=0, bottom=0;
   XPLMGetAvionicsGeometryOS_ptr(getVoidPtr(avionicsID, "XPLMAvionicsID"), &left, &top, &right, &bottom);
@@ -2265,10 +2265,10 @@ static PyObject *XPLMSetAvionicsGeometryOSFun(PyObject *self, PyObject *args, Py
   int inLeft, inTop, inRight, inBottom;
   if(!XPLMSetAvionicsGeometryOS_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMSetAvionicsGeometryOS is available only in XPLM410 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oiiii", keywords, &avionicsID, &inLeft, &inTop, &inRight, &inBottom)){
-    return NULL;
+    return nullptr;
   }
   XPLMSetAvionicsGeometryOS_ptr(getVoidPtr(avionicsID, "XPLMAvionicsID"), inLeft, inTop, inRight, inBottom);
   Py_RETURN_NONE;
@@ -2288,10 +2288,10 @@ static PyObject *XPLMSetWindowGeometryOSFun(PyObject *self, PyObject *args, PyOb
   int inLeft, inTop, inRight, inBottom;
   if(!XPLMSetWindowGeometryOS_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMSetWindowGeometryOS is available only in XPLM300 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oiiii", keywords, &win, &inLeft, &inTop, &inRight, &inBottom)){
-    return NULL;
+    return nullptr;
   }
   void *inWindowID = getVoidPtr(win, "XPLMWindowID");
   XPLMSetWindowGeometryOS_ptr(inWindowID, inLeft, inTop, inRight, inBottom);
@@ -2305,20 +2305,20 @@ My_DOCSTR(_getWindowGeometryVR__doc__, "getWindowGeometryVR",
           "Gets window geometry for VR window (width, height)");
 static PyObject *XPLMGetWindowGeometryVRFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {NULL};
+  static char *keywords[] = {nullptr};
   (void) self;
   PyObject *win;
   int returnValues = 0;
   PyObject *outWidthBoxels, *outHeightBoxels;
   if(!XPLMGetWindowGeometryVR_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetWindowGeometryVR is available only in XPLM301 and up.");
-    return NULL;
+    return nullptr;
   }
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO", keywords, &win, &outWidthBoxels, &outHeightBoxels)) {
     returnValues = 1;
     PyErr_Clear();
     if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &win)){
-      return NULL;
+      return nullptr;
     }
   }
   int widthBoxels, heightBoxels;
@@ -2348,10 +2348,10 @@ static PyObject *XPLMSetWindowGeometryVRFun(PyObject *self, PyObject *args, PyOb
   int widthBoxels, heightBoxels;
   if(!XPLMSetWindowGeometryVR_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMSetWindowGeometryVR is available only in XPLM301 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oii", keywords, &win, &widthBoxels, &heightBoxels)){
-    return NULL;
+    return nullptr;
   }
   void *inWindowID = getVoidPtr(win, "XPLMWindowID");
   XPLMSetWindowGeometryVR_ptr(inWindowID, widthBoxels, heightBoxels);
@@ -2371,7 +2371,7 @@ static PyObject *XPLMGetWindowIsVisibleFun(PyObject *self, PyObject *args, PyObj
   PyObject *win;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &win)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   void *inWindowID = getVoidPtr(win, "XPLMWindowID");
@@ -2391,7 +2391,7 @@ static PyObject *XPLMSetWindowIsVisibleFun(PyObject *self, PyObject *args, PyObj
   PyObject *win;
   int inIsVisible = 1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", keywords, &win, &inIsVisible)){
-    return NULL;
+    return nullptr;
   }
   XPLMWindowID inWindowID = getVoidPtr(win, "XPLMWindowID");
   XPLMSetWindowIsVisible(inWindowID, inIsVisible);
@@ -2411,11 +2411,11 @@ static PyObject *XPLMWindowIsPoppedOutFun(PyObject *self, PyObject *args, PyObje
   PyObject *win;
   if(!XPLMWindowIsPoppedOut_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMWindowIsPoppedOut is available only in XPLM300 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &win)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   void *inWindowID = getVoidPtr(win, "XPLMWindowID");
@@ -2435,11 +2435,11 @@ static PyObject *XPLMWindowIsInVRFun(PyObject *self, PyObject *args, PyObject *k
   PyObject *win;
   if(!XPLMWindowIsInVR_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMWindowIsInVR is available only in XPLM301 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &win)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   void *inWindowID = getVoidPtr(win, "XPLMWindowID");
@@ -2466,10 +2466,10 @@ static PyObject *XPLMSetWindowGravityFun(PyObject *self, PyObject *args, PyObjec
   float inLeftGravity, inTopGravity, inRightGravity, inBottomGravity;
   if(!XPLMSetWindowGravity_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMSetWindowGravity is available only in XPLM300 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Offff", keywords, &win, &inLeftGravity, &inTopGravity, &inRightGravity, &inBottomGravity)){
-    return NULL;
+    return nullptr;
   }
   XPLMWindowID inWindowID = getVoidPtr(win, "XPLMWindowID");
   XPLMSetWindowGravity_ptr(inWindowID, inLeftGravity, inTopGravity, inRightGravity, inBottomGravity);
@@ -2490,10 +2490,10 @@ static PyObject *XPLMSetWindowResizingLimitsFun(PyObject *self, PyObject *args, 
   int inMinWidthBoxels=0, inMinHeightBoxels=0, inMaxWidthBoxels=10000, inMaxHeightBoxels=10000;
   if(!XPLMSetWindowResizingLimits_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMSetWindowResizingLimits is available only in XPLM300 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|iiii", keywords, &win, &inMinWidthBoxels, &inMinHeightBoxels, &inMaxWidthBoxels, &inMaxHeightBoxels)){
-    return NULL;
+    return nullptr;
   }
   XPLMWindowID inWindowID = getVoidPtr(win, "XPLMWindowID");
   inMinWidthBoxels = inMinWidthBoxels < 0 ? 0 : inMinWidthBoxels;
@@ -2521,10 +2521,10 @@ static PyObject *XPLMSetWindowPositioningModeFun(PyObject *self, PyObject *args,
   int inPositioningMode, inMonitorIndex=-1;
   if(!XPLMSetWindowPositioningMode_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMSetWindowPositioningMode is available only in XPLM300 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi|i", keywords, &win, &inPositioningMode, &inMonitorIndex)){
-    return NULL;
+    return nullptr;
   }
   XPLMWindowID inWindowID = getVoidPtr(win, "XPLMWindowID");
   XPLMSetWindowPositioningMode_ptr(inWindowID, inPositioningMode, inMonitorIndex);
@@ -2545,10 +2545,10 @@ static PyObject *XPLMSetWindowTitleFun(PyObject *self, PyObject *args, PyObject 
   const char *inWindowTitle;
   if(!XPLMSetWindowTitle_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMSetWindowTitle is available only in XPLM300 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Os", keywords, &win, &inWindowTitle)){
-    return NULL;
+    return nullptr;
   }
   XPLMWindowID inWindowID = getVoidPtr(win, "XPLMWindowID");
   XPLMSetWindowTitle_ptr(inWindowID, strdup(inWindowTitle));
@@ -2568,7 +2568,7 @@ static PyObject *XPLMGetWindowRefConFun(PyObject *self, PyObject *args, PyObject
   PyObject *win;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &win)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMWindowID inWindowID = getVoidPtr(win, "XPLMWindowID");
@@ -2592,7 +2592,7 @@ static PyObject *XPLMSetWindowRefConFun(PyObject *self, PyObject *args, PyObject
   (void) self;
   PyObject *win, *inRefcon;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO", keywords, &win, &inRefcon)){
-    return NULL;
+    return nullptr;
   }
   XPLMWindowID inWindowID = getVoidPtr(win, "XPLMWindowID");
   // Decref the old refcon
@@ -2617,7 +2617,7 @@ static PyObject *XPLMTakeKeyboardFocusFun(PyObject *self, PyObject *args, PyObje
   PyObject *win;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &win)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   // use inWindowID 0, if passed in value of 0
@@ -2645,11 +2645,11 @@ static PyObject *XPLMHasKeyboardFocusFun(PyObject *self, PyObject *args, PyObjec
   PyObject *win;
   if(!XPLMHasKeyboardFocus_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMHasKeyboardFocus is available only in XPLM300 and up.");
-    return NULL;
+    return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &win)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   // use inWindowID 0, if passed in value of 0
@@ -2676,7 +2676,7 @@ static PyObject *XPLMBringWindowToFrontFun(PyObject *self, PyObject *args, PyObj
   PyObject *win;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &win)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMWindowID inWindowID = getVoidPtr(win, "XPLMWindowID");
@@ -2697,7 +2697,7 @@ static PyObject *XPLMIsWindowInFrontFun(PyObject *self, PyObject *args, PyObject
   PyObject *win;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &win)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMWindowID inWindowID = getVoidPtr(win, "XPLMWindowID");
@@ -2716,7 +2716,7 @@ static void genericHotkeyCallback(void *inRefcon)
   PyObject *module_name_obj = PyUnicode_FromString(it->second.module_name.c_str());
   set_moduleName(module_name_obj);
   Py_DECREF(module_name_obj);
-  PyObject *res = PyObject_CallFunctionObjArgs(it->second.callback, it->second.refCon, NULL);
+  PyObject *res = PyObject_CallFunctionObjArgs(it->second.callback, it->second.refCon, nullptr);
   PyObject *err = PyErr_Occurred();
   if(err){
     pythonDebug("exception in hotkey callback\n");
@@ -2746,11 +2746,11 @@ static PyObject *XPLMRegisterHotKeyFun(PyObject *self, PyObject *args, PyObject 
   int inVirtualKey, inFlags = 0;
   const char *inDescription;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i|isOO", keywords, &inVirtualKey, &inFlags, &inDescription, &inCallback, &refcon)){
-    return NULL;
+    return nullptr;
   }
   if (!PyCallable_Check(inCallback)) {
     PyErr_SetString(PyExc_ValueError ,"hotKey() not callable.\n");
-    return NULL;
+    return nullptr;
   }
 
   XPLMHotKeyID id = XPLMRegisterHotKey(inVirtualKey, inFlags, inDescription, genericHotkeyCallback, (void*)refcon);
@@ -2790,7 +2790,7 @@ static PyObject *XPLMUnregisterHotKeyFun(PyObject *self, PyObject *args, PyObjec
   (void) self;
   PyObject *hkIDCapsule;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &hkIDCapsule)){
-    return NULL;
+    return nullptr;
   }
 
   XPLMHotKeyID hotKeyID = getVoidPtr(hkIDCapsule, "XPLMHotKeyID");
@@ -2810,7 +2810,7 @@ static PyObject *XPLMUnregisterHotKeyFun(PyObject *self, PyObject *args, PyObjec
 
   if (found == 0) {
     PyErr_SetString(PyExc_RuntimeError ,"XPLMUnregisterHotKey couldn't find hotkey ID.\n");
-    return NULL;
+    return nullptr;
   }
 
   Py_RETURN_NONE;
@@ -2840,7 +2840,7 @@ static PyObject *XPLMGetNthHotKeyFun(PyObject *self, PyObject *args, PyObject *k
   (void) self;
   int inIndex;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inIndex)){
-    return NULL;
+    return nullptr;
   }
   return makeCapsule(XPLMGetNthHotKey(inIndex), "XPLMHotKeyID");
 } 
@@ -2868,7 +2868,7 @@ static PyObject *XPLMGetHotKeyInfoFun(PyObject *self, PyObject *args, PyObject *
     std::vector<std::string> nparams = {"hotKeyID"};
     char **nkeywords = stringVectorToCharArray(nparams);
     if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", nkeywords, &hotKey)) {
-      return NULL;
+      return nullptr;
     }
   }
   XPLMHotKeyID inHotKey = getVoidPtr(hotKey, "XPLMHotKeyID");
@@ -2906,7 +2906,7 @@ static PyObject *XPLMSetHotKeyCombinationFun(PyObject *self, PyObject *args, PyO
   int inVirtualKey;
   int inFlags = 0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi|i", keywords, &hotKey, &inVirtualKey, &inFlags)){
-    return NULL;
+    return nullptr;
   }
   void *inHotkey = getVoidPtr(hotKey, "XPLMHotKeyID");
   XPLMSetHotKeyCombination(inHotkey, (char)inVirtualKey, inFlags);
@@ -3108,7 +3108,7 @@ static PyMethodDef XPLMDisplayMethods[] = {
 
   
   {"_cleanup", cleanup, METH_VARARGS, "cleanup"},
-  {NULL, NULL, 0, NULL}
+  {nullptr, nullptr, 0, nullptr}
 };
 #pragma GCC diagnostic pop
 
@@ -3122,10 +3122,10 @@ static struct PyModuleDef XPLMDisplayModule = {
   "   https://xppython3.rtfd.io/en/stable/development/modules/display.html",
   -1,
   XPLMDisplayMethods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr
 };
 
 PyMODINIT_FUNC
@@ -3294,14 +3294,14 @@ static int genericAvionicsCallback(XPLMDeviceID inDeviceID, int inIsBefore, void
   clock_gettime(CLOCK_MONOTONIC, &all_start);
   (void) inDeviceID;
   intptr_t refcon_id = (intptr_t)inRefcon;
-  PyObject *err = NULL;
-  PyObject *pRes = NULL;
+  PyObject *err = nullptr;
+  PyObject *pRes = nullptr;
   AvionicsCallbackInfo info;
-  PyObject *fun = NULL;
-  PyObject *refCon = NULL;
-  PyObject *deviceId = NULL;
-  PyObject *isBefore = NULL;
-  PyObject *module_name_obj = NULL;
+  PyObject *fun = nullptr;
+  PyObject *refCon = nullptr;
+  PyObject *deviceId = nullptr;
+  PyObject *isBefore = nullptr;
+  PyObject *module_name_obj = nullptr;
   int res = 0;
 
   auto it = avionicsCallbacksDict.find(refcon_id);
@@ -3320,7 +3320,7 @@ static int genericAvionicsCallback(XPLMDeviceID inDeviceID, int inIsBefore, void
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
   if (fun != Py_None)
-    pRes = PyObject_CallFunctionObjArgs(fun, deviceId, isBefore, refCon, NULL);
+    pRes = PyObject_CallFunctionObjArgs(fun, deviceId, isBefore, refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
   pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   Py_DECREF(module_name_obj);
@@ -3368,8 +3368,8 @@ static int genericDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *i
   struct timespec all_stop, all_start;
   clock_gettime(CLOCK_MONOTONIC, &all_start);
 
-  PyObject *pl = NULL, *fun = NULL, *refcon = NULL, *pRes = NULL, *err = NULL;
-  PyObject *module_name_obj = NULL;
+  PyObject *pl = nullptr, *fun = nullptr, *refcon = nullptr, *pRes = nullptr, *err = nullptr;
+  PyObject *module_name_obj = nullptr;
   PyObject *inPhaseObj, *inIsBeforeObj;
   DrawCallbackInfo info;
   int res = 1;
@@ -3391,7 +3391,7 @@ static int genericDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *i
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
   if (fun != Py_None)
-    pRes = PyObject_CallFunctionObjArgs(fun, inPhaseObj, inIsBeforeObj, refcon, NULL);
+    pRes = PyObject_CallFunctionObjArgs(fun, inPhaseObj, inIsBeforeObj, refcon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
   pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
 
@@ -3435,7 +3435,7 @@ static int genericDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *i
 
 int genericKeySnifferCallback(char inChar, XPLMKeyFlags inFlags, char inVirtualKey, void *inRefcon)
 {
-  PyObject *pRes = NULL, *err = NULL;
+  PyObject *pRes = nullptr, *err = nullptr;
   int res = 1;
   KeySniffInfo info;
   intptr_t refcon_id = (intptr_t)inRefcon;
@@ -3452,7 +3452,7 @@ int genericKeySnifferCallback(char inChar, XPLMKeyFlags inFlags, char inVirtualK
   module_name_obj = PyUnicode_FromString(info.module_name.c_str());
   set_moduleName(module_name_obj);
   Py_DECREF(module_name_obj);
-  pRes = PyObject_CallFunctionObjArgs(info.callback, inCharObj, inFlagsObj, inVirtualKeyObj, info.refCon, NULL);
+  pRes = PyObject_CallFunctionObjArgs(info.callback, inCharObj, inFlagsObj, inVirtualKeyObj, info.refCon, nullptr);
   if(!pRes){
     char *s2 = objToStr(info.callback);
     pythonLog("[%s] Key sniffer callback %s failed.", CurrentPythonModuleName, s2);
@@ -3483,7 +3483,7 @@ int genericKeySnifferCallback(char inChar, XPLMKeyFlags inFlags, char inVirtualK
 static void genericAvionicsBezelDraw(float inAmbiantR, float inAmbiantG, float inAmbiantB, void *inRefcon) {
   struct timespec all_stop, all_start;
   clock_gettime(CLOCK_MONOTONIC, &all_start);
-  PyObject *err = NULL;
+  PyObject *err = nullptr;
 
   AvionicsCallbackInfo info;
   PyObject *module_name_obj;
@@ -3501,7 +3501,7 @@ static void genericAvionicsBezelDraw(float inAmbiantR, float inAmbiantG, float i
     PyObject_CallFunctionObjArgs(info.bezel_draw,
                                  PyFloat_FromDouble(inAmbiantR),
                                  PyFloat_FromDouble(inAmbiantG),
-                                 PyFloat_FromDouble(inAmbiantB), info.refCon, NULL);
+                                 PyFloat_FromDouble(inAmbiantB), info.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
   pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   Py_DECREF(module_name_obj);
@@ -3521,7 +3521,7 @@ static void genericAvionicsBezelDraw(float inAmbiantR, float inAmbiantG, float i
 static void genericAvionicsScreenDraw(void *inRefcon)  {
   struct timespec all_stop, all_start;
   clock_gettime(CLOCK_MONOTONIC, &all_start);
-  PyObject *err = NULL;
+  PyObject *err = nullptr;
 
   AvionicsCallbackInfo info;
   PyObject *module_name_obj;
@@ -3536,7 +3536,7 @@ static void genericAvionicsScreenDraw(void *inRefcon)  {
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
   if (info.draw != Py_None)
-    PyObject_CallFunctionObjArgs(info.draw, info.refCon, NULL);
+    PyObject_CallFunctionObjArgs(info.draw, info.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
   pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   Py_DECREF(module_name_obj);
@@ -3555,8 +3555,8 @@ static void genericAvionicsScreenDraw(void *inRefcon)  {
 static float genericAvionicsBrightness(float inRheoValue, float inAmbiantBrightness, float inBusVoltsRatio, void *inRefcon)  {
   struct timespec all_stop, all_start;
   clock_gettime(CLOCK_MONOTONIC, &all_start);
-  PyObject *err = NULL;
-  PyObject *pRes = NULL;
+  PyObject *err = nullptr;
+  PyObject *pRes = nullptr;
   float res = inRheoValue * inAmbiantBrightness; /* ... the default behavior */
 
   AvionicsCallbackInfo info;
@@ -3576,7 +3576,7 @@ static float genericAvionicsBrightness(float inRheoValue, float inAmbiantBrightn
                                         PyFloat_FromDouble(inRheoValue),
                                         PyFloat_FromDouble(inAmbiantBrightness),
                                         PyFloat_FromDouble(inBusVoltsRatio),
-                                        info.refCon, NULL);
+                                        info.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
   pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   Py_DECREF(module_name_obj);
@@ -3612,8 +3612,8 @@ static float genericAvionicsBrightness(float inRheoValue, float inAmbiantBrightn
 static int genericAvionicsBezelClick(int x, int y, XPLMMouseStatus inMouse, void *inRefcon) {
   struct timespec all_stop, all_start;
   clock_gettime(CLOCK_MONOTONIC, &all_start);
-  PyObject *err = NULL;
-  PyObject *pRes = NULL;
+  PyObject *err = nullptr;
+  PyObject *pRes = nullptr;
   int res = 0;
   AvionicsCallbackInfo info;
   PyObject *module_name_obj;
@@ -3630,7 +3630,7 @@ static int genericAvionicsBezelClick(int x, int y, XPLMMouseStatus inMouse, void
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
   if (info.bezel_click != Py_None)
-    pRes = PyObject_CallFunctionObjArgs(info.bezel_click, PyLong_FromLong(x), PyLong_FromLong(y), PyLong_FromLong(inMouse), info.refCon, NULL);
+    pRes = PyObject_CallFunctionObjArgs(info.bezel_click, PyLong_FromLong(x), PyLong_FromLong(y), PyLong_FromLong(inMouse), info.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
   pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   Py_DECREF(module_name_obj);
@@ -3671,8 +3671,8 @@ static int genericAvionicsBezelClick(int x, int y, XPLMMouseStatus inMouse, void
 static int genericAvionicsBezelRightClick(int x, int y, XPLMMouseStatus inMouse, void *inRefcon) {
   struct timespec all_stop, all_start;
   clock_gettime(CLOCK_MONOTONIC, &all_start);
-  PyObject *err = NULL;
-  PyObject *pRes = NULL;
+  PyObject *err = nullptr;
+  PyObject *pRes = nullptr;
   int res = 0;
   AvionicsCallbackInfo info;
   PyObject *module_name_obj;
@@ -3689,7 +3689,7 @@ static int genericAvionicsBezelRightClick(int x, int y, XPLMMouseStatus inMouse,
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
   if (info.bezel_rightclick != Py_None)
-    pRes = PyObject_CallFunctionObjArgs(info.bezel_rightclick, PyLong_FromLong(x), PyLong_FromLong(y), PyLong_FromLong(inMouse), info.refCon, NULL);
+    pRes = PyObject_CallFunctionObjArgs(info.bezel_rightclick, PyLong_FromLong(x), PyLong_FromLong(y), PyLong_FromLong(inMouse), info.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
   pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   Py_DECREF(module_name_obj);
@@ -3730,8 +3730,8 @@ static int genericAvionicsBezelRightClick(int x, int y, XPLMMouseStatus inMouse,
 static int genericAvionicsBezelScroll(int x, int y, int wheel, int clicks, void *inRefcon) {
   struct timespec all_stop, all_start;
   clock_gettime(CLOCK_MONOTONIC, &all_start);
-  PyObject *err = NULL;
-  PyObject *pRes = NULL;
+  PyObject *err = nullptr;
+  PyObject *pRes = nullptr;
   int res = 0;
   AvionicsCallbackInfo info;
   PyObject *module_name_obj;
@@ -3748,7 +3748,7 @@ static int genericAvionicsBezelScroll(int x, int y, int wheel, int clicks, void 
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
   pRes = PyObject_CallFunctionObjArgs(info.bezel_scroll, PyLong_FromLong(x), PyLong_FromLong(y), PyLong_FromLong(wheel),
-                                      PyLong_FromLong(clicks), info.refCon, NULL);
+                                      PyLong_FromLong(clicks), info.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
   pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   Py_DECREF(module_name_obj);
@@ -3788,8 +3788,8 @@ static int genericAvionicsBezelScroll(int x, int y, int wheel, int clicks, void 
 static XPLMCursorStatus genericAvionicsBezelCursor(int x, int y, void *inRefcon) {
   struct timespec all_stop, all_start;
   clock_gettime(CLOCK_MONOTONIC, &all_start);
-  PyObject *err = NULL;
-  PyObject *pRes = NULL;
+  PyObject *err = nullptr;
+  PyObject *pRes = nullptr;
   AvionicsCallbackInfo info;
   PyObject *module_name_obj;
   XPLMCursorStatus res = 0;
@@ -3806,7 +3806,7 @@ static XPLMCursorStatus genericAvionicsBezelCursor(int x, int y, void *inRefcon)
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
   if (info.bezel_cursor != Py_None) 
-    pRes = PyObject_CallFunctionObjArgs(info.bezel_cursor, PyLong_FromLong(x), PyLong_FromLong(y), info.refCon, NULL);
+    pRes = PyObject_CallFunctionObjArgs(info.bezel_cursor, PyLong_FromLong(x), PyLong_FromLong(y), info.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
   pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
 
@@ -3845,8 +3845,8 @@ static XPLMCursorStatus genericAvionicsBezelCursor(int x, int y, void *inRefcon)
 static int genericAvionicsScreenTouch(int x, int y, int inMouse, void *inRefcon) {
   struct timespec all_stop, all_start;
   clock_gettime(CLOCK_MONOTONIC, &all_start);
-  PyObject *err = NULL;
-  PyObject *pRes = NULL;
+  PyObject *err = nullptr;
+  PyObject *pRes = nullptr;
   int res = 0;
   AvionicsCallbackInfo info;
   PyObject *module_name_obj;
@@ -3863,7 +3863,7 @@ static int genericAvionicsScreenTouch(int x, int y, int inMouse, void *inRefcon)
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
   if (info.screen_touch != Py_None) 
-    pRes = PyObject_CallFunctionObjArgs(info.screen_touch, PyLong_FromLong(x), PyLong_FromLong(y), PyLong_FromLong(inMouse), info.refCon, NULL);
+    pRes = PyObject_CallFunctionObjArgs(info.screen_touch, PyLong_FromLong(x), PyLong_FromLong(y), PyLong_FromLong(inMouse), info.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
   pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   Py_DECREF(module_name_obj);
@@ -3903,8 +3903,8 @@ static int genericAvionicsScreenTouch(int x, int y, int inMouse, void *inRefcon)
 static int genericAvionicsScreenRightTouch(int x, int y, int inMouse, void *inRefcon) {
   struct timespec all_stop, all_start;
   clock_gettime(CLOCK_MONOTONIC, &all_start);
-  PyObject *err = NULL;
-  PyObject *pRes = NULL;
+  PyObject *err = nullptr;
+  PyObject *pRes = nullptr;
   int res = 0;
   AvionicsCallbackInfo info;
   PyObject *module_name_obj;
@@ -3921,7 +3921,7 @@ static int genericAvionicsScreenRightTouch(int x, int y, int inMouse, void *inRe
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
   if (info.screen_righttouch != Py_None) 
-    pRes = PyObject_CallFunctionObjArgs(info.screen_righttouch, PyLong_FromLong(x), PyLong_FromLong(y), PyLong_FromLong(inMouse), info.refCon, NULL);
+    pRes = PyObject_CallFunctionObjArgs(info.screen_righttouch, PyLong_FromLong(x), PyLong_FromLong(y), PyLong_FromLong(inMouse), info.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
   pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   Py_DECREF(module_name_obj);
@@ -3961,8 +3961,8 @@ static int genericAvionicsScreenRightTouch(int x, int y, int inMouse, void *inRe
 static int genericAvionicsScreenScroll(int x, int y, int wheel, int clicks, void *inRefcon) {
   struct timespec all_stop, all_start;
   clock_gettime(CLOCK_MONOTONIC, &all_start);
-  PyObject *err = NULL;
-  PyObject *pRes = NULL;
+  PyObject *err = nullptr;
+  PyObject *pRes = nullptr;
   int res = 0;
   AvionicsCallbackInfo info;
   PyObject *module_name_obj;
@@ -3980,7 +3980,7 @@ static int genericAvionicsScreenScroll(int x, int y, int wheel, int clicks, void
   clock_gettime(CLOCK_MONOTONIC, &start);
   if(info.screen_scroll != Py_None) 
     pRes = PyObject_CallFunctionObjArgs(info.screen_scroll, PyLong_FromLong(x), PyLong_FromLong(y),
-                                        PyLong_FromLong(wheel), PyLong_FromLong(clicks), info.refCon, NULL);
+                                        PyLong_FromLong(wheel), PyLong_FromLong(clicks), info.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
   pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   Py_DECREF(module_name_obj);
@@ -4020,8 +4020,8 @@ static int genericAvionicsScreenScroll(int x, int y, int wheel, int clicks, void
 static XPLMCursorStatus genericAvionicsScreenCursor(int x, int y, void *inRefcon) {
   struct timespec all_stop, all_start;
   clock_gettime(CLOCK_MONOTONIC, &all_start);
-  PyObject *err = NULL;
-  PyObject *pRes = NULL;
+  PyObject *err = nullptr;
+  PyObject *pRes = nullptr;
   XPLMCursorStatus res = 0;
   AvionicsCallbackInfo info;
   PyObject *module_name_obj;
@@ -4041,7 +4041,7 @@ static XPLMCursorStatus genericAvionicsScreenCursor(int x, int y, void *inRefcon
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
   if (info.screen_cursor != Py_None) 
-    pRes = PyObject_CallFunctionObjArgs(info.screen_cursor, PyLong_FromLong(x), PyLong_FromLong(y), info.refCon, NULL);
+    pRes = PyObject_CallFunctionObjArgs(info.screen_cursor, PyLong_FromLong(x), PyLong_FromLong(y), info.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
   pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   Py_DECREF(module_name_obj);
@@ -4080,8 +4080,8 @@ static XPLMCursorStatus genericAvionicsScreenCursor(int x, int y, void *inRefcon
 static int genericAvionicsKeyboard(char inKey, XPLMKeyFlags inFlags, char inVirtualKey, void *inRefcon, int losingFocus) {
   struct timespec all_stop, all_start;
   clock_gettime(CLOCK_MONOTONIC, &all_start);
-  PyObject *err = NULL;
-  PyObject *pRes = NULL;
+  PyObject *err = nullptr;
+  PyObject *pRes = nullptr;
   int res = 0;
   AvionicsCallbackInfo info;
   PyObject *module_name_obj;
@@ -4102,7 +4102,7 @@ static int genericAvionicsKeyboard(char inKey, XPLMKeyFlags inFlags, char inVirt
   clock_gettime(CLOCK_MONOTONIC, &start);
   pRes = PyObject_CallFunctionObjArgs(info.keyboard,
                                       PyLong_FromLong(inKey), PyLong_FromLong(inFlags),
-                                      PyLong_FromLong(inVirtualKey), info.refCon, PyLong_FromLong(losingFocus), NULL);
+                                      PyLong_FromLong(inVirtualKey), info.refCon, PyLong_FromLong(losingFocus), nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
   pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
 

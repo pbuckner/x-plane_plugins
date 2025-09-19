@@ -15,7 +15,7 @@ int xpy_startInstance(PyObject *module_name_p, PyObject *pModule, PyObject* plug
   /* Start loaded instance, update XPY3moduleDict and XP3pluginDict with information
    */
   set_moduleName(module_name_p);
-  PyObject *pRes = PyObject_CallMethod(pluginInstance, "XPluginStart", NULL);
+  PyObject *pRes = PyObject_CallMethod(pluginInstance, "XPluginStart", nullptr);
   PyObject *err = PyErr_Occurred();
   if (err) {
     pythonLogException();
@@ -53,7 +53,7 @@ int xpy_startInstance(PyObject *module_name_p, PyObject *pModule, PyObject* plug
       pythonLog("[XPPython3] Unable to start plugin in file %s: XPluginStart did not return Name, Sig, and Desc.", CurrentPythonModuleName);
     }
   } else {
-    pythonLog("[%s] XPluginStart returned NULL", CurrentPythonModuleName); // NULL is error, Py_None is void, we're looking for a tuple[3]
+    pythonLog("[%s] XPluginStart returned nullptr", CurrentPythonModuleName); // nullptr is error, Py_None is void, we're looking for a tuple[3]
   }
   if(PyErr_Occurred()) {
     pythonLogException();
@@ -146,7 +146,7 @@ void xpy_reloadInstance(PyObject *signature) {
   PyObject *pClass = PyObject_GetAttrString(module, "PythonInterface");
   if (pClass && PyCallable_Check(pClass)) {
     pythonDebug("  Getting PythonInterface class");
-    pluginInstance = PyObject_CallObject(pClass, NULL);
+    pluginInstance = PyObject_CallObject(pClass, nullptr);
     Py_DECREF(pClass);
     if (!pluginInstance) {
       char *s = objToStr(moduleName);
@@ -182,13 +182,13 @@ PyObject *getPluginInfo(PyObject *signature){
     pythonDebug("Found plugin for signature: %s", objDebug(signature));
     return pluginInfo;
   }
-  return NULL;
+  return nullptr;
 }
 
 int xpy_enableInstance(PyObject *moduleName, PyObject *pluginInstance) {
   set_moduleName(moduleName);
   pythonDebug("  Enabling instance: %s", CurrentPythonModuleName);
-  PyObject *pRes = PyObject_CallMethod(pluginInstance, "XPluginEnable", NULL);
+  PyObject *pRes = PyObject_CallMethod(pluginInstance, "XPluginEnable", nullptr);
 
   if(PyErr_Occurred()) {
     pythonLogException();
@@ -216,7 +216,7 @@ int xpy_enableInstance(PyObject *moduleName, PyObject *pluginInstance) {
 void xpy_disableInstance(PyObject *moduleName, PyObject *pluginInstance) {
   set_moduleName(moduleName);
   pythonDebug("  Disabling instance: %s", CurrentPythonModuleName);
-  PyObject_CallMethod(pluginInstance, "XPluginDisable", NULL);
+  PyObject_CallMethod(pluginInstance, "XPluginDisable", nullptr);
   PyObject *err = PyErr_Occurred();
 
   if (err) {
@@ -290,7 +290,7 @@ void xpy_stopInstance(PyObject *moduleName, PyObject *pluginInstance) {
     /* ignore error, if XPluginStop is not defined in the PythonInterface class */
     pythonDebug("%*s (no XPluginStop for this module)", 4, " ");
   } else {
-    PyObject *pRes = PyObject_CallMethod(pluginInstance, "XPluginStop", NULL);
+    PyObject *pRes = PyObject_CallMethod(pluginInstance, "XPluginStop", nullptr);
     PyObject *err = PyErr_Occurred();
     if (err) {
       pythonLogException();
@@ -298,7 +298,7 @@ void xpy_stopInstance(PyObject *moduleName, PyObject *pluginInstance) {
       pythonLog("[XPPython3] Error occurred during call to %s XPluginStop", s);
       free(s);
     }
-    if (pRes != Py_None && pRes != NULL) {
+    if (pRes != Py_None && pRes != nullptr) {
       pythonDebug("XPluginStop for %s returned '%s' rather than None. Value ignored\n", CurrentPythonModuleName, objDebug(pRes));
     }
     Py_XDECREF(pRes);

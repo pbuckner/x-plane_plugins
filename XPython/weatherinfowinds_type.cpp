@@ -74,11 +74,11 @@ static PyMemberDef WeatherInfoWinds_members[] = {
   {"gust_speed", T_FLOAT, offsetof(WeatherInfoWindsObject, gust_speed), 0, "Gust speed (meters/second). Total speed, not incremental over wind speed."},
   {"shear", T_FLOAT, offsetof(WeatherInfoWindsObject, shear), 0, "Shear arc i.e., 50% of this arc in either direction from base direction (degrees)"},
   {"turbulence", T_FLOAT, offsetof(WeatherInfoWindsObject, turbulence), 0, "Turbulence ratio"},
-  {NULL, T_INT, 0, 0, ""} /* Sentinel */
+  {nullptr, T_INT, 0, 0, ""} /* Sentinel */
 };
 
 static PyObject *WeatherInfoWinds_str(WeatherInfoWindsObject *obj) {
-  char *msg = NULL;
+  char *msg = nullptr;
   if (obj->speed < 0) {
     if (-1 == asprintf(&msg, "<XPLMWeatherInfoWinds_t object> layer undefined")) {
       pythonLog("Failed to allocate asprintf memory for WeatherInfoWinds.");
@@ -99,7 +99,7 @@ static PyObject *WeatherInfoWinds_str(WeatherInfoWindsObject *obj) {
 
 PyTypeObject
 WeatherInfoWindsType = {
-  PyVarObject_HEAD_INIT(NULL, 0)
+  PyVarObject_HEAD_INIT(nullptr, 0)
   .tp_name = "XPPython.XPLMWeatherInfoWinds_t",
   .tp_basicsize = sizeof(WeatherInfoWindsObject),
   .tp_itemsize = 0,

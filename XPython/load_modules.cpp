@@ -15,7 +15,7 @@ void xpy_loadModules(const char *path, const char *package, const char *pattern,
   //Scan current directory for the plugin modules, loads and calls XPluginStart()
   DIR *dir = opendir(path);
   PyObject *pluginInstance;
-  if(dir == NULL){
+  if(dir == nullptr){
     pythonLog("[XPPython3] Scanning for plugins in '%s': directory not found.", path);
     pythonLogFlush();
     return;
@@ -25,7 +25,7 @@ void xpy_loadModules(const char *path, const char *package, const char *pattern,
   if(regcomp(&rex, pattern, REG_NOSUB) == 0){
     while((de = readdir(dir))){
       // pythonDebug("Checking file name %s against pattern %s", de->d_name, pattern);
-      if(regexec(&rex, de->d_name, 0, NULL, 0) == 0 && strstr(de->d_name, "flymake.py") == NULL){
+      if(regexec(&rex, de->d_name, 0, nullptr, 0) == 0 && strstr(de->d_name, "flymake.py") == nullptr){
         char *modName = strdup(de->d_name);
         if(modName){
           modName[strlen(de->d_name) - 3] = '\0';
@@ -65,7 +65,7 @@ static PyObject *loadPIClass(const char *fname)
  * Updates XPY3moduleDict and XPpluginDict with informaiton about
  * loaded plugin.
  *
- * Returns pluginInstance on success (or NULL)
+ * Returns pluginInstance on success (or nullptr)
  */
 {
   int already_loaded = 0;
@@ -93,7 +93,7 @@ static PyObject *loadPIClass(const char *fname)
         if (PyErr_Occurred()){
           pythonLogException();
           pythonLog("[XPPython3] Problem reloading module '%s'.", fname);
-          return NULL;
+          return nullptr;
         }
         s = objDebug(module2_p);
         pythonDebug("reloaded '%s'", s);
@@ -107,15 +107,15 @@ static PyObject *loadPIClass(const char *fname)
         
       PyObject *pClass = PyObject_GetAttrString(module2_p, "PythonInterface");
       if (pClass && PyCallable_Check(pClass)) {
-        PyObject *pluginInstance = PyObject_CallObject(pClass, NULL);
+        PyObject *pluginInstance = PyObject_CallObject(pClass, nullptr);
         if (PyErr_Occurred()){
           pythonLogException();
           pythonLog("[XPPython3] Problem loading PythonInterface object in %s.", fname);
-          return NULL;
+          return nullptr;
         }
         Py_DECREF(pClass);
         if (pluginInstance) {
-          return xpy_startInstance(module_name_p, module2_p, pluginInstance) ? pluginInstance : NULL;
+          return xpy_startInstance(module_name_p, module2_p, pluginInstance) ? pluginInstance : nullptr;
         }
       } else {
         pythonDebug(" . Failed to get callable PythonInterface class");
@@ -133,6 +133,6 @@ static PyObject *loadPIClass(const char *fname)
   if(PyErr_Occurred()) {
     pythonLogException();
   }
-  return NULL;
+  return nullptr;
 }
 

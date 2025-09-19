@@ -119,7 +119,7 @@ static PyObject *XPLMFindDataRefFun(PyObject *self, PyObject *args, PyObject *kw
   const char *inDataRefName;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inDataRefName)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDataRef ref = XPLMFindDataRef(inDataRefName);
@@ -144,7 +144,7 @@ static PyObject *XPLMCanWriteDataRefFun(PyObject *self, PyObject *args, PyObject
   PyObject *dataRef;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &dataRef)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(dataRef);
@@ -168,7 +168,7 @@ static PyObject *XPLMIsDataRefGoodFun(PyObject *self, PyObject *args, PyObject *
   PyObject *dataRef;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &dataRef)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(dataRef);
@@ -198,7 +198,7 @@ static PyObject *XPLMGetDataRefTypesFun(PyObject *self, PyObject *args, PyObject
   PyObject *dataRef;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &dataRef)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(dataRef);
@@ -218,7 +218,7 @@ static PyObject *XPLMGetDataiFun(PyObject *self, PyObject *args, PyObject *kwarg
   PyObject *dataRef;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &dataRef)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(dataRef);
@@ -239,7 +239,7 @@ static PyObject *XPLMSetDataiFun(PyObject *self, PyObject *args, PyObject *kwarg
   int inValue = 0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", keywords, &dataRef, &inValue)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(dataRef);
@@ -260,7 +260,7 @@ static PyObject *XPLMGetDatafFun(PyObject *self, PyObject *args, PyObject *kwarg
   PyObject *dataRef;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &dataRef)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(dataRef);
@@ -281,7 +281,7 @@ static PyObject *XPLMSetDatafFun(PyObject *self, PyObject *args, PyObject *kwarg
   float inValue = 0.0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|f", keywords, &dataRef, &inValue)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(dataRef);
@@ -302,7 +302,7 @@ static PyObject *XPLMGetDatadFun(PyObject *self, PyObject *args, PyObject *kwarg
   PyObject *dataRef;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &dataRef)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(dataRef);
@@ -323,7 +323,7 @@ static PyObject *XPLMSetDatadFun(PyObject *self, PyObject *args, PyObject *kwarg
   double inValue = 0.0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|d", keywords, &dataRef, &inValue)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(dataRef);
@@ -350,32 +350,32 @@ static PyObject *XPLMGetDataviFun(PyObject *self, PyObject *args, PyObject *kwar
   (void) self;
   PyObject *drefObj;
   PyObject *outValuesObj=Py_None;
-  int *outValues = NULL;
+  int *outValues = nullptr;
   int inOffset=0, inMax=-1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|Oii", keywords, &drefObj, &outValuesObj, &inOffset, &inMax)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef= drefFromObj(drefObj);
   if(outValuesObj && (outValuesObj != Py_None)){
     if(!PyList_Check(outValuesObj)){
       PyErr_SetString(PyExc_TypeError, "getDatavi expects list or None as the values parameter.");
-      return NULL;
+      return nullptr;
     }
     if (inMax <= 0) {
-      inMax = XPLMGetDatavi(inDataRef, NULL, 0, 0);
+      inMax = XPLMGetDatavi(inDataRef, nullptr, 0, 0);
     }
     if(inMax > 0){
       outValues = (int *)malloc(inMax * sizeof(int));
     }else{
       PyErr_SetString(PyExc_RuntimeError, "getDatavi count value must be positive.");
-      return NULL;
+      return nullptr;
     }
   }
   
   int res = XPLMGetDatavi(inDataRef, outValues, inOffset, inMax);
-  if(outValues != NULL){
+  if(outValues != nullptr){
     if(PyList_Size(outValuesObj) > 0){
       PySequence_DelSlice(outValuesObj, 0, PyList_Size(outValuesObj));
     }
@@ -411,21 +411,21 @@ static PyObject *XPLMSetDataviFun(PyObject *self, PyObject *args, PyObject *kwar
   (void) self;
   PyObject *drefObj;
   PyObject *inValuesObj;
-  int *inValues = NULL;
+  int *inValues = nullptr;
   int inOffset=0, inCount=-1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|ii", keywords, &drefObj, &inValuesObj, &inOffset, &inCount)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef= drefFromObj(drefObj);
   if(!PySequence_Check(inValuesObj)){
     PyErr_SetString(PyExc_TypeError, "setDatavi expects list as the values parameter.");
-    return NULL;
+    return nullptr;
   }
   if(inCount > 0 && PySequence_Length(inValuesObj) < inCount){
     PyErr_SetString(PyExc_RuntimeError, "setDatavi list too short for provided count.");
-    return NULL;
+    return nullptr;
   }
   if (inCount <= 0) {
     inCount = PySequence_Length(inValuesObj);
@@ -464,34 +464,34 @@ static PyObject *XPLMGetDatavfFun(PyObject *self, PyObject *args, PyObject *kwar
   (void) self;
   PyObject *drefObj;
   PyObject *outValuesObj=Py_None;
-  float *outValues = NULL;
+  float *outValues = nullptr;
   int inOffset=0, inMax=-1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|Oii", keywords, &drefObj, &outValuesObj, &inOffset, &inMax)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(drefObj);
   if(outValuesObj && (outValuesObj != Py_None)){
     if(!PyList_Check(outValuesObj)){
       PyErr_SetString(PyExc_TypeError, "getDatavf expects list or None as the values parameter.");
-      return NULL;
+      return nullptr;
     }
     if (inMax <= 0) {
-      inMax = XPLMGetDatavf(inDataRef, NULL, 0, 0);
+      inMax = XPLMGetDatavf(inDataRef, nullptr, 0, 0);
     }
     if(inMax > 0){
       outValues = (float *)malloc(inMax * sizeof(float));
     }else{
       pythonLog("getdatavf count value must be positive");
       PyErr_SetString(PyExc_RuntimeError, "getDatavf count value must be positive.");
-      return NULL;
+      return nullptr;
     }
   }
   
   int res = XPLMGetDatavf(inDataRef, outValues, inOffset, inMax);
 
-  if(outValues != NULL){
+  if(outValues != nullptr){
     if(PyList_Size(outValuesObj) > 0){
       PySequence_DelSlice(outValuesObj, 0, PyList_Size(outValuesObj));
     }
@@ -533,21 +533,21 @@ static PyObject *XPLMSetDatavfFun(PyObject *self, PyObject *args, PyObject *kwar
   (void) self;
   PyObject *drefObj;
   PyObject *inValuesObj;
-  float *inValues = NULL;
+  float *inValues = nullptr;
   int inOffset=0, inCount=-1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|ii", keywords, &drefObj, &inValuesObj, &inOffset, &inCount)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(drefObj);
   if(!PySequence_Check(inValuesObj)){
     PyErr_SetString(PyExc_TypeError, "setDatavf expects list as the values parameter.");
-    return NULL;
+    return nullptr;
   }
   if(inCount > 0 && PySequence_Length(inValuesObj) < inCount){
     PyErr_SetString(PyExc_RuntimeError, "setDatavf list too short for provided count.");
-    return NULL;
+    return nullptr;
   }
   if (inCount <= 0) {
     inCount = PySequence_Length(inValuesObj);
@@ -589,32 +589,32 @@ static PyObject *XPLMGetDatabFun(PyObject *self, PyObject *args, PyObject *kwarg
   (void) self;
   PyObject *drefObj;
   PyObject *outValuesObj = Py_None;
-  uint8_t *outValues = NULL;
+  uint8_t *outValues = nullptr;
   int inOffset=0, inMax=-1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|Oii", keywords, &drefObj, &outValuesObj, &inOffset, &inMax)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef= drefFromObj(drefObj);
   if(outValuesObj && (outValuesObj != Py_None)){
     if(!PyList_Check(outValuesObj)){
       PyErr_SetString(PyExc_TypeError, "getDatab expects list or None as the values parameter.");
-      return NULL;
+      return nullptr;
     }
     if (inMax <= 0) {
-      inMax = XPLMGetDatab(inDataRef, NULL, 0, 0);
+      inMax = XPLMGetDatab(inDataRef, nullptr, 0, 0);
     }
     if(inMax > 0){
       outValues = (uint8_t *)malloc(inMax * sizeof(uint8_t));
     }else{
       PyErr_SetString(PyExc_RuntimeError, "getDatab count value must be positive.");
-      return NULL;
+      return nullptr;
     }
   }
   
   int res = XPLMGetDatab(inDataRef, outValues, inOffset, inMax);
-  if(outValues != NULL){
+  if(outValues != nullptr){
     if(PyList_Size(outValuesObj) > 0){
       PySequence_DelSlice(outValuesObj, 0, PyList_Size(outValuesObj));
     }
@@ -651,21 +651,21 @@ static PyObject *XPLMSetDatabFun(PyObject *self, PyObject *args, PyObject *kwarg
   (void) self;
   PyObject *drefObj;
   PyObject *inValuesObj;
-  uint8_t *inValues = NULL;
+  uint8_t *inValues = nullptr;
   int inOffset=0, inCount=-1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|ii", keywords, &drefObj, &inValuesObj, &inOffset, &inCount)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef= drefFromObj(drefObj);
   if(!PySequence_Check(inValuesObj)){
     PyErr_SetString(PyExc_TypeError, "setDatab expects list as the values parameter.");
-    return NULL;
+    return nullptr;
   }
   if(inCount > 0 && PySequence_Length(inValuesObj) < inCount){
     PyErr_SetString(PyExc_RuntimeError, "setDatab list too short.");
-    return NULL;
+    return nullptr;
   }
   if (inCount <= 0) {
     inCount = PySequence_Length(inValuesObj);
@@ -703,26 +703,26 @@ static PyObject *XPLMGetDatasFun(PyObject *self, PyObject *args, PyObject *kwarg
   char **keywords = stringVectorToCharArray(params);
   (void) self;
   PyObject *drefObj;
-  char *outValues = NULL;
+  char *outValues = nullptr;
   int inOffset=0, inMax=-1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|ii", keywords, &drefObj, &inOffset, &inMax)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef= drefFromObj(drefObj);
   if (inMax <= 0) {
-    inMax = XPLMGetDatab(inDataRef, NULL, 0, 0);
+    inMax = XPLMGetDatab(inDataRef, nullptr, 0, 0);
   }
   if(inMax > 0){
     outValues = (char *)malloc(inMax * sizeof(char));
   }else{
     PyErr_SetString(PyExc_RuntimeError, "getDatas count value must be positive.");
-    return NULL;
+    return nullptr;
   }
   
   int res = XPLMGetDatab(inDataRef, outValues, inOffset, inMax);
-  if(outValues != NULL){
+  if(outValues != nullptr){
     size_t len = strlen(outValues);
     len = len > (size_t) res ? (size_t) res : len;  // in case returned outValues doesn't end with '\0' 
     PyObject *string = PyUnicode_FromStringAndSize(outValues, len);
@@ -766,28 +766,28 @@ static PyObject *XPLMSetDatasFun(PyObject *self, PyObject *args, PyObject *kwarg
   (void) self;
   PyObject *drefObj;
   PyObject *inValueObj;
-  const char *inValue = NULL;
+  const char *inValue = nullptr;
   int inOffset=0, inCount=-1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|ii", keywords, &drefObj, &inValueObj, &inOffset, &inCount)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef= drefFromObj(drefObj);
 
   if(!PyUnicode_Check(inValueObj)){
     PyErr_SetString(PyExc_TypeError, "setDatas expects unicode string as the value parameter.");
-    return NULL;
+    return nullptr;
   }
   /* if(inCount > 0 && PyUnicode_GetLength(inValueObj) < inCount){ */
   /*   PyErr_SetString(PyExc_RuntimeError, "setDatab value string too short for provided count."); */
-  /*   return NULL; */
+  /*   return nullptr; */
   /* } */
   char *buffer;
   int bufferSize;
   if (inCount <= 0) {
     /* if count isn't provided, we'll need to zero-fill to the end */
-    int dataRefLength = XPLMGetDatab(inDataRef, NULL, 0, 0);
+    int dataRefLength = XPLMGetDatab(inDataRef, nullptr, 0, 0);
     /* inCount = PyUnicode_GetLength(inValueObj);*/
     bufferSize = dataRefLength - inOffset;
   } else {
@@ -796,7 +796,7 @@ static PyObject *XPLMSetDatasFun(PyObject *self, PyObject *args, PyObject *kwarg
   buffer = (char *)malloc(bufferSize);
 
   inValue = objToStr(inValueObj);
-  //inValue = PyUnicode_AsUTF8AndSize(inValueObj, NULL); /* docs say I'm not responsible for de-allocation of inValue */
+  //inValue = PyUnicode_AsUTF8AndSize(inValueObj, nullptr); /* docs say I'm not responsible for de-allocation of inValue */
   strncpy(buffer, inValue, bufferSize);
   XPLMSetDatab(inDataRef, (void *)buffer, inOffset, bufferSize);
   free((void *)inValue);
@@ -822,7 +822,7 @@ static int getDatai(void *inRefcon)
   PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
   set_moduleName(module_name_obj);
   Py_DECREF(module_name_obj);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_int, info.read_refCon, NULL);
+  PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_int, info.read_refCon, nullptr);
 
   if(PyErr_Occurred()) {
     /* ... If error occurs within the callback function
@@ -876,7 +876,7 @@ static void setDatai(void *inRefcon, int inValue)
   PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
   set_moduleName(module_name_obj);
   Py_DECREF(module_name_obj);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.write_int, info.write_refCon, oArg2, NULL);
+  PyObject *oRes = PyObject_CallFunctionObjArgs(info.write_int, info.write_refCon, oArg2, nullptr);
 
   if(PyErr_Occurred()){
     /* ... If error occurs within the callback function
@@ -907,7 +907,7 @@ static float getDataf(void *inRefcon)
   PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
   set_moduleName(module_name_obj);
   Py_DECREF(module_name_obj);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_float, info.read_refCon, NULL);
+  PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_float, info.read_refCon, nullptr);
 
   if(PyErr_Occurred()) {
     return 0.0;
@@ -949,7 +949,7 @@ static void setDataf(void *inRefcon, float inValue)
   PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
   set_moduleName(module_name_obj);
   Py_DECREF(module_name_obj);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.write_float, info.write_refCon, oArg2, NULL);
+  PyObject *oRes = PyObject_CallFunctionObjArgs(info.write_float, info.write_refCon, oArg2, nullptr);
 
   if(PyErr_Occurred()){
     return;
@@ -977,7 +977,7 @@ static double getDatad(void *inRefcon)
   PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
   set_moduleName(module_name_obj);
   Py_DECREF(module_name_obj);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_double, info.read_refCon, NULL);
+  PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_double, info.read_refCon, nullptr);
 
   if(PyErr_Occurred()) {
     return 0.0;
@@ -1019,7 +1019,7 @@ static void setDatad(void *inRefcon, double inValue)
   PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
   set_moduleName(module_name_obj);
   Py_DECREF(module_name_obj);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.write_double, info.write_refCon, oArg2, NULL);
+  PyObject *oRes = PyObject_CallFunctionObjArgs(info.write_double, info.write_refCon, oArg2, nullptr);
   if(PyErr_Occurred()){
     return;
   }
@@ -1045,7 +1045,7 @@ static int getDatavi(void *inRefcon, int *outValues, int inOffset, int inMax)
   PyObject *oArg2 = PyLong_FromLong(inOffset);
   PyObject *oArg3 = PyLong_FromLong(inMax);
   PyObject *outValuesObj;
-  if(outValues != NULL){
+  if(outValues != nullptr){
     outValuesObj = PyList_New(0);
   }else{
     outValuesObj = Py_None;
@@ -1055,7 +1055,7 @@ static int getDatavi(void *inRefcon, int *outValues, int inOffset, int inMax)
   PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
   set_moduleName(module_name_obj);
   Py_DECREF(module_name_obj);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_int_array, info.read_refCon, outValuesObj, oArg2, oArg3, NULL);
+  PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_int_array, info.read_refCon, outValuesObj, oArg2, oArg3, nullptr);
   PyObject *err = PyErr_Occurred();
   if(err) {
     char *s = objToStr(info.read_int_array);
@@ -1089,7 +1089,7 @@ static int getDatavi(void *inRefcon, int *outValues, int inOffset, int inMax)
     if(outValuesObj != Py_None){
       for(int i = 0; i < res; ++i){
         PyObject *item = PyList_GetItem(outValuesObj, i); /* GetItem borrows */
-        if (item == 0 || item == NULL || item == Py_None) {
+        if (item == 0 || item == nullptr || item == Py_None) {
           outValues[i] = 0;
         } else {
           outValues[i] = PyLong_AsLong(item);
@@ -1139,7 +1139,7 @@ static void setDatavi(void *inRefcon, int *inValues, int inOffset, int inCount)
   if(PyErr_Occurred()){
     return;
   }
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.write_int_array, info.write_refCon, inValuesObj, oArg2, oArg3, NULL);
+  PyObject *oRes = PyObject_CallFunctionObjArgs(info.write_int_array, info.write_refCon, inValuesObj, oArg2, oArg3, nullptr);
   Py_DECREF(oArg2);
   Py_DECREF(oArg3);
   Py_DECREF(inValuesObj);
@@ -1169,7 +1169,7 @@ static int getDatavf(void *inRefcon, float *outValues, int inOffset, int inMax)
   PyObject *oArg2 = PyLong_FromLong(inOffset);
   PyObject *oArg3 = PyLong_FromLong(inMax);
   PyObject *outValuesObj;
-  if(outValues != NULL){
+  if(outValues != nullptr){
     outValuesObj = PyList_New(0);
   }else{
     outValuesObj = Py_None;
@@ -1179,7 +1179,7 @@ static int getDatavf(void *inRefcon, float *outValues, int inOffset, int inMax)
   PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
   set_moduleName(module_name_obj);
   Py_DECREF(module_name_obj);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_float_array, info.read_refCon, outValuesObj, oArg2, oArg3, NULL);
+  PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_float_array, info.read_refCon, outValuesObj, oArg2, oArg3, nullptr);
   PyObject *err = PyErr_Occurred();
   if(err) {
     char *s = objToStr(info.read_float_array);
@@ -1219,7 +1219,7 @@ static int getDatavf(void *inRefcon, float *outValues, int inOffset, int inMax)
           pythonLog("Failed to get #%d from returned values", i);
           return i;
         }
-        if (item == 0 || item == NULL || item == Py_None) {
+        if (item == 0 || item == nullptr || item == Py_None) {
           outValues[i] = 0.0;
         } else {
           outValues[i] = PyFloat_AsDouble(item);
@@ -1269,7 +1269,7 @@ static void setDatavf(void *inRefcon, float *inValues, int inOffset, int inCount
   PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
   set_moduleName(module_name_obj);
   Py_DECREF(module_name_obj);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.write_float_array, info.write_refCon, inValuesObj, oArg2, oArg3, NULL);
+  PyObject *oRes = PyObject_CallFunctionObjArgs(info.write_float_array, info.write_refCon, inValuesObj, oArg2, oArg3, nullptr);
   Py_DECREF(oArg2);
   Py_DECREF(oArg3);
   Py_DECREF(inValuesObj);
@@ -1299,7 +1299,7 @@ static int getDatab(void *inRefcon, void *outValue, int inOffset, int inMax)
   PyObject *oArg2 = PyLong_FromLong(inOffset);
   PyObject *oArg3 = PyLong_FromLong(inMax);
   PyObject *outValuesObj;
-  if(outValue != NULL){
+  if(outValue != nullptr){
     outValuesObj = PyList_New(0);
   }else{
     outValuesObj = Py_None;
@@ -1308,7 +1308,7 @@ static int getDatab(void *inRefcon, void *outValue, int inOffset, int inMax)
   PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
   set_moduleName(module_name_obj);
   Py_DECREF(module_name_obj);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_data, info.read_refCon, outValuesObj, oArg2, oArg3, NULL);
+  PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_data, info.read_refCon, outValuesObj, oArg2, oArg3, nullptr);
   PyObject *err = PyErr_Occurred();
   if(err) {
     char *s = objToStr(info.read_data);
@@ -1399,7 +1399,7 @@ static void setDatab(void *inRefcon, void *inValue, int inOffset, int inCount)
   if(PyErr_Occurred()){
     return;
   }
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.write_data, info.write_refCon, inValuesObj, oArg2, oArg3, NULL);
+  PyObject *oRes = PyObject_CallFunctionObjArgs(info.write_data, info.write_refCon, inValuesObj, oArg2, oArg3, nullptr);
   Py_DECREF(oArg2);
   Py_DECREF(oArg3);
   Py_DECREF(inValuesObj);
@@ -1451,7 +1451,7 @@ static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args, PyO
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s|iiOOOOOOOOOOOOOO", keywords, &inDataName, &inDataType, &inIsWritable,
                                   &ri, &wi, &rf, &wf, &rd, &wd, &rai, &wai, &raf, &waf, &rab, &wab, &rRef, &wRef)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   if (inIsWritable == -1) {
@@ -1531,7 +1531,7 @@ static PyObject *XPLMUnregisterDataAccessorFun(PyObject *self, PyObject *args, P
   PyObject *drefObj;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &drefObj)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   PyObject *pluginSelf = get_moduleName_p();
@@ -1602,7 +1602,7 @@ static void genericSharedDataChanged(void *inRefcon)
   Py_DECREF(module_name_obj);
 
   if (info.callback != Py_None) {
-    PyObject *oRes = PyObject_CallFunctionObjArgs(info.callback, info.refCon, NULL);
+    PyObject *oRes = PyObject_CallFunctionObjArgs(info.callback, info.refCon, nullptr);
     PyObject *err = PyErr_Occurred();
     if(err){
       char msg[1024];
@@ -1639,7 +1639,7 @@ static PyObject *XPLMShareDataFun(PyObject *self, PyObject *args, PyObject *kwar
   PyObject *inNotificationFunc=Py_None, *inNotificationRefcon=Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "si|OO", keywords, &inDataName, &inDataType, &inNotificationFunc, &inNotificationRefcon)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   intptr_t refcon_id = sharedCntr++;
@@ -1674,7 +1674,7 @@ static PyObject *XPLMCountDataRefsFun(PyObject *self, PyObject *args)
   (void)args;
   if(!XPLMCountDataRefs_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMCountDataRefs is available only in XPLM400 and up and requires at least X-Plane v12.04.");
-    return NULL;
+    return nullptr;
   }
   return PyLong_FromLong(XPLMCountDataRefs_ptr());
 }
@@ -1700,12 +1700,12 @@ static PyObject *XPLMGetDataRefsByIndexFun(PyObject *self, PyObject *args, PyObj
   if(!XPLMGetDataRefsByIndex_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetDataRefsByIndex is available only in XPLM400 and up and requires at least X-Plane v12.04.");
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|ii", keywords, &offset, &count)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   if (offset < 0) {
@@ -1728,7 +1728,7 @@ static PyObject *XPLMGetDataRefsByIndexFun(PyObject *self, PyObject *args, PyObj
   XPLMGetDataRefsByIndex_ptr(offset, count, outDataRefs);
   PyObject *outValuesObj = PyList_New(0);
   for(int i = 0; i < count; i++) {
-    if (outDataRefs[i] == NULL) {
+    if (outDataRefs[i] == nullptr) {
       /* bail.. the only time this (should) happen is if we're asked to get more dataRefs than there
          are in the system. We'll get garbage data which (often) includes
       */
@@ -1758,13 +1758,13 @@ static PyObject *XPLMGetDataRefInfoFun(PyObject *self, PyObject *args, PyObject 
   if(!XPLMGetDataRefInfo_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetDataRefInfo is available only in XPLM400 and up and requires at least X-Plane v12.04.");
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
 
   PyObject *dataRef;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &dataRef)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(dataRef);
@@ -1789,13 +1789,13 @@ static PyObject *XPLMUnshareDataFun(PyObject *self, PyObject *args, PyObject *kw
   std::vector<std::string> params = {"name", "dataType", "dataChanged", "refCon"};
   char **keywords = stringVectorToCharArray(params);
   (void) self;
-  const char *inDataName = NULL;
+  const char *inDataName = nullptr;
   XPLMDataTypeID inDataType = xplmType_Unknown;
   PyObject *callbackObj = Py_None;
   PyObject *refconObj = Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "si|OO", keywords, &inDataName, &inDataType, &callbackObj, &refconObj)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
@@ -1929,7 +1929,7 @@ static PyMethodDef XPLMDataAccessMethods[] = {
   {"getDataRefInfo", (PyCFunction)XPLMGetDataRefInfoFun, METH_VARARGS | METH_KEYWORDS, _getDataRefInfo__doc__},
   {"XPLMGetDataRefInfo", (PyCFunction)XPLMGetDataRefInfoFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"_cleanup", cleanup, METH_VARARGS, ""},
-  {NULL, NULL, 0, NULL}
+  {nullptr, nullptr, 0, nullptr}
 };
 #pragma GCC diagnostic pop
 
@@ -1942,10 +1942,10 @@ static struct PyModuleDef XPLMDataAccessModule = {
   "   https://xppython3.rtfd.io/en/stable/development/modules/dataaccess.html",
   -1,
   XPLMDataAccessMethods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr
 };
 
 PyMODINIT_FUNC

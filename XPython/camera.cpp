@@ -67,7 +67,7 @@ static int genericCameraControl(XPLMCameraPosition_t *outCameraPosition, int inI
   PyObject *fun = PyTuple_GetItem(callbackInfo, CAMERA_CALLBACK);
   PyObject *lc = PyLong_FromLong(inIsLosingControl);
   PyObject *refcon = PyTuple_GetItem(callbackInfo, CAMERA_REFCON);
-  PyObject *resObj = PyObject_CallFunctionObjArgs(fun, pos, lc, refcon, NULL);  // new
+  PyObject *resObj = PyObject_CallFunctionObjArgs(fun, pos, lc, refcon, nullptr);  // new
   Py_DECREF(lc);
 
   err = PyErr_Occurred();
@@ -83,7 +83,7 @@ static int genericCameraControl(XPLMCameraPosition_t *outCameraPosition, int inI
     return 0;
   }
 
-  if((outCameraPosition != NULL) && !inIsLosingControl){
+  if((outCameraPosition != nullptr) && !inIsLosingControl){
     PyObject *elem;
     if(PyList_Size(pos) != 7){
       PyErr_SetString(PyExc_RuntimeError ,"outCameraPosition must contain 7 floats.\n");
@@ -153,7 +153,7 @@ static PyObject *XPLMControlCameraFun(PyObject *self, PyObject *args, PyObject *
   PyObject *refcon = Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|iOO", keywords, &inHowLong, &controlFunc, &refcon)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
@@ -246,7 +246,7 @@ static PyMethodDef XPLMCameraMethods[] = {
   {"readCameraPosition", XPLMReadCameraPositionFun, METH_NOARGS, _readCameraPosition__doc__},
   {"XPLMReadCameraPosition", XPLMReadCameraPositionFun, METH_NOARGS, ""},
   {"_cleanup", cleanup, METH_VARARGS, ""},
-  {NULL, NULL, 0, NULL}
+  {nullptr, nullptr, 0, nullptr}
 };
 #pragma GCC diagnostic pop
 
@@ -260,10 +260,10 @@ static struct PyModuleDef XPLMCameraModule = {
   "   https://xppython3.rtfd.io/en/stable/development/modules/camera.html",
   -1,
   XPLMCameraMethods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr
 };
 
 PyMODINIT_FUNC

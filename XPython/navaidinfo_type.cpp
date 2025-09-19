@@ -30,7 +30,7 @@ NavAidInfo_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
   (void) kwds;
   NavAidInfoObject *self;
   self = (NavAidInfoObject *) type->tp_alloc(type, 0);
-  if (self != NULL) {
+  if (self != nullptr) {
     self->type = 0;
     self->latitude = 0;
     self->longitude = 0;
@@ -39,14 +39,14 @@ NavAidInfo_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     self->heading = 0;
     self->reg = 0;
     self->navAidID = PyUnicode_FromString("");
-    if (self->navAidID == NULL) {
+    if (self->navAidID == nullptr) {
       Py_DECREF(self);
-      return NULL;
+      return nullptr;
     }
     self->name = PyUnicode_FromString("");
-    if (self->name == NULL) {
+    if (self->name == nullptr) {
       Py_DECREF(self);
-      return NULL;
+      return nullptr;
     }
   }
   return (PyObject *) self;
@@ -81,7 +81,7 @@ NavAidInfo_init(NavAidInfoObject *self, PyObject *args, PyObject *kwds)
 {
   std::vector<std::string> params = {"type", "latitude", "longitude", "height", "frequency", "heading", "navaAidID", "name", "reg"};
   char **kwlist = stringVectorToCharArray(params);
-  PyObject *navAidID = NULL, *name, *tmp;
+  PyObject *navAidID = nullptr, *name, *tmp;
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ifffifUUi", kwlist,
                                    &self->type, &self->latitude, &self->longitude, &self->height, &self->frequency, &self->heading,
                                    &navAidID, &name, &self->reg)) {
@@ -115,7 +115,7 @@ static PyMemberDef NavAidInfo_members[] = {
     {"navAidID", T_OBJECT_EX, offsetof(NavAidInfoObject, navAidID), 0, "Navaid ID"},
     {"name", T_OBJECT, offsetof(NavAidInfoObject, name), 0, "Navaid name"},
     {"reg", T_INT, offsetof(NavAidInfoObject, reg), 0, "1 if navaid is within local 'region', 0 otherwise"},
-    {NULL, T_INT, 0, 0, ""}  /* Sentinel */
+    {nullptr, T_INT, 0, 0, ""}  /* Sentinel */
 };
 
 static PyObject *NavAidInfo_str(NavAidInfoObject *obj) {
@@ -181,7 +181,7 @@ static PyObject *NavAidInfo_str(NavAidInfoObject *obj) {
 
 PyTypeObject
 NavAidInfoType = {
-  PyVarObject_HEAD_INIT(NULL, 0)
+  PyVarObject_HEAD_INIT(nullptr, 0)
   .tp_name = "XPPython.NavAidInfo",
   .tp_basicsize = sizeof(NavAidInfoObject),
   .tp_itemsize = 0,

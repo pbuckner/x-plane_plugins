@@ -40,7 +40,7 @@ static int extractIntAttr(PyObject *obj, std::string attr_name, int *target) {
 static int extractWindLayersFromPyList(PyObject *windLayersList, XPLMWeatherInfoWinds_t *wind_layers)
 {
   if (!windLayersList) {
-    PyErr_SetString(PyExc_AttributeError, "wind_layers list is NULL");
+    PyErr_SetString(PyExc_AttributeError, "wind_layers list is nullptr");
     return 0;
   }
   if (!PyList_Check(windLayersList)) {
@@ -78,7 +78,7 @@ static int extractWindLayersFromPyList(PyObject *windLayersList, XPLMWeatherInfo
 static int extractCloudLayersFromPyList(PyObject *cloudLayersList, XPLMWeatherInfoClouds_t *cloud_layers)
 {
   if (!cloudLayersList) {
-    PyErr_SetString(PyExc_AttributeError, "cloud_layers list is NULL");
+    PyErr_SetString(PyExc_AttributeError, "cloud_layers list is nullptr");
     return 0;
   }
   if (!PyList_Check(cloudLayersList)) {
@@ -111,7 +111,7 @@ static int extractCloudLayersFromPyList(PyObject *cloudLayersList, XPLMWeatherIn
 static int extractDewpLayersFromPyList(PyObject *dewpLayersList, float *dewp_layers)
 {
   if (!dewpLayersList) {
-    PyErr_SetString(PyExc_AttributeError, "dewp_layers list is NULL");
+    PyErr_SetString(PyExc_AttributeError, "dewp_layers list is nullptr");
     return 0;
   }
   if (!PyList_Check(dewpLayersList)) {
@@ -149,7 +149,7 @@ static int extractDewpLayersFromPyList(PyObject *dewpLayersList, float *dewp_lay
 static int extractTempLayersFromPyList(PyObject *tempLayersList, float *temp_layers)
 {
   if (!tempLayersList) {
-    PyErr_SetString(PyExc_AttributeError, "temp_layers list is NULL");
+    PyErr_SetString(PyExc_AttributeError, "temp_layers list is nullptr");
     return 0;
   }
   if (!PyList_Check(tempLayersList)) {
@@ -284,17 +284,17 @@ static PyObject *XPLMGetMETARForAirportFun(PyObject *self, PyObject *args, PyObj
   if(!XPLMGetMETARForAirport_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetMETARForAirport is available only in XPLM400 and up, and requires at least X-Plane v12.04.");
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
-  char *airport_id = NULL;
+  char *airport_id = nullptr;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &airport_id)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMFixedString150_t outMetar;
   XPLMGetMETARForAirport_ptr(airport_id, &outMetar);
-  return PyUnicode_DecodeUTF8((char *)&outMetar, strlen((char*)&outMetar), NULL);
+  return PyUnicode_DecodeUTF8((char *)&outMetar, strlen((char*)&outMetar), nullptr);
 }
 
 My_DOCSTR(_getWeatherAtLocation__doc__, "getWeatherAtLocation",
@@ -315,13 +315,13 @@ static PyObject *XPLMGetWeatherAtLocationFun(PyObject *self, PyObject *args, PyO
   if(!XPLMGetWeatherAtLocation_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetWeatherAtLocation is available only in XPLM400 and up, and requires at least X-Plane v12.04.");
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
 
   double latitude, longitude, altitude_m;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ddd", keywords, &latitude, &longitude, &altitude_m)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMWeatherInfo_t out_info;
@@ -393,7 +393,7 @@ static PyObject *XPLMBeginWeatherUpdateFun(PyObject *self, PyObject *args, PyObj
   (void) kwargs;
   if(!XPLMBeginWeatherUpdate_ptr) {
     PyErr_SetString(PyExc_RuntimeError , "XPLMBeginWeatherUpdate is available only in XPLM420 and up.");
-    return NULL;
+    return nullptr;
   }
 
   XPLMBeginWeatherUpdate_ptr();
@@ -414,7 +414,7 @@ static PyObject *XPLMEndWeatherUpdateFun(PyObject *self, PyObject *args, PyObjec
   (void) self;
   if(!XPLMEndWeatherUpdate_ptr) {
     PyErr_SetString(PyExc_RuntimeError , "XPLMEndWeatherUpdate is available only in XPLM420 and up.");
-    return NULL;
+    return nullptr;
   }
   int immediately = 0, incremental = 1;
 
@@ -422,7 +422,7 @@ static PyObject *XPLMEndWeatherUpdateFun(PyObject *self, PyObject *args, PyObjec
   char **keywords = stringVectorToCharArray(params);
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|ii", keywords, &incremental, &immediately)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());    
   
@@ -443,14 +443,14 @@ static PyObject *XPLMEraseWeatherAtLocationFun(PyObject *self, PyObject *args, P
   if(!XPLMEraseWeatherAtLocation_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMEraseWeatherAtLocation is available only in XPLM420 and up.");
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
 
   double latitude, longitude;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "dd", keywords, &latitude, &longitude)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
@@ -474,7 +474,7 @@ static PyObject *XPLMSetWeatherAtLocationFun(PyObject *self, PyObject *args, PyO
   if(!XPLMSetWeatherAtLocation_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMSetWeatherAtLocation is available only in XPLM420 and up.");
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
 
   double latitude, longitude, altitude_m;
@@ -482,12 +482,12 @@ static PyObject *XPLMSetWeatherAtLocationFun(PyObject *self, PyObject *args, PyO
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "dddO", keywords, &latitude, &longitude, &altitude_m, &infoObj)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
   XPLMWeatherInfo_t info;
-  if(!setWeather(infoObj, &info)) return NULL;
+  if(!setWeather(infoObj, &info)) return nullptr;
   XPLMSetWeatherAtLocation_ptr(latitude, longitude, altitude_m, &info);
   Py_RETURN_NONE;
 }
@@ -508,19 +508,19 @@ static PyObject *XPLMSetWeatherAtAirportFun(PyObject *self, PyObject *args, PyOb
   if(!XPLMSetWeatherAtAirport_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMSetWeatherAtAirport is available only in XPLM420 and up.");
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
-  char *airport_id = NULL;
+  char *airport_id = nullptr;
   PyObject *infoObj;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "sO", keywords, &airport_id, &infoObj)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
   XPLMWeatherInfo_t info;
-  if(!setWeather(infoObj, &info)) return NULL;
+  if(!setWeather(infoObj, &info)) return nullptr;
   XPLMSetWeatherAtAirport_ptr(airport_id, &info);
   Py_RETURN_NONE;
 }
@@ -539,14 +539,14 @@ static PyObject *XPLMEraseWeatherAtAirportFun(PyObject *self, PyObject *args, Py
   if(!XPLMEraseWeatherAtAirport_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMEraseWeatherAtAirport is available only in XPLM420 and up.");
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
 
-  char *airport_id = NULL;
+  char *airport_id = nullptr;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &airport_id)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
@@ -580,7 +580,7 @@ static PyMethodDef XPLMWeatherMethods[] = {
   {"eraseWeatherAtAirport",  (PyCFunction)XPLMEraseWeatherAtAirportFun, METH_VARARGS | METH_KEYWORDS, _eraseWeatherAtAirport__doc__},
 
   {"_cleanup", cleanup, METH_VARARGS, ""},
-  {NULL, NULL, 0, NULL}
+  {nullptr, nullptr, 0, nullptr}
 };
 #pragma GCC diagnostic pop
 
@@ -594,10 +594,10 @@ static struct PyModuleDef XPLMWeatherModule = {
   "   https://xppython3.rtfd.io/en/stable/development/modules/weather.html",
   -1,
   XPLMWeatherMethods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr
 };
 
 PyMODINIT_FUNC

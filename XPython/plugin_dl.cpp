@@ -29,11 +29,11 @@ typedef struct{
 } t_fcn_info;
 
 // XPLM210 functions
-typeof(XPLMCreateFlightLoop) *XPLMCreateFlightLoop_ptr = NULL;
-typeof(XPLMDestroyFlightLoop) *XPLMDestroyFlightLoop_ptr = NULL;
-typeof(XPLMLoadObjectAsync) *XPLMLoadObjectAsync_ptr = NULL;
-typeof(XPLMRemoveMenuItem) *XPLMRemoveMenuItem_ptr = NULL;
-typeof(XPLMScheduleFlightLoop) *XPLMScheduleFlightLoop_ptr = NULL;
+typeof(XPLMCreateFlightLoop) *XPLMCreateFlightLoop_ptr = nullptr;
+typeof(XPLMDestroyFlightLoop) *XPLMDestroyFlightLoop_ptr = nullptr;
+typeof(XPLMLoadObjectAsync) *XPLMLoadObjectAsync_ptr = nullptr;
+typeof(XPLMRemoveMenuItem) *XPLMRemoveMenuItem_ptr = nullptr;
+typeof(XPLMScheduleFlightLoop) *XPLMScheduleFlightLoop_ptr = nullptr;
 
 t_fcn_info funcs210[] = {
   {"XPLMCreateFlightLoop", (void **)&XPLMCreateFlightLoop_ptr},
@@ -41,41 +41,41 @@ t_fcn_info funcs210[] = {
   {"XPLMLoadObjectAsync", (void **)&XPLMLoadObjectAsync_ptr},
   {"XPLMRemoveMenuItem", (void **)&XPLMRemoveMenuItem_ptr},
   {"XPLMScheduleFlightLoop", (void **)&XPLMScheduleFlightLoop_ptr},
-  {NULL, NULL}
+  {nullptr, nullptr}
 };
 
 // XPLM300 functions
-typeof(XPLMAppendMenuItemWithCommand) *XPLMAppendMenuItemWithCommand_ptr = NULL;
-typeof(XPLMCreateMapLayer) *XPLMCreateMapLayer_ptr = NULL;
-typeof(XPLMDegMagneticToDegTrue) *XPLMDegMagneticToDegTrue_ptr = NULL;
-typeof(XPLMDegTrueToDegMagnetic) *XPLMDegTrueToDegMagnetic_ptr = NULL;
-typeof(XPLMDestroyMapLayer) *XPLMDestroyMapLayer_ptr = NULL;
-typeof(XPLMDrawMapIconFromSheet) *XPLMDrawMapIconFromSheet_ptr = NULL;
-typeof(XPLMDrawMapLabel) *XPLMDrawMapLabel_ptr = NULL;
-typeof(XPLMFindAircraftMenu) *XPLMFindAircraftMenu_ptr = NULL;
-typeof(XPLMGetAllMonitorBoundsGlobal) *XPLMGetAllMonitorBoundsGlobal_ptr = NULL;
-typeof(XPLMGetAllMonitorBoundsOS) *XPLMGetAllMonitorBoundsOS_ptr = NULL;
-typeof(XPLMGetMagneticVariation) *XPLMGetMagneticVariation_ptr = NULL;
-typeof(XPLMGetMouseLocationGlobal) *XPLMGetMouseLocationGlobal_ptr = NULL;
-typeof(XPLMGetScreenBoundsGlobal) *XPLMGetScreenBoundsGlobal_ptr = NULL;
-typeof(XPLMGetWindowGeometryOS) *XPLMGetWindowGeometryOS_ptr = NULL;
-typeof(XPLMMapExists) *XPLMMapExists_ptr = NULL;
-typeof(XPLMMapGetNorthHeading) *XPLMMapGetNorthHeading_ptr = NULL;
-typeof(XPLMMapProject) *XPLMMapProject_ptr = NULL;
-typeof(XPLMMapScaleMeter) *XPLMMapScaleMeter_ptr = NULL;
-typeof(XPLMMapUnproject) *XPLMMapUnproject_ptr = NULL;
-typeof(XPLMPlaceUserAtLocation) *XPLMPlaceUserAtLocation_ptr = NULL;
-typeof(XPLMRegisterMapCreationHook) *XPLMRegisterMapCreationHook_ptr = NULL;
-typeof(XPLMSetWindowGeometryOS) *XPLMSetWindowGeometryOS_ptr = NULL;
-typeof(XPLMSetWindowGravity) *XPLMSetWindowGravity_ptr = NULL;
-typeof(XPLMSetWindowPositioningMode) *XPLMSetWindowPositioningMode_ptr = NULL;
-typeof(XPLMSetWindowResizingLimits) *XPLMSetWindowResizingLimits_ptr = NULL;
-typeof(XPLMSetWindowTitle) *XPLMSetWindowTitle_ptr = NULL;
-typeof(XPLMWindowIsPoppedOut) *XPLMWindowIsPoppedOut_ptr = NULL;
-typeof(XPLMHasKeyboardFocus) *XPLMHasKeyboardFocus_ptr = NULL;
-typeof(XPLMCreateInstance) *XPLMCreateInstance_ptr = NULL;
-typeof(XPLMDestroyInstance) *XPLMDestroyInstance_ptr = NULL;
-typeof(XPLMInstanceSetPosition) *XPLMInstanceSetPosition_ptr = NULL;
+typeof(XPLMAppendMenuItemWithCommand) *XPLMAppendMenuItemWithCommand_ptr = nullptr;
+typeof(XPLMCreateMapLayer) *XPLMCreateMapLayer_ptr = nullptr;
+typeof(XPLMDegMagneticToDegTrue) *XPLMDegMagneticToDegTrue_ptr = nullptr;
+typeof(XPLMDegTrueToDegMagnetic) *XPLMDegTrueToDegMagnetic_ptr = nullptr;
+typeof(XPLMDestroyMapLayer) *XPLMDestroyMapLayer_ptr = nullptr;
+typeof(XPLMDrawMapIconFromSheet) *XPLMDrawMapIconFromSheet_ptr = nullptr;
+typeof(XPLMDrawMapLabel) *XPLMDrawMapLabel_ptr = nullptr;
+typeof(XPLMFindAircraftMenu) *XPLMFindAircraftMenu_ptr = nullptr;
+typeof(XPLMGetAllMonitorBoundsGlobal) *XPLMGetAllMonitorBoundsGlobal_ptr = nullptr;
+typeof(XPLMGetAllMonitorBoundsOS) *XPLMGetAllMonitorBoundsOS_ptr = nullptr;
+typeof(XPLMGetMagneticVariation) *XPLMGetMagneticVariation_ptr = nullptr;
+typeof(XPLMGetMouseLocationGlobal) *XPLMGetMouseLocationGlobal_ptr = nullptr;
+typeof(XPLMGetScreenBoundsGlobal) *XPLMGetScreenBoundsGlobal_ptr = nullptr;
+typeof(XPLMGetWindowGeometryOS) *XPLMGetWindowGeometryOS_ptr = nullptr;
+typeof(XPLMMapExists) *XPLMMapExists_ptr = nullptr;
+typeof(XPLMMapGetNorthHeading) *XPLMMapGetNorthHeading_ptr = nullptr;
+typeof(XPLMMapProject) *XPLMMapProject_ptr = nullptr;
+typeof(XPLMMapScaleMeter) *XPLMMapScaleMeter_ptr = nullptr;
+typeof(XPLMMapUnproject) *XPLMMapUnproject_ptr = nullptr;
+typeof(XPLMPlaceUserAtLocation) *XPLMPlaceUserAtLocation_ptr = nullptr;
+typeof(XPLMRegisterMapCreationHook) *XPLMRegisterMapCreationHook_ptr = nullptr;
+typeof(XPLMSetWindowGeometryOS) *XPLMSetWindowGeometryOS_ptr = nullptr;
+typeof(XPLMSetWindowGravity) *XPLMSetWindowGravity_ptr = nullptr;
+typeof(XPLMSetWindowPositioningMode) *XPLMSetWindowPositioningMode_ptr = nullptr;
+typeof(XPLMSetWindowResizingLimits) *XPLMSetWindowResizingLimits_ptr = nullptr;
+typeof(XPLMSetWindowTitle) *XPLMSetWindowTitle_ptr = nullptr;
+typeof(XPLMWindowIsPoppedOut) *XPLMWindowIsPoppedOut_ptr = nullptr;
+typeof(XPLMHasKeyboardFocus) *XPLMHasKeyboardFocus_ptr = nullptr;
+typeof(XPLMCreateInstance) *XPLMCreateInstance_ptr = nullptr;
+typeof(XPLMDestroyInstance) *XPLMDestroyInstance_ptr = nullptr;
+typeof(XPLMInstanceSetPosition) *XPLMInstanceSetPosition_ptr = nullptr;
 
 
 t_fcn_info funcs300[] = {
@@ -110,43 +110,43 @@ t_fcn_info funcs300[] = {
   {"XPLMCreateInstance", (void **)&XPLMCreateInstance_ptr},
   {"XPLMDestroyInstance", (void **)&XPLMDestroyInstance_ptr},
   {"XPLMInstanceSetPosition", (void **)&XPLMInstanceSetPosition_ptr},
-  {NULL, NULL}
+  {nullptr, nullptr}
 };
 
 //XPLM301 functions
-typeof(XPGetWidgetUnderlyingWindow) *XPGetWidgetUnderlyingWindow_ptr = NULL;
-typeof(XPLMGetWindowGeometryVR) *XPLMGetWindowGeometryVR_ptr = NULL;
-typeof(XPLMSetWindowGeometryVR) *XPLMSetWindowGeometryVR_ptr = NULL;
-typeof(XPLMWindowIsInVR) *XPLMWindowIsInVR_ptr = NULL;
+typeof(XPGetWidgetUnderlyingWindow) *XPGetWidgetUnderlyingWindow_ptr = nullptr;
+typeof(XPLMGetWindowGeometryVR) *XPLMGetWindowGeometryVR_ptr = nullptr;
+typeof(XPLMSetWindowGeometryVR) *XPLMSetWindowGeometryVR_ptr = nullptr;
+typeof(XPLMWindowIsInVR) *XPLMWindowIsInVR_ptr = nullptr;
 
 t_fcn_info funcs301[] = {
   {"XPGetWidgetUnderlyingWindow", (void **)&XPGetWidgetUnderlyingWindow_ptr},
   {"XPLMGetWindowGeometryVR", (void **)&XPLMGetWindowGeometryVR_ptr},
   {"XPLMSetWindowGeometryVR", (void **)&XPLMSetWindowGeometryVR_ptr},
   {"XPLMWindowIsInVR", (void **)&XPLMWindowIsInVR_ptr},
-  {NULL, NULL}
+  {nullptr, nullptr}
 };
 
 //XPLM400 functions
-typeof(XPLMRegisterAvionicsCallbacksEx) *XPLMRegisterAvionicsCallbacksEx_ptr = NULL;
-typeof(XPLMUnregisterAvionicsCallbacks) *XPLMUnregisterAvionicsCallbacks_ptr = NULL;
-typeof(XPLMCountDataRefs) *XPLMCountDataRefs_ptr = NULL;
-typeof(XPLMGetDataRefsByIndex) *XPLMGetDataRefsByIndex_ptr = NULL;
-typeof(XPLMGetDataRefInfo) *XPLMGetDataRefInfo_ptr = NULL;
-typeof(XPLMGetMETARForAirport) *XPLMGetMETARForAirport_ptr = NULL;
-typeof(XPLMGetWeatherAtLocation) *XPLMGetWeatherAtLocation_ptr = NULL;
+typeof(XPLMRegisterAvionicsCallbacksEx) *XPLMRegisterAvionicsCallbacksEx_ptr = nullptr;
+typeof(XPLMUnregisterAvionicsCallbacks) *XPLMUnregisterAvionicsCallbacks_ptr = nullptr;
+typeof(XPLMCountDataRefs) *XPLMCountDataRefs_ptr = nullptr;
+typeof(XPLMGetDataRefsByIndex) *XPLMGetDataRefsByIndex_ptr = nullptr;
+typeof(XPLMGetDataRefInfo) *XPLMGetDataRefInfo_ptr = nullptr;
+typeof(XPLMGetMETARForAirport) *XPLMGetMETARForAirport_ptr = nullptr;
+typeof(XPLMGetWeatherAtLocation) *XPLMGetWeatherAtLocation_ptr = nullptr;
 
 #if defined(_FMOD_COMMON_H)
-typeof(XPLMGetFMODStudio) *XPLMGetFMODStudio_ptr = NULL;
-typeof(XPLMGetFMODChannelGroup) *XPLMGetFMODChannelGroup_ptr = NULL;
+typeof(XPLMGetFMODStudio) *XPLMGetFMODStudio_ptr = nullptr;
+typeof(XPLMGetFMODChannelGroup) *XPLMGetFMODChannelGroup_ptr = nullptr;
 #endif
-typeof(XPLMPlayPCMOnBus) *XPLMPlayPCMOnBus_ptr = NULL;
-typeof(XPLMStopAudio) *XPLMStopAudio_ptr = NULL;
-typeof(XPLMSetAudioPosition) *XPLMSetAudioPosition_ptr = NULL;
-typeof(XPLMSetAudioFadeDistance) *XPLMSetAudioFadeDistance_ptr = NULL;
-typeof(XPLMSetAudioPitch) *XPLMSetAudioPitch_ptr = NULL;
-typeof(XPLMSetAudioVolume) *XPLMSetAudioVolume_ptr = NULL;
-typeof(XPLMSetAudioCone) *XPLMSetAudioCone_ptr = NULL;
+typeof(XPLMPlayPCMOnBus) *XPLMPlayPCMOnBus_ptr = nullptr;
+typeof(XPLMStopAudio) *XPLMStopAudio_ptr = nullptr;
+typeof(XPLMSetAudioPosition) *XPLMSetAudioPosition_ptr = nullptr;
+typeof(XPLMSetAudioFadeDistance) *XPLMSetAudioFadeDistance_ptr = nullptr;
+typeof(XPLMSetAudioPitch) *XPLMSetAudioPitch_ptr = nullptr;
+typeof(XPLMSetAudioVolume) *XPLMSetAudioVolume_ptr = nullptr;
+typeof(XPLMSetAudioCone) *XPLMSetAudioCone_ptr = nullptr;
 
 t_fcn_info funcs400[] = {
   {"XPLMRegisterAvionicsCallbacksEx", (void **) &XPLMRegisterAvionicsCallbacksEx_ptr},
@@ -167,42 +167,42 @@ t_fcn_info funcs400[] = {
   {"XPLMSetAudioPitch", (void **) &XPLMSetAudioPitch_ptr},
   {"XPLMSetAudioVolume", (void **) &XPLMSetAudioVolume_ptr},
   {"XPLMSetAudioCone", (void **) &XPLMSetAudioCone_ptr},
-  {NULL, NULL}
+  {nullptr, nullptr}
 };
 
 //XPLM410 functions
-typeof(XPLMGetAvionicsHandle) *XPLMGetAvionicsHandle_ptr = NULL;
-typeof(XPLMIsAvionicsBound) *XPLMIsAvionicsBound_ptr = NULL;
-typeof(XPLMIsCursorOverAvionics) *XPLMIsCursorOverAvionics_ptr = NULL;
-typeof(XPLMIsAvionicsPopupVisible) *XPLMIsAvionicsPopupVisible_ptr = NULL;
-typeof(XPLMIsAvionicsPoppedOut) *XPLMIsAvionicsPoppedOut_ptr = NULL;
-typeof(XPLMHasAvionicsKeyboardFocus) *XPLMHasAvionicsKeyboardFocus_ptr = NULL;
-typeof(XPLMAvionicsNeedsDrawing) *XPLMAvionicsNeedsDrawing_ptr = NULL;
-typeof(XPLMSetAvionicsPopupVisible) *XPLMSetAvionicsPopupVisible_ptr = NULL;
-typeof(XPLMPopOutAvionics) *XPLMPopOutAvionics_ptr = NULL;
-typeof(XPLMTakeAvionicsKeyboardFocus) *XPLMTakeAvionicsKeyboardFocus_ptr = NULL;
-typeof(XPLMDestroyAvionics) *XPLMDestroyAvionics_ptr = NULL;
-typeof(XPLMGetAvionicsGeometry) *XPLMGetAvionicsGeometry_ptr = NULL;
-typeof(XPLMSetAvionicsGeometry) *XPLMSetAvionicsGeometry_ptr = NULL;
-typeof(XPLMGetAvionicsGeometryOS) *XPLMGetAvionicsGeometryOS_ptr = NULL;
-typeof(XPLMSetAvionicsGeometryOS) *XPLMSetAvionicsGeometryOS_ptr = NULL;
-typeof(XPLMGetAvionicsBrightnessRheo) *XPLMGetAvionicsBrightnessRheo_ptr = NULL;
-typeof(XPLMSetAvionicsBrightnessRheo) *XPLMSetAvionicsBrightnessRheo_ptr = NULL;
-typeof(XPLMGetAvionicsBusVoltsRatio) *XPLMGetAvionicsBusVoltsRatio_ptr = NULL;
-typeof(XPLMCreateAvionicsEx) *XPLMCreateAvionicsEx_ptr = NULL;
-typeof(XPLMCountFMSFlightPlanEntries) *XPLMCountFMSFlightPlanEntries_ptr = NULL;
-typeof(XPLMGetDisplayedFMSFlightPlanEntry) *XPLMGetDisplayedFMSFlightPlanEntry_ptr = NULL;
-typeof(XPLMGetDestinationFMSFlightPlanEntry) *XPLMGetDestinationFMSFlightPlanEntry_ptr = NULL;
-typeof(XPLMSetDisplayedFMSFlightPlanEntry) *XPLMSetDisplayedFMSFlightPlanEntry_ptr = NULL;
-typeof(XPLMSetDestinationFMSFlightPlanEntry) *XPLMSetDestinationFMSFlightPlanEntry_ptr = NULL;
-typeof(XPLMSetDirectToFMSFlightPlanEntry) *XPLMSetDirectToFMSFlightPlanEntry_ptr = NULL;
-typeof(XPLMGetFMSFlightPlanEntryInfo) *XPLMGetFMSFlightPlanEntryInfo_ptr = NULL;
-typeof(XPLMSetFMSFlightPlanEntryInfo) *XPLMSetFMSFlightPlanEntryInfo_ptr = NULL;
-typeof(XPLMSetFMSFlightPlanEntryLatLon) *XPLMSetFMSFlightPlanEntryLatLon_ptr = NULL;
-typeof(XPLMSetFMSFlightPlanEntryLatLonWithId) *XPLMSetFMSFlightPlanEntryLatLonWithId_ptr = NULL;
-typeof(XPLMClearFMSFlightPlanEntry) *XPLMClearFMSFlightPlanEntry_ptr = NULL;
-typeof(XPLMLoadFMSFlightPlan) *XPLMLoadFMSFlightPlan_ptr = NULL;
-typeof(XPLMSaveFMSFlightPlan) *XPLMSaveFMSFlightPlan_ptr = NULL;
+typeof(XPLMGetAvionicsHandle) *XPLMGetAvionicsHandle_ptr = nullptr;
+typeof(XPLMIsAvionicsBound) *XPLMIsAvionicsBound_ptr = nullptr;
+typeof(XPLMIsCursorOverAvionics) *XPLMIsCursorOverAvionics_ptr = nullptr;
+typeof(XPLMIsAvionicsPopupVisible) *XPLMIsAvionicsPopupVisible_ptr = nullptr;
+typeof(XPLMIsAvionicsPoppedOut) *XPLMIsAvionicsPoppedOut_ptr = nullptr;
+typeof(XPLMHasAvionicsKeyboardFocus) *XPLMHasAvionicsKeyboardFocus_ptr = nullptr;
+typeof(XPLMAvionicsNeedsDrawing) *XPLMAvionicsNeedsDrawing_ptr = nullptr;
+typeof(XPLMSetAvionicsPopupVisible) *XPLMSetAvionicsPopupVisible_ptr = nullptr;
+typeof(XPLMPopOutAvionics) *XPLMPopOutAvionics_ptr = nullptr;
+typeof(XPLMTakeAvionicsKeyboardFocus) *XPLMTakeAvionicsKeyboardFocus_ptr = nullptr;
+typeof(XPLMDestroyAvionics) *XPLMDestroyAvionics_ptr = nullptr;
+typeof(XPLMGetAvionicsGeometry) *XPLMGetAvionicsGeometry_ptr = nullptr;
+typeof(XPLMSetAvionicsGeometry) *XPLMSetAvionicsGeometry_ptr = nullptr;
+typeof(XPLMGetAvionicsGeometryOS) *XPLMGetAvionicsGeometryOS_ptr = nullptr;
+typeof(XPLMSetAvionicsGeometryOS) *XPLMSetAvionicsGeometryOS_ptr = nullptr;
+typeof(XPLMGetAvionicsBrightnessRheo) *XPLMGetAvionicsBrightnessRheo_ptr = nullptr;
+typeof(XPLMSetAvionicsBrightnessRheo) *XPLMSetAvionicsBrightnessRheo_ptr = nullptr;
+typeof(XPLMGetAvionicsBusVoltsRatio) *XPLMGetAvionicsBusVoltsRatio_ptr = nullptr;
+typeof(XPLMCreateAvionicsEx) *XPLMCreateAvionicsEx_ptr = nullptr;
+typeof(XPLMCountFMSFlightPlanEntries) *XPLMCountFMSFlightPlanEntries_ptr = nullptr;
+typeof(XPLMGetDisplayedFMSFlightPlanEntry) *XPLMGetDisplayedFMSFlightPlanEntry_ptr = nullptr;
+typeof(XPLMGetDestinationFMSFlightPlanEntry) *XPLMGetDestinationFMSFlightPlanEntry_ptr = nullptr;
+typeof(XPLMSetDisplayedFMSFlightPlanEntry) *XPLMSetDisplayedFMSFlightPlanEntry_ptr = nullptr;
+typeof(XPLMSetDestinationFMSFlightPlanEntry) *XPLMSetDestinationFMSFlightPlanEntry_ptr = nullptr;
+typeof(XPLMSetDirectToFMSFlightPlanEntry) *XPLMSetDirectToFMSFlightPlanEntry_ptr = nullptr;
+typeof(XPLMGetFMSFlightPlanEntryInfo) *XPLMGetFMSFlightPlanEntryInfo_ptr = nullptr;
+typeof(XPLMSetFMSFlightPlanEntryInfo) *XPLMSetFMSFlightPlanEntryInfo_ptr = nullptr;
+typeof(XPLMSetFMSFlightPlanEntryLatLon) *XPLMSetFMSFlightPlanEntryLatLon_ptr = nullptr;
+typeof(XPLMSetFMSFlightPlanEntryLatLonWithId) *XPLMSetFMSFlightPlanEntryLatLonWithId_ptr = nullptr;
+typeof(XPLMClearFMSFlightPlanEntry) *XPLMClearFMSFlightPlanEntry_ptr = nullptr;
+typeof(XPLMLoadFMSFlightPlan) *XPLMLoadFMSFlightPlan_ptr = nullptr;
+typeof(XPLMSaveFMSFlightPlan) *XPLMSaveFMSFlightPlan_ptr = nullptr;
 
 t_fcn_info funcs410[] = {
   {"XPLMGetAvionicsHandle", (void **) &XPLMGetAvionicsHandle_ptr},
@@ -237,17 +237,17 @@ t_fcn_info funcs410[] = {
   {"XPLMClearFMSFlightPlanEntry", (void **) &XPLMClearFMSFlightPlanEntry_ptr},
   {"XPLMLoadFMSFlightPlan", (void **) &XPLMLoadFMSFlightPlan_ptr},
   {"XPLMSaveFMSFlightPlan", (void **) &XPLMSaveFMSFlightPlan_ptr},
-  {NULL, NULL}
+  {nullptr, nullptr}
 };
 
-typeof(XPLMInstanceSetPositionDouble) *XPLMInstanceSetPositionDouble_ptr = NULL;
-typeof(XPLMInstanceSetAutoShift) *XPLMInstanceSetAutoShift_ptr = NULL;
-typeof(XPLMBeginWeatherUpdate) *XPLMBeginWeatherUpdate_ptr = NULL;
-typeof(XPLMEndWeatherUpdate) *XPLMEndWeatherUpdate_ptr = NULL;
-typeof(XPLMSetWeatherAtLocation) *XPLMSetWeatherAtLocation_ptr = NULL;
-typeof(XPLMSetWeatherAtAirport) *XPLMSetWeatherAtAirport_ptr = NULL;
-typeof(XPLMEraseWeatherAtLocation) *XPLMEraseWeatherAtLocation_ptr = NULL;
-typeof(XPLMEraseWeatherAtAirport) *XPLMEraseWeatherAtAirport_ptr = NULL;
+typeof(XPLMInstanceSetPositionDouble) *XPLMInstanceSetPositionDouble_ptr = nullptr;
+typeof(XPLMInstanceSetAutoShift) *XPLMInstanceSetAutoShift_ptr = nullptr;
+typeof(XPLMBeginWeatherUpdate) *XPLMBeginWeatherUpdate_ptr = nullptr;
+typeof(XPLMEndWeatherUpdate) *XPLMEndWeatherUpdate_ptr = nullptr;
+typeof(XPLMSetWeatherAtLocation) *XPLMSetWeatherAtLocation_ptr = nullptr;
+typeof(XPLMSetWeatherAtAirport) *XPLMSetWeatherAtAirport_ptr = nullptr;
+typeof(XPLMEraseWeatherAtLocation) *XPLMEraseWeatherAtLocation_ptr = nullptr;
+typeof(XPLMEraseWeatherAtAirport) *XPLMEraseWeatherAtAirport_ptr = nullptr;
 t_fcn_info funcs420[] = {
   {"XPLMInstanceSetPositionDouble", (void **) &XPLMInstanceSetPositionDouble_ptr},
   {"XPLMInstanceSetAutoShift", (void **) &XPLMInstanceSetAutoShift_ptr},
@@ -258,7 +258,7 @@ t_fcn_info funcs420[] = {
   {"XPLMSetWeatherAtAirport", (void **) &XPLMSetWeatherAtAirport_ptr},
   {"XPLMEraseWeatherAtLocation", (void **) &XPLMEraseWeatherAtLocation_ptr},
   {"XPLMEraseWeatherAtAirport", (void **) &XPLMEraseWeatherAtAirport_ptr},
-  {NULL, NULL}
+  {nullptr, nullptr}
 };
 
 
@@ -269,14 +269,14 @@ bool loadFunctions(t_fcn_info *ptr)
   void *handle;
   bool res = true;
 
-  handle = dlopen(NULL, RTLD_NOW);
-  if(handle == NULL){
+  handle = dlopen(nullptr, RTLD_NOW);
+  if(handle == nullptr){
     fprintf(stderr, "Problem dlopening executable.\n");
     return false;
   }
-  while(ptr->name != NULL){
+  while(ptr->name != nullptr){
     fun_ptr = dlsym(handle, ptr->name);
-    if(fun_ptr != NULL){
+    if(fun_ptr != nullptr){
       *(ptr->fun_ptr) = fun_ptr;
     }else{
       fprintf(stderr, "Couldn't get address of function '%s'.", ptr->name);

@@ -205,11 +205,11 @@ static PyMemberDef WeatherInfo_members[] = {
    "Horizontal radius of effect of this weather report, nautical miles"},
   {"max_altitude_msl_ft", T_FLOAT, offsetof(WeatherInfoObject, max_altitude_msl_ft), 0,
    "Vertical radius of effect of this weather report, feet MSL."},
-  {NULL, T_INT, 0, 0, ""} /* Sentinel */
+  {nullptr, T_INT, 0, 0, ""} /* Sentinel */
 };
 
 static PyObject *WeatherInfo_str(WeatherInfoObject *obj) {
-  char *msg = NULL;
+  char *msg = nullptr;
   if (-1 == asprintf(&msg, "<XPLMWeatherInfo_t object> %.1f/%.1f %03.0f@%.0f QNH%.0f",
                      obj->temperature_alt, obj->dewpoint_alt,
                      obj->wind_dir_alt, obj->wind_spd_alt * 1.94384,
@@ -225,7 +225,7 @@ static PyObject *WeatherInfo_str(WeatherInfoObject *obj) {
 
 PyTypeObject
 WeatherInfoType = {
-  PyVarObject_HEAD_INIT(NULL, 0)
+  PyVarObject_HEAD_INIT(nullptr, 0)
   .tp_name = "XPPython.XPLMWeatherInfo_t",
   .tp_basicsize = sizeof(WeatherInfoObject),
   .tp_itemsize = 0,

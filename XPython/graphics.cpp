@@ -34,7 +34,7 @@ static PyObject *XPLMSetGraphicsStateFun(PyObject *self, PyObject *args, PyObjec
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|iiiiiii", keywords, &inEnableFog, &inNumberTexUnits, &inEnableLighting, &inEnableAlphaTesting,
                                   &inEnableAlphaBlending, &inEnableDepthTesting, &inEnableDepthWriting)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
@@ -61,7 +61,7 @@ static PyObject *XPLMBindTexture2dFun(PyObject *self, PyObject *args, PyObject *
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ii", keywords, &inTextureNum, &inTextureUnit)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
@@ -93,7 +93,7 @@ static PyObject *XPLMGenerateTextureNumbersFun(PyObject *self, PyObject *args, P
     char **nkeywords = stringVectorToCharArray(nparams);
     if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", nkeywords, &inCount)){
       freeCharArray(nkeywords, nparams.size());
-      return NULL;
+      return nullptr;
     }
     freeCharArray(nkeywords, nparams.size());
   } else {
@@ -103,7 +103,7 @@ static PyObject *XPLMGenerateTextureNumbersFun(PyObject *self, PyObject *args, P
   int *array = (int *)malloc(sizeof(int) * inCount);
   if(!array){
     PyErr_SetString(PyExc_RuntimeError , "Can't malloc outTextureIDs.");
-    return NULL;
+    return nullptr;
   }
   
   XPLMGenerateTextureNumbers(array, inCount);
@@ -144,7 +144,7 @@ static PyObject *XPLMWorldToLocalFun(PyObject *self, PyObject *args, PyObject *k
   double outX, outY, outZ;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ddd", keywords, &inLatitude, &inLongitude, &inAltitude)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMWorldToLocal(inLatitude, inLongitude, inAltitude, &outX, &outY, &outZ);
@@ -174,7 +174,7 @@ static PyObject *XPLMLocalToWorldFun(PyObject *self, PyObject *args, PyObject *k
   double outLatitude, outLongitude, outAltitude;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ddd", keywords, &inX, &inY, &inZ)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMLocalToWorld(inX, inY, inZ, &outLatitude, &outLongitude, &outAltitude);
@@ -203,7 +203,7 @@ static PyObject *XPLMDrawTranslucentDarkBoxFun(PyObject *self, PyObject *args, P
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiii", keywords, &inLeft, &inTop, &inRight, &inBottom)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   XPLMDrawTranslucentDarkBox(inLeft, inTop, inRight, inBottom);
@@ -227,16 +227,16 @@ static PyObject *XPLMDrawStringFun(PyObject *self, PyObject *args, PyObject *kwa
   PyObject *rgbList = Py_None;
   int inXOffset = 0;
   int inYOffset = 0;
-  const char *inCharC = NULL;
+  const char *inCharC = nullptr;
   char *inChar;
   PyObject *wordWrapWidthObj = Py_None;
   int wordWrapWidth;
-  int *inWordWrapWidth = NULL;
+  int *inWordWrapWidth = nullptr;
   int inFontID = xplmFont_Proportional;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OiisOi", keywords, &rgbList, &inXOffset, &inYOffset, &inCharC, &wordWrapWidthObj, &inFontID)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   float inColorRGB[3];
@@ -246,7 +246,7 @@ static PyObject *XPLMDrawStringFun(PyObject *self, PyObject *args, PyObject *kwa
     inColorRGB[2] = 1.0;
   } else if(PySequence_Size(rgbList) != 3){
     PyErr_SetString(PyExc_TypeError , "inColourRGB must have 3 items");
-    return NULL;
+    return nullptr;
   } else {
     inColorRGB[0] = PyFloat_AsDouble(PySequence_GetItem(rgbList, 0));
     inColorRGB[1] = PyFloat_AsDouble(PySequence_GetItem(rgbList, 1));
@@ -288,7 +288,7 @@ static PyObject *XPLMDrawNumberFun(PyObject *self, PyObject *args, PyObject *kwa
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|Oiidiiii", keywords, &rgbList, &inXOffset, &inYOffset, &inValue,
                        &inDigits, &inDecimals, &inShowSign, &inFontID)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
   float inColorRGB[3];
@@ -298,7 +298,7 @@ static PyObject *XPLMDrawNumberFun(PyObject *self, PyObject *args, PyObject *kwa
     inColorRGB[2] = 1.0;
   } else if(PySequence_Size(rgbList) != 3){
     PyErr_SetString(PyExc_TypeError , "inColourRGB must have 3 items");
-    return NULL;
+    return nullptr;
   } else {
     inColorRGB[0] = PyFloat_AsDouble(PySequence_GetItem(rgbList, 0));
     inColorRGB[1] = PyFloat_AsDouble(PySequence_GetItem(rgbList, 1));
@@ -332,7 +332,7 @@ static PyObject *XPLMGetTextureFun(PyObject *self, PyObject *args, PyObject *kwa
   int inTextureID;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inTextureID)) {
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   freeCharArray(keywords, params.size());
 
@@ -364,7 +364,7 @@ static PyObject *XPLMGetFontDimensionsFun(PyObject *self, PyObject *args, PyObje
     char **nkeywords = stringVectorToCharArray(nparams);
     if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", nkeywords, &inFontID)) {
       freeCharArray(nkeywords, nparams.size());
-      return NULL;
+      return nullptr;
     }
     freeCharArray(nkeywords, nparams.size());
   } else {
@@ -407,7 +407,7 @@ static PyObject *XPLMMeasureStringFun(PyObject *self, PyObject *args, PyObject *
     char **nkeywords = stringVectorToCharArray(nparams);
     if(!PyArg_ParseTupleAndKeywords(args, kwargs, "is", nkeywords, &inFontID, &inChar)) {
       freeCharArray(nkeywords, nparams.size());
-      return NULL;
+      return nullptr;
     }
     freeCharArray(nkeywords, nparams.size());
     inNumChars = strlen(inChar);
@@ -452,7 +452,7 @@ static PyMethodDef XPLMGraphicsMethods[] = {
   {"measureString", (PyCFunction)XPLMMeasureStringFun, METH_VARARGS | METH_KEYWORDS, _measureString__doc__},
   {"XPLMMeasureString", (PyCFunction)XPLMMeasureStringFun, METH_VARARGS | METH_KEYWORDS, "Measure a string."},
   {"_cleanup", cleanup, METH_VARARGS, ""},
-  {NULL, NULL, 0, NULL}
+  {nullptr, nullptr, 0, nullptr}
 };
 #pragma GCC diagnostic pop
 
@@ -466,10 +466,10 @@ static struct PyModuleDef XPLMGraphicsModule = {
   "   https://xppython3.rtfd.io/en/stable/development/modules/graphics.html",
   -1,
   XPLMGraphicsMethods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr
 };
 
 PyMODINIT_FUNC

@@ -23,13 +23,13 @@ HotKeyInfo_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
   (void) kwds;
   HotKeyInfoObject *self;
   self = (HotKeyInfoObject *) type->tp_alloc(type, 0);
-  if (self != NULL) {
+  if (self != nullptr) {
     self->virtualKey = 0;
     self->flags = 0;
     self->description = PyUnicode_FromString("");
-    if (self->description == NULL) {
+    if (self->description == nullptr) {
       Py_DECREF(self);
-      return NULL;
+      return nullptr;
     }
     self->plugin = 0;
   }
@@ -63,7 +63,7 @@ HotKeyInfo_init(HotKeyInfoObject *self, PyObject *args, PyObject *kwds)
 {
   std::vector<std::string> params = {"virtualKey", "flags", "description", "plugin"};
   char **kwlist = stringVectorToCharArray(params);
-  PyObject *description = NULL, *tmp;
+  PyObject *description = nullptr, *tmp;
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iiUi", kwlist,
                                    &self->virtualKey, &self->flags, &description, &self->plugin)) {
     freeCharArray(kwlist, params.size());
@@ -84,12 +84,12 @@ static PyMemberDef HotKeyInfo_members[] = {
   {"flags", T_INT, offsetof(HotKeyInfoObject, flags), 0, "XPLMKeyFlags"},
   {"description", T_OBJECT_EX, offsetof(HotKeyInfoObject, description), 0, "Description"},
   {"plugin", T_INT, offsetof(HotKeyInfoObject, plugin), 0, "XPLMPluginID"},
-  {NULL, T_INT, 0, 0, ""}  /* Sentinel */
+  {nullptr, T_INT, 0, 0, ""}  /* Sentinel */
 };
 
 PyTypeObject
 HotKeyInfoType = {
-  PyVarObject_HEAD_INIT(NULL, 0)
+  PyVarObject_HEAD_INIT(nullptr, 0)
   .tp_name = "XPPython.HotKeyInfo",
   .tp_basicsize = sizeof(HotKeyInfoObject),
   .tp_itemsize = 0,

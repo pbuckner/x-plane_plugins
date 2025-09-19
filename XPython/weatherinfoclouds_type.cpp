@@ -67,11 +67,11 @@ static PyMemberDef WeatherInfoClouds_members[] = {
   {"coverage", T_FLOAT, offsetof(WeatherInfoCloudsObject, coverage), 0, "Coverage ratio (0.0 - 1.0)"},
   {"alt_top", T_FLOAT, offsetof(WeatherInfoCloudsObject, alt_top), 0, "Cloud top altitude MSL (meters). If alt_top == alt_base, this layer is ignored."},
   {"alt_base", T_FLOAT, offsetof(WeatherInfoCloudsObject, alt_base), 0, "Cloud base altitude MSL (meters)"},
-  {NULL, T_INT, 0, 0, ""} /* Sentinel */
+  {nullptr, T_INT, 0, 0, ""} /* Sentinel */
 };
 
 static PyObject *WeatherInfoClouds_str(WeatherInfoCloudsObject *obj) {
-  char *msg = NULL;
+  char *msg = nullptr;
   if (-1 == asprintf(&msg, "<XPLMWeatherInfoClouds_t object> %.1f (%.0f%%) from %.1fm to %.1fm",
                      obj->cloud_type, 100.0 * obj->coverage, obj->alt_base, obj->alt_top)) {
     pythonLog("Failed to allocate asprintf memory for WeatherInfoClouds.");
@@ -85,7 +85,7 @@ static PyObject *WeatherInfoClouds_str(WeatherInfoCloudsObject *obj) {
 
 PyTypeObject
 WeatherInfoCloudsType = {
-  PyVarObject_HEAD_INIT(NULL, 0)
+  PyVarObject_HEAD_INIT(nullptr, 0)
   .tp_name = "xppython3.XPLMWeatherInfoClouds_t",
   .tp_basicsize = sizeof(WeatherInfoCloudsObject),
   .tp_itemsize = 0,

@@ -24,19 +24,19 @@ static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args, PyObject *k
   std::vector<std::string> params = {"widgetDefs", "parentID", "result"};
   char **keywords = stringVectorToCharArray(params);
   (void) self;
-  PyObject *widgetDefs = NULL;
+  PyObject *widgetDefs = nullptr;
   int inCount=0;
   PyObject *paramParent=Py_None, *widgets=Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|OO", keywords, &widgetDefs, &paramParent, &widgets)){
     if(!PyArg_ParseTuple(args, "OiOO", &widgetDefs, &inCount, &paramParent, &widgets)){
       freeCharArray(keywords, params.size());
-      return NULL;
+      return nullptr;
     }
   }
   if (widgets != Py_None && !PyList_CheckExact(widgets)) {
       PyErr_SetString(PyExc_ValueError , "createWidgets result parameter must be a list");
       freeCharArray(keywords, params.size());
-      return NULL;
+      return nullptr;
   }
   if (widgets == Py_None) {
     widgets = PyList_New(0);
@@ -55,7 +55,7 @@ static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args, PyObject *k
   XPWidgetID *ioWidgets = (XPWidgetID *)malloc(sizeof(XPWidgetID) * inCount);
   XPWidgetCreate_t *defs = (XPWidgetCreate_t *)malloc(sizeof(XPWidgetCreate_t) * inCount);
 
-  if((defs == NULL) || (ioWidgets == NULL)){
+  if((defs == nullptr) || (ioWidgets == nullptr)){
     pythonLog("createWidgets, trying to create %d widgets, Out of memory", inCount);
     freeCharArray(keywords, params.size());
     Py_RETURN_NONE;
@@ -118,10 +118,10 @@ static PyObject *XPUMoveWidgetByFun(PyObject *self, PyObject *args, PyObject *kw
   (void) self;
   XPWidgetID inWidget;
   int inDeltaX=0, inDeltaY=0;
-  PyObject *widget = NULL;
+  PyObject *widget = nullptr;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|ii", keywords, &widget, &inDeltaX, &inDeltaY)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   inWidget = getVoidPtr(widget, "XPWidgetID");
   XPUMoveWidgetBy(inWidget, inDeltaX, inDeltaY);
@@ -144,10 +144,10 @@ static PyObject *XPUFixedLayoutFun(PyObject *self, PyObject *args, PyObject *kwa
   XPWidgetMessage inMessage;
   XPWidgetID inWidget;
   intptr_t inParam1, inParam2;
-  PyObject *widget = NULL, *param1 = NULL, *param2 = NULL;
+  PyObject *widget = nullptr, *param1 = nullptr, *param2 = nullptr;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iOOO", keywords, &inMessage, &widget, &param1, &param2)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
 
   convertMessagePythonToC(inMessage, widget, param1, param2, &inWidget, &inParam1, &inParam2);
@@ -164,9 +164,9 @@ void convertMessagePythonToC(XPWidgetMessage msg, PyObject *widget, PyObject *pa
   *widget_ptr = getVoidPtr(widget, "XPWidgetID");
 
   /* Modifications, based on message type */
-  XPKeyState_t *keyState = NULL;
-  XPMouseState_t *mouseState = NULL;
-  XPWidgetGeometryChange_t *wChange = NULL;
+  XPKeyState_t *keyState = nullptr;
+  XPMouseState_t *mouseState = nullptr;
+  XPWidgetGeometryChange_t *wChange = nullptr;
   switch(msg){
   case xpMsg_KeyPress:
     /* keyState = (XPKeyState_t *)inParam1; */
@@ -256,11 +256,11 @@ static PyObject *XPUSelectIfNeededFun(PyObject *self, PyObject *args, PyObject *
   XPWidgetID inWidget;
   intptr_t inParam1, inParam2;
   int inEatClick=1;
-  PyObject *widget = NULL, *param1 = NULL, *param2 = NULL;
+  PyObject *widget = nullptr, *param1 = nullptr, *param2 = nullptr;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iOOO|i", keywords, &inMessage, &widget, &param1, &param2, &inEatClick)){
     pythonLog("Failed to parse tuple in selectIfNeeded()");
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
 
   /* Incoming are messages to widgets.
@@ -362,10 +362,10 @@ static PyObject *XPUDefocusKeyboardFun(PyObject *self, PyObject *args, PyObject 
   XPWidgetID inWidget;
   intptr_t inParam1, inParam2;
   int inEatClick=1;
-  PyObject *widget = NULL, *param1 = NULL, *param2 = NULL;
+  PyObject *widget = nullptr, *param1 = nullptr, *param2 = nullptr;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iOOO|i", keywords, &inMessage, &widget, &param1, &param2, &inEatClick)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
   convertMessagePythonToC(inMessage, widget, param1, param2, &inWidget, &inParam1, &inParam2);
 
@@ -391,10 +391,10 @@ static PyObject *XPUDragWidgetFun(PyObject *self, PyObject *args, PyObject *kwar
   XPWidgetID inWidget;
   intptr_t inParam1, inParam2;
   int inLeft=0, inTop=0, inRight=0, inBottom=0;
-  PyObject *widget = NULL, *param1 = NULL, *param2 = NULL;
+  PyObject *widget = nullptr, *param1 = nullptr, *param2 = nullptr;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iOOOiiii", keywords, &inMessage, &widget, &param1, &param2, &inLeft, &inTop, &inRight, &inBottom)){
     freeCharArray(keywords, params.size());
-    return NULL;
+    return nullptr;
   }
 
   convertMessagePythonToC(inMessage, widget, param1, param2, &inWidget, &inParam1, &inParam2);
@@ -427,7 +427,7 @@ static PyMethodDef XPWidgetUtilsMethods[] = {
   {"dragWidget", (PyCFunction)XPUDragWidgetFun, METH_VARARGS | METH_KEYWORDS, _dragWidget__doc__},
   {"XPUDragWidget", (PyCFunction)XPUDragWidgetFun, METH_VARARGS, ""},
   {"_cleanup", cleanup, METH_VARARGS, ""},
-  {NULL, NULL, 0, NULL}
+  {nullptr, nullptr, 0, nullptr}
 };
 #pragma GCC diagnostic pop
 
@@ -442,10 +442,10 @@ static struct PyModuleDef XPWidgetUtilsModule = {
   "   https://xppython3.rtfd.io/en/stable/development/modules/widgetutils.html",
   -1,
   XPWidgetUtilsMethods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr
 };
 
 PyMODINIT_FUNC

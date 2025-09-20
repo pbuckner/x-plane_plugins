@@ -59,9 +59,7 @@ static void menuHandler(void * menuRefCon, void * inItemRef)
   }
 
   MenuInfo& info = it->second;
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
 
   PyObject *res = PyObject_CallFunctionObjArgs(info.callback, info.refCon, (PyObject*)inItemRef, nullptr);
   errCheck("end menuHandler");

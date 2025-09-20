@@ -1,17 +1,196 @@
-XPPythonGetDicts()
-==================
+pythonGetDicts()
+================
 
 .. Warning:: Notes in progress. This should give you an idea of what these internal dicts are & how they're used.
 
 In order to fully support the X-Plane SDK, and provide a mapping between the Python and C-based API,
 XPPython plugin uses a number of internal (python) dictionaries.
 
-You can access these dictionaries using :py:func:`XPPython.XPPythonGetDicts`.
+You can access these dictionaries using :py:func:`xp.pythonGetDicts`.
+
+.. py:function:: pythonGetDicts
+
+   :return: Dictionary of dictionaries.
+
+   Each dictionary is (also) obtainable individually, and deleted below. Note that these functions
+   *dynamically* re-build the data when invoked. You will not get pointer to 'live' python object which
+   changes. You'll need to call this function (or child functions) again to get updated data.
+
+   >>> xp.pythonGetDicts().keys()
+   dict_keys(['drefs', 'sharedDrefs'])
+
+   
 
 Technically, they're internal and are subject to change, but they can be particularly useful
 during debugging.
 
 The result of :py:func:`XPPython.XPPythonGetDicts` is a dictionary of these dictionaries, similar to::
+
+
+
+   'drawCallbacks':
+       {3: ('/Resources/plugins/PythonPlugins/PI_SeeAndAvoid.py',
+            <bound method PythonInterface.drawFlightFollowing of <PythonPlugins.PI_SeeAndAvoid.PythonInterface object at 0x7ff2bff3ad30>>,
+            50,
+            0,
+            0)},
+   'errCallbacks': {},
+   'hotkeyIDs': {},
+   'hotkeys': {},
+   'keySniffCallbacks': {},
+   'mapCreates': {},
+   'mapRefs': {},
+   'maps': {},
+   'windows': {}}
+   'widgetCallbacks':
+      {<capsule object "XPLMWidgetID" at 0x7ff2ca63cc60>: [<bound method PythonInterface.widgetMsgs of <PythonPlugins.PI_MiniPython.PythonInterface object at 0x7ff2ca700a90>>],
+       <capsule object "XPLMWidgetID" at 0x7ff2ca63cf90>: [<bound method PythonInterface.textEdit of <PythonPlugins.PI_MiniPython.PythonInterface object at 0x7ff2ca700a90>>],
+       <capsule object "XPLMWidgetID" at 0x7ff2caa22750>: [<bound method XPListBox.listBoxProc of <XPListBox.XPListBox object at 0x7ff2caa22730>>]},
+   'widgetProperties':
+      {(<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002900): 0,
+       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002906): {'Items': [''],
+                                                                      'Lefts': [0],
+                                                                     'Rights': [570]},
+       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002907): 24,
+       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002908): False,
+       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002909): 0,
+       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002910): 1,
+       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002911): 1,
+       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002912): 24,
+       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002913): 0},
+
+
+.. _sharedDrefs:
+
+sharedDrefs
+-----------
+
+ .. py:function:: getSharedDataRefDict
+                  
+   :return: Dict
+
+     :key:
+
+       Integer ID used as generic refCon.
+
+     :value:
+
+       Module name:str , dataRef name: str, int: XPLMDataTypeID,
+       callback function and refCon
+
+   All shared dataRefs. Entries are added for each call to :func:`xp.shareData` and removed for :func:`xp.unshareData`.
+
+   ::
+
+        {0: ('PythonPlugins.PI_MiniPython', 'shared/float', 2,
+             <function Changed at 0x1290e3ec0>, 'My Float'),
+             },
+        {1: ('PythonPlugins.PI_MiniPython', 'shared/int', 1,
+             <function Changed at 0x1290e3ec0>, 'My Int'),
+             },
+
+.. _drefs:
+
+drefs
+-----
+
+ .. py:function:: getDataRefDict
+
+   :return: Dict
+
+     :key:
+
+       Integer ID used as generic refCon.
+
+     :value:
+
+       Module name:str , dataRef name: str, bitwise: XPLMDataTypeID, is_writable: int,
+       12 Callbacks representing read/write for int, float, double, int_array, float_array and data,
+       read_refCon, write_refCon
+
+   All python-defined dataRefs. These are dataRefs created / supported by python. Non-python dataRefs are not
+   added to this data structure. That is, dataRefs created by :func:`xp.registerDataAccessor`, not :func:`xp.findDataRef`.
+
+   ::
+
+        {0: ('PythonPlugins.PI_MiniPython', 'myPlugin/foobar', 1, 0,
+             <function my_func at 0x38e36d800>, None, None, None,
+             None, None, None, None, None, None, None, None,
+             41, None),
+             },
+        {1: ('PythonPlugins.PI_MiniPython', 'myPlugin/dataItem1', 3, 1,
+             <function MyReadInt at 0x38e36d440>, <function MyWriteInt at 0x38e36d6c0>, <function MyReadFloat at 0x38e36d3a0>, None,
+             None, None, None, None, None, None, None, None,
+             None, None),
+             }
+
+----
+
+.. _modules:
+
+modules
+-------
+
+   'modules':
+        {'PythonPlugins.PI_MiniPython': <PythonPlugins.PI_MiniPython.PythonInterface object at 0x7ff2ca700a90>,
+         'PythonPlugins.PI_SeeAndAvoid': <PythonPlugins.PI_SeeAndAvoid.PythonInterface object at 0x7ff2bff3ad30>,
+         'PythonPlugins.PI_Aircraft': <PythonPlugins.PI_Aircraft.PythonInterface object at 0x7ff2ca63ce50>,
+         'XPPython3.I_PI_Updater': <XPPython3.I_PI_Updater.PythonInterface object at 0x7ff312547640>},
+
+ All loaded plugins, by module.
+
+ :key:
+
+    Module Name  for the plugin.
+
+ :value:
+
+    PythonInterface object (e.g., "self" for each plugins)
+
+.. _plugins:
+
+plugins
+-------
+
+   'plugins':
+         {<PythonPlugins.PI_Aircraft.PythonInterface object at 0x7ff2ca63ce50>: ['XPPython Aircraft Plugin driver',
+                                                                                 'xppython3.aircraft_plugin',
+                                                                                 'XPPython Plugin which enables use of aircraft plugins',
+                                                                                 'PythonPlugins.PI_Aircraft',
+                                                                                 False],
+          <PythonPlugins.PI_MiniPython.PythonInterface object at 0x7ff2ca700a90>: ['Mini Python Interpreter',
+                                                                                   'xppython3.minipython',
+                                                                                   'For debugging / testing, the provides a mini python interpreter',
+                                                                                   'PythonPlugins.PI_MiniPython',
+                                                                                   False],
+          <PythonPlugins.PI_SeeAndAvoid.PythonInterface object at 0x7ff2bff3ad30>: ['See and Avoid',
+                                                                                     'com.avnwx.SeeAndAvoid.p3',
+                                                                                     'See and Avoid traffic generator',
+                                                                                     'PythonPlugins.PI_SeeAndAvoid',
+                                                                                     False],
+           <XPPython3.I_PI_Updater.PythonInterface object at 0x7ff312547640>: ['XPPython3 Updater',
+                                                                               'com.avnwx.xppython3.updater.3.8',
+                                                                               'Automatic updater for XPPython3 plugin',
+                                                                               'XPPython3.I_PI_Updater',
+                                                                               False]},
+
+ Information about all plugins, by PythonInterface object.
+ 
+ :key:
+
+    PythonInterface object (e.g., "self" for each plugins)
+
+ :value:
+
+    List consisting of the Name, Signature, Description are as provided by the Python Plugin in
+    the return from ``XPluginStart()``. The Module is package + module as loaded by
+    python. The final boolean indicates if the module has been disabled (either at the request of the
+    plugin, or because ``XPluginEnable()`` failed.
+
+.. _commandCallbacks:
+
+commandCallbacks
+----------------
 
   {'commandCallbacks':
        {54: ('/Resources/plugins/XPPython3/I_PI_Updater.py',
@@ -35,129 +214,6 @@ The result of :py:func:`XPPython.XPPythonGetDicts` is a dictionary of these dict
              0,
              []),
   },
-   'commandRefcons':
-       {140680570225312: 54,
-        140680579228848: 58,
-        140680579231104: 60,
-        140680579231152: 59,
-        140680758437808: 57},
-   'drawCallbackIDs': {2227346048: 3},
-   'drawCallbacks':
-       {3: ('/Resources/plugins/PythonPlugins/PI_SeeAndAvoid.py',
-            <bound method PythonInterface.drawFlightFollowing of <PythonPlugins.PI_SeeAndAvoid.PythonInterface object at 0x7ff2bff3ad30>>,
-            50,
-            0,
-            0)},
-   'errCallbacks': {},
-   'hotkeyIDs': {},
-   'hotkeys': {},
-   'keySniffCallbacks': {},
-   'mapCreates': {},
-   'mapRefs': {},
-   'maps': {},
-   'menuPluginIdx':
-        {'/Resources/plugins/PythonPlugins/PI_Aircraft.py': [],
-         '/Resources/plugins/PythonPlugins/PI_MiniPython.py': [7],
-         '/Resources/plugins/PythonPlugins/PI_SeeAndAvoid.py': [8],
-         '/Resources/plugins/XPPython3/I_PI_Updater.py': [6]},
-   'menuRefs':
-        {<capsule object "XPLMMenuIDRef" at 0x7ff2bff3e750>: 8,
-         <capsule object "XPLMMenuIDRef" at 0x7ff2ca63cb70>: 7},
-   'menus':
-        {7: ('/Resources/plugins/XPPython3/I_PI_Updater.py',
-             'XPPython3',
-             None,
-             0,
-             <bound method PythonInterface.menuHandler of <XPPython3.I_PI_Updater.PythonInterface object at 0x7ff312547640>>,
-             'updatePython'),
-          8: ('/Resources/plugins/PythonPlugins/PI_SeeAndAvoid.py',
-              'See and Avoid',
-              None,
-              0,
-              <bound method PythonInterface.menuHandler of <PythonPlugins.PI_SeeAndAvoid.PythonInterface object at 0x7ff2bff3ad30>>,
-              None)},
-   'modules':
-        {'PythonPlugins.PI_MiniPython': <PythonPlugins.PI_MiniPython.PythonInterface object at 0x7ff2ca700a90>,
-         'PythonPlugins.PI_SeeAndAvoid': <PythonPlugins.PI_SeeAndAvoid.PythonInterface object at 0x7ff2bff3ad30>,
-         'PythonPlugins.PI_Aircraft': <PythonPlugins.PI_Aircraft.PythonInterface object at 0x7ff2ca63ce50>,
-         'XPPython3.I_PI_Updater': <XPPython3.I_PI_Updater.PythonInterface object at 0x7ff312547640>},
-   'plugins':
-         {<PythonPlugins.PI_Aircraft.PythonInterface object at 0x7ff2ca63ce50>: ['XPPython Aircraft Plugin driver',
-                                                                                 'xppython3.aircraft_plugin',
-                                                                                 'XPPython Plugin which enables use of aircraft plugins',
-                                                                                 'PythonPlugins.PI_Aircraft',
-                                                                                 False],
-          <PythonPlugins.PI_MiniPython.PythonInterface object at 0x7ff2ca700a90>: ['Mini Python Interpreter',
-                                                                                   'xppython3.minipython',
-                                                                                   'For debugging / testing, the provides a mini python interpreter',
-                                                                                   'PythonPlugins.PI_MiniPython',
-                                                                                   False],
-          <PythonPlugins.PI_SeeAndAvoid.PythonInterface object at 0x7ff2bff3ad30>: ['See and Avoid',
-                                                                                     'com.avnwx.SeeAndAvoid.p3',
-                                                                                     'See and Avoid traffic generator',
-                                                                                     'PythonPlugins.PI_SeeAndAvoid',
-                                                                                     False],
-           <XPPython3.I_PI_Updater.PythonInterface object at 0x7ff312547640>: ['XPPython3 Updater',
-                                                                               'com.avnwx.xppython3.updater.3.8',
-                                                                               'Automatic updater for XPPython3 plugin',
-                                                                               'XPPython3.I_PI_Updater',
-                                                                               False]},
-   'widgetCallbacks':
-      {<capsule object "XPLMWidgetID" at 0x7ff2ca63cc60>: [<bound method PythonInterface.widgetMsgs of <PythonPlugins.PI_MiniPython.PythonInterface object at 0x7ff2ca700a90>>],
-       <capsule object "XPLMWidgetID" at 0x7ff2ca63cf90>: [<bound method PythonInterface.textEdit of <PythonPlugins.PI_MiniPython.PythonInterface object at 0x7ff2ca700a90>>],
-       <capsule object "XPLMWidgetID" at 0x7ff2caa22750>: [<bound method XPListBox.listBoxProc of <XPListBox.XPListBox object at 0x7ff2caa22730>>]},
-   'widgetProperties':
-      {(<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002900): 0,
-       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002906): {'Items': [''],
-                                                                      'Lefts': [0],
-                                                                     'Rights': [570]},
-       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002907): 24,
-       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002908): False,
-       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002909): 0,
-       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002910): 1,
-       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002911): 1,
-       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002912): 24,
-       (<capsule object "XPLMWidgetID" at 0x7ff2caa22750>, 1002913): 0},
-   'windows': {}}
-
-
-.. _modules:
-
-modules
--------
-
- All loaded plugins, by module.
-
- :key:
-
-    Module Name  for the plugin.
-
- :value:
-
-    PythonInterface object (e.g., "self" for each plugins)
-
-.. _plugins:
-
-plugins
--------
-
- Information about all plugins, by PythonInterface object.
- 
- :key:
-
-    PythonInterface object (e.g., "self" for each plugins)
-
- :value:
-
-    List consisting of the Name, Signature, Description are as provided by the Python Plugin in
-    the return from ``XPluginStart()``. The Module is package + module as loaded by
-    python. The final boolean indicates if the module has been disabled (either at the request of the
-    plugin, or because ``XPluginEnable()`` failed.
-
-.. _commandCallbacks:
-
-commandCallbacks
-----------------
 
   :key:
 
@@ -196,6 +252,13 @@ commandCallbacks
 commandRefcons
 --------------
 
+   'commandRefcons':
+       {140680570225312: 54,
+        140680579228848: 58,
+        140680579231104: 60,
+        140680579231152: 59,
+        140680758437808: 57},
+
  :key:
 
     inCommand  
@@ -210,6 +273,29 @@ commandRefcons
 
 menuPluginIdx
 -------------
+   'menuPluginIdx':
+        {'/Resources/plugins/PythonPlugins/PI_Aircraft.py': [],
+         '/Resources/plugins/PythonPlugins/PI_MiniPython.py': [7],
+         '/Resources/plugins/PythonPlugins/PI_SeeAndAvoid.py': [8],
+         '/Resources/plugins/XPPython3/I_PI_Updater.py': [6]},
+   'menuRefs':
+        {<capsule object "XPLMMenuIDRef" at 0x7ff2bff3e750>: 8,
+         <capsule object "XPLMMenuIDRef" at 0x7ff2ca63cb70>: 7},
+   'menus':
+        {7: ('/Resources/plugins/XPPython3/I_PI_Updater.py',
+             'XPPython3',
+             None,
+             0,
+             <bound method PythonInterface.menuHandler of <XPPython3.I_PI_Updater.PythonInterface object at 0x7ff312547640>>,
+             'updatePython'),
+          8: ('/Resources/plugins/PythonPlugins/PI_SeeAndAvoid.py',
+              'See and Avoid',
+              None,
+              0,
+              <bound method PythonInterface.menuHandler of <PythonPlugins.PI_SeeAndAvoid.PythonInterface object at 0x7ff2bff3ad30>>,
+              None)},
+
+
 
  :key:
     <plugin>

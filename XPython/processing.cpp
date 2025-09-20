@@ -22,61 +22,51 @@ static intptr_t flCntr;
    2) lookup info in flDict to get "real" callback & refcon
 */
    
+#define REGISTER_UNREGISTER 0
+#define CREATE_DESTROY 1
 struct FlightLoopDict {
   PyObject *callback;
   PyObject *refCon;
   std::string module_name;
-  int loop_type;
+  int loop_type;  // "old" Register/UnregisterFlightLoop, "New" Create/DestroyFlightLoop
+  XPLMFlightLoopID flightLoopID;
 };
+
+
 static std::unordered_map<intptr_t, FlightLoopDict> flightLoopCallbacks;
+/* <flCntr>: FlightLoopDict */
 
 /* For "new style" flight looks, we also record XPLMFlightLoopID capsule.
    Note that internally, X-Plane will always call our genericFlightLoop with <flCntr> as the refCon,
-   so we can do a flDict[<flCntr>] lookup to get the info: we don't need FlightLoopID.
-
-   But, for schedule and destroy flight loop, user provides us with <capsuleFlightLoopID>,
-   so we need to determine which <flCntr> is correct for this <capsule>.
-
-   We'll do a traversal of flIDDict, comparing capsules, to retrieve <flCntr>.
-
-   (Why traversal? We need to go both directions:
-   for reset  <fnCntr>                    -> <capsule XPLMFlightLoopID>
-   for destroy <capsule XPLMFlightLoopID> -> <fnCntr>
-   Really, could just use list of two-tuples, I suppose
+   so we can do a flDict[<flCntr>] lookup to get the info: we don't need FlightLoopID, except for
+   Schedule and Destroy.
 */
-static PyObject *flIDDict;  /* {
-                                  flCntr: <capsule XPLMFlightLoopID>
-                               } */
 
 static float genericFlightLoopCallbackStats(float inElapsedSinceLastCall, float inElapsedTimeSinceLastFlightLoop, 
-                                       int counter, void * inRefcon);
+                                            int counter, void * inRefcon);
 static float genericFlightLoopCallbackNoStats(float inElapsedSinceLastCall, float inElapsedTimeSinceLastFlightLoop, 
-                                       int counter, void * inRefcon);
+                                              int counter, void * inRefcon);
 
 void resetFlightLoops()
 {
-  /* flightLoopCallbacks & flIDDict:
+  /* flightLoopCallbacks
    * unregisters all flight loops by going through flightLoopCallbacks
-   * Then, at the end, clears both containers
+   * Then, at the end, clears containers
    */
   for (auto& pair : flightLoopCallbacks) {
     FlightLoopDict& info = pair.second;
     pythonDebug("     Reset --     (%s)", info.module_name.c_str());
 
-    if (info.loop_type == 0) {
+    if (info.loop_type == REGISTER_UNREGISTER) {
       XPLMUnregisterFlightLoopCallback(pythonStats ? genericFlightLoopCallbackStats : genericFlightLoopCallbackNoStats,
                                        (void*)pair.first);
     } else {
-      PyObject *pKey = PyLong_FromLong(pair.first);
-      XPLMDestroyFlightLoop(getVoidPtr(PyDict_GetItem(flIDDict, pKey), "XPLMFlightLoopID"));
-      deleteCapsule(pKey);
-      Py_DECREF(pKey);
+      XPLMDestroyFlightLoop(info.flightLoopID);
     }
     Py_DECREF(info.callback);
     Py_DECREF(info.refCon);
   }
   flightLoopCallbacks.clear();
-  PyDict_Clear(flIDDict);
 }
 
 static float genericFlightLoopCallbackStats(float inElapsedSinceLastCall, float inElapsedTimeSinceLastFlightLoop,
@@ -102,17 +92,12 @@ static float genericFlightLoopCallbackStats(float inElapsedSinceLastCall, float 
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
 
-  PyObject *module_name_obj = PyUnicode_FromString(flInfo.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
-
+  set_moduleName(flInfo.module_name);
   PyObject *res = PyObject_CallFunctionObjArgs(flInfo.callback, inElapsedSinceLastCallObj,
                                                inElapsedTimeSinceLastFlightLoopObj, counterObj,
                                                flInfo.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
-  PyObject *module_name_for_stats = PyUnicode_FromString(flInfo.module_name.c_str());
-  pluginStats[getPluginIndex(module_name_for_stats)].fl_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
-  Py_DECREF(module_name_for_stats);
+  pluginStats[getPluginIndex()].fl_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   /* ^^^^^^^^^^^^^^^^^ */
   
   float tmp;
@@ -263,7 +248,7 @@ static PyObject *XPLMRegisterFlightLoopCallbackFun(PyObject* self, PyObject *arg
     .callback = callback,
     .refCon = refCon,
     .module_name = std::string(CurrentPythonModuleName),
-    .loop_type = 0
+    .loop_type = REGISTER_UNREGISTER
   };
   Py_INCREF(callback);
   Py_INCREF(refCon);
@@ -433,7 +418,6 @@ static PyObject *XPLMCreateFlightLoopFun(PyObject* self, PyObject *args, PyObjec
 
   fl.callbackFunc = pythonStats ? genericFlightLoopCallbackStats : genericFlightLoopCallbackNoStats;
   intptr_t refcon = ++flCntr;
-  PyObject *flDictKeyObj = PyLong_FromLong(refcon);
   fl.refcon = (void*)refcon;
 
   XPLMFlightLoopID flightLoopID = XPLMCreateFlightLoop_ptr(&fl);
@@ -442,14 +426,13 @@ static PyObject *XPLMCreateFlightLoopFun(PyObject* self, PyObject *args, PyObjec
     .callback = callback,
     .refCon = refCon,
     .module_name = std::string(CurrentPythonModuleName),
-    .loop_type = 1
+    .loop_type = CREATE_DESTROY,
+    .flightLoopID = flightLoopID
   };
   Py_INCREF(callback);
   Py_INCREF(refCon);
 
   PyObject *flightLoopIDObj = makeCapsule(flightLoopID, "XPLMFlightLoopID");
-  PyDict_SetItem(flIDDict, flDictKeyObj, flightLoopIDObj);
-  Py_DECREF(flDictKeyObj);
   return flightLoopIDObj;
 }
 
@@ -475,12 +458,11 @@ static PyObject *isFlightLoopValidFun(PyObject *self, PyObject *args, PyObject *
     return nullptr;
   }
   freeCharArray(keywords, params.size());
-  PyObject *pKey, *pValue;
-  Py_ssize_t pos = 0;
-  while(PyDict_Next(flIDDict, &pos, &pKey, &pValue)){
-    if (getVoidPtr(pValue, "XPLMFlightLoopID") == getVoidPtr(revId, "XPLMFlightLoopID")) {
-      return Py_True;
-    }
+
+  XPLMFlightLoopID flightLoopID = getVoidPtr(revId, "XPLMFlightLoopID");
+  for (auto& it : flightLoopCallbacks) {
+    if (it.second.loop_type == REGISTER_UNREGISTER) continue;
+    if (it.second.flightLoopID == flightLoopID) return Py_True;
   }
   return Py_False;
 }
@@ -507,24 +489,19 @@ static PyObject *XPLMDestroyFlightLoopFun(PyObject *self, PyObject *args, PyObje
     return nullptr;
   }
   freeCharArray(keywords, params.size());
-  PyObject *pKey, *pValue;
-  Py_ssize_t pos = 0;
-  PyObject *found = Py_None;
-  while(PyDict_Next(flIDDict, &pos, &pKey, &pValue)){
-    if (getVoidPtr(pValue, "XPLMFlightLoopID") == getVoidPtr(revId, "XPLMFlightLoopID")) {
-      found = pKey;
-      break;
+
+  XPLMFlightLoopID flightLoopID = getVoidPtr(revId, "XPLMFlightLoopID");
+  for (auto& pair : flightLoopCallbacks) {
+    FlightLoopDict& info = pair.second;
+    if (info.flightLoopID == flightLoopID) {
+      XPLMDestroyFlightLoop_ptr(flightLoopID);
+      flightLoopCallbacks.erase(pair.first);
+      deleteCapsule(revId);
+      Py_RETURN_NONE;
     }
   }
-  if (found == Py_None) {
-    PyErr_SetString(PyExc_ValueError , "destroyFlightLoop: Unknown FlightLoopID");
-    return nullptr;
-  }
-  XPLMDestroyFlightLoop_ptr(getVoidPtr(revId, "XPLMFlightLoopID"));
-  PyDict_DelItem(flIDDict, found);
-  flightLoopCallbacks.erase((intptr_t)found);
-  deleteCapsule(revId);
-  Py_RETURN_NONE;
+  PyErr_SetString(PyExc_ValueError , "destroyFlightLoop: Unknown FlightLoopID");
+  return nullptr;
 }
 
 My_DOCSTR(_scheduleFlightLoop__doc__, "scheduleFlightLoop",
@@ -575,8 +552,6 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
     Py_DECREF(pair.second.refCon);
   }
   flightLoopCallbacks.clear();
-  PyDict_Clear(flIDDict);
-  Py_DECREF(flIDDict);
   Py_RETURN_NONE;
 }
 
@@ -625,10 +600,6 @@ static struct PyModuleDef XPLMProcessingModule = {
 PyMODINIT_FUNC
 PyInit_XPLMProcessing(void)
 {
-  if(!(flIDDict = PyDict_New())){
-    return nullptr;
-  }
-  PyDict_SetItemString(XPY3pythonDicts, "flightLoopIDs", flIDDict);
   PyObject *mod = PyModule_Create(&XPLMProcessingModule);
   if(mod){
     PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
@@ -638,9 +609,6 @@ PyInit_XPLMProcessing(void)
     PyModule_AddIntConstant(mod, "FlightLoop_Phase_BeforeFlightModel", xplm_FlightLoop_Phase_BeforeFlightModel); // XPLMFlightLoopPhaseType
     PyModule_AddIntConstant(mod, "FlightLoop_Phase_AfterFlightModel", xplm_FlightLoop_Phase_AfterFlightModel); // XPLMFlightLoopPhaseType
   }
-
-  /* XPLMRegisterFlightLoopCallback(flightLoopStats, -1, nullptr); */
-
   return mod;
 }
 

@@ -182,8 +182,8 @@ void resetAvionicsCallbacks(void) {
   }
   errCheck("prior resetAvionicsCallbacks");
 
-  for (const auto& pair : avionicsCallbacksDict) {
-    AvionicsCallbackInfo info = pair.second;
+  for (auto it = avionicsCallbacksDict.begin(); it != avionicsCallbacksDict.end();) {
+    AvionicsCallbackInfo info = it->second;
     Py_DECREF(info.before);
     Py_DECREF(info.after);
     Py_DECREF(info.refCon);
@@ -207,9 +207,7 @@ void resetAvionicsCallbacks(void) {
       errCheck("after XPLMUnregisterAvionicsCallbacks in reset");
     }
     pythonDebug("     Reset --     %s - (%d)", info.module_name.c_str(), info.avionicsID);
-    deleteCapsule(makeCapsule((XPLMAvionicsID)pair.first, "XPLMAvionicsID"));
-    avionicsCallbacksDict.erase(pair.first);
-    
+    deleteCapsule(makeCapsule((XPLMAvionicsID)it->first, "XPLMAvionicsID"));
   }
   avionicsCallbacksDict.clear();
 }
@@ -1169,15 +1167,12 @@ static void genericWindowDraw(XPLMWindowID  inWindowID,
     struct timespec stop, start;
     clock_gettime(CLOCK_MONOTONIC, &start);
     PyObject *pID = makeCapsule(inWindowID, "XPLMWindowID");
-    PyObject *module_name_obj = PyUnicode_FromString(it->second.module_name.c_str());
-    set_moduleName(module_name_obj);
+    set_moduleName(it->second.module_name);
 
     PyObject *oRes = PyObject_CallFunctionObjArgs(func, pID, inRefcon, nullptr);
     Py_DECREF(pID);
     clock_gettime(CLOCK_MONOTONIC, &stop);
-    pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
-
-    Py_DECREF(module_name_obj);
+    pluginStats[getPluginIndex()].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
 
     if(PyErr_Occurred()) {
       pythonLogException();
@@ -1240,9 +1235,7 @@ static void genericWindowKey(XPLMWindowID  inWindowID,
     /* printf("Calling genericWindowKey callback. inWindowID = %p, pPID = %s, losingFocus = %d\n", inWindowID, s, losingFocus); */
     /* free(s); */
     PyObject *pID = makeCapsule(inWindowID, "XPLMWindowID");
-    PyObject *module_name_obj = PyUnicode_FromString(it->second.module_name.c_str());
-    set_moduleName(module_name_obj);
-    Py_DECREF(module_name_obj);
+    set_moduleName(it->second.module_name);
     PyObject *oRes = PyObject_CallFunctionObjArgs(func, pID, arg1, arg2, arg3, inRefcon, arg4, nullptr);
     Py_DECREF(pID);
     Py_XDECREF(arg1);
@@ -1274,9 +1267,7 @@ static int genericWindowMouseClick(XPLMWindowID     inWindowID,
     return 1;
   }
 
-  PyObject *module_name_obj = PyUnicode_FromString(it->second.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(it->second.module_name);
   PyObject *arg1 = PyLong_FromLong(x);
   PyObject *arg2 = PyLong_FromLong(y);
   PyObject *arg3 = PyLong_FromLong(inMouse);
@@ -1327,9 +1318,7 @@ static int genericWindowRightClick(XPLMWindowID     inWindowID,
     return 1; /* consume click in window */
   }
 
-  PyObject *module_name_obj = PyUnicode_FromString(it->second.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(it->second.module_name);
   PyObject *pID = makeCapsule(inWindowID, "XPLMWindowID");
   PyObject *arg1 = PyLong_FromLong(x);
   PyObject *arg2 = PyLong_FromLong(y);
@@ -1375,9 +1364,7 @@ static XPLMCursorStatus genericWindowCursor(XPLMWindowID  inWindowID,
     return 0;
   }
   PyObject *func = it->second.cursor;
-  PyObject *module_name_obj = PyUnicode_FromString(it->second.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(it->second.module_name);
   if((func == nullptr) || (func == Py_None)){
     return 0;
   }
@@ -1415,9 +1402,7 @@ static int genericWindowMouseWheel(XPLMWindowID  inWindowID,
     return 1;
   }
   PyObject *func = it->second.wheel;
-  PyObject *module_name_obj = PyUnicode_FromString(it->second.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(it->second.module_name);
   if((func == nullptr) || (func == Py_None)){
     return 1;
   }
@@ -2713,9 +2698,7 @@ static void genericHotkeyCallback(void *inRefcon)
     printf("Unknown refcon passed to hotkeyCallback (%p).\n", inRefcon);
     return;
   }
-  PyObject *module_name_obj = PyUnicode_FromString(it->second.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(it->second.module_name);
   PyObject *res = PyObject_CallFunctionObjArgs(it->second.callback, it->second.refCon, nullptr);
   PyObject *err = PyErr_Occurred();
   if(err){
@@ -2934,16 +2917,15 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 
   for (auto& pair : windowDict) {
     XPLMWindowID winID = (XPLMWindowID) pair.first;
-    WindowInfo it = pair.second;
+    WindowInfo info = pair.second;
     PyObject *tmp = (PyObject *)XPLMGetWindowRefCon(winID);
     Py_DECREF(tmp);
     XPLMDestroyWindow(winID);
-    Py_DECREF(it.draw);
-    Py_DECREF(it.click);
-    Py_DECREF(it.key);
-    Py_DECREF(it.cursor);
-    Py_DECREF(it.rightClick);
-    windowDict.erase(winID);
+    Py_DECREF(info.draw);
+    Py_DECREF(info.click);
+    Py_DECREF(info.key);
+    Py_DECREF(info.cursor);
+    Py_DECREF(info.rightClick);
   }
   windowDict.clear();
 
@@ -2951,7 +2933,6 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
     HotKeyInfo info = pair.second;
     Py_DECREF(info.callback);
     Py_DECREF(info.refCon);
-    hotkeyDict.erase(pair.first);
   }
   hotkeyDict.clear();
 
@@ -2972,7 +2953,6 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
     if(info.screen_cursor != Py_None) Py_DECREF(info.screen_cursor);
     if(info.keyboard != Py_None) Py_DECREF(info.keyboard);
     if(info.brightness != Py_None) Py_DECREF(info.brightness);
-    avionicsCallbacksDict.erase(pair.first);
   }
   avionicsCallbacksDict.clear();
   Py_RETURN_NONE;
@@ -3131,18 +3111,6 @@ static struct PyModuleDef XPLMDisplayModule = {
 PyMODINIT_FUNC
 PyInit_XPLMDisplay(void)
 {
-  // C++ unordered_maps are automatically initialized, no need for PyDict_New()
-  // Commenting out PyDict_SetItemString calls for converted C++ maps:
-  // PyDict_SetItemString(XPY3pythonDicts, "avionicsCallbacks", avionicsCallbacksDict);
-  // PyDict_SetItemString(XPY3pythonDicts, "avionicsIDs", avionicsCallbacksIDDict);
-  // PyDict_SetItemString(XPY3pythonDicts, "drawCallbacks", drawCallbackDict);
-  // PyDict_SetItemString(XPY3pythonDicts, "keySniffCallbacks", keySniffCallbackDict);
-  // PyDict_SetItemString(XPY3pythonDicts, "windows", windowDict);
-  // PyDict_SetItemString(XPY3pythonDicts, "hotkeyIDs", hotkeyIDDict);
-  // PyDict_SetItemString(XPY3pythonCapsules, windowIDRef, windowIDCapsules);
-  // PyDict_SetItemString(XPY3pythonCapsules, hotkeyIDRef, hotkeyIDCapsules);
-  // PyDict_SetItemString(XPY3pythonCapsules, avionicsIDRef, avionicsIDCapsules);
-
   PyObject *mod = PyModule_Create(&XPLMDisplayModule);
   if(mod){
     PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
@@ -3301,7 +3269,6 @@ static int genericAvionicsCallback(XPLMDeviceID inDeviceID, int inIsBefore, void
   PyObject *refCon = nullptr;
   PyObject *deviceId = nullptr;
   PyObject *isBefore = nullptr;
-  PyObject *module_name_obj = nullptr;
   int res = 0;
 
   auto it = avionicsCallbacksDict.find(refcon_id);
@@ -3314,16 +3281,14 @@ static int genericAvionicsCallback(XPLMDeviceID inDeviceID, int inIsBefore, void
   fun = inIsBefore ? info.before : info.after;
   refCon = info.refCon;
   deviceId = PyLong_FromLong(info.deviceID);  /* borrowed -- and should match inDeviceID, which we ignore */
-  module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
+  set_moduleName(info.module_name);
   isBefore = PyLong_FromLong(inIsBefore);/* new */
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
   if (fun != Py_None)
     pRes = PyObject_CallFunctionObjArgs(fun, deviceId, isBefore, refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
-  pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
-  Py_DECREF(module_name_obj);
+  pluginStats[getPluginIndex()].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   Py_DECREF(isBefore);
 
   if(!pRes){
@@ -3369,7 +3334,6 @@ static int genericDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *i
   clock_gettime(CLOCK_MONOTONIC, &all_start);
 
   PyObject *pl = nullptr, *fun = nullptr, *refcon = nullptr, *pRes = nullptr, *err = nullptr;
-  PyObject *module_name_obj = nullptr;
   PyObject *inPhaseObj, *inIsBeforeObj;
   DrawCallbackInfo info;
   int res = 1;
@@ -3383,8 +3347,7 @@ static int genericDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *i
   info = it->second;
   fun = info.callback;
   refcon = info.refCon;
-  module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
+  set_moduleName(info.module_name);
   inPhaseObj = PyLong_FromLong(inPhase);
   inIsBeforeObj = PyLong_FromLong(inIsBefore);
 
@@ -3393,7 +3356,7 @@ static int genericDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *i
   if (fun != Py_None)
     pRes = PyObject_CallFunctionObjArgs(fun, inPhaseObj, inIsBeforeObj, refcon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
-  pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+  pluginStats[getPluginIndex()].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
 
   Py_DECREF(inPhaseObj);
   Py_DECREF(inIsBeforeObj);
@@ -3419,7 +3382,6 @@ static int genericDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void *i
   }
 
  cleanup:
-  Py_XDECREF(module_name_obj);
   err = PyErr_Occurred();
   if(err){
     pythonLogException();
@@ -3442,16 +3404,13 @@ int genericKeySnifferCallback(char inChar, XPLMKeyFlags inFlags, char inVirtualK
   PyObject *inCharObj = PyLong_FromLong(inChar);
   PyObject *inFlagsObj = PyLong_FromLong(inFlags);
   PyObject *inVirtualKeyObj = PyLong_FromLong((unsigned int)inVirtualKey);
-  PyObject *module_name_obj;
   auto it = keySniffCallbackDict.find(refcon_id);
   if (it == keySniffCallbackDict.end()) {
     pythonLog("keySninfferCallback, got unknown inRefcon (%p)!", inRefcon);
     goto cleanup;
   }
   info = it->second;
-  module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
   pRes = PyObject_CallFunctionObjArgs(info.callback, inCharObj, inFlagsObj, inVirtualKeyObj, info.refCon, nullptr);
   if(!pRes){
     char *s2 = objToStr(info.callback);
@@ -3486,15 +3445,13 @@ static void genericAvionicsBezelDraw(float inAmbiantR, float inAmbiantG, float i
   PyObject *err = nullptr;
 
   AvionicsCallbackInfo info;
-  PyObject *module_name_obj;
   auto it = avionicsCallbacksDict.find((intptr_t)inRefcon);
   if (it == avionicsCallbacksDict.end()) {
     pythonLog("avionicsBezelDraw, got unknown inRefcon(%p)!", inRefcon);
     goto cleanup;
   }
   info = it->second;
-  module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
+  set_moduleName(info.module_name);
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
   if (info.bezel_draw != Py_None)
@@ -3503,8 +3460,7 @@ static void genericAvionicsBezelDraw(float inAmbiantR, float inAmbiantG, float i
                                  PyFloat_FromDouble(inAmbiantG),
                                  PyFloat_FromDouble(inAmbiantB), info.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
-  pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
-  Py_DECREF(module_name_obj);
+  pluginStats[getPluginIndex()].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
 
  cleanup:
   err = PyErr_Occurred();
@@ -3524,22 +3480,19 @@ static void genericAvionicsScreenDraw(void *inRefcon)  {
   PyObject *err = nullptr;
 
   AvionicsCallbackInfo info;
-  PyObject *module_name_obj;
   auto it = avionicsCallbacksDict.find((intptr_t)inRefcon);
   if (it == avionicsCallbacksDict.end()) {
     pythonLog("avionicsScreenDraw, got unknown inRefcon(%p)!", inRefcon);
     goto cleanup;
   }
   info = it->second;
-  module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
+  set_moduleName(info.module_name);
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
   if (info.draw != Py_None)
     PyObject_CallFunctionObjArgs(info.draw, info.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
-  pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
-  Py_DECREF(module_name_obj);
+  pluginStats[getPluginIndex()].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   
  cleanup:
   err = PyErr_Occurred();
@@ -3560,15 +3513,13 @@ static float genericAvionicsBrightness(float inRheoValue, float inAmbiantBrightn
   float res = inRheoValue * inAmbiantBrightness; /* ... the default behavior */
 
   AvionicsCallbackInfo info;
-  PyObject *module_name_obj;
   auto it = avionicsCallbacksDict.find((intptr_t)inRefcon);
   if (it == avionicsCallbacksDict.end()) {
     pythonLog("avionicsBrightness, got unknown inRefcon(%p)!", inRefcon);
     goto cleanup;
   }
   info = it->second;
-  module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
+  set_moduleName(info.module_name);
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
   if (info.brightness != Py_None)
@@ -3578,8 +3529,7 @@ static float genericAvionicsBrightness(float inRheoValue, float inAmbiantBrightn
                                         PyFloat_FromDouble(inBusVoltsRatio),
                                         info.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
-  pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
-  Py_DECREF(module_name_obj);
+  pluginStats[getPluginIndex()].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
 
   if(!pRes){
     err = PyErr_Occurred();
@@ -3616,7 +3566,6 @@ static int genericAvionicsBezelClick(int x, int y, XPLMMouseStatus inMouse, void
   PyObject *pRes = nullptr;
   int res = 0;
   AvionicsCallbackInfo info;
-  PyObject *module_name_obj;
   
   auto it = avionicsCallbacksDict.find((intptr_t)inRefcon);
   if(it == avionicsCallbacksDict.end()) {
@@ -3624,16 +3573,14 @@ static int genericAvionicsBezelClick(int x, int y, XPLMMouseStatus inMouse, void
     goto cleanup;
   }
   info = it->second;
-  module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
+  set_moduleName(info.module_name);
   
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
   if (info.bezel_click != Py_None)
     pRes = PyObject_CallFunctionObjArgs(info.bezel_click, PyLong_FromLong(x), PyLong_FromLong(y), PyLong_FromLong(inMouse), info.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
-  pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
-  Py_DECREF(module_name_obj);
+  pluginStats[getPluginIndex()].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   
   if(!pRes) {
     err = PyErr_Occurred();
@@ -3675,7 +3622,6 @@ static int genericAvionicsBezelRightClick(int x, int y, XPLMMouseStatus inMouse,
   PyObject *pRes = nullptr;
   int res = 0;
   AvionicsCallbackInfo info;
-  PyObject *module_name_obj;
   
   auto it = avionicsCallbacksDict.find((intptr_t)inRefcon);
   if(it == avionicsCallbacksDict.end()) {
@@ -3683,16 +3629,14 @@ static int genericAvionicsBezelRightClick(int x, int y, XPLMMouseStatus inMouse,
     goto cleanup;
   }
   info = it->second;
-  module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
+  set_moduleName(info.module_name);
   
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
   if (info.bezel_rightclick != Py_None)
     pRes = PyObject_CallFunctionObjArgs(info.bezel_rightclick, PyLong_FromLong(x), PyLong_FromLong(y), PyLong_FromLong(inMouse), info.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
-  pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
-  Py_DECREF(module_name_obj);
+  pluginStats[getPluginIndex()].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   
   if(!pRes) {
     err = PyErr_Occurred();
@@ -3734,7 +3678,6 @@ static int genericAvionicsBezelScroll(int x, int y, int wheel, int clicks, void 
   PyObject *pRes = nullptr;
   int res = 0;
   AvionicsCallbackInfo info;
-  PyObject *module_name_obj;
 
   auto it = avionicsCallbacksDict.find((intptr_t) inRefcon);
   if (it == avionicsCallbacksDict.end()) {
@@ -3742,16 +3685,14 @@ static int genericAvionicsBezelScroll(int x, int y, int wheel, int clicks, void 
     goto cleanup;
   }
   info = it->second;
-  module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
+  set_moduleName(info.module_name);
 
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
   pRes = PyObject_CallFunctionObjArgs(info.bezel_scroll, PyLong_FromLong(x), PyLong_FromLong(y), PyLong_FromLong(wheel),
                                       PyLong_FromLong(clicks), info.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
-  pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
-  Py_DECREF(module_name_obj);
+  pluginStats[getPluginIndex()].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
 
   if(!pRes){
     err = PyErr_Occurred();
@@ -3791,7 +3732,6 @@ static XPLMCursorStatus genericAvionicsBezelCursor(int x, int y, void *inRefcon)
   PyObject *err = nullptr;
   PyObject *pRes = nullptr;
   AvionicsCallbackInfo info;
-  PyObject *module_name_obj;
   XPLMCursorStatus res = 0;
 
   auto it = avionicsCallbacksDict.find((intptr_t)inRefcon);
@@ -3800,15 +3740,14 @@ static XPLMCursorStatus genericAvionicsBezelCursor(int x, int y, void *inRefcon)
     goto cleanup;
   }
   info = it->second;
-  module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
+  set_moduleName(info.module_name);
 
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
   if (info.bezel_cursor != Py_None) 
     pRes = PyObject_CallFunctionObjArgs(info.bezel_cursor, PyLong_FromLong(x), PyLong_FromLong(y), info.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
-  pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+  pluginStats[getPluginIndex()].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
 
   if(!pRes){
     err = PyErr_Occurred();
@@ -3849,7 +3788,6 @@ static int genericAvionicsScreenTouch(int x, int y, int inMouse, void *inRefcon)
   PyObject *pRes = nullptr;
   int res = 0;
   AvionicsCallbackInfo info;
-  PyObject *module_name_obj;
 
   auto it = avionicsCallbacksDict.find((intptr_t)inRefcon);
   if (it == avionicsCallbacksDict.end()) {
@@ -3857,16 +3795,14 @@ static int genericAvionicsScreenTouch(int x, int y, int inMouse, void *inRefcon)
     goto cleanup;
   }
   info = it->second;
-  module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
+  set_moduleName(info.module_name);
 
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
   if (info.screen_touch != Py_None) 
     pRes = PyObject_CallFunctionObjArgs(info.screen_touch, PyLong_FromLong(x), PyLong_FromLong(y), PyLong_FromLong(inMouse), info.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
-  pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
-  Py_DECREF(module_name_obj);
+  pluginStats[getPluginIndex()].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
 
   if(!pRes){
     err = PyErr_Occurred();
@@ -3907,7 +3843,6 @@ static int genericAvionicsScreenRightTouch(int x, int y, int inMouse, void *inRe
   PyObject *pRes = nullptr;
   int res = 0;
   AvionicsCallbackInfo info;
-  PyObject *module_name_obj;
 
   auto it = avionicsCallbacksDict.find((intptr_t) inRefcon);
   if (it == avionicsCallbacksDict.end()) {
@@ -3915,16 +3850,14 @@ static int genericAvionicsScreenRightTouch(int x, int y, int inMouse, void *inRe
     goto cleanup;
   }
   info = it->second;
-  module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
+  set_moduleName(info.module_name);
 
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
   if (info.screen_righttouch != Py_None) 
     pRes = PyObject_CallFunctionObjArgs(info.screen_righttouch, PyLong_FromLong(x), PyLong_FromLong(y), PyLong_FromLong(inMouse), info.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
-  pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
-  Py_DECREF(module_name_obj);
+  pluginStats[getPluginIndex()].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
 
   if(!pRes){
     err = PyErr_Occurred();
@@ -3965,7 +3898,6 @@ static int genericAvionicsScreenScroll(int x, int y, int wheel, int clicks, void
   PyObject *pRes = nullptr;
   int res = 0;
   AvionicsCallbackInfo info;
-  PyObject *module_name_obj;
 
   auto it = avionicsCallbacksDict.find((intptr_t) inRefcon);
   if(it == avionicsCallbacksDict.end()) {
@@ -3973,8 +3905,7 @@ static int genericAvionicsScreenScroll(int x, int y, int wheel, int clicks, void
     goto cleanup;
   }
   info = it->second;
-  module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
+  set_moduleName(info.module_name);
 
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
@@ -3982,8 +3913,7 @@ static int genericAvionicsScreenScroll(int x, int y, int wheel, int clicks, void
     pRes = PyObject_CallFunctionObjArgs(info.screen_scroll, PyLong_FromLong(x), PyLong_FromLong(y),
                                         PyLong_FromLong(wheel), PyLong_FromLong(clicks), info.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
-  pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
-  Py_DECREF(module_name_obj);
+  pluginStats[getPluginIndex()].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
 
   if(!pRes){
     err = PyErr_Occurred();
@@ -4024,7 +3954,6 @@ static XPLMCursorStatus genericAvionicsScreenCursor(int x, int y, void *inRefcon
   PyObject *pRes = nullptr;
   XPLMCursorStatus res = 0;
   AvionicsCallbackInfo info;
-  PyObject *module_name_obj;
 
   auto it = avionicsCallbacksDict.find((intptr_t) inRefcon);
   if(it == avionicsCallbacksDict.end()) {
@@ -4035,16 +3964,14 @@ static XPLMCursorStatus genericAvionicsScreenCursor(int x, int y, void *inRefcon
     return xplm_CursorDefault;
   }
 
-  module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
+  set_moduleName(info.module_name);
 
   struct timespec stop, start;
   clock_gettime(CLOCK_MONOTONIC, &start);
   if (info.screen_cursor != Py_None) 
     pRes = PyObject_CallFunctionObjArgs(info.screen_cursor, PyLong_FromLong(x), PyLong_FromLong(y), info.refCon, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
-  pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
-  Py_DECREF(module_name_obj);
+  pluginStats[getPluginIndex()].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
 
   if(!pRes){
     err = PyErr_Occurred();
@@ -4084,7 +4011,6 @@ static int genericAvionicsKeyboard(char inKey, XPLMKeyFlags inFlags, char inVirt
   PyObject *pRes = nullptr;
   int res = 0;
   AvionicsCallbackInfo info;
-  PyObject *module_name_obj;
 
   auto it = avionicsCallbacksDict.find((intptr_t) inRefcon);
   if (it == avionicsCallbacksDict.end()) {
@@ -4094,8 +4020,7 @@ static int genericAvionicsKeyboard(char inKey, XPLMKeyFlags inFlags, char inVirt
   if (info.keyboard == Py_None) {
     return 1;
   }
-  module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
+  set_moduleName(info.module_name);
   info = it->second;
   
   struct timespec stop, start;
@@ -4104,7 +4029,7 @@ static int genericAvionicsKeyboard(char inKey, XPLMKeyFlags inFlags, char inVirt
                                       PyLong_FromLong(inKey), PyLong_FromLong(inFlags),
                                       PyLong_FromLong(inVirtualKey), info.refCon, PyLong_FromLong(losingFocus), nullptr);
   clock_gettime(CLOCK_MONOTONIC, &stop);
-  pluginStats[getPluginIndex(module_name_obj)].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
+  pluginStats[getPluginIndex()].draw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
 
   if(!pRes){
     err = PyErr_Occurred();

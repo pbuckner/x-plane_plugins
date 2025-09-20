@@ -335,9 +335,7 @@ static void featureEnumerator(const char *inFeature, void *inRef)
   }
 
   FeatureDict& info = it->second;
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
 
   PyObject *inFeatureObj = PyUnicode_FromString(inFeature);
   PyObject *res = PyObject_CallFunctionObjArgs(info.callback, inFeatureObj, info.refCon, nullptr);

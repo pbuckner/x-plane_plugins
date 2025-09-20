@@ -50,11 +50,7 @@ static void error_callback(const char *inMessage)
   
   for (const auto& pair : errorCallbacks) {
     const ErrorCallbackInfo& info = pair.second;
-    
-    PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-    set_moduleName(module_name_obj);
-    Py_DECREF(module_name_obj);
-    
+    set_moduleName(info.module_name);
     PyObject *oRes = PyObject_CallFunctionObjArgs(info.callback, msg, nullptr);
     PyObject *err = PyErr_Occurred();
     if(err){
@@ -429,9 +425,7 @@ static int genericCommandCallback(XPLMCommandRef inCommand, XPLMCommandPhase inP
   }
   
   CommandCallbackInfo& info = it->second;
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name.c_str());
 
   PyObject *arg1 = makeCapsule(inCommand, "XPLMCommandRef");
   PyObject *arg2 = PyLong_FromLong(inPhase);

@@ -20,7 +20,7 @@
  */
 
 
-static std::unordered_map <void *, PyObject*> CapsuleDict;  // {ptr: capsule}
+std::unordered_map <void *, PyObject*> CapsuleDict;  // {ptr: capsule}
 
 void deleteCapsule(PyObject *capsule)
 {
@@ -40,7 +40,7 @@ void deleteCapsule(PyObject *capsule)
 
   free((char*)name);
   free(context);
-  CapsuleDict.erase(it->first);
+  CapsuleDict.erase(it);
 }
 
 void *getVoidPtr(PyObject *capsule, std::string name)
@@ -150,6 +150,7 @@ void logCapsules()
     pythonLog("%-20s %p: %s", name, ptr, (char *)context);
   }
 }
+
 // // Can be used where no callbacks are involved in passing the capsule
 // PyObject *getPtrRefOneshot(void *ptr, const char *refName)
 // {

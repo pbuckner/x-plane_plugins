@@ -34,22 +34,19 @@ PluginStats pluginStats[512];
 static int numPlugins = 0;
 
 
-int getPluginIndex(PyObject *pluginInstance)
+int getPluginIndex()
 {
   /* add check for 'max plugins', so we don't die on multiple reloads with lots of python plugins? */
   if (numPlugins == 0) {
-    pluginStats[numPlugins].pluginInstance = Py_None; /* slot zero is for 'all' */
+    pluginStats[numPlugins].module_name = std::string();
     pluginStats[numPlugins].fl_time = pluginStats[numPlugins].customw_time = pluginStats[numPlugins].draw_time = 0;
     numPlugins++;
   }
-  for (int i = 0; i < numPlugins; i++) {
-    if(pluginStats[i].pluginInstance != nullptr && PyObject_RichCompareBool(pluginStats[i].pluginInstance, pluginInstance, Py_EQ)) {
-      return i;
-    }
+  for (int i = 1; i < numPlugins; i++) {
+    if(! strcmp(pluginStats[i].module_name.c_str(), CurrentPythonModuleName)) return i;
   }
 
-  pluginStats[numPlugins].pluginInstance = pluginInstance;
-  Py_INCREF(pluginInstance);
+  pluginStats[numPlugins].module_name = std::string(CurrentPythonModuleName);
   pluginStats[numPlugins].fl_time = pluginStats[numPlugins].customw_time = pluginStats[numPlugins].draw_time = 0;
   return numPlugins++;
 }
@@ -124,7 +121,7 @@ static PyObject *XPGetPluginStats(PyObject *self, PyObject *args)
     Py_DECREF(py_drawtime);
     Py_DECREF(py_customwtime);
 
-    PyDict_SetItem(info, pluginStats[i].pluginInstance, plugin_info);
+    PyDict_SetItem(info, i == 0 ? Py_None : PyUnicode_FromString(pluginStats[i].module_name.c_str()), plugin_info);
     
     Py_DECREF(plugin_info);
     pluginStats[i].fl_time = pluginStats[i].customw_time = pluginStats[i].draw_time = 0;
@@ -158,12 +155,14 @@ My_DOCSTR(_pythonGetDicts__doc__, "pythonGetDicts",
           "Return dictionary of internal xppython3 dictionaries\n"
           "\n"
           "See documentation, intended for debugging only");
-static PyObject *XPPythonGetDictsFun(PyObject *self, PyObject *args)
+PyObject *XPPythonGetDictsFun(PyObject *self, PyObject *args)
 {
   (void) self;
   (void) args;
   Py_INCREF(XPY3pythonDicts);
   //PyDict_SetItemString(XPY3pythonDicts, "commandCallbacks", buildCommandCallbacksDict())
+  PyDict_SetItemString(XPY3pythonDicts, "drefs", buildDataRefs());
+  PyDict_SetItemString(XPY3pythonDicts, "sharedDrefs", buildSharedDataRefs());
   return XPY3pythonDicts;
 }
 

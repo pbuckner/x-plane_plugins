@@ -213,9 +213,7 @@ static void genericObjectLoaded(XPLMObjectRef inObject, void *inRefcon)
   }
 
   LoaderInfo& info = it->second;
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
 
   PyObject *object = makeCapsule(inObject, "XPLMObjectRef");
   PyObject *res = PyObject_CallFunctionObjArgs(info.callback, object, info.refCon, nullptr);
@@ -324,9 +322,7 @@ static void libraryEnumerator(const char *inFilePath, void *inRef)
   }
 
   LibraryInfo& info = it->second;
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
 
   PyObject *res = PyObject_CallFunction(info.callback, "(sO)", inFilePath, info.refCon);
   Py_XDECREF(res);

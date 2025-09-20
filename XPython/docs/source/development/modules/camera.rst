@@ -49,7 +49,12 @@ Functions
 ---------
 
 .. py:function:: controlCamera(howLong=ControlCameraUntilViewChanges, controlFunc=None, refCon=None)
-                 
+
+    :param int howLong: :data:`ControlCameraUntilViewChanges` or :data:`ControlCameraForever`
+    :param Callable controlFunc: your callback called during draw cycle (See below).
+    :param Any refCon: Reference constant passed to your callback
+    :return: None
+
     Repositions the camera on the next drawing cycle.
 
     *howLong* is either ``ControlCameraUntilViewChanges`` which controls until the view is set by some other means, or
@@ -94,14 +99,14 @@ Functions
       * **refCon**:
           - reference constant you provided with call to `controlCamera()`
 
-    The final *refCon* is a reference constant passed to your *controlFunc()*. Only *controlFunc* parameter is required.
+    The final *refCon* is a reference constant passed to your *controlFunc()*. :py:func:`controlCamera` requires only the *controlFunc* parameter.
     ::
 
        >>> def myControlFunc(position, isLosingControl, refCon):
        ...     if isLosingControl:
        ...         xp.dontControlCamera()
-       ...     else:
-       ...         currentPosition = xp.readCameraPosition()
+       ...         return 0
+       ...     currentPosition = xp.readCameraPosition()
        ...     position.clear()  # (it's an undefined list on entry)
        ...     position.extend(currentPosition)
        ...     position[4] = currentPosition[4] + 0.5  # i.e., 'heading'.. spin camera .5 degrees @ frame
@@ -117,6 +122,8 @@ Functions
 
 .. py:function:: dontControlCamera()
 
+    :return: None
+
     Releases control of camera. (See :py:func:`controlCamera`). You should not use this routine unless
     you have possession of the camera. (See :py:func:`isCameraBeingControlled`).
 
@@ -127,6 +134,8 @@ Functions
 
 .. py:function:: isCameraBeingControlled()
                  
+    :return: Tuple [isBeingControlled: int, howLong: int]
+
     Returns a two element tuple (*isBeingControlled*, *howLong*)
     
     *isBeingControlled* is 1 if the camera is being controlled (by anyone), 0 otherwise.
@@ -134,23 +143,27 @@ Functions
 
     ::
 
-       >>> xp.controlCamera(howLong=2, controlFunc=myControlFunc)
+       >>> xp.controlCamera(howLong=xp.ControlCameraForever, controlFunc=myControlFunc)
        >>> xp.isCameraBeingControlled()
        (1, 2)
-       >>> xp.controlCamera(howLong=1, controlFunc=myControlFunc)
+       >>> xp.controlCamera(howLong=xp.ControlCameraUntilViewChanges, controlFunc=myControlFunc)
        >>> xp.isCameraBeingControlled()
        (1, 1)
        >>> xp.dontControlCamera()
        >>> xp.isCameraBeingControlled()
        (0, 32644)
 
-       
+    In the above ``controlCamera`` examples, both will cause the camera to spin 270 degrees and then stop. The difference is
+    with the second example, you can stop the spin early by switching to a different view (e.g., Shift-8 View-External-Chase).
+    The first example will not switch to a different view until the callback as relinquished control (at 270 degrees).
     
     `Official SDK <https://developer.x-plane.com/sdk/XPLMCamera/#XPLMIsCameraBeingControlled>`__: :index:`XPLMIsCameraBeingControlled`
 
 .. py:function:: readCameraPosition()
                  
-   Returns current camera position, a list of seven floats:
+   :return: Tuple of seven floats
+
+   Returns current camera position, a tuple of seven floats:
 
     ===== ========= ===========================================================
     Index Value     Meaning
@@ -165,7 +178,7 @@ Functions
    You do not need to control the camera in order to read its position::
 
      >>> xp.readCameraPosition()
-     [-22567.63552, 94.40988, 4305.8530, 2.407667, 180.40255, -0.86660, 1.0]
+     (-22567.63552, 94.40988, 4305.8530, 2.407667, 180.40255, -0.86660, 1.0)
 
    
    `Official SDK <https://developer.x-plane.com/sdk/XPLMCamera/#XPLMReadCameraPosition>`__: :index:`XPLMReadCameraPosition`

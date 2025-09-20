@@ -85,8 +85,6 @@ void resetMap(void) {
     Py_DECREF(pair.second.refCon);
   }
   mapCreateCallbacks.clear();
-
-  //PyDict_Clear(mapRefDict);
 }
 
 static inline void mapCallback(int whichCallback, XPLMMapLayerID inLayer, const float *inMapBoundsLeftTopRightBottom, float zoomRatio,
@@ -103,9 +101,7 @@ static inline void mapCallback(int whichCallback, XPLMMapLayerID inLayer, const 
   }
 
   const MapCallbackInfo& info = it->second;
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
 
   if (whichCallback < MAP_DRAW || whichCallback > MAP_LABEL) {
     pythonLog("mapCallback called with bad index %d", whichCallback);
@@ -172,9 +168,7 @@ static inline void mapPrepareCacheCallback(XPLMMapLayerID inLayer, const float *
     return;
   }
 
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
 
   layerObj = makeCapsule(inLayer, "XPLMMapLayerID");
   PyObject *mapProjectionCapsule = makeCapsule(projection, "XPLMMapProjectionID");
@@ -216,9 +210,7 @@ static inline void mapWillBeDeletedCallback(XPLMMapLayerID inLayer, void *inRefc
     return;
   }
 
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
 
   layerObj = makeCapsule(inLayer, "XPLMMapLayerID");
   refconObj = info.refCon;
@@ -250,9 +242,7 @@ static inline void mapCreatedCallback(const char *mapType, void *inRefcon)
   callback = info.callback;
   refconObj = info.refCon;
 
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
   
   PyObject *pRes = PyObject_CallFunctionObjArgs(callback, mapTypeObj, refconObj, nullptr);
   if(!pRes){
@@ -512,6 +502,7 @@ static PyObject *XPLMDestroyMapLayerFun(PyObject *self, PyObject *args, PyObject
         Py_DECREF(pair.second.name);
         Py_DECREF(pair.second.refCon);
         mapCallbacks.erase(pair.first);
+        break;
       }
     }
   }

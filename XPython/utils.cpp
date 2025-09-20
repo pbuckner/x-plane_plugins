@@ -109,7 +109,7 @@ void pythonLog(const char *fmt, ...) {
     char *msg;
     va_list ap;
     va_start(ap, fmt);
-#ifdef INCLUDE_TIME
+#if INCLUDE_TIME
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
 #endif
@@ -128,7 +128,7 @@ void pythonLog(const char *fmt, ...) {
     }
     va_end(ap);
     if (pythonLog_fp) {
-#ifdef INCLUDE_TIME
+#if INCLUDE_TIME
       fprintf(pythonLog_fp, "[%ld,%ld] %s\n", now.tv_sec, now.tv_nsec, msg);
 #else
       fprintf(pythonLog_fp, "%s\n", msg);
@@ -311,8 +311,15 @@ char * objToStr(PyObject *item) {
   return res;
 }
   
+void set_moduleName(std::string name) {
+  strcpy(CurrentPythonModuleName, name.c_str());
+}
+
+void set_moduleName(char *name) {
+  strcpy(CurrentPythonModuleName, name);
+}
+
 void set_moduleName(PyObject *name) {
-  /* takes Python String */
   char *tmp = objToStr(name);
   strcpy(CurrentPythonModuleName, tmp);
   free(tmp);

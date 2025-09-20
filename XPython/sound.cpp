@@ -199,9 +199,7 @@ static void soundCallback(void *inRefcon, FMOD_RESULT status)
   }
 
   SoundCallbackInfo& info = it->second;
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
 
   PyObject *statusObj = PyLong_FromLong(status);
   PyObject_CallFunctionObjArgs(info.callback, info.refCon, statusObj, nullptr);

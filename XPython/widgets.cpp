@@ -19,8 +19,6 @@
 #include "capsules.h"
 #include "cpp_utilities.hpp"
 
-std::unordered_map<void*, PyObject*> widgetIDCapsules;
-
 struct WidgetCallbackInfo {
   std::vector<PyObject*> callbacks;
   std::string module_name;
@@ -44,24 +42,21 @@ struct WidgetPropertyEqual {
 static std::unordered_map<std::pair<PyObject*, int>, PyObject*, WidgetPropertyHash, WidgetPropertyEqual> widgetPropertyDict;
 
 void resetWidgets(void) {
-  for (auto& pair : widgetIDCapsules) {
-    PyObject *capsuleInfo = pair.second;
-    PyObject *capsule = capsuleInfo;
-#if ERRCHECK
-    char *moduleName;
-    capsule = PyTuple_GetItem(capsuleInfo, 0);
-    moduleName = objToStr(PyTuple_GetItem(capsuleInfo, 1));
-#endif
-    char *s1 = objToStr(capsule);
-    pythonDebug("     Reset --      %s  %s", moduleName, s1);
-    free(s1);
-#if ERRCHECK
-    free(moduleName);
-#endif
-    XPDestroyWidget(getVoidPtr(capsule, "XPWidgetID"), 0);
-    Py_DECREF(pair.second);
+  for(auto it = CapsuleDict.begin(); it != CapsuleDict.end();) {
+    PyObject *capsule = it->second;
+    if (! strcmp(PyCapsule_GetName(capsule), "XPWidgetID")) {
+      char *moduleName = (char *)PyCapsule_GetContext(capsule);
+      char *s1 = objToStr(capsule);
+      pythonDebug("     Reset --      %s  %s", moduleName, s1);
+      free(s1);
+      free(moduleName);
+      XPDestroyWidget(getVoidPtr(capsule, "XPWidgetID"), 0);
+      Py_DECREF(it->second);
+      it = CapsuleDict.erase(it);
+    } else {
+      it++;
+    }
   }
-  widgetIDCapsules.clear();
   for (auto& pair : widgetCallbacks) {
     for (PyObject* callback : pair.second.callbacks) {
       Py_DECREF(callback);
@@ -167,9 +162,7 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
   WidgetCallbackInfo& callbackInfo = it->second;
 
   int res;
-  PyObject *module_name_obj = PyUnicode_FromString(callbackInfo.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(callbackInfo.module_name);
   for(size_t i = 0; i < callbackInfo.callbacks.size(); ++i){
     err = PyErr_Occurred();
     if(err){
@@ -206,7 +199,6 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
       }
       break;
     }
-    //pluginStats[getPluginIndex(pluginSelf)].customw_time += (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_nsec - start.tv_nsec) / 1000;
   }
 
   err = PyErr_Occurred();
@@ -235,9 +227,7 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
      callback execution misses much of what the custom widget actually processes. Sadly
      it appears we cannot match what Laminar is collecting internally.
   */
-  PyObject *module_name_p = PyUnicode_FromString(CurrentPythonModuleName);
-  pluginStats[getPluginIndex(module_name_p)].customw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
-  Py_DECREF(module_name_p);
+  pluginStats[getPluginIndex()].customw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
   pluginStats[0].customw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
   err = PyErr_Occurred();
   if(err){
@@ -417,12 +407,6 @@ static void clearXPWidgetData(PyObject *widget) {
     } else {
       ++it;
     }
-  }
-
-  auto it = widgetIDCapsules.find(wid);
-  if (it != widgetIDCapsules.end()) {
-    Py_DECREF(it->second);
-    widgetIDCapsules.erase(it);
   }
 }
 
@@ -1096,10 +1080,6 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
     Py_DECREF(pair.second);
   }
   widgetPropertyDict.clear();
-  for (auto& pair : widgetIDCapsules) {
-    Py_DECREF(pair.second);
-  }
-  widgetIDCapsules.clear();
   Py_RETURN_NONE;
 }
 
@@ -1198,22 +1178,12 @@ PyInit_XPWidgets(void)
 
 
 void logWidgets(PyObject *key, char *key_s, char * value_s) {
-#if ERRCHECK
-  /* widgetProperites key is Tuple<capsule, propID> */
-  PyObject *capsule = PyTuple_GetItem(key, 0);
-  /* widgetIDCapsules is <PyLong *ptr> : (<capsule> <module>)
-     So we have to iterate through all items to find the module */
-  PyObject *module = nullptr;
-  for (auto & pair:widgetIDCapsules) {
-    if (capsule == PyTuple_GetItem(pair.second, 0)) {
-      module = PyTuple_GetItem(pair.second, 1);
-      break;
+  /* get all widget capsules */
+  for (auto& pair : CapsuleDict) {
+    PyObject *capsule = pair.second;
+    if (! strcmp(PyCapsule_GetName(capsule), "XPWidgetID")) {
+      char *moduleName = (char *)PyCapsule_GetContext(capsule);
+      pythonLog("  %s / %s:%s%s", key_s, moduleName, strlen(value_s) > 10 ? "\n    " : " ", value_s);
     }
   }
-  char *module_s = objToStr(module);
-  pythonLog("  %s / %s:%s%s", key_s, module_s, strlen(value_s) > 10 ? "\n    " : " ", value_s);
-  free(module_s);
-#else
-  pythonLog("  %s:%s %s", key_s, strlen(value_s) > 10 ? "\n    " : " ", value_s);
-#endif
 }

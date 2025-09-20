@@ -1,5 +1,6 @@
 #ifndef UTILS__H
 #include <Python.h>
+#include <string>
 #define UTILS__H
 
 #define My_DOCSTR(name,method,parms,params_doc,return,str) static const char name[] = method"($module, /, " parms ")\n--\n\n" str
@@ -16,6 +17,8 @@ void dbg(const char *msg);
 void pythonLogException(void);
 
 void set_moduleName(PyObject *);
+void set_moduleName(std::string);
+void set_moduleName(char *);
 PyObject *get_moduleName_p();
 PyObject *get_pythonline();
 char *objToStr(PyObject *item);

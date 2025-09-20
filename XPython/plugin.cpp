@@ -292,10 +292,14 @@ static int stopPython(void)
        This is output only -- we're not deleting them here.
      */
     pythonLog("Undeleted items: begin vvvvv");
-    std::vector<std::string> dicts = {"plugins", "modules", "accessors", "drefs", "sharedDrefs", "drawCallbacks",
-                                      "keySniffCallbacks", "windows", "hotkeys", "hotkeyIDs", "mapCreates", "mapRefs", "maps",
-                                      "menus", "menuRefs", "menuPluginIdx", "errCallbacks", "commandCallbacks", "commandRevDict",
-                                      "widgetCallbacks", "widgetProperties", "flightLoops", "flightLoopIDs"};
+    std::vector<std::string> dicts = {"drefs", "sharedDrefs"};
+    /*
+      "plugins", "modules", "accessors", "drefs", "sharedDrefs", "drawCallbacks",
+      "keySniffCallbacks", "windows", "hotkeys", "hotkeyIDs", "mapCreates", "mapRefs", "maps",
+      "menus", "menuRefs", "menuPluginIdx", "errCallbacks", "commandCallbacks", "commandRevDict",
+      "widgetCallbacks", "widgetProperties", "flightLoops", "flightLoopIDs"};
+    */
+    XPPythonGetDictsFun(Py_None, Py_None);
     size_t size = dicts.size();
     for(size_t i = 0; i < size; i++) {
       PyObject *dict = PyDict_GetItemString(XPY3pythonDicts, dicts[i].c_str()); // borrowed
@@ -317,9 +321,11 @@ static int stopPython(void)
       }
     }
     pythonLog("Undeleted items: end   ^^^^");
-    pythonLog("Remaining capsules: begin vvvvv");
-    logCapsules();
-    pythonLog("Remaining capsules: end   ^^^^^");
+    if (pythonCapsuleRegistration) {
+      pythonLog("Remaining capsules: begin vvvvv");
+      logCapsules();
+      pythonLog("Remaining capsules: end   ^^^^^");
+    }
   }
               
   XPLMClearAllMenuItems(XPLMFindPluginsMenu());
@@ -351,7 +357,7 @@ static int stopPython(void)
     }
       
     if(mod){
-      set_moduleName(PyUnicode_FromString(mods[i].c_str()));
+      set_moduleName(mods[i]);
       PyObject *pRes = PyObject_CallMethod(mod, "_cleanup", nullptr);
       if (PyErr_Occurred() ) {
         pythonLog("[XPPython3] Failed during cleanup of internal module %s", mods[i].c_str());

@@ -148,9 +148,7 @@ void planesAvailable(void *inRefcon)
   AvailableInfo& info = it->second;
   if (info.callback == Py_None) return;
 
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
 
   PyObject *res = PyObject_CallFunctionObjArgs(info.callback, info.refCon, nullptr);
   PyObject *err = PyErr_Occurred();

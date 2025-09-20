@@ -17,8 +17,8 @@
 #include "plugin_dl.h"
 
 struct SharedInfo {
-  std::string name;
   std::string module_name;
+  std::string name;
   XPLMDataTypeID data_type;
   PyObject *callback;
   PyObject *refCon;
@@ -34,7 +34,7 @@ struct AccessorInfo {
   std::string data_name;
   XPLMDataTypeID data_type;
   int is_writable;
-  PyObject * read_int;
+  PyObject *read_int;
   PyObject *write_int;
   PyObject *read_float;
   PyObject *write_float;
@@ -97,9 +97,10 @@ void resetDataRefs(void) {
 
 static inline XPLMDataRef drefFromObj(PyObject *obj)
 {
+  /* provides error checking for valid (i.e., not unregistered) dataRef */
   XPLMDataRef ret = (XPLMDataRef)getVoidPtr(obj, "XPLMDataRef");
   if (! ret) {
-    PyErr_SetString(PyExc_TypeError, "invalid dataRef");
+    PyErr_SetString(PyExc_ValueError, "invalid dataRef");
   }
   return ret;
 }
@@ -819,9 +820,7 @@ static int getDatai(void *inRefcon)
     return 0;
   }
 
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
   PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_int, info.read_refCon, nullptr);
 
   if(PyErr_Occurred()) {
@@ -873,9 +872,7 @@ static void setDatai(void *inRefcon, int inValue)
   }
 
   PyObject *oArg2 = PyLong_FromLong(inValue);
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
   PyObject *oRes = PyObject_CallFunctionObjArgs(info.write_int, info.write_refCon, oArg2, nullptr);
 
   if(PyErr_Occurred()){
@@ -904,9 +901,7 @@ static float getDataf(void *inRefcon)
     return 0.0;
   }
 
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
   PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_float, info.read_refCon, nullptr);
 
   if(PyErr_Occurred()) {
@@ -946,9 +941,7 @@ static void setDataf(void *inRefcon, float inValue)
   }
 
   PyObject *oArg2 = PyFloat_FromDouble((double)inValue);
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
   PyObject *oRes = PyObject_CallFunctionObjArgs(info.write_float, info.write_refCon, oArg2, nullptr);
 
   if(PyErr_Occurred()){
@@ -974,9 +967,7 @@ static double getDatad(void *inRefcon)
     return 0.0;
   }
 
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
   PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_double, info.read_refCon, nullptr);
 
   if(PyErr_Occurred()) {
@@ -1016,9 +1007,7 @@ static void setDatad(void *inRefcon, double inValue)
   }
 
   PyObject *oArg2 = PyFloat_FromDouble(inValue);
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
   PyObject *oRes = PyObject_CallFunctionObjArgs(info.write_double, info.write_refCon, oArg2, nullptr);
   if(PyErr_Occurred()){
     return;
@@ -1052,9 +1041,7 @@ static int getDatavi(void *inRefcon, int *outValues, int inOffset, int inMax)
     Py_INCREF(outValuesObj);
   }
 
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
   PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_int_array, info.read_refCon, outValuesObj, oArg2, oArg3, nullptr);
   PyObject *err = PyErr_Occurred();
   if(err) {
@@ -1118,9 +1105,7 @@ static void setDatavi(void *inRefcon, int *inValues, int inOffset, int inCount)
     Py_DECREF(tmp);
   }
   PyObject *err = PyErr_Occurred();
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
   if(err){
     char msg[1024];
     char *s = objToStr(info.write_int_array);
@@ -1176,9 +1161,7 @@ static int getDatavf(void *inRefcon, float *outValues, int inOffset, int inMax)
     Py_INCREF(outValuesObj);
   }
 
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
   PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_float_array, info.read_refCon, outValuesObj, oArg2, oArg3, nullptr);
   PyObject *err = PyErr_Occurred();
   if(err) {
@@ -1266,9 +1249,7 @@ static void setDatavf(void *inRefcon, float *inValues, int inOffset, int inCount
   if(PyErr_Occurred()) {
     return;
   }
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
   PyObject *oRes = PyObject_CallFunctionObjArgs(info.write_float_array, info.write_refCon, inValuesObj, oArg2, oArg3, nullptr);
   Py_DECREF(oArg2);
   Py_DECREF(oArg3);
@@ -1305,9 +1286,7 @@ static int getDatab(void *inRefcon, void *outValue, int inOffset, int inMax)
     outValuesObj = Py_None;
     Py_INCREF(outValuesObj);
   }
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
   PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_data, info.read_refCon, outValuesObj, oArg2, oArg3, nullptr);
   PyObject *err = PyErr_Occurred();
   if(err) {
@@ -1369,9 +1348,7 @@ static void setDatab(void *inRefcon, void *inValue, int inOffset, int inCount)
   }
 
   AccessorInfo& info = it->second;
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
 
   PyObject *inValuesObj = PyList_New(0);
   uint8_t *pInValue = (uint8_t *)inValue;
@@ -1455,7 +1432,7 @@ static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args, PyO
   }
   freeCharArray(keywords, params.size());
   if (inIsWritable == -1) {
-    inIsWritable = (wi != Py_None || wf != Py_None || wd != Py_None || wai != Py_None || waf != Py_None) ? 1 : 0;
+    inIsWritable = (wi != Py_None || wf != Py_None || wd != Py_None || wai != Py_None || waf != Py_None || wab != Py_None) ? 1 : 0;
   }
   if (inDataType == xplmType_Unknown) {
     inDataType |= (ri != Py_None || wi != Py_None) ? xplmType_Int : 0;
@@ -1537,13 +1514,13 @@ static PyObject *XPLMUnregisterDataAccessorFun(PyObject *self, PyObject *args, P
   PyObject *pluginSelf = get_moduleName_p();
   intptr_t accessor_id = -1;
   for (auto& pair : accessorCallbacks) {
-    if (pair.second.dataRef == drefObj) {
+    if (pair.second.dataRef == getVoidPtr(drefObj, "XPLMDataRef")) {
       accessor_id = pair.first;
     }
   }
   if (accessor_id == -1) {
     Py_DECREF(pluginSelf);
-    printf("XPLMUnregisterDataref: No such dataref registered!\n");
+    pythonLog("XPLMUnregisterDataref: No such dataref registered!\n");
     Py_RETURN_NONE;
   }
 
@@ -1551,7 +1528,7 @@ static PyObject *XPLMUnregisterDataAccessorFun(PyObject *self, PyObject *args, P
   auto it = accessorCallbacks.find(accessor_id);
   if (it == accessorCallbacks.end()) {
     Py_DECREF(pluginSelf);
-    printf("XPLMUnregisterDataref: No such refcon registered!\n");
+    pythonLog("XPLMUnregisterDataref: No such refcon registered!\n");
     Py_RETURN_NONE;
   }
 
@@ -1560,7 +1537,7 @@ static PyObject *XPLMUnregisterDataAccessorFun(PyObject *self, PyObject *args, P
   if(PyObject_RichCompareBool(pluginSelf, registerer, Py_NE)) {
     Py_DECREF(registerer);
     Py_DECREF(pluginSelf);
-    printf("XPLMUnregisterDataref: Don't unregister dataref you didn't register!!\n");
+    pythonLog("XPLMUnregisterDataref: Don't unregister dataref you didn't register!!\n");
     Py_RETURN_NONE;
   }
   Py_DECREF(pluginSelf);
@@ -1582,8 +1559,9 @@ static PyObject *XPLMUnregisterDataAccessorFun(PyObject *self, PyObject *args, P
   Py_DECREF(info.read_refCon);
   Py_DECREF(info.write_refCon);
 
+  XPLMUnregisterDataAccessor(info.dataRef);
   accessorCallbacks.erase(it);
-  XPLMUnregisterDataAccessor(drefFromObj(drefObj));
+  deleteCapsule(drefObj);
   Py_RETURN_NONE;
 }
 
@@ -1597,9 +1575,7 @@ static void genericSharedDataChanged(void *inRefcon)
   }
 
   SharedInfo& info = it->second;
-  PyObject *module_name_obj = PyUnicode_FromString(info.module_name.c_str());
-  set_moduleName(module_name_obj);
-  Py_DECREF(module_name_obj);
+  set_moduleName(info.module_name);
 
   if (info.callback != Py_None) {
     PyObject *oRes = PyObject_CallFunctionObjArgs(info.callback, info.refCon, nullptr);
@@ -1653,8 +1629,8 @@ static PyObject *XPLMShareDataFun(PyObject *self, PyObject *args, PyObject *kwar
   Py_INCREF(inNotificationRefcon);
 
   sharedCallbacks[refcon_id] = {
-    .name = std::string(inDataName),
     .module_name = std::string(CurrentPythonModuleName),
+    .name = std::string(inDataName),
     .data_type = inDataType,
     .callback = inNotificationFunc,
     .refCon = inNotificationRefcon
@@ -1862,6 +1838,7 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
     Py_DECREF(info.write_data);
     Py_DECREF(info.read_refCon);
     Py_DECREF(info.write_refCon);
+    XPLMUnregisterDataAccessor(info.dataRef);
   }
   accessorCallbacks.clear();
 
@@ -1875,7 +1852,92 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+PyObject *buildDataRefs()
+{
+  PyObject *dataRefs = PyDict_New();
 
+  for (const auto& pair : accessorCallbacks) {
+    intptr_t key = pair.first;
+    const AccessorInfo& info = pair.second;
+
+    // Create 18-element tuple containing all AccessorInfo elements
+    PyObject *tuple = PyTuple_New(18);
+    PyTuple_SetItem(tuple, 0, PyUnicode_FromString(info.module_name.c_str()));        // module_name
+    PyTuple_SetItem(tuple, 1, PyUnicode_FromString(info.data_name.c_str()));          // data_name
+    PyTuple_SetItem(tuple, 2, PyLong_FromLong(info.data_type));                       // data_type
+    PyTuple_SetItem(tuple, 3, PyLong_FromLong(info.is_writable));                     // is_writable
+
+    // Python callback objects (increment reference count)
+    Py_INCREF(info.read_int);
+    PyTuple_SetItem(tuple, 4, info.read_int);                                         // read_int
+    Py_INCREF(info.write_int);
+    PyTuple_SetItem(tuple, 5, info.write_int);                                        // write_int
+    Py_INCREF(info.read_float);
+    PyTuple_SetItem(tuple, 6, info.read_float);                                       // read_float
+    Py_INCREF(info.write_float);
+    PyTuple_SetItem(tuple, 7, info.write_float);                                      // write_float
+    Py_INCREF(info.read_double);
+    PyTuple_SetItem(tuple, 8, info.read_double);                                      // read_double
+    Py_INCREF(info.write_double);
+    PyTuple_SetItem(tuple, 9, info.write_double);                                     // write_double
+    Py_INCREF(info.read_int_array);
+    PyTuple_SetItem(tuple, 10, info.read_int_array);                                  // read_int_array
+    Py_INCREF(info.write_int_array);
+    PyTuple_SetItem(tuple, 11, info.write_int_array);                                 // write_int_array
+    Py_INCREF(info.read_float_array);
+    PyTuple_SetItem(tuple, 12, info.read_float_array);                                // read_float_array
+    Py_INCREF(info.write_float_array);
+    PyTuple_SetItem(tuple, 13, info.write_float_array);                               // write_float_array
+    Py_INCREF(info.read_data);
+    PyTuple_SetItem(tuple, 14, info.read_data);                                       // read_data
+    Py_INCREF(info.write_data);
+    PyTuple_SetItem(tuple, 15, info.write_data);                                      // write_data
+    Py_INCREF(info.read_refCon);
+    PyTuple_SetItem(tuple, 16, info.read_refCon);                                     // read_refCon
+    Py_INCREF(info.write_refCon);
+    PyTuple_SetItem(tuple, 17, info.write_refCon);                                    // write_refCon
+
+    // Note: info.dataRef (XPLMDataRef) is not included as it's a C pointer type
+
+    // Add to dictionary with accessorCntr as key
+    PyObject *py_key = PyLong_FromLong(key);
+    PyDict_SetItem(dataRefs, py_key, tuple);
+    Py_DECREF(py_key);
+    Py_DECREF(tuple);
+  }
+
+  return dataRefs;
+}
+
+PyObject *buildSharedDataRefs()
+{
+  PyObject *sharedDataRefs = PyDict_New();
+
+  for (const auto& pair : sharedCallbacks) {
+    intptr_t key = pair.first;
+    const SharedInfo& info = pair.second;
+
+    // Create 5-element tuple containing all SharedInfo elements
+    PyObject *tuple = PyTuple_New(5);
+    PyTuple_SetItem(tuple, 0, PyUnicode_FromString(info.module_name.c_str()));        // module_name
+    PyTuple_SetItem(tuple, 1, PyUnicode_FromString(info.name.c_str()));               // name
+    PyTuple_SetItem(tuple, 2, PyLong_FromLong(info.data_type));                       // data_type
+
+    // Python callback objects (increment reference count)
+    Py_INCREF(info.callback);
+    PyTuple_SetItem(tuple, 3, info.callback);                                         // callback
+    Py_INCREF(info.refCon);
+    PyTuple_SetItem(tuple, 4, info.refCon);                                           // refCon
+
+    // Add to dictionary with sharedCntr as key
+    PyObject *py_key = PyLong_FromLong(key);
+    PyDict_SetItem(sharedDataRefs, py_key, tuple);
+    Py_DECREF(py_key);
+    Py_DECREF(tuple);
+  }
+
+  return sharedDataRefs;
+}
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-function-type"
@@ -1928,6 +1990,8 @@ static PyMethodDef XPLMDataAccessMethods[] = {
   {"XPLMGetDataRefsByIndex", (PyCFunction)XPLMGetDataRefsByIndexFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"getDataRefInfo", (PyCFunction)XPLMGetDataRefInfoFun, METH_VARARGS | METH_KEYWORDS, _getDataRefInfo__doc__},
   {"XPLMGetDataRefInfo", (PyCFunction)XPLMGetDataRefInfoFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getDataRefDict", (PyCFunction)buildDataRefs, METH_VARARGS, "Copy of internal AccessorDict"},
+  {"getSharedDataRefDict", (PyCFunction)buildSharedDataRefs, METH_VARARGS, "Copy of internal Shared DataRefs Dict"},
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {nullptr, nullptr, 0, nullptr}
 };

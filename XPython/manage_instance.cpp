@@ -118,7 +118,7 @@ void xpy_reloadInstance(PyObject *signature) {
 
   PyObject *moduleName = PyList_GetItem(pluginInfo, PLUGIN_MODULE_NAME);
   set_moduleName(moduleName);
-  pythonDebug("  which is module: %s", objDebug(moduleName));
+  pythonDebug("  which is module: %s", CurrentPythonModuleName);
   PyObject *pluginInstance = PyDict_GetItem(XPY3moduleDict, moduleName);
   
   if (PyList_GetItem(pluginInfo, PLUGIN_DISABLED) == Py_False) {

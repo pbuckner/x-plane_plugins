@@ -10,11 +10,18 @@
 #include "cpp_utilities.hpp"
 
 static intptr_t camCntr;
-static std::unordered_map<void*, PyObject*> camDict;
-#define CAMERA_PLUGIN_MODULE_NAME 0
-#define CAMERA_HOW_LONG 1
-#define CAMERA_CALLBACK 2
-#define CAMERA_REFCON 3
+struct CameraInfo {
+  std::string module_name;
+  int howLong;
+  PyObject *callback;
+  PyObject *refCon;
+};
+
+static std::unordered_map<intptr_t, CameraInfo> camDict;
+// #define CAMERA_PLUGIN_MODULE_NAME 0
+// #define CAMERA_HOW_LONG 1
+// #define CAMERA_CALLBACK 2
+// #define CAMERA_REFCON 3
 
 
 void resetCamera(void) {
@@ -30,7 +37,8 @@ void resetCamera(void) {
     }
   }
   for (auto& pair : camDict) {
-    Py_DECREF(pair.second);
+    Py_DECREF(pair.second.refCon);
+    Py_DECREF(pair.second.callback);
   }
   camDict.clear();
 }
@@ -40,12 +48,12 @@ static int genericCameraControl(XPLMCameraPosition_t *outCameraPosition, int inI
   PyObject *err;
   errCheck("error before cameraControl");
 
-  auto it = camDict.find(inRefcon);
+  auto it = camDict.find((intptr_t)inRefcon);
   if(it == camDict.end()){
     printf("Couldn't find cameraControl callback with id = %p.", inRefcon);
     return 0;
   }
-  PyObject *callbackInfo = it->second;
+  CameraInfo info = it->second;
 
   PyObject *pos;
   if(!inIsLosingControl){
@@ -63,10 +71,10 @@ static int genericCameraControl(XPLMCameraPosition_t *outCameraPosition, int inI
   }
 
 
-  set_moduleName(PyTuple_GetItem(callbackInfo, CAMERA_PLUGIN_MODULE_NAME));
-  PyObject *fun = PyTuple_GetItem(callbackInfo, CAMERA_CALLBACK);
+  set_moduleName(info.module_name);
+  PyObject *fun = info.callback;
   PyObject *lc = PyLong_FromLong(inIsLosingControl);
-  PyObject *refcon = PyTuple_GetItem(callbackInfo, CAMERA_REFCON);
+  PyObject *refcon = info.refCon;
   PyObject *resObj = PyObject_CallFunctionObjArgs(fun, pos, lc, refcon, nullptr);  // new
   Py_DECREF(lc);
 
@@ -163,11 +171,17 @@ static PyObject *XPLMControlCameraFun(PyObject *self, PyObject *args, PyObject *
     PyErr_SetString(PyExc_ValueError, "Expected non-null value for func in controlCamera()\n");
     Py_RETURN_NONE;
   }
-  void *inRefcon = (void *)++camCntr;
-  PyObject *argsObj = Py_BuildValue("(siOO)", CurrentPythonModuleName, inHowLong, controlFunc, refcon);
 
-  camDict[inRefcon] = argsObj;
-  XPLMControlCamera(inHowLong, genericCameraControl, inRefcon);
+  Py_INCREF(refcon);
+  Py_INCREF(controlFunc);
+
+  camDict[++camCntr] = {
+    .module_name = std::string(CurrentPythonModuleName),
+    .howLong = inHowLong,
+    .callback = controlFunc,
+    .refCon = refcon
+  };
+  XPLMControlCamera(inHowLong, genericCameraControl, (void *)camCntr);
   Py_RETURN_NONE;
 }
 
@@ -228,7 +242,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   (void) self;
   (void) args;
   for (auto& pair : camDict) {
-    Py_DECREF(pair.second);
+    Py_DECREF(pair.second.callback);
+    Py_DECREF(pair.second.refCon);
   }
   camDict.clear();
   Py_RETURN_NONE;

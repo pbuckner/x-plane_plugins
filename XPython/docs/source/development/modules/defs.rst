@@ -36,7 +36,7 @@ XPLMPluginID
  .. py:data:: kVersion
     :value: 400
 
-    The current XPLM SDK revision for X-Plane 11.55 is 303. X-Plane 12 is 400.
+    The current XPLM SDK revision for X-Plane 11.55 is 303. X-Plane 12 is 400, X-Plane 12.3 is 421.
     `Official SDK <https://developer.x-plane.com/sdk/XPLMDefs/#kXPLM_Version>`__: :index:`kXPLM_Version`
 
 

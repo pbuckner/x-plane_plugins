@@ -17,7 +17,6 @@
 #include "display.h"
 #include "xppython.h"
 #include "capsules.h"
-#include "cpp_utilities.hpp"
 
 struct WidgetCallbackInfo {
   std::vector<PyObject*> callbacks;

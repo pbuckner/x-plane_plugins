@@ -8,7 +8,6 @@
 #include "plugin_dl.h"
 #include "utils.h"
 #include "xppythontypes.h"
-#include "cpp_utilities.hpp"
 
 static PyObject *cleanup(PyObject *self, PyObject *args)
 {

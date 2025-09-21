@@ -11,7 +11,6 @@
 #include "xppythontypes.h"
 #include "xppython.h"
 #include "capsules.h"
-#include "cpp_utilities.hpp"
 
 static intptr_t drawCallbackCntr;
 /* the 'key' to drawCallbackDict, we'll use as the refcon for genericDrawCallback function.

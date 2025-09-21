@@ -7,7 +7,6 @@
 #include <XPLM/XPLMGraphics.h>
 #include "utils.h"
 #include "plugin_dl.h"
-#include "cpp_utilities.hpp"
 
 
 My_DOCSTR(_setGraphicsState__doc__, "setGraphicsState",

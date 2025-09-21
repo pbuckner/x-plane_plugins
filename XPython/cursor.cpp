@@ -3,7 +3,6 @@
 #include "utils.h"
 #include "cursor.h"
 #include <string>
-#include "cpp_utilities.hpp"
 #include <vector>
 #include <errno.h>
 #include <stdlib.h>

@@ -9,7 +9,6 @@
 #include "plugin_dl.h"
 #include "utils.h"
 #include "xppythontypes.h"
-#include "cpp_utilities.hpp"
 
 My_DOCSTR(_getFirstNavAid__doc__, "getFirstNavAid",
           "",

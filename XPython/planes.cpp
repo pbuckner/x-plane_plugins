@@ -9,7 +9,6 @@
 #include <unordered_map>
 #include "utils.h"
 #include "plugin_dl.h"
-#include "cpp_utilities.hpp"
 
 static intptr_t availableCntr;
 struct AvailableInfo {

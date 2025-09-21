@@ -9,7 +9,6 @@
 #include <unordered_map>
 #include "utils.h"
 #include "xppythontypes.h"
-#include "cpp_utilities.hpp"
 
 My_DOCSTR(_getMyID__doc__, "getMyID",
           "",

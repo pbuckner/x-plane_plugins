@@ -10,7 +10,6 @@
 #include "utils.h"
 #include "utilities.h"
 #include "capsules.h"
-#include "cpp_utilities.hpp"
 
 struct ErrorCallbackInfo {
     PyObject* callback;

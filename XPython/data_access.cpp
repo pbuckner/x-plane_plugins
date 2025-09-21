@@ -11,7 +11,6 @@
 #include <XPLM/XPLMUtilities.h>
 #include "utils.h"
 #include "data_access.h"
-#include "cpp_utilities.hpp"
 #include "xppythontypes.h"
 #include "capsules.h"
 #include "plugin_dl.h"

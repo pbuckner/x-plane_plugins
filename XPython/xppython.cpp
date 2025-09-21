@@ -23,7 +23,6 @@
 #include "widgets.h"
 #include "xppython.h"
 #include "manage_instance.h"
-#include "cpp_utilities.hpp"
 
 PyObject *XPY3pythonDicts = nullptr, *XPY3pythonCapsules = nullptr;
 PyObject *PythonModuleMTimes = nullptr;

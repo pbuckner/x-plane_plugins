@@ -12,7 +12,6 @@
 #include "widgets.h"
 #include "widgetutils.h"
 #include "capsules.h"
-#include "cpp_utilities.hpp"
 
 My_DOCSTR(_createWidgets__doc__, "createWidgets",
           "widgetDefs, parentID=None",

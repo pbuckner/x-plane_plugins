@@ -7,7 +7,6 @@
 #include <XPLM/XPLMCamera.h>
 #include "camera.h"
 #include "utils.h"
-#include "cpp_utilities.hpp"
 
 static intptr_t camCntr;
 struct CameraInfo {

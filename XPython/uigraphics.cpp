@@ -8,7 +8,6 @@
 #include <Widgets/XPUIGraphics.h>
 #include "utils.h"
 #include "xppythontypes.h"
-#include "cpp_utilities.hpp"
 
 My_DOCSTR(_drawWindow__doc__, "drawWindow",
           "left, bottom, right, top, style=1",

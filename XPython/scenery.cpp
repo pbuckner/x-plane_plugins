@@ -10,7 +10,6 @@
 #include "utils.h"
 #include "plugin_dl.h"
 #include "xppythontypes.h"
-#include "cpp_utilities.hpp"
 #include "capsules.h"
 
 struct LoaderInfo {

@@ -9,7 +9,6 @@
 #include "plugin_dl.h"
 #include "utils.h"
 #include "capsules.h"
-#include "cpp_utilities.hpp"
 
 static intptr_t callbackCntr;
 struct SoundCallbackInfo {

@@ -10,7 +10,6 @@
 #include "utils.h"
 #include "map.h"
 #include "capsules.h"
-#include "cpp_utilities.hpp"
 
 struct MapCallbackInfo {
   std::string module_name;     // MAP_MODULE_NAME

@@ -13,7 +13,6 @@
 #include "xppythontypes.h"
 #include "processing.h"
 #include "capsules.h"
-#include "cpp_utilities.hpp"
 
 static intptr_t flCntr;
 /* the 'key' to flDict, we use as the refCon for genericFlightLoopCallback function.

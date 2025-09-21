@@ -6,7 +6,6 @@
 #include <string>
 #include "utils.h"
 #include "xppythontypes.h"
-#include "cpp_utilities.hpp"
 
 /* Plugininfo Type */
 typedef struct {

@@ -6,7 +6,6 @@
 #include <vector>
 #include <string>
 #include "utils.h"
-#include "cpp_utilities.hpp"
 #include "xppythontypes.h"
 
 /* DataRefInfo Type */

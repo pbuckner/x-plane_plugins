@@ -11,7 +11,6 @@
 #include "plugin_dl.h"
 #include "menus.h"
 #include "capsules.h"
-#include "cpp_utilities.hpp"
 
 static intptr_t menuRefConCntr;
 struct MenuInfo {

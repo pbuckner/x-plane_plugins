@@ -5,7 +5,6 @@
 #include <string>
 #include "xppythontypes.h"
 #include "utils.h"
-#include "cpp_utilities.hpp"
 
 /* ProbeInfo Type */
 typedef struct {

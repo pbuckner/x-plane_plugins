@@ -6,7 +6,6 @@
 #include "XPLMWeather.h"
 #include "xppythontypes.h"
 #include "utils.h"
-#include "cpp_utilities.hpp"
 
 /* WeatherInfo Type */
 typedef struct {

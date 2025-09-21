@@ -12,7 +12,6 @@
 #include <unordered_map>
 #include "instance.h"
 #include "capsules.h"
-#include "cpp_utilities.hpp"
 
 
 static std::unordered_map<void*, PyObject*> instanceCapsules;

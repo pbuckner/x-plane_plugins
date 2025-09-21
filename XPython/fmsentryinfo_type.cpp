@@ -66,8 +66,7 @@ FMSEntryInfo_dealloc(FMSEntryInfoObject *self)
 static int
 FMSEntryInfo_init(FMSEntryInfoObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"type", "navAidID", "ref", "altitude", "lat", "lon"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("type"), CHAR("navAidID"), CHAR("ref"), CHAR("altitude"), CHAR("lat"), CHAR("lon"), nullptr};
   PyObject *navAidID = nullptr,  *tmp;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|iUiiff", keywords,
                                    &self->type, &navAidID, &self->ref, &self->altitude, &self->lat, &self->lon))

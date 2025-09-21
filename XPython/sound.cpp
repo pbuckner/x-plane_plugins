@@ -72,14 +72,11 @@ static PyObject *XPLMGetFMODChannelGroupFun(PyObject *self, PyObject *args, PyOb
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetFMODChannelGroup is available only in XPLM400 and up and requires at least X-Plane v12.04.");
     return nullptr;
   }
-  std::vector<std::string> params = {"audioType"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("audioType"), nullptr};
   XPLMAudioBus audioType;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &audioType)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
 
   FMOD_CHANNELGROUP *ret = XPLMGetFMODChannelGroup_ptr(audioType);
   return makeCapsule(ret, "FMOD_CHANNELGROUP");
@@ -135,12 +132,10 @@ static PyObject *XPLMPlayPCMOnBusFun(PyObject *self, PyObject *args, PyObject *k
 {
   (void)self;
   (void)args;
-  std::vector<std::string> params = {"audioBuffer", "bufferSize", "soundFormat", "freqHz",
-                                     "numChannels", "loop", "audioType", "callback", "refCon"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("audioBuffer"), CHAR("bufferSize"), CHAR("soundFormat"), CHAR("freqHz"),
+                             CHAR("numChannels"), CHAR("loop"), CHAR("audioType"), CHAR("callback"), CHAR("refCon"), nullptr};
   if (!XPLMPlayPCMOnBus_ptr) {
     PyErr_SetString(PyExc_RuntimeError , "XPLMPlayPCMOnBus is available only in XPLM400 and up and requires at least X-Plane v12.04.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
 
@@ -150,15 +145,13 @@ static PyObject *XPLMPlayPCMOnBusFun(PyObject *self, PyObject *args, PyObject *k
   PyObject *callbackObj=Py_None, *inRefConObj=Py_None;
   XPLMAudioBus audioType;
   FMOD_SOUND_FORMAT soundFormat;
-  
+
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oiiiiii|OO", keywords,
                                   &audioBufferObj, &bufferSize, &soundFormat,
                                   &freqHz, &numChannels, &loop, &audioType,
                                   &callbackObj, &inRefConObj)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
 
   if (!PyBytes_Check(audioBufferObj)) {
     pythonLog("Passed in audiobuffer not correct type");
@@ -223,20 +216,16 @@ My_DOCSTR(_stopAudio__doc__, "stopAudio",
 static PyObject *XPLMStopAudioFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void)self;
-  std::vector<std::string> params = {"channel"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("channel"), nullptr};
   if (!XPLMStopAudio_ptr) {
     PyErr_SetString(PyExc_RuntimeError , "XPLMStopAudio is available only in XPLM400 and up and requires at least X-Plane v12.04.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
 
   PyObject *fmod_channel_obj;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &fmod_channel_obj)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   FMOD_CHANNEL *fmod_channel = (FMOD_CHANNEL *)getVoidPtr(fmod_channel_obj, "FMOD_CHANNEL");
   FMOD_RESULT res = XPLMStopAudio_ptr(fmod_channel);
   return PyLong_FromLong(res);
@@ -257,17 +246,14 @@ static PyObject *XPLMSetAudioPositionFun(PyObject *self, PyObject *args, PyObjec
     PyErr_SetString(PyExc_RuntimeError , "XPLMSetAudioPosition is available only in XPLM400 and up and requires at least X-Plane v12.04.");
     return nullptr;
   }
-  std::vector<std::string> params = {"channel", "position", "velocity"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("channel"), CHAR("position"), CHAR("velocity"), nullptr};
   PyObject *fmod_channel_obj;
   PyObject *position_obj;
   PyObject *velocity_obj = Py_None;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|O", keywords, &fmod_channel_obj, &position_obj, &velocity_obj)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
 
   if (!PySequence_Check(position_obj)) {
     pythonLog("Expected List object for position");
@@ -333,21 +319,17 @@ My_DOCSTR(_setAudioFadeDistance__doc__, "setAudioFadeDistance",
 static PyObject *XPLMSetAudioFadeDistanceFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void)self;
-  std::vector<std::string> params = {"channel", "min_distance", "max_distance"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("channel"), CHAR("min_distance"), CHAR("max_distance"), nullptr};
   if (!XPLMSetAudioFadeDistance_ptr) {
     PyErr_SetString(PyExc_RuntimeError , "XPLMSetAudioFadeDistance is available only in XPLM400 and up and requires at least X-Plane v12.04.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   float min=1.0;
   float max=10000.0;
   PyObject *fmod_channel_obj;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|ff", keywords, &fmod_channel_obj, &min, &max)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   FMOD_CHANNEL *fmod_channel = (FMOD_CHANNEL *)getVoidPtr(fmod_channel_obj, "FMOD_CHANNEL");
   FMOD_RESULT res = XPLMSetAudioFadeDistance_ptr(fmod_channel, min, max);
   return PyLong_FromLong(res);
@@ -364,21 +346,17 @@ My_DOCSTR(_setAudioVolume__doc__, "setAudioVolume",
 static PyObject *XPLMSetAudioVolumeFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void)self;
-  std::vector<std::string> params = {"channel", "volume"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("channel"), CHAR("volume"), nullptr};
   if (!XPLMSetAudioVolume_ptr) {
     PyErr_SetString(PyExc_RuntimeError , "XPLMSetAudioVolume is available only in XPLM400 and up and requires at least X-Plane v12.04.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   PyObject *fmod_channel_obj;
   float volume=1.0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|f", keywords, &fmod_channel_obj, &volume)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   FMOD_CHANNEL *fmod_channel = (FMOD_CHANNEL *)getVoidPtr(fmod_channel_obj, "FMOD_CHANNEL");
   FMOD_RESULT res = XPLMSetAudioVolume_ptr(fmod_channel, volume);
   return PyLong_FromLong(res);
@@ -395,21 +373,17 @@ My_DOCSTR(_setAudioPitch__doc__, "setAudioPitch",
 static PyObject *XPLMSetAudioPitchFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void)self;
-  std::vector<std::string> params = {"channel", "pitch"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("channel"), CHAR("pitch"), nullptr};
   if (!XPLMSetAudioPitch_ptr) {
     PyErr_SetString(PyExc_RuntimeError , "XPLMSetAudioPitch is available only in XPLM400 and up and requires at least X-Plane v12.04.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   PyObject *fmod_channel_obj;
   float herz = 1.0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|f", keywords, &fmod_channel_obj, &herz)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   FMOD_CHANNEL *fmod_channel = (FMOD_CHANNEL *)getVoidPtr(fmod_channel_obj, "FMOD_CHANNEL");
   FMOD_RESULT res = XPLMSetAudioPitch_ptr(fmod_channel, herz);
   return PyLong_FromLong(res);
@@ -429,11 +403,9 @@ My_DOCSTR(_setAudioCone__doc__, "setAudioCone",
 static PyObject *XPLMSetAudioConeFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void)self;
-  std::vector<std::string> params = {"channel", "inside_angle", "outside_angle", "outside_volume", "orientation"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("channel"), CHAR("inside_angle"), CHAR("outside_angle"), CHAR("outside_volume"), CHAR("orientation"), nullptr};
   if (!XPLMSetAudioCone_ptr) {
     PyErr_SetString(PyExc_RuntimeError , "XPLMSetAudioCone is available only in XPLM400 and up and requires at least X-Plane v12.04.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
 
@@ -444,10 +416,8 @@ static PyObject *XPLMSetAudioConeFun(PyObject *self, PyObject *args, PyObject *k
                                    &fmod_channel_obj,
                                    &inside_angle, &outside_angle, &outside_volume,
                                    &orientation_obj)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   FMOD_CHANNEL *fmod_channel = (FMOD_CHANNEL *)getVoidPtr(fmod_channel_obj, "FMOD_CHANNEL");
   FMOD_VECTOR orientation;
   if (orientation_obj != Py_None) {

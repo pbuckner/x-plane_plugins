@@ -17,15 +17,12 @@ My_DOCSTR(_drawWindow__doc__, "drawWindow",
           "Draw window at location");
 static PyObject *XPDrawWindowFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"left", "bottom", "right", "top", "style"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("left"), CHAR("bottom"), CHAR("right"), CHAR("top"), CHAR("style"), nullptr};
   (void) self;
   int inX1, inY1, inX2, inY2, inStyle=xpWindow_MainWindow;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiii|i", keywords, &inX1, &inY1, &inX2, &inY2, &inStyle)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPDrawWindow(inX1, inY1, inX2, inY2, inStyle);
   Py_RETURN_NONE;
 }
@@ -39,15 +36,12 @@ My_DOCSTR(_getWindowDefaultDimensions__doc__, "getWindowDefaultDimensions",
           "Returns (width, height)");
 static PyObject *XPGetWindowDefaultDimensionsFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"style"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("style"), nullptr};
   (void) self;
   int inStyle=xpWindow_MainWindow, width, height;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", keywords, &inStyle)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPGetWindowDefaultDimensions(inStyle, &width, &height);
   return Py_BuildValue("(ii)", width, height);
 }
@@ -59,15 +53,12 @@ My_DOCSTR(_drawElement__doc__, "drawElement",
           "Draw element, possibly lit, at location.");
 static PyObject *XPDrawElementFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"left", "bottom", "right", "top", "style", "lit"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("left"), CHAR("bottom"), CHAR("right"), CHAR("top"), CHAR("style"), CHAR("lit"), nullptr};
   (void) self;
   int inX1, inY1, inX2, inY2, inStyle, inLit=0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiiii|i", keywords, &inX1, &inY1, &inX2, &inY2, &inStyle, &inLit)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPDrawElement(inX1, inY1, inX2, inY2, inStyle, inLit);
   Py_RETURN_NONE;
 }
@@ -81,15 +72,12 @@ My_DOCSTR(_getElementDefaultDimensions__doc__, "getElementDefaultDimensions",
           "Returns (width, height, canBeLit)");
 static PyObject *XPGetElementDefaultDimensionsFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"style"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("style"), nullptr};
   (void) self;
   int inStyle, width, height, canBeLit;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inStyle)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPGetElementDefaultDimensions(inStyle, &width, &height, &canBeLit);
   return Py_BuildValue("(iii)", width, height, canBeLit);
 }
@@ -108,15 +96,13 @@ My_DOCSTR(_drawTrack__doc__, "drawTrack",
           "  Track_Progress =2");
 static PyObject *XPDrawTrackFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"left", "bottom", "right", "top", "minValue", "maxValue", "value", "style", "lit"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("left"), CHAR("bottom"), CHAR("right"), CHAR("top"), CHAR("minValue"), CHAR("maxValue"),
+                             CHAR("value"), CHAR("style"), CHAR("lit"), nullptr};
   (void) self;
   int inX1, inY1, inX2, inY2, inMin, inMax, inValue, inStyle, inLit=0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiiiiiii|i", keywords, &inX1, &inY1, &inX2, &inY2, &inMin, &inMax, &inValue, &inStyle, &inLit)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPDrawTrack(inX1, inY1, inX2, inY2, inMin, inMax, inValue, inStyle, inLit);
   Py_RETURN_NONE;
 }
@@ -130,15 +116,12 @@ My_DOCSTR(_getTrackDefaultDimensions__doc__, "getTrackDefaultDimensions",
           "Returns (width, canBeLit)");
 static PyObject *XPGetTrackDefaultDimensionsFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"style"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("style"), nullptr};
   (void) self;
   int inStyle, width, canBeLit;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inStyle)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPGetTrackDefaultDimensions(inStyle, &width, &canBeLit);
   return Py_BuildValue("(ii)", width, canBeLit);
 }
@@ -159,16 +142,14 @@ My_DOCSTR(_getTrackMetrics__doc__, "getTrackMetrics",
           "  .upBtnSize");
 static PyObject *XPGetTrackMetricsFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"left", "bottom", "right", "top", "minValue", "maxValue", "value", "style"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("left"), CHAR("bottom"), CHAR("right"), CHAR("top"), CHAR("minValue"),
+                             CHAR("maxValue"), CHAR("value"), CHAR("style"), nullptr};
   (void) self;
   int inX1, inY1, inX2, inY2, inMin, inMax, inValue, inStyle;
   int outIsVertical, outDownBtnSize, outDownPageSize, outThumbSize, outUpPageSize, outUpBtnSize;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiiiiiii", keywords, &inX1, &inY1, &inX2, &inY2, &inMin, &inMax, &inValue, &inStyle)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPGetTrackMetrics(inX1, inY1, inX2, inY2, inMin, inMax, inValue, inStyle, &outIsVertical, &outDownBtnSize,
                     &outDownPageSize, &outThumbSize, &outUpPageSize, &outUpBtnSize);
   return PyTrackMetrics_New(outIsVertical, outDownBtnSize, outDownPageSize, outThumbSize, outUpPageSize, outUpBtnSize);

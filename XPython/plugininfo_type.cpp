@@ -80,15 +80,12 @@ PluginInfo_dealloc(PluginInfoObject *self)
 static int
 PluginInfo_init(PluginInfoObject *self, PyObject *args, PyObject *kwds)
 {
-  std::vector<std::string> params = {"name", "filePath", "signature", "description"};
-  char **kwlist = stringVectorToCharArray(params);
+  static char *kwlist[] = {CHAR("name"), CHAR("filePath"), CHAR("signature"), CHAR("description"), nullptr};
   PyObject *description = nullptr, *name = nullptr, *filePath = nullptr, *signature = nullptr, *tmp;
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "|UUUU", kwlist,
                                    &name, &filePath, &signature, &description)) {
-    freeCharArray(kwlist, params.size());
     return -1;
   }
-  freeCharArray(kwlist, params.size());
   if (description) {
     tmp = self->description;
     Py_INCREF(description);

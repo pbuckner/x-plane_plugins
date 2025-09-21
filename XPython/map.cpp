@@ -298,8 +298,7 @@ My_DOCSTR(_createMapLayer__doc__, "createMapLayer",
           "If map does not currently exist, returns 0.");
 static PyObject *XPLMCreateMapLayerFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"mapType", "layerType", "delete", "prep", "draw", "icon", "label", "showToggle", "name", "refCon"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("mapType"), CHAR("layerType"), CHAR("delete"), CHAR("prep"), CHAR("draw"), CHAR("icon"), CHAR("label"), CHAR("showToggle"), CHAR("name"), CHAR("refCon"), nullptr};
   (void) self;
   PyObject *map=Py_None, *deleted=Py_None, *prep=Py_None, *draw=Py_None, *icon=Py_None, *label=Py_None, *refCon=Py_None;
   PyObject *firstObj=Py_None;
@@ -310,14 +309,11 @@ static PyObject *XPLMCreateMapLayerFun(PyObject *self, PyObject *args, PyObject 
 
   if(!XPLMCreateMapLayer_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMCreateMapLayer is available only in XPLM300 and up.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OiOOOOOiOO", keywords, &firstObj, &layerType, &deleted, &prep, &draw, &icon, &label, &showToggle, &name, &refCon)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   if (firstObj == Py_None) {
     ;
   } else if (PySequence_Check(firstObj)) {
@@ -473,21 +469,17 @@ My_DOCSTR(_destroyMapLayer__doc__, "destroyMapLayer",
           "Destroys map layer given by layerID.");
 static PyObject *XPLMDestroyMapLayerFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"layerID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("layerID"), nullptr};
   (void) self;
   PyObject *layer;
 
   if(!XPLMDestroyMapLayer_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMDestroyMapLayer is available only in XPLM300 and up.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &layer)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
 
   XPLMMapLayerID inLayer = getVoidPtr(layer, "XPLMMapLayerID");
   int res = XPLMDestroyMapLayer_ptr(inLayer);
@@ -519,20 +511,16 @@ My_DOCSTR(_registerMapCreationHook__doc__, "registerMapCreationHook",
           "Callback gets two parameters: (mapType, refCon)");
 static PyObject *XPLMRegisterMapCreationHookFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"mapCreated", "refCon"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("mapCreated"), CHAR("refCon"), nullptr};
   (void) self;
   PyObject *callback, *inRefCon=Py_None;
   if(!XPLMRegisterMapCreationHook_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMRegisterMapCreationHook is available only in XPLM300 and up.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O", keywords, &callback, &inRefCon)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
 
   intptr_t refcon_id = ++mapCreateCntr;
 
@@ -562,21 +550,17 @@ My_DOCSTR(_mapExists__doc__, "mapExists",
           "mapType is either xp.MAP_USER_INTERFACE or xp.MAP_IOS");
 static PyObject *XPLMMapExistsFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"mapType"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("mapType"), nullptr};
   (void) self;
   const char *mapType;
 
   if(!XPLMMapExists_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMMapExists is available only in XPLM300 and up.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &mapType)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   int res = XPLMMapExists_ptr(mapType);
   return PyLong_FromLong(res);
 }
@@ -590,8 +574,7 @@ My_DOCSTR(_drawMapIconFromSheet__doc__, "drawMapIconFromSheet",
           "Only valid within iconLayer() callback.");
 static PyObject *XPLMDrawMapIconFromSheetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"layerID", "png", "s", "t", "ds", "dt", "x", "y", "orientation", "rotationDegrees", "mapWidth"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("layerID"), CHAR("png"), CHAR("s"), CHAR("t"), CHAR("ds"), CHAR("dt"), CHAR("x"), CHAR("y"), CHAR("orientation"), CHAR("rotationDegrees"), CHAR("mapWidth"), nullptr};
   (void) self;
   PyObject *layerObj;
   const char *inPngPath;
@@ -601,15 +584,12 @@ static PyObject *XPLMDrawMapIconFromSheetFun(PyObject *self, PyObject *args, PyO
 
   if(!XPLMDrawMapIconFromSheet_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMDrawMapIconFromSheet is available only in XPLM300 and up.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Osiiiiffiff", keywords, &layerObj, &inPngPath, &s, &t, &ds, &dt, &mapX, &mapY,
                        &orientation, &rotationDegrees, &mapWidth)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMMapLayerID layer = getVoidPtr(layerObj, "XPLMMapLayerID");
   XPLMDrawMapIconFromSheet_ptr(layer, inPngPath, s, t, ds, dt, mapX, mapY,
                        orientation, rotationDegrees, mapWidth);
@@ -625,8 +605,7 @@ My_DOCSTR(_drawMapLabel__doc__, "drawMapLabel",
           "Only valid within labelLayer() callback.");
 static PyObject *XPLMDrawMapLabelFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"layerID", "text", "x", "y", "orientation", "rotationDegrees"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("layerID"), CHAR("text"), CHAR("x"), CHAR("y"), CHAR("orientation"), CHAR("rotationDegrees"), nullptr};
   (void) self;
   PyObject *layerObj;
   const char *inText;
@@ -635,15 +614,12 @@ static PyObject *XPLMDrawMapLabelFun(PyObject *self, PyObject *args, PyObject *k
 
   if(!XPLMDrawMapLabel_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMDrawMapLabel is available only in XPLM300 and up.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Osffif", keywords, &layerObj, &inText, &mapX, &mapY,
                        &orientation, &rotationDegrees)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMMapLayerID layer = getVoidPtr(layerObj, "XPLMMapLayerID");
   XPLMDrawMapLabel_ptr(layer, inText, mapX, mapY, orientation, rotationDegrees);
   Py_RETURN_NONE;
@@ -658,30 +634,22 @@ My_DOCSTR(_mapProject__doc__, "mapProject",
           "Only valid within map layer callbacks.");
 static PyObject *XPLMMapProjectFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"projection", "latitude", "longitude", "x", "y"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("projection"), CHAR("latitude"), CHAR("longitude"), CHAR("x"), CHAR("y"), nullptr};
   (void) self;
   PyObject *projectionObj, *outX, *outY;
   double latitude, longitude;
   int returnValues = 0;
   if(!XPLMMapProject_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMMapProject is available only in XPLM300 and up.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OddOO", keywords, &projectionObj, &latitude, &longitude, &outX, &outY)) {
     PyErr_Clear();
     returnValues = 1;
-    freeCharArray(keywords, params.size());
-    std::vector<std::string> nparams = {"projection", "latitude", "longitude"};
-    char **nkeywords = stringVectorToCharArray(nparams);
+    static char *nkeywords[] = {CHAR("projection"), CHAR("latitude"), CHAR("longitude"), nullptr};
     if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Odd", nkeywords, &projectionObj, &latitude, &longitude)) {
-      freeCharArray(nkeywords, nparams.size());
       return nullptr;
     }
-    freeCharArray(nkeywords, nparams.size());
-  } else {
-    freeCharArray(keywords, params.size());
   }
   XPLMMapProjectionID projection = getVoidPtr(projectionObj, "XPLMMapProjectionID");
   float x, y;
@@ -708,8 +676,7 @@ My_DOCSTR(_mapUnproject__doc__, "mapUnproject",
           "Only valid within map layer callbacks.");
 static PyObject *XPLMMapUnprojectFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"projection", "x", "y", "latitude", "longitude"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("projection"), CHAR("x"), CHAR("y"), CHAR("latitude"), CHAR("longitude"), nullptr};
   (void) self;
   PyObject *projectionObj, *outLatitude, *outLongitude;
   float mapX, mapY;
@@ -717,22 +684,15 @@ static PyObject *XPLMMapUnprojectFun(PyObject *self, PyObject *args, PyObject *k
 
   if(!XPLMMapUnproject_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMMapUnproject is available only in XPLM300 and up.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OffOO", keywords, &projectionObj, &mapX, &mapY, &outLatitude, &outLongitude)){
     PyErr_Clear();
     returnValues = 1;
-    freeCharArray(keywords, params.size());
-    std::vector<std::string> nparams = {"projection", "x", "y"};
-    char **nkeywords = stringVectorToCharArray(nparams);
+    static char *nkeywords[] = {CHAR("projection"), CHAR("x"), CHAR("y"), nullptr};
     if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Off", nkeywords, &projectionObj, &mapX, &mapY)){
-      freeCharArray(nkeywords, nparams.size());
       return nullptr;
     }
-    freeCharArray(nkeywords, nparams.size());
-  } else {
-    freeCharArray(keywords, params.size());
   }
   XPLMMapProjectionID projection = getVoidPtr(projectionObj, "XPLMMapProjectionID");
   double longitude, latitude;
@@ -757,22 +717,18 @@ My_DOCSTR(_mapScaleMeter__doc__, "mapScaleMeter",
           "Only valid within map layer callbacks.");
 static PyObject *XPLMMapScaleMeterFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"projection", "x", "y"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("projection"), CHAR("x"), CHAR("y"), nullptr};
   (void) self;
   PyObject *projectionObj;
   float mapX, mapY;
 
   if(!XPLMMapScaleMeter_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMMapScaleMeter is available only in XPLM300 and up.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Off", keywords, &projectionObj, &mapX, &mapY)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMMapProjectionID projection = getVoidPtr(projectionObj, "XPLMMapProjectionID");
   float res = XPLMMapScaleMeter_ptr(projection, mapX, mapY);
   return PyFloat_FromDouble(res);
@@ -787,22 +743,18 @@ My_DOCSTR(_mapGetNorthHeading__doc__, "mapGetNorthHeading",
           "Only valid within map layer callbacks.");
 static PyObject *XPLMMapGetNorthHeadingFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"projection", "x", "y"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("projection"), CHAR("x"), CHAR("y"), nullptr};
   (void) self;
   PyObject *projectionObj;
   float mapX, mapY;
 
   if(!XPLMMapGetNorthHeading_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMMapGetNorthHeading is available only in XPLM300 and up.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Off", keywords, &projectionObj, &mapX, &mapY)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMMapProjectionID projection = getVoidPtr(projectionObj, "XPLMMapProjectionID");
   float res = XPLMMapGetNorthHeading_ptr(projection, mapX, mapY);
   return PyFloat_FromDouble(res);

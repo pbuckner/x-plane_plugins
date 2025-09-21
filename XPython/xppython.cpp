@@ -77,8 +77,7 @@ My_DOCSTR(_reloadPlugin__doc__, "reloadPlugin",
 static PyObject *XPReloadPlugin(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void) self;
-  std::vector<std::string> params = {"signature"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("signature"), nullptr};
   PyObject *signature;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &signature)) {
     return nullptr;

@@ -45,15 +45,12 @@ My_DOCSTR(_getNthPlugin__doc__, "getNthPlugin",
           "Return the ID of a (non-python) plugin by index.");
 static PyObject *XPLMGetNthPluginFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"index"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("index"), nullptr};
   (void) self;
   int inIndex;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inIndex)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   return PyLong_FromLong(XPLMGetNthPlugin(inIndex));
 }
 
@@ -66,15 +63,12 @@ My_DOCSTR(_findPluginByPath__doc__, "findPluginByPath",
           "Path must be absolute.");
 static PyObject *XPLMFindPluginByPathFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"path"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("path"), nullptr};
   (void) self;
   const char *inPath;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inPath)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   return PyLong_FromLong(XPLMFindPluginByPath(inPath));
 }
 
@@ -85,15 +79,12 @@ My_DOCSTR(_findPluginBySignature__doc__, "findPluginBySignature",
           "Return the pluginID of the (non-python) plugin whose signature matches.");
 static PyObject *XPLMFindPluginBySignatureFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"signature"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("signature"), nullptr};
   (void) self;
   const char *inSignature;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inSignature)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   return PyLong_FromLong(XPLMFindPluginBySignature(inSignature));
 }
 
@@ -110,15 +101,12 @@ My_DOCSTR(_getPluginInfo__doc__, "getPluginInfo",
           "  .description");
 static PyObject *XPLMGetPluginInfoFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"pluginID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("pluginID"), nullptr};
   (void) self;
   int inPluginID;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inPluginID)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   char name[512];
   char filePath[512];
   char signature[512];
@@ -134,15 +122,12 @@ My_DOCSTR(_isPluginEnabled__doc__, "isPluginEnabled",
           "Return 1 if plugin is enabled, 0 otherwise");
 static PyObject *XPLMIsPluginEnabledFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"pluginID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("pluginID"), nullptr};
   (void) self;
   int inPluginID;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inPluginID)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   return PyLong_FromLong(XPLMIsPluginEnabled(inPluginID));
 }
 
@@ -153,15 +138,12 @@ My_DOCSTR(_enablePlugin__doc__, "enablePlugin",
           "Enables plugin.");
 static PyObject *XPLMEnablePluginFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"pluginID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("pluginID"), nullptr};
   (void) self;
   int inPluginID;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inPluginID)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   return PyLong_FromLong(XPLMEnablePlugin(inPluginID));
 }
 
@@ -172,15 +154,12 @@ My_DOCSTR(_disablePlugin__doc__, "disablePlugin",
           "Disables plugin");
 static PyObject *XPLMDisablePluginFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"pluginID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("pluginID"), nullptr};
   (void) self;
   int inPluginID;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inPluginID)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMDisablePlugin(inPluginID);
   Py_RETURN_NONE;
 }
@@ -210,8 +189,7 @@ My_DOCSTR(_sendMessageToPlugin__doc__, "sendMessageToPlugin",
           "python plugins.");
 static PyObject *XPLMSendMessageToPluginFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"pluginID", "message", "param"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("pluginID"), CHAR("message"), CHAR("param"), nullptr};
   (void) self;
   long inPluginID;
   long inMessage;
@@ -223,10 +201,8 @@ static PyObject *XPLMSendMessageToPluginFun(PyObject *self, PyObject *args, PyOb
     pythonLogException();
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ll|O", keywords, &inPluginID, &inMessage, &inParam)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   void *msgParam;
   if (inParam == Py_None) {
     msgParam = nullptr;
@@ -258,15 +234,12 @@ My_DOCSTR(_hasFeature__doc__, "hasFeature",
           "Return 1 if X-Plane supports feature.");
 static PyObject *XPLMHasFeatureFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"feature"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("feature"), nullptr};
   (void) self;
   const char *inFeature;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inFeature)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   return PyLong_FromLong(XPLMHasFeature(inFeature));
 }
 
@@ -277,15 +250,12 @@ My_DOCSTR(_isFeatureEnabled__doc__, "isFeatureEnabled",
           "Returns 1 if feature is currently enabled for your plugin.");
 static PyObject *XPLMIsFeatureEnabledFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"feature"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("feature"), nullptr};
   (void) self;
   const char *inFeature;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inFeature)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   return PyLong_FromLong(XPLMIsFeatureEnabled(inFeature));
 }
 
@@ -296,16 +266,13 @@ My_DOCSTR(_enableFeature__doc__, "enableFeature",
           "Enables / disables indicated feature for this plugin.");
 static PyObject *XPLMEnableFeatureFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"feature", "enable"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("feature"), CHAR("enable"), nullptr};
   (void) self;
   const char *inFeature;
   int inEnable=1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s|i", keywords, &inFeature, &inEnable)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   if (!inEnable && ! (strcmp(inFeature, "XPLM_USE_NATIVE_PATHS") &&
                       strcmp(inFeature, "XPLM_USE_NATIVE_WIDGET_WINDOWS") &&
                       strcmp(inFeature, "XPLM_WANTS_DATAREF_NOTIFICATIONS"))) {
@@ -358,16 +325,13 @@ My_DOCSTR(_enumerateFeatures__doc__, "enumerateFeatures",
           "You callback takes (name, refCon) as parameters");
 static PyObject *XPLMEnumerateFeaturesFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"enumerator", "refCon"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("enumerator"), CHAR("refCon"), nullptr};
   (void) self;
   PyObject *fun;
   PyObject *refCon=Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O", keywords, &fun, &refCon)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   intptr_t refcon = ++feCntr;
   featureCallbacks[refcon] = {
     .callback = fun,

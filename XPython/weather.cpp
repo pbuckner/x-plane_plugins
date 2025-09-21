@@ -278,20 +278,16 @@ My_DOCSTR(_getMETARForAirport__doc__, "getMETARForAirport",
 
 static PyObject *XPLMGetMETARForAirportFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"airport_id"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("airport_id"), nullptr};
   (void) self;
   if(!XPLMGetMETARForAirport_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetMETARForAirport is available only in XPLM400 and up, and requires at least X-Plane v12.04.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   char *airport_id = nullptr;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &airport_id)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMFixedString150_t outMetar;
   XPLMGetMETARForAirport_ptr(airport_id, &outMetar);
   return PyUnicode_DecodeUTF8((char *)&outMetar, strlen((char*)&outMetar), nullptr);
@@ -309,21 +305,17 @@ My_DOCSTR(_getWeatherAtLocation__doc__, "getWeatherAtLocation",
           "is not intended to be used per-frame.");
 static PyObject *XPLMGetWeatherAtLocationFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"latitude", "longitude", "altitude_m"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("latitude"), CHAR("longitude"), CHAR("altitude_m"), nullptr};
   (void)self;
   if(!XPLMGetWeatherAtLocation_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetWeatherAtLocation is available only in XPLM400 and up, and requires at least X-Plane v12.04.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
 
   double latitude, longitude, altitude_m;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ddd", keywords, &latitude, &longitude, &altitude_m)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMWeatherInfo_t out_info;
   int xp, xplm;
   XPLMHostApplicationID hostID;
@@ -418,13 +410,10 @@ static PyObject *XPLMEndWeatherUpdateFun(PyObject *self, PyObject *args, PyObjec
   }
   int immediately = 0, incremental = 1;
 
-  std::vector<std::string> params = {"isIncremental", "updateImmediately"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("isIncremental"), CHAR("updateImmediately"), nullptr};
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|ii", keywords, &incremental, &immediately)){
-    freeCharArray(keywords, params.size());
     return nullptr;
-  }
-  freeCharArray(keywords, params.size());    
+  }    
   
   XPLMEndWeatherUpdate_ptr(incremental, immediately);
   Py_RETURN_NONE;
@@ -438,21 +427,17 @@ My_DOCSTR(_eraseWeatherAtLocation__doc__, "eraseWeatherAtLocation",
 static PyObject *XPLMEraseWeatherAtLocationFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void) self;
-  std::vector<std::string> params = {"latitude", "longitude"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("latitude"), CHAR("longitude"), nullptr};
   if(!XPLMEraseWeatherAtLocation_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMEraseWeatherAtLocation is available only in XPLM420 and up.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
 
   double latitude, longitude;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "dd", keywords, &latitude, &longitude)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
 
   XPLMEraseWeatherAtLocation_ptr(latitude, longitude);
 
@@ -469,11 +454,9 @@ My_DOCSTR(_setWeatherAtLocation__doc__, "setWeatherAtLocation",
 static PyObject *XPLMSetWeatherAtLocationFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void) self;
-  std::vector<std::string> params = {"latitude", "longitude", "altitude_m", "info"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("latitude"), CHAR("longitude"), CHAR("altitude_m"), CHAR("info"), nullptr};
   if(!XPLMSetWeatherAtLocation_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMSetWeatherAtLocation is available only in XPLM420 and up.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
 
@@ -481,10 +464,8 @@ static PyObject *XPLMSetWeatherAtLocationFun(PyObject *self, PyObject *args, PyO
   PyObject *infoObj;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "dddO", keywords, &latitude, &longitude, &altitude_m, &infoObj)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
 
   XPLMWeatherInfo_t info;
   if(!setWeather(infoObj, &info)) return nullptr;
@@ -503,21 +484,17 @@ My_DOCSTR(_setWeatherAtAirport__doc__, "setWeatherAtAirport",
 static PyObject *XPLMSetWeatherAtAirportFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void) self;
-  std::vector<std::string> params = {"airport_id", "info"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("airport_id"), CHAR("info"), nullptr};
   if(!XPLMSetWeatherAtAirport_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMSetWeatherAtAirport is available only in XPLM420 and up.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   char *airport_id = nullptr;
   PyObject *infoObj;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "sO", keywords, &airport_id, &infoObj)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
 
   XPLMWeatherInfo_t info;
   if(!setWeather(infoObj, &info)) return nullptr;
@@ -534,21 +511,17 @@ My_DOCSTR(_eraseWeatherAtAirport__doc__, "eraseWeatherAtAirport",
 static PyObject *XPLMEraseWeatherAtAirportFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void) self;
-  std::vector<std::string> params = {"airport_id"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("airport_id"), nullptr};
   if(!XPLMEraseWeatherAtAirport_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMEraseWeatherAtAirport is available only in XPLM420 and up.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
 
   char *airport_id = nullptr;
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &airport_id)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
 
   XPLMEraseWeatherAtAirport_ptr(airport_id);
 

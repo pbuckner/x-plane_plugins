@@ -3,6 +3,7 @@
 #include <structmember.h>
 #include <vector>
 #include <string>
+#include "utils.h"
 #include "xppythontypes.h"
 #include "cpp_utilities.hpp"
 
@@ -60,12 +61,10 @@ TrackMetrics_dealloc(TrackMetricsObject *self)
 static int
 TrackMetrics_init(TrackMetricsObject *self, PyObject *args, PyObject *kwds)
 {
-  std::vector<std::string> params = {"isVertical", "downBtnSize", "downPageSize", "thumbSize", "upPageSize", "upBtnSize"};
-  char **kwlist = stringVectorToCharArray(params);
+  static char *kwlist[] = {CHAR("isVertical"), CHAR("downBtnSize"), CHAR("downPageSize"), CHAR("thumbSize"), CHAR("upPageSize"), CHAR("upBtnSize"), nullptr};
   int result = PyArg_ParseTupleAndKeywords(args, kwds, "|iiiiii", kwlist,
                                    &self->isVertical, &self->downBtnSize, &self->downPageSize, &self->thumbSize,
                                    &self->upPageSize, &self->upBtnSize);
-  freeCharArray(kwlist, params.size());
   if (!result)
     return -1;
   return 0;

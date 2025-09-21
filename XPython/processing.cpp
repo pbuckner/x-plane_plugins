@@ -231,17 +231,14 @@ static PyObject *XPLMRegisterFlightLoopCallbackFun(PyObject* self, PyObject *arg
      in unique integer value which is the flDict key.
    */
 
-  std::vector<std::string> params = {"callback", "interval", "refCon"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("callback"), CHAR("interval"), CHAR("refCon"), nullptr};
   (void)self;
   PyObject *callback=Py_None, *refCon=Py_None;
   float interval=0.0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|fO", keywords, &callback, &interval, &refCon)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
 
   intptr_t refcon = ++flCntr;
   flightLoopCallbacks[refcon] = {
@@ -272,15 +269,12 @@ static PyObject *XPLMUnregisterFlightLoopCallbackFun(PyObject *self, PyObject *a
      2) Lookup info in flDict
      3) We unregister genericFlightLoopCallback, with refCon (which is unique flDict key)
   */
-  std::vector<std::string> params = {"callback", "refCon"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("callback"), CHAR("refCon"), nullptr};
   (void)self;
   PyObject *callback, *refcon=Py_None;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O", keywords, &callback, &refcon)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
 
   PyObject *module_name_p = get_moduleName_p();
   intptr_t found_refcon = 0;
@@ -329,17 +323,14 @@ My_DOCSTR(_setFlightLoopCallbackInterval__doc__, "setFlightLoopCallbackInterval"
           "Must have been previously registered with registerFlightLoopCallback()");
 static PyObject *XPLMSetFlightLoopCallbackIntervalFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"callback", "interval", "relativeToNow", "refCon"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("callback"), CHAR("interval"), CHAR("relativeToNow"), CHAR("refCon"), nullptr};
   (void)self;
   PyObject *callback, *refcon=Py_None;
   float inInterval=0.0;
   int inRelativeToNow=1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|fiO", keywords, &callback, &inInterval, &inRelativeToNow, &refcon)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
 
   PyObject *module_name_p = get_moduleName_p();
   intptr_t found_refcon = 0;
@@ -383,8 +374,7 @@ My_DOCSTR(_createFlightLoop__doc__, "createFlightLoop",
           "phase is 0=before or 1=After flight model integration");
 static PyObject *XPLMCreateFlightLoopFun(PyObject* self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"callback", "phase", "refCon"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("callback"), CHAR("phase"), CHAR("refCon"), nullptr};
   (void)self;
   PyObject *firstObj=Py_None;
   PyObject *refCon=Py_None;
@@ -392,16 +382,13 @@ static PyObject *XPLMCreateFlightLoopFun(PyObject* self, PyObject *args, PyObjec
   int phase=0;
 
   if(!XPLMCreateFlightLoop_ptr){
-    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPLMCreateFlightLoop is available only in XPLM210 and up.");
     return nullptr;
   }
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|iO", keywords, &firstObj, &phase, &refCon)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
 
   XPLMCreateFlightLoop_t fl;
   fl.structSize = sizeof(fl);
@@ -443,21 +430,17 @@ My_DOCSTR(_isFlightLoopValid__doc__, "isFlightLoopValid",
           "Return True if flightLoopID exists and is valid: it may or may not be scheduled.");
 static PyObject *isFlightLoopValidFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"flightLoopID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("flightLoopID"), nullptr};
   (void) self;
   PyObject *revId;
   if(!XPLMDestroyFlightLoop_ptr){
-    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "isFlightLoopValid is available only in XPLM210 and up.");
     return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &revId)){
-    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_ValueError , "xp.isFlightLoopValid: missing flightLoopID.");
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
 
   XPLMFlightLoopID flightLoopID = getVoidPtr(revId, "XPLMFlightLoopID");
   for (auto& it : flightLoopCallbacks) {
@@ -474,21 +457,17 @@ My_DOCSTR(_destroyFlightLoop__doc__, "destroyFlightLoop",
           "Destroys flight loop previously created by createFlightLoop()");
 static PyObject *XPLMDestroyFlightLoopFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"flightLoopID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("flightLoopID"), nullptr};
   (void)self;
   PyObject *revId;
   if(!XPLMDestroyFlightLoop_ptr){
-    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPLMDestroyFlightLoop is available only in XPLM210 and up.");
     return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &revId)){
-    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_ValueError , "xp.destroyFlightLoop: missing flightLoopID.");
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
 
   XPLMFlightLoopID flightLoopID = getVoidPtr(revId, "XPLMFlightLoopID");
   for (auto& pair : flightLoopCallbacks) {
@@ -517,23 +496,19 @@ My_DOCSTR(_scheduleFlightLoop__doc__, "scheduleFlightLoop",
           "interval is relative to previous callback execution.");
 static PyObject *XPLMScheduleFlightLoopFun(PyObject *self, PyObject*args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"flightLoopID", "interval", "relativeToNow"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("flightLoopID"), CHAR("interval"), CHAR("relativeToNow"), nullptr};
   (void)self;
   PyObject *flightLoopID;
   float inInterval=0.0;
   int inRelativeToNow=1;
   if(!XPLMScheduleFlightLoop_ptr){
-    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPLMScheduleFlightLoop is available only in XPLM210 and up.");
     return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|fi", keywords, &flightLoopID, &inInterval, &inRelativeToNow)){
-    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_TypeError, "scheduleFlightLoop signature is (flightLoopID: XPLMFlightLoopID, interval: Float=0.0, relativeToNow: int=1).");
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMFlightLoopID inFlightLoopID = getVoidPtr(flightLoopID, "XPLMFlightLoopID");
   if (inFlightLoopID == nullptr) {
     PyErr_SetString(PyExc_ValueError, "scheduleFlightLoop: bad flightLoopID.");

@@ -80,14 +80,13 @@ WeatherInfo_dealloc(WeatherInfoObject *self)
 static int
 WeatherInfo_init(WeatherInfoObject *self, PyObject *args, PyObject *kwds)
 {
-  std::vector<std::string> params = {"detail_found",
-                           "temperature_alt", "dewpoint_alt", "pressure_alt", "precip_rate_alt",
-                           "wind_dir_alt", "wind_spd_alt", "turbulence_alt", "wave_height",
-                           "wave_length", "wave_dir", "wave_speed", "visibility",
-                           "precip_rate", "thermal_climb", "pressure_sl", "wind_layers", "cloud_layers",
-                           "temp_layers", "dewp_layers", "troposphere_alt", "troposphere_temp",
-                           "age", "radius_nm", "max_altitude_msl_ft"};
-  char **kwlist = stringVectorToCharArray(params);
+  static char *kwlist[] = {CHAR("detail_found"),
+                           CHAR("temperature_alt"), CHAR("dewpoint_alt"), CHAR("pressure_alt"), CHAR("precip_rate_alt"),
+                           CHAR("wind_dir_alt"), CHAR("wind_spd_alt"), CHAR("turbulence_alt"), CHAR("wave_height"),
+                           CHAR("wave_length"), CHAR("wave_dir"), CHAR("wave_speed"), CHAR("visibility"),
+                           CHAR("precip_rate"), CHAR("thermal_climb"), CHAR("pressure_sl"), CHAR("wind_layers"), CHAR("cloud_layers"),
+                           CHAR("temp_layers"), CHAR("dewp_layers"), CHAR("troposphere_alt"), CHAR("troposphere_temp"),
+                           CHAR("age"), CHAR("radius_nm"), CHAR("max_altitude_msl_ft"), nullptr};
 
   self->detail_found = -1;
   self->radius_nm = XPLM_DEFAULT_WXR_RADIUS_NM;
@@ -101,7 +100,6 @@ WeatherInfo_init(WeatherInfoObject *self, PyObject *args, PyObject *kwds)
                                    &self->cloud_layers,
                                    &self->temp_layers, &self->dewp_layers, &self->troposphere_alt, &self->troposphere_temp,
                                    &self->age, &self->radius_nm, &self->max_altitude_msl_ft);
-  freeCharArray(kwlist, params.size());
   if (!result)
     return -1;
   if (self->temp_layers == 0) {

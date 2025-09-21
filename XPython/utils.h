@@ -3,6 +3,8 @@
 #include <string>
 #define UTILS__H
 
+#define CHAR(x) const_cast<char*>(x)
+
 #define My_DOCSTR(name,method,parms,params_doc,return,str) static const char name[] = method"($module, /, " parms ")\n--\n\n" str
 extern PyObject *XPY3pythonDicts;
 extern PyObject *XPY3pythonCapsules;

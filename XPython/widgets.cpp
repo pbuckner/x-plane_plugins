@@ -261,8 +261,7 @@ My_DOCSTR(_createWidget__doc__, "createWidget",
 static PyObject *XPCreateWidgetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   errCheck("prior createWidget");
-  std::vector<std::string> params = {"left", "top", "right", "bottom", "visible", "descriptor", "isRoot", "container", "widgetClass"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("left"), CHAR("top"), CHAR("right"), CHAR("bottom"), CHAR("visible"), CHAR("descriptor"), CHAR("isRoot"), CHAR("container"), CHAR("widgetClass"), nullptr};
   (void) self;
   int inLeft, inTop, inRight, inBottom, inVisible, inIsRoot;
   const char *inDescriptor;
@@ -270,7 +269,6 @@ static PyObject *XPCreateWidgetFun(PyObject *self, PyObject *args, PyObject *kwa
   XPWidgetClass inClass;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiiiisiOi", keywords, &inLeft, &inTop, &inRight, &inBottom, &inVisible, &inDescriptor, &inIsRoot,
                                          &container, &inClass)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   // use inContainer 0, if passed in value of 0
@@ -287,7 +285,6 @@ static PyObject *XPCreateWidgetFun(PyObject *self, PyObject *args, PyObject *kwa
 
   PyObject *ret = makeCapsule(res, "XPWidgetID");
   errCheck("end createWidget");
-  freeCharArray(keywords, params.size());
   return ret;
 }
 
@@ -303,8 +300,7 @@ My_DOCSTR(_createCustomWidget__doc__, "createCustomWidget",
           "Returns created widgetID");
 static PyObject *XPCreateCustomWidgetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"left", "top", "right", "bottom", "visible", "descriptor", "isRoot", "container", "callback"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("left"), CHAR("top"), CHAR("right"), CHAR("bottom"), CHAR("visible"), CHAR("descriptor"), CHAR("isRoot"), CHAR("container"), CHAR("callback"), nullptr};
   (void) self;
   int inLeft, inTop, inRight, inBottom, inVisible, inIsRoot;
   const char *inDescriptor;
@@ -313,7 +309,6 @@ static PyObject *XPCreateCustomWidgetFun(PyObject *self, PyObject *args, PyObjec
   errCheck("error at start of CreateCustomWidget");
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiiiisiOO", keywords, &inLeft, &inTop, &inRight, &inBottom, &inVisible, &inDescriptor,
                        &inIsRoot, &container, &inCallback)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   // use inContainer 0, if passed in value of 0
@@ -344,7 +339,6 @@ static PyObject *XPCreateCustomWidgetFun(PyObject *self, PyObject *args, PyObjec
   XPSendMessageToWidget(res, xpMsg_Create, xpMode_Direct, 0, 0);
   XPSendMessageToWidget(res, xpMsg_AcceptParent, xpMode_Direct, (intptr_t)inContainer, 0);
   errCheck("error at end of CreateCustomWidget");
-  freeCharArray(keywords, params.size());
   return resObj;
 }
 
@@ -355,13 +349,11 @@ My_DOCSTR(_destroyWidget__doc__, "destroyWidget",
           "Destroys widgetID and (optionally) all children.");
 static PyObject *XPDestroyWidgetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widgetID", "destroyChildren"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), CHAR("destroyChildren"), nullptr};
   (void) self;
   PyObject *widget;
   int inDestroyChildren=1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", keywords, &widget, &inDestroyChildren)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   XPWidgetID wid = getVoidPtr(widget, "XPWidgetID");
@@ -370,7 +362,6 @@ static PyObject *XPDestroyWidgetFun(PyObject *self, PyObject *args, PyObject *kw
     clearChildrenXPWidgetData(widget);
   }
   clearXPWidgetData(widget);
-  freeCharArray(keywords, params.size());
   Py_RETURN_NONE;
 }
 
@@ -418,14 +409,12 @@ My_DOCSTR(_sendMessageToWidget__doc__, "sendMessageToWidget",
 static PyObject *XPSendMessageToWidgetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   errCheck("prior sendMessageToWidget");
-  std::vector<std::string> params = {"widgetID", "message", "dispatchMode", "param1", "param2"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), CHAR("message"), CHAR("dispatchMode"), CHAR("param1"), CHAR("param2"), nullptr};
   (void) self;
   PyObject *widget, *param1=Py_None, *param2=Py_None;
   int inMessage, inMode=xpMode_UpChain;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi|iOO", keywords, &widget, &inMessage, &inMode, &param1, &param2)){
     errCheck("Failed to parse tuple sendMessage");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   errCheck("sendMessage post parse");
@@ -437,7 +426,6 @@ static PyObject *XPSendMessageToWidgetFun(PyObject *self, PyObject *args, PyObje
   errCheck("after convertMessage");
   int res = XPSendMessageToWidget(inWidget, inMessage, inMode, inParam1, inParam2);
   errCheck("end sendMessageToWidget");
-  freeCharArray(keywords, params.size());
   return PyLong_FromLong(res);
 }
 
@@ -448,19 +436,16 @@ My_DOCSTR(_placeWidgetWithin__doc__, "placeWidgetWithin",
           "Change container widget for widgetID to container (widgetID)");
 static PyObject *XPPlaceWidgetWithinFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widgetID", "container"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), CHAR("container"), nullptr};
   (void) self;
   PyObject *subWidget, *container=Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O", keywords, &subWidget, &container)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   if (container == Py_None) {
     container = PyLong_FromLong(0);
   }
   XPPlaceWidgetWithin(getVoidPtr(subWidget, "XPWidgetID"), getVoidPtr(container, "XPWidgetID"));
-  freeCharArray(keywords, params.size());
   Py_RETURN_NONE;
 }
 
@@ -471,16 +456,13 @@ My_DOCSTR(_countChildWidgets__doc__, "countChildWidgets",
           "Return number of child widgets for this widgetID");
 static PyObject *XPCountChildWidgetsFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widgetID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), nullptr};
   (void) self;
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   int res = XPCountChildWidgets(getVoidPtr(widget, "XPWidgetID"));
-  freeCharArray(keywords, params.size());
   return PyLong_FromLong(res);
 }
 
@@ -491,17 +473,14 @@ My_DOCSTR(_getNthChildWidget__doc__, "getNthChildWidget",
           "Return widgetID of 0-based nth child");
 static PyObject *XPGetNthChildWidgetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widgetID", "index"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), CHAR("index"), nullptr};
   (void) self;
   PyObject *widget;
   int inIndex;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi", keywords, &widget, &inIndex)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   XPWidgetID res = XPGetNthChildWidget(getVoidPtr(widget, "XPWidgetID"), inIndex);
-  freeCharArray(keywords, params.size());
   return makeCapsule(res, "XPWidgetID");
 }
 
@@ -512,16 +491,13 @@ My_DOCSTR(_getParentWidget__doc__, "getParentWidget",
           "Return widgetID for parent (i.e., container) of this widgetID");
 static PyObject *XPGetParentWidgetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widgetID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), nullptr};
   (void) self;
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   XPWidgetID res = XPGetParentWidget(getVoidPtr(widget, "XPWidgetID"));
-  freeCharArray(keywords, params.size());
   return makeCapsule(res, "XPWidgetID");
 }
 
@@ -532,16 +508,13 @@ My_DOCSTR(_showWidget__doc__, "showWidget",
           "Make widget visible.");
 static PyObject *XPShowWidgetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widgetID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), nullptr};
   (void) self;
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   XPShowWidget(getVoidPtr(widget, "XPWidgetID"));
-  freeCharArray(keywords, params.size());
   Py_RETURN_NONE;
 }
 
@@ -552,16 +525,13 @@ My_DOCSTR(_hideWidget__doc__, "hideWidget",
           "Hide widget");
 static PyObject *XPHideWidgetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widgetID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), nullptr};
   (void) self;
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   XPHideWidget(getVoidPtr(widget, "XPWidgetID"));
-  freeCharArray(keywords, params.size());
   Py_RETURN_NONE;
 }
 
@@ -576,16 +546,13 @@ My_DOCSTR(_isWidgetVisible__doc__, "isWidgetVisible",
           "being reported 'visible' yet still not seen by user.");
 static PyObject *XPIsWidgetVisibleFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widgetID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), nullptr};
   (void) self;
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   int res = XPIsWidgetVisible(getVoidPtr(widget, "XPWidgetID"));
-  freeCharArray(keywords, params.size());
   return(PyLong_FromLong(res));
 }
 
@@ -598,16 +565,13 @@ My_DOCSTR(_findRootWidget__doc__, "findRootWidget",
           "If widget is root widget, it will return itself.");
 static PyObject *XPFindRootWidgetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widgetID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), nullptr};
   (void) self;
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   XPWidgetID res = XPFindRootWidget(getVoidPtr(widget, "XPWidgetID"));
-  freeCharArray(keywords, params.size());
   return makeCapsule(res, "XPWidgetID");
 }
 
@@ -618,16 +582,13 @@ My_DOCSTR(_bringRootWidgetToFront__doc__, "bringRootWidgetToFront",
           "Make whole widget hierarchy containing widgetID to the front");
 static PyObject *XPBringRootWidgetToFrontFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widgetID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), nullptr};
   (void) self;
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   XPBringRootWidgetToFront(getVoidPtr(widget, "XPWidgetID"));
-  freeCharArray(keywords, params.size());
   Py_RETURN_NONE;
 }
 
@@ -638,16 +599,13 @@ My_DOCSTR(_isWidgetInFront__doc__, "isWidgetInFront",
           "Return 1 if widget's hierarchy is front most.");
 static PyObject *XPIsWidgetInFrontFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widgetID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), nullptr};
   (void) self;
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   int res = XPIsWidgetInFront(getVoidPtr(widget, "XPWidgetID"));
-  freeCharArray(keywords, params.size());
   return(PyLong_FromLong(res));
 }
 
@@ -658,17 +616,14 @@ My_DOCSTR(_getWidgetGeometry__doc__, "getWidgetGeometry",
           "Return bounding box (left, top, right, bottom) of widgetID");
 static PyObject *XPGetWidgetGeometryFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widgetID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), nullptr};
   (void) self;
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   int left, top, right, bottom;
   XPGetWidgetGeometry(getVoidPtr(widget, "XPWidgetID"), &left, &top, &right, &bottom);
-  freeCharArray(keywords, params.size());
   return Py_BuildValue("(iiii)", left, top, right, bottom);
 }
 
@@ -679,17 +634,14 @@ My_DOCSTR(_setWidgetGeometry__doc__, "setWidgetGeometry",
           "Set bounding box for widgetID");
 static PyObject *XPSetWidgetGeometryFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widgetID", "left", "top", "right", "bottom"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), CHAR("left"), CHAR("top"), CHAR("right"), CHAR("bottom"), nullptr};
   (void) self;
   PyObject *widget;
   int inLeft, inTop, inRight, inBottom;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oiiii", keywords, &widget, &inLeft, &inTop, &inRight, &inBottom)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   XPSetWidgetGeometry(getVoidPtr(widget, "XPWidgetID"), inLeft, inTop, inRight, inBottom);
-  freeCharArray(keywords, params.size());
   Py_RETURN_NONE;
 }
 
@@ -704,17 +656,14 @@ My_DOCSTR(_getWidgetForLocation__doc__, "getWidgetForLocation",
           "visibleOnly=1 indicates only visible widgets are considered");
 static PyObject *XPGetWidgetForLocationFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"container", "xOffset", "yOffset", "recursive", "visibleOnly"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("container"), CHAR("xOffset"), CHAR("yOffset"), CHAR("recursive"), CHAR("visibleOnly"), nullptr};
   (void) self;
   PyObject *container;
   int xOffset, yOffset, recursive=1, visibleOnly=1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oii|ii", keywords, &container, &xOffset, &yOffset, &recursive, &visibleOnly)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   XPWidgetID res = XPGetWidgetForLocation(getVoidPtr(container, "XPWidgetID"), xOffset, yOffset, recursive, visibleOnly);
-  freeCharArray(keywords, params.size());
   return makeCapsule(res, "XPWidgetID");
 }
 
@@ -725,17 +674,14 @@ My_DOCSTR(_getWidgetExposedGeometry__doc__, "getWidgetExposedGeometry",
           "Return (left, top, right, bottom) of widget's exposed geometry");
 static PyObject *XPGetWidgetExposedGeometryFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widgetID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), nullptr};
   (void) self;
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   int left, top, right, bottom;
   XPGetWidgetExposedGeometry(getVoidPtr(widget, "XPWidgetID"), &left, &top, &right, &bottom);
-  freeCharArray(keywords, params.size());
   return Py_BuildValue("(iiii)", left, top, right, bottom);
 }
 
@@ -747,18 +693,15 @@ My_DOCSTR(_setWidgetDescriptor__doc__, "setWidgetDescriptor",
 static PyObject *XPSetWidgetDescriptorFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   errCheck("Prior setwidgetdescriptor");
-  std::vector<std::string> params = {"widgetID", "descriptor"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), CHAR("descriptor"), nullptr};
   (void) self;
   PyObject *widget;
   const char *inDescriptor;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Os", keywords, &widget, &inDescriptor)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   XPSetWidgetDescriptor(getVoidPtr(widget, "XPWidgetID"), inDescriptor);
   errCheck("end setwidgetdescriptor");
-  freeCharArray(keywords, params.size());
   Py_RETURN_NONE;
 }
 
@@ -770,12 +713,10 @@ My_DOCSTR(_getWidgetDescriptor__doc__, "getWidgetDescriptor",
 static PyObject *XPGetWidgetDescriptorFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   errCheck("prior getWidgetDescriptor");
-  std::vector<std::string> params = {"widgetID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), nullptr};
   (void) self;
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   int res;
@@ -787,7 +728,6 @@ static PyObject *XPGetWidgetDescriptorFun(PyObject *self, PyObject *args, PyObje
   }
   buffer[res] = '\0';
   errCheck("end getWidgetDescriptor");
-  freeCharArray(keywords, params.size());
   return PyUnicode_FromString(buffer);
 }
 
@@ -798,21 +738,17 @@ My_DOCSTR(_getWidgetUnderlyingWindow__doc__, "getWidgetUnderlyingWindow",
           "Return windowID of window underlying widget");
 static PyObject *XPGetWidgetUnderlyingWindowFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widgetID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), nullptr};
   (void)self;
   PyObject *widget;
   if(!XPGetWidgetUnderlyingWindow_ptr){
-    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPGetWidgetUnderlyingWindow is available only in XPLM301 and up.");
     return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   XPLMWindowID res = XPGetWidgetUnderlyingWindow_ptr(getVoidPtr(widget, "XPWidgetID"));
-  freeCharArray(keywords, params.size());
   return makeCapsule(res, "XPLMWindowID");
 }
 
@@ -824,8 +760,7 @@ My_DOCSTR(_setWidgetProperty__doc__, "setWidgetProperty",
           "Set widget property to value");
 static PyObject *XPSetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widgetID", "propertyID", "value"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), CHAR("propertyID"), CHAR("value"), nullptr};
   (void) self;
   PyObject *widget, *value=Py_None;
   int property;
@@ -833,7 +768,6 @@ static PyObject *XPSetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject
   errCheck("Error prior to  start of setWidgetProperty");
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi|O", keywords, &widget, &property, &value)){
     errCheck("Failed to parse setWidgetProperty");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   XPWidgetPropertyID inProperty = property;
@@ -868,7 +802,6 @@ static PyObject *XPSetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject
     }
   }
   errCheck("Error prior to  start of setWidgetProperty");
-  freeCharArray(keywords, params.size());
   Py_RETURN_NONE;
 }
 
@@ -885,8 +818,7 @@ My_DOCSTR(_getWidgetProperty__doc__, "getWidgetProperty",
           "  [0, ] otherwise");
 static PyObject *XPGetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widgetID", "propertyID", "exists"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), CHAR("propertyID"), CHAR("exists"), nullptr};
   (void)self;
   PyObject *widget, *exists=Py_None;
   int property;
@@ -901,7 +833,6 @@ static PyObject *XPGetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject
     PyErr_Clear();
 
     if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi|O", keywords, &widget, &property, &exists)){
-      freeCharArray(keywords, params.size());
       return nullptr;
     }
     exception_on_error = 1;
@@ -928,7 +859,6 @@ static PyObject *XPGetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject
   }
     
   if (exception_on_error && !inExists) {
-    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_ValueError, "Widget does not have this property");
     return nullptr;
   }
@@ -943,7 +873,6 @@ static PyObject *XPGetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject
     pythonLog("error at end of getWidgetProperty");
     pythonLogException();
   }
-  freeCharArray(keywords, params.size());
   return resObj;
 }
 
@@ -954,17 +883,14 @@ My_DOCSTR(_setKeyboardFocus__doc__, "setKeyboardFocus",
           "Set keyboard focus to widgetID");
 static PyObject *XPSetKeyboardFocusFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widgetID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), nullptr};
   (void) self;
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   XPWidgetID res = XPSetKeyboardFocus(getVoidPtr(widget, "XPWidgetID"));
   PyObject *resObj = makeCapsule(res, "XPWidgetID");
-  freeCharArray(keywords, params.size());
   if (resObj == Py_None) {
     return PyLong_FromLong(0);
   }
@@ -978,16 +904,13 @@ My_DOCSTR(_loseKeyboardFocus__doc__, "loseKeyboardFocus",
           "Cause widgetID to lose keyboard focus");
 static PyObject *XPLoseKeyboardFocusFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widgetID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), nullptr};
   (void) self;
   PyObject *widget;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   XPLoseKeyboardFocus(getVoidPtr(widget, "XPWidgetID"));
-  freeCharArray(keywords, params.size());
   Py_RETURN_NONE;
 }
 
@@ -1018,12 +941,10 @@ My_DOCSTR(_addWidgetCallback__doc__, "addWidgetCallback",
           "createCustomWidget()");
 static PyObject *XPAddWidgetCallbackFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widget", "callback"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widget"), CHAR("callback"), nullptr};
   (void) self;
   PyObject *widget, *callback;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO", keywords, &widget, &callback)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   void* widgetPtr = getVoidPtr(widget, "XPWidgetID");
@@ -1040,7 +961,6 @@ static PyObject *XPAddWidgetCallbackFun(PyObject *self, PyObject *args, PyObject
   }else{
     it->second.callbacks.insert(it->second.callbacks.begin(), callback);
   }
-  freeCharArray(keywords, params.size());
   Py_RETURN_NONE;
 }
 
@@ -1053,16 +973,13 @@ My_DOCSTR(_getWidgetClassFunc__doc__, "getWidgetClassFunc",
           "Not useful with python. Use addWidgetCalback() instead.");
 static PyObject *XPGetWidgetClassFuncFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widgetID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("widgetID"), nullptr};
   (void)self;
   int inWidgetClass;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inWidgetClass)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   XPWidgetFunc_t res = XPGetWidgetClassFunc(inWidgetClass);
-  freeCharArray(keywords, params.size());
   return PyLong_FromVoidPtr((void*)res);
 }
 

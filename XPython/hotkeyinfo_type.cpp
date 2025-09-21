@@ -61,15 +61,12 @@ HotKeyInfo_dealloc(HotKeyInfoObject *self)
 static int
 HotKeyInfo_init(HotKeyInfoObject *self, PyObject *args, PyObject *kwds)
 {
-  std::vector<std::string> params = {"virtualKey", "flags", "description", "plugin"};
-  char **kwlist = stringVectorToCharArray(params);
+  static char *kwlist[] = {CHAR("virtualKey"), CHAR("flags"), CHAR("description"), CHAR("plugin"), nullptr};
   PyObject *description = nullptr, *tmp;
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iiUi", kwlist,
                                    &self->virtualKey, &self->flags, &description, &self->plugin)) {
-    freeCharArray(kwlist, params.size());
     return -1;
   }
-  freeCharArray(kwlist, params.size());
   if (description) {
     tmp = self->description;
     Py_INCREF(description);

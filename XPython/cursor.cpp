@@ -31,8 +31,7 @@ My_DOCSTR(_setCursor__doc__, "setCursor",
 static PyObject *setCursor(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void) self;
-  std::vector<std::string> params = {"cursor_id"};
-  static char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("cursor_id"), nullptr};
   int inCursorID = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inCursorID)) {
     return nullptr;
@@ -56,8 +55,7 @@ static PyObject *unloadCursor(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void) self;
 
-  std::vector<std::string> params  = {"cursor_id"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("cursor_id"), nullptr};
   int inCursorID = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inCursorID)) {
     return nullptr;
@@ -85,8 +83,7 @@ My_DOCSTR(_loadCursor__doc__, "loadCursor",
 static PyObject *loadCursor(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void) self;
-  std::vector<std::string> params = {"name"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("name"), nullptr};
   const char *cursorFileName;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &cursorFileName)) {
     return nullptr;

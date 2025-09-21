@@ -64,15 +64,12 @@ DataRefInfo_dealloc(DataRefInfoObject *self)
 static int
 DataRefInfo_init(DataRefInfoObject *self, PyObject *args, PyObject *kwds)
 {
-  std::vector<std::string> params = {"name", "type", "writable", "owner"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("name"), CHAR("type"), CHAR("writable"), CHAR("owner"), nullptr};
   PyObject *name = nullptr, *writable = nullptr;
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "|UiOi", keywords,
                                    &name, &self->type, &writable, &self->owner)) {
-    freeCharArray(keywords, params.size());
     return -1;
   }
-  freeCharArray(keywords, params.size());
   PyObject *tmp;
   if (name) {
     tmp = self->name;

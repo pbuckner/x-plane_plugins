@@ -52,11 +52,9 @@ WeatherInfoClouds_dealloc(WeatherInfoCloudsObject *self)
 static int
 WeatherInfoClouds_init(WeatherInfoCloudsObject *self, PyObject *args, PyObject *kwds)
 {
-  std::vector<std::string> params = {"cloud_type", "coverage", "alt_top", "alt_base"};
-  char **kwlist = stringVectorToCharArray(params);
+  static char *kwlist[] = {CHAR("cloud_type"), CHAR("coverage"), CHAR("alt_top"), CHAR("alt_base"), nullptr};
   int result = PyArg_ParseTupleAndKeywords(args, kwds, "|ffff", kwlist,
                                    &self->cloud_type, &self->coverage, &self->alt_top, &self->alt_base);
-  freeCharArray(kwlist, params.size());
   if (!result)
     return -1;
   return 0;

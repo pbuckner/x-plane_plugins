@@ -79,16 +79,13 @@ NavAidInfo_dealloc(NavAidInfoObject *self)
 static int
 NavAidInfo_init(NavAidInfoObject *self, PyObject *args, PyObject *kwds)
 {
-  std::vector<std::string> params = {"type", "latitude", "longitude", "height", "frequency", "heading", "navaAidID", "name", "reg"};
-  char **kwlist = stringVectorToCharArray(params);
+  static char *kwlist[] = {CHAR("type"), CHAR("latitude"), CHAR("longitude"), CHAR("height"), CHAR("frequency"), CHAR("heading"), CHAR("navaAidID"), CHAR("name"), CHAR("reg"), nullptr};
   PyObject *navAidID = nullptr, *name, *tmp;
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ifffifUUi", kwlist,
                                    &self->type, &self->latitude, &self->longitude, &self->height, &self->frequency, &self->heading,
                                    &navAidID, &name, &self->reg)) {
-    freeCharArray(kwlist, params.size());
     return -1;
   }
-  freeCharArray(kwlist, params.size());
   if (navAidID) {
     tmp = self->navAidID;
     Py_INCREF(navAidID);

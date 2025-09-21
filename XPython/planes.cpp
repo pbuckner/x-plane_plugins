@@ -32,15 +32,12 @@ My_DOCSTR(_setUsersAircraft__doc__, "setUsersAircraft",
           "including the .acf extension.");
 static PyObject *XPLMSetUsersAircraftFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"path"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("path"), nullptr};
   (void)self;
   const char *inAircraftPath;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inAircraftPath)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMSetUsersAircraft(inAircraftPath);
   Py_RETURN_NONE;
 }
@@ -54,15 +51,12 @@ My_DOCSTR(_placeUserAtAirport__doc__, "placeUserAtAirport",
           "Invalid airport code will crash the sim.");
 static PyObject *XPLMPlaceUserAtAirportFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"code"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("code"), nullptr};
   (void)self;
   const char *inAirportCode;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inAirportCode)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMPlaceUserAtAirport(inAirportCode);
   Py_RETURN_NONE;
 }
@@ -76,22 +70,18 @@ My_DOCSTR(_placeUserAtLocation__doc__, "placeUserAtLocation",
           "elevation is meters, heading is True, speed is meters per second");
 static PyObject *XPLMPlaceUserAtLocationFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"latitude", "longitude", "elevation", "heading", "speed"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("latitude"), CHAR("longitude"), CHAR("elevation"), CHAR("heading"), CHAR("speed"), nullptr};
   (void)self;
   double latitudeDegrees, longitudeDegrees;
   float elevationMetersMSL, headingDegreesTrue, speedMetersPerSecond;
   if(!XPLMPlaceUserAtLocation_ptr){
-    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPLMPlaceUserAtLocation is available only in XPLM300 and up.");
     return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ddfff", keywords, &latitudeDegrees, &longitudeDegrees,
                        &elevationMetersMSL, &headingDegreesTrue, &speedMetersPerSecond)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMPlaceUserAtLocation_ptr(latitudeDegrees, longitudeDegrees,
                               elevationMetersMSL, headingDegreesTrue, speedMetersPerSecond);
   Py_RETURN_NONE;
@@ -120,17 +110,14 @@ My_DOCSTR(_getNthAircraftModel__doc__, "getNthAircraftModel",
           "Return (filename, fullPath) of aircraft at index");
 static PyObject *XPLMGetNthAircraftModelFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"index"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("index"), nullptr};
   (void)self;
   int inIndex;
   char outFileName[512];
   char outPath[512];
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inIndex)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
 
   XPLMGetNthAircraftModel(inIndex, outFileName, outPath);
   return Py_BuildValue("(ss)", outFileName, outPath);
@@ -169,15 +156,12 @@ My_DOCSTR(_acquirePlanes__doc__, "acquirePlanes",
           "with refCon if acquirePlanes() is not immediately successful.");
 static PyObject *XPLMAcquirePlanesFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"aircraft", "callback", "refCon"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("aircraft"), CHAR("callback"), CHAR("refCon"), nullptr};
   (void)self;
   PyObject *pluginSelf, *aircraft=Py_None, *inCallback=Py_None, *inRefcon=Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOO", keywords, &aircraft, &inCallback, &inRefcon)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   pluginSelf = get_moduleName_p();
   int res;
   intptr_t refcon = ++availableCntr;
@@ -255,15 +239,12 @@ My_DOCSTR(_setActiveAircraftCount__doc__, "setActiveAircraftCount",
           "first have access -- acquirePlanes().");
 static PyObject *XPLMSetActiveAircraftCountFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"count"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("count"), nullptr};
   (void)self;
   int inCount;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inCount)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
 
   XPLMSetActiveAircraftCount(inCount);
   Py_RETURN_NONE;
@@ -278,16 +259,13 @@ My_DOCSTR(_setAircraftModel__doc__, "setAircraftModel",
           "Path is absolute, or relative to X-Plane root.");
 static PyObject *XPLMSetAircraftModelFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"index", "path"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("index"), CHAR("path"), nullptr};
   (void)self;
   int inIndex;
   const char *inAircraftPath;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "is", keywords, &inIndex, &inAircraftPath)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMSetAircraftModel(inIndex, inAircraftPath);
   Py_RETURN_NONE;
 }
@@ -301,15 +279,12 @@ My_DOCSTR(_disableAIForPlane__doc__, "disableAIForPlane",
           "Plane will continue to draw, but will not move itself.");
 static PyObject *XPLMDisableAIForPlaneFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"index"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("index"), nullptr};
   (void)self;
   int inPlaneIndex;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inPlaneIndex)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
 
   XPLMDisableAIForPlane(inPlaneIndex);
   Py_RETURN_NONE;

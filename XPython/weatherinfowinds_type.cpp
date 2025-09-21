@@ -55,13 +55,11 @@ WeatherInfoWinds_dealloc(WeatherInfoWindsObject *self)
 static int
 WeatherInfoWinds_init(WeatherInfoWindsObject *self, PyObject *args, PyObject *kwds)
 {
-  std::vector<std::string> params = {"alt_msl", "speed", "direction", "gust_speed", "shear", "turbulence"};
-  char **kwlist = stringVectorToCharArray(params);
+  static char *kwlist[] = {CHAR("alt_msl"), CHAR("speed"), CHAR("direction"), CHAR("gust_speed"), CHAR("shear"), CHAR("turbulence"), nullptr};
   self->speed = XPLM_WIND_UNDEFINED_LAYER;
   int result = PyArg_ParseTupleAndKeywords(args, kwds, "|ffffff", kwlist,
                                    &self->alt_msl, &self->speed, &self->direction, &self->gust_speed,
                                    &self->shear, &self->turbulence);
-  freeCharArray(kwlist, params.size());
   if (!result)
     return -1;
   return 0;

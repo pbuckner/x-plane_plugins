@@ -70,16 +70,13 @@ My_DOCSTR(_speakString__doc__, "speakString",
           "Display string in translucent overlay and speak string");
 static PyObject *XPLMSpeakStringFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"string"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("string"), nullptr};
 
   (void) self;
   const char *inString;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inString)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMSpeakString(inString);
   Py_RETURN_NONE;
 }
@@ -93,13 +90,10 @@ static PyObject *XPLMGetVirtualKeyDescriptionFun(PyObject *self, PyObject *args,
 {
   (void) self;
   int inVirtualKey;
-  std::vector<std::string> params = {"vKey"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("vKey"), nullptr};
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &inVirtualKey)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   const char *res = XPLMGetVirtualKeyDescription(inVirtualKey);
   return PyUnicode_DecodeUTF8(res, strlen(res), nullptr);
 }
@@ -174,15 +168,12 @@ My_DOCSTR(_extractFileAndPath__doc__, "extractFileAndPath",
           "Don't use this, use os.path routines instead");
 static PyObject *XPLMExtractFileAndPathFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"fullPath"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("fullPath"), nullptr};
   (void) self;
   const char *inFullPathConst;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inFullPathConst)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   char *inFullPath = strdup(inFullPathConst);
   const char *res = XPLMExtractFileAndPath(inFullPath);
   
@@ -200,18 +191,15 @@ My_DOCSTR(_getDirectoryContents__doc__, "getDirectoryContents",
           "Don't use this, use python os.walk() or glob.glob() instead.");
 static PyObject *XPLMGetDirectoryContentsFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"dir", "firstReturn", "bufSize", "maxFiles"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("dir"), CHAR("firstReturn"), CHAR("bufSize"), CHAR("maxFiles"), nullptr};
   (void) self;
   const char *inDirectoryPath;
   int inFirstReturn=0;
   int inFileNameBufSize=2048;
   int inIndexCount=100;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s|iii", keywords, &inDirectoryPath, &inFirstReturn, &inFileNameBufSize, &inIndexCount)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   char *outFileNames = static_cast<char*>(malloc(inFileNameBufSize));
   char **outIndices = static_cast<char**>(malloc(inIndexCount * sizeof(char *)));
   int outTotalFiles;
@@ -283,15 +271,12 @@ My_DOCSTR(_debugString__doc__, "debugString",
           "plugin's name instead. Use xp.log() to write to XPPython3Log.txt file");
 static PyObject *XPLMDebugStringFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"string"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("string"), nullptr};
   (void) self;
   const char *inString;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inString)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMDebugString(inString);
   Py_RETURN_NONE;
 }
@@ -308,8 +293,7 @@ My_DOCSTR(_setErrorCallback__doc__, "setErrorCallback",
           "Likely not useful for python debugging.");
 static PyObject *XPLMSetErrorCallbackFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"callback"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("callback"), nullptr};
   (void) self;
 
   if(errorCallbacks.empty()){
@@ -318,10 +302,8 @@ static PyObject *XPLMSetErrorCallbackFun(PyObject *self, PyObject *args, PyObjec
 
   PyObject *callback;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &callback)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   
   std::string module_name(CurrentPythonModuleName);
   
@@ -348,16 +330,13 @@ My_DOCSTR(_findSymbol__doc__, "findSymbol",
           "Find C-API symbol. See documentation.");
 static PyObject *XPLMFindSymbolFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"symbol"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("symbol"), nullptr};
   (void) self;
-  
+
   const char *inString;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inString)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   return PyLong_FromVoidPtr(XPLMFindSymbol(inString));
 }
 
@@ -374,16 +353,13 @@ My_DOCSTR(_loadDataFile__doc__, "loadDataFile",
           "Returns 1 on success (file found), 0 otherwise.");
 static PyObject *XPLMLoadDataFileFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"fileType", "path"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("fileType"), CHAR("path"), nullptr};
   (void) self;
   int inFileType;
   const char *inFilePath;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "is", keywords, &inFileType, &inFilePath)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   int res = XPLMLoadDataFile(inFileType, inFilePath);
   return PyLong_FromLong(res);
 }
@@ -401,16 +377,13 @@ My_DOCSTR(_saveDataFile__doc__, "saveDataFile",
           "Returns 1 on success (file found), 0 otherwise.");
 static PyObject *XPLMSaveDataFileFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"fileType", "path"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("fileType"), CHAR("path"), nullptr};
   (void) self;
   int inFileType;
   const char *inFilePath;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "is", keywords, &inFileType, &inFilePath)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   int res = XPLMSaveDataFile(inFileType, inFilePath);
   return PyLong_FromLong(res);
 }
@@ -459,15 +432,12 @@ My_DOCSTR(_findCommand__doc__, "findCommand",
           "Return commandRef for named command or None");
 static PyObject *XPLMFindCommandFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"name"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("name"), nullptr};
   (void) self;
   const char *inName;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inName)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMCommandRef res = XPLMFindCommand(inName);
   return makeCapsule(res, "XPLMCommandRef");
 }
@@ -479,15 +449,12 @@ My_DOCSTR(_commandBegin__doc__, "commandBegin",
           "Start execution of command specified by commandRef");
 static PyObject *XPLMCommandBeginFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"commandRef"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("commandRef"), nullptr};
   (void) self;
   PyObject *inCommand;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &inCommand)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMCommandBegin(getVoidPtr(inCommand, "XPLMCommandRef"));
   Py_RETURN_NONE;
 }
@@ -499,15 +466,12 @@ My_DOCSTR(_commandEnd__doc__, "commandEnd",
           "Ends execution of command specified by commandRef");
 static PyObject *XPLMCommandEndFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"commandRef"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("commandRef"), nullptr};
   (void) self;
   PyObject *inCommand;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &inCommand)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMCommandEnd(getVoidPtr(inCommand, "XPLMCommandRef"));
   Py_RETURN_NONE;
 }
@@ -519,15 +483,12 @@ My_DOCSTR(_commandOnce__doc__, "commandOnce",
           "Executes given commandRef, doing both CommandBegin and CommandEnd");
 static PyObject *XPLMCommandOnceFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"commandRef"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("commandRef"), nullptr};
   (void) self;
   PyObject *inCommand;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &inCommand)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMCommandOnce(getVoidPtr(inCommand, "XPLMCommandRef"));
   Py_RETURN_NONE;
 }
@@ -539,16 +500,13 @@ My_DOCSTR(_createCommand__doc__, "createCommand",
           "Create a named command: You'll still need to registerCommandHandler()");
 static PyObject *XPLMCreateCommandFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"name", "description"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("name"), CHAR("description"), nullptr};
   (void) self;
   const char *inName;
   const char *inDescription = nullptr;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s|s", keywords, &inName, &inDescription)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   if (!inDescription) {
     inDescription = inName;
   }
@@ -568,18 +526,15 @@ My_DOCSTR(_registerCommandHandler__doc__, "registerCommandHandler",
           "before indicates you want to be called prior to X-Plane handling the command.");
 static PyObject *XPLMRegisterCommandHandlerFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"commandRef", "callback", "before", "refCon"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("commandRef"), CHAR("callback"), CHAR("before"), CHAR("refCon"), nullptr};
   (void) self;
   PyObject *inCommand;
   PyObject *inHandler;
   int inBefore=1;
   PyObject *inRefcon=Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|iO", keywords, &inCommand, &inHandler, &inBefore, &inRefcon)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   intptr_t refcon = commandCallbackCounter++;
   XPLMCommandRef commandRef = getVoidPtr(inCommand, "XPLMCommandRef");
   XPLMRegisterCommandHandler(commandRef, genericCommandCallback, inBefore, (void *)refcon);
@@ -604,18 +559,15 @@ My_DOCSTR(_unregisterCommandHandler__doc__, "unregisterCommandHandler",
           "Unregister commandRef. Parameters must match those provided with registerCommandHandler()");
 static PyObject *XPLMUnregisterCommandHandlerFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"commandRef", "callback", "before", "refCon"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("commandRef"), CHAR("callback"), CHAR("before"), CHAR("refCon"), nullptr};
   (void) self;
   PyObject *inCommand;
   PyObject *inHandler;
   int inBefore=1;
   PyObject *inRefcon=Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|iO", keywords, &inCommand, &inHandler, &inBefore, &inRefcon)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   
   XPLMCommandRef commandRef = getVoidPtr(inCommand, "XPLMCommandRef");
   

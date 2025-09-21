@@ -110,18 +110,15 @@ My_DOCSTR(_createMenu__doc__, "createMenu",
 static PyObject *XPLMCreateMenuFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   errCheck("prior CreateMenu");
-  std::vector<std::string> params = {"name", "parentMenuID", "parentItem", "handler", "refCon"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("name"), CHAR("parentMenuID"), CHAR("parentItem"), CHAR("handler"), CHAR("refCon"), nullptr};
   (void)self;
   PyObject *parentMenu = Py_None, *pythonHandler = Py_None, *menuRef = Py_None;
   PyObject *idxList;
   int inParentItem = 0;
   const char *inName = nullptr;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|sOiOO", keywords, &inName, &parentMenu, &inParentItem, &pythonHandler, &menuRef)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   PyObject *pluginSelf = get_moduleName_p();
   /* char *s = objToStr(pluginSelf); */
   /* char *s2 = objToStr(parentMenu); */
@@ -198,15 +195,12 @@ My_DOCSTR(_destroyMenu__doc__, "destroyMenu",
           "Remove submenu from provided menuID.");
 static PyObject *XPLMDestroyMenuFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"menuID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("menuID"), nullptr};
   (void)self;
   PyObject *menuID;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &menuID)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   PyObject *menuRef = PyDict_GetItem(menuRefDict, menuID);
   if(!menuRef){
     pythonLog("Unknown menuID passed to XPLMDestroyMenu, ignored.");
@@ -239,15 +233,12 @@ My_DOCSTR(_clearAllMenuItems__doc__, "clearAllMenuItems",
           "Remove menu items from provided menuID, or 'all menus', if menuID is None.");
 static PyObject *XPLMClearAllMenuItemsFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"menuID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("menuID"), nullptr};
   (void)self;
   PyObject *menuID = Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", keywords, &menuID)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   if (menuID == Py_None || getVoidPtr(menuID, "XPLMMenuID") == XPLMFindPluginsMenu()) {
     // pythonLog("Clearing top level");
     PyObject *pluginSelf = get_moduleName_p();
@@ -373,18 +364,15 @@ My_DOCSTR(_appendMenuItem__doc__, "appendMenuItem",
 static PyObject *XPLMAppendMenuItemFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   errCheck("prior appendMenuItem");
-  std::vector<std::string> params = {"menuID", "name", "refCon", "ignored"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("menuID"), CHAR("name"), CHAR("refCon"), CHAR("ignored"), nullptr};
   (void)self;
   PyObject *menuID = Py_None;
   const char *inItemName = "Item";
   int ignored;
   PyObject *inItemRef=Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OsOi", keywords, &menuID, &inItemName, &inItemRef, &ignored)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : getVoidPtr(menuID, "XPLMMenuID");
   int res = XPLMAppendMenuItem(inMenu, inItemName, inItemRef, 0);
 
@@ -417,22 +405,18 @@ My_DOCSTR(_appendMenuItemWithCommand__doc__, "appendMenuItemWithCommand",
 static PyObject *XPLMAppendMenuItemWithCommandFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   errCheck("prior appendMenuItemWithCommand");
-  std::vector<std::string> params = {"menuID", "name", "commandRef"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("menuID"), CHAR("name"), CHAR("commandRef"), nullptr};
   (void)self;
   PyObject *menuID = Py_None;
   const char *inItemName = "Command";
   PyObject *commandToExecute = Py_None;
   if(!XPLMAppendMenuItemWithCommand_ptr){
-    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPLMAppendMenuItemWithCommand is available only in XPLM300 and up.");
     return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OsO", keywords, &menuID, &inItemName, &commandToExecute)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   
   if (commandToExecute == Py_None) {
     PyErr_SetString(PyExc_RuntimeError, "appendMenuItemWithCommand, commandRef not provided.\n");
@@ -469,15 +453,12 @@ My_DOCSTR(_appendMenuSeparator__doc__, "appendMenuSeparator",
           );
 static PyObject *XPLMAppendMenuSeparatorFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"menuID"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("menuID"), nullptr};
   (void)self;
   PyObject *menuID=Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", keywords, &menuID)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : getVoidPtr(menuID, "XPLMMenuID");
 
 #if defined(XPLM400)  
@@ -514,17 +495,14 @@ My_DOCSTR(_setMenuItemName__doc__, "setMenuItemName",
           "Change the name of and existing menu item.");
 static PyObject *XPLMSetMenuItemNameFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"menuID", "index", "name"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("menuID"), CHAR("index"), CHAR("name"), nullptr};
   (void)self;
   PyObject *menuID = Py_None;
   const char *inItemName = "New Name";
   int inIndex = 0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|Ois", keywords, &menuID, &inIndex, &inItemName)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : getVoidPtr(menuID, "XPLMMenuID");
   if (inMenu == XPLMFindPluginsMenu()) {
     PyObject *pluginSelf = get_moduleName_p();
@@ -558,17 +536,14 @@ My_DOCSTR(_checkMenuItem__doc__, "checkMenuItem",
           );
 static PyObject *XPLMCheckMenuItemFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"menuID", "index", "checked"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("menuID"), CHAR("index"), CHAR("checked"), nullptr};
   (void)self;
   PyObject *menuID = Py_None;
   int inIndex=0;
   int inCheck = xplm_Menu_Checked;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|Oii", keywords, &menuID, &inIndex, &inCheck)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : getVoidPtr(menuID, "XPLMMenuID");
   if (inMenu == XPLMFindPluginsMenu()) {
     PyObject *pluginSelf = get_moduleName_p();
@@ -602,17 +577,14 @@ My_DOCSTR(_checkMenuItemState__doc__, "checkMenuItemState",
           );
 static PyObject *XPLMCheckMenuItemStateFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"menuID", "index"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("menuID"), CHAR("index"), nullptr};
   (void)self;
   PyObject *menuID=Py_None;
   int inIndex=0;
   int outCheck;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|Oi", keywords, &menuID, &inIndex)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : getVoidPtr(menuID, "XPLMMenuID");
   if (inMenu == XPLMFindPluginsMenu()) {
     PyObject *pluginSelf = get_moduleName_p();
@@ -644,17 +616,14 @@ My_DOCSTR(_enableMenuItem__doc__, "enableMenuItem",
           "Use enabled=0 to disable item, 1 to enable");
 static PyObject *XPLMEnableMenuItemFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"menuID", "index", "enabled"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("menuID"), CHAR("index"), CHAR("enabled"), nullptr};
   (void)self;
   PyObject *menuID = Py_None;
   int inIndex=0;
   int enabled=1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|Oii", keywords, &menuID, &inIndex, &enabled)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : getVoidPtr(menuID, "XPLMMenuID");
   if (inMenu == XPLMFindPluginsMenu()) {
     PyObject *pluginSelf = get_moduleName_p();
@@ -686,21 +655,17 @@ My_DOCSTR(_removeMenuItem__doc__, "removeMenuItem",
           "Note that all menu items below are moved up one index.");
 static PyObject *XPLMRemoveMenuItemFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"menuID", "index"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("menuID"), CHAR("index"), nullptr};
   (void)self;
   PyObject *menuID = Py_None;
   int inIndex=0;
   if(!XPLMRemoveMenuItem_ptr){
-    freeCharArray(keywords, params.size());
     PyErr_SetString(PyExc_RuntimeError , "XPLMRemoveMenuItem is available only in XPLM210 and up.");
     return nullptr;
   }
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|Oi", keywords, &menuID, &inIndex)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMMenuID inMenu = menuID == Py_None ? XPLMFindPluginsMenu() : getVoidPtr(menuID, "XPLMMenuID");
   if (inMenu == XPLMFindPluginsMenu()) {
     PyObject *pluginSelf = get_moduleName_p();

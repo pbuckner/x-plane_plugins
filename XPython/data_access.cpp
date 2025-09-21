@@ -55,7 +55,7 @@ static intptr_t accessorCntr = 0;
 
 void resetDataRefs(void) {
   for (auto& pair: accessorCallbacks) {
-    AccessorInfo info = pair.second;
+    const AccessorInfo& info = pair.second;
     XPLMUnregisterDataAccessor(info.dataRef);
     pythonDebug("     Reset --     %s - (%s)", info.module_name.c_str(), info.data_name.c_str());
 
@@ -115,14 +115,11 @@ My_DOCSTR(_findDataRef__doc__, "findDataRef",
 static PyObject *XPLMFindDataRefFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void) self;
-  std::vector<std::string> params = {"name"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("name"), nullptr};
   const char *inDataRefName;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inDataRefName)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMDataRef ref = XPLMFindDataRef(inDataRefName);
   if(ref){
     return makeCapsule(ref, "XPLMDataRef");
@@ -139,15 +136,12 @@ My_DOCSTR(_canWriteDataRef__doc__, "canWriteDataRef",
           "returns False if provided dataRef is None.");
 static PyObject *XPLMCanWriteDataRefFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"dataRef"};
-  char **keywords = stringVectorToCharArray(params);
-  (void) self;
+  static char *keywords[] = {CHAR("dataRef"), nullptr};
+ (void) self;
   PyObject *dataRef;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &dataRef)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(dataRef);
   if(XPLMCanWriteDataRef(inDataRef)){
     Py_RETURN_TRUE;
@@ -163,15 +157,12 @@ My_DOCSTR(_isDataRefGood__doc__, "isDataRefGood",
           "(Deprecated, do not use.)");
 static PyObject *XPLMIsDataRefGoodFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"dataRef"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("dataRef"), nullptr};
   (void) self;
   PyObject *dataRef;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &dataRef)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(dataRef);
   if (XPLMIsDataRefGood(inDataRef)){
     Py_RETURN_TRUE;
@@ -193,15 +184,12 @@ My_DOCSTR(_getDataRefTypes__doc__, "getDataRefTypes",
           "  32 Type_Data\n");
 static PyObject *XPLMGetDataRefTypesFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"dataRef"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("dataRef"), nullptr};
   (void) self;
   PyObject *dataRef;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &dataRef)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(dataRef);
   return PyLong_FromLong(XPLMGetDataRefTypes(inDataRef));
 }
@@ -213,15 +201,12 @@ My_DOCSTR(_getDatai__doc__, "getDatai",
           "Returns integer value for dataRef.");
 static PyObject *XPLMGetDataiFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"dataRef"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("dataRef"), nullptr};
   (void) self;
   PyObject *dataRef;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &dataRef)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(dataRef);
   return PyLong_FromLong(XPLMGetDatai(inDataRef));
 }
@@ -233,16 +218,13 @@ My_DOCSTR(_setDatai__doc__, "setDatai",
           "Sets integer value for dataRef.");
 static PyObject *XPLMSetDataiFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"dataRef", "value"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("dataRef"), CHAR("value"), nullptr};
   (void) self;
   PyObject *dataRef;
   int inValue = 0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", keywords, &dataRef, &inValue)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(dataRef);
   XPLMSetDatai(inDataRef, inValue);
   Py_RETURN_NONE;
@@ -255,15 +237,12 @@ My_DOCSTR(_getDataf__doc__, "getDataf",
           "Returns float value for dataRef.");
 static PyObject *XPLMGetDatafFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"dataRef"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("dataRef"), nullptr};
   (void) self;
   PyObject *dataRef;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &dataRef)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(dataRef);
   return PyFloat_FromDouble(XPLMGetDataf(inDataRef));
 }
@@ -275,16 +254,13 @@ My_DOCSTR(_setDataf__doc__, "setDataf",
           "Sets float value for dataRef.");
 static PyObject *XPLMSetDatafFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"dataRef", "value"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("dataRef"), CHAR("value"), nullptr};
   (void) self;
   PyObject *dataRef;
   float inValue = 0.0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|f", keywords, &dataRef, &inValue)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(dataRef);
   XPLMSetDataf(inDataRef, inValue);
   Py_RETURN_NONE;
@@ -297,15 +273,12 @@ My_DOCSTR(_getDatad__doc__, "getDatad",
           "Returns double value for dataRef (as a python float)");
 static PyObject *XPLMGetDatadFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"dataRef"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("dataRef"), nullptr};
   (void) self;
   PyObject *dataRef;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &dataRef)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(dataRef);
   return PyFloat_FromDouble(XPLMGetDatad(inDataRef));
 }
@@ -317,16 +290,13 @@ My_DOCSTR(_setDatad__doc__, "setDatad",
           "Sets double value for dataRef.");
 static PyObject *XPLMSetDatadFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"dataRef", "value"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("dataRef"), CHAR("value"), nullptr};
   (void) self;
   PyObject *dataRef;
   double inValue = 0.0;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|d", keywords, &dataRef, &inValue)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(dataRef);
   XPLMSetDatad(inDataRef, inValue);
   Py_RETURN_NONE;
@@ -346,18 +316,15 @@ My_DOCSTR(_getDatavi__doc__, "getDatavi",
           "Returns the number of elements copied.");
 static PyObject *XPLMGetDataviFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"dataRef", "values", "offset", "count"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("dataRef"), CHAR("values"), CHAR("offset"), CHAR("count"), nullptr};
   (void) self;
   PyObject *drefObj;
   PyObject *outValuesObj=Py_None;
   int *outValues = nullptr;
   int inOffset=0, inMax=-1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|Oii", keywords, &drefObj, &outValuesObj, &inOffset, &inMax)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef= drefFromObj(drefObj);
   if(outValuesObj && (outValuesObj != Py_None)){
     if(!PyList_Check(outValuesObj)){
@@ -407,18 +374,15 @@ My_DOCSTR(_setDatavi__doc__, "setDatavi",
           "No return value.");
 static PyObject *XPLMSetDataviFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"dataRef", "values", "offset", "count"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("dataRef"), CHAR("values"), CHAR("offset"), CHAR("count"), nullptr};
   (void) self;
   PyObject *drefObj;
   PyObject *inValuesObj;
   int *inValues = nullptr;
   int inOffset=0, inCount=-1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|ii", keywords, &drefObj, &inValuesObj, &inOffset, &inCount)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef= drefFromObj(drefObj);
   if(!PySequence_Check(inValuesObj)){
     PyErr_SetString(PyExc_TypeError, "setDatavi expects list as the values parameter.");
@@ -460,18 +424,15 @@ My_DOCSTR(_getDatavf__doc__, "getDatavf",
           "Returns the number of elements copied.");
 static PyObject *XPLMGetDatavfFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"dataRef", "values", "offset", "count"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("dataRef"), CHAR("values"), CHAR("offset"), CHAR("count"), nullptr};
   (void) self;
   PyObject *drefObj;
   PyObject *outValuesObj=Py_None;
   float *outValues = nullptr;
   int inOffset=0, inMax=-1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|Oii", keywords, &drefObj, &outValuesObj, &inOffset, &inMax)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(drefObj);
   if(outValuesObj && (outValuesObj != Py_None)){
     if(!PyList_Check(outValuesObj)){
@@ -529,18 +490,15 @@ My_DOCSTR(_setDatavf__doc__, "setDatavf",
           "No return value.");
 static PyObject *XPLMSetDatavfFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"dataRef", "values", "offset", "count"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("dataRef"), CHAR("values"), CHAR("offset"), CHAR("count"), nullptr};
   (void) self;
   PyObject *drefObj;
   PyObject *inValuesObj;
   float *inValues = nullptr;
   int inOffset=0, inCount=-1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|ii", keywords, &drefObj, &inValuesObj, &inOffset, &inCount)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(drefObj);
   if(!PySequence_Check(inValuesObj)){
     PyErr_SetString(PyExc_TypeError, "setDatavf expects list as the values parameter.");
@@ -585,18 +543,15 @@ My_DOCSTR(_getDatab__doc__, "getDatab",
           "Returns the number of elements copied.");
 static PyObject *XPLMGetDatabFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"dataRef", "values", "offset", "count"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("dataRef"), CHAR("values"), CHAR("offset"), CHAR("count"), nullptr};
   (void) self;
   PyObject *drefObj;
   PyObject *outValuesObj = Py_None;
   uint8_t *outValues = nullptr;
   int inOffset=0, inMax=-1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|Oii", keywords, &drefObj, &outValuesObj, &inOffset, &inMax)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef= drefFromObj(drefObj);
   if(outValuesObj && (outValuesObj != Py_None)){
     if(!PyList_Check(outValuesObj)){
@@ -647,18 +602,15 @@ My_DOCSTR(_setDatab__doc__, "setDatab",
           "No return value.");
 static PyObject *XPLMSetDatabFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"dataRef", "values", "offset", "count"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("dataRef"), CHAR("values"), CHAR("offset"), CHAR("count"), nullptr};
   (void) self;
   PyObject *drefObj;
   PyObject *inValuesObj;
   uint8_t *inValues = nullptr;
   int inOffset=0, inCount=-1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|ii", keywords, &drefObj, &inValuesObj, &inOffset, &inCount)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef= drefFromObj(drefObj);
   if(!PySequence_Check(inValuesObj)){
     PyErr_SetString(PyExc_TypeError, "setDatab expects list as the values parameter.");
@@ -700,17 +652,14 @@ My_DOCSTR(_getDatas__doc__, "getDatas",
           "dataRef is storing character information. Otherwise use getDatab().");
 static PyObject *XPLMGetDatasFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"dataRef", "offset", "count"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("dataRef"), CHAR("offset"), CHAR("count"), nullptr};
   (void) self;
   PyObject *drefObj;
   char *outValues = nullptr;
   int inOffset=0, inMax=-1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|ii", keywords, &drefObj, &inOffset, &inMax)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef= drefFromObj(drefObj);
   if (inMax <= 0) {
     inMax = XPLMGetDatab(inDataRef, nullptr, 0, 0);
@@ -762,18 +711,15 @@ My_DOCSTR(_setDatas__doc__, "setDatas",
 
 static PyObject *XPLMSetDatasFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"dataRef", "value", "offset", "count"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("dataRef"), CHAR("value"), CHAR("offset"), CHAR("count"), nullptr};
   (void) self;
   PyObject *drefObj;
   PyObject *inValueObj;
   const char *inValue = nullptr;
   int inOffset=0, inCount=-1;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|ii", keywords, &drefObj, &inValueObj, &inOffset, &inCount)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef= drefFromObj(drefObj);
 
   if(!PyUnicode_Check(inValueObj)){
@@ -1418,8 +1364,11 @@ My_DOCSTR(_registerDataAccessor__doc__, "registerDataAccessor",
           
 static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"name", "dataType", "writable", "readInt", "writeInt", "readFloat", "writeFloat", "readDouble", "writeDouble", "readIntArray", "writeIntArray", "readFloatArray", "writeFloatArray", "readData", "writeData", "readRefCon", "writeRefCon"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("name"), CHAR("dataType"), CHAR("writable"), CHAR("readInt"), CHAR("writeInt"),
+                             CHAR("readFloat"), CHAR("writeFloat"), CHAR("readDouble"), CHAR("writeDouble"),
+                             CHAR("readIntArray"), CHAR("writeIntArray"), CHAR("readFloatArray"), CHAR("writeFloatArray"),
+                             CHAR("readData"), CHAR("writeData"),
+                             CHAR("readRefCon"), CHAR("writeRefCon"), nullptr};
   (void)self;
   const char *inDataName;
   int inDataType=xplmType_Unknown, inIsWritable=-1;
@@ -1427,10 +1376,8 @@ static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args, PyO
     *waf=Py_None, *rab=Py_None, *wab=Py_None, *rRef=Py_None, *wRef=Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s|iiOOOOOOOOOOOOOO", keywords, &inDataName, &inDataType, &inIsWritable,
                                   &ri, &wi, &rf, &wf, &rd, &wd, &rai, &wai, &raf, &waf, &rab, &wab, &rRef, &wRef)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   if (inIsWritable == -1) {
     inIsWritable = (wi != Py_None || wf != Py_None || wd != Py_None || wai != Py_None || waf != Py_None || wab != Py_None) ? 1 : 0;
   }
@@ -1468,8 +1415,8 @@ static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args, PyO
   Py_INCREF(rRef); Py_INCREF(wRef);
 
   accessorCallbacks[refcon_id] = {
-    .module_name = std::string(CurrentPythonModuleName),
-    .data_name = std::string(inDataName),
+    .module_name = CurrentPythonModuleName,
+    .data_name = inDataName,
     .data_type = inDataType,
     .is_writable = inIsWritable,
     .read_int = ri,
@@ -1502,15 +1449,12 @@ My_DOCSTR(_unregisterDataAccessor__doc__, "unregisterDataAccessor",
           "Unregisters data accessor.");
 static PyObject *XPLMUnregisterDataAccessorFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"accessor"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("accessor"), nullptr};
   (void)self;
   PyObject *drefObj;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &drefObj)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   PyObject *pluginSelf = get_moduleName_p();
   intptr_t accessor_id = -1;
   for (auto& pair : accessorCallbacks) {
@@ -1570,7 +1514,7 @@ static void genericSharedDataChanged(void *inRefcon)
   intptr_t refcon_id = (intptr_t)inRefcon;
   auto it = sharedCallbacks.find(refcon_id);
   if (it == sharedCallbacks.end()) {
-    printf("Shared data callback called with wrong inRefcon: %p\n", inRefcon);
+    pythonLog("Shared data callback called with wrong inRefcon: %p\n", inRefcon);
     return;
   }
 
@@ -1607,17 +1551,14 @@ My_DOCSTR(_shareData__doc__, "shareData",
           "\nReturns 1 on success 0 otherwise.");
 static PyObject *XPLMShareDataFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"name", "dataType", "dataChanged", "refCon"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("name"), CHAR("dataType"), CHAR("dataChanged"), CHAR("refCon"), nullptr};
   (void) self;
   const char *inDataName;
   XPLMDataTypeID inDataType = xplmType_Unknown;
   PyObject *inNotificationFunc=Py_None, *inNotificationRefcon=Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "si|OO", keywords, &inDataName, &inDataType, &inNotificationFunc, &inNotificationRefcon)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   intptr_t refcon_id = sharedCntr++;
   void *refcon = (void *)refcon_id;
   int res = XPLMShareData(inDataName, inDataType, genericSharedDataChanged, refcon);
@@ -1628,13 +1569,12 @@ static PyObject *XPLMShareDataFun(PyObject *self, PyObject *args, PyObject *kwar
   Py_INCREF(inNotificationFunc);
   Py_INCREF(inNotificationRefcon);
 
-  sharedCallbacks[refcon_id] = {
-    .module_name = std::string(CurrentPythonModuleName),
-    .name = std::string(inDataName),
-    .data_type = inDataType,
-    .callback = inNotificationFunc,
-    .refCon = inNotificationRefcon
-  };
+  sharedCallbacks.emplace(refcon_id, SharedInfo {
+    CurrentPythonModuleName,
+    inDataName,
+    inDataType,
+    inNotificationFunc,
+    inNotificationRefcon});
 
   return PyLong_FromLong(res);
 }
@@ -1667,23 +1607,19 @@ My_DOCSTR(_getDataRefsByIndex__doc__, "getDataRefsByIndex",
           "try to use these, you may crash the sim." );
 static PyObject *XPLMGetDataRefsByIndexFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"offset", "count"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("offset"), CHAR("count"), nullptr};
   (void)self;
   int offset = 0;
   int count = 1;
 
   if(!XPLMGetDataRefsByIndex_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMGetDataRefsByIndex is available only in XPLM400 and up and requires at least X-Plane v12.04.");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|ii", keywords, &offset, &count)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   if (offset < 0) {
     PyErr_SetString(PyExc_ValueError, "invalid offset, too low");
     Py_RETURN_NONE;
@@ -1727,22 +1663,18 @@ My_DOCSTR(_getDataRefInfo__doc__, "getDataRefInfo",
           "  recall type is a bitfield, see xp.getDataRefTypes()");
 static PyObject *XPLMGetDataRefInfoFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"dataRef"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("dataRef"), nullptr};
   (void) self;
 
   if(!XPLMGetDataRefInfo_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMGetDataRefInfo is available only in XPLM400 and up and requires at least X-Plane v12.04.");
-    freeCharArray(keywords, params.size());
+    PyErr_SetString(PyExc_RuntimeError, "XPLMGetDataRefInfo is available only in XPLM400 and up and requires at least X-Plane v12.04.");
     return nullptr;
   }
 
   PyObject *dataRef;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &dataRef)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
   XPLMDataRef inDataRef = drefFromObj(dataRef);
   XPLMDataRefInfo_t outInfo;
   outInfo.structSize = sizeof(XPLMDataRefInfo_t);
@@ -1762,18 +1694,15 @@ My_DOCSTR(_unshareData__doc__, "unshareData",
           "Returns 1 on success, 0 otherwise");
 static PyObject *XPLMUnshareDataFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"name", "dataType", "dataChanged", "refCon"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("name"), CHAR("dataType"), CHAR("dataChanged"), CHAR("refCon"), nullptr};
   (void) self;
   const char *inDataName = nullptr;
   XPLMDataTypeID inDataType = xplmType_Unknown;
   PyObject *callbackObj = Py_None;
   PyObject *refconObj = Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "si|OO", keywords, &inDataName, &inDataType, &callbackObj, &refconObj)) {
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
 
   PyObject *pluginSelf = get_moduleName_p();
   std::string target_module = std::string(CurrentPythonModuleName);

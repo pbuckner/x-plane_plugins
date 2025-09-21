@@ -60,22 +60,19 @@ ProbeInfo_dealloc(ProbeInfoObject *self)
 static int
 ProbeInfo_init(ProbeInfoObject *self, PyObject *args, PyObject *kwds)
 {
-  std::vector<std::string> params = {"result",
-                                     "locationX", "locationY", "locationZ",
-                                     "normalX", "normalY", "normalZ",
-                                     "velocityX", "velocityY", "velocityZ",
-                                     "is_wet"};
-  char **kwlist = stringVectorToCharArray(params);
+  static char *kwlist[] = {CHAR("result"),
+                          CHAR("locationX"), CHAR("locationY"), CHAR("locationZ"),
+                          CHAR("normalX"), CHAR("normalY"), CHAR("normalZ"),
+                          CHAR("velocityX"), CHAR("velocityY"), CHAR("velocityZ"),
+                          CHAR("is_wet"), nullptr};
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ifffffffffi", kwlist,
                                    &self->result,
                                    &self->locationX, &self->locationY, &self->locationZ,
                                    &self->normalX, &self->normalY, &self->normalZ,
                                    &self->velocityX, &self->velocityY, &self->velocityZ,
                                    &self->is_wet)) {
-    freeCharArray(kwlist, params.size());
     return -1;
   }
-  freeCharArray(kwlist, params.size());
   return 0;
 }
 

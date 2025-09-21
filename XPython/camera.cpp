@@ -50,10 +50,10 @@ static int genericCameraControl(XPLMCameraPosition_t *outCameraPosition, int inI
 
   auto it = camDict.find((intptr_t)inRefcon);
   if(it == camDict.end()){
-    printf("Couldn't find cameraControl callback with id = %p.", inRefcon);
+    pythonLog("Couldn't find cameraControl callback with id = %p.", inRefcon);
     return 0;
   }
-  CameraInfo info = it->second;
+  const CameraInfo& info = it->second;
 
   PyObject *pos;
   if(!inIsLosingControl){
@@ -94,6 +94,8 @@ static int genericCameraControl(XPLMCameraPosition_t *outCameraPosition, int inI
   if((outCameraPosition != nullptr) && !inIsLosingControl){
     PyObject *elem;
     if(PyList_Size(pos) != 7){
+      Py_DECREF(pos);
+      Py_XDECREF(resObj);
       PyErr_SetString(PyExc_RuntimeError ,"outCameraPosition must contain 7 floats.\n");
       return -1;
     }
@@ -151,8 +153,7 @@ My_DOCSTR(_controlCamera__doc__, "controlCamera",
 
 static PyObject *XPLMControlCameraFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"howLong", "controlFunc", "refCon"};
-  char **keywords = stringVectorToCharArray(params);
+  static char *keywords[] = {CHAR("howLong"), CHAR("controlFunc"), CHAR("refCon"), nullptr};
 
   (void) self;
   errCheck("before ControlCamera");
@@ -160,14 +161,10 @@ static PyObject *XPLMControlCameraFun(PyObject *self, PyObject *args, PyObject *
   PyObject *controlFunc = Py_None;
   PyObject *refcon = Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|iOO", keywords, &inHowLong, &controlFunc, &refcon)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
-  freeCharArray(keywords, params.size());
 
   if (controlFunc == Py_None) {
-    Py_DECREF(controlFunc);
-    Py_DECREF(refcon);
     PyErr_SetString(PyExc_ValueError, "Expected non-null value for func in controlCamera()\n");
     Py_RETURN_NONE;
   }
@@ -175,12 +172,12 @@ static PyObject *XPLMControlCameraFun(PyObject *self, PyObject *args, PyObject *
   Py_INCREF(refcon);
   Py_INCREF(controlFunc);
 
-  camDict[++camCntr] = {
-    .module_name = std::string(CurrentPythonModuleName),
-    .howLong = inHowLong,
-    .callback = controlFunc,
-    .refCon = refcon
-  };
+  camDict.emplace(++camCntr, CameraInfo {
+      std::string(CurrentPythonModuleName),
+      inHowLong,
+      controlFunc,
+      refcon});
+
   XPLMControlCamera(inHowLong, genericCameraControl, (void *)camCntr);
   Py_RETURN_NONE;
 }

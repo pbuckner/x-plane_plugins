@@ -21,21 +21,18 @@ My_DOCSTR(_createWidgets__doc__, "createWidgets",
           "This does not work in X-Plane.");
 static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widgetDefs", "parentID", "result"};
-  char **keywords = stringVectorToCharArray(params);
+  char *keywords[] = {CHAR("widgetDefs"), CHAR("parentID"), CHAR("result"), nullptr};
   (void) self;
   PyObject *widgetDefs = nullptr;
   int inCount=0;
   PyObject *paramParent=Py_None, *widgets=Py_None;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|OO", keywords, &widgetDefs, &paramParent, &widgets)){
     if(!PyArg_ParseTuple(args, "OiOO", &widgetDefs, &inCount, &paramParent, &widgets)){
-      freeCharArray(keywords, params.size());
       return nullptr;
     }
   }
   if (widgets != Py_None && !PyList_CheckExact(widgets)) {
       PyErr_SetString(PyExc_ValueError , "createWidgets result parameter must be a list");
-      freeCharArray(keywords, params.size());
       return nullptr;
   }
   if (widgets == Py_None) {
@@ -44,7 +41,6 @@ static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args, PyObject *k
     
   inCount = PySequence_Length(widgetDefs);
   if (inCount <= 0) {
-    freeCharArray(keywords, params.size());
     Py_RETURN_NONE;
   }
   XPWidgetID inParamParent = 0;
@@ -57,7 +53,6 @@ static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args, PyObject *k
 
   if((defs == nullptr) || (ioWidgets == nullptr)){
     pythonLog("createWidgets, trying to create %d widgets, Out of memory", inCount);
-    freeCharArray(keywords, params.size());
     Py_RETURN_NONE;
   }
 
@@ -76,7 +71,6 @@ static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args, PyObject *k
       free(msg);
       free(ioWidgets);
       free(defs);
-      freeCharArray(keywords, params.size());
       Py_RETURN_NONE;
     }
     defs[i].left = PyLong_AsLong(PySequence_GetItem(defListItem, 0));
@@ -102,7 +96,6 @@ static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args, PyObject *k
   }
   free(ioWidgets);
   free(defs);
-  freeCharArray(keywords, params.size());
   return widgets;
 }
 
@@ -113,19 +106,16 @@ My_DOCSTR(_moveWidgetBy__doc__, "moveWidgetBy",
           "Move widget by amount. +x = right, +y = up");
 static PyObject *XPUMoveWidgetByFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"widgetID", "dx", "dy"};
-  char **keywords = stringVectorToCharArray(params);
+  char *keywords[] = {CHAR("widgetID"), CHAR("dx"), CHAR("dy"), nullptr};
   (void) self;
   XPWidgetID inWidget;
   int inDeltaX=0, inDeltaY=0;
   PyObject *widget = nullptr;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|ii", keywords, &widget, &inDeltaX, &inDeltaY)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   inWidget = getVoidPtr(widget, "XPWidgetID");
   XPUMoveWidgetBy(inWidget, inDeltaX, inDeltaY);
-  freeCharArray(keywords, params.size());
   Py_RETURN_NONE;
 }
 
@@ -138,22 +128,19 @@ My_DOCSTR(_fixedLayout__doc__, "fixedLayout",
           "Seems to be completely useless with X-Plane 11.55+");
 static PyObject *XPUFixedLayoutFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"message", "widgetID", "param1", "param2"};
-  char **keywords = stringVectorToCharArray(params);
+  char *keywords[] = {CHAR("message"), CHAR("widgetID"), CHAR("param1"), CHAR("param2"), nullptr};
   (void) self;
   XPWidgetMessage inMessage;
   XPWidgetID inWidget;
   intptr_t inParam1, inParam2;
   PyObject *widget = nullptr, *param1 = nullptr, *param2 = nullptr;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iOOO", keywords, &inMessage, &widget, &param1, &param2)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
 
   convertMessagePythonToC(inMessage, widget, param1, param2, &inWidget, &inParam1, &inParam2);
   int res = XPUFixedLayout(inMessage, inWidget, inParam1, inParam2);
   PyObject *ret = PyLong_FromLong(res);
-  freeCharArray(keywords, params.size());
   return ret;
 }
 
@@ -249,8 +236,7 @@ My_DOCSTR(_selectIfNeeded__doc__, "selectIfNeeded",
 static PyObject *XPUSelectIfNeededFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   errCheck("prior selectIfNeeded");
-  std::vector<std::string> params = {"message", "widgetID", "param1", "param2", "eatClick"};
-  char **keywords = stringVectorToCharArray(params);
+  char *keywords[] = {CHAR("message"), CHAR("widgetID"), CHAR("param1"), CHAR("param2"), CHAR("eatClick"), nullptr};
   (void) self;
   XPWidgetMessage inMessage;
   XPWidgetID inWidget;
@@ -259,7 +245,6 @@ static PyObject *XPUSelectIfNeededFun(PyObject *self, PyObject *args, PyObject *
   PyObject *widget = nullptr, *param1 = nullptr, *param2 = nullptr;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iOOO|i", keywords, &inMessage, &widget, &param1, &param2, &inEatClick)){
     pythonLog("Failed to parse tuple in selectIfNeeded()");
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
 
@@ -342,7 +327,6 @@ static PyObject *XPUSelectIfNeededFun(PyObject *self, PyObject *args, PyObject *
   errCheck("selectIfNeeded before XPU()");
   res = XPUSelectIfNeeded(inMessage, inWidget, inParam1, inParam2, inEatClick);
   errCheck("end selectIfNeeded ");
-  freeCharArray(keywords, params.size());
   return PyLong_FromLong(res);
 }
 
@@ -355,8 +339,7 @@ My_DOCSTR(_defocusKeyboard__doc__, "defocusKeyboard",
           "Seems completely useless in X-Plane 11.55");
 static PyObject *XPUDefocusKeyboardFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"message", "widgetID", "param1", "param2", "eatClick"};
-  char **keywords = stringVectorToCharArray(params);
+  char *keywords[] = {CHAR("message"), CHAR("widgetID"), CHAR("param1"), CHAR("param2"), CHAR("eatClick"), nullptr};
   (void) self;
   XPWidgetMessage inMessage;
   XPWidgetID inWidget;
@@ -364,13 +347,11 @@ static PyObject *XPUDefocusKeyboardFun(PyObject *self, PyObject *args, PyObject 
   int inEatClick=1;
   PyObject *widget = nullptr, *param1 = nullptr, *param2 = nullptr;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iOOO|i", keywords, &inMessage, &widget, &param1, &param2, &inEatClick)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
   convertMessagePythonToC(inMessage, widget, param1, param2, &inWidget, &inParam1, &inParam2);
 
   int res = XPUDefocusKeyboard(inMessage, inWidget, inParam1, inParam2, inEatClick);
-  freeCharArray(keywords, params.size());
   return PyLong_FromLong(res);
 }
 
@@ -384,8 +365,7 @@ My_DOCSTR(_dragWidget__doc__, "dragWidget",
           "is initiated, this callback will cause the widget to move.");
 static PyObject *XPUDragWidgetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  std::vector<std::string> params = {"message", "widgetID", "param1", "param2", "left", "top", "right", "bottom"};
-  char **keywords = stringVectorToCharArray(params);
+  char *keywords[] = {CHAR("message"), CHAR("widgetID"), CHAR("param1"), CHAR("param2"), CHAR("left"), CHAR("top"), CHAR("right"), CHAR("bottom"), nullptr};
   (void) self;
   XPWidgetMessage inMessage;
   XPWidgetID inWidget;
@@ -393,14 +373,12 @@ static PyObject *XPUDragWidgetFun(PyObject *self, PyObject *args, PyObject *kwar
   int inLeft=0, inTop=0, inRight=0, inBottom=0;
   PyObject *widget = nullptr, *param1 = nullptr, *param2 = nullptr;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iOOOiiii", keywords, &inMessage, &widget, &param1, &param2, &inLeft, &inTop, &inRight, &inBottom)){
-    freeCharArray(keywords, params.size());
     return nullptr;
   }
 
   convertMessagePythonToC(inMessage, widget, param1, param2, &inWidget, &inParam1, &inParam2);
 
   int res = XPUDragWidget(inMessage, inWidget, inParam1, inParam2, inLeft, inTop, inRight, inBottom);
-  freeCharArray(keywords, params.size());
   return PyLong_FromLong(res);
 }
 

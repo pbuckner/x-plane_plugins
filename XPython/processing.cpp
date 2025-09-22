@@ -322,6 +322,7 @@ My_DOCSTR(_setFlightLoopCallbackInterval__doc__, "setFlightLoopCallbackInterval"
           "Must have been previously registered with registerFlightLoopCallback()");
 static PyObject *XPLMSetFlightLoopCallbackIntervalFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+  pythonLog("in setflightloop callback intervae, %s", CurrentPythonModuleName);
   static char *keywords[] = {CHAR("callback"), CHAR("interval"), CHAR("relativeToNow"), CHAR("refCon"), nullptr};
   (void)self;
   PyObject *callback, *refcon=Py_None;
@@ -331,25 +332,20 @@ static PyObject *XPLMSetFlightLoopCallbackIntervalFun(PyObject *self, PyObject *
     return nullptr;
   }
 
-  PyObject *module_name_p = get_moduleName_p();
   intptr_t found_refcon = 0;
   bool found = false;
 
   for (auto it = flightLoopCallbacks.begin(); it != flightLoopCallbacks.end(); ++it) {
     FlightLoopDict& info = it->second;
-    PyObject *t_moduleName = PyUnicode_FromString(info.module_name.c_str());
 
-    if (PyObject_RichCompareBool(info.refCon, refcon, Py_EQ)
-        && PyObject_RichCompareBool(info.callback, callback, Py_EQ)
-        && PyObject_RichCompareBool(t_moduleName, module_name_p, Py_EQ)) {
+    if (!strcmp(CurrentPythonModuleName, info.module_name.c_str())
+        && PyObject_RichCompareBool(info.refCon, refcon, Py_EQ)
+        && PyObject_RichCompareBool(info.callback, callback, Py_EQ)) {
       found_refcon = it->first;
       found = true;
-      Py_DECREF(t_moduleName);
       break;
     }
-    Py_DECREF(t_moduleName);
   }
-  Py_DECREF(module_name_p);
 
   if (!found) {
     PyErr_SetString(PyExc_ValueError , "setFlightLoopCallbackInterval: Unknown FlightLoopID");
@@ -419,6 +415,7 @@ static PyObject *XPLMCreateFlightLoopFun(PyObject* self, PyObject *args, PyObjec
   Py_INCREF(refCon);
 
   PyObject *flightLoopIDObj = makeCapsule(flightLoopID, "XPLMFlightLoopID");
+  Py_INCREF(flightLoopIDObj);
   return flightLoopIDObj;
 }
 

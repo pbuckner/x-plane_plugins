@@ -397,7 +397,7 @@ static int genericCommandCallback(XPLMCommandRef inCommand, XPLMCommandPhase inP
   }
   
   CommandCallbackInfo& info = it->second;
-  set_moduleName(info.module_name.c_str());
+  set_moduleName(info.module_name);
 
   PyObject *arg1 = makeCapsule(inCommand, "XPLMCommandRef");
   PyObject *arg2 = PyLong_FromLong(inPhase);
@@ -606,7 +606,7 @@ PyObject* buildCommandCallbacksDict(void)
     // Initialize all pointers to nullptr
     PyObject *key = nullptr;
     PyObject *command_capsule = nullptr;
-    PyObject *module_name = nullptr;
+    PyObject *module_name_p = nullptr;
     PyObject *before = nullptr;
     PyObject *value = nullptr;
     
@@ -623,8 +623,8 @@ PyObject* buildCommandCallbacksDict(void)
       goto cleanup_iteration;
     }
     
-    module_name = PyUnicode_FromString(info.module_name.c_str());
-    if (!module_name) {
+    module_name_p = PyUnicode_FromString(info.module_name.c_str());
+    if (!module_name_p) {
       error_occurred = true;
       goto cleanup_iteration;
     }
@@ -655,8 +655,8 @@ PyObject* buildCommandCallbacksDict(void)
     Py_INCREF(info.refcon);                         // increment for tuple
     PyTuple_SetItem(value, 3, info.refcon);         // steals ref
     
-    PyTuple_SetItem(value, 4, module_name);         // steals ref
-    module_name = nullptr; // Mark as stolen
+    PyTuple_SetItem(value, 4, module_name_p);         // steals ref
+    module_name_p = nullptr; // Mark as stolen
     
     // Add to dictionary (PyDict_SetItem does NOT steal references)
     if (PyDict_SetItem(dict, key, value) < 0) {
@@ -673,7 +673,7 @@ cleanup_iteration:
     // Clean up any non-nullptr objects that weren't stolen
     if (key) Py_DECREF(key);
     if (command_capsule) Py_DECREF(command_capsule);
-    if (module_name) Py_DECREF(module_name);
+    if (module_name_p) Py_DECREF(module_name_p);
     if (before) Py_DECREF(before);
     if (value) Py_DECREF(value);
     break; // Exit the loop on error
@@ -687,13 +687,11 @@ cleanup_iteration:
   return dict;
 }
 
-void clearInstanceCommands(PyObject *module_name_p)
+void clearInstanceCommands(char *module_name)
 {
-  char *module_name_str = objToStr(module_name_p);
-  std::string target_module(module_name_str);
-  free(module_name_str);
+  std::string target_module(module_name);
   
-  pythonDebug("%*s Clearing commands for [%s]", 6, " ", target_module.c_str());
+  pythonDebug("%*s Clearing commands for [%s]", 6, " ", module_name);
   int count = 0;
   
   for (auto it = commandCallbacks.begin(); it != commandCallbacks.end();) {

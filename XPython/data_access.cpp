@@ -1414,7 +1414,7 @@ static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args, PyO
   Py_INCREF(rRef); Py_INCREF(wRef);
 
   accessorCallbacks[refcon_id] = {
-    .module_name = CurrentPythonModuleName,
+    .module_name = std::string(CurrentPythonModuleName),
     .data_name = inDataName,
     .data_type = inDataType,
     .is_writable = inIsWritable,

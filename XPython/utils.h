@@ -13,13 +13,13 @@ extern int pythonWarnings;
 extern int pythonStats;
 extern int pythonFlushLog;
 extern int pythonCapsuleRegistration;
-extern char CurrentPythonModuleName[];
+extern char *CurrentPythonModuleName;
+extern char *XPPython3ModuleName;
 
 void dbg(const char *msg);
 void pythonLogException(void);
 
-void set_moduleName(PyObject *);
-void set_moduleName(std::string);
+void set_moduleName(const std::string&);
 void set_moduleName(char *);
 PyObject *get_moduleName_p();
 PyObject *get_pythonline();

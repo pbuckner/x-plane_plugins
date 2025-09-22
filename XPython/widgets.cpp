@@ -11,6 +11,7 @@
 #include <Widgets/XPWidgets.h>
 #include <Widgets/XPStandardWidgets.h>
 #include "plugin_dl.h"
+#include <cassert>
 #include "utils.h"
 #include "widgetutils.h"
 #include "widgets.h"
@@ -79,6 +80,33 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
   clock_gettime(CLOCK_MONOTONIC, &all_start);
 
   PyObject *widget = makeCapsule(inWidget, "XPWidgetID");
+
+
+  void* widgetPtr = getVoidPtr(widget, "XPWidgetID");
+  auto it = widgetCallbacks.find(widgetPtr);
+  if(it == widgetCallbacks.end()){
+    /* we'll get an xpMsg_Create that we can't handle from a CustomWidget (because the widgetCallbacks
+       isn't populated yet). Ignore the message (CreateCustomWidget() below will send it again!)
+       If not xpMsg_Create, write error.
+     */
+    if (inMessage != xpMsg_Create && inMessage != xpMsg_AcceptParent) {
+      pythonLog("Couldn't find the callback list for widget ID %p. for message %d", inWidget, inMessage);
+    }
+    Py_DECREF(widget);
+    err = PyErr_Occurred();
+    if(err){
+      pythonLog("Error after message where no callbackList for msg %d", inMessage);
+      pythonLogException();
+    }
+    return 0;
+  }
+
+  set_moduleName(widgetCallbacks[it->first].module_name);
+  WidgetCallbackInfo& callbackInfo = it->second;
+
+  assert(CurrentPythonModuleName[0] != 'X'
+         && CurrentPythonModuleName[0] != 'P');
+
   errCheck("Error after makeCapsule");
   
   PyObject *param1, *param2;
@@ -137,31 +165,9 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
 
   errCheck("Error after message parse for msg %d", inMessage);
   
-  void* widgetPtr = getVoidPtr(widget, "XPWidgetID");
-  auto it = widgetCallbacks.find(widgetPtr);
-  if(it == widgetCallbacks.end()){
-    /* we'll get an xpMsg_Create that we can't handle from a CustomWidget (because the widgetCallbacks
-       isn't populated yet). Ignore the message (CreateCustomWidget() below will send it again!)
-       If not xpMsg_Create, write error.
-     */
-    if (inMessage != xpMsg_Create && inMessage != xpMsg_AcceptParent) {
-      pythonLog("Couldn't find the callback list for widget ID %p. for message %d", inWidget, inMessage);
-    }
-    Py_DECREF(widget);
-    Py_DECREF(param1);
-    Py_DECREF(param2);
-    err = PyErr_Occurred();
-    if(err){
-      pythonLog("Error after message where no callbackList for msg %d", inMessage);
-      pythonLogException();
-    }
-    return 0;
-  }
 
-  WidgetCallbackInfo& callbackInfo = it->second;
 
   int res;
-  set_moduleName(callbackInfo.module_name);
   for(size_t i = 0; i < callbackInfo.callbacks.size(); ++i){
     err = PyErr_Occurred();
     if(err){
@@ -206,6 +212,14 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
     pythonLogException();
   }
 
+  /* because 'destroy' will actually delete widgetCallback[x] data, that
+     will cause CurrentPythonModuleName to go out of scope and
+     therefore, getPluginIndex() will fail.
+     
+     So... get the pluginIndex now to use for stats & then check for Destroy.
+   */ 
+  int pluginIndex = getPluginIndex(); // gotta 'save' this for stats belw
+
   if(inMessage == xpMsg_Destroy){
     auto it = widgetCallbacks.find(widgetPtr);
     if (it != widgetCallbacks.end()) {
@@ -226,7 +240,7 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
      callback execution misses much of what the custom widget actually processes. Sadly
      it appears we cannot match what Laminar is collecting internally.
   */
-  pluginStats[getPluginIndex()].customw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
+  pluginStats[pluginIndex].customw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
   pluginStats[0].customw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
   err = PyErr_Occurred();
   if(err){
@@ -330,7 +344,7 @@ static PyObject *XPCreateCustomWidgetFun(PyObject *self, PyObject *args, PyObjec
   PyObject *resObj = makeCapsule(res, "XPWidgetID");
 
   WidgetCallbackInfo callbackInfo;
-  callbackInfo.module_name = CurrentPythonModuleName;
+  callbackInfo.module_name = std::string(CurrentPythonModuleName);
   callbackInfo.callbacks.push_back(inCallback);
   Py_INCREF(inCallback);
   widgetCallbacks[res] = std::move(callbackInfo);
@@ -952,7 +966,7 @@ static PyObject *XPAddWidgetCallbackFun(PyObject *self, PyObject *args, PyObject
 
   if(it == widgetCallbacks.end()){
     WidgetCallbackInfo callbackInfo;
-    callbackInfo.module_name = CurrentPythonModuleName;
+    callbackInfo.module_name = std::string(CurrentPythonModuleName);
     callbackInfo.callbacks.push_back(callback);
     widgetCallbacks[widgetPtr] = std::move(callbackInfo);
     //register only the first time
@@ -1094,6 +1108,7 @@ PyInit_XPWidgets(void)
 
 
 void logWidgets(PyObject *key, char *key_s, char * value_s) {
+  (void) key;
   /* get all widget capsules */
   for (auto& pair : CapsuleDict) {
     PyObject *capsule = pair.second;

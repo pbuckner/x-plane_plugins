@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <cassert>
 #include <string>
 #include "utils.h"
 #include "ini_file.h"
@@ -19,7 +20,8 @@ const char *objRefName = "XPLMObjectRef";
 const char *commandRefName = "XPLMCommandRef";
 const char *widgetRefName = "XPWidgetID";
 
-char CurrentPythonModuleName[512] = "Main";
+char *XPPython3ModuleName = CHAR("XPPython3");
+char *CurrentPythonModuleName = XPPython3ModuleName;
 
 void c_backtrace();
 int pythonWarnings = 1;  /* 1= issue warnings, 0= do not */
@@ -224,7 +226,8 @@ void pythonLogException()
     PyException_SetTraceback(pvalue, ptraceback);
   }
 
-  PyObject *module = get_moduleName_p();
+  PyObject *python_module = PyUnicode_FromString(CurrentPythonModuleName);
+  if (!python_module) python_module = Py_None;
 
   /* First, attempt to fully format exception with traceback
      If the _fails_ then we'll print the Exception type & value below.
@@ -256,7 +259,7 @@ void pythonLogException()
         PyObject *localsDict = PyDict_New();
         PyDict_SetItemString(localsDict, "__builtins__", PyEval_GetBuiltins()); 
         PyDict_SetItemString(localsDict, "vals", vals);
-        PyDict_SetItemString(localsDict, "module", module);
+        PyDict_SetItemString(localsDict, "module", python_module);
         MyPyRun_String("ret = []\n"
                        "[ret.extend(x.split('\\n')) for x in vals]\n"
                        "ret = '\\n'.join(['EXCEPTION>> [{}] {}'.format(module or 'Main', x) for x in ret])\n",
@@ -288,7 +291,7 @@ void pythonLogException()
   Py_XDECREF(ptype);
   Py_XDECREF(pvalue);
   Py_XDECREF(ptraceback);
-  Py_XDECREF(module);
+  Py_XDECREF(python_module);
 }
 
 char * objToStr(PyObject *item) {
@@ -311,19 +314,23 @@ char * objToStr(PyObject *item) {
   return res;
 }
   
-void set_moduleName(std::string name) {
-  strcpy(CurrentPythonModuleName, name.c_str());
+void set_moduleName(const std::string& name) {
+  CurrentPythonModuleName = CHAR(name.c_str());
+  assert(CurrentPythonModuleName[0] != 'X'
+         && CurrentPythonModuleName[0] != 'P');
 }
 
 void set_moduleName(char *name) {
-  strcpy(CurrentPythonModuleName, name);
+  CurrentPythonModuleName = name;
+  assert(CurrentPythonModuleName[0] != 'X'
+         && CurrentPythonModuleName[0] != 'P');
 }
 
-void set_moduleName(PyObject *name) {
-  char *tmp = objToStr(name);
-  strcpy(CurrentPythonModuleName, tmp);
-  free(tmp);
-}
+// void set_moduleName(PyObject *name) {
+//   char *tmp = objToStr(name);
+//   strcpy(CurrentPythonModuleName, tmp);
+//   free(tmp);
+// }
 
 PyObject *get_moduleName_p() {
   PyObject *pModule = PyUnicode_FromString(CurrentPythonModuleName);

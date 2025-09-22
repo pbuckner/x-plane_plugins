@@ -544,12 +544,14 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
     xpy_enableAircraftPlugins();
   }
 
+  char *moduleName;
   while(PyDict_Next(XPY3moduleDict, &pos, &pModuleName, &pluginInstance)){
     pluginInfo = PyDict_GetItem(XPY3pluginDict, pluginInstance);
     if (PyList_GetItem(pluginInfo, PLUGIN_DISABLED) == Py_True) {
       continue;
     }
-    set_moduleName(pModuleName);
+    moduleName = objToStr(pModuleName);
+    set_moduleName(moduleName);
     errCheck("before sending to XPluginReceiveMessage");
     pRes = PyObject_CallMethod(pluginInstance, "XPluginReceiveMessage", "ilO", inFromWho, inMessage, param);
 
@@ -571,7 +573,9 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
       }
       Py_DECREF(pRes);
     }
+    free(moduleName);
   }
+  set_moduleName(XPPython3ModuleName);
   errCheck("before sending all XPluginReceiveMessage");
   if (inMessage == XPLM_MSG_SCENERY_LOADED && XPLMGetCycleNumber() != 0){
     /* we'll get SCENERY_LOADED with Cycle# = 0 on startup, but we'll have already loaded the 
@@ -723,7 +727,7 @@ static void reloadSysModules(void) {
   /* reload_unknown... if sys.modules has a module for which we don't know the mtime,
    *                   do we reload it anyway? Py_True
    */
-  strcpy(CurrentPythonModuleName, "XPPython3");
+  set_moduleName(XPPython3ModuleName);
   PyDict_SetItemString(localsDict, "reload_unknown", Py_True);
 
   MyPyRun_File(fp, "xp_reloader.py", Py_file_input, localsDict, localsDict);

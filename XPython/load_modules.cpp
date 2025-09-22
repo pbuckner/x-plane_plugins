@@ -38,6 +38,7 @@ void xpy_loadModules(const char *path, const char *package, const char *pattern,
              "PythonPlugins.PI_<plugin>.py"
              "Laminar Research.Baron B58.plugins.PythonPlugions.PI_<plugin>.py"
           */
+          set_moduleName(pkgModName);
           pluginInstance = loadPIClass(pkgModName);
           if (pluginInstance) {
             if (pluginList) {
@@ -73,7 +74,6 @@ static PyObject *loadPIClass(const char *fname)
   pythonDebug("loading module '%s'", fname);
   PyObject *module_name_p = PyUnicode_DecodeFSDefault(fname);
   if (module_name_p) {
-    set_moduleName(module_name_p);
     PyObject *sys_modules = PySys_GetObject("modules"); /* borrowed */
     already_loaded = (PyDict_Contains(sys_modules, module_name_p) == 1);
     PyObject *module_p = PyImport_Import(module_name_p); /* returns new reference */
@@ -115,7 +115,7 @@ static PyObject *loadPIClass(const char *fname)
         }
         Py_DECREF(pClass);
         if (pluginInstance) {
-          return xpy_startInstance(module_name_p, module2_p, pluginInstance) ? pluginInstance : nullptr;
+          return xpy_startInstance(module2_p, pluginInstance) ? pluginInstance : nullptr;
         }
       } else {
         pythonDebug(" . Failed to get callable PythonInterface class");

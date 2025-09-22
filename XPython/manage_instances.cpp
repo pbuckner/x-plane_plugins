@@ -188,11 +188,14 @@ void xpy_enableInstances() {
       continue;
     }
     
+    char *moduleName = objToStr(pModuleName);
+    set_moduleName(moduleName);
     pluginInfo = PyDict_GetItem(XPY3pluginDict, pluginInstance);
-    if (0 == xpy_enableInstance(pModuleName, pluginInstance)) {
+    if (0 == xpy_enableInstance(pluginInstance)) {
       /* returns 1 on successful enable, 0 otherwise. */
       PyList_SetItem(pluginInfo, PLUGIN_DISABLED, Py_True);
     }; 
+    free(moduleName);
   }
   pythonLogFlush();
   pythonDebug("ENABLED Global Plugins");
@@ -228,8 +231,12 @@ static void enablePluginList(PyObject *pluginList)
   PyObject *pluginInstance;
   if (iterator != nullptr) {
     while((pluginInstance = PyIter_Next(iterator))) {
-      PyObject *moduleName = PyList_GetItem(PyDict_GetItem(XPY3pluginDict, pluginInstance), PLUGIN_MODULE_NAME);
-      xpy_enableInstance(moduleName, pluginInstance);
+      PyObject *moduleName_p = PyList_GetItem(PyDict_GetItem(XPY3pluginDict, pluginInstance), PLUGIN_MODULE_NAME);
+      char *moduleName = objToStr(moduleName_p);
+      set_moduleName(moduleName);
+      xpy_enableInstance(pluginInstance);
+      free(moduleName);
+      Py_DECREF(moduleName_p);
       Py_DECREF(pluginInstance); /* PyInter_Next() returns new */
     }
     Py_DECREF(iterator);
@@ -266,7 +273,10 @@ void xpy_disableInstances()
     }
     pluginInfo = PyDict_GetItem(XPY3pluginDict, pluginInstance); /* borrowed */
     if (PyList_GetItem(pluginInfo, PLUGIN_DISABLED) == Py_False) {
-      xpy_disableInstance(pModuleName, pluginInstance);
+      char *moduleName = objToStr(pModuleName);
+      set_moduleName(moduleName);
+      xpy_disableInstance(pluginInstance);
+      free(moduleName);
     }
   }
   pythonDebug("DISABLED Global plugins.");
@@ -281,9 +291,12 @@ static void disablePluginList(PyObject *pluginList) {
   if (iterator != nullptr) {
     while((pluginInstance = PyIter_Next(iterator))) {
       PyObject *pluginInfo = PyDict_GetItem(XPY3pluginDict, pluginInstance);
-      PyObject *moduleName = PyList_GetItem(pluginInfo, PLUGIN_MODULE_NAME);
+      PyObject *moduleName_p = PyList_GetItem(pluginInfo, PLUGIN_MODULE_NAME);
       if (PyList_GetItem(pluginInfo, PLUGIN_DISABLED) == Py_False) {
-        xpy_disableInstance(moduleName, pluginInstance);
+        char *moduleName = objToStr(moduleName_p);
+        set_moduleName(moduleName);
+        xpy_disableInstance(pluginInstance);
+        free(moduleName);
       }
       Py_DECREF(pluginInstance);
     }
@@ -323,7 +336,10 @@ void xpy_stopInstances()
     if (PySequence_Contains(XPY3aircraftPlugins, pluginInstance) || PySequence_Contains(XPY3sceneryPlugins, pluginInstance)) {
       continue;
     }
-    xpy_stopInstance(pModuleName, pluginInstance);
+    char *moduleName = objToStr(pModuleName);
+    set_moduleName(moduleName);
+    xpy_stopInstance(pluginInstance);
+    free(moduleName);
     Py_DECREF(pModuleName);
   }
   Py_DECREF(md_key_iterator);
@@ -345,8 +361,11 @@ static void stopPluginList(PyObject *pluginList) {
   PyObject *iterator = PyObject_GetIter(pluginList);
   if (iterator != nullptr) {
     while((pluginInstance = PyIter_Next(iterator))) {
-      PyObject *moduleName = PyList_GetItem(PyDict_GetItem(XPY3pluginDict, pluginInstance), PLUGIN_MODULE_NAME);
-      xpy_stopInstance(moduleName, pluginInstance);
+      PyObject *moduleName_p = PyList_GetItem(PyDict_GetItem(XPY3pluginDict, pluginInstance), PLUGIN_MODULE_NAME);
+      char *moduleName = objToStr(moduleName_p);
+      set_moduleName(moduleName);
+      xpy_stopInstance(pluginInstance);
+      free(moduleName);
       /* xpy_cleanUpInstance(moduleName, pluginInstance); STOP also calls cleanup*/
       Py_DECREF(pluginInstance);
     }

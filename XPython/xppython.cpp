@@ -23,6 +23,7 @@
 #include "widgets.h"
 #include "xppython.h"
 #include "manage_instance.h"
+#include <cassert>
 
 PyObject *XPY3pythonDicts = nullptr, *XPY3pythonCapsules = nullptr;
 PyObject *PythonModuleMTimes = nullptr;
@@ -41,6 +42,10 @@ int getPluginIndex()
     pluginStats[numPlugins].fl_time = pluginStats[numPlugins].customw_time = pluginStats[numPlugins].draw_time = 0;
     numPlugins++;
   }
+
+  assert(CurrentPythonModuleName[0] != 'X'
+         && CurrentPythonModuleName[0] != 'P');
+
   for (int i = 1; i < numPlugins; i++) {
     if(! strcmp(pluginStats[i].module_name.c_str(), CurrentPythonModuleName)) return i;
   }

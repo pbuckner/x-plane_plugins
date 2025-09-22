@@ -30,7 +30,7 @@ ifeq ("$(ALPHA)", "1")
   CFLAGS+= -DERRCHECK=1
   OPTIMIZATION= -O0
 else
-  CFLAGS+= -DERRCHECK=0
+  CFLAGS+= -DERRCHECK=0 -DNDEBUG
   OPTIMIZATION= -O3
 endif
 
@@ -41,7 +41,7 @@ ifeq ($(TARGET), Windows)
   # Do to the way we build for windows against 'python3.dll', the resulting binaries (3.6, 3.7, 3.8) are identical
   # except for the embedded 'version' value
   PYDEV312=/c/Program\ Files/Python312
-  PY_CFLAGS = -Wno-missing-field-initializers -Wno-unused-result -Wno-cast-function-type -Wsign-compare -Wunreachable-code -fno-common -DNDEBUG -fwrapv -O3 -D_GNU_SOURCE
+  PY_CFLAGS = -Wno-missing-field-initializers -Wno-unused-result -Wno-cast-function-type -Wsign-compare -Wunreachable-code -fno-common -fwrapv -D_GNU_SOURCE
   PY_LDFLAGS = 
   CFLAGS+= ${PY_CFLAGS} ${XPLM_CPPFLAGS} -DIBM=1 -DAPL=0 -DLIN=0 -I/c/msys64/mingw64/include -I/usr/include
   CFLAGS312=-I${PYDEV312}/include $(CFLAGS) -DPYTHONVERSION=\"3.12\"
@@ -63,7 +63,7 @@ endif
 
 ifeq ($(TARGET), Darwin)
   CFLAGS += ${XPLM_CPPFLAGS} -DIBM=0 -DAPL=1 -DLIN=0
-  PYTHON_CONFIG_FLAGS = -I/Library/Frameworks/Python.framework/Versions/3.12/include/python3.12 -I/Library/Frameworks/Python.framework/Versions/3.12/include/python3.12 -fno-strict-overflow -Wsign-compare -Wunreachable-code -fno-common -dynamic -DNDEBUG -g -Wall -arch arm64 -arch x86_64 -g
+  PYTHON_CONFIG_FLAGS = -I/Library/Frameworks/Python.framework/Versions/3.12/include/python3.12 -I/Library/Frameworks/Python.framework/Versions/3.12/include/python3.12 -fno-strict-overflow -Wsign-compare -Wunreachable-code -fno-common -dynamic -g -Wall -arch arm64 -arch x86_64 -g
 CFLAGS312=$(CFLAGS) $(PYTHON_CONFIG_FLAGS) -DPYTHONVERSION=\"3.12\"
   CFLAGS312+=$(OPTIMIZATION)
   # LDFLAGS += -shared -fPIC -fpic -ldl -g -fvisibility=hidden -undefined dynamic_lookup

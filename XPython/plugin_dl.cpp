@@ -263,23 +263,17 @@ t_fcn_info funcs420[] = {
 
 
 
-bool loadFunctions(t_fcn_info *ptr)
+bool loadFunctions(t_fcn_info *ptr, void *handle)
 {
   void *fun_ptr;
-  void *handle;
   bool res = true;
 
-  handle = dlopen(nullptr, RTLD_NOW);
-  if(handle == nullptr){
-    fprintf(stderr, "Problem dlopening executable.\n");
-    return false;
-  }
   while(ptr->name != nullptr){
     fun_ptr = dlsym(handle, ptr->name);
     if(fun_ptr != nullptr){
       *(ptr->fun_ptr) = fun_ptr;
     }else{
-      fprintf(stderr, "Couldn't get address of function '%s'.", ptr->name);
+      fprintf(stderr, "Couldn't get address of function '%s'.\n", ptr->name);
       res = false;
     }
     ++ptr;
@@ -294,25 +288,21 @@ bool loadSDKFunctions(void)
   XPLMHostApplicationID app;
   XPLMGetVersions(&xp_ver, &xplm_ver, &app);
 
+  void *handle = dlopen(nullptr, RTLD_NOW);
+  if(handle == nullptr){
+    fprintf(stderr, "Problem dlopening executable.\n");
+    return false;
+  }
+
   bool res = true;
-  if(xplm_ver >= 420){
-    res &= loadFunctions(funcs420);
-  }
-  if(xplm_ver >= 410){
-    res &= loadFunctions(funcs410);
-  }
-  if(xplm_ver >= 400){
-    res &= loadFunctions(funcs400);
-  }
-  if(xplm_ver >= 301){
-    res &= loadFunctions(funcs301);
-  }
-  if(xplm_ver >= 300){
-    res &= loadFunctions(funcs300);
-  }
-  if(xplm_ver >= 210){
-    res &= loadFunctions(funcs210);
-  }
+  if(xplm_ver >= 420) res &= loadFunctions(funcs420, handle);
+  if(xplm_ver >= 410) res &= loadFunctions(funcs410, handle);
+  if(xplm_ver >= 400) res &= loadFunctions(funcs400, handle);
+  if(xplm_ver >= 301) res &= loadFunctions(funcs301, handle);
+  if(xplm_ver >= 300) res &= loadFunctions(funcs300, handle);
+  if(xplm_ver >= 210) res &= loadFunctions(funcs210, handle);
+
+  dlclose(handle);
   pythonDebug("  loadSDKFunctions Loaded.");
   return res;
 }

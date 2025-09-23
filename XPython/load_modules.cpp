@@ -63,7 +63,7 @@ static PyObject *loadPIClass(const char *fname)
 /* Load "PythonInterface" class in provided file (fname)
  * and call XPluginStart
  * 
- * Updates XPY3moduleDict and XPpluginDict with informaiton about
+ * Updates XPY3pluginDict with information about
  * loaded plugin.
  *
  * Returns pluginInstance on success (or nullptr)

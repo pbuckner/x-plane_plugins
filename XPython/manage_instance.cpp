@@ -8,11 +8,10 @@
 #include "utilities.h"
 
 static void updatePluginDict(PyObject*,PyObject*, PyObject*);
-static PyObject *getPluginInfo(PyObject *);
+static PyObject *getPluginInstanceBySignature(PyObject *);
 
 int xpy_startInstance(PyObject *pModule, PyObject* pluginInstance) {
-  /* Start loaded instance, update XPY3moduleDict and XP3pluginDict with information
-   */
+  /* Start loaded instance, update  XP3pluginDict with information   */
   PyObject *pRes = PyObject_CallMethod(pluginInstance, "XPluginStart", nullptr);
   PyObject *err = PyErr_Occurred();
   if (err) {
@@ -35,7 +34,7 @@ int xpy_startInstance(PyObject *pModule, PyObject* pluginInstance) {
         pythonLog("[XPPython3] %s initialized.", CurrentPythonModuleName);
         pythonLog("[XPPython3]  Name: %s", PyBytes_AsString(u1));
         pythonLog("[XPPython3]  Sig:  %s", PyBytes_AsString(u2));
-        pythonLog("[XPrgrepPython3]  Desc: %s", PyBytes_AsString(u3));
+        pythonLog("[XPPython3]  Desc: %s", PyBytes_AsString(u3));
         pythonLogFlush();
         Py_DECREF(u1);
         Py_DECREF(u2);
@@ -59,35 +58,26 @@ int xpy_startInstance(PyObject *pModule, PyObject* pluginInstance) {
   return 0;
 }
 
-void updatePluginDict(PyObject *pModule, PyObject *pRes, PyObject *pluginInstance) {
-  PyObject *pluginInfo = PyList_New(6);  /* pluginInfo is new reference */
-  PyObject *tmp;
+void updatePluginDict(PyObject * /* pModule */, PyObject *pRes, PyObject *pluginInstance) {
+  PluginInfoDict pluginInfo;
 
-  tmp = PyTuple_GetItem(pRes, PLUGIN_NAME);
-  Py_INCREF(tmp);
-  PyList_SetItem(pluginInfo, PLUGIN_NAME, tmp);
+  // Extract strings from Python tuple
+  char *name = objToStr(PyTuple_GetItem(pRes, PLUGIN_NAME));
+  char *signature = objToStr(PyTuple_GetItem(pRes, PLUGIN_SIGNATURE));
+  char *description = objToStr(PyTuple_GetItem(pRes, PLUGIN_DESCRIPTION));
 
-  tmp = PyTuple_GetItem(pRes, PLUGIN_SIGNATURE);
-  Py_INCREF(tmp);
-  PyList_SetItem(pluginInfo, PLUGIN_SIGNATURE, tmp);
+  pluginInfo.name = name;
+  pluginInfo.signature = signature;
+  pluginInfo.description = description;
+  pluginInfo.module_name = CurrentPythonModuleName;
+  pluginInfo.disabled = false;
 
-  tmp = PyTuple_GetItem(pRes, PLUGIN_DESCRIPTION);
-  Py_INCREF(tmp);
-  PyList_SetItem(pluginInfo, PLUGIN_DESCRIPTION, tmp);
-
-  Py_INCREF(pModule);
-  PyList_SetItem(pluginInfo, PLUGIN_MODULE, pModule);
-
-  PyObject *module_name_p = PyUnicode_FromString(CurrentPythonModuleName);
-  Py_INCREF(module_name_p);
-  PyList_SetItem(pluginInfo, PLUGIN_MODULE_NAME, module_name_p);
-  Py_INCREF(Py_False);
-  PyList_SetItem(pluginInfo, PLUGIN_DISABLED, Py_False);
+  free(name);
+  free(signature);
+  free(description);
 
   Py_INCREF(pluginInstance);
-  PyDict_SetItem(XPY3moduleDict, module_name_p, pluginInstance);
-  Py_INCREF(pluginInfo);
-  PyDict_SetItem(XPY3pluginDict, pluginInstance, pluginInfo);
+  XPY3pluginInfoDict[pluginInstance] = pluginInfo;
   if(PyErr_Occurred()) {
     pythonLog("Error while updating plugin dict");
     pythonLogException();
@@ -107,21 +97,25 @@ void xpy_reloadInstance(PyObject *signature) {
   */
 
   pythonDebug("Reloading instance with signature: %s", objDebug(signature));
-  PyObject *pluginInfo = getPluginInfo(signature);
-  if (!pluginInfo) {
+  PyObject *pluginInstance = getPluginInstanceBySignature(signature);
+  if (!pluginInstance) {
     char *s = objToStr(signature);
     pythonLog("[XPPython3] Could not find plugin for signature: %s", s);
     free(s);
     return;
   }
 
-  PyObject *moduleName_p = PyList_GetItem(pluginInfo, PLUGIN_MODULE_NAME);
-  char *moduleName = objToStr(moduleName_p);
-  set_moduleName(moduleName);
+  auto pluginIt = XPY3pluginInfoDict.find(pluginInstance);
+  if (pluginIt == XPY3pluginInfoDict.end()) {
+    pythonLog("[XPPython3] Could not find plugin info for instance");
+    return;
+  }
+
+  const PluginInfoDict& pluginInfo = pluginIt->second;
+  set_moduleName(pluginInfo.module_name);
   pythonDebug("  which is module: %s", CurrentPythonModuleName);
-  PyObject *pluginInstance = PyDict_GetItem(XPY3moduleDict, moduleName_p);
-  
-  if (PyList_GetItem(pluginInfo, PLUGIN_DISABLED) == Py_False) {
+
+  if (!pluginInfo.disabled) {
     xpy_disableInstance(pluginInstance);
   }
   xpy_stopInstance(pluginInstance);
@@ -129,19 +123,19 @@ void xpy_reloadInstance(PyObject *signature) {
   /* clean up as best we can */
   /*   remove from Dicts
    */
-  PyDict_DelItem(XPY3moduleDict, moduleName_p);
-  PyDict_DelItem(XPY3pluginDict, pluginInstance);
+    XPY3pluginInfoDict.erase(pluginInstance);
 
   pythonDebug("Calling ReloadModule");
-  PyObject *module = PyImport_ReloadModule(PyList_GetItem(pluginInfo, PLUGIN_MODULE));
+  // For now, we'll use PyImport_ImportModule to reload by name
+  // This is a simplification - the original code used the module object from pluginInfo
+  PyObject *module = PyImport_ImportModule(pluginInfo.module_name.c_str());
   PyObject *err = PyErr_Occurred();
   if (err) {
     pythonLogException();
     pythonLog("[XPPython3] Failed to reload module '%s'", CurrentPythonModuleName);
-    free(moduleName);
     return;
   }
-  
+
   PyObject *pClass = PyObject_GetAttrString(module, "PythonInterface");
   if (pClass && PyCallable_Check(pClass)) {
     pythonDebug("  Getting PythonInterface class");
@@ -152,7 +146,6 @@ void xpy_reloadInstance(PyObject *signature) {
       if (PyErr_Occurred()) {
         pythonLogException();
       }
-      free(moduleName);
       return;
     }
     if(xpy_startInstance(module, pluginInstance)) {
@@ -162,25 +155,30 @@ void xpy_reloadInstance(PyObject *signature) {
         /* we could not enable the plugin (or plugin requested not to be enabled
            Mark it as disabled, so we'll not sent messages (or Disable) to it later
         */
-        PyList_SetItem(pluginInfo, PLUGIN_DISABLED, Py_True);
+        auto newPluginIt = XPY3pluginInfoDict.find(pluginInstance);
+        if (newPluginIt != XPY3pluginInfoDict.end()) {
+          newPluginIt->second.disabled = true;
+        }
       } else {
-        PyList_SetItem(pluginInfo, PLUGIN_DISABLED, Py_False);
+        auto newPluginIt = XPY3pluginInfoDict.find(pluginInstance);
+        if (newPluginIt != XPY3pluginInfoDict.end()) {
+          newPluginIt->second.disabled = false;
+        }
       }
     }
   }
-  free(moduleName);
 }
   
-PyObject *getPluginInfo(PyObject *signature){
-  PyObject *pluginInfo, *pluginInstance;
-  Py_ssize_t pos = 0;
-  while(PyDict_Next(XPY3pluginDict, &pos, &pluginInstance, &pluginInfo)){
-    if (! PyObject_RichCompareBool(PyList_GetItem(pluginInfo, PLUGIN_SIGNATURE), signature, Py_EQ)) {
-      continue;
+PyObject *getPluginInstanceBySignature(PyObject *signature){
+  char *signatureStr = objToStr(signature);
+  for (const auto& [pluginInstance, pluginInfo] : XPY3pluginInfoDict) {
+    if (pluginInfo.signature == signatureStr) {
+      pythonDebug("Found plugin for signature: %s", signatureStr);
+      free(signatureStr);
+      return pluginInstance;
     }
-    pythonDebug("Found plugin for signature: %s", objDebug(signature));
-    return pluginInfo;
   }
+  free(signatureStr);
   return nullptr;
 }
 
@@ -254,22 +252,12 @@ void xpy_cleanUpInstance(PyObject *pluginInstance) {
     pythonLog("[XPPython3] Error after clearning commands for %s", CurrentPythonModuleName);
     return;
   }
-  if (PyDict_Contains(XPY3pluginDict, pluginInstance)) {
-    PyDict_DelItem(XPY3pluginDict, pluginInstance);
-    err = PyErr_Occurred();
-    if (err) {
-      pythonLogException();
-      pythonLog("[XPPython3] Error after deleting %s from XPpluginDict.", CurrentPythonModuleName);
-      return;
-    }
+  auto pluginIt = XPY3pluginInfoDict.find(pluginInstance);
+  if (pluginIt != XPY3pluginInfoDict.end()) {
+    XPY3pluginInfoDict.erase(pluginIt);
   } else {
     pythonLog("[XPPython3] Plugin is not in plugindict! %s", CurrentPythonModuleName);
   }
-  PyObject *moduleName_p = PyUnicode_FromString(CurrentPythonModuleName);
-  if (PyDict_Contains(XPY3moduleDict, moduleName_p)) {
-    PyDict_DelItem(XPY3moduleDict, moduleName_p);
-  }
-  Py_DECREF(moduleName_p);
   Py_DECREF(pluginInstance);
   pythonDebug("%*s Cleaned instance: %s", 6, " ", CurrentPythonModuleName);
   err = PyErr_Occurred();

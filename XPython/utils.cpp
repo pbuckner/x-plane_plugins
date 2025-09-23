@@ -206,7 +206,7 @@ char * objDebug(PyObject *item) {
     Py_DECREF(pyBytes);
     return res;
   }
-  return (char *) '\0';
+  return nullptr;
 }
 
 void pythonLogException()
@@ -316,14 +316,14 @@ char * objToStr(PyObject *item) {
   
 void set_moduleName(const std::string& name) {
   CurrentPythonModuleName = CHAR(name.c_str());
-  assert(CurrentPythonModuleName[0] != 'X'
-         && CurrentPythonModuleName[0] != 'P');
+  assert(CurrentPythonModuleName[0] == 'X'
+         || CurrentPythonModuleName[0] == 'P');
 }
 
 void set_moduleName(char *name) {
   CurrentPythonModuleName = name;
-  assert(CurrentPythonModuleName[0] != 'X'
-         && CurrentPythonModuleName[0] != 'P');
+  assert(CurrentPythonModuleName[0] == 'X'
+         || CurrentPythonModuleName[0] == 'P');
 }
 
 // void set_moduleName(PyObject *name) {
@@ -365,11 +365,12 @@ PyObject *get_pythonline() {
   }
 #endif
   char *last_filename = objToStr(last_filenameObj); // allocates new string on heap
-  char *token = strrchr(last_filename, '/');
-  if (token == nullptr) {
-    token = strrchr(last_filename, '\\');
-    if (token == nullptr) {
-      token = strrchr(last_filename, ':');
+  char *token = nullptr;
+  size_t len = strlen(last_filename);
+  for (size_t i = len; i > 0 ; i--) {
+    char c = last_filename[i-1];
+    if (c == '/' || c == '\\' || c == ':') {
+      token = &last_filename[i-1];
     }
   }
   PyGILState_Release(gilState);
@@ -435,22 +436,21 @@ void MyPyRun_String(const char *str, int start, PyObject *globals, PyObject *loc
 
 void MyPyRun_File(FILE *fp, const char *filename, int start, PyObject *globals, PyObject *locals) {
   (void) filename;  /* ?? */
-  char *buffer = 0;
+  char *buffer = nullptr;
   unsigned long length;
   if(fp) {
     fseek(fp, 0, SEEK_END);
     length = ftell(fp);
     fseek(fp, 0, SEEK_SET);
     buffer = (char *)malloc(length+1);
-    if (buffer) {
+    if (buffer != nullptr) {
       if (length != fread(buffer, 1, length, fp)) {
         pythonLog("Failed to fully read %s for MyPyRun_File. Expected %ul bytes\n", filename, length);
         return;
       };
       buffer[length] = '\0';
-    }
-    if (buffer) {
       MyPyRun_String(buffer, start, globals, locals);
+      free(buffer);
     }
   }
 }
@@ -465,7 +465,7 @@ void c_backtrace() {
     printf("%s\n", strs[i]);
   }
   free(strs);
-  assert (1 == 2);
+  assert (false);
 #endif
 }
 

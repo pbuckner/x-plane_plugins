@@ -234,18 +234,13 @@ int initPython(void){
    */
   XPY3pythonDicts = PyDict_New();
   XPY3pythonCapsules = PyDict_New();
-  XPY3moduleDict = PyDict_New();
-  XPY3pluginDict = PyDict_New();
   XPY3aircraftPlugins = PyList_New(0);
   XPY3sceneryPlugins = PyList_New(0);
 
-  if (! (XPY3pythonDicts && XPY3pythonCapsules && XPY3moduleDict && XPY3pluginDict && XPY3aircraftPlugins && XPY3sceneryPlugins)) {
+  if (! (XPY3pythonDicts && XPY3pythonCapsules && XPY3aircraftPlugins && XPY3sceneryPlugins)) {
     pythonLog("[XPPython3] Failed to allocate internal data structures. Fatal Error.");
     return -1;
   }
-
-  PyDict_SetItemString(XPY3pythonDicts, "plugins", XPY3pluginDict);
-  PyDict_SetItemString(XPY3pythonDicts, "modules", XPY3moduleDict);
 
   if (ERRCHECK || pythonDebugs) {
     /* if beta/ERRCHECK or if user has enabled pythonDebugs, set a defaut ErrorCallback */
@@ -330,16 +325,11 @@ static int stopPython(void)
               
   XPLMClearAllMenuItems(XPLMFindPluginsMenu());
 
-  PyDict_Clear(XPY3moduleDict);
-  PyDict_Clear(XPY3pluginDict);
+  XPY3pluginInfoDict.clear();
   PyList_SetSlice(XPY3aircraftPlugins, 0, PyList_Size(XPY3aircraftPlugins), nullptr);
   PyList_SetSlice(XPY3sceneryPlugins, 0, PyList_Size(XPY3sceneryPlugins), nullptr);
 
-  PyDict_DelItemString(XPY3pythonDicts, "modules");
-  PyDict_DelItemString(XPY3pythonDicts, "plugins");
-
-  Py_DECREF(XPY3moduleDict);
-  Py_DECREF(XPY3pluginDict);
+  XPY3pluginInfoDict.clear();
   
   // Invoke cleanup method of all built-in modules
   std::vector<std::string> mods = {"XPLMDefs", "XPLMDisplay", "XPLMGraphics", "XPLMUtilities", "XPLMScenery", "XPLMMenus",
@@ -525,8 +515,7 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
 {
   if(xpy3_disabled) return;
 
-  PyObject *pluginInfo, *pluginInstance, *pRes, *pModuleName;
-  Py_ssize_t pos = 0;
+  PyObject *pRes;
   PyObject *param;
   errCheck("receiveMessage start");
   if (inMessage == XPLM_MSG_DATAREFS_ADDED) {
@@ -544,14 +533,11 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
     xpy_enableAircraftPlugins();
   }
 
-  char *moduleName;
-  while(PyDict_Next(XPY3moduleDict, &pos, &pModuleName, &pluginInstance)){
-    pluginInfo = PyDict_GetItem(XPY3pluginDict, pluginInstance);
-    if (PyList_GetItem(pluginInfo, PLUGIN_DISABLED) == Py_True) {
-      continue;
-    }
-    moduleName = objToStr(pModuleName);
-    set_moduleName(moduleName);
+  for (const auto& [pluginInstance, info] : XPY3pluginInfoDict) {
+
+    if (info.disabled) continue;
+
+    set_moduleName(info.module_name);
     errCheck("before sending to XPluginReceiveMessage");
     pRes = PyObject_CallMethod(pluginInstance, "XPluginReceiveMessage", "ilO", inFromWho, inMessage, param);
 
@@ -573,7 +559,6 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
       }
       Py_DECREF(pRes);
     }
-    free(moduleName);
   }
   set_moduleName(XPPython3ModuleName);
   errCheck("before sending all XPluginReceiveMessage");

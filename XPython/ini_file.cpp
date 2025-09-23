@@ -39,8 +39,8 @@ std::string xpy_config_get(std::string item) {
   mINI::INIStructure ini;
   file.read(ini);
   
-  int location = item.find(".");
-  if (location < 0) return "";
+  size_t location = item.find(".");
+  if (location == std::string::npos) return "";
 
   std::string a = item.substr(0, location);
   std::string b = item.substr(location + 1, item.length() - (location + 1));
@@ -51,26 +51,25 @@ std::string xpy_config_get(std::string item) {
   return "";
 }
 
+bool is_true_value(const std::string& value) {
+  static const std::vector<std::string> truevalues = {
+    "on", "true", "t", "yes", "y",
+  };
+  std::string lower_value = value;
+  std::transform(lower_value.begin(), lower_value.end(), lower_value.begin(), ::tolower);
+  return std::find(truevalues.begin(), truevalues.end(),lower_value) != truevalues.end();
+}
+
 int xpy_config_get_int_default(std::string item, int if_not_found) {
   std::string value = xpy_config_get(item);
   if (value != "") {
-    const std::vector<std::string> truevalues = {
-      "ON", "On", "on",
-      "True", "TRUE", "true",
-      "T", "t",
-      "YES", "Yes", "yes",
-      "Y", "y"
-    };
-    
-    // Check if value matches any true value
-    for (const auto& truevalue : truevalues) {
-      if (value == truevalue) {
-        return 1;
-      }
-    }
-    
+    if (is_true_value(value)) return 1;
     // If not a boolean true value, try to parse as integer
-    return atoi(value.c_str());
+    try {
+      return std::stoi(value);
+    } catch (const std::exception&) {
+      return if_not_found;
+    }
   }
   return if_not_found;
 }

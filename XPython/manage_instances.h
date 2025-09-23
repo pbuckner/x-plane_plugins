@@ -1,9 +1,21 @@
 #include <Python.h>
-extern PyObject *XPY3moduleDict;  /* moduleName -> instance */
-extern PyObject *XPY3pluginDict;  /* instance -> info ... [name, signature, descrptions, module, module_name, disabled]*/
+#include <unordered_map>
+#include <string>
+
+struct PluginInfoDict {
+  std::string name;
+  std::string signature;
+  std::string description;
+  std::string module_name;
+  bool disabled;
+};
+
+extern std::unordered_map<std::string, PyObject*> XPY3moduleInfoDict;  /* moduleName -> instance */
+extern std::unordered_map<PyObject *, PluginInfoDict> XPY3pluginInfoDict;  /* instance -> info struct */
 extern PyObject *XPY3aircraftPlugins; /* [instance, instance, ] */
 extern PyObject *XPY3sceneryPlugins; /* [instance, instance, ] */
 
+// Legacy defines kept for compatibility with any remaining code
 #define PLUGIN_NAME 0
 #define PLUGIN_SIGNATURE 1
 #define PLUGIN_DESCRIPTION 2

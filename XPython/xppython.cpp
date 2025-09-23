@@ -23,13 +23,14 @@
 #include "widgets.h"
 #include "xppython.h"
 #include "manage_instance.h"
+#include "manage_instances.h"
 #include <cassert>
 
 PyObject *XPY3pythonDicts = nullptr, *XPY3pythonCapsules = nullptr;
 PyObject *PythonModuleMTimes = nullptr;
 extern const char *pythonPluginVersion, *pythonPluginsPath, *pythonInternalPluginsPath;
 static PyObject *getExecutable(void);
-
+static PyObject *buildPluginDict();
 PluginStats pluginStats[512];
 static int numPlugins = 0;
 
@@ -43,8 +44,8 @@ int getPluginIndex()
     numPlugins++;
   }
 
-  assert(CurrentPythonModuleName[0] != 'X'
-         && CurrentPythonModuleName[0] != 'P');
+  assert(CurrentPythonModuleName[0] == 'X'
+         || CurrentPythonModuleName[0] == 'P');
 
   for (int i = 1; i < numPlugins; i++) {
     if(! strcmp(pluginStats[i].module_name.c_str(), CurrentPythonModuleName)) return i;
@@ -166,6 +167,7 @@ PyObject *XPPythonGetDictsFun(PyObject *self, PyObject *args)
   //PyDict_SetItemString(XPY3pythonDicts, "commandCallbacks", buildCommandCallbacksDict())
   PyDict_SetItemString(XPY3pythonDicts, "drefs", buildDataRefs());
   PyDict_SetItemString(XPY3pythonDicts, "sharedDrefs", buildSharedDataRefs());
+  PyDict_SetItemString(XPY3pythonDicts, "plugins", buildPluginDict());
   return XPY3pythonDicts;
 }
 
@@ -244,6 +246,74 @@ static PyObject *XPPythonGetCapsulesFun(PyObject *self, PyObject *args)
   (void) args;
   Py_INCREF(XPY3pythonCapsules);
   return XPY3pythonCapsules;
+}
+
+static PyObject *buildPluginDict()
+{
+  PyObject *pluginDict = PyDict_New();
+  if (!pluginDict) {
+    return nullptr;
+  }
+
+  for (const auto& [pluginInstance, pluginInfo] : XPY3pluginInfoDict) {
+    // Create tuple with plugin info
+    PyObject *pluginTuple = PyTuple_New(5);
+    if (!pluginTuple) {
+      Py_DECREF(pluginDict);
+      return nullptr;
+    }
+
+    // Add name
+    PyObject *name = PyUnicode_FromString(pluginInfo.name.c_str());
+    if (!name) {
+      Py_DECREF(pluginTuple);
+      Py_DECREF(pluginDict);
+      return nullptr;
+    }
+    PyTuple_SetItem(pluginTuple, 0, name);
+
+    // Add signature
+    PyObject *signature = PyUnicode_FromString(pluginInfo.signature.c_str());
+    if (!signature) {
+      Py_DECREF(pluginTuple);
+      Py_DECREF(pluginDict);
+      return nullptr;
+    }
+    PyTuple_SetItem(pluginTuple, 1, signature);
+
+    // Add description
+    PyObject *description = PyUnicode_FromString(pluginInfo.description.c_str());
+    if (!description) {
+      Py_DECREF(pluginTuple);
+      Py_DECREF(pluginDict);
+      return nullptr;
+    }
+    PyTuple_SetItem(pluginTuple, 2, description);
+
+    // Add module_name
+    PyObject *module_name = PyUnicode_FromString(pluginInfo.module_name.c_str());
+    if (!module_name) {
+      Py_DECREF(pluginTuple);
+      Py_DECREF(pluginDict);
+      return nullptr;
+    }
+    PyTuple_SetItem(pluginTuple, 3, module_name);
+
+    // Add disabled status
+    PyObject *disabled = pluginInfo.disabled ? Py_True : Py_False;
+    Py_INCREF(disabled);
+    PyTuple_SetItem(pluginTuple, 4, disabled);
+
+    // Add to dictionary
+    if (PyDict_SetItem(pluginDict, pluginInstance, pluginTuple) < 0) {
+      Py_DECREF(pluginTuple);
+      Py_DECREF(pluginDict);
+      return nullptr;
+    }
+    Py_DECREF(pluginTuple);
+  }
+
+  return pluginDict;
 }
 
 My_DOCSTR(_derefCapsule__doc__, "derefCapsule",
@@ -365,6 +435,7 @@ static PyMethodDef XPPythonMethods[] = {
   {"XPReloadPlugin", (PyCFunction)XPReloadPlugin, METH_VARARGS | METH_KEYWORDS, ""},
   {"getSelfName", (PyCFunction)XPGetSelfNameFun, METH_VARARGS | METH_KEYWORDS, _getSelfName__doc__},
   {"XPGetSelfName", (PyCFunction)XPGetSelfNameFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getPluginDict", (PyCFunction)buildPluginDict, METH_VARARGS, "Copy of internal PluginInfo"},
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {nullptr, nullptr, 0, nullptr}
 };

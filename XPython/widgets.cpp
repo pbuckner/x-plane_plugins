@@ -104,8 +104,8 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
   set_moduleName(widgetCallbacks[it->first].module_name);
   WidgetCallbackInfo& callbackInfo = it->second;
 
-  assert(CurrentPythonModuleName[0] != 'X'
-         && CurrentPythonModuleName[0] != 'P');
+  assert(CurrentPythonModuleName[0] == 'X'
+         || CurrentPythonModuleName[0] == 'P');
 
   errCheck("Error after makeCapsule");
   

@@ -1107,7 +1107,7 @@ PyInit_XPWidgets(void)
 }
 
 
-void logWidgets(PyObject *key, char *key_s, char * value_s) {
+void logWidgets(PyObject *key, const char *key_s, const char * value_s) {
   (void) key;
   /* get all widget capsules */
   for (auto& pair : CapsuleDict) {

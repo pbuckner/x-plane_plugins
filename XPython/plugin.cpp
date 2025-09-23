@@ -173,18 +173,18 @@ int initPython(void){
   */
 #if APL
   /* config.home = wcsdup(L"Resources/plugins/XPPython3/mac_x64/python" PYTHONVERSION); */
-  strcat(executable, "Resources/plugins/XPPython3/mac_x64/python" PYTHONVERSION "/Resources/Python.app/Contents/MacOS/Python");
+  strlcat(executable, "Resources/plugins/XPPython3/mac_x64/python" PYTHONVERSION "/Resources/Python.app/Contents/MacOS/Python", sizeof(executable));
 #elif IBM
   /* config.home = wcsdup(L"Resources/plugins/XPPython3/win_x64"); */
-  strcat(executable, "Resources/plugins/XPPython3/win_x64/pythonw.exe");
+  strlcat(executable, "Resources/plugins/XPPython3/win_x64/pythonw.exe", sizeof(executable));
 #elif LIN
   /* config.home = wcsdup(L"Resources/plugins/XPPython3/lin_x64/python" PYTHONVERSION); */
-  strcat(executable, "Resources/plugins/XPPython3/lin_x64/python" PYTHONVERSION "/bin/python" PYTHONVERSION);
+  strlcat(executable, "Resources/plugins/XPPython3/lin_x64/python" PYTHONVERSION "/bin/python" PYTHONVERSION, sizeof(executable));
   /* setenv("PYOPENGL_PLATFORM", "egl", 1);*/
   setenv("PYOPENGL_PLATFORM", "glx", 1); /* to get around Wayland... */
 #endif  
 
-  status = PyConfig_SetBytesString(&config, &config.executable, strdup(executable));
+  status = PyConfig_SetBytesString(&config, &config.executable, executable);
   if (PyStatus_Exception(status)) {
     pythonLog("SetBytesString status is error");
     Py_ExitStatusException(status);
@@ -268,7 +268,6 @@ static int startPython(void)
     return -1;
   }
 
-  xpy_startInternalInstances();
   #define EXCLUDE_AIRCRAFT 0
   xpy_startInstances(EXCLUDE_AIRCRAFT);
   xpy3_started = true;
@@ -298,20 +297,18 @@ static int stopPython(void)
     size_t size = dicts.size();
     for(size_t i = 0; i < size; i++) {
       PyObject *dict = PyDict_GetItemString(XPY3pythonDicts, dicts[i].c_str()); // borrowed
-      if (PyDict_Size(dict) > 0) {
+      if (dict != nullptr && PyDict_Size(dict) > 0) {
         pythonLog("{%s}: [%d]", dicts[i].c_str(), PyDict_Size(dict));
         Py_ssize_t pos = 0;
         PyObject *key,  *value;
         while(PyDict_Next(dict, &pos, &key, &value)){
-          char *key_s = objToStr(key);
-          char *value_s = objToStr(value);
+          const char *key_s = PyUnicode_AsUTF8(key);
+          const char *value_s = PyUnicode_AsUTF8(value);
           if (! strcmp(dicts[i].c_str(), "widgetProperties") ) {
             logWidgets(key, key_s, value_s);
           } else {
             pythonLog("  %s:%s %s", key_s, strlen(value_s) > 10 ? "\n    " : " ", value_s);
           }
-          free(key_s);
-          free(value_s);
         }
       }
     }
@@ -325,7 +322,6 @@ static int stopPython(void)
               
   XPLMClearAllMenuItems(XPLMFindPluginsMenu());
 
-  XPY3pluginInfoDict.clear();
   PyList_SetSlice(XPY3aircraftPlugins, 0, PyList_Size(XPY3aircraftPlugins), nullptr);
   PyList_SetSlice(XPY3sceneryPlugins, 0, PyList_Size(XPY3sceneryPlugins), nullptr);
 
@@ -343,6 +339,7 @@ static int stopPython(void)
     if (PyErr_Occurred()) {
       pythonLog("[XPPython3] Failed during stop of internal module %s", mods[i].c_str());
       pythonLogException();
+      Py_DECREF(mod);
       return 1;
     }
       
@@ -352,6 +349,8 @@ static int stopPython(void)
       if (PyErr_Occurred() ) {
         pythonLog("[XPPython3] Failed during cleanup of internal module %s", mods[i].c_str());
         pythonLogException();
+        Py_XDECREF(pRes);
+        Py_DECREF(mod);
         return 1;
       }
         
@@ -359,7 +358,7 @@ static int stopPython(void)
       Py_DECREF(mod);
     }
   }
-  Py_DECREF(loggerModuleObj);
+  Py_XDECREF(loggerModuleObj);
   Py_Finalize();
   if (pythonHandle) {
     dlclose(pythonHandle);
@@ -398,9 +397,9 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
   if (loadLocalPythonLibrary() == -1) {return 0;}
 
   pythonLogFlush();
-  strcpy(outName, pythonPluginName);
-  strcpy(outSig, pythonPluginSig);
-  strcpy(outDesc, pythonPluginDesc);
+  strlcpy(outName, pythonPluginName, 256);
+  strlcpy(outSig,  pythonPluginSig, 256);
+  strlcpy(outDesc, pythonPluginDesc, 256);
 
   if (XPLMHasFeature("XPLM_USE_NATIVE_WIDGET_WINDOWS")) {
     XPLMEnableFeature("XPLM_USE_NATIVE_WIDGET_WINDOWS", 1);
@@ -478,11 +477,9 @@ static int commandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, vo
       handleConfigFile();
       pythonLog("[XPPython3] Reload -- 5) Determine changed python modules.=======");
       reloadSysModules();
-      pythonLog("[XPPython3] Reload -- 6) Restart Internal Python plugins.=======");
-      xpy_startInternalInstances(); /* Internal */
-      pythonLog("[XPPython3] Reload -- 7) Restart PythonPlugins (and Scenery) plugins.=======");
+      pythonLog("[XPPython3] Reload -- 6) Restart Internal, PythonPlugins (and Scenery) plugins.=======");
       xpy_startInstances(EXCLUDE_AIRCRAFT); /* PythonPlugins, scenery. aircraft will be restarted and enabled in enableInstances*/
-      pythonLog("[XPPython3] Reload -- 8) Enable PythonPlugins (also starting and enabling Aircraft plugins if exist.=======");
+      pythonLog("[XPPython3] Reload -- 7) Enable PythonPlugins (also starting and enabling Aircraft plugins if exist.=======");
       xpy_enableInstances(); /* Internal, PythonPlugins, scenery, aircraft */
       pythonLog("[XPPython3] Reloaded Scripts.=======");
       xpy3_disabled = false;
@@ -553,9 +550,8 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
       }
     } else {
       if (pRes != Py_None) {
-        char *s = objToStr(pRes);
-        pythonLog("[%s] XPluginReceiveMessage returned '%s' rather than None. Value ignored", CurrentPythonModuleName, s);
-        free(s);
+        pythonLog("[%s] XPluginReceiveMessage returned '%s' rather than None. Value ignored", CurrentPythonModuleName,
+                  PyUnicode_AsUTF8(pRes));
       }
       Py_DECREF(pRes);
     }
@@ -696,9 +692,9 @@ static void initMtimes(void) {
 
 static void reloadSysModules(void) {
   char filename[1024];
-  strcpy(filename, pythonInternalHooksPath);
-  strcat(filename, "/");
-  strcat(filename, "xp_reloader.py");
+  strlcpy(filename, pythonInternalHooksPath, sizeof(filename));
+  strlcat(filename, "/", sizeof(filename));
+  strlcat(filename, "xp_reloader.py", sizeof(filename));
   FILE *fp = fopen(filename, "rb");  /* python says, use binary mode so newlines work */
   if (!fp) {
     pythonLog("Cannot find reloader script in %s", filename);
@@ -708,7 +704,8 @@ static void reloadSysModules(void) {
   PyObject *localsDict = PyDict_New();
   PyDict_SetItemString(localsDict, "__builtins__", PyEval_GetBuiltins());
   PyDict_SetItemString(localsDict, "mtimes", PythonModuleMTimes);
-  PyDict_SetItemString(localsDict, "sym_start", PyLong_FromLong(SymStartTime));
+  PyObject *sym_start_p = PyLong_FromLong(SymStartTime);
+  PyDict_SetItemString(localsDict, "sym_start", sym_start_p);
   /* reload_unknown... if sys.modules has a module for which we don't know the mtime,
    *                   do we reload it anyway? Py_True
    */
@@ -722,11 +719,11 @@ static void reloadSysModules(void) {
   if (err) {
     pythonLog("[XPPython3] Error occured during the reload of modules.");
     pythonLogException();
+  } else if (result == nullptr) {
+    pythonLog("[XPPython3] Failed to get result from reload of modules.");
+  } else if (PyUnicode_GetLength(result) > 2) {
+    pythonLog(" Module(s) reloaded:  \n  > %s", PyUnicode_AsUTF8(result));
   }
-  if (PyUnicode_GetLength(result) > 2) {
-    char *s = objToStr(result);
-    pythonLog(" Module(s) reloaded:  \n  > %s", s);
-    free(s);
-  }
+  Py_DECREF(sym_start_p);
   Py_DECREF(localsDict);
 }

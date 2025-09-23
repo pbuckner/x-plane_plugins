@@ -14,6 +14,16 @@ static void stopPluginList(PyObject *);
 static void disablePluginList(PyObject *);
 static void enablePluginList(PyObject *);
 
+static void xpy_startInternalPlugins(void);
+static void xpy_enableInternalPlugins(void);
+static void xpy_disableInternalPlugins(void);
+static void xpy_stopInternalPlugins(void);
+
+static void xpy_startGlobalPlugins(void);
+static void xpy_enableGlobalPlugins(void);
+static void xpy_disableGlobalPlugins(void);
+static void xpy_stopGlobalPlugins(void);
+
 std::unordered_map<PyObject *, PluginInfoDict> XPY3pluginInfoDict;
 
 /****************************************************************
@@ -22,21 +32,72 @@ std::unordered_map<PyObject *, PluginInfoDict> XPY3pluginInfoDict;
  *   path is set, internal dictionaries are updated
  ****************************************************************/
 
-void xpy_startInternalInstances()
-/* find, load, start INTERNAL plugins */
+void xpy_startInternalPlugins()
 {
   pythonDebug("STARTING Internal plugins...");
-  xpy_loadModules(pythonInternalPluginsPath, "XPPython3", "^I_PI_[^.]*\\.py$", nullptr);
+  xpy_loadModules(pythonInternalPluginsPath, "XPPython3", "^I_PI_[^.]*\\.py$", nullptr, PLUGIN_INTERNAL);
   pythonDebug("STARTED INTERNAL plugins.");
 }
+
+void xpy_startGlobalPlugins()
+{
+  pythonDebug("STARTING Global plugins...");
+  xpy_loadModules(pythonPluginsPath, "PythonPlugins", "^PI_[^.]*\\.py$", nullptr, PLUGIN_GLOBAL);
+  pythonDebug("STARTED Global plugins.");
+}
+
+void xpy_enableInternalPlugins()
+{
+  pythonDebug("ENABLING Internal plugins");
+  for (auto& [pluginInstance, info] : XPY3pluginInfoDict) {
+    if (info.plugin_type != PLUGIN_INTERNAL) {
+      continue;
+    }
+    set_moduleName(info.module_name);
+    if (0 == xpy_enableInstance(pluginInstance)) {
+      info.disabled = true;
+    }
+  }
+  pythonDebug("ENABLED Internal plugins");
+}
+
+void xpy_disableInternalPlugins()
+{
+  pythonDebug("DISABLING Internal plugins");
+  for (const auto& [pluginInstance, info] : XPY3pluginInfoDict) {
+    if (info.plugin_type != PLUGIN_INTERNAL) {
+      continue;
+    }
+    if (!info.disabled) {
+      set_moduleName(info.module_name);
+      xpy_disableInstance(pluginInstance);
+    }
+  }
+  pythonDebug("DISABLED Internal plugins");
+}
+
+void xpy_stopInternalPlugins()
+{
+  pythonDebug("STOPPING Internal plugins");
+  for (auto it = XPY3pluginInfoDict.begin(); it != XPY3pluginInfoDict.end(); ) {
+    if (it->second.plugin_type != PLUGIN_INTERNAL) {
+      ++it;
+      continue;
+    }
+    set_moduleName(it->second.module_name);
+    PyObject *pluginInstance = it->first;
+    ++it;
+    xpy_stopInstance(pluginInstance);
+  }
+  pythonDebug("STOPPED Internal plugins");
+}
+
 
 void xpy_startInstances(int include_aircraft)
 /* find, load, start global, scenery and (optionally) aircraft plugins */
 {
-  pythonDebug("STARTING Global plugins...");
-  xpy_loadModules(pythonPluginsPath, "PythonPlugins", "^PI_[^.]*\\.py$", nullptr);
-  pythonDebug("STARTED Global plugins.");
-
+  xpy_startInternalPlugins();
+  xpy_startGlobalPlugins();
   xpy_startSceneryPlugins();
 
   if (include_aircraft) {
@@ -93,7 +154,7 @@ void xpy_startAircraftPlugins()
   char *package_str = objToStr(package);
   Py_DECREF(localsDict);
   /* ... need to know these are 'aircraft' plugins, so I can remove them later!!! */
-  xpy_loadModules(plugins_path, package_str, "^PI_[^.]*\\.py$", XPY3aircraftPlugins);
+  xpy_loadModules(plugins_path, package_str, "^PI_[^.]*\\.py$", XPY3aircraftPlugins, PLUGIN_AIRCRAFT);
   pythonDebug("STARTED Aircraft plugins.");
   free(package_str);
   free(plugins_path);
@@ -152,12 +213,10 @@ void xpy_startSceneryPlugins()
   #define MODULE_PACKAGE 1
   if (iterator != nullptr) {
     while((packageInfo = PyIter_Next(iterator))) {
-      char *path = objToStr(PyList_GetItem(packageInfo, MODULE_PATH));
-      char *package = objToStr(PyList_GetItem(packageInfo, MODULE_PACKAGE));
+      const char *path = PyUnicode_AsUTF8(PyList_GetItem(packageInfo, MODULE_PATH));
+      const char *package = PyUnicode_AsUTF8(PyList_GetItem(packageInfo, MODULE_PACKAGE));
       // pythonLog("path: %s, package: %s", path, package);
-      xpy_loadModules(path, package, "^PI_[^.]*\\.py$", XPY3sceneryPlugins);
-      free(path);
-      free(package);
+      xpy_loadModules(path, package, "^PI_[^.]*\\.py$", XPY3sceneryPlugins, PLUGIN_SCENERY);
       Py_DECREF(packageInfo);
     }
     Py_DECREF(iterator);
@@ -181,21 +240,8 @@ void xpy_enableInstances() {
      and attempt to start and enable for current aircraft
      NOTE: THIS SEEMS CONVOLUTED.
    */
-  pythonDebug("ENABLING Global Plugins");
-  for (const auto& [pluginInstance, info] : XPY3pluginInfoDict) {
-    if (PySequence_Contains(XPY3aircraftPlugins, pluginInstance) || PySequence_Contains(XPY3sceneryPlugins, pluginInstance)) {
-      continue;
-    }
-
-    set_moduleName(info.module_name);
-    if (0 == xpy_enableInstance(pluginInstance)) {
-      /* returns 1 on successful enable, 0 otherwise. */
-      XPY3pluginInfoDict[pluginInstance].disabled = true;
-    };
-  }
-  pythonLogFlush();
-  pythonDebug("ENABLED Global Plugins");
-
+  xpy_enableInternalPlugins();
+  xpy_enableGlobalPlugins();
   xpy_enableSceneryPlugins();
 
   /* IF EXISTING aircraft, enable it them also */
@@ -229,13 +275,32 @@ static void enablePluginList(PyObject *pluginList)
     while((pluginInstance = PyIter_Next(iterator))) {
       auto pluginIt = XPY3pluginInfoDict.find(pluginInstance);
       if (pluginIt != XPY3pluginInfoDict.end()) {
-        set_moduleName(pluginIt->second.module_name);
+        const PluginInfoDict& info = pluginIt->second;
+        set_moduleName(info.module_name);
         xpy_enableInstance(pluginInstance);
       }
       Py_DECREF(pluginInstance); /* PyInter_Next() returns new */
     }
     Py_DECREF(iterator);
   }
+}
+
+void xpy_enableGlobalPlugins()
+{
+  pythonDebug("ENABLING Global Plugins");
+  for (auto& [pluginInstance, info] : XPY3pluginInfoDict) {
+    if (info.plugin_type != PLUGIN_GLOBAL) {
+      continue;
+    }
+    
+    set_moduleName(info.module_name);
+    if (0 == xpy_enableInstance(pluginInstance)) {
+      /* returns 1 on successful enable, 0 otherwise. */
+      info.disabled = true;
+    };
+  }
+  pythonLogFlush();
+  pythonDebug("ENABLED Global Plugins");
 }
 
 void xpy_enableSceneryPlugins()
@@ -257,23 +322,28 @@ void xpy_enableAircraftPlugins()
  * Send XPlaneDisable to all plugins (everything in XPmoduleDict)
  ****************************************************************/
 
-void xpy_disableInstances()
-{
+void xpy_disableGlobalPlugins() {
   pythonDebug("DISABLING  Global plugins...");
   for (const auto& [pluginInstance, info] : XPY3pluginInfoDict) {
-
-    if (PySequence_Contains(XPY3aircraftPlugins, pluginInstance) || PySequence_Contains(XPY3sceneryPlugins, pluginInstance)) {
+    
+    if (info.plugin_type != PLUGIN_GLOBAL) {
       continue;
     }
-
+    
     if (!info.disabled) {
       set_moduleName(info.module_name);
       xpy_disableInstance(pluginInstance);
     }
   }
   pythonDebug("DISABLED Global plugins.");
-  xpy_disableSceneryPlugins();
+}
+
+void xpy_disableInstances()
+{
   xpy_disableAircraftPlugins();
+  xpy_disableGlobalPlugins();
+  xpy_disableSceneryPlugins();
+  xpy_disableInternalPlugins();
 }
 
 static void disablePluginList(PyObject *pluginList) {
@@ -283,9 +353,12 @@ static void disablePluginList(PyObject *pluginList) {
   if (iterator != nullptr) {
     while((pluginInstance = PyIter_Next(iterator))) {
       auto pluginIt = XPY3pluginInfoDict.find(pluginInstance);
-      if (pluginIt != XPY3pluginInfoDict.end() && !pluginIt->second.disabled) {
-        set_moduleName(pluginIt->second.module_name);
-        xpy_disableInstance(pluginInstance);
+      if (pluginIt != XPY3pluginInfoDict.end()) {
+        const PluginInfoDict& info = pluginIt->second;
+        if (!info.disabled) {
+          set_moduleName(info.module_name);
+          xpy_disableInstance(pluginInstance);
+        }
       }
       Py_DECREF(pluginInstance);
     }
@@ -315,10 +388,19 @@ void xpy_disableAircraftPlugins()
 
 void xpy_stopInstances()
 {
-  pythonDebug("STOPPING Global plugins...");
+  xpy_stopGlobalPlugins();
+  xpy_stopInternalPlugins();
+  
+  xpy_stopSceneryPlugins();
+  xpy_stopAircraftPlugins();
+}
 
+static void xpy_stopGlobalPlugins() {
+  pythonDebug("STOPPING Global plugins...");
+  
   for (auto it = XPY3pluginInfoDict.begin(); it != XPY3pluginInfoDict.end(); ) {
-    if (PySequence_Contains(XPY3aircraftPlugins, it->first) || PySequence_Contains(XPY3sceneryPlugins, it->first)) {
+    if (it->second.plugin_type != PLUGIN_GLOBAL) {
+      ++it;
       continue;
     }
     set_moduleName(it->second.module_name);
@@ -326,15 +408,11 @@ void xpy_stopInstances()
     ++it; // advance iterator BEFORE calling xpy_stopInstance, since it modifies the Dict
     xpy_stopInstance(pluginInstance);
   }
-
   pythonDebug("STOPPED Global plugins.");
-  
-  xpy_stopSceneryPlugins();
-  xpy_stopAircraftPlugins();
 }
 
 static void stopPluginList(PyObject *pluginList) {
-  /* XPluginStop() for plugins in list, 
+  /* XPluginStop() for plugins in list,
      clears menu for each plugin,
      removes plugin from dictionary,
      empties the list
@@ -345,7 +423,8 @@ static void stopPluginList(PyObject *pluginList) {
     while((pluginInstance = PyIter_Next(iterator))) {
       auto pluginIt = XPY3pluginInfoDict.find(pluginInstance);
       if (pluginIt != XPY3pluginInfoDict.end()) {
-        set_moduleName(pluginIt->second.module_name);
+        const PluginInfoDict& info = pluginIt->second;
+        set_moduleName(info.module_name);
         xpy_stopInstance(pluginInstance);
       }
       /* xpy_cleanUpInstance(moduleName, pluginInstance); STOP also calls cleanup*/

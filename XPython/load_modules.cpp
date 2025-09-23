@@ -8,9 +8,9 @@
 
 #include "utils.h"
 
-static PyObject *loadPIClass(const char *fname);
+static PyObject *loadPIClass(const char *fname, PluginType plugin_type);
 
-void xpy_loadModules(const char *path, const char *package, const char *pattern, PyObject* pluginList)
+void xpy_loadModules(const char *path, const char *package, const char *pattern, PyObject* pluginList, PluginType plugin_type)
 {
   //Scan current directory for the plugin modules, loads and calls XPluginStart()
   DIR *dir = opendir(path);
@@ -29,17 +29,18 @@ void xpy_loadModules(const char *path, const char *package, const char *pattern,
         char *modName = strdup(de->d_name);
         if(modName){
           modName[strlen(de->d_name) - 3] = '\0';
-          char *pkgModName = (char*)malloc(strlen(modName) + strlen(package) + 2);
-          strcpy(pkgModName, package);
-          strcat(pkgModName, ".");
-          strcat(pkgModName, modName);
+          char *pkgModName;
+          if (-1 == asprintf(&pkgModName, "%s.%s", package, modName)) {
+            pythonLog("[XPPython3] Failed to allocate memory for package module name");
+            continue;
+          }
           /* We want to load as part of packages
              "XPPython3.I_PI_<plugin>.py"
              "PythonPlugins.PI_<plugin>.py"
              "Laminar Research.Baron B58.plugins.PythonPlugions.PI_<plugin>.py"
           */
           set_moduleName(pkgModName);
-          pluginInstance = loadPIClass(pkgModName);
+          pluginInstance = loadPIClass(pkgModName, plugin_type);
           if (pluginInstance) {
             if (pluginList) {
               /* we're putting the resulting plugins into a list... */
@@ -59,10 +60,10 @@ void xpy_loadModules(const char *path, const char *package, const char *pattern,
 }
 
 
-static PyObject *loadPIClass(const char *fname)
+static PyObject *loadPIClass(const char *fname, PluginType plugin_type)
 /* Load "PythonInterface" class in provided file (fname)
  * and call XPluginStart
- * 
+ *
  * Updates XPY3pluginDict with information about
  * loaded plugin.
  *
@@ -115,7 +116,7 @@ static PyObject *loadPIClass(const char *fname)
         }
         Py_DECREF(pClass);
         if (pluginInstance) {
-          return xpy_startInstance(module2_p, pluginInstance) ? pluginInstance : nullptr;
+          return xpy_startInstance(module2_p, pluginInstance, plugin_type) ? pluginInstance : nullptr;
         }
       } else {
         pythonDebug(" . Failed to get callable PythonInterface class");

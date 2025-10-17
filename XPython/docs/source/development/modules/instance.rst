@@ -38,6 +38,10 @@ Functions
 
 .. py:function:: createInstance(obj, dataRefs=None)
 
+    :param XPLMObjectRef obj: object reference, a description of instance to be created
+    :param List[str] dataRefs: List of dataRef strings to be passed to the instances (or None)
+    :return: XPLMInstanceRef capsule                               
+
     Registers an instance of an X-Plane object, with an optional list of *dataRefs*.
 
     *obj* is an object handle, as returned by :py:func:`loadObject` or :py:func:`loadObjectAsync`.
@@ -75,6 +79,8 @@ Functions
 
 .. py:function:: destroyInstance(instance)
 
+    :param XPLMInstanceRef instance: Instance to be destroyed.
+
     Unregisters an instance (as returned from :py:func:`createInstance`.) You are still responsible for
     eventually releasing the *Object* using :py:func:`unloadObject`.
 
@@ -84,6 +90,10 @@ Functions
 
 .. py:function:: instanceSetPosition(instance, position, data=None)
 
+    :param XPLMInstanceRef instance: Instance to be positioned
+    :param Tuple position: Six-float tuple (x, y, z, pitch, heading, roll)                                 
+    :param List[float] data: List of floats, matching count and order the dataRefs provided on create
+                             
     Updates both the position of the instance and all datarefs you registered
     for it. Call this from a flight loop callback or UI callback;
 
@@ -107,17 +117,25 @@ Functions
     >>> y = xp.getDatad(xp.findDataRef('sim/flightmodel/position/local_y'))
     >>> z = xp.getDatad(xp.findDataRef('sim/flightmodel/position/local_z'))
     >>> pitch, heading, roll = (0, 0, 0)
-    >>> # Place the tug in front of the aircraft (just so you can see it)
+    >>> # Place the tug a bit away from the aircraft (just so you can see it: you may need to pan)
     >>> position = (x, y-1, z+10, pitch, heading+90, roll)
     >>> # Set wheel steer degrees to 0, then 20, 40, pausing in between.
     >>> xp.instanceSetPosition(instance, position, [0, 0.0])
     >>> xp.instanceSetPosition(instance, position, [20, 0.0])
     >>> xp.instanceSetPosition(instance, position, [40, 0.0])
 
+    By changing the passed-in dataRef values, we can drive animation of the tug.
+
+    .. image:: /images/animated_tug.gif
+               
     `Official SDK <https://developer.x-plane.com/sdk/XPLMInstance/#XPLMInstanceSetPosition>`__ :index:`XPLMInstanceSetPosition`
 
 .. py:function:: instanceSetPositionDouble(instance, position, data=None)
 
+    :param XPLMInstanceRef instance: Instance to be positioned
+    :param Tuple position: Six-float tuple (x, y, z, pitch, heading, roll)                                 
+    :param List[float] data: List of floats, matching count and order the dataRefs provided on create
+                             
     Laminar provides two C functions, one taking floats (``XPLMInstanceSetPosition``)
     and the other taking doubles (``XPLMInstanceSetPositionDouble``). Because
     Python floating point numbers are always double, both of this interfaces are the same. For
@@ -129,6 +147,8 @@ Functions
     `Official SDK <https://developer.x-plane.com/sdk/XPLMInstance/#XPLMInstanceSetPositionDouble>`__ :index:`XPLMInstanceSetPositionDouble`
 
 .. py:function:: instanceSetPositionAutoShift(instance)
+
+    :param XPLMInstanceRef instance: Instance to be positioned
 
     Tell X-Plane to move the (local) location of this instance every time the sim's
     local coordinate system changes, so that a static instance does move globally.

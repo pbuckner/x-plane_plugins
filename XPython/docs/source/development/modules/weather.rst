@@ -556,7 +556,7 @@ The instance will be intialized to useful defaults including:
 +----------------------------------+------+------------------------------------------------+------------+-------------------+
 
 Constants
-=========
+---------
 
 .. py:data:: NumWindLayers
    :value: 13

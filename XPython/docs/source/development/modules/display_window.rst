@@ -70,22 +70,40 @@ In addition to the basic functions :py:func:`createWindowEx` and :py:func:`destr
 Window Drawing Functions
 ************************
 
-.. py:function:: createWindowEx(...)
+.. py:function:: createWindowEx(left=100, top=200, right=200, bottom=100, visible=0, draw=None, click=None, key=None, cursor=None, wheel=None, refCon=None, decoration=WindowDecorationRoundRectangle, layer=WindowLayerFloatingWindows, rightClick=None)
 
-  | **Parameters and defaults:**
-  | *left=100, top=200, right=200, bottom=100,*
-  | *visible=0,*
-  | *draw=None, click=None, key=None, cursor=None, wheel=None,*
-  | *refCon=None*
-  | *decoration=WindowDecorationRoundRectangle,*
-  | *layer=WindowLayerFloatingWindows,*
-  | *rightClick=None,*
+ Create a new "modern" window.
 
- This routine creates a new “modern” window, at location specified by *left*, *top*, *right*, *bottom*. Defaults
- are provided to simplify examples, but you'll likely need something larger.
-
- Initial visibility is set using *visible*, and can be queried and changed using :py:func:`getWindowIsVisible` and
- :py:func:`setWindowIsVisible`. By default, window is created not-visible.
+ :param left: Left edge of window in boxels (default: 100)
+ :type left: int
+ :param top: Top edge of window in boxels (default: 200)
+ :type top: int
+ :param right: Right edge of window in boxels (default: 200)
+ :type right: int
+ :param bottom: Bottom edge of window in boxels (default: 100)
+ :type bottom: int
+ :param visible: 1 for visible, 0 for hidden (default: 0)
+ :type visible: int
+ :param draw: Draw callback function (default: None)
+ :type draw: Optional[Callable[[:data:`XPLMWindowID`, Any], None]]
+ :param click: Left-click callback function (default: None)
+ :type click: Optional[Callable[[:data:`XPLMWindowID`, int, int, int, Any], int]]
+ :param key: Keyboard callback function (default: None)
+ :type key: Optional[Callable[[:data:`XPLMWindowID`, int, int, int, Any, int], None]]
+ :param cursor: Cursor callback function (default: None)
+ :type cursor: Optional[Callable[[:data:`XPLMWindowID`, int, int, Any], int]]
+ :param wheel: Mouse wheel callback function (default: None)
+ :type wheel: Optional[Callable[[:data:`XPLMWindowID`, int, int, int, int, Any], int]]
+ :param refCon: Reference constant passed to callbacks (default: None)
+ :type refCon: Any
+ :param decoration: Window decoration style (default: WindowDecorationRoundRectangle)
+ :type decoration: int
+ :param layer: Window layer (default: WindowLayerFloatingWindows)
+ :type layer: int
+ :param rightClick: Right-click callback function (default: None)
+ :type rightClick: Optional[Callable[[:data:`XPLMWindowID`, int, int, int, Any], int]]
+ :return: WindowID for the created window
+ :rtype: :data:`XPLMWindowID`
 
  Window style is indicated by *decoration*, and can only be specified at creation time. By default, window is created
  as ``WindowDecorationRoundRectangle`` and looks like:
@@ -247,6 +265,10 @@ Window Drawing Functions
 .. py:function:: destroyWindow(windowID)
 
  Destroys a window based on the handle passed in.
+
+ :param windowID: Window to be destroyed
+ :type windowID: :data:`XPLMWindowID`
+ :return: None
 
  The callbacks are not called after this call. Keyboard focus is removed
  from the window before destroying it.
@@ -463,7 +485,8 @@ the window, or using the tuple.
 
   If you want to use a custom OS-based cursor, return :data:`CursorCustom` to ask
   X-Plane to show the cursor but not affect its image.  You can then use
-  :py:func:`xp.setCursor` to display a custom cursor you've loaded.
+  :py:func:`xp.setCursor` to display a custom cursor you've loaded. (See
+  :py:func:`xp.setCursor` for detailed example.)
 
 
   .. _XPLMCursorStatus:
@@ -515,7 +538,7 @@ the window, or using the tuple.
      |  :value: 5                          |                                                                                 |
      |                                     | `Official SDK                                                                   |
      |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateSmallLeft>`__  |
-     |                                     | :index:`xplm_CursorRorateSmallLeft`                                             |
+     |                                     | :index:`xplm_CursorRotateSmallLeft`                                             |
      |                                     |                                                                                 |
      |                                     |                                                                                 |
      +-------------------------------------+---------------------------------------------------------------------------------+
@@ -558,11 +581,11 @@ the window, or using the tuple.
      |                                     |                                                                                 |
      |                                     |                                                                                 |
      +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorRotateLargeLeft     | X-Plane shows the learge left rotation cursor.                                  |
+     | .. data:: CursorRotateLargeLeft     | X-Plane shows the large left rotation cursor.                                   |
      |  :value: 11                         |                                                                                 |
      |                                     | `Official SDK                                                                   |
      |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateLargeLeft>`__  |
-     |                                     | :index:`xplm_CursorRotateLargeeft`                                              |
+     |                                     | :index:`xplm_CursorRotateLargeLeft`                                             |
      |                                     |                                                                                 |
      +-------------------------------------+---------------------------------------------------------------------------------+
      | .. data:: CursorRotateLargeRight    | X-Plane shows the large right rotation cursor.                                  |
@@ -690,14 +713,16 @@ within bounds in :doc:`/development/window_position`.
 .. py:function:: getScreenSize()
 
  Query X-Plane screen size.
+
+ :return: Tuple of (width, height) in pixels
+ :rtype: tuple[int, int]
+
  This routine returns the size of the size of the X-Plane OpenGL window in
  pixels.  Please note that this is not the size of the screen when doing
  2-d drawing (the 2-d screen is currently always 1024x768, and  graphics are
  scaled up by OpenGL when doing 2-d drawing for higher-res monitors).  This
  number can be used to get a rough idea of the amount of detail the user
  will be able to see when drawing in 3-d.
-
- Returns (width, height).
 
  >>> xp.getScreenSize()
  (1280, 1024)
@@ -706,7 +731,11 @@ within bounds in :doc:`/development/window_position`.
 
 .. py:function::  getScreenBoundsGlobal()
 
- This routine returns the bounds of the “global” X-Plane desktop, in boxels.
+ This routine returns the bounds of the "global" X-Plane desktop, in boxels.
+
+ :return: Tuple of (left, top, right, bottom) in boxels
+ :rtype: tuple[int, int, int, int]
+
  Unlike the non-global version :func:`getScreenSize`, this is multi-monitor
  aware. There are three primary consequences of multimonitor awareness:
 
@@ -748,8 +777,15 @@ within bounds in :doc:`/development/window_position`.
 .. py:function:: getAllMonitorBoundsGlobal(bounds, refCon)
 
  This routine immediately calls your *bounds()* function the bounds (in boxels) of each
- full-screen X-Plane window within the X- Plane global desktop space. Note that
- if a monitor is not covered by an X-Plane window, you cannot get its bounds this
+ full-screen X-Plane window within the X- Plane global desktop space.
+
+ :param bounds: Callback function to receive monitor bounds
+ :type bounds: Callable[[int, int, int, int, int, Any], None]
+ :param refCon: Reference constant passed to callback
+ :type refCon: Any
+ :return: None
+
+ Note that if a monitor is not covered by an X-Plane window, you cannot get its bounds this
  way. Likewise, monitors with only an X-Plane window (not in full-screen mode)
  will not be included.
 
@@ -777,13 +813,21 @@ within bounds in :doc:`/development/window_position`.
 
  This function is informed of the global bounds (in boxels) of a particular monitor
  within the X-Plane global desktop space. **Note** that X-Plane must be running in full
- screen on a monitor in order for that monitor to be passed to you in this callback.
+ screen on a monitor in order for that monitor to be passed to you in this callback. If
+ it is not running full screen, the function will set data to ``{}``.
 
 .. py:function:: getAllMonitorBoundsOS(bounds, refCon)
 
  This routine immediately calls your *bounds()* function with the bounds (in pixels) of each monitor
- within the operating system’s global desktop space. Note that unlike
- :func:`getAllMonitorBoundsGlobal`, this may include monitors that have no X-Plane window
+ within the operating system's global desktop space.
+
+ :param bounds: Callback function to receive monitor bounds
+ :type bounds: Callable[[int, int, int, int, int, Any], None]
+ :param refCon: Reference constant passed to callback
+ :type refCon: Any
+ :return: None
+
+ Note that unlike :func:`getAllMonitorBoundsGlobal`, this may include monitors that have no X-Plane window
  on them.
 
  Note that this function’s monitor indices match those provided by
@@ -802,19 +846,27 @@ within bounds in :doc:`/development/window_position`.
  This function is informed of the global bounds (in pixels) of a particular monitor
  within the operating system’s global desktop space. Note that a monitor index being
  passed to you here does not indicate that X-Plane is running in full screen on this
- monitor, or even that any X-Plane windows exist on this monitor.
+ monitor, or even that any X-Plane windows exist on this monitor. (So this will work
+ regardless of whether X-Plane is running full-screen or windowed.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMGetAllMonitorBoundsOS>`__ :index:`XPLMGetAllMonitorBoundsOS`
 
 .. py:function:: getMouseLocationGlobal()
 
- Returns the current mouse location in global desktop boxels. Unlike older
- :func:`getMouseLocation`, the bottom left of the main X-Plane window is not guaranteed
+ Returns the current mouse location in global desktop boxels.
+
+ :return: Tuple of (x, y) in boxels
+ :rtype: tuple[int, int]
+
+ Unlike older :func:`getMouseLocation`, the bottom left of the main X-Plane window is not guaranteed
  to be (0, 0). Instead, the origin is the lower left of the entire global desktop space.
  In addition, this routine gives the real mouse location when the mouse goes to X-Plane
  windows other than the primary display. Thus, it can be used with both pop-out windows
  and secondary monitors.
- 
+
+ For windowed (not full-screen) simulator, (0,0) is lower left corner of the X-Plane window,
+ with the mouse position going negative when moved left or below the window.
+
  This is the mouse location function to use with modern windows (i.e., those created by
  :func:`createWindowEx`).
 
@@ -831,8 +883,14 @@ Window Functions
 
 .. py:function:: getWindowGeometry(windowID)
 
- This routine returns the position and size of a window. The units and coordinate
- system vary depending on the type of window you have.
+ This routine returns the position and size of a window.
+
+ :param windowID: Window to query
+ :type windowID: :data:`XPLMWindowID`
+ :return: Tuple of (left, top, right, bottom)
+ :rtype: tuple[int, int, int, int]
+
+ The units and coordinate system vary depending on the type of window you have.
 
  If this is a legacy window (one compiled against a pre-XPLM300 version of the SDK,
  or an XPLM300 window that was not created using :func:`createWindowEx`), the units
@@ -841,13 +899,11 @@ Window Functions
  For X-Plane 11 and 12 windows (compiled against the
  XPLM300 SDK and created using :func:`createWindowEx`), the units are global desktop boxels.
 
- Returns (left, top, right, bottom)
-
  >>> windowID = xp.createWindowEx()
  >>> xp.getWindowGeometry(windowID)
  (100, 200, 200, 100)
 
- Note that a window has geometry even when not visible & :func:`createWindowEx` creates hidden
+ Note that a window has geometry *even when not visible* & :func:`createWindowEx` creates hidden
  windows by default. Make it visible using ``xp.setWindowIsVisible(windowID)``.
  
  Also supports older calling style where you pass in lists as parameters, the results
@@ -867,6 +923,18 @@ Window Functions
 .. py:function:: setWindowGeometry(windowID, left, top, right, bottom)
 
  Set window position and size.
+
+ :param windowID: Window to modify
+ :type windowID: :data:`XPLMWindowID`
+ :param left: Left edge coordinate
+ :type left: int
+ :param top: Top edge coordinate
+ :type top: int
+ :param right: Right edge coordinate
+ :type right: int
+ :param bottom: Bottom edge coordinate
+ :type bottom: int
+ :return: None
 
  This routine allows you to set the position and size of a window.
 
@@ -890,11 +958,15 @@ Window Functions
 
 .. py:function:: getWindowGeometryOS(windowID)
 
- This routine returns the position and size of a “popped out” window (i.e., a window
- whose positioning mode is WindowPopOut), in operating system pixels. If the
- window is not popped out, do not use.
+ This routine returns the position and size of a "popped out" window (i.e., a window
+ whose positioning mode is WindowPopOut), in operating system pixels.
 
- Returns (left, top, right, bottom)
+ :param windowID: Window to query (must be popped out)
+ :type windowID: :data:`XPLMWindowID`
+ :return: Tuple of (left, top, right, bottom) in OS pixels
+ :rtype: tuple[int, int, int, int]
+
+ If the window is not popped out, do not use.
 
  >>> windowID = xp.createWindowEx()
  >>> xp.setWindowPositioningMode(windowID, xp.WindowPopOut, -1)
@@ -909,9 +981,22 @@ Window Functions
 .. py:function:: setWindowGeometryOS(windowID, left, top, right, bottom)
 
  This routine allows you to set the position and size, in operating system pixel
- coordinates, of a popped out window (that is, a window whose positioning mode
- is :data:`WindowPopOut`, which exists outside the X-Plane simulation window, in its
- own first-class operating system window).
+ coordinates, of a popped out window.
+
+ :param windowID: Window to modify (must be popped out)
+ :type windowID: :data:`XPLMWindowID`
+ :param left: Left edge in OS pixels
+ :type left: int
+ :param top: Top edge in OS pixels
+ :type top: int
+ :param right: Right edge in OS pixels
+ :type right: int
+ :param bottom: Bottom edge in OS pixels
+ :type bottom: int
+ :return: None
+
+ The window must have positioning mode :data:`WindowPopOut`, which exists outside the X-Plane simulation window, in its
+ own first-class operating system window.
 
  Note that you are responsible for ensuring both that your window is popped out
  (using :func:`windowIsPoppedOut`) and that a monitor really exists at the OS coordinates
@@ -921,10 +1006,14 @@ Window Functions
 
 .. py:function:: getWindowGeometryVR(windowID)
 
- Returns the width and height, in boxels, of a window in VR. Note that you are responsible
- for ensuring your window is in VR (using :func:`windowIsInVR`).
+ Returns the width and height, in boxels, of a window in VR.
 
- Return (widthBoxels, heightBoxels)
+ :param windowID: Window to query (must be in VR)
+ :type windowID: :data:`XPLMWindowID`
+ :return: Tuple of (widthBoxels, heightBoxels)
+ :rtype: tuple[int, int]
+
+ Note that you are responsible for ensuring your window is in VR (using :func:`windowIsInVR`).
 
  >>> windowID = xp.createWindowEx()
  >>> if xp.windowIsInVR(windowID):
@@ -936,8 +1025,17 @@ Window Functions
 
 .. py:function:: setWindowGeometryVR(windowID, width, height)
 
- This routine allows you to set the size, in boxels, of a window in VR (that is, a
- window whose positioning mode is :data:`WindowVR`).
+ This routine allows you to set the size, in boxels, of a window in VR.
+
+ :param windowID: Window to modify (must be in VR)
+ :type windowID: :data:`XPLMWindowID`
+ :param width: Width in boxels
+ :type width: int
+ :param height: Height in boxels
+ :type height: int
+ :return: None
+
+ The window must have positioning mode :data:`WindowVR`.
 
  Note that you are responsible for ensuring your window is in VR (using :func:`windowIsInVR`).
 
@@ -945,7 +1043,12 @@ Window Functions
 
 .. py:function:: getWindowIsVisible(windowID)
 
- Get window's isVisible attribute value, 1 if visible, 0 otherwise.
+ Get window's isVisible attribute value.
+
+ :param windowID: Window to query
+ :type windowID: :data:`XPLMWindowID`
+ :return: 1 if visible, 0 otherwise
+ :rtype: int
 
  >>> windowID = xp.createWindowEx()
  >>> xp.getWindowIsVisible(windowID)
@@ -956,40 +1059,67 @@ Window Functions
 
 .. py:function::  setWindowIsVisible(windowID, visible=1)
 
- Set window's visible attribute value, 1 for visible, 0 otherwise.
+ Set window's visible attribute value.
+
+ :param windowID: Window to modify
+ :type windowID: :data:`XPLMWindowID`
+ :param visible: 1 for visible, 0 for hidden (default: 1)
+ :type visible: int
+ :return: None
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMSetWindowIsVisible>`__ :index:`XPLMSetWindowIsVisible`
 
 .. py:function:: windowIsPoppedOut(windowID)
 
  True if this window has been popped out (making it a first-class window in the
- operating system), which in turn is true if and only if you have set the
- window’s positioning mode to :data:`WindowPopOut`.
- 
+ operating system).
+
+ :param windowID: Window to query
+ :type windowID: :data:`XPLMWindowID`
+ :return: 1 if window is popped out, 0 otherwise
+ :rtype: int
+
+ This is true if and only if you have set the window's positioning mode to :data:`WindowPopOut`.
+
  Only applies to modern windows. (Windows created using the deprecated
  XPLMCreateWindow(), or windows compiled against a pre-XPLM300 version of the
  SDK cannot be popped out.)
-
- Returns 1 if window is popped out.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMWindowIsPoppedOut>`__ :index:`XPLMWindowIsPoppedOut`
  
 .. py:function:: windowIsInVR(windowID)
 
- True if this window has been moved to the virtual reality (VR) headset, which
- in turn is true if and only if you have set the window’s positioning mode to :data:`WindowVR`.
+ True if this window has been moved to the virtual reality (VR) headset.
+
+ :param windowID: Window to query
+ :type windowID: :data:`XPLMWindowID`
+ :return: 1 if window is in VR, 0 otherwise
+ :rtype: int
+
+ This is true if and only if you have set the window's positioning mode to :data:`WindowVR`.
 
  Only applies to modern windows. (Windows created using the deprecated XPLMCreateWindow(), or windows
  compiled against a pre-XPLM301 version of the SDK cannot be moved to VR.)
 
- Return 1 if window is in VR, 0 otherwise.
-
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMWindowIsInVR>`__ :index:`XPLMWindowIsInVR`
 
-.. py:function::  setWindowGravity(inWindowID, left, top, right, bottom) -> None:
+.. py:function::  setWindowGravity(windowID, left, top, right, bottom)
 
- A window’s “gravity” controls how the window shifts as the whole X-Plane window
- resizes. A gravity of 1 means the window maintains its positioning relative to the right or top
+ A window's "gravity" controls how the window shifts as the whole X-Plane window resizes.
+
+ :param windowID: Window to modify
+ :type windowID: :data:`XPLMWindowID`
+ :param left: Left edge gravity (0.0 to 1.0)
+ :type left: float
+ :param top: Top edge gravity (0.0 to 1.0)
+ :type top: float
+ :param right: Right edge gravity (0.0 to 1.0)
+ :type right: float
+ :param bottom: Bottom edge gravity (0.0 to 1.0)
+ :type bottom: float
+ :return: None
+
+ A gravity of 1 means the window maintains its positioning relative to the right or top
  edges, 0 the left/bottom, and 0.5 keeps it centered.
  
  Default gravity is (0.0, 1.0, 0.0, 1.0), meaning your window will maintain its position relative
@@ -1067,9 +1197,22 @@ Window Functions
  
 .. py:function:: setWindowResizingLimits(windowID, minWidth=0, minHeight=0, maxWidth=10000, maxHeight=10000)
 
- Sets the minimum and maximum size of the client rectangle of the given window. (That is,
- it does not include any window styling that you might have asked X-Plane to apply on your
- behalf.) All resizing operations are constrained to these sizes. (Except see Note below.)
+ Sets the minimum and maximum size of the client rectangle of the given window.
+
+ :param windowID: Window to modify
+ :type windowID: :data:`XPLMWindowID`
+ :param minWidth: Minimum width in boxels (default: 0)
+ :type minWidth: int
+ :param minHeight: Minimum height in boxels (default: 0)
+ :type minHeight: int
+ :param maxWidth: Maximum width in boxels (default: 10000)
+ :type maxWidth: int
+ :param maxHeight: Maximum height in boxels (default: 10000)
+ :type maxHeight: int
+ :return: None
+
+ The client rectangle does not include any window styling that you might have asked X-Plane to apply on your
+ behalf. All resizing operations are constrained to these sizes. (Except see Note below.)
  
  Only applies to modern windows. (Windows created using the deprecated XPLMCreateWindow(),
  or windows compiled against a pre-XPLM300 version of the SDK will have no minimum or maximum size.)
@@ -1092,6 +1235,14 @@ Window Functions
 .. py:function:: setWindowPositioningMode(windowID, mode, index=-1)
 
  Sets the policy for how X-Plane will position your window.
+
+ :param windowID: Window to modify
+ :type windowID: :data:`XPLMWindowID`
+ :param mode: Positioning mode constant
+ :type mode: int
+ :param index: Monitor index, or -1 for main monitor (default: -1)
+ :type index: int
+ :return: None
 
  Some positioning modes apply to a particular monitor. For those modes, you can pass a negative
  monitor index to position the window on the main X-Plane monitor (the screen with the X-Plane
@@ -1163,7 +1314,15 @@ Window Functions
 
 .. py:function:: setWindowTitle(windowID, title)
 
- Sets the name for a window. This only applies to windows that opted-in to styling as an X-Plane
+ Sets the name for a window.
+
+ :param windowID: Window to modify
+ :type windowID: :data:`XPLMWindowID`
+ :param title: New window title
+ :type title: str
+ :return: None
+
+ This only applies to windows that opted-in to styling as an X-Plane
  11 floating window (i.e., with styling mode :data:`xplm_WindowDecorationRoundRectangle`) when they
  were created using :func:`XPLMCreateWindowEx`.
 
@@ -1176,6 +1335,11 @@ Window Functions
 
  Return window's refCon attribute value (which you provided on window creation.)
 
+ :param windowID: Window to query
+ :type windowID: :data:`XPLMWindowID`
+ :return: Reference constant value
+ :rtype: Any
+
  >>> windowID = xp.createWindowEx(visible=1)
  >>> xp.getWindowRefCon(windowID)
  None
@@ -1185,6 +1349,13 @@ Window Functions
 .. py:function:: setWindowRefCon(windowID, refCon)
 
  Set window's refcon attribute value.
+
+ :param windowID: Window to modify
+ :type windowID: :data:`XPLMWindowID`
+ :param refCon: Reference constant value to store
+ :type refCon: Any
+ :return: None
+
  Use this to pass data to yourself in the callbacks.
 
  >>> windowID = xp.createWindowEx(visible=1)
@@ -1200,6 +1371,10 @@ Window Functions
 .. py:function:: takeKeyboardFocus(windowID)
 
  Give a specific window keyboard focus.
+
+ :param windowID: Window to receive focus, or 0 to give focus to X-Plane
+ :type windowID: :data:`XPLMWindowID`
+ :return: None
 
  This routine gives a specific window keyboard focus. Keystrokes will be sent to that window.
  Pass a window ID of 0 to remove keyboard focus from any plugin-created windows and instead
@@ -1218,14 +1393,24 @@ Window Functions
 
 .. py:function:: hasKeyboardFocus(windowID)
 
- Returns 1 if the indicated window has keyboard focus. Pass a window ID of 0 to see
- if no plugin window has focus, and all keystrokes will go directly to X-Plane.
+ Returns 1 if the indicated window has keyboard focus.
+
+ :param windowID: Window to query, or 0 for X-Plane focus
+ :type windowID: :data:`XPLMWindowID`
+ :return: 1 if window has focus, 0 otherwise
+ :rtype: int
+
+ Pass a window ID of 0 to see if no plugin window has focus, and all keystrokes will go directly to X-Plane.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMHasKeyboardFocus>`__: :index:`XPLMHasKeyboardFocus`
 
 .. py:function:: bringWindowToFront(windowID)
 
  Bring window to the front of the Z-order.
+
+ :param windowID: Window to bring to front
+ :type windowID: :data:`XPLMWindowID`
+ :return: None
 
  This routine brings the window to the front of the Z-order for its layer. Windows are brought
  to the front automatically when they are created. Beyond that, you should make sure you are
@@ -1244,7 +1429,14 @@ Window Functions
 .. py:function:: isWindowInFront(windowID)
 
  This routine returns 1 if the window you passed in is the frontmost visible window in
- its layer :ref:`Window layer<window-layer>`.
+ its layer.
+
+ :param windowID: Window to query
+ :type windowID: :data:`XPLMWindowID`
+ :return: 1 if window is in front of its layer, 0 otherwise
+ :rtype: int
+
+ See :ref:`Window layer<window-layer>` for more information.
 
  Thus, if you have a window at the front of the floating window layer
  (:data:`WindowLayerFloatingWindows`), this will return true even if there is a modal window (in
@@ -1257,3 +1449,10 @@ Window Functions
  (of their different layers!) at the same time.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMIsWindowInFront>`__: :index:`XPLMIsWindowInFront`
+
+Capsules
+--------
+
+.. py:data:: XPLMWindowID
+
+    Capsule for XPLMWindow         

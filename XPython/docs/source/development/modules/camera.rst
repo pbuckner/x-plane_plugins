@@ -18,7 +18,7 @@ including but not limited to:
 
  - Creating new views (including dynamic/user-controllable views) for the user.
 
- - Creating applications that use X-Plane as a renderer of scenery, aircrafts, or both.
+ - Creating applications that use X-Plane as a renderer of scenery, aircraft, or both.
 
 The camera is controlled via six parameters: a location in OpenGL
 coordinates (i.e., x, y and z) pitch, roll and yaw, similar to an airplane's position.
@@ -30,8 +30,8 @@ north) with the horizon horizontal. It is then rotated clockwise for yaw,
 pitched up for positive pitch, and rolled clockwise around the vector it is
 looking along for roll.
 
-You control the camera either either until the user selects a new view or
-permanently (the later being similar to how :doc:`UDP camera control<../udp/vehx>` works). You
+You control the camera either until the user selects a new view or
+permanently (the latter being similar to how :doc:`UDP camera control<../udp/vehx>` works). You
 control the camera by registering a callback per frame from which you
 calculate the new camera positions. This guarantees smooth camera motion.
 
@@ -194,13 +194,13 @@ Enumeration states how long you want to retain control of the camera.
 You can retain it indefinitely or until the user selects a new view.
 Used by :py:func:`controlCamera` and :py:func:`isCameraBeingControlled`.
 You can relinquish control by calling :py:func:`dontControlCamera` or returning
-zero from you :py:func:`controlCamera` callback function.
+zero from your :py:func:`controlCamera` callback function.
     
 
     .. py:data:: ControlCameraUntilViewChanges
         :value: 1
     
-        Camera is controlled until the view is changes (e.g., user requests "External View" from X-Plane menu.)
+        Camera is controlled until the view changes (e.g., user requests "External View" from X-Plane menu.)
 
         `Official SDK <https://developer.x-plane.com/sdk/XPLMCamera/#xplm_ControlCameraUntilViewChanges>`__: :index:`xplm_ControlCameraUntilViewChanges`
     

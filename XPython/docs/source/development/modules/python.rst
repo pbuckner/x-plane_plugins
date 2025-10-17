@@ -14,7 +14,7 @@ Functions
 
 .. py:function:: pythonGetDicts()
 
- Returns a dictionary of internal plugin dictionaries.
+ :return: Dictionary of internal data   
 
  Internally, the plugin maintains a number of dictionaries which
  allow us to map the Python API to the X-Plane C API. For example,
@@ -33,6 +33,9 @@ Functions
 
 .. py:function:: log(s)
 
+ :param str s: String to log
+ :return: None              
+
  Print string into XPPython3Log.txt file, appending a newline.
  Normally, the log is *not* flushed after each write. To force
  a flush, call with no parameters (e.g., ``xp.log()``)
@@ -43,8 +46,13 @@ Functions
  >>> xp.log(f"This is version {xp.VERSION}")
  [PythonPlugins.PI_MiniPython] This is version 3.0.12a1 - for Python 3.9
 
+ See also :doc:`/usage/logfiles` for more information about logging and log files.
+ 
 .. py:function:: systemLog(s)
 .. py:function:: sys_log(s)
+
+ :param str s: String to log
+ :return: None               
 
  Print string into X-Plane System log file, ``Log.txt``, appending a newline.
  The log *is* flushed after each write. (``sys_log`` is an alias of ``systemLog``).
@@ -57,7 +65,9 @@ Functions
  >>> xp.systemLog(f"This is version {xp.VERSION}")
  [XP3: PythonPlugins.PI_MiniPython] This is version 3.0.12a1 - for Python 3.9
 
-.. py:function:: pythonGetCapsules()
+.. py:function:: getCapsuleDict()
+
+ :return: dict
 
  Returns an internal dictionary of Capsules.
 
@@ -78,46 +88,21 @@ Functions
  The benefit is we can do some error checking (essentially type-checking).
  Similarly, you can check a value to make sure it's the expected "type".
 
- This function returns a dictionary keyed by capsule types (strings), with
- values a list of known instances. Note these instances will cover all
- python plugins, not just your own. (There is currently no way to distiguish
- the owning plugin for a particular capsule.)
+ This function returns a dictionary keyed by internal values (usually void \* pointers)
+ with value being a tuple:
 
- The original value (id, or C-pointer) for the capsule'd object will be
- the key to the capsule in the returned dictionary. For example, X-Plane will
- see the command reference id ``2305`` when XPPython3 works with :py:func:`commandRef`
- capsule at ``0x7fdea8b9a3c0``. The capsule is a Python object. Similarly,
- X-Plane WidgetID 140594295845456 is represented by the Python object at ``0x7fdea95825d0``.
- (``140594295845456`` is hex ``0x7fdea90fb250``, so you can tell CommandRefs are
- probably integer indices, Widget IDs are probably C-Pointers.)
+ 0. Context (either plugin module, or module + file:line of where it was created)
 
- Within python, you should be using capsules. However it may be useful to
- convert from python capsules back to original value in order to understand internal X-Plane
- error messages, which would not report the capsule value.::
+ #. Capsule
 
-    {'XPLMCommandRef': {2305: <capsule object "XPLMCommandRef" at 0x7fdea8b9a3c0>,
-                        2306: <capsule object "XPLMCommandRef" at 0x7fdea9582600>,
-                        2101: <capsule object "XPLMCommandRef" at 0x7fdea9b59360>,
-                        620: <capsule object "XPLMCommandRef" at 0x7fdea9b591e0>,
-                        618: <capsule object "XPLMCommandRef" at 0x7fdea9b591b0>,
-                        384: <capsule object "XPLMCommandRef" at 0x7fdea9b594b0>,
-                        385: <capsule object "XPLMCommandRef" at 0x7fdea9b594e0>,
-                        386: <capsule object "XPLMCommandRef" at 0x7fdea9b59510>},
-     'XPLMWindowIDRef': {},
-     'XPLMHotkeyIDRef': {},
-     'LayerIdRef': {},
-     'XPLMMenuIDRef': {140594492097600: <capsule object "XPLMMenuIDRef" at 0x7fdea95824b0>,
-                       140594288617360: <capsule object "XPLMMenuIDRef" at 0x7fdea9582690>,
-                       140594303861088: <capsule object "XPLMMenuIDRef" at 0x7fdea9b59540>},
-     'XPLMWidgetID': {140594295845456: <capsule object "XPLMWidgetID" at 0x7fdea95825d0>,
-                      140594295807728: <capsule object "XPLMWidgetID" at 0x7fdea95825a0>,
-                      140594295846192: <capsule object "XPLMWidgetID" at 0x7fdea9582930>,
-                      140594295173136: <capsule object "XPLMWidgetID" at 0x7fdea9582810>,
-                      140594295515808: <capsule object "XPLMWidgetID" at 0x7fdea95d87b0>}
-    }
+ #. Type (e.g., "XPLMDataRef")
+ 
+ Note these instances will cover all python plugins, not just your own.
  
 .. py:function:: getPluginStats
 
+  :return: dict
+           
   Return dictionary of plugin statistics. Currently includes per-plugin performance data, keyed
   by the plugin module name. Key value ``None`` is the overall XPPython3 performance information.
 

@@ -22,10 +22,10 @@ Timing Functions
 
 .. py:function:: getElapsedTime()
 
+    :return float: elapsed time in seconds
+
     Return the elapsed time since the sim started up, in floating point
     seconds. This is continues to count upward even if the sim is paused.
-
-    :return float: elapsed time in seconds
 
     Value *does not* reset on new flight, only on simulator re-start.
 
@@ -39,10 +39,10 @@ Timing Functions
 
 .. py:function:: getCycleNumber()
 
+    :return int: count
+
     Return an integer counter starting at zero for each sim cycle computed/video frame rendered. Value *does not* reset on new flight, only
     on simulator re-start.
-
-    :return int: count
 
     >>> xp.getCycleNumber()
     29776
@@ -72,15 +72,16 @@ FlightLoop - New Style
 
 .. py:function:: createFlightLoop(callback, phase=0, refCon=None)
    
-  Create a flightloop callback and return a :py:data:`flightLoopID` which
-  can be used to change or destroy it.
-
   :param function callback: function to be called based on schedule
   :param XPLMFlightLoopPhaseType phase: flag to run before or after X-Plane integrates flight model.
   :param Any refCon: reference constant passed to your callback function
+  :return: :data:`XPLMFlightLoopID` capsule                
+
+  Create a flightloop callback and return a :data:`XPLMFlightLoopID` which
+  can be used to change or destroy it.
 
   The flight loop callback is initialized as unscheduled: You'll need
-  to call :py:func:`scheduleFlightLoop`.
+  to call :func:`scheduleFlightLoop`.
 
   Your *callback* function takes four parameters and must return an interval.
   `Official SDK <https://developer.x-plane.com/sdk/XPLMProcessing/#XPLMFlighLoop_f>`__ :index:`XPLMFlighLoop_f`
@@ -126,7 +127,7 @@ FlightLoop - New Style
   >>> myRefCon = {'data': []}
   >>> flightLoopID = xp.createFlightLoop(MyCallback, refCon=myRefCon)
   >>> flightLoopID
-  <capsule object "FlightLoopIDRef" at 0x7fa89eb15720>
+  <capsule object "XPLMFlightLoopID" at 0x7fa89eb15720>
   >>> xp.scheduleFlightLoop(flightLoopID, -1)
   >>> xp.destroyFlightLoop(flightLoopID)
 
@@ -141,15 +142,15 @@ FlightLoop - New Style
     )
 
   >>> myRefCon = {'data': []}
-  >>> flightLoopID = xp.createFlightLoop([None, MyCallback, myRefCon])
+  >>> flightLoopID = xp.createFlightLoop([0, MyCallback, myRefCon])
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMProcessing/#XPLMCreateFlightLoop>`__ :index:`XPLMCreateFlightLoop`
 
 .. py:function::  destroyFlightLoop(flightLoopID)
 
-  This routine destroys a flight loop callback specified by *flightLoopID*.
-
   :param XPLMFlightLoopID flightLoopID: Only call it on flight loops created with :py:func:`createFlightLoop`.
+
+  This routine destroys a flight loop callback specified by *flightLoopID*.
 
   >>> flightLoopID = xp.createFlightLoop(MyCallback)
   >>> xp.destroyFlightLoop(flightLoopID)
@@ -158,7 +159,12 @@ FlightLoop - New Style
 
 .. py:function::  scheduleFlightLoop(flightLoopID, interval, relativeToNow=1)
 
-  Change the interval associated with your *flightLoopID* received from :py:func:`createFlightLoop`.
+  :param XPLMFlightLoopID flightLoopID: FlightLoop to schedule
+  :param float interval: number of seconds, or (if negative) number of frames to wait
+  :param int relativeToNow: 1= wait interval relative to now, otherwise wait relative start of sim.                         
+  :return: None
+
+  Set the interval associated with your *flightLoopID* received from :py:func:`createFlightLoop`.
 
   *interval* is set to:
       +----------------+---------------------------------------------+
@@ -185,7 +191,8 @@ FlightLoop - New Style
   run).
 
   Note that this schedules the flight loop *once*. Your flight loop callback, itself, returns
-  the *next* value for interval.
+  the *next* value for interval. (This next value is always *relativeToNow*, you cannot return
+  a value to indicate at some future sim time.)
 
   >>> flightLoopID = xp.createFlightLoop(MyCallback)
   >>> xp.scheduleFlightLoop(flightLoopID, interval=10)
@@ -216,10 +223,10 @@ FlightLoop - New Style
   
 .. py:function:: isFlightLoopValid(flightLoopID)
 
-   Returns True if flightLoopID is valid and known: it may or may not be scheduled.
-
    :param XPLMFlightLoopID flightLoopID: as from :py:func:`createFlightLoop`                
    :return bool: True if valid flightLoopID
+
+   Returns True if flightLoopID is valid and known: it may or may not be scheduled.
 
    This is an XPPython3-only function.                 
 
@@ -228,7 +235,12 @@ FlightLoop - Old Style
 
 .. py:function::  registerFlightLoopCallback(callback, interval=0.0, refCon=None)
 
-   Register your flight loop callback, see :py:func:`createFlightLoop` for information
+   :param Callable callback: your flight loop callback                  
+   :param float interval: number of seconds, or (if negative) number of frames to wait
+   :param Any refCon: reference constant passed to callback   
+   :return: None                      
+
+   Register, and schedule, your flight loop callback, see :py:func:`createFlightLoop` for information
    about the callback function.
 
    *interval* is defines when you will be called next:
@@ -246,9 +258,15 @@ FlightLoop - Old Style
     
 .. py:function:: unregisterFlightLoopCallback(callback, refCon=None)
 
+    :param Callable callback: your flight loop callback                  
+    :param Any refCon: reference constant passed to callback   
+    :return None:                      
+
     This routine unregisters your flight loop *callback*. *refCon* must
     match value provided with :py:func:`registerFlightLoopCallback` as we
     use it to find and match the callback.
+
+    You cannot use this function to remove callbacks created with :func:`createFlightLoop`, use :func:`destroyFlightLoop`.
 
     Do NOT call :py:func:`unregisterFlightLoopCallback` from
     within your flight loop callback. (Set interval to zero instead.)
@@ -263,12 +281,19 @@ FlightLoop - Old Style
     
 .. py:function:: setFlightLoopCallbackInterval(callback, interval, relativeToNow=1, refCon=None)
 
+    :param Callable callback: your flight loop callback                  
+    :param float interval: number of seconds, or (if negative) number of frames to wait
+    :param int relativeToNow: 1= wait interval relative to now, otherwise wait relative start of sim.                         
+    :param Any refCon: reference constant passed to callback   
+    :return None:                      
+
     Change the interval asscociated with your *callback*. (Must have already
     been registered with :py:func:`registerFlightLoopCallback`.)
 
     This is equivalent to :py:func:`scheduleFlightLoop`, but uses *callback* + *refCon*
     to internally locate your callback.
     
+    You cannot use this function to schedule callbacks created with :func:`createFlightLoop`, use :func:`scheduleFlightLoop`.
 
     **Do not** call :py:func:`setFlightLoopCallbackInterval` from your
     callback; use the return value of the callback to change your callback
@@ -290,7 +315,7 @@ FlightLoop - Old Style
 Constants
 ---------
 
-.. py:data:: FlightLoopID
+.. py:data:: XPLMFlightLoopID
 
   Opaque identifier for a flight loop callback. You can use this identifier to easily track and
   remove your callbacks using new flight loop APIs.

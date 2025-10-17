@@ -16,6 +16,8 @@ Functions
 
 .. py:function:: setUsersAircraft(path)
 
+ :param str path: Full or relative path to aircraft's ".acf" file.
+
  This routine changes the user's aircraft.  Note that this will reinitialize
  the user to be on the nearest airport's first runway **with its engines running**.
 
@@ -25,12 +27,14 @@ Functions
  If the acf file cannot be found the user will be notified and their aircraft
  will be re-initialized.
 
- >>> xp.setUsersAircraft("Aircraft/Laminar Research/Cessna 172SP/Cessna_172SP_G1000.acf")
- >>> xp.setUsersAircraft("/Volumes/SSD1/X-Plane/Aircraft/Laminar Research/Cessna 172SP/Cessna_172SP_G1000.acf")
+ >>> xp.setUsersAircraft("Aircraft/Laminar Research/Cessna 172 SP/Cessna_172SP_G1000.acf")
+ >>> xp.setUsersAircraft("/Volumes/SSD1/X-Plane/Aircraft/Laminar Research/Cessna 172 SP/Cessna_172SP_G1000.acf")
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMSetUsersAircraft>`__ :index:`XPLMSetUsersAircraft`
 
 .. py:function::  placeUserAtAirport(code)
+
+ :param str code: Airport ICAO code
 
  This routine places the user at a given airport.  Specify the airport by
  its ICAO code (e.g. 'KBOS').
@@ -48,6 +52,12 @@ Functions
 
 .. py:function:: placeUserAtLocation(latitude, longitude, elevation, heading, speed)
 
+ :param float latitude:
+ :param float longitude: location in decimal degrees
+ :param float elevation: meters MSL
+ :param float heading: degrees True.
+ :param float speed: meters per second
+                     
  Places the user at a specific location after performing any necessary
  scenery loads.
 
@@ -66,6 +76,8 @@ Functions
  
 .. py:function::  countAircraft()
 
+ :return: Tuple of three integers (max aircraft, current aircraft, controlling plugin)
+
  Return three integers representing:
 
  * the number of aircraft X-Plane is capable of having,
@@ -74,7 +86,8 @@ Functions
 
  * The pluginID of the plugin currently controlling the aircraft. (-1 for none)
  
- These numbers count the user's aircraft plus the number of AI Aircraft.
+ These numbers count the user's aircraft plus the number of AI Aircraft (to increase the max
+ you would need to manually add more AI Aircraft).
 
  >>> xp.countAircraft()
  (4, 4, -1)
@@ -82,6 +95,9 @@ Functions
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMCountAircraft>`__ :index:`XPLMCountAircraft`
  
 .. py:function:: getNthAircraftModel(int: index) -> (model, path):
+
+ :param int index: 0-based index of aircraft information to get                
+ :return: Tuple with two elements: (filename, full path)
 
  Return two strings based on the aircraft *index*. User's aircraft is always 0.
 
@@ -95,8 +111,14 @@ Functions
 
 .. py:function::  acquirePlanes(aircraft=None, callable=None, refCon=none)
 
+ :param None aircraft: this parameter is deprecated
+ :param Callable callable: Callback to notify you *when* you're able to acquire planes
+ :param Any refCon: Reference Constant passed to your callback
+ :return: 1 on successful acquisition.
+
  Grants your plugin exclusive access to the aircraft.  It
- returns 1 if you gain access, 0 if you do not.
+ returns 1 if you gain access, 0 if you do not. If you received 0 and you provided a callback,
+ you'll get notification when acquired.
 
  In the simplest form, attempt to acquire all the aircraft:
 
@@ -130,6 +152,8 @@ Functions
  
 .. py:function:: setActiveAircraftCount(count)
 
+ :param int count: Sets number of active planes (effectively reducing # of AI aircraft)
+
  This routine sets the number of active planes.  If you pass in a number
  higher than the total number of planes available, only the total number of
  planes available is actually used.
@@ -152,6 +176,9 @@ Functions
 
 .. py:function:: setAircraftModel(index, path)
 
+ :param int index: aircraft index (i.e., which AI aircraft...)
+ :param str path: Aircraft *.acf file
+
  This routine loads an aircraft model.  It may only be called if you  have
  exclusive access to the airplane APIs (:py:func:`acquirePlanes`).
  Pass in the *path* of the  model with
@@ -173,8 +200,10 @@ Functions
 
 .. py:function:: disableAIForPlane(index)
 
+ :param int index: aircraft index                 
+
  This routine turns off X-Plane's AI for a given plane.  The plane will
- continue to draw and be a real plane in X-Plane, but will not  move itself.
+ continue to be drawn and be a "real" plane in X-Plane, but will not  move itself.
 
  .. note:: There is no ``enableAIForPlane()`` function: you cannot
     simple re-enable AI. However, if you acquire all planes,

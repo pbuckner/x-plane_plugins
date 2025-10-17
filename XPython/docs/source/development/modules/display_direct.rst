@@ -22,22 +22,27 @@ Register and Unregister your drawing callback(s). You may register a callback mu
 the same or different phases as long as the reference constant is unique for each registration.
 
 .. py:function:: registerDrawCallback(draw, phase=Phase_Window, after=1, refCon=None)
- 
+
   Register a low level drawing callback.
 
-  *phase* indicates where in the drawing phase you wish to be called, with *after* indicating
-  if you want to be called before (0), or after(1) the indicated phase. The *refCon* will
-  be passed to your *draw* callback function. (See below for valid phases.)
- 
-  On success, 1 is returned, 0 otherwise.
- 
-  You may register a callback multiple times for the same or different
-  phases as long as the refCon is unique for each time.
+  :param draw: Callable to be executed during the drawing phase
+  :type draw: Callable[[int, int, Any], int]
+  :param phase: Drawing phase constant (default: Phase_Window)
+  :type phase: int
+  :param after: 0 to draw before the phase, 1 to draw after (default: 1)
+  :type after: int
+  :param refCon: Reference constant passed to your callback (default: None)
+  :type refCon: Any
+  :return: 1 on success, 0 otherwise
+  :rtype: int
 
   Your *draw* callback function takes three parameters (phase, after, refCon).
   If *after* is zero, you callback can return 0 to suppress further X-Plane drawing in
   the phase, or 1 to allow X-Plane to finish drawing. (Return value is ignored when
   *after* is 1.)
+
+  You may register a callback multiple times for the same or different
+  phases as long as the refCon is unique for each time.
 
   >>> def MyDraw(phase, after, refCon):
   ...    xp.setGraphicsState(0, 1, 0, 0, 0, 0, 0)
@@ -152,13 +157,22 @@ the same or different phases as long as the reference constant is unique for eac
   per frame to 1.8 msec!).
 
 .. py:function:: unregisterDrawCallback(draw, phase=Phase_Window, after=1, refCon=None)
- 
-  Unregister a low level drawing callback. Parameters must match those provided with
-  :py:func:`registerDrawCallback`.
- 
+
+  Unregister a low level drawing callback.
+
+  :param draw: Callable previously registered with registerDrawCallback
+  :type draw: Callable[[int, int, Any], int]
+  :param phase: Drawing phase constant (default: Phase_Window)
+  :type phase: int
+  :param after: 0 for before phase, 1 for after (default: 1)
+  :type after: int
+  :param refCon: Reference constant used during registration (default: None)
+  :type refCon: Any
+  :return: 1 on success, 0 otherwise
+  :rtype: int
+
+  Parameters must match those provided with :py:func:`registerDrawCallback`.
   You must unregister a callback for each time you register, if
   you have registered it multiple times with different refCons.
-
-  Returns 1 on success, 0 otherwise.
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMUnregisterDrawCallback>`__ :index:`XPLMUnregisterDrawCallback`

@@ -9,10 +9,15 @@ To use::
   import xp
   
 Key sniffing provides access to low level access to the keystroke stream. Install a key
-sniffer with :py:func:`registerKeySniffer`. Key sniffers can be installed ablve everything or
+sniffer with :py:func:`registerKeySniffer`. Key sniffers can be installed above everything or
 right in front of the sim.
 
 .. py:function:: registerKeySniffer(sniffer, before=0, refCon=None)
+
+ :param Callable sniffer: function to call on (every) keypress.
+ :param int before: get the keystroke *before* X-Plane, or after X-Plane has processed it.
+ :param Any refCon: passed to your function.
+ :return: 1 on success
 
  This routine registers a key *sniffer* callback. You specify whether you want to sniff before
  the window system (*before*\=1), or only sniff keys the window system does not consume (*before*\=0).
@@ -52,8 +57,13 @@ right in front of the sim.
 
 .. py:function:: unregisterKeySniffer(sniffer, before=0, refCon=None)
 
+ :param Callable sniffer: function to call on (every) keypress.
+ :param int before: get the keystroke *before* X-Plane, or after X-Plane has processed it.
+ :param Any refCon: passed to your function.
+ :return: 1 on success, -1 if not found
+
  This routine unregisters a key sniffer. You must unregister a key sniffer for every time you register
- one with the exact same signature. Returns 1 if successful.
+ one with the exact same signature. Returns 1 if successful, -1 if registered sniffer cannot be found.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMUnregisterKeySniffer>`__ :index:`XPLMUnregisterKeySniffer`
 

@@ -184,7 +184,7 @@ My_DOCSTR(_registerAvionicsCallbacksEx__doc__, "registerAvionicsCallbacksEx",
           "drawing. Return value for 'after' callback is ignored.\n"
           "\n"
           "Upon entry, OpenGL context will be correctly set in panel coordinates for 2d drawing.\n"
-          "OpenGL state (texturing, etc.) will be unknwon.\n"
+          "OpenGL state (texturing, etc.) will be unknown.\n"
           "\n"
           "Successful registration returns an AvionicsID."
          );
@@ -1662,7 +1662,7 @@ My_DOCSTR(_bringWindowToFront__doc__, "bringWindowToFront",
           "windowID",
           "windowID:XPLMWindowID",
           "None",
-          "Bring window to front (of it's window layer).");
+          "Bring window to front (of its window layer).");
 static PyObject *XPLMBringWindowToFrontFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   static char *keywords[] = {CHAR("windowID"), nullptr};
@@ -1680,7 +1680,7 @@ My_DOCSTR(_isWindowInFront__doc__, "isWindowInFront",
           "windowID",
           "windowID:XPLMWindowID",
           "int",
-          "Returns 1 if window is currently in the front of it's window layer).");
+          "Returns 1 if window is currently in the front of its window layer).");
 static PyObject *XPLMIsWindowInFrontFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   static char *keywords[] = {CHAR("windowID"), nullptr};

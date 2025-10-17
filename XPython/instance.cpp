@@ -134,7 +134,7 @@ static PyObject *XPLMCreateInstanceFun(PyObject *self, PyObject *args, PyObject 
 
 My_DOCSTR(_destroyInstance__doc__, "destroyInstance",
           "instance",
-          "instance:XPLMObjectRef",
+          "instance:XPLMInstanceRef",
           "None",
           "Destroys instance created by createInstance().");
 static PyObject *XPLMDestroyInstanceFun(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -180,7 +180,7 @@ static PyObject *XPLMInstanceSetAutoShiftFun(PyObject *self, PyObject *args, PyO
 
 My_DOCSTR(_instanceSetPosition__doc__, "instanceSetPosition",
           "instance, position, data=None",
-          "instance:XPLMObjectRef, position:XPLMDrawInfo_t | tuple[float, float, float, float, float, float], "
+          "instance:XPLMInstanceRef, position:XPLMDrawInfo_t | tuple[float, float, float, float, float, float], "
           "data:Optional[tuple[float]]=None",
           "None",
           "Update position (x, y, z, pitch, heading, roll), \n"

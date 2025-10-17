@@ -146,20 +146,20 @@ Functions
     
     `Official SDK <https://developer.x-plane.com/sdk/XPLMInstance/#XPLMInstanceSetPositionDouble>`__ :index:`XPLMInstanceSetPositionDouble`
 
-.. py:function:: instanceSetPositionAutoShift(instance)
+.. py:function:: instanceSetAutoShift(instance)
 
     :param XPLMInstanceRef instance: Instance to be positioned
 
     Tell X-Plane to move the (local) location of this instance every time the sim's
     local coordinate system changes, so that a static instance does move globally.
     Without this, a plugin is responsible for updating an instance's local position
-    using :func:`instanceSetPosition` when the coordincate system shifts. Use
+    using :func:`instanceSetPosition` when the coordinate system shifts. Use
     this for static instances that you would not otherwise have to move. (Always
     call :func:`instanceSetPosition`, once, first.)
 
     Autoshift remains active until the next :func:`instanceSetPosition` is called for this
     instance. If you call :func:`instanceSetPosition` you will have to repeat the call
-    to :func:`instanceSetPositionAutoShift` to re-enable this feature.
+    to :func:`instanceSetAutoShift` to re-enable this feature.
 
     If your instance requires passing datarefs (which is done using :func:`instanceSetPosition`)
     this function isn't helpful as you will still have to re-calculate position information on each

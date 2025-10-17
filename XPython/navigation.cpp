@@ -107,7 +107,7 @@ static PyObject *XPLMFindNavAidFun(PyObject *self, PyObject *args, PyObject *kwa
   float lat, *inLat = nullptr;
   float lon, *inLon = nullptr;
   int frequency, *inFrequency = nullptr;
-  int inType=0xffffff;
+  int inType=0xffffffff;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|zzOOOi", keywords, &inNameFragment, &inIDFragment, &objLat, &objLon, &objFreq, &inType)){
     return nullptr;
   }
@@ -132,12 +132,12 @@ My_DOCSTR(_getNavAidInfo__doc__, "getNavAidInfo",
           "NavAidInfo",
           "Returns NavAidInfo object for given navRef\n"
           "\n"
-          "Attibutes are:\n"
+          "Attributes are:\n"
           " .type        # a NavType\n"
           " .latitude\n"
           " .longitude\n"
           " .height     # in meters\n"
-          " .frequency  # integer, for NDB, value is exact, otherwise devide by 100.0\n"
+          " .frequency  # integer, for NDB, value is exact, otherwise divide by 100.0\n"
           " .heading    # See documentation for glideslope headings\n"
           " .navAidID\n"
           " .reg        # =1 if navaid is within local 'region' of loaded DSFs");
@@ -494,7 +494,7 @@ My_DOCSTR(_getFMSFlightPlanEntryInfo__doc__, "getFMSFlightPlanEntryInfo",
           "flightPlan, index",
           "flightPlan:XPLMNavFlightPlan, index:int",
           "FMSEntryInfo",
-          "Returns FMSEntryInfo object for give FMS index for this flightplan.\n"
+          "Returns FMSEntryInfo object for given FMS index for this flightplan.\n"
           "\n"
           "Attributes are:\n"
           " .type      # a NavType\n"

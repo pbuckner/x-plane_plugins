@@ -249,7 +249,7 @@ Coordinate Conversion Functions
  >>> xp.worldToLocal(lat, lon, alt)
  (-23161.567539629053, 79.61748455422719, 4007.734676883242)
  >>> xp.localToWorld(*xp.worldToLocal(lat, lon, alt))
- (47.463586666721014, -122.30775530395267, 122.93034338392317
+ (47.463586666721014, -122.30775530395267, 122.93034338392317)
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMGraphics/#XPLMWorldToLocal>`__ :index:`XPLMWorldToLocal`
 
@@ -258,7 +258,7 @@ Coordinate Conversion Functions
  :param float x:
  :param float y:
  :param float z: Local OpenGL scene coordinates
- :return: Tuple of three floats matching latitude, longitude (decrees) and altitude (meters)
+ :return: Tuple of three floats matching latitude, longitude (degrees) and altitude (meters)
 
  Convert local scene coordinates (x, y, z) to Lat/Lon/Alt
 
@@ -278,7 +278,7 @@ Coordinate Conversion Functions
  >>> (x, y, z)
  (-23161.3359375, 79.97235870361328, 4007.6552734375)
  >>> xp.localToWorld(x, y, z)
- (47.46358739027689, -122,3977522090232, 123.28432321269065)
+ (47.46358739027689, -122.3977522090232, 123.28432321269065)
  >>> xp.worldToLocal(*xp.localToWorld(x, y, z))
  (-23161.335585060915, 79.9723599828585, 4007.655274833594)
  

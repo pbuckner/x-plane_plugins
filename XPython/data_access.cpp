@@ -578,6 +578,7 @@ static PyObject *XPLMGetDatabFun(PyObject *self, PyObject *args, PyObject *kwarg
     for(int i = 0; i < (res < inMax ? res : inMax); ++i){
       PyObject *tmp = PyLong_FromLong(outValues[i]);
       PyList_Append(outValuesObj, tmp);
+      Py_DECREF(tmp);
     }
     free(outValues);
   }
@@ -1021,7 +1022,7 @@ static int getDatavi(void *inRefcon, int *outValues, int inOffset, int inMax)
   if (err) {
     char msg[1024];
     char *s = objToStr(info.read_int_array);
-    snprintf(msg, sizeof(msg), "[%s] getDatadvi callback %s failed to return an int", CurrentPythonModuleName, s);
+    snprintf(msg, sizeof(msg), "[%s] getDatavi callback %s failed to return an int", CurrentPythonModuleName, s);
     free(s);
     PyErr_SetString(err, msg);
   } else {
@@ -1400,7 +1401,7 @@ static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args, PyO
     inDataType |= (raf != Py_None || waf != Py_None) ? xplmType_FloatArray : 0;
     inDataType |= (rab != Py_None || wab != Py_None) ? xplmType_Data : 0;
     if (inDataType == xplmType_Unknown) {
-      PyErr_SetString(PyExc_ValueError, "Could not determing dataType value for dataRef");
+      PyErr_SetString(PyExc_ValueError, "Could not determine dataType value for dataRef");
     }
   }
 
@@ -1447,7 +1448,7 @@ static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args, PyO
     .dataRef = res
   };
 
-  PyObject *dataRefCapsule = makeCapsule(res, "XPLMDataRef");;
+  PyObject *dataRefCapsule = makeCapsule(res, "XPLMDataRef");
   PyObject *accessorDictKey = PyLong_FromVoidPtr(refcon);
   Py_DECREF(accessorDictKey);
   return dataRefCapsule;
@@ -1455,7 +1456,7 @@ static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args, PyO
 
 My_DOCSTR(_unregisterDataAccessor__doc__, "unregisterDataAccessor",
           "accessor",
-          "acccessor:XPLMDataRef",
+          "accessor:XPLMDataRef",
           "None",
           "Unregisters data accessor.");
 static PyObject *XPLMUnregisterDataAccessorFun(PyObject *self, PyObject *args, PyObject *kwargs)

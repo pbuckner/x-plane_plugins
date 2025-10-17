@@ -308,8 +308,8 @@ static PyObject *XPLMDrawNumberFun(PyObject *self, PyObject *args, PyObject *kwa
 My_DOCSTR(_getTexture__doc__, "getTexture",
           "textureID",
           "textureID:XPLMTextureID",
-          "int"
-          "Return OpenGL texture ID of X-Plane texture\n",
+          "int",
+          "Return OpenGL texture ID of X-Plane texture\n"
           "Returns OpenGL texture ID of X-Plane texture based on\n"
           "a generic identifying code.");
 static PyObject *XPLMGetTextureFun(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -378,7 +378,7 @@ static PyObject *XPLMGetFontDimensionsFun(PyObject *self, PyObject *args, PyObje
   if (returnValues) {
     return Py_BuildValue("(iii)", charWidth, charHeight, digitsOnly);
   }
-  pythonLogWarning("XPLMGetFontDimentions only requires initial fontID parameter");
+  pythonLogWarning("XPLMGetFontDimensions only requires initial fontID parameter");
   if (outCharWidth != Py_None) {
     PyObject *obj = PyLong_FromLong(charWidth);
     PyList_Append(outCharWidth, obj);
@@ -453,7 +453,7 @@ static PyMethodDef XPLMGraphicsMethods[] = {
   {"drawNumber", (PyCFunction)XPLMDrawNumberFun, METH_VARARGS | METH_KEYWORDS, _drawNumber__doc__},
   {"XPLMDrawNumber", (PyCFunction)XPLMDrawNumberFun, METH_VARARGS | METH_KEYWORDS, "Draw number."},
   {"getFontDimensions", (PyCFunction)XPLMGetFontDimensionsFun, METH_VARARGS | METH_KEYWORDS, _getFontDimensions__doc__},
-  {"XPLMGetFontDimensions", (PyCFunction)XPLMGetFontDimensionsFun, METH_VARARGS | METH_KEYWORDS, "Get font dimmensions."},
+  {"XPLMGetFontDimensions", (PyCFunction)XPLMGetFontDimensionsFun, METH_VARARGS | METH_KEYWORDS, "Get font dimensions."},
   {"measureString", (PyCFunction)XPLMMeasureStringFun, METH_VARARGS | METH_KEYWORDS, _measureString__doc__},
   {"XPLMMeasureString", (PyCFunction)XPLMMeasureStringFun, METH_VARARGS | METH_KEYWORDS, "Measure a string."},
   {"_cleanup", cleanup, METH_VARARGS, ""},

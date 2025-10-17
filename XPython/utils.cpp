@@ -536,6 +536,7 @@ void errCheck_f(const char *fmt, ...) {
 void xpy_assert(bool must_be_true)
 {
 #ifdef NDEBUG
+  (void) must_be_true;
 #else
   if (! must_be_true) {
     std::raise(SIGINT);

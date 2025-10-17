@@ -14,7 +14,7 @@ static intptr_t callbackCntr;
 struct SoundCallbackInfo {
   PyObject *callback;
   PyObject *refCon;
-  std::string module_name;
+  const char* module_name;
 };
 
 static std::unordered_map<intptr_t, SoundCallbackInfo> soundCallbacks;
@@ -171,10 +171,10 @@ static PyObject *XPLMPlayPCMOnBusFun(PyObject *self, PyObject *args, PyObject *k
     soundCallbacks[callbackCntr] = {
       .callback = callbackObj,
       .refCon = inRefConObj,
-      .module_name = std::string(CurrentPythonModuleName)
+      .module_name = CurrentPythonModuleName
     };
   }
-    
+
   FMOD_CHANNEL *fmod_channel = XPLMPlayPCMOnBus_ptr(audioBuffer,
                                                     bufferSize, soundFormat, freqHz, numChannels, loop, audioType,
                                                     callback, inRefcon);
@@ -194,7 +194,8 @@ static void soundCallback(void *inRefcon, FMOD_RESULT status)
   set_moduleName(info.module_name);
 
   PyObject *statusObj = PyLong_FromLong(status);
-  PyObject_CallFunctionObjArgs(info.callback, info.refCon, statusObj, nullptr);
+  PyObject *args[] = {info.refCon, statusObj};
+    PyObject_Vectorcall(info.callback, args, 2, nullptr);
   Py_DECREF(statusObj);
 
   // Clean up and remove from map because it'll get called only once by XP!

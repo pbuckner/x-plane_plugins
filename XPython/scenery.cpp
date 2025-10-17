@@ -13,7 +13,7 @@
 #include "capsules.h"
 
 struct LoaderInfo {
-  std::string module_name;
+  const char* module_name;
   PyObject *refCon;
   PyObject *callback;
   std::string path;
@@ -56,8 +56,8 @@ static PyObject *XPLMDestroyProbeFun(PyObject *self, PyObject *args, PyObject *k
 }
 
 My_DOCSTR(_probeTerrainXYZ__doc__, "probeTerrainXYZ",
-          "probeRef, x, y, z",
-          "probeRef:XPLMProbeRef, x:float, y:float, z:float",
+          "probe, x, y, z",
+          "probe:XPLMProbeRef, x:float, y:float, z:float",
           "XPLMProbeInfo_t",
           "Probe terrain using probeRef at (x, y, z) location\n"
           "\n"
@@ -75,7 +75,7 @@ My_DOCSTR(_probeTerrainXYZ__doc__, "probeTerrainXYZ",
           "  .is_set:    1=we hit water");
 static PyObject *XPLMProbeTerrainXYZFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {CHAR("probeRef"), CHAR("x"), CHAR("y"), CHAR("z"), nullptr};
+  static char *keywords[] = {CHAR("probe"), CHAR("x"), CHAR("y"), CHAR("z"), nullptr};
   (void) self;
   PyObject *probe;
   float inX, inY, inZ;
@@ -183,7 +183,7 @@ static void genericObjectLoaded(XPLMObjectRef inObject, void *inRefcon)
   intptr_t refcon_id = (intptr_t)inRefcon;
   auto it = objectLoadCallbacks.find(refcon_id);
   if (it == objectLoadCallbacks.end()) {
-    printf("Unknown callback requested in objectLoaded(%p).\n", inRefcon);
+    pythonLog("Unknown callback requested in objectLoaded(%p).\n", inRefcon);
     return;
   }
 
@@ -191,10 +191,11 @@ static void genericObjectLoaded(XPLMObjectRef inObject, void *inRefcon)
   set_moduleName(info.module_name);
 
   PyObject *object = makeCapsule(inObject, "XPLMObjectRef");
-  PyObject *res = PyObject_CallFunctionObjArgs(info.callback, object, info.refCon, nullptr);
+  PyObject *args[] = {object, info.refCon};
+    PyObject *res = PyObject_Vectorcall(info.callback, args, 2, nullptr);
   PyObject *err = PyErr_Occurred();
   if(err){
-    printf("Error occured during the objectLoaded callback(inRefcon = %p):\n", inRefcon);
+    pythonLog("Error occured during the objectLoaded callback(inRefcon = %p):\n", inRefcon);
     pythonLogException();
   }else{
     Py_DECREF(res);
@@ -233,7 +234,7 @@ static PyObject *XPLMLoadObjectAsyncFun(PyObject *self, PyObject *args, PyObject
 
   intptr_t refcon = ++loaderCntr;
   objectLoadCallbacks[refcon] = {
-    .module_name = std::string(CurrentPythonModuleName),
+    .module_name = CurrentPythonModuleName,
     .refCon = inRefcon,
     .callback = callback,
     .path = std::string(inPath)
@@ -268,32 +269,28 @@ static PyObject *XPLMUnloadObjectFun(PyObject *self, PyObject *args, PyObject *k
 }
 
 struct LibraryInfo {
-  PyObject *plugin;
   std::string path;
   float latitude;
   float longitude;
   PyObject *callback;
   PyObject *refCon;
-  std::string module_name;
 };
-
-static std::unordered_map<intptr_t, LibraryInfo> libraryEnumCallbacks;
-static intptr_t libEnumCntr;
 
 static void libraryEnumerator(const char *inFilePath, void *inRef)
 {
-  intptr_t refcon_id = (intptr_t)inRef;
-  auto it = libraryEnumCallbacks.find(refcon_id);
-  if (it == libraryEnumCallbacks.end()) {
-    printf("Unknown callback requested from libraryEnumerator(%p).\n", inRef);
-    return;
+  LibraryInfo* info = (LibraryInfo*)inRef; /* we DO NOT reset module name, as this is called within XPLMLookupObjectsFun */
+
+  PyObject *pathObj = PyUnicode_FromString(inFilePath);
+  PyObject *args[] = {pathObj, info->refCon};
+  PyObject *res = PyObject_Vectorcall(info->callback, args, 2, nullptr);
+  Py_DECREF(pathObj);
+  PyObject *err = PyErr_Occurred();
+  if(err){
+    pythonLog("Error occurred during the libraryEnumerator callback(inRef = %p):\n", inRef);
+    pythonLogException();
+  }else{
+    Py_DECREF(res);
   }
-
-  LibraryInfo& info = it->second;
-  set_moduleName(info.module_name);
-
-  PyObject *res = PyObject_CallFunction(info.callback, "(sO)", inFilePath, info.refCon);
-  Py_XDECREF(res);
 }
 
 My_DOCSTR(_lookupObjects__doc__, "lookupObjects",
@@ -314,7 +311,6 @@ static PyObject *XPLMLookupObjectsFun(PyObject *self, PyObject *args, PyObject *
   float inLatitude=0.0, inLongitude=0.0;
   PyObject *enumerator=Py_None;
   PyObject *ref=Py_None;
-  PyObject *pluginSelf;
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s|ffOO", keywords, &inPath, &inLatitude, &inLongitude, &enumerator, &ref)) {
     return nullptr;
   }
@@ -323,21 +319,16 @@ static PyObject *XPLMLookupObjectsFun(PyObject *self, PyObject *args, PyObject *
     return nullptr;
   }
 
-  pluginSelf = get_moduleName_p();
-  intptr_t myRef = ++libEnumCntr;
-  libraryEnumCallbacks[myRef] = {
-    .plugin = pluginSelf,
+  LibraryInfo info = {
     .path = std::string(inPath),
     .latitude = inLatitude,
     .longitude = inLongitude,
     .callback = enumerator,
     .refCon = ref,
-    .module_name = std::string(CurrentPythonModuleName)
   };
-  Py_INCREF(pluginSelf);
-  Py_INCREF(enumerator);
-  Py_INCREF(ref);
-  int res = XPLMLookupObjects(inPath, inLatitude, inLongitude, libraryEnumerator, (void*)myRef);
+
+  int res = XPLMLookupObjects(inPath, inLatitude, inLongitude, libraryEnumerator, (void*)&info);
+  //  set_moduleName(save);
   return PyLong_FromLong(res);
 }
 
@@ -350,12 +341,6 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
     Py_DECREF(pair.second.refCon);
   }
   objectLoadCallbacks.clear();
-  for (auto& pair : libraryEnumCallbacks) {
-    Py_DECREF(pair.second.plugin);
-    Py_DECREF(pair.second.callback);
-    Py_DECREF(pair.second.refCon);
-  }
-  libraryEnumCallbacks.clear();
   Py_RETURN_NONE;
 }
 

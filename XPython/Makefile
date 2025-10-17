@@ -87,7 +87,8 @@ linux:
 	cd lin && $(MAKE)
 	cd ..
 
-PLUGIN_OBJ = plugin.o defs.o display.o utils.o graphics.o data_access.o utilities.o scenery.o menus.o \
+PLUGIN_OBJ = plugin.o defs.o display.o display_keysniffer.o display_hotkey.o display_avionics.o \
+	utils.o graphics.o data_access.o utilities.o scenery.o menus.o \
 	navigation.o plugins.o planes.o processing.o camera.o widget_defs.o widgets.o \
 	standard_widgets.o uigraphics.o widgetutils.o instance.o map.o plugin_dl.o sb.o utils.o xppython.o \
 	sound.o \

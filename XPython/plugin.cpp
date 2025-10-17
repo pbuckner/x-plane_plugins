@@ -173,17 +173,29 @@ int initPython(void){
   */
 #if APL
   /* config.home = wcsdup(L"Resources/plugins/XPPython3/mac_x64/python" PYTHONVERSION); */
-  strlcat(executable, "Resources/plugins/XPPython3/mac_x64/python" PYTHONVERSION "/Resources/Python.app/Contents/MacOS/Python", sizeof(executable));
+  if (strlcat(executable, "Resources/plugins/XPPython3/mac_x64/python" PYTHONVERSION "/Resources/Python.app/Contents/MacOS/Python", sizeof(executable)) >= sizeof(executable)) {
+    pythonLog("Python executable path too long");
+    return -1;
+  }
 #elif IBM
   /* config.home = wcsdup(L"Resources/plugins/XPPython3/win_x64"); */
-  strlcat(executable, "Resources/plugins/XPPython3/win_x64/pythonw.exe", sizeof(executable));
+  if (strcat_s(executable, sizeof(executable), "Resources/plugins/XPPython3/win_x64/pythonw.exe") != 0) {
+    pythonLog("Failed to concatenate Python executable path");
+    return -1;
+  }
 #elif LIN
   /* config.home = wcsdup(L"Resources/plugins/XPPython3/lin_x64/python" PYTHONVERSION); */
-  strlcat(executable, "Resources/plugins/XPPython3/lin_x64/python" PYTHONVERSION "/bin/python" PYTHONVERSION, sizeof(executable));
+  if (strlcat(executable, "Resources/plugins/XPPython3/lin_x64/python" PYTHONVERSION "/bin/python" PYTHONVERSION, sizeof(executable)) >= sizeof(executable)) {
+    pythonLog("Python executable path too long");
+    return -1;
+  }
   /* setenv("PYOPENGL_PLATFORM", "egl", 1);*/
   setenv("PYOPENGL_PLATFORM", "glx", 1); /* to get around Wayland... */
 #endif  
 
+  if (strlen(executable) > 510) {
+    pythonLog("Python executable is really, really long at %d characters. Likely an error: %s", strlen(executable), executable);
+  }
   status = PyConfig_SetBytesString(&config, &config.executable, executable);
   if (PyStatus_Exception(status)) {
     pythonLog("SetBytesString status is error");
@@ -268,6 +280,8 @@ static int startPython(void)
     return -1;
   }
 
+  initPreallocatedObjects();
+
   #define EXCLUDE_AIRCRAFT 0
   xpy_startInstances(EXCLUDE_AIRCRAFT);
   xpy3_started = true;
@@ -286,11 +300,22 @@ static int stopPython(void)
        This is output only -- we're not deleting them here.
      */
     pythonLog("Undeleted items: begin vvvvv");
-    std::vector<std::string> dicts = {"drefs", "sharedDrefs"};
+    std::vector<std::string> dicts = {
+      "avionicsCallbacks",
+      "commandCallbacks",
+      "dataRefCallbacks",
+      "drawCallbacks",
+      "errorCallbacks",
+      "hotKeyCallbacks",
+      "keySnifferCallbacks",
+      "mapCallbacks",
+      "menuCallbacks",
+      "plugins",
+      "sharedDataRefCallbacks",
+      "windowCallbacks"
+    };
+
     /*
-      "plugins", "modules", "accessors", "drefs", "sharedDrefs", "drawCallbacks",
-      "keySniffCallbacks", "windows", "hotkeys", "hotkeyIDs", "mapCreates", "mapRefs", "maps",
-      "menus", "menuRefs", "menuPluginIdx", "errCallbacks", "commandCallbacks", "commandRevDict",
       "widgetCallbacks", "widgetProperties", "flightLoops", "flightLoopIDs"};
     */
     XPPythonGetDictsFun(Py_None, Py_None);
@@ -302,13 +327,15 @@ static int stopPython(void)
         Py_ssize_t pos = 0;
         PyObject *key,  *value;
         while(PyDict_Next(dict, &pos, &key, &value)){
-          const char *key_s = PyUnicode_AsUTF8(key);
-          const char *value_s = PyUnicode_AsUTF8(value);
+          char *key_s = objToStr(key);
+          char *value_s = objToStr(value);
           if (! strcmp(dicts[i].c_str(), "widgetProperties") ) {
             logWidgets(key, key_s, value_s);
           } else {
             pythonLog("  %s:%s %s", key_s, strlen(value_s) > 10 ? "\n    " : " ", value_s);
           }
+          free(key_s);
+          free(value_s);
         }
       }
     }
@@ -359,6 +386,7 @@ static int stopPython(void)
     }
   }
   Py_XDECREF(loggerModuleObj);
+  cleanupPreallocatedObjects();
   Py_Finalize();
   if (pythonHandle) {
     dlclose(pythonHandle);
@@ -397,9 +425,15 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc)
   if (loadLocalPythonLibrary() == -1) {return 0;}
 
   pythonLogFlush();
+#if LIN || APL
   strlcpy(outName, pythonPluginName, 256);
   strlcpy(outSig,  pythonPluginSig, 256);
   strlcpy(outDesc, pythonPluginDesc, 256);
+#elif IBM
+  strcpy_s(outName, 256, pythonPluginName);
+  strcpy_s(outSig, 256, pythonPluginSig);
+  strcpy_s(outDesc, 256, pythonPluginDesc);
+#endif
 
   if (XPLMHasFeature("XPLM_USE_NATIVE_WIDGET_WINDOWS")) {
     XPLMEnableFeature("XPLM_USE_NATIVE_WIDGET_WINDOWS", 1);
@@ -517,10 +551,18 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, vo
   errCheck("receiveMessage start");
   if (inMessage == XPLM_MSG_DATAREFS_ADDED) {
     param = PyLong_FromLong(*(int*)inParam);
+    if (param == nullptr) {
+      pythonLog("Unable to decode inParam for message %ld", inMessage);
+      return;
+    }
     pythonDebug("XPPython3 received message, forwarding to all plugins: From: %d, Msg: %ld, inParam: %d",
                 inFromWho, inMessage, *(int*)inParam);
   } else {
     param = PyLong_FromLong((intptr_t)inParam);
+    if (param == nullptr) {
+      pythonLog("Unable to decode inParam for message %ld", inMessage);
+      return;
+    }
     pythonDebug("XPPython3 received message, forwarding to all plugins: From: %d, Msg: %ld, inParam: %ld",
                 inFromWho, inMessage, (intptr_t)inParam);
   }
@@ -692,9 +734,30 @@ static void initMtimes(void) {
 
 static void reloadSysModules(void) {
   char filename[1024];
+#if LIN || APL
   strlcpy(filename, pythonInternalHooksPath, sizeof(filename));
-  strlcat(filename, "/", sizeof(filename));
-  strlcat(filename, "xp_reloader.py", sizeof(filename));
+#elif IBM
+  strcpy_s(filename, sizeof(filename), pythonInternalHooksPath);
+#endif
+#if LIN || APL
+  if (strlcat(filename, "/", sizeof(filename)) >= sizeof(filename)) {
+    pythonLog("Reloader path too long");
+    return;
+  }
+  if (strlcat(filename, "xp_reloader.py", sizeof(filename)) >= sizeof(filename)) {
+    pythonLog("Reloader path too long");
+    return;
+  }
+#elif IBM
+  if (strcat_s(filename, sizeof(filename), "/") != 0) {
+    pythonLog("Failed to concatenate reloader path");
+    return;
+  }
+  if (strcat_s(filename, sizeof(filename), "xp_reloader.py") != 0) {
+    pythonLog("Failed to concatenate reloader path");
+    return;
+  }
+#endif
   FILE *fp = fopen(filename, "rb");  /* python says, use binary mode so newlines work */
   if (!fp) {
     pythonLog("Cannot find reloader script in %s", filename);

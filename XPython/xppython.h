@@ -7,7 +7,7 @@ typedef struct {
   long fl_time; /* flight loop callback */
   long customw_time; /* custom widget drawing */
   long draw_time;  /* draw callback */
-  std::string module_name;
+  const char* module_name;
 } PluginStats;
 
 extern PyObject *PythonModuleMTimes;

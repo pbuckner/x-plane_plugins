@@ -14,18 +14,23 @@
 #include "capsules.h"
 
 
-static std::unordered_map<void*, PyObject*> instanceCapsules;
-
 void resetInstances(void) {
   /* loaded instances need to be destroyed */
-  for (auto& pair : instanceCapsules) {
-    char *s = objToStr(pair.second);
-    pythonDebug("     Reset --     %s", s);
-    free(s);
-    XPLMDestroyInstance(pair.first);
-    Py_DECREF(pair.second);
+  for(auto it = CapsuleDict.begin(); it != CapsuleDict.end();) {
+    PyObject *capsule = it->second;
+    if (! strcmp(PyCapsule_GetName(capsule), "XPLMInstanceRef")) {
+      char *moduleName = (char *)PyCapsule_GetContext(capsule);
+      char *s1 = objToStr(capsule);
+      pythonDebug("     Reset --      %s  %s", moduleName, s1);
+      free(s1);
+      free(moduleName);
+      XPLMDestroyInstance(getVoidPtr(capsule, "XPLMInstanceRef"));
+      Py_DECREF(it->second);
+      it = CapsuleDict.erase(it);
+    } else {
+      it++;
+    }
   }
-  instanceCapsules.clear();
 }
 
 My_DOCSTR(_createInstance__doc__, "createInstance",
@@ -50,11 +55,19 @@ static PyObject *XPLMCreateInstanceFun(PyObject *self, PyObject *args, PyObject 
   }
   Py_ssize_t len = 0;
   /* PyObject *drefListTuple = Py_None; */
-  if (drefList != Py_None) {
+  if (PySequence_Check(drefList)) {
     len = PySequence_Length(drefList);
+    if (len < 0) {
+      PyErr_SetString(PyExc_TypeError, "dataRefs must be a valid sequence");
+      return nullptr;
+    }
+    if (len > 1000) { // reasonable limit for datarefs
+      PyErr_SetString(PyExc_ValueError, "Too many dataRefs (max 1000)");
+      return nullptr;
+    }
     /* drefListTuple = PySequence_Tuple(drefList); */
   }
-  const char **datarefs = (const char **)malloc(sizeof(char *) * (len + 1));
+  char **datarefs = (char **)malloc(sizeof(char *) * (len + 1));
   if(datarefs == nullptr){
     return nullptr;
   }
@@ -62,26 +75,59 @@ static PyObject *XPLMCreateInstanceFun(PyObject *self, PyObject *args, PyObject 
   datarefs[len] = nullptr;
 
   Py_ssize_t i;
-  char *tmp;
-  PyObject *tmpObj;
   for(i = 0; i < len; ++i){
-    PyObject *s = PyObject_Str(PySequence_GetItem(drefList, i)); /* GetItem borrows, Str is NEW */
-    tmpObj = PyUnicode_AsUTF8String(s); /* new object */
-    tmp = PyBytes_AsString(tmpObj); /* borrowed */
-    Py_DECREF(s);
-    if (PyErr_Occurred()) {
-      Py_XDECREF(tmpObj);
+    PyObject *item = PySequence_GetItem(drefList, i); /* GetItem borrows */
+    if (!item) {
+      // Clean up previously allocated strings
+      for (Py_ssize_t j = 0; j < i; j++) {
+        free(datarefs[j]);
+      }
+      free(datarefs);
       return nullptr;
     }
-    datarefs[i] = tmp;
-    Py_DECREF(tmpObj);
+
+    // Require string types only
+    if (!PyUnicode_Check(item)) {
+      PyErr_SetString(PyExc_TypeError, "All dataRefs must be strings");
+      // Clean up previously allocated strings
+      for (Py_ssize_t j = 0; j < i; j++) {
+        free(datarefs[j]);
+      }
+      free(datarefs);
+      return nullptr;
+    }
+
+    PyObject *utf8_obj = PyUnicode_AsUTF8String(item);
+    if (!utf8_obj || PyErr_Occurred()) {
+      // Clean up previously allocated strings
+      for (Py_ssize_t j = 0; j < i; j++) {
+        free(datarefs[j]);
+      }
+      free(datarefs);
+      Py_XDECREF(utf8_obj);
+      return nullptr;
+    }
+
+    char *tmp = PyBytes_AsString(utf8_obj); /* borrowed */
+    datarefs[i] = strdup(tmp); /* make a copy to avoid use-after-free */
+    Py_DECREF(utf8_obj);
+    if (!datarefs[i]) {
+      // Clean up previously allocated strings
+      for (Py_ssize_t j = 0; j < i; j++) {
+        free(datarefs[j]);
+      }
+      free(datarefs);
+      return nullptr;
+    }
   }
-  /* if (len) { */
-  /*   Py_DECREF(drefListTuple); */
-  /* } */
   XPLMObjectRef inObj = getVoidPtr(obj, "XPLMObjectRef");
 
-  XPLMInstanceRef res = XPLMCreateInstance_ptr(inObj, datarefs);
+  XPLMInstanceRef res = XPLMCreateInstance_ptr(inObj, (const char**)datarefs);
+
+  // Clean up allocated strings
+  for (i = 0; i < len; i++) {
+    free(datarefs[i]);
+  }
   free(datarefs);
   return makeCapsule(res, "XPLMInstanceRef");
 }
@@ -250,6 +296,14 @@ static PyObject *XPLMInstanceSetPositionFun(PyObject *self, PyObject *args, PyOb
   Py_ssize_t len = 0;
   if (data != Py_None) {
     len = PySequence_Length(data);
+    if (len < 0) {
+      PyErr_SetString(PyExc_TypeError, "data must be a valid sequence");
+      return nullptr;
+    }
+    if (len > 10000) { // reasonable limit for data values
+      PyErr_SetString(PyExc_ValueError, "Too many data values (max 10000)");
+      return nullptr;
+    }
   }
   float *inData = (float*)malloc(sizeof(float) * len);
   if(len && inData == nullptr){
@@ -258,7 +312,16 @@ static PyObject *XPLMInstanceSetPositionFun(PyObject *self, PyObject *args, PyOb
   if (len) {
     Py_ssize_t i;
     for(i = 0; i < len; ++i){
-      inData[i] = PyFloat_AsDouble(PySequence_GetItem(data, i));
+      PyObject *item = PySequence_GetItem(data, i);
+      if (!item) {
+        free(inData);
+        return nullptr;
+      }
+      inData[i] = PyFloat_AsDouble(item);
+      if (PyErr_Occurred()) {
+        free(inData);
+        return nullptr;
+      }
     }
   }
   void *p = getVoidPtr(instance, "XPLMInstanceRef");
@@ -277,10 +340,6 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 {
   (void) self;
   (void) args;
-  for (auto& pair : instanceCapsules) {
-    Py_DECREF(pair.second);
-  }
-  instanceCapsules.clear();
   Py_RETURN_NONE;
 }
 

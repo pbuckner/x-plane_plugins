@@ -16,10 +16,18 @@ struct AvailableInfo {
   PyObject* aircraft;
   PyObject* callback;
   PyObject* refCon;
-  std::string module_name;
+  const char* module_name;
 };
 
 static std::unordered_map<intptr_t, AvailableInfo> availableCallbacks;
+
+/*
+ * Note there are memory leaks surround acquirePlanes and releasePlanes
+ * since some of the behavior is deprecated ('aircraft' portion of acquirePlanes)
+ * and all of it poorly defined (does callback continue to work after it's been
+ * called once, or after releaseAircraft() to I need to create a new callback??
+ * And, acquire/release isn't commonly/frequently done, this seems best to leave as it.
+ */
 
 My_DOCSTR(_setUsersAircraft__doc__, "setUsersAircraft",
           "path",
@@ -127,7 +135,7 @@ void planesAvailable(void *inRefcon)
   intptr_t refcon_id = (intptr_t)inRefcon;
   auto it = availableCallbacks.find(refcon_id);
   if (it == availableCallbacks.end()) {
-    printf("Unknown callback (%p) requested in planesAvailable.", inRefcon);
+    pythonLog("Unknown callback (%p) requested in planesAvailable.", inRefcon);
     return;
   }
 
@@ -136,10 +144,11 @@ void planesAvailable(void *inRefcon)
 
   set_moduleName(info.module_name);
 
-  PyObject *res = PyObject_CallFunctionObjArgs(info.callback, info.refCon, nullptr);
+  PyObject *args[] = {info.refCon};
+    PyObject *res = PyObject_Vectorcall(info.callback, args, 1, nullptr);
   PyObject *err = PyErr_Occurred();
   if(err){
-    printf("Error occured during the planesAvailable callback(inRefcon = %p):\n", inRefcon);
+    pythonLog("Error occured during the planesAvailable callback(inRefcon = %p):\n", inRefcon);
     pythonLogException();
   }
   Py_XDECREF(res);
@@ -169,7 +178,7 @@ static PyObject *XPLMAcquirePlanesFun(PyObject *self, PyObject *args, PyObject *
     .aircraft = aircraft,
     .callback = inCallback,
     .refCon = inRefcon,
-    .module_name = std::string(CurrentPythonModuleName)
+    .module_name = CurrentPythonModuleName
   };
   Py_INCREF(pluginSelf);
   Py_INCREF(aircraft);
@@ -190,7 +199,14 @@ static PyObject *XPLMAcquirePlanesFun(PyObject *self, PyObject *args, PyObject *
       Py_DECREF(tmpItem);
       Py_DECREF(tmpStr);
 
-      if (PyErr_Occurred()) return nullptr;
+      if (PyErr_Occurred()) {
+        Py_DECREF(tmpObj);
+        for (int x=0; x < i; x++) {
+          free(inAircraft[x]);
+        }
+        free(inAircraft);
+        return nullptr;
+      }
       if(tmp[0] == '\0'){
         Py_DECREF(tmpObj);
         break;

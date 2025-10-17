@@ -10,7 +10,7 @@
 /* Capsules
    --------
    We often need to pass a (void *) ptr to/from python. In order to pass a
-   (somewhat) typed version, we pass a capsule: it wrappes the (void *) pointer
+   (somewhat) typed version, we pass a capsule: it wraps the (void *) pointer
    and includes a visible type.
 
    XPLMMenuID id;  // XPLMMenuID is defined as (void *)
@@ -21,6 +21,29 @@
 
 
 std::unordered_map <void *, PyObject*> CapsuleDict;  // {ptr: capsule}
+
+PyObject* buildCapsuleDict(void)
+{
+  PyObject *capsules = PyDict_New();
+
+  for (const auto& pair : CapsuleDict) {
+    void *ptr = pair.first;
+    PyObject *capsule = pair.second;
+    const char *name = PyCapsule_GetName(capsule);
+    char *context = (char *)PyCapsule_GetContext(capsule);
+
+    PyObject *tuple = PyTuple_New(3);
+    PyTuple_SetItem(tuple, 0, PyUnicode_FromString(context));
+    PyTuple_SetItem(tuple, 1, capsule);
+    PyTuple_SetItem(tuple, 2, PyUnicode_FromString(name));
+    Py_INCREF(capsule);
+    PyObject *pkey = PyLong_FromVoidPtr(ptr);
+    PyDict_SetItem(capsules, pkey, tuple);
+    Py_DECREF(pkey);
+    Py_DECREF(tuple);
+  }
+  return capsules;
+}
 
 void deleteCapsule(PyObject *capsule)
 {
@@ -43,6 +66,32 @@ void deleteCapsule(PyObject *capsule)
   CapsuleDict.erase(it);
 }
 
+void deleteCapsuleByPtr(void *ptr, const char *name)
+{
+  /* Delete capsule directly by pointer, avoiding temporary capsule creation */
+  auto it = CapsuleDict.find(ptr);
+  if (it == CapsuleDict.end()) {
+    pythonLog("Unable to find capsule for pointer %p in CapsuleDict", ptr);
+    return;
+  }
+
+  PyObject *capsule = it->second;
+  const char *capsule_name = PyCapsule_GetName(capsule);
+
+  // Verify the capsule type matches what caller expects
+  if (strcmp(capsule_name, name) != 0) {
+    pythonLog("deleteCapsuleByPtr type mismatch: expected %s but found %s for pointer %p",
+              name, capsule_name, ptr);
+    return;
+  }
+
+  void *context = PyCapsule_GetContext(capsule);
+
+  free((char*)capsule_name);
+  free(context);
+  CapsuleDict.erase(it);
+}
+
 void *getVoidPtr(PyObject *capsule, std::string name)
 {
   /* return (void *) ptr, stored within capsule */
@@ -50,17 +99,44 @@ void *getVoidPtr(PyObject *capsule, std::string name)
   /* replaces refToPtr(PyObject *ref, const char *name) */
   errCheck("prior getVoidPtr %s", name.c_str());
   if (capsule == Py_None) return nullptr;
+  if (! PyCapsule_CheckExact(capsule)) {
+    PyErr_SetString(PyExc_ValueError, "getVoidPtr handed something, not a capsule");
+    return nullptr;
+  }
   if (name == "") {
     name = PyCapsule_GetName(capsule);
     errCheck("Bad PyCapsule_GetName()");
   } else if (pythonDebugs) {
     if(name != PyCapsule_GetName(capsule)) {
-      pythonLog("getVoidPtr handed a %s capsule, but trying to get one %s", PyCapsule_GetName(capsule), name.c_str());
-      pythonLog("Capsule created by %s", (char *)PyCapsule_GetContext(capsule));
+      bool valid = true;
+      std::string capsule_name = PyCapsule_GetName(capsule);
+      for (char c: capsule_name) {
+        if (static_cast<unsigned char>(c) > 127 || static_cast<unsigned char>(c) < 65) {
+          valid = false;
+          break;
+        }
+      }
+      if (! valid) {
+        PyErr_SetString(PyExc_ValueError, "getVoidPtr handed something, not a capsule");
+        return nullptr;
+      } else {
+        char *msg;
+        if (-1 != asprintf(&msg, "[%s] getVoidPtr handed a %s capsule but needed a %s",
+                           CurrentPythonModuleName, capsule_name.c_str(), name.c_str())) {
+          pythonLog("%s", msg);
+          PyErr_SetString(PyExc_TypeError, msg);
+          free(msg);
+        } else {
+          pythonLog("getVoidPtr got wrong capsule type");
+          PyErr_SetString(PyExc_TypeError, "getVoidPtr got wrong capsule type");
+        }
+        pythonLog("Capsule created by %s", (char *)PyCapsule_GetContext(capsule));
+        return nullptr;
+      }
     }
   }
   if (PyLong_Check(capsule) && PyLong_AsLong(capsule) == 0 && !strcmp(name.c_str(), "XPWidgetID")) {
-    /* XPWidgetID can be 0, refering to underlying X-Plane window, need to keep that */
+    /* XPWidgetID can be 0, refering to underlying X-Plane window, need to keep that, without error */
     return nullptr;
   }
 
@@ -71,7 +147,7 @@ void *getVoidPtr(PyObject *capsule, std::string name)
       char *s = objToStr(capsule);
       pythonDebug("Failed to convert '%s' capsule (%s) to pointer\n", name.c_str(), s);
       char msg[1024];
-      snprintf(msg, sizeof(msg), "Failed to convert '%s' capsule (%s) to pointer\n", name.c_str(), s);
+      snprintf(msg, sizeof(msg), "[%s] Failed to convert '%s' capsule (%s) to pointer\n", CurrentPythonModuleName, name.c_str(), s);
       PyErr_SetString(PyExc_ValueError , msg);
       free(s);
       return nullptr;
@@ -87,9 +163,10 @@ void *getVoidPtr(PyObject *capsule) { return getVoidPtr(capsule, "");}
 
 std::vector<std::string> CapsuleTypes = {
   "FMOD_CHANNEL", "FMOD_CHANNELGROUP", "FMOD_STUDIO_SYSTEM",
-  "XPLMAvionicsID", "XPLMCommandRef", "XPLMDataRef", "XPLMFlightLoopID",
-  "XPLMHotKeyID", "XPLMInstanceRef", "XPLMMapLayerID", "XPLMMapProjectionID",
-  "XPLMMenuID", "XPLMObjectRef", "XPLMProbeRef", "XPLMWindowID", "XPWidgetID",            
+  "XPLMAvionicsID",
+  "XPLMCommandRef", // simple ID
+  "XPLMDataRef",  "XPLMFlightLoopID",  "XPLMHotKeyID",  "XPLMInstanceRef",  "XPLMMapLayerID",
+  "XPLMMapProjectionID",  "XPLMMenuID",  "XPLMObjectRef", "XPLMProbeRef", "XPLMWindowID", "XPWidgetID",            
 };
 
 PyObject *makeCapsule(void *ptr, std::string name)
@@ -97,7 +174,7 @@ PyObject *makeCapsule(void *ptr, std::string name)
   /* looks in hash table for ptr:
      a) returns already defined capsule (with Py_INCREF)
         if exists; otherwise
-     b) creates capsule, stores in has and returns.
+     b) creates capsule, stores in hash and returns.
   */
 
   /* replaces getPtrRef(ptr, dict, name) with makeCapsule(ptr, name) */
@@ -105,6 +182,7 @@ PyObject *makeCapsule(void *ptr, std::string name)
 #if ERRCHECK
   if (std::find(CapsuleTypes.begin(), CapsuleTypes.end(), name) == CapsuleTypes.end()) {
     pythonLog("Trying to create unknown Capsule type %s", name.c_str());
+    PyErr_SetString(PyExc_TypeError, "Unknown capsule type requested");
     return nullptr;
   }
 #endif
@@ -130,6 +208,11 @@ PyObject *makeCapsule(void *ptr, std::string name)
     CapsuleDict[ptr] = capsule;
   } else {
     capsule = it->second;
+    if (PyCapsule_GetName(capsule) != name) {
+      pythonLog("Found capsule, but existing type '%s' doesn't match requested type '%s'", PyCapsule_GetName(capsule), name.c_str());
+      PyErr_SetString(PyExc_TypeError, "mismatch in requested capsule type");
+      return nullptr;
+    }
     // if (pythonCapsuleRegistration) {
     //   char *context = (char *)PyCapsule_GetContext(capsule);
     //   pythonLog("Capsule: Existing %s [%s] > %s ", CurrentPythonModuleName, context, name.c_str());

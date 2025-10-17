@@ -24,7 +24,7 @@ static void xpy_enableGlobalPlugins(void);
 static void xpy_disableGlobalPlugins(void);
 static void xpy_stopGlobalPlugins(void);
 
-std::unordered_map<PyObject *, PluginInfoDict> XPY3pluginInfoDict;
+std::unordered_map<PyObject *, PluginInfo> XPY3pluginInfoDict;
 
 /****************************************************************
  * "START"
@@ -88,6 +88,7 @@ void xpy_stopInternalPlugins()
     PyObject *pluginInstance = it->first;
     ++it;
     xpy_stopInstance(pluginInstance);
+    set_moduleName(XPPython3ModuleName);
   }
   pythonDebug("STOPPED Internal plugins");
 }
@@ -275,7 +276,7 @@ static void enablePluginList(PyObject *pluginList)
     while((pluginInstance = PyIter_Next(iterator))) {
       auto pluginIt = XPY3pluginInfoDict.find(pluginInstance);
       if (pluginIt != XPY3pluginInfoDict.end()) {
-        const PluginInfoDict& info = pluginIt->second;
+        const PluginInfo& info = pluginIt->second;
         set_moduleName(info.module_name);
         xpy_enableInstance(pluginInstance);
       }
@@ -354,7 +355,7 @@ static void disablePluginList(PyObject *pluginList) {
     while((pluginInstance = PyIter_Next(iterator))) {
       auto pluginIt = XPY3pluginInfoDict.find(pluginInstance);
       if (pluginIt != XPY3pluginInfoDict.end()) {
-        const PluginInfoDict& info = pluginIt->second;
+        const PluginInfo& info = pluginIt->second;
         if (!info.disabled) {
           set_moduleName(info.module_name);
           xpy_disableInstance(pluginInstance);
@@ -423,7 +424,7 @@ static void stopPluginList(PyObject *pluginList) {
     while((pluginInstance = PyIter_Next(iterator))) {
       auto pluginIt = XPY3pluginInfoDict.find(pluginInstance);
       if (pluginIt != XPY3pluginInfoDict.end()) {
-        const PluginInfoDict& info = pluginIt->second;
+        const PluginInfo& info = pluginIt->second;
         set_moduleName(info.module_name);
         xpy_stopInstance(pluginInstance);
       }

@@ -11,7 +11,6 @@
 #include <Widgets/XPWidgets.h>
 #include <Widgets/XPStandardWidgets.h>
 #include "plugin_dl.h"
-#include <cassert>
 #include "utils.h"
 #include "widgetutils.h"
 #include "widgets.h"
@@ -21,10 +20,10 @@
 
 struct WidgetCallbackInfo {
   std::vector<PyObject*> callbacks;
-  std::string module_name;
+  const char* module_name;
 };
 
-static std::unordered_map<void*, WidgetCallbackInfo> widgetCallbacks;
+static std::unordered_map<XPWidgetID, WidgetCallbackInfo> widgetCallbacks;
 
 // Custom hash and equality functors for widget property keys
 struct WidgetPropertyHash {
@@ -81,9 +80,7 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
 
   PyObject *widget = makeCapsule(inWidget, "XPWidgetID");
 
-
-  void* widgetPtr = getVoidPtr(widget, "XPWidgetID");
-  auto it = widgetCallbacks.find(widgetPtr);
+  auto it = widgetCallbacks.find(inWidget);
   if(it == widgetCallbacks.end()){
     /* we'll get an xpMsg_Create that we can't handle from a CustomWidget (because the widgetCallbacks
        isn't populated yet). Ignore the message (CreateCustomWidget() below will send it again!)
@@ -101,25 +98,24 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
     return 0;
   }
 
-  set_moduleName(widgetCallbacks[it->first].module_name);
   WidgetCallbackInfo& callbackInfo = it->second;
+  set_moduleName(callbackInfo.module_name);
+  xpy_assert(CurrentPythonModuleName[0] == 'X' || CurrentPythonModuleName[0] == 'P');
 
-  assert(CurrentPythonModuleName[0] == 'X'
-         || CurrentPythonModuleName[0] == 'P');
-
+  int pluginIndex = getPluginIndex(); // gotta 'save' this for stats belw
   errCheck("Error after makeCapsule");
   
   PyObject *param1, *param2;
   XPKeyState_t *keyState;
   XPMouseState_t *mouseState;
   XPWidgetGeometryChange_t *wChange;
-  param1 = PyLong_FromLong(inParam1);
-  param2 = PyLong_FromLong(inParam2);
+
   switch(inMessage){
   case xpMsg_KeyPress:
     keyState = (XPKeyState_t *)inParam1;
     param1 = Py_BuildValue("(iii)", (int)keyState->key, (int)keyState->flags,
                            (int)keyState->vkey);
+    param2 = PyLong_FromLong(inParam2);
     break;
   case xpMsg_MouseDown:
   case xpMsg_MouseDrag:
@@ -129,6 +125,7 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
     mouseState = (XPMouseState_t *)inParam1;
     param1 = Py_BuildValue("(iiii)", mouseState->x, mouseState->y,
                            mouseState->button, mouseState->delta);
+    param2 = PyLong_FromLong(inParam2);
     if (inMessage == xpMsg_CursorAdjust) {
       PyObject *val = param2;
       param2 = PyList_New(1);
@@ -151,22 +148,52 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
   case xpMsg_ButtonStateChanged:
   case xpMsg_ScrollBarSliderPositionChanged:
     param1 =  makeCapsule((void *)inParam1, "XPWidgetID");
+    param2 = PyLong_FromLong(inParam2);
     break;
     
   case xpMsg_PropertyChanged:
+    param1 = PyLong_FromLong(inParam1);
     if (inParam1 >= xpProperty_UserStart) {
       // use inParam2 -- it's already python
       param2 = (PyObject*)inParam2;
+    } else {
+      param2 = PyLong_FromLong(inParam2);
     }
     break;
-  default: // intentionally empty
+  default: // all other messages
+    param1 = PyLong_FromLong(inParam1);
+    param2 = PyLong_FromLong(inParam2);
     break;
   }
 
   errCheck("Error after message parse for msg %d", inMessage);
-  
 
+  /* as we prepare to call the C or Python callback function
+     we _save_ CurrentPythonModuleName. We know it's supposed
+     to be the same value (point to same location) before
+     and after any call.
 
+     However, we also know that this may result in a destroy
+     message being sent. The destroy will (eventually) come back
+     here and delete the callbackInfo.module_name, negating
+     CurrentPythonmoduleName which may be pointing to memory
+     within callbackInfo hash.
+
+     Once I'm in Destroy, it's (may be) late. If a plugin calls
+     Destroy directly, I can catch it -- CurrentPythonModuleName
+     is the calling plugin, so save and restore works.
+
+     But, if I'm here, the Destroy message may be sent to a widget
+     _but_not_directly_using_my XPLMDestroyFun, so I've not been
+     about to save/restore it.
+     
+  */
+
+  if (CurrentPythonModuleName[0] != 'X' && CurrentPythonModuleName[0] != 'P') {
+    pythonLog("Bad Current Python Module Name, msg: %d, %p", inMessage, inWidget);
+  }
+
+  char *save = CurrentPythonModuleName;
   int res;
   for(size_t i = 0; i < callbackInfo.callbacks.size(); ++i){
     err = PyErr_Occurred();
@@ -186,7 +213,8 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
     }else{
       PyObject *inMessageObj = PyLong_FromLong(inMessage);
       // clock_gettime(CLOCK_MONOTONIC, &start);
-      PyObject *resObj = PyObject_CallFunctionObjArgs(callback, inMessageObj, widget, param1, param2, nullptr);
+      PyObject *args[] = {inMessageObj, widget, param1, param2};
+      PyObject *resObj = PyObject_Vectorcall(callback, args, 4, nullptr);
       // clock_gettime(CLOCK_MONOTONIC, &stop);
       Py_DECREF(inMessageObj);
       if(!resObj || resObj == Py_None){
@@ -205,6 +233,7 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
       break;
     }
   }
+  set_moduleName(save);
 
   err = PyErr_Occurred();
   if(err){
@@ -212,16 +241,8 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
     pythonLogException();
   }
 
-  /* because 'destroy' will actually delete widgetCallback[x] data, that
-     will cause CurrentPythonModuleName to go out of scope and
-     therefore, getPluginIndex() will fail.
-     
-     So... get the pluginIndex now to use for stats & then check for Destroy.
-   */ 
-  int pluginIndex = getPluginIndex(); // gotta 'save' this for stats belw
-
   if(inMessage == xpMsg_Destroy){
-    auto it = widgetCallbacks.find(widgetPtr);
+    auto it = widgetCallbacks.find(inWidget);
     if (it != widgetCallbacks.end()) {
       for (PyObject* callback : it->second.callbacks) {
         Py_DECREF(callback);
@@ -344,7 +365,7 @@ static PyObject *XPCreateCustomWidgetFun(PyObject *self, PyObject *args, PyObjec
   PyObject *resObj = makeCapsule(res, "XPWidgetID");
 
   WidgetCallbackInfo callbackInfo;
-  callbackInfo.module_name = std::string(CurrentPythonModuleName);
+  callbackInfo.module_name = CurrentPythonModuleName;
   callbackInfo.callbacks.push_back(inCallback);
   Py_INCREF(inCallback);
   widgetCallbacks[res] = std::move(callbackInfo);
@@ -370,7 +391,18 @@ static PyObject *XPDestroyWidgetFun(PyObject *self, PyObject *args, PyObject *kw
     return nullptr;
   }
   XPWidgetID wid = getVoidPtr(widget, "XPWidgetID");
+  if (wid == nullptr) return nullptr;
+  /* Because XPDestroyWidget() destroys children by sending messages to child widgets,
+     _their_ callback gets called with sets CurrentPythonModuleName to _their_ saved
+     string... but then deletes it. We'll, "current python module" shouldn't change, so
+     we save _this_ char* and restore it after XPDestroyWidget.
+     All the char* are pointing to different stored locations (different one for each
+     widget), but will all be resolving to the same module. Because child widgets ALL
+     are created within same python plugin module.
+  */
+  char *save = CurrentPythonModuleName;
   XPDestroyWidget(wid, inDestroyChildren);
+  set_moduleName(save);
   if (inDestroyChildren) {
     clearChildrenXPWidgetData(widget);
   }
@@ -393,13 +425,13 @@ static void clearChildrenXPWidgetData(PyObject *widget) {
 static void clearXPWidgetData(PyObject *widget) {
   pythonDebug(" ... clearing xp widgetdata for %s", objDebug(widget));
   XPWidgetID wid = getVoidPtr(widget, "XPWidgetID");
-  auto callbackIt = widgetCallbacks.find(wid);
-  if (callbackIt != widgetCallbacks.end()) {
+  auto it = widgetCallbacks.find(wid);
+  if (it != widgetCallbacks.end()) {
     pythonDebug(" widget found in callback dict");
-    for (PyObject* callback : callbackIt->second.callbacks) {
+    for (PyObject* callback : it->second.callbacks) {
       Py_DECREF(callback);
     }
-    widgetCallbacks.erase(callbackIt);
+    widgetCallbacks.erase(it);
   }
 
   /* Remove all properties for this widget */
@@ -455,10 +487,10 @@ static PyObject *XPPlaceWidgetWithinFun(PyObject *self, PyObject *args, PyObject
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O", keywords, &subWidget, &container)){
     return nullptr;
   }
-  if (container == Py_None) {
-    container = PyLong_FromLong(0);
+  if (PyLong_Check(container) && PyLong_AsLong(container) == 0) {
+    container = Py_None;
   }
-  XPPlaceWidgetWithin(getVoidPtr(subWidget, "XPWidgetID"), getVoidPtr(container, "XPWidgetID"));
+  XPPlaceWidgetWithin(getVoidPtr(subWidget, "XPWidgetID"), container == Py_None ? (void *) 0 : getVoidPtr(container, "XPWidgetID"));
   Py_RETURN_NONE;
 }
 
@@ -741,7 +773,9 @@ static PyObject *XPGetWidgetDescriptorFun(PyObject *self, PyObject *args, PyObje
   }
   buffer[res] = '\0';
   errCheck("end getWidgetDescriptor");
-  return PyUnicode_FromString(buffer);
+  PyObject *ret = PyUnicode_FromString(buffer);
+  free(buffer);
+  return ret;
 }
 
 My_DOCSTR(_getWidgetUnderlyingWindow__doc__, "getWidgetUnderlyingWindow",
@@ -793,14 +827,18 @@ static PyObject *XPSetWidgetPropertyFun(PyObject *self, PyObject *args, PyObject
     int comparison = 0; /* false */
     if (prevValueObj != nullptr) {
       /* previous value exists, do comparison */
-      comparison = PyObject_RichCompareBool(value, prevValueObj, Py_EQ);
+      if (prevValueObj == value) {
+        comparison = 1;  // Same object, definitely equal
+      } else {
+        comparison = PyObject_RichCompareBool(value, prevValueObj, Py_EQ) == 1 ? 1 : 0;
+      }
       Py_DECREF(prevValueObj); /* remove old value */
     }
 
     Py_INCREF(value); /* add new value */
     widgetPropertyDict[key] = value;
 
-    if (comparison == 0) {
+    if (comparison != 1) {
       /* not found, or they're different */
       XPSendMessageToWidget(getVoidPtr(widget, "XPWidgetID"), xpMsg_PropertyChanged, xpMode_Direct, property, (intptr_t) value);
       errCheck("after comparison == 0 setwidgetproperty");
@@ -902,7 +940,12 @@ static PyObject *XPSetKeyboardFocusFun(PyObject *self, PyObject *args, PyObject 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &widget)){
     return nullptr;
   }
-  XPWidgetID res = XPSetKeyboardFocus(getVoidPtr(widget, "XPWidgetID"));
+  XPWidgetID res;
+  if (PyLong_Check(widget) && PyLong_AsLong(widget) == 0) {
+    res = XPSetKeyboardFocus(0);
+  } else {
+     res = XPSetKeyboardFocus(getVoidPtr(widget, "XPWidgetID"));
+  }
   PyObject *resObj = makeCapsule(res, "XPWidgetID");
   if (resObj == Py_None) {
     return PyLong_FromLong(0);
@@ -960,13 +1003,13 @@ static PyObject *XPAddWidgetCallbackFun(PyObject *self, PyObject *args, PyObject
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO", keywords, &widget, &callback)){
     return nullptr;
   }
-  void* widgetPtr = getVoidPtr(widget, "XPWidgetID");
+  XPWidgetID widgetPtr = getVoidPtr(widget, "XPWidgetID");
   auto it = widgetCallbacks.find(widgetPtr);
   Py_INCREF(callback);
 
   if(it == widgetCallbacks.end()){
     WidgetCallbackInfo callbackInfo;
-    callbackInfo.module_name = std::string(CurrentPythonModuleName);
+    callbackInfo.module_name = CurrentPythonModuleName;
     callbackInfo.callbacks.push_back(callback);
     widgetCallbacks[widgetPtr] = std::move(callbackInfo);
     //register only the first time
@@ -994,6 +1037,34 @@ static PyObject *XPGetWidgetClassFuncFun(PyObject *self, PyObject *args, PyObjec
   }
   XPWidgetFunc_t res = XPGetWidgetClassFunc(inWidgetClass);
   return PyLong_FromVoidPtr((void*)res);
+}
+
+My_DOCSTR(_getWidgetCallbackDict__doc__, "getWidgetCallbackDict",
+          "",
+          "",
+          "dict[XPWidgetID, tuple[str, list]]",
+          "Returns dictionary of widget callbacks.\n"
+          "\n"
+          "Keys are XPWidgetID capsules, values are tuples of (module_name, [callbacks])");
+static PyObject *XPGetWidgetCallbackDictFun(PyObject *self, PyObject *args)
+{
+  (void) self;
+  (void) args;
+  return buildWidgetCallbackDict();
+}
+
+My_DOCSTR(_getWidgetPropertiesDict__doc__, "getWidgetPropertiesDict",
+          "",
+          "",
+          "dict[XPWidgetID, dict[int, Any]]",
+          "Returns dictionary of widget properties.\n"
+          "\n"
+          "Keys are XPWidgetID capsules, values are dicts of {propertyID: value}");
+static PyObject *XPGetWidgetPropertiesDictFun(PyObject *self, PyObject *args)
+{
+  (void) self;
+  (void) args;
+  return buildWidgetPropertiesDict();
 }
 
 static PyObject *cleanup(PyObject *self, PyObject *args)
@@ -1072,6 +1143,8 @@ static PyMethodDef XPWidgetsMethods[] = {
   {"XPAddWidgetCallback", (PyCFunction)XPAddWidgetCallbackFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"getWidgetClassFunc", (PyCFunction)XPGetWidgetClassFuncFun, METH_VARARGS | METH_KEYWORDS, _getWidgetClassFunc__doc__},
   {"XPGetWidgetClassFunc", (PyCFunction)XPGetWidgetClassFuncFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getWidgetCallbackDict", (PyCFunction)XPGetWidgetCallbackDictFun, METH_VARARGS, _getWidgetCallbackDict__doc__},
+  {"getWidgetPropertiesDict", (PyCFunction)XPGetWidgetPropertiesDictFun, METH_VARARGS, _getWidgetPropertiesDict__doc__},
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {nullptr, nullptr, 0, nullptr}
 };
@@ -1106,6 +1179,111 @@ PyInit_XPWidgets(void)
   return mod;
 }
 
+
+PyObject *buildWidgetCallbackDict(void) {
+  PyObject *dict = PyDict_New();
+  if (!dict) return nullptr;
+
+  for (auto& pair : widgetCallbacks) {
+    PyObject *widget_capsule = makeCapsule(pair.first, "XPWidgetID");
+    if (!widget_capsule) {
+      Py_DECREF(dict);
+      return nullptr;
+    }
+
+    // Build list of callbacks
+    PyObject *callback_list = PyList_New(pair.second.callbacks.size());
+    if (!callback_list) {
+      Py_DECREF(widget_capsule);
+      Py_DECREF(dict);
+      return nullptr;
+    }
+
+    for (size_t i = 0; i < pair.second.callbacks.size(); ++i) {
+      PyObject *callback = pair.second.callbacks[i];
+      Py_INCREF(callback);
+      PyList_SetItem(callback_list, i, callback);
+    }
+
+    // Build tuple: (module_name, [callbacks])
+    PyObject *value_tuple = Py_BuildValue("(sO)",
+                                          pair.second.module_name,
+                                          callback_list);
+    Py_DECREF(callback_list);
+
+    if (!value_tuple) {
+      Py_DECREF(widget_capsule);
+      Py_DECREF(dict);
+      return nullptr;
+    }
+
+    if (PyDict_SetItem(dict, widget_capsule, value_tuple) < 0) {
+      Py_DECREF(value_tuple);
+      Py_DECREF(widget_capsule);
+      Py_DECREF(dict);
+      return nullptr;
+    }
+
+    Py_DECREF(value_tuple);
+    Py_DECREF(widget_capsule);
+  }
+
+  return dict;
+}
+
+PyObject *buildWidgetPropertiesDict(void) {
+  PyObject *outer_dict = PyDict_New();
+  if (!outer_dict) return nullptr;
+
+  for (auto& pair : widgetPropertyDict) {
+    PyObject *widget = pair.first.first;  // The widget capsule
+    int propertyID = pair.first.second;   // The property ID
+    PyObject *value = pair.second;        // The property value
+
+    // Check if this widget already has an entry in outer dict
+    PyObject *inner_dict = PyDict_GetItem(outer_dict, widget);  // borrowed ref
+
+    if (!inner_dict) {
+      // Create new inner dict for this widget
+      inner_dict = PyDict_New();
+      if (!inner_dict) {
+        Py_DECREF(outer_dict);
+        return nullptr;
+      }
+
+      // Add to outer dict
+      if (PyDict_SetItem(outer_dict, widget, inner_dict) < 0) {
+        Py_DECREF(inner_dict);
+        Py_DECREF(outer_dict);
+        return nullptr;
+      }
+
+      Py_DECREF(inner_dict);  // PyDict_SetItem increfs, so we can release our ref
+
+      // Re-borrow the reference for consistency
+      inner_dict = PyDict_GetItem(outer_dict, widget);
+    }
+
+    // Add property to inner dict
+    PyObject *propID_obj = PyLong_FromLong(propertyID);
+    if (!propID_obj) {
+      Py_DECREF(outer_dict);
+      return nullptr;
+    }
+
+    Py_INCREF(value);  // We're returning a reference to this value
+    if (PyDict_SetItem(inner_dict, propID_obj, value) < 0) {
+      Py_DECREF(value);
+      Py_DECREF(propID_obj);
+      Py_DECREF(outer_dict);
+      return nullptr;
+    }
+
+    Py_DECREF(propID_obj);
+  }
+
+  return outer_dict;
+}
 
 void logWidgets(PyObject *key, const char *key_s, const char * value_s) {
   (void) key;

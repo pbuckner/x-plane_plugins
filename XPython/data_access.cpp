@@ -16,7 +16,7 @@
 #include "plugin_dl.h"
 
 struct SharedInfo {
-  std::string module_name;
+  const char* module_name;
   std::string name;
   XPLMDataTypeID data_type;
   PyObject *callback;
@@ -28,8 +28,8 @@ static void genericSharedDataChanged(void *inRefcon);
 
 static intptr_t sharedCntr = 0;
 
-struct AccessorInfo {
-  std::string module_name;
+struct DataRefInfo {
+  const char* module_name;
   std::string data_name;
   XPLMDataTypeID data_type;
   int is_writable;
@@ -49,14 +49,14 @@ struct AccessorInfo {
   PyObject *write_refCon;
   XPLMDataRef dataRef;
 };
-static std::unordered_map<intptr_t, AccessorInfo> accessorCallbacks;
+static std::unordered_map<intptr_t, DataRefInfo> accessorCallbacks;
 static intptr_t accessorCntr = 0;
 
 void resetDataRefs(void) {
   for (auto& pair: accessorCallbacks) {
-    const AccessorInfo& info = pair.second;
+    const DataRefInfo& info = pair.second;
     XPLMUnregisterDataAccessor(info.dataRef);
-    pythonDebug("     Reset --     %s - (%s)", info.module_name.c_str(), info.data_name.c_str());
+    pythonDebug("     Reset --     %s - (%s)", info.module_name, info.data_name.c_str());
 
     // Clean up Python object references
     Py_DECREF(info.read_int);
@@ -80,7 +80,7 @@ void resetDataRefs(void) {
 
   for (auto& it : sharedCallbacks) {
     SharedInfo& info = it.second;
-    pythonDebug("     Reset --     %s - shared (%s)", info.module_name.c_str(), info.name.c_str());
+    pythonDebug("     Reset --     %s - shared (%s)", info.module_name, info.name.c_str());
     int ret = XPLMUnshareData(info.name.c_str(), info.data_type, genericSharedDataChanged, (void*)it.first);
     if (!ret) {
       pythonLog("***** failed to find data to unshare!!");
@@ -759,14 +759,15 @@ static int getDatai(void *inRefcon)
     return -1;
   }
 
-  AccessorInfo& info = it->second;
+  DataRefInfo& info = it->second;
   if (info.read_int == Py_None) {
     pythonLog("getDatai callback not defined.");
     return 0;
   }
 
   set_moduleName(info.module_name);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_int, info.read_refCon, nullptr);
+  PyObject *args[] = {info.read_refCon};
+  PyObject *oRes = PyObject_Vectorcall(info.read_int, args, 1, nullptr);
 
   if(PyErr_Occurred()) {
     /* ... If error occurs within the callback function
@@ -794,7 +795,7 @@ static int getDatai(void *inRefcon)
        the results, but the function itself appeared to execute without error */
     char msg[1024];
     char *s = objToStr(info.read_int);
-    snprintf(msg, sizeof(msg), "[%s] getDatai callback %s failed to return a int / long", info.module_name.c_str(), s);
+    snprintf(msg, sizeof(msg), "[%s] getDatai callback %s failed to return a int / long", info.module_name, s);
     free(s);
     PyErr_SetString(err, msg);
   }
@@ -810,7 +811,7 @@ static void setDatai(void *inRefcon, int inValue)
     return;
   }
 
-  AccessorInfo& info = it->second;
+  DataRefInfo& info = it->second;
   if (info.write_int == Py_None) {
     pythonLog("setDatai callback not defined.");
     return;
@@ -818,7 +819,8 @@ static void setDatai(void *inRefcon, int inValue)
 
   PyObject *oArg2 = PyLong_FromLong(inValue);
   set_moduleName(info.module_name);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.write_int, info.write_refCon, oArg2, nullptr);
+  PyObject *args[] = {info.write_refCon, oArg2};
+  PyObject *oRes = PyObject_Vectorcall(info.write_int, args, 2, nullptr);
 
   if(PyErr_Occurred()){
     /* ... If error occurs within the callback function
@@ -840,14 +842,15 @@ static float getDataf(void *inRefcon)
     return -1;
   }
 
-  AccessorInfo& info = it->second;
+  DataRefInfo& info = it->second;
   if (info.read_float == Py_None) {
     pythonLog("getDataf callback not defined.");
     return 0.0;
   }
 
   set_moduleName(info.module_name);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_float, info.read_refCon, nullptr);
+  PyObject *args[] = {info.read_refCon};
+  PyObject *oRes = PyObject_Vectorcall(info.read_float, args, 1, nullptr);
 
   if(PyErr_Occurred()) {
     return 0.0;
@@ -879,7 +882,7 @@ static void setDataf(void *inRefcon, float inValue)
     return;
   }
 
-  AccessorInfo& info = it->second;
+  DataRefInfo& info = it->second;
   if (info.write_float == Py_None) {
     pythonLog("setDataf callback not defined.");
     return;
@@ -887,7 +890,8 @@ static void setDataf(void *inRefcon, float inValue)
 
   PyObject *oArg2 = PyFloat_FromDouble((double)inValue);
   set_moduleName(info.module_name);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.write_float, info.write_refCon, oArg2, nullptr);
+  PyObject *args[] = {info.write_refCon, oArg2};
+  PyObject *oRes = PyObject_Vectorcall(info.write_float, args, 2, nullptr);
 
   if(PyErr_Occurred()){
     return;
@@ -906,14 +910,15 @@ static double getDatad(void *inRefcon)
     return -1;
   }
 
-  AccessorInfo& info = it->second;
+  DataRefInfo& info = it->second;
   if (info.read_double == Py_None) {
     pythonLog("getDatad callback not defined.");
     return 0.0;
   }
 
   set_moduleName(info.module_name);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_double, info.read_refCon, nullptr);
+  PyObject *args[] = {info.read_refCon};
+  PyObject *oRes = PyObject_Vectorcall(info.read_double, args, 1, nullptr);
 
   if(PyErr_Occurred()) {
     return 0.0;
@@ -945,7 +950,7 @@ static void setDatad(void *inRefcon, double inValue)
     return;
   }
 
-  AccessorInfo& info = it->second;
+  DataRefInfo& info = it->second;
   if (info.write_double == Py_None) {
     pythonLog("setDatad callback not defined.");
     return;
@@ -953,7 +958,8 @@ static void setDatad(void *inRefcon, double inValue)
 
   PyObject *oArg2 = PyFloat_FromDouble(inValue);
   set_moduleName(info.module_name);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.write_double, info.write_refCon, oArg2, nullptr);
+  PyObject *args[] = {info.write_refCon, oArg2};
+  PyObject *oRes = PyObject_Vectorcall(info.write_double, args, 2, nullptr);
   if(PyErr_Occurred()){
     return;
   }
@@ -971,7 +977,7 @@ static int getDatavi(void *inRefcon, int *outValues, int inOffset, int inMax)
     return -1;
   }
 
-  AccessorInfo& info = it->second;
+  DataRefInfo& info = it->second;
   if (info.read_int_array == Py_None) {
     pythonLog("getDatavi callback not defined.");
     return 0;
@@ -987,12 +993,13 @@ static int getDatavi(void *inRefcon, int *outValues, int inOffset, int inMax)
   }
 
   set_moduleName(info.module_name);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_int_array, info.read_refCon, outValuesObj, oArg2, oArg3, nullptr);
+  PyObject *args[] = {info.read_refCon, outValuesObj, oArg2, oArg3};
+  PyObject *oRes = PyObject_Vectorcall(info.read_int_array, args, 4, nullptr);
   PyObject *err = PyErr_Occurred();
   if(err) {
     char *s = objToStr(info.read_int_array);
     char *s2 = objToStr(err);
-    pythonLog("[%s] getDatavi callback %s failed with %s.", info.module_name.c_str(), s, s2);
+    pythonLog("[%s] getDatavi callback %s failed with %s.", info.module_name, s, s2);
     free(s);
     free(s2);
     pythonLogException(); /* because if we don't clear it here, it will get reported by the "next"
@@ -1042,7 +1049,7 @@ static void setDatavi(void *inRefcon, int *inValues, int inOffset, int inCount)
     return;
   }
 
-  AccessorInfo& info = it->second;
+  DataRefInfo& info = it->second;
   PyObject *inValuesObj = PyList_New(0);
   for(int i = 0; i < inCount; ++i){
     PyObject *tmp = PyLong_FromLong(inValues[i]);
@@ -1054,7 +1061,7 @@ static void setDatavi(void *inRefcon, int *inValues, int inOffset, int inCount)
   if(err){
     char msg[1024];
     char *s = objToStr(info.write_int_array);
-    snprintf(msg, sizeof(msg), "[%s] setDatavi error getting input longs: %s", info.module_name.c_str(), s);
+    snprintf(msg, sizeof(msg), "[%s] setDatavi error getting input longs: %s", info.module_name, s);
     free(s);
     PyErr_SetString(err, msg);
     return;
@@ -1069,7 +1076,8 @@ static void setDatavi(void *inRefcon, int *inValues, int inOffset, int inCount)
   if(PyErr_Occurred()){
     return;
   }
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.write_int_array, info.write_refCon, inValuesObj, oArg2, oArg3, nullptr);
+  PyObject *args[] = {info.write_refCon, inValuesObj, oArg2, oArg3};
+  PyObject *oRes = PyObject_Vectorcall(info.write_int_array, args, 4, nullptr);
   Py_DECREF(oArg2);
   Py_DECREF(oArg3);
   Py_DECREF(inValuesObj);
@@ -1091,7 +1099,7 @@ static int getDatavf(void *inRefcon, float *outValues, int inOffset, int inMax)
     return -1;
   }
 
-  AccessorInfo& info = it->second;
+  DataRefInfo& info = it->second;
   if (info.read_float_array == Py_None) {
     pythonLog("getDatavf callback not defined.");
     return 0;
@@ -1107,12 +1115,13 @@ static int getDatavf(void *inRefcon, float *outValues, int inOffset, int inMax)
   }
 
   set_moduleName(info.module_name);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_float_array, info.read_refCon, outValuesObj, oArg2, oArg3, nullptr);
+  PyObject *args[] = {info.read_refCon, outValuesObj, oArg2, oArg3};
+  PyObject *oRes = PyObject_Vectorcall(info.read_float_array, args, 4, nullptr);
   PyObject *err = PyErr_Occurred();
   if(err) {
     char *s = objToStr(info.read_float_array);
     char *s2 = objToStr(err);
-    pythonLog("[%s] getDatavf callback %s failed with %s.", info.module_name.c_str(), s, s2);
+    pythonLog("[%s] getDatavf callback %s failed with %s.", info.module_name, s, s2);
     free(s);
     free(s2);
     pythonLogException(); /* because if we don't clear it here, it will get reported by the "next"
@@ -1168,7 +1177,7 @@ static void setDatavf(void *inRefcon, float *inValues, int inOffset, int inCount
     return;
   }
 
-  AccessorInfo& info = it->second;
+  DataRefInfo& info = it->second;
   PyObject *inValuesObj = PyList_New(0);
   for(int i = 0; i < inCount; ++i){
     PyObject *tmp = PyFloat_FromDouble(inValues[i]);
@@ -1179,7 +1188,7 @@ static void setDatavf(void *inRefcon, float *inValues, int inOffset, int inCount
   if(err){
     char msg[1024];
     char *s2 = objToStr(info.write_float_array);
-    snprintf(msg, sizeof(msg), "[%s] setDatavf error getting input floats %s", info.module_name.c_str(), s2);
+    snprintf(msg, sizeof(msg), "[%s] setDatavf error getting input floats %s", info.module_name, s2);
     free(s2);
     PyErr_SetString(err, msg);
     return;
@@ -1195,7 +1204,8 @@ static void setDatavf(void *inRefcon, float *inValues, int inOffset, int inCount
     return;
   }
   set_moduleName(info.module_name);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.write_float_array, info.write_refCon, inValuesObj, oArg2, oArg3, nullptr);
+  PyObject *args[] = {info.write_refCon, inValuesObj, oArg2, oArg3};
+  PyObject *oRes = PyObject_Vectorcall(info.write_float_array, args, 4, nullptr);
   Py_DECREF(oArg2);
   Py_DECREF(oArg3);
   Py_DECREF(inValuesObj);
@@ -1217,7 +1227,7 @@ static int getDatab(void *inRefcon, void *outValue, int inOffset, int inMax)
     return -1;
   }
 
-  AccessorInfo& info = it->second;
+  DataRefInfo& info = it->second;
   if (info.read_data == Py_None) {
     pythonLog("getDatab callback not defined.");
     return 0;
@@ -1232,12 +1242,13 @@ static int getDatab(void *inRefcon, void *outValue, int inOffset, int inMax)
     Py_INCREF(outValuesObj);
   }
   set_moduleName(info.module_name);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.read_data, info.read_refCon, outValuesObj, oArg2, oArg3, nullptr);
+  PyObject *args[] = {info.read_refCon, outValuesObj, oArg2, oArg3};
+  PyObject *oRes = PyObject_Vectorcall(info.read_data, args, 4, nullptr);
   PyObject *err = PyErr_Occurred();
   if(err) {
     char *s = objToStr(info.read_data);
     char *s2 = objToStr(err);
-    pythonLog("[%s] getDatab callback %s failed with %s.", info.module_name.c_str(), s, s2);
+    pythonLog("[%s] getDatab callback %s failed with %s.", info.module_name, s, s2);
     free(s);
     free(s2);
     pythonLogException(); /* because if we don't clear it here, it will get reported by the "next"
@@ -1292,7 +1303,7 @@ static void setDatab(void *inRefcon, void *inValue, int inOffset, int inCount)
     return;
   }
 
-  AccessorInfo& info = it->second;
+  DataRefInfo& info = it->second;
   set_moduleName(info.module_name);
 
   PyObject *inValuesObj = PyList_New(0);
@@ -1306,7 +1317,7 @@ static void setDatab(void *inRefcon, void *inValue, int inOffset, int inCount)
   if(err){
     char msg[1024];
     char *s = objToStr(info.write_data);
-    snprintf(msg, sizeof(msg), "[%s] setDatab error getting input data %s", info.module_name.c_str(), s);
+    snprintf(msg, sizeof(msg), "[%s] setDatab error getting input data %s", info.module_name, s);
     free(s);
     PyErr_SetString(err, msg);
     return;
@@ -1321,7 +1332,8 @@ static void setDatab(void *inRefcon, void *inValue, int inOffset, int inCount)
   if(PyErr_Occurred()){
     return;
   }
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.write_data, info.write_refCon, inValuesObj, oArg2, oArg3, nullptr);
+  PyObject *args[] = {info.write_refCon, inValuesObj, oArg2, oArg3};
+  PyObject *oRes = PyObject_Vectorcall(info.write_data, args, 4, nullptr);
   Py_DECREF(oArg2);
   Py_DECREF(oArg3);
   Py_DECREF(inValuesObj);
@@ -1414,7 +1426,7 @@ static PyObject *XPLMRegisterDataAccessorFun(PyObject *self, PyObject *args, PyO
   Py_INCREF(rRef); Py_INCREF(wRef);
 
   accessorCallbacks[refcon_id] = {
-    .module_name = std::string(CurrentPythonModuleName),
+    .module_name = CurrentPythonModuleName,
     .data_name = inDataName,
     .data_type = inDataType,
     .is_writable = inIsWritable,
@@ -1475,8 +1487,8 @@ static PyObject *XPLMUnregisterDataAccessorFun(PyObject *self, PyObject *args, P
     Py_RETURN_NONE;
   }
 
-  AccessorInfo& info = it->second;
-  PyObject *registerer = PyUnicode_FromString(info.module_name.c_str());
+  DataRefInfo& info = it->second;
+  PyObject *registerer = PyUnicode_FromString(info.module_name);
   if(PyObject_RichCompareBool(pluginSelf, registerer, Py_NE)) {
     Py_DECREF(registerer);
     Py_DECREF(pluginSelf);
@@ -1521,12 +1533,13 @@ static void genericSharedDataChanged(void *inRefcon)
   set_moduleName(info.module_name);
 
   if (info.callback != Py_None) {
-    PyObject *oRes = PyObject_CallFunctionObjArgs(info.callback, info.refCon, nullptr);
+    PyObject *args[] = {info.refCon};
+    PyObject *oRes = PyObject_Vectorcall(info.callback, args, 1, nullptr);
     PyObject *err = PyErr_Occurred();
     if(err){
       char msg[1024];
       char *s2 = objToStr(info.callback);
-      snprintf(msg, sizeof(msg), "[%s] Error in genericSharedDataChanged callback %s", info.module_name.c_str(), s2);
+      snprintf(msg, sizeof(msg), "[%s] Error in genericSharedDataChanged callback %s", info.module_name, s2);
       free(s2);
       pythonLog("%s", msg);
       pythonLogFlush();
@@ -1704,14 +1717,14 @@ static PyObject *XPLMUnshareDataFun(PyObject *self, PyObject *args, PyObject *kw
   }
 
   PyObject *pluginSelf = get_moduleName_p();
-  std::string target_module = std::string(CurrentPythonModuleName);
+  const char* target_module = CurrentPythonModuleName;
   intptr_t target_refcon_id = -1;
 
   for (auto it = sharedCallbacks.begin(); it != sharedCallbacks.end(); ++it) {
     SharedInfo& info = it->second;
 
     // only look for things this plugin is sharing...
-    if (info.module_name != target_module) continue;
+    if (0 != strcmp(info.module_name, target_module)) continue;
     // Look for inDataName match
     if (info.name != std::string(inDataName)) continue;
     if (info.data_type != inDataType) continue;
@@ -1751,7 +1764,7 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   (void) args;
   // Clean up accessor callbacks
   for (auto& pair : accessorCallbacks) {
-    AccessorInfo& info = pair.second;
+    DataRefInfo& info = pair.second;
     Py_DECREF(info.read_int);
     Py_DECREF(info.write_int);
     Py_DECREF(info.read_float);
@@ -1780,17 +1793,17 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
-PyObject *buildDataRefs()
+PyObject* buildDataRefCallbackDict(void)
 {
   PyObject *dataRefs = PyDict_New();
 
   for (const auto& pair : accessorCallbacks) {
     intptr_t key = pair.first;
-    const AccessorInfo& info = pair.second;
+    const DataRefInfo& info = pair.second;
 
-    // Create 18-element tuple containing all AccessorInfo elements
-    PyObject *tuple = PyTuple_New(18);
-    PyTuple_SetItem(tuple, 0, PyUnicode_FromString(info.module_name.c_str()));        // module_name
+    // Create 19-element tuple containing all DataRefInfo elements
+    PyObject *tuple = PyTuple_New(19);
+    PyTuple_SetItem(tuple, 0, PyUnicode_FromString(info.module_name));        // module_name
     PyTuple_SetItem(tuple, 1, PyUnicode_FromString(info.data_name.c_str()));          // data_name
     PyTuple_SetItem(tuple, 2, PyLong_FromLong(info.data_type));                       // data_type
     PyTuple_SetItem(tuple, 3, PyLong_FromLong(info.is_writable));                     // is_writable
@@ -1825,6 +1838,9 @@ PyObject *buildDataRefs()
     Py_INCREF(info.write_refCon);
     PyTuple_SetItem(tuple, 17, info.write_refCon);                                    // write_refCon
 
+    PyObject *capsule = makeCapsule(info.dataRef, "XPLMDataRef");
+    PyTuple_SetItem(tuple, 18, capsule);
+
     // Note: info.dataRef (XPLMDataRef) is not included as it's a C pointer type
 
     // Add to dictionary with accessorCntr as key
@@ -1837,7 +1853,7 @@ PyObject *buildDataRefs()
   return dataRefs;
 }
 
-PyObject *buildSharedDataRefs()
+PyObject* buildSharedDataRefCallbackDict(void)
 {
   PyObject *sharedDataRefs = PyDict_New();
 
@@ -1847,7 +1863,7 @@ PyObject *buildSharedDataRefs()
 
     // Create 5-element tuple containing all SharedInfo elements
     PyObject *tuple = PyTuple_New(5);
-    PyTuple_SetItem(tuple, 0, PyUnicode_FromString(info.module_name.c_str()));        // module_name
+    PyTuple_SetItem(tuple, 0, PyUnicode_FromString(info.module_name));        // module_name
     PyTuple_SetItem(tuple, 1, PyUnicode_FromString(info.name.c_str()));               // name
     PyTuple_SetItem(tuple, 2, PyLong_FromLong(info.data_type));                       // data_type
 
@@ -1918,8 +1934,8 @@ static PyMethodDef XPLMDataAccessMethods[] = {
   {"XPLMGetDataRefsByIndex", (PyCFunction)XPLMGetDataRefsByIndexFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"getDataRefInfo", (PyCFunction)XPLMGetDataRefInfoFun, METH_VARARGS | METH_KEYWORDS, _getDataRefInfo__doc__},
   {"XPLMGetDataRefInfo", (PyCFunction)XPLMGetDataRefInfoFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"getDataRefDict", (PyCFunction)buildDataRefs, METH_VARARGS, "Copy of internal AccessorDict"},
-  {"getSharedDataRefDict", (PyCFunction)buildSharedDataRefs, METH_VARARGS, "Copy of internal Shared DataRefs Dict"},
+  {"getDataRefCallbackDict", (PyCFunction)buildDataRefCallbackDict, METH_VARARGS, "Copy of internal DataRefInfo"},
+  {"getSharedDataRefCallbackDict", (PyCFunction)buildSharedDataRefCallbackDict, METH_VARARGS, "Copy of internal Shared DataRefs Dict"},
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {nullptr, nullptr, 0, nullptr}
 };

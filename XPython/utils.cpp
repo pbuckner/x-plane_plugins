@@ -1,6 +1,5 @@
 #define _GNU_SOURCE 1
 #include <Python.h>
-#include <assert.h>
 #if LIN || APL
 #include <execinfo.h>
 #endif
@@ -10,8 +9,8 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <cassert>
 #include <string>
+#include <csignal>
 #include "utils.h"
 #include "ini_file.h"
 #include <XPLM/XPLMUtilities.h>
@@ -20,8 +19,43 @@ const char *objRefName = "XPLMObjectRef";
 const char *commandRefName = "XPLMCommandRef";
 const char *widgetRefName = "XPWidgetID";
 
-char *XPPython3ModuleName = CHAR("XPPython3");
-char *CurrentPythonModuleName = XPPython3ModuleName;
+// Will be initialized by initPreallocatedObjects() with interned string
+char *XPPython3ModuleName = nullptr;
+char *CurrentPythonModuleName = nullptr;
+
+// String interning pool for module names
+std::unordered_set<std::string> moduleNamePool;
+
+const char* intern_moduleName(const std::string& name) {
+  auto [it, inserted] = moduleNamePool.insert(name);
+  #ifdef ERRCHECK
+  if (inserted && pythonDebugs) {
+    pythonDebug("Interned module name: '%s' -> %p (pool size: %zu)",
+                name.c_str(), (void*)it->c_str(), moduleNamePool.size());
+  }
+  #endif
+  return it->c_str();  // Returns stable pointer to string in the set
+}
+
+const char* intern_moduleName(const char* name) {
+  if (!name) return nullptr;
+  auto [it, inserted] = moduleNamePool.insert(std::string(name));
+  #ifdef ERRCHECK
+  if (inserted && pythonDebugs) {
+    pythonDebug("Interned module name: '%s' -> %p (pool size: %zu)",
+                name, (void*)it->c_str(), moduleNamePool.size());
+  }
+  #endif
+  return it->c_str();
+}
+
+void cleanup_moduleNamePool() {
+  moduleNamePool.clear();
+}
+
+// Pre-allocated Python objects for performance optimization
+PyObject *PHASE_OBJECTS[8] = {nullptr};
+PyObject *BOOL_OBJECTS[2] = {nullptr};
 
 void c_backtrace();
 int pythonWarnings = 1;  /* 1= issue warnings, 0= do not */
@@ -240,15 +274,18 @@ void pythonLogException()
     if (fmt_exception && PyCallable_Check(fmt_exception)) {
       PyObject *vals;
       if (pvalue && ptraceback) {
-        vals = PyObject_CallFunctionObjArgs(fmt_exception, ptype, pvalue, ptraceback, nullptr);
+        PyObject *args[] = {ptype, pvalue, ptraceback};
+        vals = PyObject_Vectorcall(fmt_exception, args, 3, nullptr);
       } else if (pvalue) {
-        pythonDebug("(logging exception without traceback)\n");
+        pythonDebug("(logging exception without traceback)");
         PyObject *fmt_exception_only = PyObject_GetAttrString(tb_module, "format_exception_only");
-        vals = PyObject_CallFunctionObjArgs(fmt_exception_only, ptype, pvalue, nullptr);
+        PyObject *args[] = {ptype, pvalue};
+        vals = PyObject_Vectorcall(fmt_exception_only, args, 2, nullptr);
         Py_DECREF(fmt_exception_only);
       } else {
-        pythonDebug("(logging exception without traceback or pvalue)\n");
-        vals = PyObject_CallFunctionObjArgs(fmt_exception, ptype, pvalue, nullptr);
+        pythonDebug("(logging exception without traceback or pvalue)");
+        PyObject *args[] = {ptype, pvalue};
+        vals = PyObject_Vectorcall(fmt_exception, args, 2, nullptr);
       }
       if (vals == nullptr) {
         if(PyErr_Occurred()) {
@@ -315,22 +352,31 @@ char * objToStr(PyObject *item) {
 }
   
 void set_moduleName(const std::string& name) {
-  CurrentPythonModuleName = CHAR(name.c_str());
-  assert(CurrentPythonModuleName[0] == 'X'
-         || CurrentPythonModuleName[0] == 'P');
+  const char* interned = intern_moduleName(name);
+  if(interned != CurrentPythonModuleName) {
+    xpy_assert(interned[0] == 'X' || interned[0] == 'P');
+    CurrentPythonModuleName = const_cast<char*>(interned);
+  }
+  xpy_assert(CurrentPythonModuleName[0] == 'X' || CurrentPythonModuleName[0] == 'P');
 }
 
 void set_moduleName(char *name) {
-  CurrentPythonModuleName = name;
-  assert(CurrentPythonModuleName[0] == 'X'
-         || CurrentPythonModuleName[0] == 'P');
+  const char* interned = intern_moduleName(name);
+  if (interned != CurrentPythonModuleName) {
+    xpy_assert(interned[0] == 'X' || interned[0] == 'P');
+    CurrentPythonModuleName = const_cast<char*>(interned);
+  }
+  xpy_assert(CurrentPythonModuleName[0] == 'X' || CurrentPythonModuleName[0] == 'P');
 }
 
-// void set_moduleName(PyObject *name) {
-//   char *tmp = objToStr(name);
-//   strcpy(CurrentPythonModuleName, tmp);
-//   free(tmp);
-// }
+void set_moduleName(const char* name) {
+  const char* interned = intern_moduleName(name);
+  if (interned != CurrentPythonModuleName) {
+    xpy_assert(interned[0] == 'X' || interned[0] == 'P');
+    CurrentPythonModuleName = const_cast<char*>(interned);
+  }
+  xpy_assert(CurrentPythonModuleName[0] == 'X' || CurrentPythonModuleName[0] == 'P');
+}
 
 PyObject *get_moduleName_p() {
   PyObject *pModule = PyUnicode_FromString(CurrentPythonModuleName);
@@ -465,7 +511,7 @@ void c_backtrace() {
     printf("%s\n", strs[i]);
   }
   free(strs);
-  assert (false);
+  xpy_assert(true);
 #endif
 }
 
@@ -485,4 +531,47 @@ void errCheck_f(const char *fmt, ...) {
     pythonLog("%s", msg);
     pythonLogException();
   }
+}
+
+void xpy_assert(bool must_be_true)
+{
+#ifdef NDEBUG
+#else
+  if (! must_be_true) {
+    std::raise(SIGINT);
+  }
+#endif
+}
+
+void initPreallocatedObjects(void)
+{
+  for (int i = 0; i < 8; i++) {
+    PHASE_OBJECTS[i] = PyLong_FromLong(i);
+    if (!PHASE_OBJECTS[i]) {
+      pythonLog("Failed to pre-allocate phase object %d", i);
+    }
+  }
+  BOOL_OBJECTS[0] = PyLong_FromLong(0);
+  BOOL_OBJECTS[1] = PyLong_FromLong(1);
+  if (!BOOL_OBJECTS[0] || !BOOL_OBJECTS[1]) {
+    pythonLog("Failed to pre-allocate boolean objects");
+  }
+
+  // Intern the XPPython3 module name to ensure stable pointer
+  XPPython3ModuleName = const_cast<char*>(intern_moduleName("XPPython3"));
+  CurrentPythonModuleName = XPPython3ModuleName;
+}
+
+void cleanupPreallocatedObjects(void)
+{
+  for (int i = 0; i < 8; i++) {
+    Py_XDECREF(PHASE_OBJECTS[i]);
+    PHASE_OBJECTS[i] = nullptr;
+  }
+  Py_XDECREF(BOOL_OBJECTS[0]);
+  Py_XDECREF(BOOL_OBJECTS[1]);
+  BOOL_OBJECTS[0] = BOOL_OBJECTS[1] = nullptr;
+
+  // Clean up the string interning pool
+  cleanup_moduleNamePool();
 }

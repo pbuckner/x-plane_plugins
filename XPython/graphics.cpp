@@ -8,6 +8,28 @@
 #include "utils.h"
 #include "plugin_dl.h"
 
+static const float WHITE_COLOR[3] = {1.0f, 1.0f, 1.0f};
+
+struct FontDimensionCache {
+  int fontID;
+  int width;
+  int height;
+  int digitsOnly;
+  bool valid;
+};
+static FontDimensionCache fontCache[8] = {};
+
+static int countDigits(double value) {
+  if (value == 0.0) return 1;
+  double absValue = value < 0.0 ? -value : value;
+  if (absValue < 10.0) return 1;
+  if (absValue < 100.0) return 2;
+  if (absValue < 1000.0) return 3;
+  if (absValue < 10000.0) return 4;
+  if (absValue < 100000.0) return 5;
+  return (int)ceil(log10(absValue));
+}
+
 
 My_DOCSTR(_setGraphicsState__doc__, "setGraphicsState",
           "fog=0, numberTexUnits=0, lighting=0, alphaTesting=0, alphaBlending=0, depthTesting=0, depthWriting=0",
@@ -204,7 +226,6 @@ static PyObject *XPLMDrawStringFun(PyObject *self, PyObject *args, PyObject *kwa
   int inXOffset = 0;
   int inYOffset = 0;
   const char *inCharC = nullptr;
-  char *inChar;
   PyObject *wordWrapWidthObj = Py_None;
   int wordWrapWidth;
   int *inWordWrapWidth = nullptr;
@@ -215,9 +236,9 @@ static PyObject *XPLMDrawStringFun(PyObject *self, PyObject *args, PyObject *kwa
   }
   float inColorRGB[3];
   if (rgbList == Py_None) {
-    inColorRGB[0] = 1.0;
-    inColorRGB[1] = 1.0;
-    inColorRGB[2] = 1.0;
+    inColorRGB[0] = WHITE_COLOR[0];
+    inColorRGB[1] = WHITE_COLOR[1];
+    inColorRGB[2] = WHITE_COLOR[2];
   } else if(PySequence_Size(rgbList) != 3){
     PyErr_SetString(PyExc_TypeError , "inColourRGB must have 3 items");
     return nullptr;
@@ -225,6 +246,7 @@ static PyObject *XPLMDrawStringFun(PyObject *self, PyObject *args, PyObject *kwa
     inColorRGB[0] = PyFloat_AsDouble(PySequence_GetItem(rgbList, 0));
     inColorRGB[1] = PyFloat_AsDouble(PySequence_GetItem(rgbList, 1));
     inColorRGB[2] = PyFloat_AsDouble(PySequence_GetItem(rgbList, 2));
+    if (PyErr_Occurred()) return nullptr;
   }
   if(wordWrapWidthObj != Py_None){
     wordWrapWidth = PyLong_AsLong(wordWrapWidthObj);
@@ -232,9 +254,7 @@ static PyObject *XPLMDrawStringFun(PyObject *self, PyObject *args, PyObject *kwa
       inWordWrapWidth = &wordWrapWidth;
     }
   }
-  inChar = strdup(inCharC);
-  XPLMDrawString(inColorRGB, inXOffset, inYOffset, inChar, inWordWrapWidth, inFontID);
-  free(inChar);
+  XPLMDrawString(inColorRGB, inXOffset, inYOffset, (char*)inCharC, inWordWrapWidth, inFontID);
   Py_RETURN_NONE;
 }
 
@@ -264,9 +284,9 @@ static PyObject *XPLMDrawNumberFun(PyObject *self, PyObject *args, PyObject *kwa
   }
   float inColorRGB[3];
   if (rgbList == Py_None) {
-    inColorRGB[0] = 1.0;
-    inColorRGB[1] = 1.0;
-    inColorRGB[2] = 1.0;
+    inColorRGB[0] = WHITE_COLOR[0];
+    inColorRGB[1] = WHITE_COLOR[1];
+    inColorRGB[2] = WHITE_COLOR[2];
   } else if(PySequence_Size(rgbList) != 3){
     PyErr_SetString(PyExc_TypeError , "inColourRGB must have 3 items");
     return nullptr;
@@ -274,13 +294,10 @@ static PyObject *XPLMDrawNumberFun(PyObject *self, PyObject *args, PyObject *kwa
     inColorRGB[0] = PyFloat_AsDouble(PySequence_GetItem(rgbList, 0));
     inColorRGB[1] = PyFloat_AsDouble(PySequence_GetItem(rgbList, 1));
     inColorRGB[2] = PyFloat_AsDouble(PySequence_GetItem(rgbList, 2));
+    if (PyErr_Occurred()) return nullptr;
   }
   if (inDigits < 0) {
-    if (inValue == 0.0) {
-      inDigits = 1;
-    } else {
-      inDigits = (int)ceil(log10(inValue > 0.0 ? inValue : -inValue));
-    }
+    inDigits = countDigits(inValue);
   }
 
   XPLMDrawNumber(inColorRGB, inXOffset, inYOffset, inValue, inDigits, inDecimals, inShowSign, inFontID);
@@ -333,17 +350,50 @@ static PyObject *XPLMGetFontDimensionsFun(PyObject *self, PyObject *args, PyObje
   }
 
   int charWidth, charHeight, digitsOnly;
-  XPLMGetFontDimensions(inFontID, &charWidth, &charHeight, &digitsOnly);
+
+  // Check cache first
+  FontDimensionCache* cached = nullptr;
+  for (int i = 0; i < 8; i++) {
+    if (fontCache[i].valid && fontCache[i].fontID == inFontID) {
+      cached = &fontCache[i];
+      break;
+    }
+  }
+
+  if (cached) {
+    charWidth = cached->width;
+    charHeight = cached->height;
+    digitsOnly = cached->digitsOnly;
+  } else {
+    XPLMGetFontDimensions(inFontID, &charWidth, &charHeight, &digitsOnly);
+
+    // Cache the result
+    for (int i = 0; i < 8; i++) {
+      if (!fontCache[i].valid) {
+        fontCache[i] = {inFontID, charWidth, charHeight, digitsOnly, true};
+        break;
+      }
+    }
+  }
   if (returnValues) {
     return Py_BuildValue("(iii)", charWidth, charHeight, digitsOnly);
   }
   pythonLogWarning("XPLMGetFontDimentions only requires initial fontID parameter");
-  if (outCharWidth != Py_None)
-    PyList_Append(outCharWidth, PyLong_FromLong(charWidth));
-  if (outCharHeight != Py_None)
-    PyList_Append(outCharHeight, PyLong_FromLong(charHeight));
-  if (outDigitsOnly != Py_None)
-    PyList_Append(outDigitsOnly, PyLong_FromLong(digitsOnly));
+  if (outCharWidth != Py_None) {
+    PyObject *obj = PyLong_FromLong(charWidth);
+    PyList_Append(outCharWidth, obj);
+    Py_DECREF(obj);
+  }
+  if (outCharHeight != Py_None) {
+    PyObject *obj = PyLong_FromLong(charHeight);
+    PyList_Append(outCharHeight, obj);
+    Py_DECREF(obj);
+  }
+  if (outDigitsOnly != Py_None) {
+    PyObject *obj = PyLong_FromLong(digitsOnly);
+    PyList_Append(outDigitsOnly, obj);
+    Py_DECREF(obj);
+  }
   Py_RETURN_NONE;
 }
 
@@ -403,7 +453,7 @@ static PyMethodDef XPLMGraphicsMethods[] = {
   {"drawNumber", (PyCFunction)XPLMDrawNumberFun, METH_VARARGS | METH_KEYWORDS, _drawNumber__doc__},
   {"XPLMDrawNumber", (PyCFunction)XPLMDrawNumberFun, METH_VARARGS | METH_KEYWORDS, "Draw number."},
   {"getFontDimensions", (PyCFunction)XPLMGetFontDimensionsFun, METH_VARARGS | METH_KEYWORDS, _getFontDimensions__doc__},
-  {"XPLMGetFontDimensions", (PyCFunction)XPLMGetFontDimensionsFun, METH_VARARGS | METH_KEYWORDS, "Get fond dimmensions."},
+  {"XPLMGetFontDimensions", (PyCFunction)XPLMGetFontDimensionsFun, METH_VARARGS | METH_KEYWORDS, "Get font dimmensions."},
   {"measureString", (PyCFunction)XPLMMeasureStringFun, METH_VARARGS | METH_KEYWORDS, _measureString__doc__},
   {"XPLMMeasureString", (PyCFunction)XPLMMeasureStringFun, METH_VARARGS | METH_KEYWORDS, "Measure a string."},
   {"_cleanup", cleanup, METH_VARARGS, ""},

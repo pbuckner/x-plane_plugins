@@ -13,7 +13,7 @@
 
 struct ErrorCallbackInfo {
     PyObject* callback;
-    std::string module_name;
+    const char* module_name;  // Points into moduleNamePool (interned string)
 };
 
 struct CommandCallbackInfo {
@@ -21,7 +21,7 @@ struct CommandCallbackInfo {
     PyObject* callback;
     int before;
     PyObject* refcon;
-    std::string module_name;
+    const char* module_name;  // Points into moduleNamePool (interned string)
     intptr_t refcon_id;
 };
 
@@ -29,8 +29,6 @@ static std::unordered_map<std::string, ErrorCallbackInfo> errorCallbacks;
 
 static std::unordered_map<intptr_t, CommandCallbackInfo> commandCallbacks;
 static intptr_t commandCallbackCounter = 0;
-
-static std::unordered_map<void*, PyObject*> commandCapsules;
 
 void resetCommands(void) {
   /* commands are reset by clearInstanceCommands */
@@ -50,7 +48,8 @@ static void error_callback(const char *inMessage)
   for (const auto& pair : errorCallbacks) {
     const ErrorCallbackInfo& info = pair.second;
     set_moduleName(info.module_name);
-    PyObject *oRes = PyObject_CallFunctionObjArgs(info.callback, msg, nullptr);
+    PyObject *args[] = {msg};
+    PyObject *oRes = PyObject_Vectorcall(info.callback, args, 1, nullptr);
     PyObject *err = PyErr_Occurred();
     if(err){
       pythonLogException();
@@ -303,20 +302,18 @@ static PyObject *XPLMSetErrorCallbackFun(PyObject *self, PyObject *args, PyObjec
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &callback)) {
     return nullptr;
   }
-  
-  std::string module_name(CurrentPythonModuleName);
-  
-  // Remove old callback if exists
-  auto it = errorCallbacks.find(module_name);
+
+  // Remove old callback if exists (using CurrentPythonModuleName which is already interned)
+  auto it = errorCallbacks.find(CurrentPythonModuleName);
   if (it != errorCallbacks.end()) {
     Py_DECREF(it->second.callback);
   }
-  
+
   // Add new callback
   Py_INCREF(callback);
-  errorCallbacks[module_name] = {
+  errorCallbacks[CurrentPythonModuleName] = {
     .callback = callback,
-    .module_name = module_name
+    .module_name = CurrentPythonModuleName
   };
   
   Py_RETURN_NONE;
@@ -401,20 +398,21 @@ static int genericCommandCallback(XPLMCommandRef inCommand, XPLMCommandPhase inP
 
   PyObject *arg1 = makeCapsule(inCommand, "XPLMCommandRef");
   PyObject *arg2 = PyLong_FromLong(inPhase);
-  PyObject *oRes = PyObject_CallFunctionObjArgs(info.callback, arg1, arg2, info.refcon, nullptr);
+  PyObject *args[] = {arg1, arg2, info.refcon};
+    PyObject *oRes = PyObject_Vectorcall(info.callback, args, 3, nullptr);
   Py_DECREF(arg1);
   Py_DECREF(arg2);
   PyObject *err = PyErr_Occurred();
   if(err){
     char *s2 = objToStr(info.callback);
-    pythonLog("Error in CommandCallback [%s] %s", info.module_name.c_str(), s2);
+    pythonLog("Error in CommandCallback [%s] %s", info.module_name, s2);
     free(s2);
     return 0;
   }
   if (!(oRes && PyLong_Check(oRes))) {
     char *s2 = objToStr(info.callback);
-    char *s3 = objToStr(oRes); 
-    pythonLog("[%s] %s CommandCallback returned '%s' rather than an integer.", info.module_name.c_str(), s2, s3);
+    char *s3 = objToStr(oRes);
+    pythonLog("[%s] %s CommandCallback returned '%s' rather than an integer.", info.module_name, s2, s3);
     free(s2);
     free(s3);
     return 1;
@@ -542,7 +540,7 @@ static PyObject *XPLMRegisterCommandHandlerFun(PyObject *self, PyObject *args, P
     .callback = inHandler,
     .before = inBefore,
     .refcon = inRefcon,
-    .module_name = std::string(CurrentPythonModuleName),
+    .module_name = CurrentPythonModuleName,
     .refcon_id = refcon
   };
   Py_INCREF(inHandler);
@@ -570,27 +568,34 @@ static PyObject *XPLMUnregisterCommandHandlerFun(PyObject *self, PyObject *args,
   
   XPLMCommandRef commandRef = getVoidPtr(inCommand, "XPLMCommandRef");
   
-  for (auto it = commandCallbacks.begin(); it != commandCallbacks.end(); ++it) {
+  bool found = false;
+  for (auto it = commandCallbacks.begin(); it != commandCallbacks.end();) {
     CommandCallbackInfo& info = it->second;
     if (info.command == commandRef &&
-        info.callback == inHandler &&
         info.before == inBefore &&
-        info.refcon == inRefcon) {
+        1 == PyObject_RichCompareBool(info.callback, inHandler, Py_EQ) &&
+        1 == PyObject_RichCompareBool(info.refcon, inRefcon, Py_EQ)) {
         
         XPLMUnregisterCommandHandler(info.command, genericCommandCallback,
                                    info.before, (void*)it->first);
         Py_DECREF(info.callback);
         Py_DECREF(info.refcon);
-        commandCallbacks.erase(it);
         deleteCapsule(inCommand);
+        it = commandCallbacks.erase(it);
+        found = true;
         break;
+    } else {
+      ++ it;
     }
+  }
+  if (!found) {
+    pythonLog("Warning: [%s] Attempted to unregister command handler that was not found", CurrentPythonModuleName);
   }
   
   Py_RETURN_NONE;
 }
 
-PyObject* buildCommandCallbacksDict(void)
+PyObject* buildCommandCallbackDict(void)
 {
   PyObject *dict = PyDict_New();
   if (!dict) {
@@ -622,8 +627,8 @@ PyObject* buildCommandCallbacksDict(void)
       error_occurred = true;
       goto cleanup_iteration;
     }
-    
-    module_name_p = PyUnicode_FromString(info.module_name.c_str());
+
+    module_name_p = PyUnicode_FromString(info.module_name);
     if (!module_name_p) {
       error_occurred = true;
       goto cleanup_iteration;
@@ -636,26 +641,22 @@ PyObject* buildCommandCallbacksDict(void)
     }
     
     // Build tuple: (command, callback, before, refcon, module_name)
-    value = PyTuple_New(5);
+
+    value = PyTuple_Pack(5,
+                         module_name_p,
+                         command_capsule,
+                         info.callback,
+                         before,
+                         info.refcon);
     if (!value) {
       error_occurred = true;
       goto cleanup_iteration;
     }
     
-    // Set tuple items (PyTuple_SetItem steals references)
-    PyTuple_SetItem(value, 0, command_capsule);     // steals ref
     command_capsule = nullptr; // Mark as stolen
-    
     Py_INCREF(info.callback);                       // increment for tuple
-    PyTuple_SetItem(value, 1, info.callback);       // steals ref
-    
-    PyTuple_SetItem(value, 2, before);              // steals ref
     before = nullptr; // Mark as stolen
-    
     Py_INCREF(info.refcon);                         // increment for tuple
-    PyTuple_SetItem(value, 3, info.refcon);         // steals ref
-    
-    PyTuple_SetItem(value, 4, module_name_p);         // steals ref
     module_name_p = nullptr; // Mark as stolen
     
     // Add to dictionary (PyDict_SetItem does NOT steal references)
@@ -687,18 +688,88 @@ cleanup_iteration:
   return dict;
 }
 
+PyObject* buildErrorCallbackDict(void)
+{
+  PyObject *dict = PyDict_New();
+  if (!dict) {
+    return nullptr;
+  }
+
+  bool error_occurred = false;
+
+  for (const auto& pair : errorCallbacks) {
+    const ErrorCallbackInfo& info = pair.second;
+    const std::string& module_name = pair.first;
+
+    // Initialize all pointers to nullptr
+    PyObject *key = nullptr;
+    PyObject *value = nullptr;
+    PyObject *module_name_p = nullptr;
+
+    // Create all Python objects
+    key = PyUnicode_FromString(module_name.c_str());
+    if (!key) {
+      error_occurred = true;
+      goto cleanup_iteration;
+    }
+
+    module_name_p = PyUnicode_FromString(info.module_name);
+    if (!module_name_p) {
+      error_occurred = true;
+      goto cleanup_iteration;
+    }
+
+    // Build tuple: (callback, module_name)
+    value = PyTuple_New(2);
+    if (!value) {
+      error_occurred = true;
+      goto cleanup_iteration;
+    }
+
+    // Set tuple items (PyTuple_SetItem steals references)
+    Py_INCREF(info.callback);                       // increment for tuple
+    PyTuple_SetItem(value, 0, info.callback);       // steals ref
+
+    PyTuple_SetItem(value, 1, module_name_p);       // steals ref
+    module_name_p = nullptr; // Mark as stolen
+
+    // Add to dictionary (PyDict_SetItem does NOT steal references)
+    if (PyDict_SetItem(dict, key, value) < 0) {
+      error_occurred = true;
+      goto cleanup_iteration;
+    }
+
+    // Clean up our references for this iteration
+    Py_DECREF(key);
+    Py_DECREF(value);
+    continue;
+
+cleanup_iteration:
+    // Clean up any non-nullptr objects that weren't stolen
+    if (key) Py_DECREF(key);
+    if (module_name_p) Py_DECREF(module_name_p);
+    if (value) Py_DECREF(value);
+    break; // Exit the loop on error
+  }
+
+  if (error_occurred) {
+    Py_DECREF(dict);
+    return nullptr;
+  }
+
+  return dict;
+}
+
 void clearInstanceCommands(char *module_name)
 {
-  std::string target_module(module_name);
-  
   pythonDebug("%*s Clearing commands for [%s]", 6, " ", module_name);
   int count = 0;
   
   for (auto it = commandCallbacks.begin(); it != commandCallbacks.end();) {
     CommandCallbackInfo& info = it->second;
-    if (info.module_name == target_module) {
+    if (0 == strcmp(info.module_name, module_name)) {
       count++;
-      pythonDebug("%*s Removing command handler for [%ld] [%s]", 8, " ", info.refcon_id, info.module_name.c_str());
+      pythonDebug("%*s Removing command handler for [%lld] [%s]", 8, " ", info.refcon_id, info.module_name);
       
       XPLMUnregisterCommandHandler(info.command, genericCommandCallback,
                                    info.before, (void*)info.refcon_id);
@@ -710,7 +781,7 @@ void clearInstanceCommands(char *module_name)
     }
   }
   
-  pythonDebug("%*s Cleared %d commands for [%s]", 8, " ", count, target_module.c_str());
+  pythonDebug("%*s Cleared %d commands for [%s]", 8, " ", count, module_name);
 }
 
 static PyObject *cleanup(PyObject *self, PyObject *args)
@@ -731,11 +802,6 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   }
   commandCallbacks.clear();
 
-  // Clean up command capsules
-  for (auto& pair : commandCapsules) {
-    Py_DECREF(pair.second);
-  }
-  commandCapsules.clear();
   Py_RETURN_NONE;
 }
 
@@ -786,6 +852,8 @@ static PyMethodDef XPLMUtilitiesMethods[] = {
   {"XPLMRegisterCommandHandler", (PyCFunction)XPLMRegisterCommandHandlerFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"unregisterCommandHandler", (PyCFunction)XPLMUnregisterCommandHandlerFun, METH_VARARGS | METH_KEYWORDS, _unregisterCommandHandler__doc__},
   {"XPLMUnregisterCommandHandler", (PyCFunction)XPLMUnregisterCommandHandlerFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getCommandCallbackDict", (PyCFunction)buildCommandCallbackDict, METH_VARARGS, "Copy of internal CommmandCallbackInfo"},
+  {"getErrorCallbackDict", (PyCFunction)buildErrorCallbackDict, METH_VARARGS, "Copy of internal ErrorCallbackInfo"},
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {nullptr, nullptr, 0, nullptr}
 };
@@ -810,9 +878,6 @@ static struct PyModuleDef XPLMUtilitiesModule = {
 PyMODINIT_FUNC
 PyInit_XPLMUtilities(void)
 {
-  // commandCapsules is now a C++ unordered_map, no need to initialize
-  // PyDict_SetItemString(XPY3pythonCapsules, commandRefName, commandCapsules);
-
   PyObject *mod = PyModule_Create(&XPLMUtilitiesModule);
   if(mod){
     PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");

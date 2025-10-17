@@ -10,17 +10,17 @@ enum PluginType {
   PLUGIN_INTERNAL
 };
 
-struct PluginInfoDict {
+struct PluginInfo {
   std::string name;
   std::string signature;
   std::string description;
-  std::string module_name;
+  const char* module_name;  // Points into moduleNamePool (interned string)
   bool disabled;
   PluginType plugin_type;
 };
 
 extern std::unordered_map<std::string, PyObject*> XPY3moduleInfoDict;  /* moduleName -> instance */
-extern std::unordered_map<PyObject *, PluginInfoDict> XPY3pluginInfoDict;  /* instance -> info struct */
+extern std::unordered_map<PyObject *, PluginInfo> XPY3pluginInfoDict;  /* instance -> info struct */
 extern PyObject *XPY3aircraftPlugins; /* [instance, instance, ] */
 extern PyObject *XPY3sceneryPlugins; /* [instance, instance, ] */
 

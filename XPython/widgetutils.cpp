@@ -13,6 +13,8 @@
 #include "widgetutils.h"
 #include "capsules.h"
 
+#define LONG_OR_NONE_TO_LONG(param) (((param) == Py_None) ? 0 : PyLong_AsLong(param))    
+
 My_DOCSTR(_createWidgets__doc__, "createWidgets",
           "widgetDefs, parentID=None",
           "widgetDefs:Sequence[Sequence[Any]], parentID:Optional[XPWidgetID]",
@@ -68,23 +70,51 @@ static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args, PyObject *k
       }
       PyErr_SetString(PyExc_ValueError , msg);
       free(msg);
+      free(tmpObjs);
       free(ioWidgets);
       free(defs);
       Py_RETURN_NONE;
     }
-    defs[i].left = PyLong_AsLong(PySequence_GetItem(defListItem, 0));
-    defs[i].top = PyLong_AsLong(PySequence_GetItem(defListItem, 2));
-    defs[i].right = PyLong_AsLong(PySequence_GetItem(defListItem, 1));
-    defs[i].bottom = PyLong_AsLong(PySequence_GetItem(defListItem, 3));
-    defs[i].visible = PyLong_AsLong(PySequence_GetItem(defListItem, 4));
-    tmpObjs[i] = PyUnicode_AsUTF8String(PySequence_GetItem(defListItem, 5));
+    PyObject *item0 = PySequence_GetItem(defListItem, 0);
+    defs[i].left = PyLong_AsLong(item0);
+    Py_DECREF(item0);
+
+    PyObject *item2 = PySequence_GetItem(defListItem, 2);
+    defs[i].top = PyLong_AsLong(item2);
+    Py_DECREF(item2);
+
+    PyObject *item1 = PySequence_GetItem(defListItem, 1);
+    defs[i].right = PyLong_AsLong(item1);
+    Py_DECREF(item1);
+
+    PyObject *item3 = PySequence_GetItem(defListItem, 3);
+    defs[i].bottom = PyLong_AsLong(item3);
+    Py_DECREF(item3);
+
+    PyObject *item4 = PySequence_GetItem(defListItem, 4);
+    defs[i].visible = PyLong_AsLong(item4);
+    Py_DECREF(item4);
+
+    PyObject *item5 = PySequence_GetItem(defListItem, 5);
+    tmpObjs[i] = PyUnicode_AsUTF8String(item5);
+    Py_DECREF(item5);
     char *tmp = PyBytes_AsString(tmpObjs[i]);
     defs[i].descriptor = tmp;
-    defs[i].isRoot = PyLong_AsLong(PySequence_GetItem(defListItem, 6));
-    defs[i].containerIndex = PyLong_AsLong(PySequence_GetItem(defListItem, 7));
-    defs[i].widgetClass = PyLong_AsLong(PySequence_GetItem(defListItem, 8));
+
+    PyObject *item6 = PySequence_GetItem(defListItem, 6);
+    defs[i].isRoot = PyLong_AsLong(item6);
+    Py_DECREF(item6);
+
+    PyObject *item7 = PySequence_GetItem(defListItem, 7);
+    defs[i].containerIndex = PyLong_AsLong(item7);
+    Py_DECREF(item7);
+
+    PyObject *item8 = PySequence_GetItem(defListItem, 8);
+    defs[i].widgetClass = PyLong_AsLong(item8);
+    Py_DECREF(item8);
+
     Py_DECREF(defListItem);
-  } 
+  }
   XPUCreateWidgets(defs, inCount, inParamParent, ioWidgets);
 
   for(i = 0; i < inCount; ++i){
@@ -93,6 +123,7 @@ static PyObject *XPUCreateWidgetsFun(PyObject *self, PyObject *args, PyObject *k
     PyList_Append(widgets, tmp);
     Py_DECREF(tmp);
   }
+  free(tmpObjs);
   free(ioWidgets);
   free(defs);
   return widgets;
@@ -139,6 +170,26 @@ static PyObject *XPUFixedLayoutFun(PyObject *self, PyObject *args, PyObject *kwa
 
   convertMessagePythonToC(inMessage, widget, param1, param2, &inWidget, &inParam1, &inParam2);
   int res = XPUFixedLayout(inMessage, inWidget, inParam1, inParam2);
+
+  // Free malloc'd structs based on message type
+  switch(inMessage) {
+    case xpMsg_KeyPress:
+      free((void*)inParam1);
+      break;
+    case xpMsg_MouseDown:
+    case xpMsg_MouseDrag:
+    case xpMsg_MouseUp:
+    case xpMsg_MouseWheel:
+    case xpMsg_CursorAdjust:
+      free((void*)inParam1);
+      break;
+    case xpMsg_Reshape:
+      free((void*)inParam2);
+      break;
+    default:
+      break;
+  }
+
   PyObject *ret = PyLong_FromLong(res);
   return ret;
 }
@@ -180,7 +231,13 @@ void convertMessagePythonToC(XPWidgetMessage msg, PyObject *widget, PyObject *pa
     mouseState->button = PyLong_AsLong(PyTuple_GetItem(param1, 2));
     mouseState->delta = PyLong_AsLong(PyTuple_GetItem(param1, 3));
     *param1_ptr = (intptr_t)mouseState;
-    *param2_ptr = PyLong_AsLong(param2);
+    if (msg == xpMsg_CursorAdjust && PySequence_Check(param2)) {
+      PyObject *item = PySequence_GetItem(param2, 0);
+      *param2_ptr = PyLong_AsLong(item);
+      Py_DECREF(item);
+    } else {
+      *param2_ptr = PyLong_AsLong(param2);
+    }
     break;
 
   case xpMsg_Reshape:
@@ -209,17 +266,17 @@ void convertMessagePythonToC(XPWidgetMessage msg, PyObject *widget, PyObject *pa
     *param1_ptr = (intptr_t) getVoidPtr(param1, "XPWidgetID");
     *param2_ptr = PyLong_AsLong(param2);
     break;
-    
   case xpMsg_PropertyChanged:
-    *param1_ptr = PyLong_AsLong(param1);
+    *param1_ptr = LONG_OR_NONE_TO_LONG(param1);
     // use inParam2 -- it's already python, if Property > UserStart
-    *param2_ptr = *param1_ptr >= xpProperty_UserStart ? (intptr_t)param2 : PyLong_AsLong(param2);
+    *param2_ptr = *param1_ptr >= xpProperty_UserStart ? (intptr_t)param2 : LONG_OR_NONE_TO_LONG(param2);
     errCheck("Failed to convert param2 pointer for msg %d", msg);
     break;
   default:
-    *param1_ptr = PyCapsule_CheckExact(param1) ? (intptr_t) getVoidPtr(param1) : PyLong_AsLong(param1);
-    *param2_ptr = PyCapsule_CheckExact(param2) ? (intptr_t) getVoidPtr(param2) : PyLong_AsLong(param2);
-    errCheck("Failed to convert param pointers for msg %d", msg);
+    *param1_ptr = PyCapsule_CheckExact(param1) ? (intptr_t) getVoidPtr(param1) : LONG_OR_NONE_TO_LONG(param1);
+    errCheck("Failed to convert param1 pointer for msg %d. capsule? %d", msg, PyCapsule_CheckExact(param1));
+    *param2_ptr = PyCapsule_CheckExact(param2) ? (intptr_t) getVoidPtr(param2) : LONG_OR_NONE_TO_LONG(param2);
+    errCheck("Failed to convert param2 pointer for msg %d. capsule? %d", msg, PyCapsule_CheckExact(param2));
     break;
   }
   errCheck("end convertMesssagePythonToC");
@@ -274,16 +331,29 @@ static PyObject *XPUSelectIfNeededFun(PyObject *self, PyObject *args, PyObject *
   case xpMsg_MouseWheel:
   case xpMsg_CursorAdjust:
     if (PyTuple_Check(param1) || PyList_Check(param1)) {
-      mouseState.x = PyLong_AsLong(PySequence_GetItem(param1, 0));
-      mouseState.y = PyLong_AsLong(PySequence_GetItem(param1, 1));
-      mouseState.button = PyLong_AsLong(PySequence_GetItem(param1, 2));
-      mouseState.delta = PyLong_AsLong(PySequence_GetItem(param1, 3));
+      PyObject *item0 = PySequence_GetItem(param1, 0);
+      mouseState.x = PyLong_AsLong(item0);
+      Py_DECREF(item0);
+
+      PyObject *item1 = PySequence_GetItem(param1, 1);
+      mouseState.y = PyLong_AsLong(item1);
+      Py_DECREF(item1);
+
+      PyObject *item2 = PySequence_GetItem(param1, 2);
+      mouseState.button = PyLong_AsLong(item2);
+      Py_DECREF(item2);
+
+      PyObject *item3 = PySequence_GetItem(param1, 3);
+      mouseState.delta = PyLong_AsLong(item3);
+      Py_DECREF(item3);
     } else {
       pythonLog("Don't know what param1 is for message %d: %s ", inMessage, Py_TYPE(param1)->tp_name);
     }
     inParam1 = (intptr_t) &mouseState;
     if (inMessage == xpMsg_CursorAdjust) {
-      inParam2 = PyLong_AsLong(PySequence_GetItem(param2, 0));
+      PyObject *item0 = PySequence_GetItem(param2, 0);
+      inParam2 = PyLong_AsLong(item0);
+      Py_DECREF(item0);
     } else {
       inParam2 = PyLong_AsLong(param2);
     }
@@ -291,10 +361,21 @@ static PyObject *XPUSelectIfNeededFun(PyObject *self, PyObject *args, PyObject *
   case xpMsg_Reshape:
     inParam1 = (intptr_t) getVoidPtr(param1, "XPWidgetID");
     if (PyTuple_Check(param2) || PyList_Check(param2)) {
-        wChange.dx = PyLong_AsLong(PySequence_GetItem(param2, 0));
-        wChange.dy = PyLong_AsLong(PySequence_GetItem(param2, 1));
-        wChange.dwidth = PyLong_AsLong(PySequence_GetItem(param2, 2));
-        wChange.dheight = PyLong_AsLong(PySequence_GetItem(param2, 3));
+        PyObject *item0 = PySequence_GetItem(param2, 0);
+        wChange.dx = PyLong_AsLong(item0);
+        Py_DECREF(item0);
+
+        PyObject *item1 = PySequence_GetItem(param2, 1);
+        wChange.dy = PyLong_AsLong(item1);
+        Py_DECREF(item1);
+
+        PyObject *item2 = PySequence_GetItem(param2, 2);
+        wChange.dwidth = PyLong_AsLong(item2);
+        Py_DECREF(item2);
+
+        PyObject *item3 = PySequence_GetItem(param2, 3);
+        wChange.dheight = PyLong_AsLong(item3);
+        Py_DECREF(item3);
     }
     inParam2 = (intptr_t) &wChange;
     break;
@@ -351,6 +432,26 @@ static PyObject *XPUDefocusKeyboardFun(PyObject *self, PyObject *args, PyObject 
   convertMessagePythonToC(inMessage, widget, param1, param2, &inWidget, &inParam1, &inParam2);
 
   int res = XPUDefocusKeyboard(inMessage, inWidget, inParam1, inParam2, inEatClick);
+
+  // Free malloc'd structs based on message type
+  switch(inMessage) {
+    case xpMsg_KeyPress:
+      free((void*)inParam1);
+      break;
+    case xpMsg_MouseDown:
+    case xpMsg_MouseDrag:
+    case xpMsg_MouseUp:
+    case xpMsg_MouseWheel:
+    case xpMsg_CursorAdjust:
+      free((void*)inParam1);
+      break;
+    case xpMsg_Reshape:
+      free((void*)inParam2);
+      break;
+    default:
+      break;
+  }
+
   return PyLong_FromLong(res);
 }
 
@@ -378,6 +479,26 @@ static PyObject *XPUDragWidgetFun(PyObject *self, PyObject *args, PyObject *kwar
   convertMessagePythonToC(inMessage, widget, param1, param2, &inWidget, &inParam1, &inParam2);
 
   int res = XPUDragWidget(inMessage, inWidget, inParam1, inParam2, inLeft, inTop, inRight, inBottom);
+
+  // Free malloc'd structs based on message type
+  switch(inMessage) {
+    case xpMsg_KeyPress:
+      free((void*)inParam1);
+      break;
+    case xpMsg_MouseDown:
+    case xpMsg_MouseDrag:
+    case xpMsg_MouseUp:
+    case xpMsg_MouseWheel:
+    case xpMsg_CursorAdjust:
+      free((void*)inParam1);
+      break;
+    case xpMsg_Reshape:
+      free((void*)inParam2);
+      break;
+    default:
+      break;
+  }
+
   return PyLong_FromLong(res);
 }
 

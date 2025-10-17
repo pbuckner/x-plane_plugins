@@ -95,9 +95,7 @@ static PyObject *loadCursor(PyObject *self, PyObject *args, PyObject *kwargs)
   }
 
   Cursors[cursorIdx] = cursor;
-  PyObject *cursorID = PyLong_FromLong(cursorIdx++);
-  Py_IncRef(cursorID);
-  return cursorID;
+  return PyLong_FromLong(cursorIdx++);
 }
 
 
@@ -141,9 +139,19 @@ cursor_read_from_file(const char *filename)
   return cursor;
 }
 
-static void cursor_free(cursor_t *cursor) {if (cursor == nullptr || cursor->crs == nullptr) {return;}[cursor->crs release];free(cursor);}
+static void cursor_free(cursor_t *cursor) {
+  if (cursor == nullptr || cursor->crs == nullptr) {
+    return;
+  }
+  [cursor->crs release];
+  free(cursor);}
 
-static void cursor_make_current(cursor_t *cursor) {if (cursor == nullptr || cursor->crs == nullptr) {return;}[cursor->crs set];}
+static void cursor_make_current(cursor_t *cursor) {
+  if (cursor == nullptr || cursor->crs == nullptr) {
+    return;
+  }
+  [cursor->crs set];
+}
 
 #endif
 

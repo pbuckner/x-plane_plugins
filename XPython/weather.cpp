@@ -289,7 +289,7 @@ static PyObject *XPLMGetMETARForAirportFun(PyObject *self, PyObject *args, PyObj
   }
   XPLMFixedString150_t outMetar;
   XPLMGetMETARForAirport_ptr(airport_id, &outMetar);
-  return PyUnicode_DecodeUTF8((char *)&outMetar, strlen((char*)&outMetar), nullptr);
+  return PyUnicode_DecodeUTF8((char *)&outMetar, strnlen((char*)&outMetar, 150), nullptr);
 }
 
 My_DOCSTR(_getWeatherAtLocation__doc__, "getWeatherAtLocation",
@@ -319,6 +319,7 @@ static PyObject *XPLMGetWeatherAtLocationFun(PyObject *self, PyObject *args, PyO
   int xp, xplm;
   XPLMHostApplicationID hostID;
   XPLMGetVersions(&xp, &xplm, &hostID);
+  (void)xp; (void)hostID;
   out_info.structSize = sizeof(XPLMWeatherInfo_t);
   if (xplm < 420) {
     out_info.structSize = offsetof(XPLMWeatherInfo_t, temp_layers);

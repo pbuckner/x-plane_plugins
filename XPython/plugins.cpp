@@ -214,9 +214,12 @@ static PyObject *XPLMSendMessageToPluginFun(PyObject *self, PyObject *args, PyOb
     XPLMSendMessageToPlugin(inPluginID, inMessage, msgParam);
     free(msgParam);
   } else {
+    char msg[1024];
     char *s = objToStr(PyObject_Type(inParam));
-    pythonLog("Unknown data type %s for XPLMSendMessageToPlugin(... inParam). Cannot convert", s);
+    snprintf(msg, sizeof(msg), "[%s] Unknown data type %s for XPLMSendMessageToPlugin(... inParam). Cannot convert", CurrentPythonModuleName, s);
     free(s);
+    PyErr_SetString(PyExc_TypeError, msg);
+    return nullptr;
   }
   err = PyErr_Occurred();
   if (err) {
@@ -285,7 +288,7 @@ static PyObject *XPLMEnableFeatureFun(PyObject *self, PyObject *args, PyObject *
 struct FeatureDict {
   PyObject *callback;
   PyObject *refCon;
-  std::string module_name;
+  const char* module_name;
 };
 
 static std::unordered_map<intptr_t, FeatureDict> featureCallbacks;
@@ -304,7 +307,8 @@ static void featureEnumerator(const char *inFeature, void *inRef)
   set_moduleName(info.module_name);
 
   PyObject *inFeatureObj = PyUnicode_FromString(inFeature);
-  PyObject *res = PyObject_CallFunctionObjArgs(info.callback, inFeatureObj, info.refCon, nullptr);
+  PyObject *args[] = {inFeatureObj, info.refCon};
+    PyObject *res = PyObject_Vectorcall(info.callback, args, 2, nullptr);
   PyObject *err = PyErr_Occurred();
   Py_DECREF(inFeatureObj);
   if(err){
@@ -335,7 +339,7 @@ static PyObject *XPLMEnumerateFeaturesFun(PyObject *self, PyObject *args, PyObje
   featureCallbacks[refcon] = {
     .callback = fun,
     .refCon = refCon,
-    .module_name = std::string(CurrentPythonModuleName)
+    .module_name = CurrentPythonModuleName
   };
   Py_INCREF(fun);
   Py_INCREF(refCon);

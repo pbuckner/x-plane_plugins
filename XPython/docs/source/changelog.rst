@@ -49,6 +49,13 @@ Known Bugs
      |
 
 :Improvements:
+   * **Major rewrite**: About 30,000 lines of code was converted from C to C++. This allowed me to take advantage of C++ data
+     structures such as vectors and unordered_maps, which are dramatically faster than previous implementation.
+     The inherent typing checking added by C++ also made it easier (less risky) to refactor code, eliminating some code
+     paths. Parameter marshaling (Python->C, and C->Python) improved and in many cases eliminated. Simple tests show
+     about a 20% reduction in time spent with XPPython3. Additionally, reference counting was checked which should
+     further reduce memory leaks and illegal memory accesses.
+
    * **XPPython3/utils/datarefs.py**: Previous version had major implementation issues: how it got released is beyond me.
      We've updated the module and extensively updated the documentation at :doc:`/development/modules/datarefs` and included
      many more examples.

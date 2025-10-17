@@ -10,7 +10,7 @@
 
 static intptr_t camCntr;
 struct CameraInfo {
-  std::string module_name;
+  const char* module_name;
   int howLong;
   PyObject *callback;
   PyObject *refCon;
@@ -25,7 +25,7 @@ static std::unordered_map<intptr_t, CameraInfo> camDict;
 
 void resetCamera(void) {
 /* we don't 'reset' camera control on reload.
-   Camera is controlled only by the most resent call to XPLMControlCamera.
+   Camera is controlled only by the most recent call to XPLMControlCamera.
    Previous controlCamera callbacks are removed.
  */
   XPLMCameraControlDuration duration = -1;
@@ -74,7 +74,8 @@ static int genericCameraControl(XPLMCameraPosition_t *outCameraPosition, int inI
   PyObject *fun = info.callback;
   PyObject *lc = PyLong_FromLong(inIsLosingControl);
   PyObject *refcon = info.refCon;
-  PyObject *resObj = PyObject_CallFunctionObjArgs(fun, pos, lc, refcon, nullptr);  // new
+  PyObject *args[] = {pos, lc, refcon};
+    PyObject *resObj = PyObject_Vectorcall(fun, args, 3, nullptr);  // new
   Py_DECREF(lc);
 
   err = PyErr_Occurred();
@@ -172,7 +173,7 @@ static PyObject *XPLMControlCameraFun(PyObject *self, PyObject *args, PyObject *
   Py_INCREF(controlFunc);
 
   camDict.emplace(++camCntr, CameraInfo {
-      std::string(CurrentPythonModuleName),
+      CurrentPythonModuleName,
       inHowLong,
       controlFunc,
       refcon});

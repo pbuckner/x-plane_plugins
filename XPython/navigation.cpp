@@ -686,11 +686,10 @@ static PyObject *XPLMSaveFMSFlightPlanFun(PyObject *self, PyObject *args, PyObje
     buffer = (char *)malloc(buffer_size);
     int ret = XPLMSaveFMSFlightPlan_ptr(device, buffer, buffer_size);
     if (ret < buffer_size) break;
-    buffer_size = buffer_size * 2;
+    buffer_size = buffer_size + 1000;
     free(buffer);
   }
   PyObject *flightPlan = PyUnicode_FromString(buffer);
-  Py_INCREF(flightPlan);
   free(buffer);
   return flightPlan;
 }

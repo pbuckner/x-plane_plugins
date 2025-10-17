@@ -7,11 +7,16 @@
 #include "menus.h"
 #include "utilities.h"
 
-static void updatePluginDict(PyObject*,PyObject*, PyObject*, PluginType);
+static void updatePluginDict(PluginInfo *pluginInfo, PyObject*,PyObject*, PyObject*, PluginType);
 static PyObject *getPluginInstanceBySignature(PyObject *);
 
 int xpy_startInstance(PyObject *pModule, PyObject* pluginInstance, PluginType plugin_type) {
   /* Start loaded instance, update  XP3pluginDict with information   */
+
+  /* start with a nearly empty stuct -- we need the stable module_name */
+  PluginInfo *pluginInfo = (PluginInfo*)malloc(sizeof(PluginInfo));
+  pluginInfo->module_name = CurrentPythonModuleName;  // Already interned via set_moduleName()
+
   PyObject *pRes = PyObject_CallMethod(pluginInstance, "XPluginStart", nullptr);
   PyObject *err = PyErr_Occurred();
   if (err) {
@@ -39,7 +44,7 @@ int xpy_startInstance(PyObject *pModule, PyObject* pluginInstance, PluginType pl
         Py_DECREF(u2);
         Py_DECREF(u3);
 
-        updatePluginDict(pModule, pRes, pluginInstance, plugin_type);
+        updatePluginDict(pluginInfo, pModule, pRes, pluginInstance, plugin_type);
         return 1;
       } else {
         pythonLog("[XPPython3] Failed to decode start information in %s", CurrentPythonModuleName);
@@ -57,23 +62,23 @@ int xpy_startInstance(PyObject *pModule, PyObject* pluginInstance, PluginType pl
   return 0;
 }
 
-void updatePluginDict(PyObject * /* pModule */, PyObject *pRes, PyObject *pluginInstance, PluginType plugin_type) {
-  PluginInfoDict pluginInfo;
+void updatePluginDict(PluginInfo *pluginInfo, PyObject * /* pModule */, PyObject *pRes, PyObject *pluginInstance, PluginType plugin_type) {
 
   // Extract strings from Python tuple
   const char *name = PyUnicode_AsUTF8(PyTuple_GetItem(pRes, PLUGIN_NAME));
   const char *signature = PyUnicode_AsUTF8(PyTuple_GetItem(pRes, PLUGIN_SIGNATURE));
   const char *description = PyUnicode_AsUTF8(PyTuple_GetItem(pRes, PLUGIN_DESCRIPTION));
 
-  pluginInfo.name = name ? name : "";
-  pluginInfo.signature = signature ? signature : "";
-  pluginInfo.description = description ? description : "";
-  pluginInfo.module_name = CurrentPythonModuleName;
-  pluginInfo.disabled = false;
-  pluginInfo.plugin_type = plugin_type;
+  pluginInfo->name = name ? name : "";
+  pluginInfo->signature = signature ? signature : "";
+  pluginInfo->description = description ? description : "";
+  //  pluginInfo.module_name = std::string(CurrentPythonModuleName);
+  pluginInfo->disabled = false;
+  pluginInfo->plugin_type = plugin_type;
 
+  //set_moduleName(pluginInfo.module_name);
   Py_INCREF(pluginInstance);
-  XPY3pluginInfoDict[pluginInstance] = pluginInfo;
+  XPY3pluginInfoDict[pluginInstance] = *pluginInfo;
   if(PyErr_Occurred()) {
     pythonLog("Error while updating plugin dict");
     pythonLogException();
@@ -106,7 +111,7 @@ void xpy_reloadInstance(PyObject *signature) {
     return;
   }
 
-  const PluginInfoDict& pluginInfo = pluginIt->second;
+  const PluginInfo& pluginInfo = pluginIt->second;
   PluginType saved_type = pluginInfo.plugin_type;
   set_moduleName(pluginInfo.module_name);
   pythonDebug("  which is module: %s", CurrentPythonModuleName);
@@ -124,7 +129,7 @@ void xpy_reloadInstance(PyObject *signature) {
   pythonDebug("Calling ReloadModule");
   // For now, we'll use PyImport_ImportModule to reload by name
   // This is a simplification - the original code used the module object from pluginInfo
-  PyObject *module = PyImport_ImportModule(pluginInfo.module_name.c_str());
+  PyObject *module = PyImport_ImportModule(pluginInfo.module_name);
   PyObject *err = PyErr_Occurred();
   if (err) {
     pythonLogException();

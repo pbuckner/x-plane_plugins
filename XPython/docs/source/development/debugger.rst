@@ -90,7 +90,7 @@ Some useful things to do:
 
     >>> time = xp.findDataRef('sim/time/zulu_time_sec')
     >>> time
-    <capsule object "datarefRef" at 0x7fc44329920>
+    <capsule object "XPLMDataRef" at 0x7fc44329920>
     >>> xp.getDataf(time)
     44768.0
     >>> xp.getDataf(time)
@@ -108,17 +108,12 @@ Some useful things to do:
     >>> xp.createMenu('New Menu', handler=MyCallback)
     <capsule object "XPLMMenuIDRef" at 0x75334211d>
 
-* **Debug your Plugin**: Note that you'll need access to *your* plugin from the interpreter. You can
-  use some helper functions, defined by the interpreter (not part of ``xp`` module).
+* **Debug your Plugin**: Note that you'll need access to *your* plugin from the interpreter.
 
-  * ``getPluginList()`` returns list of python plugin signatures.
-
-  * ``getPluginInstance(signature)`` returns the PythonInterface object for the plugin with
+  * ``xp.getPluginInstance(signature)`` returns the PythonInterface object for the plugin with
     the named *signature*.
 
-  >>> getPluginList()
-  ['xppython3.firstTime', 'xppython3.updater.3.9', 'xppython3.minipython', 'test.myplugin']
-  >>> instance = getPluginInstance('test.myplugin')
+  >>> instance = xp.getPluginInstance('test.myplugin')
   >>> instance
   <PythonPlugins.PI_MyPlugin.PythonInterface object at 0x7fd692ae73a0>
 

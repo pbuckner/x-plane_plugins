@@ -13,6 +13,9 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+/* PI_GetMouseStateFun and PI_GetKeyStateFun are for python2 backward
+   compatibility and no longer required for XPPython3 */
+
 static PyObject *PI_GetMouseStateFun(PyObject *self, PyObject *args) {
   (void) self;
   PyObject *param1;

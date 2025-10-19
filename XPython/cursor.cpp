@@ -48,7 +48,7 @@ static PyObject *setCursor(PyObject *self, PyObject *args, PyObject *kwargs)
 My_DOCSTR(_unloadCursor__doc__, "unloadCursor",
           "cursor_id",
           "cursor_id:int",
-          "int",
+          "None",
           "Unloads cursor from memory.\n");
 static PyObject *unloadCursor(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -75,7 +75,7 @@ My_DOCSTR(_loadCursor__doc__, "loadCursor",
           "(that is, without .png or .cur extension), and relative\n"
           "X-Plane root (e.g. 'Resources/plugins/PythonPlugins/myPlugin/hand')\n"
           "\n"
-          "Multiple calls to with same filename will result in\n"
+          "Multiple calls with same filename will result in\n"
           "repeated loads. Try not to do this.\n"
           "\n"
           "Returns cursorID usable with setCursor.");

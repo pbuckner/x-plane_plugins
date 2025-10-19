@@ -87,7 +87,7 @@ My_DOCSTR(_playPCMOnBus__doc__, "playPCMOnBus",
           "audioBuffer:Any, bufferSize:int, soundFormat:int, freqHz:int, numChannels:int, loop:int=0, "
           "audioType:XPLMAudioBus=AudioUI, callback:Optional[Callable[[Any, int], None]]=None, refCon:Any=None",
           "None | FMODChannel",
-          "Play provided data, of length bufferSize on the bus indicatedd by audioType. On\n"
+          "Play provided data, of length bufferSize on the bus indicated by audioType. On\n"
           "completion, or stoppage, invoke (optional) callback with provided refCon.\n"
           " * soundFormat is # bytes per frame 1=8bit, 2=16bit, etc.\n"
           " * freqHz is sample framerate, e.g., 800, 22000, 44100\n"
@@ -195,7 +195,8 @@ static void soundCallback(void *inRefcon, FMOD_RESULT status)
 
   PyObject *statusObj = PyLong_FromLong(status);
   PyObject *args[] = {info.refCon, statusObj};
-    PyObject_Vectorcall(info.callback, args, 2, nullptr);
+  PyObject *result = PyObject_Vectorcall(info.callback, args, 2, nullptr);
+  Py_XDECREF(result);
   Py_DECREF(statusObj);
 
   // Clean up and remove from map because it'll get called only once by XP!
@@ -308,7 +309,7 @@ My_DOCSTR(_setAudioFadeDistance__doc__, "setAudioFadeDistance",
           "\n"
           "Use minimum distance to give the impression that the sound is loud or soft: Small\n"
           "quiet objects such as a bumblebee, set minimum to 0.1. This would cause it to \n"
-          "attenuate quickly and dissapear when only a few meters away. A jumbo jet minimum\n"
+          "attenuate quickly and disappear when only a few meters away. A jumbo jet minimum\n"
           "might be 100 meters, thereby maintaining maximum volume until 100 meters away, with\n"
           "fade out over the next hundred meters.\n"
           "\n"

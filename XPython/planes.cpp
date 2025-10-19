@@ -25,7 +25,7 @@ static std::unordered_map<intptr_t, AvailableInfo> availableCallbacks;
  * Note there are memory leaks surround acquirePlanes and releasePlanes
  * since some of the behavior is deprecated ('aircraft' portion of acquirePlanes)
  * and all of it poorly defined (does callback continue to work after it's been
- * called once, or after releaseAircraft() to I need to create a new callback??
+ * called once, or after releaseAircraft() do I need to create a new callback??
  * And, acquire/release isn't commonly/frequently done, this seems best to leave as it.
  */
 
@@ -148,7 +148,7 @@ void planesAvailable(void *inRefcon)
     PyObject *res = PyObject_Vectorcall(info.callback, args, 1, nullptr);
   PyObject *err = PyErr_Occurred();
   if(err){
-    pythonLog("Error occured during the planesAvailable callback(inRefcon = %p):\n", inRefcon);
+    pythonLog("Error occurred during the planesAvailable callback(inRefcon = %p):\n", inRefcon);
     pythonLogException();
   }
   Py_XDECREF(res);
@@ -343,12 +343,11 @@ static PyMethodDef XPLMPlanesMethods[] = {
   {"disableAIForPlane", (PyCFunction)XPLMDisableAIForPlaneFun, METH_VARARGS | METH_KEYWORDS, _disableAIForPlane__doc__},
   {"XPLMDisableAIForPlane", (PyCFunction)XPLMDisableAIForPlaneFun, METH_VARARGS | METH_KEYWORDS, ""},
 #if defined(XPLM_DEPRECATED)
-  {"drawAircraft", (PyCFunction)XPLMDrawAircraftFun, METH_VARARGS | METH_KEYWORDS, _drawAircraft__doc__},
-  {"XPLMDrawAircraft", (PyCFunction)XPLMDrawAircraftFun, METH_VARARGS | METH_KEYWORDS, ""},
-#endif
-#if defined(XPLM_DEPRECATED)
-  {"reinitUsersPlane", (PyCFunction)XPLMReinitUsersPlaneFun, METH_VARARGS | METH_KEYWORDS, _reinitUsersPlane__doc__},
-  {"XPLMReinitUsersPlane", (PyCFunction)XPLMReinitUsersPlaneFun, METH_VARARGS | METH_KEYWORDS, ""},
+  // Removed: drawAircraft and reinitUsersPlane are deprecated and not implemented in XPPython3
+  // {"drawAircraft", (PyCFunction)XPLMDrawAircraftFun, METH_VARARGS | METH_KEYWORDS, _drawAircraft__doc__},
+  // {"XPLMDrawAircraft", (PyCFunction)XPLMDrawAircraftFun, METH_VARARGS | METH_KEYWORDS, ""},
+  // {"reinitUsersPlane", (PyCFunction)XPLMReinitUsersPlaneFun, METH_VARARGS | METH_KEYWORDS, _reinitUsersPlane__doc__},
+  // {"XPLMReinitUsersPlane", (PyCFunction)XPLMReinitUsersPlaneFun, METH_VARARGS | METH_KEYWORDS, ""},
 #endif
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {nullptr, nullptr, 0, nullptr}

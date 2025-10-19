@@ -71,8 +71,8 @@ My_DOCSTR(_probeTerrainXYZ__doc__, "probeTerrainXYZ",
           "  .normalZ:   Normal vector (e.g. slope),\n"
           "  .velocityX,\n"
           "  .velocityY,\n"
-          "  .velocityZ: Velocity vector (e.g., meter/sec) of meovement\n"
-          "  .is_set:    1=we hit water");
+          "  .velocityZ: Velocity vector (e.g., meter/sec) of movement\n"
+          "  .is_wet:    1=we hit water");
 static PyObject *XPLMProbeTerrainXYZFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   static char *keywords[] = {CHAR("probe"), CHAR("x"), CHAR("y"), CHAR("z"), nullptr};
@@ -215,7 +215,7 @@ My_DOCSTR(_loadObjectAsync__doc__, "loadObjectAsync",
           "None",
           "Loads OBJ asynchronously, calling callback on completion.\n"
           "\n"
-          "Callback signature is loaded(objecRef, refCon)\n"
+          "Callback signature is loaded(objectRef, refCon)\n"
           "Object path is absolute or relative X-Plane root.");
 static PyObject *XPLMLoadObjectAsyncFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -300,7 +300,7 @@ My_DOCSTR(_lookupObjects__doc__, "lookupObjects",
           "int",
           "Converts virtual path to file paths, calling enumerator with info\n"
           "\n"
-          "Path is virual path, which may have zero or more matching file paths\n"
+          "Path is virtual path, which may have zero or more matching file paths\n"
           "in library. Count of results is returned by lookupObjects().\n"
           "For each item found, enumerator(path, refCon) is called.");
 static PyObject *XPLMLookupObjectsFun(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -364,8 +364,9 @@ static PyMethodDef XPLMSceneryMethods[] = {
   {"loadObjectAsync", (PyCFunction)XPLMLoadObjectAsyncFun, METH_VARARGS | METH_KEYWORDS, _loadObjectAsync__doc__},
   {"XPLMLoadObjectAsync", (PyCFunction)XPLMLoadObjectAsyncFun, METH_VARARGS | METH_KEYWORDS, ""},
 #if defined(XPLM_DEPRECATED)
-  {"drawObjects", (PyCFunction)XPLMDrawObjectsFun, METH_VARARGS | METH_KEYWORDS, _drawObjects__doc__},
-  {"XPLMDrawObjects", (PyCFunction)XPLMDrawObjectsFun, METH_VARARGS | METH_KEYWORDS, ""},
+  // Removed: drawObjects is deprecated and not implemented in XPPython3
+  // {"drawObjects", (PyCFunction)XPLMDrawObjectsFun, METH_VARARGS | METH_KEYWORDS, _drawObjects__doc__},
+  // {"XPLMDrawObjects", (PyCFunction)XPLMDrawObjectsFun, METH_VARARGS | METH_KEYWORDS, ""},
 #endif
   {"unloadObject", (PyCFunction)XPLMUnloadObjectFun, METH_VARARGS | METH_KEYWORDS, _unloadObject__doc__},
   {"XPLMUnloadObject", (PyCFunction)XPLMUnloadObjectFun, METH_VARARGS | METH_KEYWORDS, ""},

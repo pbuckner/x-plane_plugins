@@ -279,7 +279,7 @@ void convertMessagePythonToC(XPWidgetMessage msg, PyObject *widget, PyObject *pa
     errCheck("Failed to convert param2 pointer for msg %d. capsule? %d", msg, PyCapsule_CheckExact(param2));
     break;
   }
-  errCheck("end convertMesssagePythonToC");
+  errCheck("end convertMessagePythonToC");
 }
 
 My_DOCSTR(_selectIfNeeded__doc__, "selectIfNeeded",
@@ -523,7 +523,7 @@ static PyMethodDef XPWidgetUtilsMethods[] = {
   {"defocusKeyboard", (PyCFunction)XPUDefocusKeyboardFun, METH_VARARGS | METH_KEYWORDS, _defocusKeyboard__doc__},
   {"XPUDefocusKeyboard", (PyCFunction)XPUDefocusKeyboardFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"dragWidget", (PyCFunction)XPUDragWidgetFun, METH_VARARGS | METH_KEYWORDS, _dragWidget__doc__},
-  {"XPUDragWidget", (PyCFunction)XPUDragWidgetFun, METH_VARARGS, ""},
+  {"XPUDragWidget", (PyCFunction)XPUDragWidgetFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {nullptr, nullptr, 0, nullptr}
 };

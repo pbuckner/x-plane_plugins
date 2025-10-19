@@ -18,6 +18,7 @@ into trees of widgets to create complex user interfaces.
 
 Constants
 ---------
+
 .. _XPWidgetPropertyID:
 
 XPWidgetPropertyID

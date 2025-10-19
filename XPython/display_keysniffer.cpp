@@ -104,7 +104,7 @@ PyObject *XPLMUnregisterKeySnifferFun(PyObject *self, PyObject *args, PyObject *
   }    
   PyObject *err = PyErr_Occurred();
   if(err){
-    pythonLog("Error occured during the XPLMUnregisterKeySnifferCallback call:");
+    pythonLog("Error occurred during the XPLMUnregisterKeySnifferCallback call:");
     pythonLogException();
   }
   return PyLong_FromLong(res);
@@ -119,7 +119,7 @@ int genericKeySnifferCallback(char inChar, XPLMKeyFlags inFlags, char inVirtualK
   
   auto it = keySnifferCallbackDict.find(refcon_id);
   if (it == keySnifferCallbackDict.end()) {
-    pythonLog("keySninfferCallback, got unknown inRefcon (%p)!", inRefcon);
+    pythonLog("keySnifferCallback, got unknown inRefcon (%p)!", inRefcon);
     return res;
   }
 

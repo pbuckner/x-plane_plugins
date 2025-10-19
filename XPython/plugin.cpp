@@ -115,7 +115,7 @@ debugErrorCallback(const char *inMessage) {
 };
 
 int initPython(void){
-  /* Initalize Python and internal modules
+  /* Initialize Python and internal modules
    * return 0: success, otherwise: fail... all failures are fatal */
 
   pythonThread = pthread_self();
@@ -255,7 +255,7 @@ int initPython(void){
   }
 
   if (ERRCHECK || pythonDebugs) {
-    /* if beta/ERRCHECK or if user has enabled pythonDebugs, set a defaut ErrorCallback */
+    /* if beta/ERRCHECK or if user has enabled pythonDebugs, set a default ErrorCallback */
     pythonLog("[XPPython3] Enabling XP Error Callback -- XP SDK API errors will be directed to python log");
     XPLMSetErrorCallback(debugErrorCallback);
   }
@@ -296,7 +296,7 @@ static int stopPython(void)
   xpy_stopInstances();
 
   if (pythonDebugs) {
-    /* Print out currently "undeleted" objects... ideally, these would be cleaned up by the owing python plugins
+    /* Print out currently "undeleted" objects... ideally, these would be cleaned up by the owning python plugins
        This is output only -- we're not deleting them here.
      */
     pythonLog("Undeleted items: begin vvvvv");
@@ -621,7 +621,7 @@ static int loadLocalPythonLibrary(void)
 {
 /*
   The _reason_ we have to do this is a python problem which (still) exists on linux (November 2022)
-  Essential, the python shared libs (say _ssl.so) don't look within the python libpythonX.X.so shared
+  Essentially, the python shared libs (say _ssl.so) don't look within the python libpythonX.X.so shared
   lib, so the imported shared lib will fail with something like:
      ImportError: /usr/lib/python/lib-dynload/_sso.so: undefined symbol: PyEx_ValueError
 
@@ -711,7 +711,7 @@ static void handleConfigFile(void) {  /* Find and handle config.ini file */
 
 static void initMtimes(void) {
   PythonModuleMTimes = PyDict_New();
-  /* Initials mtime for imports */
+  /* Initialize mtime for imports */
   PyObject *localsDict = PyDict_New();
   PyDict_SetItemString(localsDict, "__builtins__", PyEval_GetBuiltins());
   PyDict_SetItemString(localsDict, "mtimes", PythonModuleMTimes);

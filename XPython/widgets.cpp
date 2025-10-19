@@ -100,9 +100,7 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
 
   WidgetCallbackInfo& callbackInfo = it->second;
   set_moduleName(callbackInfo.module_name);
-  xpy_assert(CurrentPythonModuleName[0] == 'X' || CurrentPythonModuleName[0] == 'P');
-
-  int pluginIndex = getPluginIndex(); // gotta 'save' this for stats belw
+  int pluginIndex = getPluginIndex(); // gotta 'save' this for stats below
   errCheck("Error after makeCapsule");
   
   PyObject *param1, *param2;
@@ -189,11 +187,6 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
      
   */
 
-  if (CurrentPythonModuleName[0] != 'X' && CurrentPythonModuleName[0] != 'P') {
-    pythonLog("Bad Current Python Module Name, msg: %d, %p", inMessage, inWidget);
-  }
-
-  char *save = CurrentPythonModuleName;
   int res;
   for(size_t i = 0; i < callbackInfo.callbacks.size(); ++i){
     err = PyErr_Occurred();
@@ -233,8 +226,6 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
       break;
     }
   }
-  set_moduleName(save);
-
   err = PyErr_Occurred();
   if(err){
     pythonLog("Error in widget post callbacklist for msg %d", inMessage);
@@ -265,7 +256,7 @@ int widgetCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inPa
   pluginStats[0].customw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
   err = PyErr_Occurred();
   if(err){
-    pythonLog("Error add end of widget callback for msg %d", inMessage);
+    pythonLog("Error at end of widget callback for msg %d", inMessage);
     pythonLogException();
   }
   return res;
@@ -400,9 +391,7 @@ static PyObject *XPDestroyWidgetFun(PyObject *self, PyObject *args, PyObject *kw
      widget), but will all be resolving to the same module. Because child widgets ALL
      are created within same python plugin module.
   */
-  char *save = CurrentPythonModuleName;
   XPDestroyWidget(wid, inDestroyChildren);
-  set_moduleName(save);
   if (inDestroyChildren) {
     clearChildrenXPWidgetData(widget);
   }

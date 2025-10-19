@@ -25,7 +25,7 @@ Some definitions:
   Users can individually enable/disable these. (You can add a layer and *not* display a checkbox which keeps
   the user from turning it off.)
   You can create any number of map layers. Each map layer is identified as either "Fill" or "Markings": the difference
-  changes the order of layer drawing ("Fills" are always drawn below "Marking" layers.). You'll used :func:`createMapLayer`
+  changes the order of layer drawing ("Fills" are always drawn below "Marking" layers.). You'll use :func:`createMapLayer`
   for this.
 
 As of X-Plane 11, map drawing happens in three stages:
@@ -101,7 +101,7 @@ Notification of Map Existence
 -----------------------------
 
 Just to make things a bit more difficult, you cannot add a map layer using :func:`createMapLayer` to
-a map *until the map has been created*. As far as I can tell, the each map is created once, when the user
+a map *until the map has been created*. As far as I can tell, each map is created once, when the user
 first shows it, and it is never destroyed.
 
 But, since you can't call you :func:`createMapLayer` until after the map is created, you'll use
@@ -198,8 +198,8 @@ when it is created (:py:func:`registerMapCreationHook`).
  :param XPLMMapType mapType: one of :data:`XPLMMapType`, defaults to :data:`xp.MAP_USER_INTERFACE`
  :param XPLMMapLayer layerType: one of :data:`XPLMMapLayer`, defaults to :data:`xp.MapLayer_Markings`
  :param Callable delete: callback when map (or layer) is deleted
- :param Callable prep: callback  
- :param Callable draw: callback tor
+ :param Callable prep: callback
+ :param Callable draw: callback
  :param Callable icon:
  :param Callable label:
  :param int showToggle: 1= show toggle checkbox on map popup, 0= do not show toggle, defaults to 1
@@ -528,7 +528,7 @@ will appear beneath any icons and labels you draw.
  The string will be centered on that point.
 
  *orientation* is the map's current orientation, either ``xp.MapOrientation_Map`` (0 degrees rotation matches map's north),
- or ``xp.MapOrientation_UI`` (0 degrees rotation is "up" relative to the user interface). *rotatationDegrees* indicated degrees
+ or ``xp.MapOrientation_UI`` (0 degrees rotation is "up" relative to the user interface). *rotationDegrees* indicated degrees
  of clockwise rotation.
 
  See example above in :py:func:`createMapLayer` with the ``labelLayer()`` callback.
@@ -666,10 +666,10 @@ map's rotation can potentially change every frame.
 
  .. image:: /images/XPLMMapGetNorthHeading.jpg
 
- `Official SDK <https://developer.x-plane.com/sdk/XPLMMap/#XPLMMapGetNorthHeading>`__ :index:`XPLMMapGetNorthHeading`             
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMMap/#XPLMMapGetNorthHeading>`__ :index:`XPLMMapGetNorthHeading`
 
-Contants
---------
+Constants
+---------
 
 .. data:: XPLMMapType
 

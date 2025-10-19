@@ -113,7 +113,7 @@ My_DOCSTR(_getSystemPath__doc__, "getSystemPath",
           "",
           "",
           "str",
-          "Return full page to X-Plane folder, with trailing '/'");
+          "Return full path to X-Plane folder, with trailing '/'");
 static PyObject *XPLMGetSystemPathFun(PyObject *self, PyObject *args)
 {
   (void) self;
@@ -852,7 +852,7 @@ static PyMethodDef XPLMUtilitiesMethods[] = {
   {"XPLMRegisterCommandHandler", (PyCFunction)XPLMRegisterCommandHandlerFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"unregisterCommandHandler", (PyCFunction)XPLMUnregisterCommandHandlerFun, METH_VARARGS | METH_KEYWORDS, _unregisterCommandHandler__doc__},
   {"XPLMUnregisterCommandHandler", (PyCFunction)XPLMUnregisterCommandHandlerFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"getCommandCallbackDict", (PyCFunction)buildCommandCallbackDict, METH_VARARGS, "Copy of internal CommmandCallbackInfo"},
+  {"getCommandCallbackDict", (PyCFunction)buildCommandCallbackDict, METH_VARARGS, "Copy of internal CommandCallbackInfo"},
   {"getErrorCallbackDict", (PyCFunction)buildErrorCallbackDict, METH_VARARGS, "Copy of internal ErrorCallbackInfo"},
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {nullptr, nullptr, 0, nullptr}

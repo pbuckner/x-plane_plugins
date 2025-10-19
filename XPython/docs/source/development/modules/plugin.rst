@@ -473,7 +473,7 @@ should not expect a feature to be guaranteed present.
 .. py:function:: enumerateFeatures(enumerator, refCon)
 
   :param Callable enumerator: callback function (see below)
-  :param Any refCon: Reference constanct for callback
+  :param Any refCon: Reference constant for callback
   :return: None                     
 
   This routine immediately calls your *enumerator* callback once for each feature that this

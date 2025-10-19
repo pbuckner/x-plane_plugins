@@ -13,7 +13,7 @@ static PyObject *getPluginInstanceBySignature(PyObject *);
 int xpy_startInstance(PyObject *pModule, PyObject* pluginInstance, PluginType plugin_type) {
   /* Start loaded instance, update  XP3pluginDict with information   */
 
-  /* start with a nearly empty stuct -- we need the stable module_name */
+  /* start with a nearly empty struct -- we need the stable module_name */
   PluginInfo *pluginInfo = (PluginInfo*)malloc(sizeof(PluginInfo));
   pluginInfo->module_name = CurrentPythonModuleName;  // Already interned via set_moduleName()
 
@@ -155,7 +155,7 @@ void xpy_reloadInstance(PyObject *signature) {
       auto newPluginIt = XPY3pluginInfoDict.find(pluginInstance);
       if (newPluginIt != XPY3pluginInfoDict.end()) {
         /* we could not enable the plugin (or plugin requested not to be enabled
-           Mark it as disabled, so we'll not sent messages (or Disable) to it later
+           Mark it as disabled, so we'll not send messages (or Disable) to it later
         */
         newPluginIt->second.disabled = (0 == xpy_enableInstance(pluginInstance));
       }
@@ -180,7 +180,7 @@ int xpy_enableInstance(PyObject *pluginInstance) {
 
   if(PyErr_Occurred()) {
     pythonLogException();
-    pythonLog("[XPPython3] Error occured during call to %s XPluginEnable", CurrentPythonModuleName);
+    pythonLog("[XPPython3] Error occurred during call to %s XPluginEnable", CurrentPythonModuleName);
     return 0;
   }
 
@@ -208,7 +208,7 @@ void xpy_disableInstance(PyObject *pluginInstance) {
     PyErr_Clear();
     if (PyObject_HasAttrString(pluginInstance, "XPluginDisable")) {
       pythonLogException();
-      pythonLog("[XPPython3] Error occured during call to %s XPluginDisable", CurrentPythonModuleName);
+      pythonLog("[XPPython3] Error occurred during call to %s XPluginDisable", CurrentPythonModuleName);
       PyErr_SetRaisedException(err);
     } else {
       pythonDebug("  (no XPluginDisable for %s module)", CurrentPythonModuleName);
@@ -230,14 +230,14 @@ void xpy_cleanUpInstance(PyObject *pluginInstance) {
   err = PyErr_Occurred();
   if (err) {
     pythonLogException();
-    pythonLog("[XPPython3] Error after clearning menus for %s", CurrentPythonModuleName);
+    pythonLog("[XPPython3] Error after clearing menus for %s", CurrentPythonModuleName);
     return;
   }
   clearInstanceCommands(CurrentPythonModuleName);
   err = PyErr_Occurred();
   if (err) {
     pythonLogException();
-    pythonLog("[XPPython3] Error after clearning commands for %s", CurrentPythonModuleName);
+    pythonLog("[XPPython3] Error after clearing commands for %s", CurrentPythonModuleName);
     return;
   }
   pythonDebug("%*s Cleaned instance: %s", 6, " ", CurrentPythonModuleName);

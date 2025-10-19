@@ -45,7 +45,7 @@ static void genericHotkeyCallback(void *inRefcon)
     pythonDebug("exception in hotkey callback\n");
     pythonLogException();
   }
-  Py_XDECREF(res);  // in case hotkey doesn't happent to return anything
+  Py_XDECREF(res);  // in case hotkey doesn't happen to return anything
   errCheck("end hotkeyCallback");
 }
 

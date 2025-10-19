@@ -88,7 +88,7 @@ static PyObject *loadPIClass(const char *fname, PluginType plugin_type)
   err = PyErr_Occurred();
   if (err){
     pythonLogException();
-    pythonDebug("Error occured during import of %s", fname);
+    pythonDebug("Error occurred during import of %s", fname);
     char *s = objToStr(err);
     pythonDebug("%s\n^^^^", s);
     free(s);

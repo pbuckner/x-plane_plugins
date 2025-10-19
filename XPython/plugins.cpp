@@ -325,7 +325,7 @@ My_DOCSTR(_enumerateFeatures__doc__, "enumerateFeatures",
           "None",
           "Enumerate supported features\n"
           "\n"
-          "You callback takes (name, refCon) as parameters");
+          "Your callback takes (name, refCon) as parameters");
 static PyObject *XPLMEnumerateFeaturesFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   static char *keywords[] = {CHAR("enumerator"), CHAR("refCon"), nullptr};
@@ -450,7 +450,7 @@ PyInit_XPLMPlugin(void)
     PyModule_AddIntConstant(mod, "MsgAirplaneCountChanged", XPLM_MSG_AIRPLANE_COUNT_CHANGED);
     PyModule_AddIntConstant(mod, "MsgPlaneUnloaded", XPLM_MSG_PLANE_UNLOADED);
     PyModule_AddIntConstant(mod, "MsgWillWritePrefs", XPLM_MSG_WILL_WRITE_PREFS);
-    PyModule_AddIntConstant(mod, "MsgLivery_Loaded", XPLM_MSG_LIVERY_LOADED);
+    PyModule_AddIntConstant(mod, "MsgLiveryLoaded", XPLM_MSG_LIVERY_LOADED);
     PyModule_AddIntConstant(mod, "MsgEnteredVr", XPLM_MSG_ENTERED_VR);
     PyModule_AddIntConstant(mod, "MsgExitingVr", XPLM_MSG_EXITING_VR);
     PyModule_AddIntConstant(mod, "MsgReleasePlanes", XPLM_MSG_RELEASE_PLANES);

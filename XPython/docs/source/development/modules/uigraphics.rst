@@ -48,7 +48,7 @@ Functions
  :param int style: :ref:`XPWindowStyle`
  :return: Tuple (width: int, height: int)
 
- This routine returns the default dimensions (width, height) for a window, given it's *style* (:ref:`XPWindowStyle`).
+ This routine returns the default dimensions (width, height) for a window, given its *style* (:ref:`XPWindowStyle`).
  Output is either
  a minimum or fixed value depending on whether the window is scalable.
 
@@ -98,7 +98,7 @@ Functions
  
 .. py:function:: getElementDefaultDimensions(style)
 
- :param XPElementStyle style: :ref:`XPElementStyle
+ :param XPElementStyle style: :ref:`XPElementStyle`
  :return: Tuple[width: int, height: int, canBeLit: int]                             
 
  Returns the recommended or minimum dimensions of a given UI
@@ -150,7 +150,7 @@ Functions
 .. py:function:: getTrackDefaultDimensions(style)
 
  :param style: :ref:`XPTrackStyle`
- :return: Tuple[width: int, canBeList: int]
+ :return: Tuple[width: int, canBeLit: int]
 
  This routine returns a track's *default smaller dimension* as a tuple ``(width, canBeLit)``.
 

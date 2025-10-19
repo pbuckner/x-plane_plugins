@@ -36,7 +36,7 @@ struct FlightLoopDict {
 static std::unordered_map<intptr_t, FlightLoopDict> flightLoopCallbacks;
 /* <flCntr>: FlightLoopDict */
 
-/* For "new style" flight looks, we also record XPLMFlightLoopID capsule.
+/* For "new style" flight loops, we also record XPLMFlightLoopID capsule.
    Note that internally, X-Plane will always call our genericFlightLoop with <flCntr> as the refCon,
    so we can do a flDict[<flCntr>] lookup to get the info: we don't need FlightLoopID, except for
    Schedule and Destroy.
@@ -107,10 +107,10 @@ static float genericFlightLoopCallbackStats(float inElapsedSinceLastCall, float 
   if(err){
     pythonLogException();
     char *s = objToStr(flInfo.callback);
-    pythonLog("[%s]: %s Error occured during the flightLoop callback (inRefcon = %p), disabling:",
+    pythonLog("[%s]: %s Error occurred during the flightLoop callback (inRefcon = %p), disabling:",
               CurrentPythonModuleName, s, inRefcon);
     free(s);
-    errCheck("opps, trying to log error failed");
+    errCheck("oops, trying to log error failed");
     tmp = 0.0f;
   } else if (PyFloat_Check(res)) {
     tmp = PyFloat_AsDouble(res);
@@ -119,11 +119,11 @@ static float genericFlightLoopCallbackStats(float inElapsedSinceLastCall, float 
   } else {
     char *s = objToStr(flInfo.callback);
     char *s2 = objToStr(res); 
-    pythonLog("[%s]: %s Error occured during the flightLoop callback (inRefcon = %p), disabling: Bad return value '%s'",
+    pythonLog("[%s]: %s Error occurred during the flightLoop callback (inRefcon = %p), disabling: Bad return value '%s'",
               CurrentPythonModuleName, s, inRefcon, s2);
     free(s);
     free(s2);
-    errCheck("opps, trying to log 'else' error failed");
+    errCheck("oops, trying to log 'else' error failed");
     tmp = 0.0f;
   }
   Py_XDECREF(res);
@@ -160,10 +160,10 @@ static float genericFlightLoopCallbackNoStats(float inElapsedSinceLastCall, floa
   if(err){
     pythonLogException();
     char *s = objToStr(flInfo.callback);
-    pythonLog("[%s]: %s Error occured during the flightLoop callback (inRefcon = %p), disabling:",
+    pythonLog("[%s]: %s Error occurred during the flightLoop callback (inRefcon = %p), disabling:",
               CurrentPythonModuleName, s, inRefcon);
     free(s);
-    errCheck("opps, trying to log error failed");
+    errCheck("oops, trying to log error failed");
     tmp = 0.0f;
   } else if (PyFloat_Check(res)) {
     tmp = PyFloat_AsDouble(res);
@@ -172,11 +172,11 @@ static float genericFlightLoopCallbackNoStats(float inElapsedSinceLastCall, floa
   } else {
     char *s = objToStr(flInfo.callback);
     char *s2 = objToStr(res); 
-    pythonLog("[%s]: %s Error occured during the flightLoop callback (inRefcon = %p), disabling: Bad return value '%s'",
+    pythonLog("[%s]: %s Error occurred during the flightLoop callback (inRefcon = %p), disabling: Bad return value '%s'",
               CurrentPythonModuleName, s, inRefcon, s2);
     free(s);
     free(s2);
-    errCheck("opps, trying to log 'else' error failed");
+    errCheck("oops, trying to log 'else' error failed");
     tmp = 0.0f;
   }
   Py_XDECREF(res);
@@ -497,7 +497,7 @@ My_DOCSTR(_scheduleFlightLoop__doc__, "scheduleFlightLoop",
           "  0= stop\n"
           "  >0 seconds\n"
           "  <0 flightLoops\n"
-          "If relativeToNow is 1, interval is relative to now, duh, otherwise\n"
+          "If relativeToNow is 1, interval is relative to now, otherwise\n"
           "interval is relative to previous callback execution.");
 static PyObject *XPLMScheduleFlightLoopFun(PyObject *self, PyObject*args, PyObject *kwargs)
 {

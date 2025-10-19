@@ -30,12 +30,12 @@ Theory of Operation
 * **Set Weather**
 
   Setting weather will *not change* the UI "Weather Settings", weather set via plugin "adds" to the set of information
-  used to calculate simulated weather. One way to visualize many of these changes is to enable to X-Plane Weather Map (Developer menu).
+  used to calculate simulated weather. One way to visualize many of these changes is to enable the X-Plane Weather Map (Developer menu).
   Then select "plugin METARS" Layer. You'll see weather that has been set by (all) plugins.
 
   For example, in the following image, you can see weather set specifically at Cambridge airport (labeled EGSC) using :func:`setWeatherAtAirport`, and
   weather set to nearby locations (labeled _PLG) using :func:`setWeatherAtLocation`.
-  Latitude, longitude ar displayed in white along the edges of the image. Note the "Age" of the report at the bottom of each.
+  Latitude, longitude are displayed in white along the edges of the image. Note the "Age" of the report at the bottom of each.
   
   .. image:: /images/weather_map_plugin.png
   
@@ -206,9 +206,9 @@ previous updates to be sure::
   `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLMSetWeatherAtLocation>`__ :index:`XPLMSetWeatherAtLocation`
 
 .. py:function:: setWeatherAtAirport(airport_id, info)
-                 
-  :param str airport_id: airport Id
-  :param XPLMWeatherInfo_t info: :data:`XPLMWeatherInfo_t` data structure contining requested change. Note not all element members are applicable for "set".
+
+  :param str airport_id: airport ID
+  :param XPLMWeatherInfo_t info: :data:`XPLMWeatherInfo_t` data structure containing requested change. Note not all element members are applicable for "set".
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLMSetWeatherAtAirport>`__ :index:`XPLMSetWeatherAtAirport`
 
@@ -217,17 +217,17 @@ previous updates to be sure::
   :param float latitude:
   :param float longitude: floating point latitude and longitude
 
-  Erase *all* weather information provided by this plugin a the given latitude, longitude. Note
+  Erase *all* weather information provided by this plugin at the given latitude, longitude. Note
   if other plugins have also provide weather at this location, those changes will still be valid.
   It is not harmful to call :func:`eraseWeatherAtLocation` where you have not yet provided weather.
    
   `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLMEraseWeatherAtLocation>`__ :index:`XPLMEraseWeatherAtLocation`
 
-.. py:function:: eraseWeatherAtAirport(airport)
+.. py:function:: eraseWeatherAtAirport(airport_id)
 
-  :param str airport_id: airport Id
+  :param str airport_id: airport ID
 
-  Erase *all* weather information provided by this plugin a the given airport. Note
+  Erase *all* weather information provided by this plugin at the given airport. Note
   if other plugins have also provide weather at this airport, those changes will still be valid.
   It is not harmful to call :func:`eraseWeatherAtAirport` where you have not yet provided weather.
    
@@ -331,7 +331,7 @@ You can create a "blank" instance of this class, including associated lists by n
 
   >>> info = xp.XPLMWeatherInfo_t()
 
-The instance will be intialized to useful defaults including:
+The instance will be initialized to useful defaults including:
 
 | .age = 0
 | .detail_found = -1
@@ -493,7 +493,7 @@ The instance will be intialized to useful defaults including:
 |                                  |      |report, feet MSL. You need to set this to       |            |                   |
 |                                  |      |something.                                      |            |                   |
 |                                  |      |                                                |            |                   |
-|                                  |      |This meaningless on read.                       |            |                   |
+|                                  |      |This is meaningless on read.                    |            |                   |
 +----------------------------------+------+------------------------------------------------+------------+-------------------+
 
 .. data:: XPLMWeatherInfoClouds_t
@@ -622,7 +622,7 @@ Constants
 
   I believe(?) you can pass a version1 XPLMWeatherInfo_t struct, in which case the default radius and radious msl_feet
   are set to XPLM_DEFAULT_WXR_RADIUS_NM and XPLM_DEFAULT_WXR_RADIUS_MSL_FT.
-  
-  When 'set' is done withing begin/end
+
+  When 'set' is done within begin/end
 
   WeatherInfo vs XPLMWeatherInfo_t ??

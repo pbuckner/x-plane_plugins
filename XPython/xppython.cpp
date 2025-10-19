@@ -52,8 +52,6 @@ int getPluginIndex()
     numPlugins++;
   }
 
-  xpy_assert(CurrentPythonModuleName[0] == 'X' || CurrentPythonModuleName[0] == 'P');
-
   for (int i = 1; i < numPlugins; i++) {
     if(0 == strcmp(pluginStats[i].module_name, CurrentPythonModuleName)) return i;
   }

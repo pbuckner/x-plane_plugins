@@ -443,7 +443,7 @@ My_DOCSTR(_setMenuItemName__doc__, "setMenuItemName",
           "menuID=None, index=0, name='New Name'",
           "menuID:Optional[XPLMMenuID]=None, index:int=0, name:str='New Name'",
           "None",
-          "Change the name of and existing menu item.");
+          "Change the name of an existing menu item.");
 static PyObject *XPLMSetMenuItemNameFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   static char *keywords[] = {CHAR("menuID"), CHAR("index"), CHAR("name"), nullptr};
@@ -478,7 +478,7 @@ My_DOCSTR(_checkMenuItem__doc__, "checkMenuItem",
           "Set checkmark for given menu item.\n"
           "\n"
           "  Menu_NoCheck = 0\n"
-          "  Menu_UnChecked = 1\n"
+          "  Menu_Unchecked = 1\n"
           "  Menu_Checked = 2"
           );
 static PyObject *XPLMCheckMenuItemFun(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -515,7 +515,7 @@ My_DOCSTR(_checkMenuItemState__doc__, "checkMenuItemState",
           "Returns menu item checked state.\n"
           "\n"
           "  Menu_NoCheck = 0\n"
-          "  Menu_UnChecked = 1\n"
+          "  Menu_Unchecked = 1\n"
           "  Menu_Checked = 2"
           );
 static PyObject *XPLMCheckMenuItemStateFun(PyObject *self, PyObject *args, PyObject *kwargs)

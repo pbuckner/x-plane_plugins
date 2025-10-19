@@ -354,28 +354,22 @@ char * objToStr(PyObject *item) {
 void set_moduleName(const std::string& name) {
   const char* interned = intern_moduleName(name);
   if(interned != CurrentPythonModuleName) {
-    xpy_assert(interned[0] == 'X' || interned[0] == 'P');
     CurrentPythonModuleName = const_cast<char*>(interned);
   }
-  xpy_assert(CurrentPythonModuleName[0] == 'X' || CurrentPythonModuleName[0] == 'P');
 }
 
 void set_moduleName(char *name) {
   const char* interned = intern_moduleName(name);
   if (interned != CurrentPythonModuleName) {
-    xpy_assert(interned[0] == 'X' || interned[0] == 'P');
     CurrentPythonModuleName = const_cast<char*>(interned);
   }
-  xpy_assert(CurrentPythonModuleName[0] == 'X' || CurrentPythonModuleName[0] == 'P');
 }
 
 void set_moduleName(const char* name) {
   const char* interned = intern_moduleName(name);
   if (interned != CurrentPythonModuleName) {
-    xpy_assert(interned[0] == 'X' || interned[0] == 'P');
     CurrentPythonModuleName = const_cast<char*>(interned);
   }
-  xpy_assert(CurrentPythonModuleName[0] == 'X' || CurrentPythonModuleName[0] == 'P');
 }
 
 PyObject *get_moduleName_p() {

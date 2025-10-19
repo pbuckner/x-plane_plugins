@@ -108,7 +108,7 @@ def registerAvionicsCallbacksEx(deviceId:XPLMDeviceID,
     drawing. Return value for 'after' callback is ignored.
     
     Upon entry, OpenGL context will be correctly set in panel coordinates for 2d drawing.
-    OpenGL state (texturing, etc.) will be unknwon.
+    OpenGL state (texturing, etc.) will be unknown.
     
     Successful registration returns an AvionicsID.
     
@@ -532,13 +532,13 @@ def hasKeyboardFocus(windowID: XPLMWindowID) -> int:
 
 def bringWindowToFront(windowID:XPLMWindowID) -> None:
     """
-    Bring window to front (of it's window layer).
+    Bring window to front (of its window layer).
     """
     ...
 
 def isWindowInFront(windowID:XPLMWindowID) -> int:
     """
-    Returns 1 if window is currently in the front of it's window layer).
+    Returns 1 if window is currently in the front of its window layer).
     """
     ...
 
@@ -588,6 +588,42 @@ def getHotKeyInfo(hotKeyID:XPLMHotKeyID) -> None | HotKeyInfo:
 def setHotKeyCombination(hotKeyID:XPLMHotKeyID, vKey:int, flags:XPLMKeyFlags=NoFlag) -> None:
     """
     Update key combination for given hotKeyID to use vKey and flags
+    """
+    ...
+
+def getDrawCallbackDict() -> dict[int, tuple[str, Callable, int, int, Any]]:
+    """
+    Returns copy of internal DrawCallbackInfo dictionary for debugging.
+
+    Dictionary maps callback counter (int) to tuple of:
+      (module_name, callback, phase, before, refCon)
+    """
+    ...
+
+def getWindowCallbackDict() -> dict[XPLMWindowID, tuple[Callable, Callable, Callable, Callable, Callable, Callable, Any, str]]:
+    """
+    Returns copy of internal WindowCallbackInfo dictionary for debugging.
+
+    Dictionary maps windowID to tuple of:
+      (draw, click, key, cursor, wheel, rightClick, refCon, module_name)
+    """
+    ...
+
+def getAvionicsCallbackDict() -> dict[XPLMAvionicsID, tuple]:
+    """
+    Returns copy of internal AvionicsCallbackInfo dictionary for debugging.
+    """
+    ...
+
+def getKeySnifferCallbackDict() -> dict[int, tuple]:
+    """
+    Returns copy of internal KeySnifferCallbackInfo dictionary for debugging.
+    """
+    ...
+
+def getHotKeyCallbackDict() -> dict[XPLMHotKeyID, tuple]:
+    """
+    Returns copy of internal HotKeyCallbackInfo dictionary for debugging.
     """
     ...
 

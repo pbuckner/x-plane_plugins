@@ -1446,7 +1446,7 @@ def createInstance(obj:XPLMObjectRef, dataRefs:Optional[tuple[str, ...]]=None) -
     """
     ...
 
-def destroyInstance(instance:XPLMObjectRef) -> None:
+def destroyInstance(instance:XPLMInstanceRef) -> None:
     """
     Destroys instance created by createInstance().
     """
@@ -1459,7 +1459,7 @@ def instanceSetAutoShift(instance:XPLMInstanceRef) -> None:
     """
     ...
 
-def instanceSetPosition(instance:XPLMObjectRef, position:XPLMDrawInfo_t | tuple[float, float, float, float, float, float],
+def instanceSetPosition(instance:XPLMInstanceRef, position:XPLMDrawInfo_t | tuple[float, float, float, float, float, float],
           data:Optional[tuple[float, ...]]=None) -> None:
     """
     Update position (x, y, z, pitch, heading, roll),
@@ -1471,7 +1471,7 @@ def instanceSetPosition(instance:XPLMObjectRef, position:XPLMDrawInfo_t | tuple[
     """
     ...
 
-def instanceSetPositionDouble(instance:XPLMObjectRef, position:XPLMDrawInfoDouble_t | tuple[float, float, float, float, float, float],
+def instanceSetPositionDouble(instance:XPLMInstanceRef, position:XPLMDrawInfoDouble_t | tuple[float, float, float, float, float, float],
           data:Optional[tuple[float, ...]]=None) -> None:
     """
     Update position (x, y, z, pitch, heading, roll),
@@ -2799,7 +2799,7 @@ def setWidgetProperty(widgetID:XPWidgetID, propertyID:XPWidgetPropertyID | int, 
 
 def getWidgetProperty(widgetID:XPWidgetID, propertyID:XPWidgetPropertyID | int, exists: None | int=-1) -> Any:
     """
-    Returns widget's property value. For XP properties, it is a long, for
+    Returns widget's property value. For XP properties, it is a long. For
     User-defined properties, it can be any python object.
 
     Raise ValueError if exists=-1 and property does not exist / has not been set
@@ -2944,7 +2944,7 @@ def derefCapsule(capsule_type:str, capsule:Any) -> int:
     ...
 
 
-def getSelfName() -> str:
+def getSelfModuleName() -> str:
     """
     Return module name of currently executing python plugin.
     """

@@ -1,7 +1,7 @@
 from typing import Any, Self, cast, Optional
 from XPPython3 import xp, internals
 from XPPython3.utils import xlua
-from XPPython3.xp_typing import PythonInterfaceType, XPLMFlightLoopID
+from XPPython3.xp_typing import XPLMFlightLoopID
 import inspect
 import os
 
@@ -104,11 +104,11 @@ class EasyPython:
             xp.destroyFlightLoop(self._startflightloop_after)
             self._startflightloop_after = None
         self.onDisable()
-        for accessor in internals.getAccessors(cast(PythonInterfaceType, self)):
-            xp.unregisterDataAccessor(accessor)
-        for command in internals.getCommands(cast(PythonInterfaceType, self)):
+        for dataRef in internals.getDataRefs():
+            xp.unregisterDataAccessor(dataRef)
+        for command in internals.getCommands():
             xp.unregisterCommandHandler(*command)
-        for flightLoop in internals.getFlightLoops(cast(PythonInterfaceType, self)):
+        for flightLoop in internals.getFlightLoops():
             xp.destroyFlightLoop(flightLoop)
 
     def XPluginEnable(self: Self) -> int:

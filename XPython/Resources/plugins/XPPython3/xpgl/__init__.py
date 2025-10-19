@@ -34,5 +34,5 @@ from .transformations import graphicsContext, translateContext, saveGraphicsCont
 from .mask import drawMaskStart, drawMaskEnd, drawUnderMask, maskContext
 
 from .xpgl_utils import clear, report
-from .colors import Colors
+from .colors import Colors, RGBColor
 from .shapes import drawTriangle, drawRectangle, drawFrame, drawPolygon, drawCircle, drawArcLine, drawArc

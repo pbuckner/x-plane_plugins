@@ -73,10 +73,10 @@ def mapProject(projection:XPLMMapProjectionID, latitude:float, longitude:float) 
     """
     ...
 
-def mapUnproject(projection:XPLMMapProjectionID, x:float, y:float) -> None | tuple[int, int]:
+def mapUnproject(projection:XPLMMapProjectionID, x:float, y:float) -> None | tuple[float, float]:
     """
     Returns latitude, longitude for given map coordinates.
-    
+
     Only valid within map layer callbacks.
     """
     ...
@@ -92,8 +92,16 @@ def mapScaleMeter(projection:XPLMMapProjectionID, x:float, y:float) -> float:
 def mapGetNorthHeading(projection:XPLMMapProjectionID, x:float, y:float) -> float:
     """
     Returns mapping angle for map projection at point.
-    
+
     Only valid within map layer callbacks.
+    """
+    ...
+
+def getMapCallbackDict() -> dict:
+    """
+    Returns internal dictionary of map callbacks
+
+    Intended for debugging only
     """
     ...
 

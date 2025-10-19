@@ -10,7 +10,7 @@ def createInstance(obj:XPLMObjectRef, dataRefs:Optional[tuple[str, ...]]=None) -
     """
     ...
 
-def destroyInstance(instance:XPLMObjectRef) -> None:
+def destroyInstance(instance:XPLMInstanceRef) -> None:
     """
     Destroys instance created by createInstance().
     """

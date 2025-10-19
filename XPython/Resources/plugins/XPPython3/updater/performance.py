@@ -3,7 +3,7 @@ from XPPython3.xp_typing import XPLMCommandRef, XPLMCommandPhase, XPWidgetMessag
 from XPPython3 import xp
 from .my_widget_window import MyWidgetWindow
 
-PLUGIN_MODULE_NAME = 4
+PLUGIN_MODULE_NAME = 0
 
 
 class Performance:

@@ -39,6 +39,8 @@ Type_Data = XPLMDataAccess.Type_Data
 countDataRefs = XPLMDataAccess.countDataRefs
 getDataRefsByIndex = XPLMDataAccess.getDataRefsByIndex
 getDataRefInfo = XPLMDataAccess.getDataRefInfo
+getDataRefCallbackDict = XPLMDataAccess.getDataRefCallbackDict
+getSharedDataRefCallbackDict = XPLMDataAccess.getSharedDataRefCallbackDict
 import XPLMDefs
 CursorRotateSmall = XPLMDefs.CursorRotateSmall
 CursorRotateSmallLeft = XPLMDefs.CursorRotateSmallLeft
@@ -201,6 +203,11 @@ VK_ENTER = XPLMDefs.VK_ENTER
 VK_NUMPAD_ENT = XPLMDefs.VK_NUMPAD_ENT
 VK_NUMPAD_EQ = XPLMDefs.VK_NUMPAD_EQ
 import XPLMDisplay
+getHotKeyCallbackDict = XPLMDisplay.getHotKeyCallbackDict
+getKeySnifferCallbackDict = XPLMDisplay.getKeySnifferCallbackDict
+getAvionicsCallbackDict = XPLMDisplay.getAvionicsCallbackDict
+getDrawCallbackDict = XPLMDisplay.getDrawCallbackDict
+getWindowCallbackDict = XPLMDisplay.getWindowCallbackDict
 registerDrawCallback = XPLMDisplay.registerDrawCallback
 unregisterDrawCallback = XPLMDisplay.unregisterDrawCallback
 createWindowEx = XPLMDisplay.createWindowEx
@@ -350,7 +357,9 @@ MapOrientation_Map = XPLMMap.MapOrientation_Map
 MapOrientation_UI = XPLMMap.MapOrientation_UI
 MAP_USER_INTERFACE = XPLMMap.MAP_USER_INTERFACE
 MAP_IOS = XPLMMap.MAP_IOS
+getMapCallbackDict = XPLMMap.getMapCallbackDict
 import XPLMMenus
+getMenuCallbackDict = XPLMMenus.getMenuCallbackDict
 findPluginsMenu = XPLMMenus.findPluginsMenu
 findAircraftMenu = XPLMMenus.findAircraftMenu
 createMenu = XPLMMenus.createMenu
@@ -485,6 +494,7 @@ scheduleFlightLoop = XPLMProcessing.scheduleFlightLoop
 isFlightLoopValid = XPLMProcessing.isFlightLoopValid
 FlightLoop_Phase_BeforeFlightModel = XPLMProcessing.FlightLoop_Phase_BeforeFlightModel
 FlightLoop_Phase_AfterFlightModel = XPLMProcessing.FlightLoop_Phase_AfterFlightModel
+getFlightLoopCallbackDict = XPLMProcessing.getFlightLoopCallbackDict
 import XPLMScenery
 createProbe = XPLMScenery.createProbe
 destroyProbe = XPLMScenery.destroyProbe
@@ -501,6 +511,8 @@ ProbeHitTerrain = XPLMScenery.ProbeHitTerrain
 ProbeError = XPLMScenery.ProbeError
 ProbeMissed = XPLMScenery.ProbeMissed
 import XPLMUtilities
+getCommandCallbackDict = XPLMUtilities.getCommandCallbackDict
+getErrorCallbackDict = XPLMUtilities.getErrorCallbackDict
 speakString = XPLMUtilities.speakString
 getVirtualKeyDescription = XPLMUtilities.getVirtualKeyDescription
 reloadScenery = XPLMUtilities.reloadScenery
@@ -545,12 +557,13 @@ CommandEnd = XPLMUtilities.CommandEnd
 import XPPython
 pythonExecutable = XPPython.pythonExecutable
 pythonGetDicts = XPPython.pythonGetDicts
-pythonGetCapsules = XPPython.pythonGetCapsules
-getSelfName = XPPython.getSelfName
+getPluginDict = XPPython.getPluginDict
+getCapsuleDict = XPPython.getCapsuleDict
+getSelfModuleName = XPPython.getSelfModuleName
 pythonLog = XPPython.log
 getPluginStats = XPPython.getPluginStats
 log = XPPython.log
-derefCapsule = XPPython.derefCapsule
+getCapsulePtr = XPPython.getCapsulePtr
 systemLog = XPPython.systemLog
 sys_log = systemLog
 VERSION = XPPython.VERSION
@@ -737,6 +750,8 @@ Msg_MouseWheel = XPWidgetDefs.Msg_MouseWheel
 Msg_CursorAdjust = XPWidgetDefs.Msg_CursorAdjust
 Msg_UserStart = XPWidgetDefs.Msg_UserStart
 import XPWidgets
+getWidgetCallbackDict = XPWidgets.getWidgetCallbackDict
+getWidgetPropertiesDict = XPWidgets.getWidgetPropertiesDict
 createWidget = XPWidgets.createWidget
 createCustomWidget = XPWidgets.createCustomWidget
 destroyWidget = XPWidgets.destroyWidget
@@ -835,22 +850,17 @@ def playWaveOnBus(wav, loop, audioType, callback=None, refCon=None):
 
 class PluginItem:
     def __init__(self, key):
+        items = getPluginDict().items()
         if isinstance(key, str):
-            item = [x for x in pythonGetDicts()['plugins'].items() if x[1][1] == key][0]
+            item = [x for x in items if x[1][1] == key][0]
         else:
-            item = [x for x in pythonGetDicts()['plugins'].items() if x[0] == key][0]
+            item = [x for x in items if x[0] == key][0]
         self.instance = item[0]
-        self.name = item[1][0]
-        self.signature = item[1][1]
-        self.description = item[1][2]
-        self.module = item[1][3]
-        self.module_name = item[1][4]
-        self.disabled = item[1][5]
-
-
-def getAccessors(self):
-    plugin = PluginItem(self).module_name  # e.g., PythonPlugins.PI_MiniPython
-    return [x for x in pythonGetDicts()['accessors'].items() if x[0] == plugin]
+        self.module_name = item[1][0]
+        self.name = item[1][1]
+        self.signature = item[1][2]
+        self.description = item[1][3]
+        self.disabled = item[1][4]
 
 
 @contextmanager
@@ -864,3 +874,16 @@ def weatherUpdateContext(isIncremental: int = 1, updateImmediately: int = 0):
         yield
     finally:
         endWeatherUpdate(isIncremental, updateImmediately)
+
+
+def getPluginInstance(signature: str = None):
+    if signature is None:
+        moduleName = getSelfModuleName()
+        for instance, data in getPluginDict().items():
+            if data[0] == moduleName:
+                return instance
+    else:
+        for instance, data in getPluginDict().items():
+            if data[2] == signature:
+                return instance
+    return None

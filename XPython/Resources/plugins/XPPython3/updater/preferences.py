@@ -72,6 +72,7 @@ class Preferences:
             else:
                 if not xp.isWidgetVisible(self.window.widgetID):
                     xp.destroyWidget(self.window.widgetID)
+                    self.window.widgetID = None
                     self.createWindow()
                 else:
                     xp.showWidget(self.window.widgetID)

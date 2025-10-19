@@ -1,49 +1,18 @@
 from typing import List, Any
 from XPPython3 import xp
-from XPPython3.xp_typing import PythonInterfaceType, XPLMDataRef, XPLMFlightLoopID
-
-# pluginDict = {<instance>: (PLUGIN_NAME, PLUGIN_SIGNATURE, PLUGIN_DESCRIPTION,
-#                            PLUGIN_MODULE, PLUGIN_MODULE_NAME, PLUGIN_DISABLED})
-# moduleDict = {PLUGIN_MODULE_NAME: <instance>}
-#
-# accessorDict = {accessorDictKey : (MODULE_NAME, drefName, drefType, writable, readint, writeint,
-#                                    readfloat, writefloat, readdouble, writedouble, readintarray, writeintarray,
-#                                    readfloatarray, writefloatarray, readdata, writedata, readRefcon, writerefcon)}
-# drefs = {<drefCapsule> : accessorDictKey}
-#
-# flDict = {<flDictKey> : callback, refcon, module_name, type}
-# flIDDict = {<flDictKey> : <flightLoopCapsule>}
-#
-# commandCallbackDict = {<cmdCallbackKey>: CAPSULE, CALLBACK, BEFORE, REFCON, MODULE_NAME}
-#
-# MODULE_NAME like 'XPPython3.I_PI_FirstTime' 'PythonPlugins.PI_Other', 'Laminar Research.Cessna 172SP.plugins.PythonPlugins.PI_electrical'
-# dict.items() returns ((key, value), (key, value))
+from XPPython3.xp_typing import XPLMDataRef, XPLMFlightLoopID
 
 
-def getModuleName(instance: PythonInterfaceType) -> str:
-    return [x for x in xp.pythonGetDicts()['plugins'].items() if x[0] == instance][0][1][4]
+def getDataRefs() -> List[XPLMDataRef]:
+    moduleName = xp.getSelfModuleName()
+    return [x[18] for x in xp.getDataRefCallbackDict().values() if x[0] == moduleName]
 
 
-def getAccessors(instance: PythonInterfaceType) -> List[XPLMDataRef]:
-    moduleName = getModuleName(instance)
-    # print(moduleName)
-    accessorDictKeys = [x[0] for x in xp.pythonGetDicts()['accessors'].items() if x[1][0] == moduleName]
-    # print(accessorDictKeys)
-    drefCapsules = [x[0] for x in xp.pythonGetDicts()['drefs'].items() if x[1] in accessorDictKeys]
-    return drefCapsules
+def getFlightLoops() -> List[XPLMFlightLoopID]:
+    moduleName = xp.getSelfModuleName()
+    return [x[4] for x in xp.getFlightLoopCallbackDict().values() if x[0] == moduleName]
 
 
-def getFlightLoops(instance: PythonInterfaceType) -> List[XPLMFlightLoopID]:
-    moduleName = getModuleName(instance)
-    flKeys = [x[0] for x in xp.pythonGetDicts()['flightLoops'].items() if x[1][2] == moduleName and x[1][3] == 1]  # get new style only
-    # print(f"{flKeys=}")
-    flCapsules = [x[1] for x in xp.pythonGetDicts()['flightLoopIDs'].items() if x[0] in flKeys]
-    # print(f"{flCapsules=}")
-    return flCapsules
-
-
-def getCommands(instance: PythonInterfaceType) -> List[tuple[Any, Any, Any, Any]]:
-    moduleName = getModuleName(instance)
-    commands = [(x[1][0], x[1][1], x[1][2], x[1][3]) for x in xp.pythonGetDicts()['commandCallbacks'].items() if x[1][4] == moduleName]
-    # print(commands)
-    return commands
+def getCommands() -> List[tuple[Any, Any, Any, Any]]:
+    moduleName = xp.getSelfModuleName()
+    return [[x[1], x[2], x[3], x[4]] for x in xp.getCommandCallbackDict().values() if x[0] == moduleName]

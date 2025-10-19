@@ -4,12 +4,12 @@ from itertools import takewhile
 from XPPython3 import xp
 import re
 
-# (getSelfName was added to XPPython 4.6 & allows this code to distinguish between "my" datarefs and "other" python
+# (getSelfModuleName was added to XPPython 4.6 & allows this code to distinguish between "my" datarefs and "other" python
 # plugin datarefs... without it, all python datarefs appear to be "mine" & therefore read/writeable)
 try:
-    getSelfName = xp.getSelfName
+    getSelfModuleName = xp.getSelfModueName
 except AttributeError:
-    def getSelfName() -> Optional[str]:
+    def getSelfModuleName() -> Optional[str]:
         return None
 
 
@@ -52,7 +52,7 @@ class DataRef:
 
         # we didn't find an existing dataref, so we try to create one
         if make and self.dref is None:
-            self._owning_plugin = getSelfName()
+            self._owning_plugin = getSelfModuleName()
             if callable(callback):
                 self._notify = callback
             self._ours = True
@@ -158,7 +158,7 @@ class DataRef:
         if 'data' not in self.types:
             raise ValueError(f".bytes property not supported for this type {self.name}")
         if self._ours:
-            if self._readonly and self._owning_plugin != getSelfName():
+            if self._readonly and self._owning_plugin != getSelfModuleName():
                 return  # mimic X-Plane behavior... no error when trying to set a read-only dataref
             self._our_value[0:min(self._dim, len(value))] = value[0:self._dim]
             if self._notify:
@@ -205,7 +205,7 @@ class DataRef:
     @value.setter
     def value(self, value: Any) -> None:
         if self._ours:
-            if self._readonly and self._owning_plugin != getSelfName():
+            if self._readonly and self._owning_plugin != getSelfModuleName():
                 return  # mimic X-Plane behavior... no error when trying to set a read-only dataref
             if 'data' in self.types:
                 # because we allow strings to NOT match length of 'array', we need to zero out
@@ -414,7 +414,7 @@ class DataRef:
             value = [value, ] if 'data' not in self.types else value
 
         if self._ours:
-            if self._readonly and self._owning_plugin != getSelfName():
+            if self._readonly and self._owning_plugin != getSelfModuleName():
                 return  # mimic X-Plane behavior... no error when trying to set a read-only dataref
 
             if 'data' in self.types:
@@ -529,7 +529,7 @@ class DList(list):
             value = [value, ]
 
         if self.dataref._ours:
-            if self.dataref._readonly and self.dataref._owning_plugin != getSelfName():
+            if self.dataref._readonly and self.dataref._owning_plugin != getSelfModuleName():
                 return  # mimic X-Plane behavior... no error when trying to set a read-only dataref
 
             if 'data' in self.dataref.types:

@@ -73,7 +73,7 @@ def scheduleFlightLoop(flightLoopID:XPLMFlightLoopID, interval:float=0.0, relati
       0= stop
       >0 seconds
       <0 flightLoops
-    If relativeToNow is 1, interval is relative to now, duh, otherwise
+    If relativeToNow is 1, interval is relative to now, otherwise
     interval is relative to previous callback execution.
     """
     ...

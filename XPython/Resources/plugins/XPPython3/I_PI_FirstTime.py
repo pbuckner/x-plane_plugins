@@ -6,7 +6,7 @@ from XPPython3.utils import samples, xp_pip
 from XPPython3.scriptupdate import Version, VersionUnknownException
 from XPPython3.xp_typing import XPLMFlightLoopID
 
-PLUGIN_DISABLED = 5
+PLUGIN_DISABLED = 4
 
 
 class PythonInterface:

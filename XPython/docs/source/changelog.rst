@@ -37,7 +37,7 @@ Known Bugs
      * :doc:`/development/modules/weather`: for Weather API update which now allows you to set weather
        at locations
 
-     * :doc:`/development/modules/instance`: for :func:`xp.instanceSetPositionAutoShift` which may
+     * :doc:`/development/modules/instance`: for :func:`xp.instanceSetAutoShift` which may
        save you some calculation effor for static instances.
 
      * :doc:`/development/modules/display_window`: for new built-in cursors (:ref:`XPLMCursorStatus`), especially useful for your custom
@@ -60,7 +60,18 @@ Known Bugs
      We've updated the module and extensively updated the documentation at :doc:`/development/modules/datarefs` and included
      many more examples.
      
+     |
+
+:Changes:
+   * **MacOS10.15**: Minimum Mac support is now Catalina, 10.15. Previously we supported as early as 10.12 Sierra. If
+     you still have such an old Mac, don't upgrade XPPython3.
    
+   * **Internal data structure changed**: Due to code improvements, the internal hash tables have been changed. It is
+     unlike anyone was accessing these except for debugging purposes. The structures have changed, but they are now
+     fully documented in :doc:`development/xppythondicts`. They're still "internal" and should only be used to aid
+     debugging.
+     
+
 4.5.0 (21-Jan-2025)
 -------------------
 

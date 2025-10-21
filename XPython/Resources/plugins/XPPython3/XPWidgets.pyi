@@ -201,7 +201,7 @@ def getWidgetProperty(widgetID:XPWidgetID, propertyID:XPWidgetPropertyID | int, 
     Returns widget's property value. For XP properties, it is a long, for
     User-defined properties, it can be any python object.
     
-    Raise ValueError if exists=-1 and property does not exist / has not been set
+    Raises a ValueError if exists=-1 and property does not exist / has not been set
     Set exists=None if you don't care if property exists (value will be 0)
     Set exists to a list object, and we'll set it to [1,] if property exists, 
       [0, ] otherwise
@@ -235,11 +235,27 @@ def addWidgetCallback(widgetID:XPWidgetID, callback:Callable[[XPWidgetMessage, X
     """
     ...
 
-def getWidgetClassFunc(widgetID:XPWidgetID) -> int:
+def getWidgetClassFunc(widgetClass:XPWidgetClass) -> int:
     """
     Given widgetClass, return underlying function.
-    
+
     Not useful with python. Use addWidgetCalback() instead.
+    """
+    ...
+
+def getWidgetCallbackDict() -> dict:
+    """
+    Returns internal dictionary of widget callbacks
+
+    Intended for debugging only
+    """
+    ...
+
+def getWidgetPropertiesDict() -> dict:
+    """
+    Returns internal dictionary of widget properties
+
+    Intended for debugging only
     """
     ...
 

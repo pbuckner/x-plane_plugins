@@ -1,7 +1,7 @@
 from typing import Any, Callable, Optional
 from XPPython3.xp_typing import *
 
-def loadCursor(path: str) -> XPLMCursorRef:
+def loadCursor(name: str) -> int:
     """
     Load a cursor from a .png file and return cursor reference.
 
@@ -14,13 +14,13 @@ def loadCursor(path: str) -> XPLMCursorRef:
     """
     ...
 
-def setCursor(cursor: XPLMCursorRef) -> None:
+def setCursor(cursor_id: int) -> None:
     """
     Set the cursor to the given cursor reference.
     """
     ...
 
-def unloadCursor(cursor: XPLMCursorRef) -> None:
+def unloadCursor(cursor_id: int) -> None:
     """
     Unload cursor when no longer needed.
     """

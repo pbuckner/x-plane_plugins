@@ -76,6 +76,28 @@ PyObject *getExecutable()
 
 
 
+static PyObject *disablePythonPlugin(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  (void) self;
+  static char *keywords[] = {CHAR("signature"), nullptr};
+  PyObject *signature;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &signature)) {
+    return nullptr;
+  }
+  
+  const char *sig = PyUnicode_AsUTF8(signature);
+
+  for (const auto& [pluginInstance, pluginInfo] : XPY3pluginInfoDict) {
+    if (0 == strcmp(pluginInfo.signature.c_str(), sig)) {
+      XPY3pluginInfoDict[pluginInstance].disabled = true;
+      Py_RETURN_NONE;
+    }
+  }
+
+  pythonLog("Failed to find '%s' plugin to disable", CurrentPythonModuleName);
+  Py_RETURN_NONE;
+}
+
 My_DOCSTR(_reloadPlugin__doc__, "reloadPlugin",
           "signature",
           "signature:str",
@@ -491,6 +513,7 @@ static PyMethodDef XPPythonMethods[] = {
   {"getSelfModuleName", (PyCFunction)XPGetSelfModuleNameFun, METH_VARARGS | METH_KEYWORDS, _getSelfName__doc__},
   {"XPGetSelfModuleName", (PyCFunction)XPGetSelfModuleNameFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"getPluginDict", (PyCFunction)buildPluginInfoDict, METH_VARARGS, "Copy of internal PluginInfo"},
+  {"disablePythonPlugin", (PyCFunction)disablePythonPlugin, METH_VARARGS | METH_KEYWORDS, "Disable python plugin by signature"},
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {nullptr, nullptr, 0, nullptr}
 };

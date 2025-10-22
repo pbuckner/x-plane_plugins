@@ -2748,3 +2748,9 @@ def getWidgetPropertiesDict() -> dict:
         Intended for debugging only
     """
     ...
+
+def disablePythonPlugin(signature: str) -> None:
+    """
+    Disables python plugin
+    """
+    ...

@@ -75,3 +75,9 @@ def getPluginDict() -> dict:
     """
     ...
 
+
+def disablePythonPlugin(signature: str) -> None:
+    """
+    Disables python plugin
+    """
+    ...

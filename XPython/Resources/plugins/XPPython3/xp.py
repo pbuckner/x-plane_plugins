@@ -566,6 +566,7 @@ log = XPPython.log
 getCapsulePtr = XPPython.getCapsulePtr
 systemLog = XPPython.systemLog
 sys_log = systemLog
+disablePythonPlugin = XPPython.disablePythonPlugin
 VERSION = XPPython.VERSION
 PLUGINSPATH = XPPython.PLUGINSPATH
 INTERNALPLUGINSPATH = XPPython.INTERNALPLUGINSPATH

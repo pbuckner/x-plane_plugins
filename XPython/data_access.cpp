@@ -96,12 +96,18 @@ void resetDataRefs(void) {
 
 static inline XPLMDataRef drefFromObj(PyObject *obj)
 {
-  /* provides error checking for valid (i.e., not unregistered) dataRef */
-  XPLMDataRef ret = (XPLMDataRef)getVoidPtr(obj, "XPLMDataRef");
-  if (! ret) {
-    PyErr_SetString(PyExc_ValueError, "invalid dataRef");
+  /* provides error checking for valid (i.e., not unregistered) dataRef, if pythonDebugs set
+     Otherwise, we assume it's a dataref and get it as quickly as possible!
+   */
+  if (pythonDebugs) {
+    XPLMDataRef ret = (XPLMDataRef)getVoidPtr(obj, "XPLMDataRef");
+    if (! ret) {
+      PyErr_SetString(PyExc_ValueError, "invalid dataRef");
+    }
+    return ret;
+  } else {
+    return (XPLMDataRef)PyCapsule_GetPointer(obj, "XPLMDataRef");
   }
-  return ret;
 }
 
 My_DOCSTR(_findDataRef__doc__, "findDataRef",

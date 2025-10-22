@@ -6,8 +6,6 @@ from XPPython3.utils import samples, xp_pip
 from XPPython3.scriptupdate import Version, VersionUnknownException
 from XPPython3.xp_typing import XPLMFlightLoopID
 
-PLUGIN_DISABLED = 4
-
 
 class PythonInterface:
     def __init__(self: Self) -> None:
@@ -84,7 +82,7 @@ class PythonInterface:
         # is kind of a misnomer therefore. By disabling it "late", we stop
         # it from receiving futher messages and prevent it from appearing in
         # the 'performance' popup window.
-        xp.pythonGetDicts()['plugins'][self][PLUGIN_DISABLED] = True
+        xp.disablePythonPlugin('xppython3.firstTime')
 
 
 def get_version(filename: str) -> Version:

@@ -1,27 +1,29 @@
 #define _GNU_SOURCE 1
 //Python comes first!
 #include <Python.h>
+#include <memory>
 #include "utils.h"
 #include "manage_instances.h"
 #include "manage_instance.h"
 #include "menus.h"
 #include "utilities.h"
 
-static void updatePluginDict(PluginInfo *pluginInfo, PyObject*,PyObject*, PyObject*, PluginType);
+static void updatePluginDict(PluginInfo pluginInfo, PyObject*,PyObject*, PyObject*, PluginType);
 static PyObject *getPluginInstanceBySignature(PyObject *);
 
 int xpy_startInstance(PyObject *pModule, PyObject* pluginInstance, PluginType plugin_type) {
   /* Start loaded instance, update  XP3pluginDict with information   */
 
   /* start with a nearly empty struct -- we need the stable module_name */
-  PluginInfo *pluginInfo = (PluginInfo*)malloc(sizeof(PluginInfo));
-  pluginInfo->module_name = CurrentPythonModuleName;  // Already interned via set_moduleName()
+  PluginInfo pluginInfo;
+  pluginInfo.module_name = CurrentPythonModuleName;  // Already interned via set_moduleName()
 
   PyObject *pRes = PyObject_CallMethod(pluginInstance, "XPluginStart", nullptr);
   PyObject *err = PyErr_Occurred();
   if (err) {
     pythonLogException();
     pythonLog("[%s] Failed to start, error in XPluginStart", CurrentPythonModuleName);
+    Py_XDECREF(pRes);
     return 0;
   }
 
@@ -45,9 +47,14 @@ int xpy_startInstance(PyObject *pModule, PyObject* pluginInstance, PluginType pl
         Py_DECREF(u3);
 
         updatePluginDict(pluginInfo, pModule, pRes, pluginInstance, plugin_type);
+        Py_DECREF(pRes);
         return 1;
       } else {
+        Py_XDECREF(u1);
+        Py_XDECREF(u2);
+        Py_XDECREF(u3);
         pythonLog("[XPPython3] Failed to decode start information in %s", CurrentPythonModuleName);
+        Py_DECREF(pRes);
       }
     } else {
       Py_DECREF(pRes);
@@ -62,23 +69,23 @@ int xpy_startInstance(PyObject *pModule, PyObject* pluginInstance, PluginType pl
   return 0;
 }
 
-void updatePluginDict(PluginInfo *pluginInfo, PyObject * /* pModule */, PyObject *pRes, PyObject *pluginInstance, PluginType plugin_type) {
+void updatePluginDict(PluginInfo pluginInfo, PyObject * /* pModule */, PyObject *pRes, PyObject *pluginInstance, PluginType plugin_type) {
 
   // Extract strings from Python tuple
   const char *name = PyUnicode_AsUTF8(PyTuple_GetItem(pRes, PLUGIN_NAME));
   const char *signature = PyUnicode_AsUTF8(PyTuple_GetItem(pRes, PLUGIN_SIGNATURE));
   const char *description = PyUnicode_AsUTF8(PyTuple_GetItem(pRes, PLUGIN_DESCRIPTION));
 
-  pluginInfo->name = name ? name : "";
-  pluginInfo->signature = signature ? signature : "";
-  pluginInfo->description = description ? description : "";
+  pluginInfo.name = name ? name : "";
+  pluginInfo.signature = signature ? signature : "";
+  pluginInfo.description = description ? description : "";
   //  pluginInfo.module_name = std::string(CurrentPythonModuleName);
-  pluginInfo->disabled = false;
-  pluginInfo->plugin_type = plugin_type;
+  pluginInfo.disabled = false;
+  pluginInfo.plugin_type = plugin_type;
 
   //set_moduleName(pluginInfo.module_name);
   Py_INCREF(pluginInstance);
-  XPY3pluginInfoDict[pluginInstance] = *pluginInfo;
+  XPY3pluginInfoDict[pluginInstance] = pluginInfo;
   if(PyErr_Occurred()) {
     pythonLog("Error while updating plugin dict");
     pythonLogException();

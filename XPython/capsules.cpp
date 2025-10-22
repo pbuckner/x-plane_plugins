@@ -33,7 +33,7 @@ PyObject* buildCapsuleDict(void)
     char *context = (char *)PyCapsule_GetContext(capsule);
 
     PyObject *tuple = PyTuple_New(3);
-    PyTuple_SetItem(tuple, 0, PyUnicode_FromString(context));
+    PyTuple_SetItem(tuple, 0, PyUnicode_FromString(context ? context : ""));
     PyTuple_SetItem(tuple, 1, capsule);
     PyTuple_SetItem(tuple, 2, PyUnicode_FromString(name));
     Py_INCREF(capsule);
@@ -57,12 +57,14 @@ void deleteCapsule(PyObject *capsule)
 
   auto it = CapsuleDict.find(ptr);
   if (it == CapsuleDict.end()) {
-    pythonLog("Unable to find capsule %s:%s %p in CapsuleDict", (char *)context, name, ptr);
+    pythonLog("Unable to find capsule %s:%s %p in CapsuleDict", context ? (char *)context : "", name, ptr);
     return;
   }
 
   free((char*)name);
-  free(context);
+  if (context) {
+    free(context);
+  }
   CapsuleDict.erase(it);
 }
 
@@ -88,7 +90,9 @@ void deleteCapsuleByPtr(void *ptr, const char *name)
   void *context = PyCapsule_GetContext(capsule);
 
   free((char*)capsule_name);
-  free(context);
+  if (context) {
+    free(context);
+  }
   CapsuleDict.erase(it);
 }
 
@@ -130,7 +134,10 @@ void *getVoidPtr(PyObject *capsule, std::string name)
           pythonLog("getVoidPtr got wrong capsule type");
           PyErr_SetString(PyExc_TypeError, "getVoidPtr got wrong capsule type");
         }
-        pythonLog("Capsule created by %s", (char *)PyCapsule_GetContext(capsule));
+        void *capsule_context = PyCapsule_GetContext(capsule);
+        if(capsule_context) {
+          pythonLog("Capsule created by %s", capsule_context);
+        }
         return nullptr;
       }
     }

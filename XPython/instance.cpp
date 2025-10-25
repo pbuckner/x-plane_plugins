@@ -10,26 +10,18 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include "instance.h"
 #include "capsules.h"
 
+static std::unordered_set<void*> instanceSet;
+
 
 void resetInstances(void) {
-  /* loaded instances need to be destroyed */
-  for(auto it = CapsuleDict.begin(); it != CapsuleDict.end();) {
-    PyObject *capsule = it->second;
-    if (! strcmp(PyCapsule_GetName(capsule), "XPLMInstanceRef")) {
-      char *moduleName = (char *)PyCapsule_GetContext(capsule);
-      char *s1 = objToStr(capsule);
-      pythonDebug("     Reset --      %s  %s", moduleName, s1);
-      free(s1);
-      free(moduleName);
-      XPLMDestroyInstance(getVoidPtr(capsule, "XPLMInstanceRef"));
-      Py_DECREF(it->second);
-      it = CapsuleDict.erase(it);
-    } else {
-      it++;
-    }
+  /* Destroy all tracked instances */
+  for(auto it = instanceSet.begin(); it != instanceSet.end();) {
+    XPLMDestroyInstance(*it);
+    it = instanceSet.erase(it);
   }
 }
 
@@ -129,6 +121,10 @@ static PyObject *XPLMCreateInstanceFun(PyObject *self, PyObject *args, PyObject 
     free(datarefs[i]);
   }
   free(datarefs);
+
+  // Add to instance tracking set
+  instanceSet.insert((void*)res);
+
   return makeCapsule(res, "XPLMInstanceRef");
 }
 
@@ -150,7 +146,9 @@ static PyObject *XPLMDestroyInstanceFun(PyObject *self, PyObject *args, PyObject
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &instance)){
     return nullptr;
   }
-  XPLMDestroyInstance_ptr(getVoidPtr(instance, "XPLMInstanceRef"));
+  void *instancePtr = getVoidPtr(instance, "XPLMInstanceRef");
+  instanceSet.erase(instancePtr);
+  XPLMDestroyInstance_ptr(instancePtr);
   deleteCapsule(instance);
   Py_RETURN_NONE;
 }

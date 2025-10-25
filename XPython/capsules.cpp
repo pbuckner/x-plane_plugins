@@ -35,7 +35,7 @@ PyObject* buildCapsuleDict(void)
     PyObject *tuple = PyTuple_New(3);
     PyTuple_SetItem(tuple, 0, PyUnicode_FromString(context ? context : ""));
     PyTuple_SetItem(tuple, 1, capsule);
-    PyTuple_SetItem(tuple, 2, PyUnicode_FromString(name));
+    PyTuple_SetItem(tuple, 2, PyUnicode_FromString(name ? name : ""));
     Py_INCREF(capsule);
     PyObject *pkey = PyLong_FromVoidPtr(ptr);
     PyDict_SetItem(capsules, pkey, tuple);
@@ -51,17 +51,24 @@ void deleteCapsule(PyObject *capsule)
 
   /* replaces removePtrRef(ptr, dict) with deleteCapsule(capsule) */
 
-  const char *name = PyCapsule_GetName(capsule);
-  void *context = PyCapsule_GetContext(capsule);
+  const char *name = nullptr;
+  void *context = nullptr;
+  if (pythonDebugs) {
+    name = PyCapsule_GetName(capsule);
+    context = PyCapsule_GetContext(capsule);
+  }
+
   void *ptr = PyCapsule_GetPointer(capsule, name);
 
   auto it = CapsuleDict.find(ptr);
   if (it == CapsuleDict.end()) {
-    pythonLog("Unable to find capsule %s:%s %p in CapsuleDict", context ? (char *)context : "", name, ptr);
+    pythonLog("Unable to find capsule %s:%s %p in CapsuleDict", context ? (char *)context : "", name ? name : "", ptr);
     return;
   }
 
-  free((char*)name);
+  if(name) {
+    free((char*)name);
+  }
   if (context) {
     free(context);
   }
@@ -78,20 +85,26 @@ void deleteCapsuleByPtr(void *ptr, const char *name)
   }
 
   PyObject *capsule = it->second;
-  const char *capsule_name = PyCapsule_GetName(capsule);
+  void *context = nullptr;
+  if (pythonDebugs) {
+    const char *capsule_name = PyCapsule_GetName(capsule);
 
-  // Verify the capsule type matches what caller expects
-  if (strcmp(capsule_name, name) != 0) {
-    pythonLog("deleteCapsuleByPtr type mismatch: expected %s but found %s for pointer %p",
-              name, capsule_name, ptr);
-    return;
-  }
-
-  void *context = PyCapsule_GetContext(capsule);
-
-  free((char*)capsule_name);
-  if (context) {
-    free(context);
+    // Verify the capsule type matches what caller expects
+    if (pythonDebugs) {
+      if (strcmp(capsule_name, name) != 0) {
+        pythonLog("deleteCapsuleByPtr type mismatch: expected %s but found %s for pointer %p",
+                  name, capsule_name, ptr);
+        return;
+      }
+      context = PyCapsule_GetContext(capsule);
+      
+    }
+    if (capsule_name) {
+      free((char*)capsule_name);
+    }
+    if (context) {
+      free(context);
+    }
   }
   CapsuleDict.erase(it);
 }
@@ -99,8 +112,19 @@ void deleteCapsuleByPtr(void *ptr, const char *name)
 void *getVoidPtr(PyObject *capsule, std::string name)
 {
   /* return (void *) ptr, stored within capsule */
+  /* If pythonDebugs, we'll check it's a capsule with a valid name
+     or raise TypeErrors
+     Otherwise, we return as fast as we can.
+  */
 
-  /* replaces refToPtr(PyObject *ref, const char *name) */
+  if (!pythonDebugs) {
+    return capsule == Py_None ? nullptr : PyCapsule_GetPointer(capsule, nullptr);
+      // ? nullptr
+      // : (name == ""
+      //    ? PyCapsule_GetPointer(capsule, PyCapsule_GetName(capsule))
+      //    : PyCapsule_GetPointer(capsule, name.c_str()));
+  }
+
   errCheck("prior getVoidPtr %s", name.c_str());
   if (capsule == Py_None) return nullptr;
   if (! PyCapsule_CheckExact(capsule)) {
@@ -108,9 +132,11 @@ void *getVoidPtr(PyObject *capsule, std::string name)
     return nullptr;
   }
   if (name == "") {
+    /* No name give, so extract it */
     name = PyCapsule_GetName(capsule);
     errCheck("Bad PyCapsule_GetName()");
-  } else if (pythonDebugs) {
+  } else {
+    /* name give, if it DOES NOT match capsule's name we do more checking and raise a TypeError */
     if(name != PyCapsule_GetName(capsule)) {
       bool valid = true;
       std::string capsule_name = PyCapsule_GetName(capsule);
@@ -142,25 +168,26 @@ void *getVoidPtr(PyObject *capsule, std::string name)
       }
     }
   }
+
   if (PyLong_Check(capsule) && PyLong_AsLong(capsule) == 0 && !strcmp(name.c_str(), "XPWidgetID")) {
     /* XPWidgetID can be 0, refering to underlying X-Plane window, need to keep that, without error */
     return nullptr;
   }
 
-  if (pythonDebugs) {
-    PyObject *err = PyErr_Occurred();
-    if(err){
-      pythonLogException();
-      char *s = objToStr(capsule);
-      pythonDebug("Failed to convert '%s' capsule (%s) to pointer\n", name.c_str(), s);
-      char msg[1024];
-      snprintf(msg, sizeof(msg), "[%s] Failed to convert '%s' capsule (%s) to pointer\n", CurrentPythonModuleName, name.c_str(), s);
-      PyErr_SetString(PyExc_ValueError , msg);
-      free(s);
-      return nullptr;
-    }
+  /* Final error check... just to be sure */
+  PyObject *err = PyErr_Occurred();
+  if(err){
+    pythonLogException();
+    char *s = objToStr(capsule);
+    pythonDebug("Failed to convert '%s' capsule (%s) to pointer\n", name.c_str(), s);
+    char msg[1024];
+    snprintf(msg, sizeof(msg), "[%s] Failed to convert '%s' capsule (%s) to pointer\n", CurrentPythonModuleName, name.c_str(), s);
+    PyErr_SetString(PyExc_ValueError , msg);
+    free(s);
+    return nullptr;
   }
 
+  /* get and return pointer */
   void *ptr = PyCapsule_GetPointer(capsule, name.c_str());
   errCheck("getVoidPtr failed for %s", name.c_str());
   return ptr;
@@ -201,29 +228,34 @@ PyObject *makeCapsule(void *ptr, std::string name)
   PyObject *capsule;
   auto it = CapsuleDict.find(ptr);
   if (it == CapsuleDict.end()) {
-    capsule = PyCapsule_New(ptr, strdup(name.c_str()), nullptr); // the 'name' must outlive the capsule
-    if (pythonCapsuleRegistration) {
-      pythonLog("Capsule: New      %s > %s at: %s", CurrentPythonModuleName, name.c_str(),
-                objToStr(get_pythonline()));
-    }
     if (pythonDebugs) {
+      capsule = PyCapsule_New(ptr, strdup(name.c_str()), nullptr); // the 'name' must outlive the capsule
+      if (pythonCapsuleRegistration) {
+        pythonLog("Capsule: New      %s > %s at: %s", CurrentPythonModuleName, name.c_str(),
+                  objToStr(get_pythonline()));
+      }
       char *context;
       if(-1 != asprintf(&context, "[%s] %s", CurrentPythonModuleName, objToStr(get_pythonline()))) {
         PyCapsule_SetContext(capsule, (void *)context);
       }
+    } else {
+      capsule = PyCapsule_New(ptr, nullptr, nullptr); // if not pythonDebugs, we pass only generic pointers
     }
     CapsuleDict[ptr] = capsule;
   } else {
     capsule = it->second;
-    if (PyCapsule_GetName(capsule) != name) {
-      pythonLog("Found capsule, but existing type '%s' doesn't match requested type '%s'", PyCapsule_GetName(capsule), name.c_str());
-      PyErr_SetString(PyExc_TypeError, "mismatch in requested capsule type");
-      return nullptr;
+    if (pythonDebugs) {
+      if (PyCapsule_GetName(capsule) != name) {
+        pythonLog("Found capsule, but existing type '%s' doesn't match requested type '%s'", PyCapsule_GetName(capsule), name.c_str());
+        PyErr_SetString(PyExc_TypeError, "mismatch in requested capsule type");
+        return nullptr;
+      }
+      // /* this is pretty noisy, so don't normally support this reporting: */
+      // if (pythonCapsuleRegistration) {
+      //   char *context = (char *)PyCapsule_GetContext(capsule);
+      //   pythonLog("Capsule: Existing %s [%s] > %s ", CurrentPythonModuleName, context, name.c_str());
+      // }
     }
-    // if (pythonCapsuleRegistration) {
-    //   char *context = (char *)PyCapsule_GetContext(capsule);
-    //   pythonLog("Capsule: Existing %s [%s] > %s ", CurrentPythonModuleName, context, name.c_str());
-    // }
   }
   Py_INCREF(capsule);
   return capsule;
@@ -237,18 +269,6 @@ void logCapsules()
     void *context = PyCapsule_GetContext(capsule);
     void *ptr = PyCapsule_GetPointer(capsule, name);
 
-    pythonLog("%-20s %p: %s", name, ptr, (char *)context);
+    pythonLog("%-20s %p: %s", name ? name : "", ptr, context ? (char *)context : "");
   }
 }
-
-// // Can be used where no callbacks are involved in passing the capsule
-// PyObject *getPtrRefOneshot(void *ptr, const char *refName)
-// {
-//   if(!ptr){
-//     Py_RETURN_NONE;
-//   }
-//   errCheck("prior getPtrRefOneshot: %s", refName);
-//   PyObject *ret = PyCapsule_New(ptr, refName, nullptr);
-//   errCheck("end getPtrRefOneShot");
-//   return ret;
-// }

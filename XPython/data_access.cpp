@@ -106,7 +106,7 @@ static inline XPLMDataRef drefFromObj(PyObject *obj)
     }
     return ret;
   } else {
-    return (XPLMDataRef)PyCapsule_GetPointer(obj, "XPLMDataRef");
+    return (XPLMDataRef)PyCapsule_GetPointer(obj, nullptr);
   }
 }
 

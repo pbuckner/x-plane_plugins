@@ -3,6 +3,7 @@
 #include <sys/time.h>
 #include <stdio.h>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include <XPLM/XPLMDefs.h>
@@ -40,21 +41,13 @@ struct WidgetPropertyEqual {
 
 static std::unordered_map<std::pair<PyObject*, int>, PyObject*, WidgetPropertyHash, WidgetPropertyEqual> widgetPropertyDict;
 
+static std::unordered_set<XPWidgetID> widgetSet;
+
 void resetWidgets(void) {
-  for(auto it = CapsuleDict.begin(); it != CapsuleDict.end();) {
-    PyObject *capsule = it->second;
-    if (! strcmp(PyCapsule_GetName(capsule), "XPWidgetID")) {
-      char *moduleName = (char *)PyCapsule_GetContext(capsule);
-      char *s1 = objToStr(capsule);
-      pythonDebug("     Reset --      %s  %s", moduleName, s1);
-      free(s1);
-      free(moduleName);
-      XPDestroyWidget(getVoidPtr(capsule, "XPWidgetID"), 0);
-      Py_DECREF(it->second);
-      it = CapsuleDict.erase(it);
-    } else {
-      it++;
-    }
+  /* Destroy all tracked widgets */
+  for(auto it = widgetSet.begin(); it != widgetSet.end();) {
+    XPDestroyWidget(*it, 0);
+    it = widgetSet.erase(it);
   }
   for (auto& pair : widgetCallbacks) {
     for (PyObject* callback : pair.second.callbacks) {
@@ -308,6 +301,9 @@ static PyObject *XPCreateWidgetFun(PyObject *self, PyObject *args, PyObject *kwa
 
   XPWidgetID res = XPCreateWidget(inLeft, inTop, inRight, inBottom, inVisible, inDescriptor, inIsRoot, inContainer, inClass);
 
+  // Add to widget tracking set
+  widgetSet.insert(res);
+
   PyObject *ret = makeCapsule(res, "XPWidgetID");
   errCheck("end createWidget");
   return ret;
@@ -353,6 +349,10 @@ static PyObject *XPCreateCustomWidgetFun(PyObject *self, PyObject *args, PyObjec
    */
   XPWidgetID res = XPCreateCustomWidget(inLeft, inTop, inRight, inBottom, inVisible, inDescriptor, inIsRoot,
                                         inContainer, widgetCallback);
+
+  // Add to widget tracking set
+  widgetSet.insert(res);
+
   PyObject *resObj = makeCapsule(res, "XPWidgetID");
 
   WidgetCallbackInfo callbackInfo;
@@ -383,14 +383,7 @@ static PyObject *XPDestroyWidgetFun(PyObject *self, PyObject *args, PyObject *kw
   }
   XPWidgetID wid = getVoidPtr(widget, "XPWidgetID");
   if (wid == nullptr) return nullptr;
-  /* Because XPDestroyWidget() destroys children by sending messages to child widgets,
-     _their_ callback gets called with sets CurrentPythonModuleName to _their_ saved
-     string... but then deletes it. We'll, "current python module" shouldn't change, so
-     we save _this_ char* and restore it after XPDestroyWidget.
-     All the char* are pointing to different stored locations (different one for each
-     widget), but will all be resolving to the same module. Because child widgets ALL
-     are created within same python plugin module.
-  */
+  widgetSet.erase(wid);
   XPDestroyWidget(wid, inDestroyChildren);
   if (inDestroyChildren) {
     clearChildrenXPWidgetData(widget);

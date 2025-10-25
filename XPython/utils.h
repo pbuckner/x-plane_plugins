@@ -58,8 +58,11 @@ void MyPyRun_String(const char *str, int start, PyObject *globals, PyObject *loc
 void MyPyRun_File(FILE *fp, const char *filename, int start, PyObject *globals, PyObject *locals);
 void xpy_assert(bool);
 void errCheck_f(const char *fmt, ...);
-#define errCheck(fmt, ...) do { if (ERRCHECK) errCheck_f(fmt, ##__VA_ARGS__); } while(0)
-
+#if ERRCHECK
+#define errCheck(fmt, ...) {errCheck_f(fmt, ##__VA_ARGS__);}
+#else
+#define errCheck(fmt, ...) {;}
+#endif
 // Pre-allocated object management
 void initPreallocatedObjects(void);
 void cleanupPreallocatedObjects(void);

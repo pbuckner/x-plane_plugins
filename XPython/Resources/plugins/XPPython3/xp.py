@@ -878,13 +878,14 @@ def weatherUpdateContext(isIncremental: int = 1, updateImmediately: int = 0):
 
 
 def getPluginInstance(signature: str = None):
+    items = getPluginDict().items()
     if signature is None:
         moduleName = getSelfModuleName()
-        for instance, data in getPluginDict().items():
+        for instance, data in items:
             if data[0] == moduleName:
                 return instance
     else:
-        for instance, data in getPluginDict().items():
+        for instance, data in items:
             if data[2] == signature:
                 return instance
-    return None
+    raise ValueError(f"Signature not found. Try: {[data[2] for instance, data in items]}")

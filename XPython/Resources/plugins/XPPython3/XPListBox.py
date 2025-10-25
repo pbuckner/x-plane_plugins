@@ -9,6 +9,7 @@ except ImportError:
     print("[XPPython3] OpenGL not found. Use XPPython3 Pip Package Installer to install 'PyOpenGL' package and restart.")
     HIGHLITE = False
 
+import queue
 from typing import List, Self, Any
 from XPPython3 import xp
 from XPPython3.xp_typing import XPWidgetID, XPLMDataRef, XPWidgetMessage
@@ -23,6 +24,7 @@ from XPPython3.xp_typing import XPWidgetID, XPLMDataRef, XPWidgetMessage
 
 xpWidgetClass_ListBox = 10019  # not used
 
+NEW_STYLE = True
 
 class Prop(IntEnum):
     # Properties greater than xpProperty_UserStart will be treated as Python Objects
@@ -84,8 +86,11 @@ class XPListBox:
 
         (interface hasn't been updated to support updating / deleting a subset of lines)
         """
+        self.queue: queue.Queue = queue.Queue()  # queue for "things to be added"
         self.leftContentPad = leftPad  # _Content_ within list will be shifted a bit
         self.widgetID = xp.createCustomWidget(left, top, right, bottom, visible, descriptor, 0, container, self.listBoxProc)
+        if NEW_STYLE:
+            self.queue.put(descriptor)
         self.autoScroll = autoScroll
 
     def clear(self: Self) -> None:
@@ -106,7 +111,10 @@ class XPListBox:
         return unwrapped[:-1]
 
     def add(self: Self, s: str) -> None:
-        xp.setWidgetDescriptor(self.widgetID, s)
+        if NEW_STYLE:
+            self.queue.put(s)
+        else:
+            xp.setWidgetDescriptor(self.widgetID, s)
         xp.setWidgetProperty(self.widgetID, Prop.ListBoxAddItem, 1)
 
     def listBoxProc(self: Self, message: XPWidgetMessage, widget: XPWidgetID, param1: Any, param2: Any) -> int:
@@ -140,6 +148,14 @@ class XPListBox:
         scrollBarSlop = xp.getWidgetProperty(widget, Prop.ListBoxScrollBarSlop, None)
         fontWidth, fontHeight, _other = xp.getFontDimensions(xp.Font_Basic)
         listbox_item_height = int(fontHeight * 1.2)
+
+        # try:
+        #     idx = 0
+        #     while True:
+        #         self.add(f"[{idx}] {self.queue.get_nowait()}")
+        #         idx += 1
+        # except queue.Empty:
+        #     pass
 
         if message == xp.Msg_Create:
             listBoxDataObj = {'Items': [], 'Lefts': [], 'Rights': [], 'Wraps': []}
@@ -175,31 +191,22 @@ class XPListBox:
 
                 wasViewingBottom = maxListBoxItems - sliderPosition > 0
                 xp.setWidgetProperty(widget, Prop.ListBoxAddItem, 0)  # unset it
-                descriptor = xp.getWidgetDescriptor(widget)
 
-                if xp.measureString(xp.Font_Basic, descriptor) > contentWidth:
-                    charsPer = int(contentWidth / fontWidth)
-                    for x in range(0, len(descriptor), charsPer):
-                        self.listBoxAddItem(listBoxDataObj, descriptor[x:x + charsPer], contentWidth,
-                                            x + charsPer < len(descriptor))
-                else:
-                    self.listBoxAddItem(listBoxDataObj, descriptor, contentWidth, False)
+                if NEW_STYLE:
+                    something_added = False
+                    try:
+                        while True:
+                            descriptor = self.queue.get_nowait()
+                            something_added = True
+                            self._add_item_to_list(descriptor, contentWidth, fontWidth, listBoxDataObj)
+                    except queue.Empty:
+                        if something_added:
+                            self._adjust_scroll_bar(widget, wasViewingBottom, maxListBoxItems, listBoxDataObj)
 
-                scrollbarMax = len(listBoxDataObj['Items'])
-                sliderPosition = scrollbarMax
-                xp.setWidgetProperty(widget, Prop.ListBoxScrollBarMax, scrollbarMax)
-                if self.autoScroll:
-                    if wasViewingBottom and sliderPosition >= maxListBoxItems:
-                        # print('was, but no more, setting to {}'.format(maxListBoxItems - 1))
-                        xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, maxListBoxItems - 1)
-                    elif wasViewingBottom:
-                        # print('was, and still is, setting to: {}'.format(sliderPosition))
-                        xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, sliderPosition)
-                    else:
-                        # print("wasn't, still isn't, set backwards: {}".format(sliderPosition - 1))
-                        xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, sliderPosition - 1)
                 else:
-                    xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, sliderPosition)
+                    descriptor = xp.getWidgetDescriptor(widget)
+                    self._add_item_to_list(descriptor, contentWidth, fontWidth, listBoxDataObj)
+                    self._adjust_scroll_bar(widget, wasViewingBottom, maxListBoxItems, listBoxDataObj)
 
             if xp.getWidgetProperty(widget, Prop.ListBoxAddItemsWithClear, None):
                 xp.setWidgetProperty(widget, Prop.ListBoxAddItemsWithClear, 0)  # unset it
@@ -232,6 +239,18 @@ class XPListBox:
             return 1
 
         if message == xp.Msg_Draw:
+            if NEW_STYLE and isinstance(listBoxDataObj, dict):
+                something_added = False
+                wasViewingBottom = maxListBoxItems - sliderPosition > 0
+                try:
+                    while True:
+                        descriptor = self.queue.get_nowait()
+                        something_added = True
+                        self._add_item_to_list(descriptor, contentWidth, fontWidth, listBoxDataObj)
+                except queue.Empty:
+                    if something_added:
+                        self._adjust_scroll_bar(widget, wasViewingBottom, maxListBoxItems, listBoxDataObj)
+
             location = xp.getMouseLocationGlobal()
             y = 0
             if location is not None:
@@ -406,6 +425,33 @@ class XPListBox:
         data['Lefts'].pop(item)
         data['Rights'].pop(item)
         data['Wraps'].pop(item)
+
+    def _add_item_to_list(self, descriptor, contentWidth, fontWidth, listBoxDataObj):
+        if xp.measureString(xp.Font_Basic, descriptor) > contentWidth:
+            charsPer = int(contentWidth / fontWidth)
+            for x in range(0, len(descriptor), charsPer):
+                self.listBoxAddItem(listBoxDataObj, descriptor[x:x + charsPer], contentWidth,
+                                    x + charsPer < len(descriptor))
+        else:
+            self.listBoxAddItem(listBoxDataObj, descriptor, contentWidth, False)
+
+    def _adjust_scroll_bar(self, widget, wasViewingBottom, maxListBoxItems, listBoxDataObj):
+        scrollbarMax = len(listBoxDataObj['Items'])
+        sliderPosition = scrollbarMax
+        xp.setWidgetProperty(widget, Prop.ListBoxScrollBarMax, scrollbarMax)
+        if self.autoScroll:
+            if wasViewingBottom and sliderPosition >= maxListBoxItems:
+                # print('was, but no more, setting to {}'.format(maxListBoxItems - 1))
+                xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, maxListBoxItems - 1)
+            elif wasViewingBottom:
+                # print('was, and still is, setting to: {}'.format(sliderPosition))
+                xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, sliderPosition)
+            else:
+                # print("wasn't, still isn't, set backwards: {}".format(sliderPosition - 1))
+                xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, sliderPosition - 1)
+        else:
+            xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, sliderPosition)
+
 
 
 def XPCreateListBox(left: int, top: int, right: int, bottom: int, visible: int, container: XPWidgetID) -> XPListBox:

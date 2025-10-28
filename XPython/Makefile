@@ -5,7 +5,7 @@ SERVER_SDK=400
 XP_SDK=../SDK420
 VERSIONS= 312
 # python versions are like 4.1.1 -> 4.1.2a1 -> 4.1.2a2 -> 4.1.2b1 -> 4.1.2 (letter is [ab], cannot end with letter)
-XPPYTHONVERSION=4.6.0a5
+XPPYTHONVERSION=4.6.0b1
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce 'b')
 ALPHA=$(shell echo $(XPPYTHONVERSION) | grep -ce 'a')
 FMOD=../FMOD

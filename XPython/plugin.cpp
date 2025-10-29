@@ -26,6 +26,7 @@
 #include "xppython.h"
 #include "ini_file.h"
 #include "capsules.h"
+#include "encryption.h"
 
 #if !defined(Py_LIMITED_API)
 static int pythonVerbose = 0;
@@ -241,6 +242,9 @@ int initPython(void){
   loggerModuleObj = PyImport_ImportModule("XPythonLogger");
 
   setSysPath();
+
+  setEncryptionLoader();
+
   /***********************
    * Init internal dictionaries
    */

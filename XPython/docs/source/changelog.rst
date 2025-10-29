@@ -46,6 +46,9 @@ Known Bugs
      * :doc:`/development/modules/graphics`: for :func:`xp.getTexture` and enumerations for weather radar textures.
        avionics.
 
+   * **Support for .pyc compiled python plugins**: You can now simply deploy PI_<plugin>.pyc instead of your source PI_<plugin>.py file.
+     See :doc:`/development/security`.
+
      |
 
 :Improvements:

@@ -78,6 +78,7 @@ Want to do something more interesting? Work through the next :doc:`quickstart` e
    Python SDK Modules <modules/index>
    Graphics options <graphics>
    tools
+   security
    implementation_details
    xlua_transition
 

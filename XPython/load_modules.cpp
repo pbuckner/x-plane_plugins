@@ -23,13 +23,18 @@ void xpy_loadModules(const char *path, const char *package, const char *pattern,
   }
   struct dirent *de;
   regex_t rex;
-  if(regcomp(&rex, pattern, REG_NOSUB) == 0){
+  if(regcomp(&rex, pattern, REG_NOSUB | REG_EXTENDED) == 0){
     while((de = readdir(dir))){
-      // pythonDebug("Checking file name %s against pattern %s", de->d_name, pattern);
+      //pythonDebug("Checking file name %s against pattern %s", de->d_name, pattern);
       if(regexec(&rex, de->d_name, 0, nullptr, 0) == 0 && strstr(de->d_name, "flymake.py") == nullptr){
         char *modName = strdup(de->d_name);
         if(modName){
-          modName[strlen(de->d_name) - 3] = '\0';
+          char *dot = strrchr(modName, '.');
+          if (dot == nullptr) {
+            //pythonDebug("Not found");
+            continue;
+          }
+          *dot = '\0';
           char *pkgModName;
           if (-1 == asprintf(&pkgModName, "%s.%s", package, modName)) {
             pythonLog("[XPPython3] Failed to allocate memory for package module name");

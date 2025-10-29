@@ -35,14 +35,14 @@ std::unordered_map<PyObject *, PluginInfo> XPY3pluginInfoDict;
 void xpy_startInternalPlugins()
 {
   pythonDebug("STARTING Internal plugins...");
-  xpy_loadModules(pythonInternalPluginsPath, "XPPython3", "^I_PI_[^.]*\\.py$", nullptr, PLUGIN_INTERNAL);
+  xpy_loadModules(pythonInternalPluginsPath, "XPPython3", "^I_PI_[^.]*\\.pyc?$", nullptr, PLUGIN_INTERNAL);
   pythonDebug("STARTED INTERNAL plugins.");
 }
 
 void xpy_startGlobalPlugins()
 {
   pythonDebug("STARTING Global plugins...");
-  xpy_loadModules(pythonPluginsPath, "PythonPlugins", "^PI_[^.]*\\.py$", nullptr, PLUGIN_GLOBAL);
+  xpy_loadModules(pythonPluginsPath, "PythonPlugins", "^PI_[^.]*\\.pyc?$", nullptr, PLUGIN_GLOBAL);
   pythonDebug("STARTED Global plugins.");
 }
 
@@ -155,7 +155,7 @@ void xpy_startAircraftPlugins()
   char *package_str = objToStr(package);
   Py_DECREF(localsDict);
   /* ... need to know these are 'aircraft' plugins, so I can remove them later!!! */
-  xpy_loadModules(plugins_path, package_str, "^PI_[^.]*\\.py$", XPY3aircraftPlugins, PLUGIN_AIRCRAFT);
+  xpy_loadModules(plugins_path, package_str, "^PI_[^.]*\\.pyc?$", XPY3aircraftPlugins, PLUGIN_AIRCRAFT);
   pythonDebug("STARTED Aircraft plugins.");
   free(package_str);
   free(plugins_path);
@@ -188,7 +188,7 @@ void xpy_startSceneryPlugins()
                  "        if path_component not in sys.path:\n"
                  "            sys.path.insert(0, path_component)\n"
                  "        package = '.'.join([os.path.split(scenery_package_directory)[-1], 'plugins', 'PythonPlugins'])\n"
-                 "        if glob.glob(x + '/PI_*.py'):\n"
+                 "        if glob.glob(x + '/PI_*.py') or glob.glob(x + '/PI_*.pyc'):\n"
                  "            packages.append([x, package])\n",
                  Py_file_input, localsDict, localsDict);
   
@@ -217,7 +217,7 @@ void xpy_startSceneryPlugins()
       const char *path = PyUnicode_AsUTF8(PyList_GetItem(packageInfo, MODULE_PATH));
       const char *package = PyUnicode_AsUTF8(PyList_GetItem(packageInfo, MODULE_PACKAGE));
       // pythonLog("path: %s, package: %s", path, package);
-      xpy_loadModules(path, package, "^PI_[^.]*\\.py$", XPY3sceneryPlugins, PLUGIN_SCENERY);
+      xpy_loadModules(path, package, "^PI_[^.]*\\.pyc?$", XPY3sceneryPlugins, PLUGIN_SCENERY);
       Py_DECREF(packageInfo);
     }
     Py_DECREF(iterator);

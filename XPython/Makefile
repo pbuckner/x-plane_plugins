@@ -95,6 +95,7 @@ PLUGIN_OBJ = plugin.o defs.o display.o display_keysniffer.o display_hotkey.o dis
 	weather.o weatherinfo_type.o weatherinfoclouds_type.o weatherinfowinds_type.o \
 	hotkeyinfo_type.o datarefinfo_type.o probeinfo_type.o plugininfo_type.o navaidinfo_type.o fmsentryinfo_type.o \
 	trackmetrics_type.o manage_instance.o manage_instances.o logwriter.o load_modules.o ini_file.o cursor.o \
+	encryption.o \
 	capsules.o
 
 cursor.o : cursor.cpp

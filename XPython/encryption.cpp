@@ -11,7 +11,8 @@ void setEncryptionLoader()
   }
   Py_DECREF(cryptoModuleObj); // we needed to load it, just to verify it's available
 
-  PyObject *mod = PyImport_ImportModule("XPPython3.xpcye");
+  const char *xpyce = "XPPython3.xpyce";
+  PyObject *mod = PyImport_ImportModule(xpyce);
   if (mod) {
     PyObject *function = PyObject_GetAttrString(mod, "XPYCEPathFinder");
     if (function) {
@@ -24,6 +25,6 @@ void setEncryptionLoader()
       Py_DECREF(mod);
     }
   } else {
-    pythonDebug("[XPPython3] Failed to load XPPython3.xpyce module");
+    pythonDebug("[XPPython3] Failed to load %s module", xpyce);
   }
 }

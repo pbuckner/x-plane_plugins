@@ -113,8 +113,8 @@ def encrypt_path(path: str, extensions: Optional[Set[str]] = None, exclusions:
 
     if use_dir_key:
         # Generate key for the directory
-        if path in custom_keys:
-            module = path.replace('/', '.')
+        module = path.replace('/', '.').replace('\\', '.')
+        if module in custom_keys:
             dir_key_hex = custom_keys[module]
             dir_key = int(dir_key_hex, 16).to_bytes(32, 'big')
         else:
@@ -155,7 +155,7 @@ def encrypt_path(path: str, extensions: Optional[Set[str]] = None, exclusions:
                 continue
 
             module, ext = splitext(absolute_path)
-            module = module.replace('/', '.')
+            module = module.replace('/', '.').replace('\\', '.')
 
             with open(absolute_path, 'rb+') as openf:
                 # read
@@ -199,7 +199,7 @@ def encrypt_path(path: str, extensions: Optional[Set[str]] = None, exclusions:
     # Add directory entry if using directory key
     if use_dir_key:
         module, ext = splitext(path)
-        module = module.replace('/', '.')
+        module = module.replace('/', '.').replace('\\', '.')
         manifest.append((module, dir_key_hex))
 
     return manifest

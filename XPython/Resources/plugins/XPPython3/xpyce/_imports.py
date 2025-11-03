@@ -25,6 +25,7 @@ XPYCE-formatted, encrypted files.
 """
 
 
+import pathlib
 import re
 import sys
 import marshal
@@ -68,7 +69,7 @@ class XPYCEFileLoader(SourcelessFileLoader):
         path = self.get_filename(fullname)
         data = self.get_data(path)
 
-        decryption_key = self.get_key(path)
+        decryption_key = self.get_key(pathlib.Path(path).as_posix())
 
         if not decryption_key:
             raise KeyError(f"Cannot find decryption_key for module '{fullname}'")
@@ -96,7 +97,10 @@ class XPYCEFileLoader(SourcelessFileLoader):
     def get_key(self, path):
         relpath, _ext = os.path.splitext(path)
         m = re.search('(Resources|Aircraft|Custom Scenery)/?.*/plugins/((PythonPlugins|XPPython3)/.*)', relpath)
-        if m[1] in ('Aircraft', "Custom Scenery"):
+        if m is None:
+            print(f"[XPPython3.xpyce]  No valid key found for {relpath}")
+            return None
+        elif m[1] in ('Aircraft', "Custom Scenery"):
             relpath = m[2].replace("PythonPlugins", m[1])
         else:
             relpath = m[2]

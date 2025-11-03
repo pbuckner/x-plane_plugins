@@ -107,7 +107,7 @@ Create the rest of your plugin in the usual way, copy and paste this into ``Pyth
       @staticmethod
       def callback(lastCall, elapsedTime, counter, refCon):
           output = compute.munge(refCon)
-          xp.speakString(f"Munge of f{refCon} is f{output}")
+          xp.speakString(f"Munge of {refCon} is {output}")
           return 0
           
 

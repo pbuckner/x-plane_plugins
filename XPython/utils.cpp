@@ -29,10 +29,10 @@ std::unordered_set<std::string> moduleNamePool;
 const char* intern_moduleName(const std::string& name) {
   auto [it, inserted] = moduleNamePool.insert(name);
   #ifdef ERRCHECK
-  if (inserted && pythonDebugs) {
-    pythonDebug("Interned module name: '%s' -> %p (pool size: %zu)",
-                name.c_str(), (void*)it->c_str(), moduleNamePool.size());
-  }
+  // if (inserted && pythonDebugs) {
+  //   pythonDebug("Interned module name: '%s' -> %p (pool size: %zu)",
+  //               name.c_str(), (void*)it->c_str(), moduleNamePool.size());
+  // }
   #endif
   return it->c_str();  // Returns stable pointer to string in the set
 }
@@ -41,10 +41,10 @@ const char* intern_moduleName(const char* name) {
   if (!name) return nullptr;
   auto [it, inserted] = moduleNamePool.insert(std::string(name));
   #ifdef ERRCHECK
-  if (inserted && pythonDebugs) {
-    pythonDebug("Interned module name: '%s' -> %p (pool size: %zu)",
-                name, (void*)it->c_str(), moduleNamePool.size());
-  }
+  // if (inserted && pythonDebugs) {
+  //   pythonDebug("Interned module name: '%s' -> %p (pool size: %zu)",
+  //               name, (void*)it->c_str(), moduleNamePool.size());
+  // }
   #endif
   return it->c_str();
 }

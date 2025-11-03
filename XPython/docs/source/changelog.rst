@@ -47,7 +47,14 @@ Known Bugs
        avionics.
 
    * **Support for .pyc compiled python plugins**: You can now simply deploy PI_<plugin>.pyc instead of your source PI_<plugin>.py file.
-     See :doc:`/development/security`.
+     See :doc:`/development/deployment_compiled`.
+
+   * **Support for .xpyce encrypted python plugins**: We've re-introduced (and improved) using encrypted python. 
+     See :doc:`/development/deployment_encrypted`.
+
+   * **Support for including custom C-language modules**: Though we've always supported this python feature, we've included
+     documentation on how to create your on C shared library and add it to your python plugin.
+     See :doc:`/development/deployment_sharedlib`.
 
      |
 

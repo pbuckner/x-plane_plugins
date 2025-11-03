@@ -306,7 +306,7 @@ Alternative Execution Startup
 
     from XPPython3.xpyce import update_keys
     keys = {
-      "myplugin": 'a1b2c3d4e5f6789012345678901234567890123456789012345678901234',
+      "myplugin.compute": 'a1b2c3d4e5f6789012345678901234567890123456789012345678901234',
     }
 
     update_keys(keys)

@@ -12,7 +12,7 @@ SYNOPSIS
 ::
 
   xpyce_compile.py [-h] [--encrypt-by-directory] [--manifest FILE]
-                   [--key PATH:KEY] ... path [path ...]``
+                   [--key MODULE:KEY] ... path [path ...]``
 
 DESCRIPTION
 -----------
@@ -50,7 +50,7 @@ Optional Arguments
     that should be encrypted together.
 
 ``--manifest`` *FILE*
-    Path to JSON file containing a mapping of file/directory paths to encryption
+    Path to JSON file containing a mapping of module paths to encryption
     keys. The JSON format is::
 
       {
@@ -59,12 +59,12 @@ Optional Arguments
       }
 
     Keys must be 64-character hexadecimal strings (256 bits). If a manifest file
-    is provided and a file is not listed, it will be encrypted with a content-based
+    is provided and a module is not listed, it will be encrypted with a content-based
     key instead, and the new key will be returned.
 
-``--key`` *PATH:KEY*
-    Specify a custom encryption key for a specific file or directory in the format
-    PATH:KEY where KEY is a 64-character hexadecimal string. This option can be
+``--key`` *MODULE:KEY*
+    Specify a custom encryption key for a specific module (or parent module) in the format
+    MODULE:KEY where KEY is a 64-character hexadecimal string. This option can be
     used multiple times to specify multiple keys. Command-line keys override keys
     from the manifest file.
 

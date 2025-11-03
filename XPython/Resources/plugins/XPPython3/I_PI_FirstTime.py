@@ -26,7 +26,7 @@ class PythonInterface:
             touch_version = Version('0.0')
 
         # Check (and update if necessary) required modules
-        requirements = ['numpy>=1.26.4', 'freetype-py>=2.4.0', 'pillow>=10.3.0', 'charset-normalizer>=3.4.1']
+        requirements = ['numpy>=1.26.4', 'freetype-py>=2.4.0', 'pillow>=10.3.0', 'charset-normalizer>=3.4.1', 'cryptography>=46.0.3']
         xp_pip.load_requirements(requirements, force=False)
 
         if self.current_version > touch_version:

@@ -458,6 +458,18 @@ is returned by :py:func:`findCommand` or created by :py:func:`createCommand`.
     >>> xp.commandEnd(commandRef)
     Command got phase: 2
 
+    Unlike some callbacks, you *must* define an actual function: you must not define the callback
+    in the call using a lambda expression. This is because
+    to unregister the command, you must provide the `exact same callback function`, which is not possible::
+
+      # Works
+      >>> a = lambda ref, phase, refcon: print("hello world")
+      >>> xp.registerCommandHandler(commandRef, a)
+      >>> xp.unregisterCommandHandler(commandRef, a)
+      # Does not work
+      >>> xp.registerCommandHandler(commandRef, lambda ref, phase, refcon: print("hello world")
+      >>> xp.unregisterCommandHandler(commandRef, lambda ref, phase, refcon: print("hello world")
+
     `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMRegisterCommandHandler>`__ :index:`XPLMRegisterCommandHandler`
 
 

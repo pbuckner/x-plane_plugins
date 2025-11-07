@@ -6,7 +6,7 @@ Known Bugs
 
   None. *Prove me wrong!*
 
-4.6.0 (Beta)
+4.6.0 (6-Nov-2025)
 ------------
 
 :Fixes:

@@ -35,6 +35,17 @@ Basic FMOD interface
 
 .. py:function:: playPCMOnBus(audioBuffer, bufferSize, soundFormat, freqHz, numChannels, loop=0, audioType=8, callback=None, refCon=None)
 
+  :param bytes audioBuffer: raw data
+  :param int bufferSize: integer length of audioBuffer
+  :param int soundFormat: sample width (e.g., 2 for 16-bit)
+  :param int freqHz: sample frequency (e.g., 22050)
+  :param int numChannels: number of channels in sample (e.g., 2)
+  :param int loop: 1= loop until instructed to stop via :func:`stopAudio`
+  :param int audioType: Where the audio should be played: :ref:`XPLMAudioBus`
+  :param Callable callback: notify me when complete
+  :param Any refCon: reference constant sent to callback
+  :return: FMOD_CHANNEL capsule ("channel pointer")
+
   Play an in-memory audio buffer as a given audioType (:ref:`XPLMAudioBus`). The resulting FMOD channel
   is returned. When the sound completes or is stopped by X-Plane, *the channel will go away*. It is up to
   you to invalidate any copy of the channel pointer you have lying around. You can do this
@@ -52,7 +63,7 @@ Basic FMOD interface
 
   * `soundFormat` is width of sample (e.g., 1 of 8-bit, 2 for 16-bit, etc.) See enum `FMOD_SOUND_FORMAT <https://documentation.help/FMOD-Ex/FMOD_SOUND_FORMAT.html>`__.
 
-  * `freqHz` is sample framerate (800, 22000, 44100, etc.)
+  * `freqHz` is sample framerate (800, 22050, 44100, etc.)
 
   * `numChannels` is number of channels in the sample
 
@@ -92,15 +103,22 @@ Basic FMOD interface
   ...             refCon="SeatBelt")
   ...
   >>> print(channel)
-  <capsule object "FOD_CHANNELRefName" at 0x1e45c5710>
+  <capsule object "FMOD_CHANNEL" at 0x1e45c5710>
   
-  With XPPython3Log.txt getting the entry:
+  Take a look in XPPython3Log.txt and you'll see the entry:
   
-    ``[Main] Sound 'SeatBelt' ended, status is 0``
+    ``[PythonPlugins.PI_MiniPython] Sound 'SeatBelt' ended, status is 0``
   
   `Official SDK <https://developer.x-plane.com/sdk/XPLMSound/#XPLMPlayPCMOnBus>`__ :index:`XPLMPlayPCMOnBus`
 
 .. py:function:: playWaveOnBus(wav, loop, audioType, callback, refCon)
+
+  :param wave.Wave_read wav: value of wave.open()
+  :param int loop: 1= loop until stopped using :func:`stopAudio`                           
+  :param int audioType: Where the audio should be played: :ref:`XPLMAudioBus`
+  :param Callable callback: notify me when complete
+  :param Any refCon: reference constant sent to callback
+  :return: FMOD_CHANNEL capsule ("channel pointer")
 
   This is a pure-python convenience function which takes an opened Wave object and provides
   the parameters similar to what was done in the :py:func:`playPCMOnBus` example.
@@ -108,10 +126,13 @@ Basic FMOD interface
   >>> w = wave.open('Resources/sounds/alert/seatbelt.wav')
   >>> channel = xp.playWaveOnBus(w, loop=0, audioType=7)
   >>> print(channel)
-  <capsule object "FOD_CHANNELRefName" at 0x1e45c5710>
+  <capsule object "FOD_CHANNEL" at 0x1e45c5710>
   
 .. py:function:: stopAudio(channel)
-                 
+
+  :param FMOD_CHANNEL channel: return from :func:`playPCMOnBus` or :func:`playWaveOnBus`
+  :return: int FMOD_RESULT
+           
   Stop playing an active channel (as returned by :py:func:`playPCMOnBus` or :py:func:`playWaveOnBus`.)
   If you defined a completion callback,
   it will be called. Once stopped, the channel is no longer valid and must not be used in any future calls.
@@ -129,6 +150,11 @@ Basic FMOD interface
 
 .. py:function:: setAudioPosition(channel, position, velocity=None)
 
+  :param FMOD_CHANNEL channel: return from :func:`playPCMOnBus` or :func:`playWaveOnBus`
+  :param Tuple position: local (x, y, z) float coordinates
+  :param Tuple velocity: (x, y, z) floats movement in meters per second
+  :return: FMOD_RESULT 0= FMOD_OK
+
   Move the audio channel to a specific location in local (OpenGL) coordinates. This will set the sound
   to 3D if it is not already. Position is *required* if you want to use :py:func:`setAudioFadeDistance`
   or :py:func:`setAudioCone`.
@@ -144,30 +170,43 @@ Basic FMOD interface
   Returns FMOD_RESULT. 0= FMOD_OK.  See `FMOD_RESULT <https://documentation.help/FMOD-Studio-API/FMOD_RESULT.html>`__
 
   >>> def getCurrentPosition():
-  ...    lat = xp.getDatad(xp.findDataRef('sim/flightmodel/position/latitude'))
-  ...    lon = xp.getDatad(xp.findDataRef('sim/flightmodel/position/longitude'))
-  ...    alt = xp.getDatad(xp.findDataRef('sim/flightmodel/position/elevation'))
-  ...    return xp.worldToLocal(lat, lon, alt)
+  ...    x = xp.getDatad(xp.findDataRef('sim/flightmodel/position/local_x'))
+  ...    y = xp.getDatad(xp.findDataRef('sim/flightmodel/position/local_y'))
+  ...    z = xp.getDatad(xp.findDataRef('sim/flightmodel/position/local_z'))
+  ...    pilot_x = xp.getDatad(xp.findDataRef('sim/aircraft/view/acf_peX'))
+  ...    pilot_y = xp.getDatad(xp.findDataRef('sim/aircraft/view/acf_peY'))
+  ...    pilot_z = xp.getDatad(xp.findDataRef('sim/aircraft/view/acf_peZ'))
+  ...    return [x + pilot_x, y + pilot_y, z + pilot_z]
   ...
   >>> position = getCurrentPosition()
   >>> position
   (129, 9, 28)
   >>> w = wave.open('Resources/sounds/alert/seatbelt.wav')
-  >>> channel = xp.playWaveOnBus(w, loop=0, audioType=7)
+  >>> channel = xp.playWaveOnBus(w, loop=1, audioType=7)
   >>> xp.setAudioPosition(channel, position)
   0
+
+  In the above example of a looping sound, continue to change the position and call :func:`setAudioPosition` and
+  you'll hear the sound "move" through space: changing position's z axis moves the sound north/sound.
+
+  For demostration purposes, you can alter the velocity +/- 100 to hear doppler effect.
   
   `Official SDK <https://developer.x-plane.com/sdk/XPLMSound/#XPLMSetAudioPosition>`__ :index:`XPLMSetAudioPosition`
 
   
 .. py:function:: setAudioFadeDistance(channel, min_distance=1.0, max_distance=10000.0)
              
-  Sets the minimum and maximum fad distances for a given channel. When the listener is
+  :param FMOD_CHANNEL channel: return from :func:`playPCMOnBus` or :func:`playWaveOnBus`
+  :param float min_distance:
+  :param float max_distance:
+  :return: FMOD_RESULT 0= FMOD_OK
+
+  Sets the minimum and maximum fade distances for a given channel. When the listener is
   in-between the minimum distance and the source, the volume will be at it's maximum.
   As the listener movies from the minimum distance to the maximum distance, the sound
   with attenuate. When outside the maximum distance the sound will no longer attenuate.
 
-  Use minimum distance to give the impression that the sound is load or soft: Small
+  Use minimum distance to give the impression that the sound is loud or soft: Small
   quite objects such as a bumblebee, set minimum to 0.1. This would cause it to
   attenuate quickly and disappear when only a few meters away. A jumbo jet minimum
   might be 100 meters, thereby maintaining maximum volume until 100 meters away, with
@@ -189,9 +228,18 @@ Basic FMOD interface
   >>> xp.setAudioFadeDistance(channel, .1)
   0
   
+  Continuing with the example from :func:`setAudioPosition` which sets the sound near the center
+  of the pilot's head. With ``min_distance`` set to 0.1 or 0.05, you'll notice the sound fades
+  quickly as you move forward/backwards in the cockpit. Set to 10 and it doesn't fade at all (within
+  the confines of the cockpit). Set min and max to -1 and the sound becomes 2D and doesn't fade at all.
+  
   `Official SDK <https://developer.x-plane.com/sdk/XPLMSound/#XPLMSetAudioFadeDistance>`__ :index:`XPLMSetAudioFadeDistance`
 
 .. py:function:: setAudioVolume(channel, volume=1.0)
+
+  :param FMOD_CHANNEL channel: return from :func:`playPCMOnBus` or :func:`playWaveOnBus`
+  :param float volume: volume multiplier
+  :return: FMOD_RESULT 0= FMOD_OK
 
   Sets channel volume. Volume value represents a multiplier to the source. Values from 0 to 1 reduce source, numbers
   above 1 can be used to artificially amplify sound.
@@ -207,8 +255,15 @@ Basic FMOD interface
   
 .. py:function:: setAudioPitch(channel, pitch=1.0)
 
+  :param FMOD_CHANNEL channel: return from :func:`playPCMOnBus` or :func:`playWaveOnBus`
+  :param float pitch: pitch multiplier
+  :return: FMOD_RESULT 0= FMOD_OK
+
   Change the current pitch of an active channel. Pitch value of 1 sets it to original source value. Greater than
   one increases the frequency, resulting in a higher pitch. Half the source pitch by setting the value to 0.5.
+
+  Note that changing the pitch also changes the duration of the clip: double the frequency (raising it an octave)
+  halves the duration.
 
   Returns FMOD_RESULT. 0= FMOD_OK.  See `FMOD_RESULT <https://documentation.help/FMOD-Studio-API/FMOD_RESULT.html>`__
 
@@ -221,6 +276,13 @@ Basic FMOD interface
   
    
 .. py:function:: setAudioCone(channel, inside_angle=360.0, outside_angle=360.0, outside_volume=1.0, orientation=None)
+
+  :param FMOD_CHANNEL channel: return from :func:`playPCMOnBus` or :func:`playWaveOnBus`
+  :param float inside_angle: angle at 100% volume inside, 
+  :param float outside_angle: attenuation from inner to outside angle, down to outside volume
+  :param float outside_volume: volume multiplier when greater than outside_angle
+  :param Tuple orientation: (x, y, z) vector.
+  :return: FMOD_RESULT 0= FMOD_OK
 
   Set a directional cone for an active channel. The orientation vector is in local coordinates.
   This will set the sound to 3d if it is not already.
@@ -248,6 +310,8 @@ Basic FMOD interface
   >>> xp.setAudioCone(channel, 45, 180, .5, (1, 0, -1))
   0
   
+  (If you're using SDK to program sound cones, you should be familar with FMOD and 3D audio. This documentation
+  is not attempting to cover that kind of detail.)
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMSound/#XPLMSetAudioCone>`__ :index:`XPLMSetAudioCone`
 
@@ -310,6 +374,8 @@ to access additional FMOD functionality not otherwise supported via the interfac
           
 .. py:function:: getFMODStudio()
 
+  :return: FMOD_STUDIO_SYSTEM capsule
+
   Retrieve handle (PyCapsule) to FMOD_STUDIO_SYSTEM, allowing you to load/process
   whatever else you need.
 
@@ -319,6 +385,9 @@ to access additional FMOD functionality not otherwise supported via the interfac
   `Official SDK <https://developer.x-plane.com/sdk/XPLMSound/#XPLMGetFMODStudio>`__ :index:`XPLMGetFMODStudio`
 
 .. py:function:: getFMODChannelGroup(audioType)
+
+  :param XPLMAudioBus audioType: one of :ref:`XPLMAudioBus`
+  :return: FMOD_CHANNELGROUP capsule
 
   Returns handle (PyCapsule) to the FMOD_CHANNELGROUP with the given index (one of
   :ref:`XPLMAudioBus`.)

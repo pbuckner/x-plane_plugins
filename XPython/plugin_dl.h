@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMDataAccess.h>
+#include <XPLM/XPLMGraphics.h>
 #include <XPLM/XPLMProcessing.h>
 #include <XPLM/XPLMScenery.h>
 #include <XPLM/XPLMMenus.h>
@@ -121,6 +122,17 @@ PLUGIN_DLL(XPLMSetAudioFadeDistance);
 PLUGIN_DLL(XPLMSetAudioPitch);
 PLUGIN_DLL(XPLMSetAudioVolume);
 PLUGIN_DLL(XPLMSetAudioCone);
+
+// XPLM_420
+PLUGIN_DLL(XPLMInstanceSetPositionDouble);
+PLUGIN_DLL(XPLMInstanceSetAutoShift);
+PLUGIN_DLL(XPLMBeginWeatherUpdate);
+PLUGIN_DLL(XPLMEndWeatherUpdate);
+PLUGIN_DLL(XPLMSetWeatherAtLocation);
+PLUGIN_DLL(XPLMSetWeatherAtAirport);
+PLUGIN_DLL(XPLMEraseWeatherAtLocation);
+PLUGIN_DLL(XPLMEraseWeatherAtAirport);
+
 
 bool loadSDKFunctions(void);
 

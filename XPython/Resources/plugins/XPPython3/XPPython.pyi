@@ -45,19 +45,39 @@ def systemLog(s:Optional[str]=None) -> None:
     """
     ...
 
-def pythonGetCapsules() -> dict:
+def getCapsuleDict() -> dict:
     """
     Returns internal dictionary of Capsules
-    
+
     Intended for debugging only
     """
     ...
 
-def derefCapsule(capsule_type:str, capsule:Any) -> int:
+def getCapsulePtr(capsule_type:str, capsule:Any) -> int:
     """
     Dereference a capsule to retrieve internal C language pointer
-    
+
     Intended for debugging only
     """
     ...
 
+def getSelfModuleName() -> str:
+    """
+    Return module name of currently executing python plugin.
+    """
+    ...
+
+def getPluginDict() -> dict:
+    """
+    Returns internal dictionary of loaded plugins
+
+    Intended for debugging only
+    """
+    ...
+
+
+def disablePythonPlugin(signature: str) -> None:
+    """
+    Disables python plugin
+    """
+    ...

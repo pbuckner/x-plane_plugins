@@ -61,7 +61,10 @@ will return the height of a 0 MSL sphere.
 
 .. py:function:: createProbe(probeType=0)
 
-  Returns a probeRef, which is to be  used with :py:func:`probeTerrain`.
+  :param int probeType: 0, the only probe type supported
+  :return: XPLMProbeRef capsule                      
+
+  Returns a probeRef, which is to be  used with :py:func:`probeTerrainXYZ`.
 
   The *probeType* defines the type of probe, of which there is only one currently:
 
@@ -77,20 +80,32 @@ will return the height of a 0 MSL sphere.
            
   `Official SDK <https://developer.x-plane.com/sdk/XPLMScenery/#XPLMCreateProbe>`__ :index:`XPLMCreateProbe`
 
-.. py:function:: destroyProbe(probeRef)
+.. py:function:: destroyProbe(probe)
 
-  Deallocates an existing *probeRef* created by :py:func:`createProbe`.
+  :param XPLMProbeRef probe: XPLMProbeRef capsule from :func:`createProbe`                 
+  :return: None
+
+  Deallocates an existing *probe* created by :py:func:`createProbe`.
 
   >>> probe = xp.createProbe()
   >>> xp.destroyProbe(probe)
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMScenery/#XPLMDestroyProbe>`__ :index:`XPLMDestroyProbe`
 
-.. py:function:: probeTerrainXYZ(probeRef, x, y, z)
+.. py:function:: probeTerrainXYZ(probe, x, y, z)
 
-  Probes the terrain. Pass in *probeRef*, and the *x*, *y*, *z* coordinates of the point.
+  :param XPLMProbeRef probe: as created by :func:`createProbe`                 
+  :param x float:                           
+  :param y float:                           
+  :param Z float: (x, y, z) are local coordinates                          
+  :return: XPLMProbeInfo instance
+
+  Probes the terrain. Pass in XPLMProbRef *probe*, and the *x*, *y*, *z* coordinates of the point.
   (You can obtain (x, y, z) information using, for example, :py:func:`worldToLocal` or
   datarefs ``sim/flightmodel/position/local_[xyz]``.) 
+
+  .. note:: Check ``info.result``. Your *only* indication of error is the value of this
+            element. This includes passing in a bad XPLMProbeRef.
 
   The return value is an object with attributes:
 
@@ -164,6 +179,10 @@ X-Plane's built-in instruments.
 
 .. py:function:: getMagneticVariation(latitude, longitude)
 
+ :param float latitude:
+ :param float longitude: location
+ :return: float magnetic variation
+
  Returns X-Plane's simulated magnetic variation (declination) at the
  indicated latitude and longitude.
 
@@ -173,6 +192,9 @@ X-Plane's built-in instruments.
  `Official SDK <https://developer.x-plane.com/sdk/XPLMScenery/#XPLMGetMagneticVariation>`__ :index:`XPLMGetMagneticVariation`
 
 .. py:function::  degTrueToDegMagnetic(degreesTrue=0.0)
+
+ :param float degreesTrue: heading to convert
+ :return: float magnetic heading at current location
 
  Converts a heading in degrees relative to true north into a value relative
  to magnetic north *at the user's current location*.
@@ -185,6 +207,9 @@ X-Plane's built-in instruments.
  `Official SDK <https://developer.x-plane.com/sdk/XPLMScenery/#XPLMDegTrueToDegMagnetic>`__ :index:`XPLMDegTrueToDegMagnetic`
 
 .. py:function::  degMagneticToDegTrue(degreesMagnetic=0.0)
+
+ :param float degreesTrue: magnetic heading to convert
+ :return: true heading at current location
 
  Converts a heading in degrees relative to magnetic north *at the user's
  current location* into a value relative to true north.
@@ -204,6 +229,13 @@ system.
 
 
 .. py:function:: lookupObjects(path, latitude, longitude, enumerator, refCon)
+
+    :param str path: virtual path of object to find
+    :param float latitude:
+    :param float longitude: location to bias the search (e.g., find "European" houses vs "USA" houses)
+    :param Callable enumerator: simple function to gather the results
+    :param Any refCon: reference constant passed to your function
+    :return: integer, number of objects found                   
 
     This routine looks up a virtual *path* in the library system and returns a
     count of the number of matching elements found.
@@ -240,8 +272,9 @@ system.
 
     >>> path = "lib/g10/autogen/urban_low_broken_0.ags"
     >>> xp.lookupObjects(path, latitude=35, longitude=-122, enumerator=lambda path, _: print(path))
-    Resources/default scenery/1000 autogen/US/suburban/SubResSW32m.ags
-    1
+    Resources/default scenery/1000 autogen/US/suburban/SubResSW32mWet.ags
+    Resources/default scenery/1000 autogen/US/suburban/SubResSW32mWet_fal.ags
+    2
     >>> xp.lookupObjects(path, latitude=50, longitude=8.7, enumerator=lambda path, _: print(path))
     Resources/default scenery/1000 autogen/EU/sub_Resid02.ags
     1
@@ -258,6 +291,9 @@ every successful call to :py:func:`loadObject` with a call to :py:func:`unloadOb
 
 .. py:function:: loadObject(path)
 
+    :param str path: Relative path to OBJ file
+    :return: XPLMObjectRef capsule                 
+       
     This routine loads an OBJ file and returns an ``objectRef`` handle to it. If X-Plane has
     already loaded the object, the handle to the existing object is returned.
     Do not assume you will get the same handle back twice, but do make sure to
@@ -286,6 +322,11 @@ every successful call to :py:func:`loadObject` with a call to :py:func:`unloadOb
 
 .. py:function:: loadObjectAsync(path, loaded, refCon)
 
+    :param str path: Relative path to OBJ file
+    :param Callable loaded: callback function on completion
+    :param Any refCon: reference constant passed to your callback function
+    :return: None
+             
     This routine loads an object asynchronously; control is returned to you
     immediately while X-Plane loads the object. The sim will not stop flying
     while the object loads. For large objects, it may be several seconds before
@@ -301,9 +342,14 @@ every successful call to :py:func:`loadObject` with a call to :py:func:`unloadOb
     >>> def MyLoaded(objectRef, refCon):
     ...    xp.log(f"Object {objectRef} has been loaded")
     ...
-    >>> xp.loadObjectAsync('Resources/default scenery/sim objects/dynamic/SailBoat.obj')
-    >>>
+    >>> xp.loadObjectAsync('Resources/default scenery/sim objects/dynamic/SailBoat.obj', MyLoaded)
 
+    (Note that the above example isn't useful by itself: Yes, it loads the object asynchronously,
+    but it doesn't store the retrieved ``objectRef`` so you don't have a handle
+    to it. However, you *can* follow this up with ``xp.loadObject('...SailBoat.obj')`` and
+    retrieve the XPLMObjectRef. The idea is that you request Async loading at program startup,
+    but call synchronous loading at the moment you need this... works, but don't do this.)
+    
     If your plugin is disabled, this callback will be delivered as soon as the
     plugin is re-enabled. If your plugin is unloaded before this callback is
     ever called, the SDK will release the object handle for you.
@@ -316,11 +362,13 @@ every successful call to :py:func:`loadObject` with a call to :py:func:`unloadOb
 
 .. py:function::  unloadObject(objectRef)
 
+    :param XPLMObjectRef objectRef: XPLMObjectRef obtained from :func:`loadObject` or :func:`loadObjectAsync`
+    :return: None                                
+
     This routine marks an *objectRef* as no longer being used by your plugin.
     Objects are reference counted: once no plugins are using an object, it is
     purged from memory. Make sure to call :py:func:`unloadObject`
-    once for each
-    successful call to :py:func:`loadObject` or :py:func:`loadObjectAsync`.
+    once for each successful call to :py:func:`loadObject` or :py:func:`loadObjectAsync`.
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMScenery/#XPLMUnloadObject>`__ :index:`XPLMUnloadObject`
 

@@ -107,6 +107,14 @@ Functions
     Simply moves a widget by an amount, +x = right, +y=up, without resizing the
     widget.
 
+    :param widgetID: Widget to move
+    :type widgetID: XPWidgetID
+    :param deltaX: Horizontal offset in pixels (default: 0)
+    :type deltaX: int
+    :param deltaY: Vertical offset in pixels (default: 0)
+    :type deltaY: int
+    :return: None
+
     >>> widgetID = xp.createWidget(100, 200, 300, 100, 1, "My Widget", 1, 0, xp.WidgetClass_MainWindow)
     >>> xp.getWidgetGeometry(widgetID)
     (100, 200, 300, 100)
@@ -119,10 +127,18 @@ Functions
 .. py:function:: createWidgets(widgetDefs, parentID=None)
 
  .. warning:: This function does not work. X-Plane 11.55 (at least) does not properly read
-   the value in *widgetDefs*. Bug has been filed with Laminar 15-November-2021 and is XPD-11514.
-
+   the value in *widgetDefs*. Bug has been filed with Laminar 15-November-2021 and is XPD-11514. This
+   bug still exists in X-Plane 12.3
 
  This function creates a series of widgets, returning a list of created widgetIDs.
+
+ :param widgetDefs: Sequence of widget creation tuples
+ :type widgetDefs: Sequence[XPCreateWidget_t]
+ :param parentID: Parent widget ID for PARAM_PARENT references (default: None)
+ :type parentID: Optional[XPWidgetID]
+ :return: List of created widget IDs
+ :rtype: list[XPWidgetID]
+
  Pass in a list of widget creation tuples (:ref:`XPCreateWidget_t`) as *widgetDefs*.
 
  Widget parents are specified by index into the created widget table,
@@ -178,6 +194,17 @@ managers can be called from a widget function or attached to a widget later, usi
     relative to itself as it is resized. Use this on the top level 'window'
     widget for your window.
 
+    :param message: Widget message
+    :type message: XPWidgetMessage
+    :param widgetID: Widget receiving the message
+    :type widgetID: XPWidgetID
+    :param param1: Message parameter 1
+    :type param1: int
+    :param param2: Message parameter 2
+    :type param2: int
+    :return: 1 if message was handled, 0 otherwise
+    :rtype: int
+
     >>> widgetID1 = xp.createWidget(400, 200, 600, 100, 1, "Widget 1", 1, 0, xp.WidgetClass_MainWindow)
     >>> subwidgetID1 = xp.createWidget(410, 180, 450, 165, 1, "Caption", 0, widgetID1, xp.WidgetClass_Caption)
     >>> xp.addWidgetCallback(widgetID1, xp.fixedLayout)
@@ -231,11 +258,23 @@ Widget Procedure Behaviors
 These widget behavior functions add other useful behaviors to widgets. These functions cannot
 be attached to a widget (e.g., :py:func:`addWidgetCallback`); they must be called from *your widget callback* function.
 
-.. py:function:: selectIfNeeded(message, widgetID, param1, param2, eatClick) -> int:
+.. py:function:: selectIfNeeded(message, widgetID, param1, param2, eatClick=1)
 
     This causes the widget to bring its window to the foreground if it is not
-    already. ``eatClick`` specifies whether clicks in the background should be
-    consumed by bringing the window to the foreground.
+    already.
+
+    :param message: Widget message
+    :type message: XPWidgetMessage
+    :param widgetID: Widget receiving the message
+    :type widgetID: XPWidgetID
+    :param param1: Message parameter 1
+    :type param1: int
+    :param param2: Message parameter 2
+    :type param2: int
+    :param eatClick: 1 to consume clicks when bringing to foreground (default: 1)
+    :type eatClick: int
+    :return: 1 if message was handled, 0 otherwise
+    :rtype: int
 
     .. note:: This appears to already be implemented with MainWindow widgets: clicking on a window
               which is *not* the frontmost will cause the widget to move to the foreground.
@@ -249,6 +288,19 @@ be attached to a widget (e.g., :py:func:`addWidgetCallback`); they must be calle
     This causes a click in the widget to send keyboard focus back to X-Plane.
     This stops editing of any text fields, etc.
 
+    :param message: Widget message
+    :type message: XPWidgetMessage
+    :param widgetID: Widget receiving the message
+    :type widgetID: XPWidgetID
+    :param param1: Message parameter 1
+    :type param1: int
+    :param param2: Message parameter 2
+    :type param2: int
+    :param eatClick: 1 to consume clicks (default: 1)
+    :type eatClick: int
+    :return: 1 if message was handled, 0 otherwise
+    :rtype: int
+
     .. note:: This appears to already be implemented with MainWindow widgets: clicking away from a TextField
               will cause the keyboard focus to be lost.
 
@@ -260,8 +312,28 @@ be attached to a widget (e.g., :py:func:`addWidgetCallback`); they must be calle
 
 .. py:function:: dragWidget(message, widgetID, param1, param2, left, top, right, bottom)
 
-    :py:func:`dragWidget` drags the widget in response to mouse clicks. Pass in not
-    only the event, but the global coordinates of the drag region, which might
+    :py:func:`dragWidget` drags the widget in response to mouse clicks.
+
+    :param message: Widget message
+    :type message: XPWidgetMessage
+    :param widgetID: Widget receiving the message
+    :type widgetID: XPWidgetID
+    :param param1: Message parameter 1
+    :type param1: int
+    :param param2: Message parameter 2
+    :type param2: int
+    :param left: Left edge of drag region in global coordinates
+    :type left: int
+    :param top: Top edge of drag region in global coordinates
+    :type top: int
+    :param right: Right edge of drag region in global coordinates
+    :type right: int
+    :param bottom: Bottom edge of drag region in global coordinates
+    :type bottom: int
+    :return: 1 if message was handled, 0 otherwise
+    :rtype: int
+
+    Pass in not only the event, but the global coordinates of the drag region, which might
     be a sub-region of your widget (for example, a title bar).
 
     For example, MainWindow title bars are *already* drag regions. To add a drag region
@@ -269,7 +341,7 @@ be attached to a widget (e.g., :py:func:`addWidgetCallback`); they must be calle
     of the widget and call :py:func:`dragWidget` in you callback:
     
     >>> def MyCallback(message, widgetID, param1, param2):
-    ...    geom = xp.getWidgetGeometry(widgetID)
+    ...    geom = list(xp.getWidgetGeometry(widgetID))
     ...    geom[1] = geom[3] + 20
     ...    return xp.dragWidget(message, widgetID, param1, param2, *geom)
     ...

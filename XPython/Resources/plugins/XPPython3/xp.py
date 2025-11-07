@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 import XPLMCamera
 controlCamera = XPLMCamera.controlCamera
 dontControlCamera = XPLMCamera.dontControlCamera
@@ -38,7 +39,30 @@ Type_Data = XPLMDataAccess.Type_Data
 countDataRefs = XPLMDataAccess.countDataRefs
 getDataRefsByIndex = XPLMDataAccess.getDataRefsByIndex
 getDataRefInfo = XPLMDataAccess.getDataRefInfo
+getDataRefCallbackDict = XPLMDataAccess.getDataRefCallbackDict
+getSharedDataRefCallbackDict = XPLMDataAccess.getSharedDataRefCallbackDict
 import XPLMDefs
+CursorRotateSmall = XPLMDefs.CursorRotateSmall
+CursorRotateSmallLeft = XPLMDefs.CursorRotateSmallLeft
+CursorRotateSmallRight = XPLMDefs.CursorRotateSmallRight
+CursorRotateMedium = XPLMDefs.CursorRotateMedium
+CursorRotateMediumLeft = XPLMDefs.CursorRotateMediumLeft
+CursorRotateMediumRight = XPLMDefs.CursorRotateMediumRight
+CursorRotateLarge = XPLMDefs.CursorRotateLarge
+CursorRotateLargeLeft = XPLMDefs.CursorRotateLargeLeft
+CursorRotateLargeRight = XPLMDefs.CursorRotateLargeRight
+CursorUpDown = XPLMDefs.CursorUpDown
+CursorUp = XPLMDefs.CursorUp
+CursorDown = XPLMDefs.CursorDown
+CursorLeftRight = XPLMDefs.CursorLeftRight
+CursorLeft = XPLMDefs.CursorLeft
+CursorRight = XPLMDefs.CursorRight
+CursorButton = XPLMDefs.CursorButton
+CursorHandle = XPLMDefs.CursorHandle
+CursorFourArrows = XPLMDefs.CursorFourArrows
+CursorSplitterH = XPLMDefs.CursorSplitterH
+CursorSplitterV = XPLMDefs.CursorSplitterV
+CursorText = XPLMDefs.CursorText
 ShiftFlag = XPLMDefs.ShiftFlag
 OptionAltFlag = XPLMDefs.OptionAltFlag
 ControlFlag = XPLMDefs.ControlFlag
@@ -179,6 +203,11 @@ VK_ENTER = XPLMDefs.VK_ENTER
 VK_NUMPAD_ENT = XPLMDefs.VK_NUMPAD_ENT
 VK_NUMPAD_EQ = XPLMDefs.VK_NUMPAD_EQ
 import XPLMDisplay
+getHotKeyCallbackDict = XPLMDisplay.getHotKeyCallbackDict
+getKeySnifferCallbackDict = XPLMDisplay.getKeySnifferCallbackDict
+getAvionicsCallbackDict = XPLMDisplay.getAvionicsCallbackDict
+getDrawCallbackDict = XPLMDisplay.getDrawCallbackDict
+getWindowCallbackDict = XPLMDisplay.getWindowCallbackDict
 registerDrawCallback = XPLMDisplay.registerDrawCallback
 unregisterDrawCallback = XPLMDisplay.unregisterDrawCallback
 createWindowEx = XPLMDisplay.createWindowEx
@@ -250,6 +279,7 @@ CursorDefault = XPLMDisplay.CursorDefault
 CursorHidden = XPLMDisplay.CursorHidden
 CursorArrow = XPLMDisplay.CursorArrow
 CursorCustom = XPLMDisplay.CursorCustom
+# More Cursors are defined in XPLMGraphics...
 WindowLayerFlightOverlay = XPLMDisplay.WindowLayerFlightOverlay
 WindowLayerFloatingWindows = XPLMDisplay.WindowLayerFloatingWindows
 WindowLayerModal = XPLMDisplay.WindowLayerModal
@@ -295,12 +325,18 @@ drawString = XPLMGraphics.drawString
 drawNumber = XPLMGraphics.drawNumber
 getFontDimensions = XPLMGraphics.getFontDimensions
 measureString = XPLMGraphics.measureString
+getTexture = XPLMGraphics.getTexture
 Font_Basic = XPLMGraphics.Font_Basic
 Font_Proportional = XPLMGraphics.Font_Proportional
+Tex_GeneralInterface = XPLMGraphics.Tex_GeneralInterface
+Tex_Radar_Pilot = XPLMGraphics.Tex_Radar_Pilot
+Tex_Radar_Copilot = XPLMGraphics.Tex_Radar_Copilot
 import XPLMInstance
 createInstance = XPLMInstance.createInstance
 destroyInstance = XPLMInstance.destroyInstance
+instanceSetAutoShift = XPLMInstance.instanceSetAutoShift
 instanceSetPosition = XPLMInstance.instanceSetPosition
+instanceSetPositionDouble = XPLMInstance.instanceSetPositionDouble
 import XPLMMap
 createMapLayer = XPLMMap.createMapLayer
 destroyMapLayer = XPLMMap.destroyMapLayer
@@ -321,7 +357,9 @@ MapOrientation_Map = XPLMMap.MapOrientation_Map
 MapOrientation_UI = XPLMMap.MapOrientation_UI
 MAP_USER_INTERFACE = XPLMMap.MAP_USER_INTERFACE
 MAP_IOS = XPLMMap.MAP_IOS
+getMapCallbackDict = XPLMMap.getMapCallbackDict
 import XPLMMenus
+getMenuCallbackDict = XPLMMenus.getMenuCallbackDict
 findPluginsMenu = XPLMMenus.findPluginsMenu
 findAircraftMenu = XPLMMenus.findAircraftMenu
 createMenu = XPLMMenus.createMenu
@@ -456,6 +494,7 @@ scheduleFlightLoop = XPLMProcessing.scheduleFlightLoop
 isFlightLoopValid = XPLMProcessing.isFlightLoopValid
 FlightLoop_Phase_BeforeFlightModel = XPLMProcessing.FlightLoop_Phase_BeforeFlightModel
 FlightLoop_Phase_AfterFlightModel = XPLMProcessing.FlightLoop_Phase_AfterFlightModel
+getFlightLoopCallbackDict = XPLMProcessing.getFlightLoopCallbackDict
 import XPLMScenery
 createProbe = XPLMScenery.createProbe
 destroyProbe = XPLMScenery.destroyProbe
@@ -472,6 +511,8 @@ ProbeHitTerrain = XPLMScenery.ProbeHitTerrain
 ProbeError = XPLMScenery.ProbeError
 ProbeMissed = XPLMScenery.ProbeMissed
 import XPLMUtilities
+getCommandCallbackDict = XPLMUtilities.getCommandCallbackDict
+getErrorCallbackDict = XPLMUtilities.getErrorCallbackDict
 speakString = XPLMUtilities.speakString
 getVirtualKeyDescription = XPLMUtilities.getVirtualKeyDescription
 reloadScenery = XPLMUtilities.reloadScenery
@@ -516,13 +557,16 @@ CommandEnd = XPLMUtilities.CommandEnd
 import XPPython
 pythonExecutable = XPPython.pythonExecutable
 pythonGetDicts = XPPython.pythonGetDicts
-pythonGetCapsules = XPPython.pythonGetCapsules
+getPluginDict = XPPython.getPluginDict
+getCapsuleDict = XPPython.getCapsuleDict
+getSelfModuleName = XPPython.getSelfModuleName
 pythonLog = XPPython.log
 getPluginStats = XPPython.getPluginStats
 log = XPPython.log
-derefCapsule = XPPython.derefCapsule
+getCapsulePtr = XPPython.getCapsulePtr
 systemLog = XPPython.systemLog
 sys_log = systemLog
+disablePythonPlugin = XPPython.disablePythonPlugin
 VERSION = XPPython.VERSION
 PLUGINSPATH = XPPython.PLUGINSPATH
 INTERNALPLUGINSPATH = XPPython.INTERNALPLUGINSPATH
@@ -707,6 +751,8 @@ Msg_MouseWheel = XPWidgetDefs.Msg_MouseWheel
 Msg_CursorAdjust = XPWidgetDefs.Msg_CursorAdjust
 Msg_UserStart = XPWidgetDefs.Msg_UserStart
 import XPWidgets
+getWidgetCallbackDict = XPWidgets.getWidgetCallbackDict
+getWidgetPropertiesDict = XPWidgets.getWidgetPropertiesDict
 createWidget = XPWidgets.createWidget
 createCustomWidget = XPWidgets.createCustomWidget
 destroyWidget = XPWidgets.destroyWidget
@@ -747,6 +793,18 @@ PARAM_PARENT = XPWidgetUtils.PARAM_PARENT
 import XPLMWeather
 getMETARForAirport = XPLMWeather.getMETARForAirport
 getWeatherAtLocation = XPLMWeather.getWeatherAtLocation
+setWeatherAtLocation = XPLMWeather.setWeatherAtLocation
+setWeatherAtAirport = XPLMWeather.setWeatherAtAirport
+eraseWeatherAtLocation = XPLMWeather.eraseWeatherAtLocation
+eraseWeatherAtAirport = XPLMWeather.eraseWeatherAtAirport
+beginWeatherUpdate = XPLMWeather.beginWeatherUpdate
+endWeatherUpdate = XPLMWeather.endWeatherUpdate
+NumWindLayers = XPLMWeather.NumWindLayers
+NumCloudLayers = XPLMWeather.NumCloudLayers
+NumTemperatureLayers = XPLMWeather.NumTemperatureLayers
+WindUndefinedLayer = XPLMWeather.WindUndefinedLayer
+DefaultWxrRadiusNm = XPLMWeather.DefaultWxrRadiusNm
+DefaultWxrRadiusMslFt = XPLMWeather.DefaultWxrRadiusMslFt
 import XPLMSound
 stopAudio = XPLMSound.stopAudio
 playPCMOnBus = XPLMSound.playPCMOnBus
@@ -793,19 +851,41 @@ def playWaveOnBus(wav, loop, audioType, callback=None, refCon=None):
 
 class PluginItem:
     def __init__(self, key):
+        items = getPluginDict().items()
         if isinstance(key, str):
-            item = [x for x in pythonGetDicts()['plugins'].items() if x[1][1] == key][0]
+            item = [x for x in items if x[1][1] == key][0]
         else:
-            item = [x for x in pythonGetDicts()['plugins'].items() if x[0] == key][0]
+            item = [x for x in items if x[0] == key][0]
         self.instance = item[0]
-        self.name = item[1][0]
-        self.signature = item[1][1]
-        self.description = item[1][2]
-        self.module = item[1][3]
-        self.module_name = item[1][4]
-        self.disabled = item[1][5]
+        self.module_name = item[1][0]
+        self.name = item[1][1]
+        self.signature = item[1][2]
+        self.description = item[1][3]
+        self.disabled = item[1][4]
 
 
-def getAccessors(self):
-    plugin = PluginItem(self).module_name  # e.g., PythonPlugins.PI_MiniPython
-    return [x for x in pythonGetDicts()['accessors'].items() if x[0] == plugin]
+@contextmanager
+def weatherUpdateContext(isIncremental: int = 1, updateImmediately: int = 0):
+    """
+    context manager for begin/end weather update. Defaults to incrementally updating
+    weather using a transition rather than immediately.
+    """
+    beginWeatherUpdate()
+    try:
+        yield
+    finally:
+        endWeatherUpdate(isIncremental, updateImmediately)
+
+
+def getPluginInstance(signature: str = None):
+    items = getPluginDict().items()
+    if signature is None:
+        moduleName = getSelfModuleName()
+        for instance, data in items:
+            if data[0] == moduleName:
+                return instance
+    else:
+        for instance, data in items:
+            if data[2] == signature:
+                return instance
+    raise ValueError(f"Signature not found. Try: {[data[2] for instance, data in items]}")

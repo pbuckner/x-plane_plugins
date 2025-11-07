@@ -82,6 +82,11 @@ div.body h1, div.body h2, div.body h3, div.body h4, div.body h5, div.body h6 {
     padding: 0.3em 0;
 }
 
+div.body h3 {
+    font-size: 120%;
+    text-decoration: underline;
+}
+
 div.body hr {
     border: 0;
     background-color: #ccc;
@@ -143,9 +148,16 @@ table.docutils {
     margin-bottom: 10px;
 }
 
+table.docutils p {
+    hyphens: none;
+    margin-bottom: .2em;
+    margin-block-start: 0;
+}
+
 table.docutils td, table.docutils th {
     border: 1px solid #ddd !important;
     border-radius: 3px;
+    vertical-align: top;
 }
 
 table p, table li {

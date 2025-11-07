@@ -9,8 +9,6 @@ XPython/mac/*.arm
 XPython/mac/*.x86
 XPython/mac/*.o
 XPython/mac/*.xpl
-XPython/SDK/
-XPython/SDK400.beta/
 XPython/docs/source/_static/find_xp.pyc
 XPython/docs/source/_static/test.py
 XPython/docs/source/_static/xp_dref.py
@@ -34,6 +32,12 @@ XPython/Resources/plugins/XPPython3/win_x64/NEWS.txt
 XPython/Resources/plugins/XPPython3/win_x64/LICENSE.txt
 XPython/README_REFCNT.txt
 XPython/README_STABLE.txt
+XPython/SDK/
+XPython/SDK400.beta/
 XPython/SDK410.b/
 XPython/SDK410/
 XPython/SDK411/
+XPython/SDK420/
+XPython/SDK420.sv/
+.claude/
+CLAUDE.md

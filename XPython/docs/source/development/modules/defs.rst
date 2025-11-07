@@ -36,7 +36,7 @@ XPLMPluginID
  .. py:data:: kVersion
     :value: 400
 
-    The current XPLM SDK revision for X-Plane 11.55 is 303. X-Plane 12 is 400.
+    The current XPLM SDK revision for X-Plane 11.55 is 303. X-Plane 12 is 400, X-Plane 12.3 is 421.
     `Official SDK <https://developer.x-plane.com/sdk/XPLMDefs/#kXPLM_Version>`__: :index:`kXPLM_Version`
 
 
@@ -94,7 +94,7 @@ codes. Not all key presses generate an ASCII value, so plugin code should
 be prepared to see null characters come from the keyboard...this usually
 represents a key stroke that has no equivalent ASCII, like a page-down
 press.  Use virtual key codes to find these key strokes. ASCII key codes
-ake into account modifier keys; shift keys will affect capitals and
+take into account modifier keys; shift keys will affect capitals and
 punctuation; control key combinations may have no vaild ASCII and produce
 NULL.  To detect control-key combinations, use virtual key codes, not ASCII
 keys.
@@ -287,6 +287,10 @@ XPLM_VK_A thru XPLM_VK_Z are the same as ASCII 'A' thru 'Z' (= 0x41 - 0x5A)
  .. py:data:: VK_F24       :index:`XPLM_VK_F24`
  ========================= ===========================
 
+.. caution:: With XP12, some of the above virtual keys (starting VK_F17) are
+              not coded properly in X-Plane and do not
+              work. See `XPD-17397 <https://developer.x-plane.com/x-plane-bug-database/?issue=XPD-17397>`__
+
 The following definitions are extended and are not based on the Microsoft
 key set.
 
@@ -311,3 +315,7 @@ key set.
  .. py:data:: VK_NUMPAD_ENT :index:`XPLM_VK_NUMPAD_ENT`
  .. py:data:: VK_NUMPAD_EQ  :index:`XPLM_VK_NUMPAD_EQ`
  ========================== ===========================
+
+.. caution:: With XP12, the above virtual keys (starting VK_EQUAL) are
+              not coded properly in X-Plane and do not
+              work. See `XPD-17397 <https://developer.x-plane.com/x-plane-bug-database/?issue=XPD-17397>`__

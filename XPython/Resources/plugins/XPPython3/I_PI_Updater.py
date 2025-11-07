@@ -133,7 +133,7 @@ class PythonInterface(MyConfig):
                 lines = [" ",
                          "Current XPPython3 preferences are set to NOT check for updates.",
                          " ",
-                         "To update, you must enable checking:",
+                         "To update, you must enable checking (and disable debug, if set):",
                          " 1) Select XPPython3-> Preferences menu",
                          ' 2) Enable the "Check for updates to XPPython3" option',
                          ' 3) Select "Save" in the preferences popup',

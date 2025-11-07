@@ -5,7 +5,7 @@ Requirements
 ============
 
 * **X-Plane 12.00+**. Linux, Mac (Intel and M-series processors) or Windows.
-  This plugin is built with SDK 410 and is NOT backward compatible to X-Plane 11 or earlier.
+  This plugin is built with SDK 420 and is NOT guaranteed to be backward compatible to X-Plane 11 or earlier.
 
 .. note:: This version of XPPython3 requires X-Plane 12. If you are using X-Plane 11.52, you
    must install XPPython3 v3.1.5.

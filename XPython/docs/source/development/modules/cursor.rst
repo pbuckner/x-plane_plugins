@@ -47,16 +47,19 @@ Custom cursors can be set (:py:func:`setCursor`)  in only a few very-specific ca
 Functions
 ---------
 
-.. py:function:: loadCursor(name: str) -> int
+.. py:function:: loadCursor(name)
 
     Loads a custom cursor from a file using the provided name and
-    a platform-specific filename extension. The file to be loaded
-    will be `<name>.png` for Linux and Mac; `<name>.cur` for Windows.
-    Name must include relative path from the X-Plane root.
+    a platform-specific filename extension.
 
-    Returns a integer ``cursor_id``, to be used with :py:func:`setCursor`
-    and :py:func:`unloadCursor`. Throws an exception if file cannot be read,
-    or has incorrect format.::
+    :param name: Cursor name (path relative to X-Plane root, without extension)
+    :type name: str
+    :return: Cursor ID for use with setCursor and unloadCursor
+    :rtype: int
+    :raises: Exception if file cannot be read or has incorrect format
+
+    The file to be loaded will be `<name>.png` for Linux and Mac; `<name>.cur` for Windows.
+    Name must include relative path from the X-Plane root.::
 
       >>> cursorID = xp.loadCursor('Resources/plugins/XPPython3/cursors/Arrow_Up_Black')
       >>> cursorID
@@ -67,16 +70,26 @@ Functions
         You don't need to (i.e., you should not) load any of the pre-defined cursors listed below
         as that is just a waste of space.
 
-.. py:function:: unloadCursor(cursor_id: int) -> None
+.. py:function:: unloadCursor(cursor_id)
 
-    Unloads image data related to the given ``cursor_id``.::
+    Unloads image data related to the given cursor ID.
+
+    :param cursor_id: Cursor ID returned by loadCursor
+    :type cursor_id: int
+    :return: None
+
+    ::
 
       >>> xp.unloadCursor(18)
 
-.. py:function:: setCursor(cursor_id: int) -> None
+.. py:function:: setCursor(cursor_id)
 
-    Temporarily replaces system cursor with the given custom cursor. Throws an
-    exception if ``cursor_id`` is not a known cursor.
+    Temporarily replaces system cursor with the given custom cursor.
+
+    :param cursor_id: Cursor ID from loadCursor or preloaded cursor ID
+    :type cursor_id: int
+    :return: None
+    :raises: Exception if cursor_id is not a known cursor
 
     **For X-Plane windows** (i.e., created with :py:func:`xp.createWindowEx`), you should
     define a `cursor` callback, and within that callback, call :py:func:`setCursor`
@@ -121,31 +134,35 @@ Functions
     probably already have a callback routine if you're doing much of anything with widgets.) That callback
     will receive a series of messages. When it receives the :data:`xp.Msg_CursorAdjust`, you should check
     to see if the mouse is over the widget you're interested in, or at the correct X, Y location. Then
-    call :py:func:`setCursor` and return :data:`xp.CursorCustom`.::
+    call :py:func:`setCursor`, update param2 to indicate :data:`xp.CursorCustom`, and return 1 to indicate
+    you've consumed the event.::
 
       >>> widgetID = xp.createWidget(100, 200, 300, 100, 1, "My Widget", 1, 0, xp.WidgetClass_MainWindow)
       >>> subwidgetID = xp.createWidget(110, 190, 130, 170, 1, "WIDE", 0, widgetID, xp.WidgetClass_Caption)
       >>> def myCallback(message, widgetID, param1, param2):
       ...     if message == xp.Msg_CursorAdjust:
       ...         xp.setCursor(10)
-      ...         return xp.CursorCustom
+      ...         param2[0] = xp.CursorCustom
+      ...         return 1
       ...     return 0
       ...
       >>> xp.addWidgetCallback(subwidgetID, myCallback)
-          
-    .. note:: Actually this is broken for widgets. The callback will correctly change to use the custom
-              cursor, but the image gets "stuck" and X-Plane continues to display the custom cursor even
-              when the mouse is no longer over the widget. If/When the mouse if move over a different
-              region which changes the cursor (e.g., an avionics device, or the Pause icon in the top
-              toolbar), the image becomes "unstuck" resulting in the correct default behavior. Bug
-              has been filed with Laminar. For now, don't use custom cursors with widgets.
+
+    *Why is it* ``param2[0]`` *and not* ``param2`` *like everywhere else?*
+
+      Because we need to effectively
+      pass by reference instead of pass by value for this parameter. This is a C vs. Python thing which
+      we generally don't need to worry about. But for ``MSG_CursorAdjust``, we need a mutable ``param2``. The best
+      way to achieve that is using a single-element list: ``param2`` stays unchanged, but its first element
+      may be changed. Otherwise, your callback could change ``param2`` to anything, but the calling program
+      wouldn't ever see the update!)
 
 Preloaded Custom Cursors
 ------------------------
 
 XPPython3 pre-loads a number of basic cursors with hard-coded ``cursor_id``. You can use these with :py:func:`setCursor`. Please
 do not unload them as that would make them unavailable to other python plugins. These constants
-*should not* be used as a :ref:`CursorStatus <cursor-status>` return. Cursor Status should be set
+*should not* be used as a :ref:`CursorStatus <XPLMCursorStatus>` return. Cursor Status should be set
 to :data:`xp.CursorCustom`.
 
 .. table::

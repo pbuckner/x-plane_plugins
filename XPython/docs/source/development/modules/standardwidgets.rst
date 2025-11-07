@@ -386,7 +386,7 @@ Properties
  .. py:data:: Property_ScrollBarPageAmount
   :value: 1503
 
-  How many units to moev the scroll bar when clicking next to the thumb. The
+  How many units to move the scroll bar when clicking next to the thumb. The
   scroll bar always moves one unit when the arrows are clicked.
 
  .. py:data:: Property_ScrollBarType

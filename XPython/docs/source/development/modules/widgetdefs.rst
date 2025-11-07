@@ -18,6 +18,7 @@ into trees of widgets to create complex user interfaces.
 
 Constants
 ---------
+
 .. _XPWidgetPropertyID:
 
 XPWidgetPropertyID
@@ -567,22 +568,25 @@ to the widget, or one of its parents.
   :value: 21
 
   The cursor is over your widget. If you consume this message, change the    
-  XPLMCursorStatus value to indicate the desired result, with the same rules 
-  as in with :py:func:`XPLMDisplay.XPLMHandleCursor_f` callback used with windows.
+  second parameter of this message to the updated :ref:`CursorStatus <XPLMCursorStatus>`, and return
+  1 to consume the event.
                                                                               
   .. note:: Handling this message 'consumes' the message.
 
   .. table::
      :align: left
 
-     =========== =========================== ===================================
-     Dispatching Param1                      Param2
-     =========== =========================== ===================================
-     Up-chain    :ref:`XPMouseState_t`       :ref:`CursorStatus <cursor-status>`
-                 tuple.                      Set this to cursor   
-                                             result you desire.
-                                             (See also :py:func:`xp.setCursor`)
-     =========== =========================== ===================================
+     ============== =========================== ======================================
+     Dispatching    Param1                      Param2
+     ============== =========================== ======================================
+     Up-chain       :ref:`XPMouseState_t`       Param2 is a single-element list.
+                    tuple                       You callback should set ``param2[0]``
+                                                to updated
+                                                :ref:`CursorStatus <XPLMCursorStatus>`
+                                                result you desire, and return 1 to
+                                                consume the event.
+                                                (See also :py:func:`xp.setCursor`)
+     ============== =========================== ======================================
 
   `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_CursorAdjust>`__ :index:`xpMsg_CursorAdjust`
 

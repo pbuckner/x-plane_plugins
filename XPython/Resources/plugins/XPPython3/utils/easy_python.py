@@ -1,7 +1,7 @@
 from typing import Any, Self, cast, Optional
 from XPPython3 import xp, internals
 from XPPython3.utils import xlua
-from XPPython3.xp_typing import PythonInterfaceType, XPLMFlightLoopID
+from XPPython3.xp_typing import XPLMFlightLoopID
 import inspect
 import os
 
@@ -59,15 +59,15 @@ class EasyPython:
         self._startflightloop_before: Optional[XPLMFlightLoopID] = None
         self._startflightloop_after: Optional[XPLMFlightLoopID] = None
 
-    def XPluginReceiveMessage(self: Self, _inFromWho: int, inMessage: int, _inParam: Any) -> None:
+    def XPluginReceiveMessage(self: Self, _inFromWho: int, inMessage: int, inParam: Any) -> None:
         # xp.log(f"{xlua.RUNNING_TIME=} {xlua.FLIGHT_TIME=}")
-        if inMessage == xp.MSG_PLANE_LOADED:
+        if inMessage == xp.MSG_PLANE_LOADED and inParam == 0:
             self.onPlaneLoaded()
             self.aircraft_load()
             self.no_after_replay = False
             self.no_after_physics = False
             self.no_before_physics = False
-        elif inMessage == xp.MSG_PLANE_UNLOADED:
+        elif inMessage == xp.MSG_PLANE_UNLOADED and inParam == 0:
             self.onPlaneUnloaded()
             self.aircraft_unload()
         elif inMessage == xp.MSG_LIVERY_LOADED:
@@ -104,11 +104,11 @@ class EasyPython:
             xp.destroyFlightLoop(self._startflightloop_after)
             self._startflightloop_after = None
         self.onDisable()
-        for accessor in internals.getAccessors(cast(PythonInterfaceType, self)):
-            xp.unregisterDataAccessor(accessor)
-        for command in internals.getCommands(cast(PythonInterfaceType, self)):
+        for dataRef in internals.getDataRefs():
+            xp.unregisterDataAccessor(dataRef)
+        for command in internals.getCommands():
             xp.unregisterCommandHandler(*command)
-        for flightLoop in internals.getFlightLoops(cast(PythonInterfaceType, self)):
+        for flightLoop in internals.getFlightLoops():
             xp.destroyFlightLoop(flightLoop)
 
     def XPluginEnable(self: Self) -> int:

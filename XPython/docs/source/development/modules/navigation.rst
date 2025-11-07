@@ -153,7 +153,8 @@ Navaid Functions
    13775 to search for 137.75).
 
  * If *name* is provided, only navaids that contain the fragment in
-   their name will be returned. (Search is case-sensitive, so "Oakland" will find KOAK, but "OAKLAND" will not.
+   their name will be returned. (Search on name is case-sensitive, so "Oakland" will find
+   Metropolitan Oakland Intl (KOAK), but "OAKLAND" will not.
 
  * If *navAidID* is provided, only navaids that contain the fragment in their IDs will be returned.
 
@@ -179,8 +180,8 @@ Navaid Functions
  
 .. py:function:: getNavAidInfo(navRef)
 
-   :param: :ref:`XPLMNavRef` integer retrieved from e.g., :py:func:`findNavAid`             
-   :return: :ref:`NavAidInfo` or None
+ :param: :ref:`XPLMNavRef` integer retrieved from e.g., :py:func:`findNavAid`             
+ :return: :ref:`NavAidInfo` or None
 
  See information about returned :ref:`NavAidInfo` data structure below.
  
@@ -237,13 +238,16 @@ waypoints in the flight plan.
 
 * Manipulate a particular FMS entry
 
-  * :py:func:`getFMSFlightPlanEntryInfo`, :py:func:`setFMSFlightPlanEntryInfo`, :py:func:`setFMSFlightPlanEntryLatLon`, :py:func:`setFMSFlightPlanEntryLatLonWithId`
+  * :py:func:`getFMSFlightPlanEntryInfo`, :py:func:`setFMSFlightPlanEntryInfo`,
+    :py:func:`setFMSFlightPlanEntryLatLon`, :py:func:`setFMSFlightPlanEntryLatLonWithId`
 
   * :py:func:`clearFMSFlightPlanEntry`
 
 * Load and Save a flight plan :py:func:`loadFMSFlightPlan`, :py:func:`saveFMSFlightPlan`
 
-For most of our examples below, we'll be using the flight plan described in X-Plane's `Airbus MCDU Manual <https://www.x-plane.com/manuals/Airbus_MCDU_Manual.pdf>`__. In there, they describe inputting a flight plan for the route:
+For most of our examples below, we'll be using the flight plan described in
+X-Plane's `Airbus MCDU Manual <https://www.x-plane.com/manuals/Airbus_MCDU_Manual.pdf>`__. In
+there, they describe inputting a flight plan for the route:
 
    ``EDDS25 ETAS4B T163 SPESA SPES3B ILS25L``
 
@@ -254,11 +258,11 @@ Functions
 
 .. py:function:: loadFMSFlightPlan(device, plan)
 
-  Loads specially formatted string as the flight plan for the selected device
-
   :param int device: 0= pilot side, 1= co-pilot side
   :param str plan: X-Plane 11+ formatted flight plan                   
-  :return: Return
+  :return:
+
+  Loads specially formatted string as the flight plan for the selected device
 
   The format of the flight plan is X-Plane specific, and is described in `Flightplan files - v11 .fms file format <https://developer.x-plane.com/article/flightplan-files-v11-fms-file-format/>`__.
 
@@ -270,13 +274,13 @@ Functions
     
       I
       1100 Version
-      CYCLE 2112 
+      CYCLE 2306
       ADEP EDDS 
       DEPRWY RW25 
       SID ETAS4B 
       ADES EDDF 
       DESRWY RW25L 
-      STAR SPES3B 
+      STAR SPES4B 
       APP I25L 
       APPTRANS CHA 
       NUMENR 6 
@@ -301,27 +305,27 @@ Functions
 
 .. py:function:: saveFMSFlightPlan(device)
 
-  Returns a string representing flight plan for selected device
-  
   :param int device: 0= pilot side, 1= co-pilot side
   :return str: X-Plane 11+ formatted flight plan                   
 
+  Returns a string representing flight plan for selected device
+  
   The format of the flight plan is X-Plane specific, and is described in `Flightplan files - v11 .fms file format <https://developer.x-plane.com/article/flightplan-files-v11-fms-file-format/>`__.
   
   >>> print(xp.saveFMSFlightPlan(0))
   I
   1100 Version
-  CYCLE 2112 
+  CYCLE 2306
   ADEP EDDS 
   DEPRWY RW25 
   SID ETAS4B 
   ADES EDDF 
   DESRWY RW25L 
-  STAR SPES3B 
+  STAR SPES4B 
   APP I25L 
   APPTRANS CHA 
   NUMENR 6 
-  1 EDDS ADEP 1272.000000 48.689877 9.221964 
+  1 EDDS ADEP 1270.000000 48.689877 9.221964 
   11 XINLA T163 0.000000 49.283646 9.141608 
   11 SUKON T163 0.000000 49.659721 9.195556 
   11 SUPIX T163 0.000000 49.727779 9.305278 
@@ -361,29 +365,31 @@ Functions
   >>> for i in range(xp.countFMSFlightPlanEntries(xp.Fpl_Pilot_Primary)):
   ...    print(str(xp.getFMSFlightPlanEntryInfo(xp.Fpl_Pilot_Primary, i)))
   ...
-  Airport:   [16803968]   EDDS, (48.690, 9.222) @1272'
-  LatLon:                 RW25, (48.694, 9.244) @1180'
-  Unknown:              (1700), (48.690, 9.220) @1699'
-  Fix:       [33622837]  DS050, (48.671, 9.122) @0'
-  Fix:       [33622827]  DS040, (48.690, 9.067) @0'
-  Fix:       [33622830]  DS043, (48.801, 9.010) @0'
-  Fix:       [33613119]  KOVAN, (48.882, 9.084) @0'
-  Fix:       [33611008]  ETASA, (49.191, 9.128) @0'
-  Fix:       [33620051]  XINLA, (49.284, 9.142) @0'
-  Fix:       [33617115]  SUKON, (49.660, 9.196) @0'
-  Fix:       [33617153]  SUPIX, (49.728, 9.305) @0'
-  Fix:       [33617059]  SPESA, (49.862, 9.348) @0'
-  VOR:       [    5353]    CHA, (49.921, 9.040) @0'
-  Fix:       [33621703]  D338K, (50.095, 8.942) @0'
-  Fix:       [33621910]  LEDKI, (50.104, 8.856) @0'
-  Fix:       [33621902]  FF25L, (50.081, 8.759) @0'
-  LatLon:                RW25L, (50.040, 8.587) @411'
-  Fix:       [33621697]  D247E, (50.021, 8.505) @0'
-  Fix:       [33621696]  D241H, (49.993, 8.453) @0'
-  Unknown:              (5000), (49.925, 8.232) @4999'
-  VOR:       [    5353]    CHA, (49.921, 9.040) @0'
-  Airport:   [16787675]   EDDF, (50.033, 8.570) @354'
- 
+  Airport:   [16804176]   EDDS, (48.690, 9.222) @1270'
+  LatLon:                 RW25, (48.694, 9.244) @1181'
+  Unknown:              (1700), (48.690, 9.220) @1700'
+  Fix:       [33625103]  DS050, (48.671, 9.122) @0'
+  Fix:       [33625093]  DS040, (48.690, 9.067) @0'
+  Fix:       [33625096]  DS043, (48.801, 9.010) @0'
+  Fix:       [33615290]  KOVAN, (48.882, 9.084) @0'
+  Fix:       [33613188]  ETASA, (49.191, 9.128) @0'
+  Fix:       [33622147]  XINLA, (49.284, 9.142) @0'
+  Fix:       [33619153]  SUKON, (49.660, 9.196) @0'
+  Fix:       [33619188]  SUPIX, (49.728, 9.305) @0'
+  Fix:       [33619099]  SPESA, (49.862, 9.348) @0'
+  VOR:       [    5076]    CHA, (49.921, 9.040) @0'
+  Fix:       [33624044]  DF606, (49.945, 8.912) @0'
+  Fix:       [33624046]  DF610, (50.029, 8.917) @0'
+  Fix:       [33624047]  DF611, (50.043, 8.973) @0'
+  Fix:       [33624048]  DF612, (50.066, 9.071) @0'
+  Fix:       [33624049]  DF613, (50.088, 9.168) @0'
+  Fix:       [33624050]  DF614, (50.111, 9.266) @0'
+  Fix:       [33624051]  DF615, (50.134, 9.363) @0'
+  Fix:       [33624052]  DF616, (50.156, 9.461) @0'
+  Unknown:              VECTOR, (52.509, 26.156) @0'
+  Fix:       [33624060]  DF626, (50.235, 9.417) @0'
+  Airport:   [16787750]   EDDF, (50.033, 8.570) @354'
+  
   Note that loading the same flight plan into a different aircraft may
   results in a different set of entries. The above entries were for the Airbus,
   the following entries are from the Cessan 172 G1000
@@ -391,29 +397,30 @@ Functions
   >>> for i in range(xp.countFMSFlightPlanEntries(xp.Fpl_Pilot_Primary)):
   ...    print(str(xp.getFMSFlightPlanEntryInfo(xp.Fpl_Pilot_Primary, i)))
   ...
-  Airport:   [16803968]   EDDS, (48.690, 9.222) @1272'
-  LatLon:                 RW25, (48.694, 9.244) @1180'
-  Unknown:              (1700), (48.690, 9.220) @1699'
-  Fix:       [33622837]  DS050, (48.671, 9.122) @0'
-  Fix:       [33622827]  DS040, (48.690, 9.067) @0'
-  Fix:       [33622830]  DS043, (48.801, 9.010) @0'
-  Fix:       [33613119]  KOVAN, (48.882, 9.084) @0'
-  Fix:       [33611008]  ETASA, (49.191, 9.128) @0'
-  Fix:       [33620051]  XINLA, (49.284, 9.142) @0'
-  Fix:       [33617115]  SUKON, (49.660, 9.196) @0'
-  Fix:       [33617153]  SUPIX, (49.728, 9.305) @0'
-  Fix:       [33617059]  SPESA, (49.862, 9.348) @0'
-  VOR:       [    5353]    CHA, (49.921, 9.040) @0'
-  Fix:       [33621832]  DF606, (49.945, 8.912) @0'
-  Fix:       [33621834]  DF610, (50.029, 8.917) @0'
-  Fix:       [33621835]  DF611, (50.043, 8.973) @0'
-  Fix:       [33621836]  DF612, (50.066, 9.071) @0'
-  Fix:       [33621837]  DF613, (50.088, 9.168) @0'
-  Fix:       [33621838]  DF614, (50.111, 9.266) @0'
-  Fix:       [33621839]  DF615, (50.134, 9.363) @0'
-  Fix:       [33621840]  DF616, (50.156, 9.461) @0'
-  Unknown:              VECTOR, (52.515, 26.154) @0'
-  Airport:   [16787675]   EDDF, (50.033, 8.570) @354'
+  Airport:   [16804176]   EDDS, (48.690, 9.222) @1270'
+  LatLon:                 RW25, (48.694, 9.244) @1181'
+  Unknown:              (1700), (48.690, 9.220) @1700'
+  Fix:       [33625103]  DS050, (48.671, 9.122) @0'
+  Fix:       [33625093]  DS040, (48.690, 9.067) @0'
+  Fix:       [33625096]  DS043, (48.801, 9.010) @0'
+  Fix:       [33615290]  KOVAN, (48.882, 9.084) @0'
+  Fix:       [33613188]  ETASA, (49.191, 9.128) @0'
+  Fix:       [33622147]  XINLA, (49.284, 9.142) @0'
+  Fix:       [33619153]  SUKON, (49.660, 9.196) @0'
+  Fix:       [33619188]  SUPIX, (49.728, 9.305) @0'
+  Fix:       [33619099]  SPESA, (49.862, 9.348) @0'
+  VOR:       [    5076]    CHA, (49.921, 9.040) @0'
+  Fix:       [33624044]  DF606, (49.945, 8.912) @0'
+  Fix:       [33624046]  DF610, (50.029, 8.917) @0'
+  Fix:       [33624047]  DF611, (50.043, 8.973) @0'
+  Fix:       [33624048]  DF612, (50.066, 9.071) @0'
+  Fix:       [33624049]  DF613, (50.088, 9.168) @0'
+  Fix:       [33624050]  DF614, (50.111, 9.266) @0'
+  Fix:       [33624051]  DF615, (50.134, 9.363) @0'
+  Fix:       [33624052]  DF616, (50.156, 9.461) @0'
+  Unknown:              VECTOR, (52.509, 26.156) @0'
+  Fix:       [33624060]  DF626, (50.235, 9.417) @0'
+  Airport:   [16787750]   EDDF, (50.033, 8.570) @354'
 
   Note the use of VECTOR here, which is a lat/lon a few hundred miles away
   *in the direction* one is suppose to fly. Not something to actually

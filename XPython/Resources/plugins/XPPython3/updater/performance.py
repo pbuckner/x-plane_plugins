@@ -3,7 +3,7 @@ from XPPython3.xp_typing import XPLMCommandRef, XPLMCommandPhase, XPWidgetMessag
 from XPPython3 import xp
 from .my_widget_window import MyWidgetWindow
 
-PLUGIN_MODULE_NAME = 4
+PLUGIN_MODULE_NAME = 0
 
 
 class Performance:
@@ -101,7 +101,7 @@ class Performance:
         fontID = xp.Font_Proportional
         _w, strHeight, _ignore = xp.getFontDimensions(fontID)
         # Only get enabled plugins
-        data: list[str] = sorted([x[PLUGIN_MODULE_NAME] for x in xp.pythonGetDicts()['plugins'].values() if not x[-1]])
+        data: list[str] = sorted([x[PLUGIN_MODULE_NAME] for x in xp.getPluginDict().values() if not x[-1]])
         data.append('All')
 
         left = 100

@@ -106,6 +106,9 @@ Functions
 
 .. py:function:: findDataRef(name)
 
+    :param str name: String name of existing dataRef to be found
+    :return: XPLMDataRef or None if not found                     
+
     Given a data ref string *name*, return the
     actual opaque integer that you use to read and write the data. The
     string names for datarefs are published on the X-Plane SDK web site. (https://developer.x-plane.com/datarefs/).
@@ -118,7 +121,7 @@ Functions
     ::
 
        >>> xp.findDataRef('sim/aircraft/electrical/num_batteries')
-       <capsule object "datarefRef" at 0x7fa44b4909c0>
+       <capsule object "XPLMDataRef" at 0x7fa44b4909c0>
        >>> xp.findDataRef('this/does/not/exist')
        None
 
@@ -126,7 +129,10 @@ Functions
 
 .. py:function:: canWriteDataRef(dataRef)
 
-    Given a *dataRef* as retrieved by :py:func:findDataRef, return True if you can successfully set the
+    :param XPLMDataRef dataRef: dataRef ID
+    :return: boolean True if dataRef is writable.                            
+
+    Given a *dataRef* as retrieved by :func:`findDataRef`, return True if you can successfully set the
     data, False otherwise. Some datarefs are read-only.
 
     ::
@@ -157,6 +163,9 @@ Functions
     `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMIsDataRefGood>`__: :index:`XPLMIsDataRefGood`
 
 .. py:function:: getDataRefTypes(dataRef)
+
+    :param XPLMDataRef dataRef: dataRefID
+    :return: integer bit field of types supported by this dataRef
 
     This routine returns the type ID of the *dataRef* for accessor use. If a data
     ref is available in multiple data types, they will all be returned. (bitwise OR'd together).
@@ -193,11 +202,14 @@ Functions
 
 .. py:function:: getDataRefInfo(dataRef)
    
+  :param XPLMDataRef dataRef: dataRefID
+  :return: XPLMDataRefInfo for particular dataRef
+
   This XP12 function returns a DataRefInfo object for the provided ``dataRef``.
   The object has the following members:
 
    | **name**: the string name of the dataRef
-   | **type**: the OR'd bitfield matching the return from :py:func:`getDataRefType`
+   | **type**: the OR'd bitfield matching the return from :func:`getDataRefTypes`
    | **writable**: boolen
    | **owner**: pluginID of the owning plugin (or 0 if owned by X-Plane).
 
@@ -216,24 +228,32 @@ Functions
    
 .. py:function:: countDataRefs
 
-  Returns the total number of datarefs that have been registered in X-Plane.
+  :return: Integer, total number of datarefs registered in X-Plane.
+
+  This is similar to the value you'll receive in your XPluginReceiveMessage routine for the :py:data:`MSG_DATAREFS_ADDED` message.
 
     >>> xp.countDataRefs()
     6928
 
-  This is similar to the value you'll receive in your XPluginReceiveMessage routine for the :py:data:`MSG_DATAREFS_ADDED` message.
   
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMCountDataRefs>`__: :index:`XPLMCountDataRefs`
 
 .. py:function:: getDataRefsByIndex(offset=0, count=1)
 
-  Return list of dataRefs. Each dataRef is similar to what is returned by :py:func:`findDataRef`.
+  :param int offset:
+  :param int count:
+  :return: List of dataRefs.
+
+  Return list of dataRefs. Use offset and count to "page" in a set of dataRefs, or use it to get "new" dataRefs
+  in response to :py:data:`MSG_DATAREFS_ADDED`.
+  
+  Each value is similar to what is returned by :py:func:`findDataRef`.
   As a special case, if count is `-1`, a full list is returned starting from ``offset``.
 
     >>> xp.getDataRefsByIndex(count=3)
-    [<capsule object "datarefRef" at 0x7fa44b4909c0>,
-     <capsule object "datarefRef" at 0x7fa44b940900>,
-     <capsule object "datarefRef" at 0x7fa44b4077c0>]
+    [<capsule object "XPLMDataRef" at 0x7fa44b4909c0>,
+     <capsule object "XPLMDataRef" at 0x7fa44b940900>,
+     <capsule object "XPLMDataRef" at 0x7fa44b4077c0>]
 
   .. Warning::
 
@@ -287,28 +307,31 @@ Get Scalar
                  getDataf(dataRef)
                  getDatad(dataRef)
 
-    Read a dataRef (as retrieved using :py:func:`findDataRef`) and return its value.
-    The return value is the dataRef value or 0 if the dataRef is NULL or the plugin is
-    disabled.
+ :param XPLMDataRef dataRef: dataRef ID to be retrieved
+ :return: integer or float value. Note 0 (or 0.0) is already returned if dataRef has no value.
 
-       >>> dataRef = xp.findDataRef('sim/aircraft/electrical/num_batteries')
-       >>> xp.getDatai(dataRef)
-       1
-       >>> xp.getDataf(dataRef)
-       0.0
+ Read a dataRef (as retrieved using :py:func:`findDataRef`) and return its value.
+ The return value is the dataRef value or 0 if the dataRef is NULL or the plugin is
+ disabled.
 
-    Note in the second case above, the specified dataRef does not support a "Float" data type
-    and returns 0.0 rather than indicating any error. You've been warned.
+    >>> dataRef = xp.findDataRef('sim/aircraft/electrical/num_batteries')
+    >>> xp.getDatai(dataRef)
+    1
+    >>> xp.getDataf(dataRef)
+    0.0
 
-    Also, specifying a bad dataRef raises and exception:
+ Note in the second case above, the specified dataRef does not support a "Float" data type
+ and returns 0.0 rather than indicating any error. You've been warned.
 
-      >>> dataRef = xp.findDataRef('does/not/exist')
-      >>> xp.getDatai(dataRef)
-      TypeError: invalid dataRef
+ Also, specifying a bad dataRef raises and exception:
 
-    | `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMGetDatai>`__ :index:`XPLMGetDatai`
-    | `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMGetDataf>`__ :index:`XPLMGetDataf`
-    | `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMGetDatad>`__ :index:`XPLMGetDatad`
+   >>> dataRef = xp.findDataRef('does/not/exist')
+   >>> xp.getDatai(dataRef)
+   TypeError: invalid dataRef
+
+ | `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMGetDatai>`__ :index:`XPLMGetDatai`
+ | `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMGetDataf>`__ :index:`XPLMGetDataf`
+ | `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMGetDatad>`__ :index:`XPLMGetDatad`
 
 Set Scalar
 ++++++++++
@@ -317,35 +340,44 @@ Set Scalar
                  setDataf(dataRef, value=0.0)
                  setDatad(dataRef, value=0.0)
 
-    Write a new value to a data ref.
+ :param XPLMDataRef dataRef: dataRef ID to be set
+ :param int/float value: value to be set
 
-    >>> dataRef = xp.findDataRef('sim/aircraft/weight/acf_m_fuel_tot')
-    >>> xp.getDataf(dataRef)
-    158.757
-    >>> xp.setDataf(dataRef, 100.0)
-    >>> xp.getDataf(dataRef)
-    100.0
+ Write a new value to a data ref.
 
-    This does nothing
-    if the plugin publishing the dataRef is disabled, the
-    dataRef is invalid, or the dataRef is not writable.
-                 
-    >>> dataRef = xp.findDataRef('sim/aircraft/electrical/num_batteries')
-    >>> xp.getDatai(dataRef)
-    1
-    >>> xp.setDatai(dataRef, 10)
-    >>> xp.getDatai(dataRef)
-    1
+ >>> dataRef = xp.findDataRef('sim/aircraft/weight/acf_m_fuel_tot')
+ >>> xp.getDataf(dataRef)
+ 158.757
+ >>> xp.setDataf(dataRef, 100.0)
+ >>> xp.getDataf(dataRef)
+ 100.0
 
-    | `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMGetDatai>`__ :index:`XPLMGetDatai`
-    | `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMSetDataf>`__ :index:`XPLMSetDataf`
-    | `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMSetDatad>`__ :index:`XPLMSetDatad`
+ This does nothing
+ if the plugin publishing the dataRef is disabled, the
+ dataRef is invalid, or the dataRef is not writable.
+              
+ >>> dataRef = xp.findDataRef('sim/aircraft/electrical/num_batteries')
+ >>> xp.getDatai(dataRef)
+ 1
+ >>> xp.setDatai(dataRef, 10)
+ >>> xp.getDatai(dataRef)
+ 1
+
+ | `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMGetDatai>`__ :index:`XPLMGetDatai`
+ | `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMSetDataf>`__ :index:`XPLMSetDataf`
+ | `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMSetDatad>`__ :index:`XPLMSetDatad`
 
 Get Array
 +++++++++
 
 .. py:function:: getDatavi(dataRef, values=None, offset=0, count=-1)
                  getDatavf(dataRef, values=None, offset=0, count=-1)
+
+ :param XPLMDataRef dataRef: dataRef ID to be retrieved
+ :param List values: empty list (it will be over-written) to contain the results
+ :param int offset:
+ :param int count: offset and count of elements to be retrieved
+ :return: integer count of elements actually retrieved (or total count of elements if value is ``None``)                   
 
  Read a part of an array dataRef. If you pass None for *values* (or don't provide
  the parameter,
@@ -396,6 +428,12 @@ Set Array
 .. py:function:: setDatavi(dataRef, values, offset=0, count=-1)
                  setDatavf(dataRef, values, offset=0, count=-1)
 
+ :param XPLMDataRef dataRef: dataRef ID to be set
+ :param List values: list containing new value
+ :param int offset:
+ :param int count: offset and count of elements to be set (count should be less than or equal to length of list).
+ :return: integer count of elements actually written
+
  Write part or all of an array dataRef. *values* is list of integer or float
  values written into the dataRef starting at
  *offset*. Up to *count* values are written; however if the values would
@@ -441,6 +479,12 @@ Get/Set Bytes
 .. py:function:: getDatab(dataRef, values=None, offset=0, count=-1)
                  setDatab(dataRef, values, offset=0, count=-1)
 
+ :param XPLMDataRef dataRef: dataRef ID to be retrieved
+ :param List values: list of values to be set, or list containing values obtained.
+ :param int offset:
+ :param int count: offset and count of elements to be get/set
+ :return: integer count of elements actually retrieved or set (or total count of elements if value is ``None`` on get)
+
  Read/Write a part of a byte array dataRef. See similar functionality
  :py:func:`getDatavi`, :py:func:`setDatavi`.
 
@@ -484,6 +528,11 @@ useful.
 
 .. py:function:: getDatas(dataRef, offset=0, count=-1)
 
+  :param XPLMDataRef dataRef: dataRef ID to be retrieved
+  :param int offset:
+  :param int count: offset and count of elements to be retrieved
+  :return: string value
+
   Given how common it is to have string dataRefs, and how awkward the SDK makes it
   to retrieve string information from X-Plane using Python, XPPython3 offers
   a custom API. It works similar to :py:func:`getDatab`, except it will do
@@ -508,6 +557,12 @@ useful.
 
 .. py:function:: setDatas(dataRef, value, offset=0, count=-1)
                  
+  :param XPLMDataRef dataRef: dataRef ID to be retrieved
+  :param str value: value to update this dataRef                              
+  :param int offset:
+  :param int count: offset and count of elements to be retrieved
+  :return: None
+
   Set a byte-array dataRef to the string *value*. *offset* starts
   writing the string into the dataRef at the given offset.
 
@@ -639,6 +694,23 @@ Registration
 ++++++++++++
 .. py:function:: registerDataAccessor(name, dataType=0, writable=-1, ..., readRefCon=None, writeRefCon=None)
 
+ :param str name: name of your new dataRef
+ :param int dataType: bitwise OR of supported dataTypes
+ :param int writable: 1=writable, 0=read-only, -1=calculate
+ :param Callable readInt:
+ :param Callable writeInt:
+ :param Callable readFloat:
+ :param Callable writeFloat:
+ :param Callable readIntArray:
+ :param Callable writeIntArray:
+ :param Callable readFloatArray:
+ :param Callable writeFloatArray:
+ :param Callable readData:
+ :param Callable writeData: Optional callbacks. See text.
+ :param Any readRefCon:                           
+ :param Any writeRefCon: Reference constant passed to your read/write callbacks
+ :return: XPLMDataRef, suitable for use with getData*/setData* routines.
+
  This routine creates a new item of data that can be read and written.
 
  The *name* needs to be unique and will be available to others. Ideally, start
@@ -695,11 +767,9 @@ Registration
  >>> xp.getDatai(accessor)
  42
 
- You are returned a data accessor reference for the new item of data created. You can use
- this accessor reference to unregister your data later. Though it is not
- the same as a dataRef (as returned by :py:func:`findDataRef`), you can
- still use it to get and set data. The data accessor reference
- should be used with :py:func:`unregisterDataAccessor`.
+ You are returned a dataRef ID (XPLMDataRef) for the new item of data created. You can use
+ this to unregister your data later. You can also use it to get and set data.
+ Use :py:func:`unregisterDataAccessor` to remove access to this dataRef.
 
  For example, to define a dataRef ``myPlugin/dataItem``, which can be
  accessed as either an Integer or Float, use something like the following. Note
@@ -741,7 +811,14 @@ Registration
     For maximum compatibility, do not unregister your data accessors until
     final shutdown (when your XPluginStop routine is called). This allows other
     plugins to find your data reference once and use it for their entire time
-    of operation.
+    of operation.::
+
+      >>> accessor = xp.registerDataAccessor('myPlugin/unregister_test', readInt=lambda x: 999)
+      >>> xp.getDatai(accessor)
+      999
+      >>> xp.unregisterDataAccessor(accessor)
+      >>> xp.getDatai(accessor)
+      ValueError: invalid dataRef
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMUnregisterDataAccessor>`__: :index:`XPLMUnregisterDataAccessor`
 
@@ -938,7 +1015,7 @@ for your ``registerDataAccessor``::
 Now, as strings:
 
  >>> xp.setDatas(accessor, "Hello world")
- >>> xp.getDatas(accessor, values)
+ >>> xp.getDatas(accessor)
  "Hell"
 
 What? Why didn't the full string get set? Simple: recall that if *count* is not specified, we use the *current length*
@@ -952,9 +1029,10 @@ a problem with non-python dataRefs but works fine with python implementations (t
 is, where python is used to write the data accessor e.g., ``MySetData()``.)
 
  >>> xp.setDatas(accessor, "Hello world", count=20)
- >>> xp.getDatas(accessor, values)
+ >>> xp.getDatas(accessor)
  "Hello world"
- >>> xp.getDatas(accessor, values)
+ >>> values = []
+ >>> xp.getDatab(accessor, values)
  20
  >>> values
  [72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -980,8 +1058,13 @@ and a byte representation. For example
  ...     MyString = bytearray([x for x in array if x]).decode('utf-8')
  ...
  >>> a = xp.registerDataAccessor('myplugin/string', readData=MyGetData, writeData=MySetData)
- >>> xp.getDatab(a)
  >>> xp.getDatas(a)
+ 'Hello'
+ >>> values = []
+ >>> xp.getDatab(a, values)
+ 5
+ >>> values
+ [72, 101, 108, 108, 111]
 
 
  
@@ -1004,7 +1087,10 @@ allow you to test your datarefs.
              xp.sendMessageToPlugin(dre, 0x01000000, 'myplugin/dataRef2')
 
 
-This way your datarefs will appear in the DataRef plugin.
+This way your datarefs will appear in the DataRef plugin. (Note that with XP12, X-Plane
+can send a message to all plugins when new dataRefs are created. DataRefTool and DataRefEditor
+*may* be written to listen for this message, allowing them
+to know about your dataRefs without you needing to send a message.
      
 
 Sharing Data Between Multiple Plugins
@@ -1051,6 +1137,12 @@ data is changed, use shared data references.
 
 .. py:function:: shareData(name, dataType, dataChanged=None, refCon=None)
 
+ :param str name: name of (new) dataRef to be shared.
+ :param int dataType: *single* dataType (not bitwise OR of supported dataTypes)
+ :param Callable dataChanged: callback function if anyone sets the value.
+ :param Any refCon: reference constant sent with ``dataChanged(refCon)``.
+ :return: 1= success (dataref found or created), 0=failure (found, but wrong type)
+    
  This routine connects a plug-in to shared data, creating the shared data if
  necessary. *name* is a standard style of path string for the data ref,
  and *dataType* specifies the data type. *dataType* must be a single value,
@@ -1061,11 +1153,13 @@ data is changed, use shared data references.
  returned, so it is important that plug-in authors collaborate to establish
  public standards for shared data.
 
- If a notificationFunc *dataChanged* is passed in and is not None, it
- will be called whenever the data is modified. The provided *refCon*
+ If a notificationFunc *dataChanged* is passed in and is not ``None``, it
+ will be called whenever the data is set. The provided *refCon*
  will be passed to the callback. This allows your plug-in to know which shared
  data was changed if multiple shared data are handled by one callback, or if
- the plug-in does not use global variables.
+ the plug-in does not use global variables. (You're notified on *set*, regardless
+ of whether the data actually changed.) Do not use a lambda function, as you'll
+ need a "real" function to call :func:`unshareData`.
  
  Returns 1 if shared data is successfully created (or found); a
  0 if the data already exists but is of the wrong type.
@@ -1112,7 +1206,15 @@ data is changed, use shared data references.
  to simply create and manage the data reference & then you can poll (using :py:func:`getDataf`)
  to get data updates.
 
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMShareData>`__: :index:`XPLMShareData`
+
 .. py:function:: unshareData(name, dataType, dataChanged=None, refCon=None)
+
+ :param str name: name of (new) dataRef to be shared.
+ :param int dataType: *single* dataType (not bitwise OR of supported dataTypes)
+ :param Callable dataChanged: callback function if anyone sets the value.
+ :param Any refCon: reference constant sent with ``dataChanged(refCon)``.                             
+ :return: 1= success (shared data and unshared), 0=failure (not found)
 
  This routine removes your notification function for shared data. Call it
  when done with the data to stop receiving change notifications. Arguments
@@ -1157,8 +1259,10 @@ data is changed, use shared data references.
  to successfully call ``unshareData()``... which perhaps isn't the greatest
  tragedy.
 
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMUnshareData>`__: :index:`XPLMUnshareData`
+
 Types
---------------------
+-----
 
 .. data:: XPLMDataTypeID
    :annotation: bitfield used to identify the type of data

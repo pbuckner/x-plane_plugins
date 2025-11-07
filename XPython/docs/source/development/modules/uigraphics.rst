@@ -12,6 +12,12 @@ Functions
 
 .. py:function:: drawWindow(left, bottom, right, top, style=1)
 
+ :param int left:
+ :param int bottom:
+ :param int right:
+ :param int top: dimensions of window
+ :param int style: :ref:`XPWindowStyle`
+
  Draw a window of the given dimensions at the given offset on
  the virtual screen in a given style. The window is automatically scaled as
  appropriate using a bitmap scaling technique (scaling or repeating) as
@@ -19,6 +25,8 @@ Functions
 
  Unlike drawing widgets, :py:func:`drawWindow` needs to be done within a draw callback,
  so that it gets drawn *every frame*.
+
+ There is no "handle" to this window: you stop drawing it and it goes away.
 
  .. note:: Laminar documentation lists parameters as (x1, y1, x2, y2, style).
            For consistency with widget and window routines, I'm using
@@ -37,16 +45,29 @@ Functions
  
 .. py:function:: getWindowDefaultDimensions(style)
 
- This routine returns the default dimensions (width, height) for a window, given it's *style* (:ref:`XPWindowStyle`).
+ :param int style: :ref:`XPWindowStyle`
+ :return: Tuple (width: int, height: int)
+
+ This routine returns the default dimensions (width, height) for a window, given its *style* (:ref:`XPWindowStyle`).
  Output is either
  a minimum or fixed value depending on whether the window is scalable.
 
  >>> xp.getWindowDefaultDimensions(xp.Window_MainWindow)
  (100, 100)
 
+ [Since you'll specify the window size via :func:`drawWindow` and all of them are scalable, this function
+ seems extraneous.]
+
  `Official SDK <https://developer.x-plane.com/sdk/XPUIGraphics/#XPGetWindowDefaultDimensions>`__ :index:`XPGetWindowDefaultDimensions`
  
 .. py:function:: drawElement(left, bottom, right, top, style, lit=0)
+
+ :param int left:
+ :param int bottom:
+ :param int right:
+ :param int top: dimensions of element
+ :param int style: :ref:`XPElementStyle`
+ :param int lit: 1= draw "lit" version of element.
 
  Draws a given element at an offset on the virtual screen in
  set dimensions. EVEN if the element is not scalable, it will be scaled if
@@ -60,19 +81,25 @@ Functions
     with Laminar 17-November-2021.
 
  >>> def MyDraw(phase, before, refCon):
- ...    (width, height, canBeLit) = xp.getElementDefaultDimensions(style=refCon)
- ...    xp.drawElement(10, 10, 10+width, 10+height, style=refCon)
+ ...    (width, height, canBeLit) = xp.getElementDefaultDimensions(style=refCon['element'])
+ ...    xp.drawElement(10, 10, 10+width, 10+height, style=refCon['element'])
  ...    if canBeLit:
- ...       xp.drawElement(10 + width + 20, 10, 10 + width + width + 20, 10+height, style=refCon, lit=1)
+ ...       xp.drawElement(10 + width + 20, 10, 10 + width + width + 20, 10+height, style=refCon['element'], lit=1)
  ...    return 1
  ...    
- >>> xp.registerDrawCallback(MyDraw, refCon=xp.Element_Airport)
+ >>> refCon = {'element': xp.Element_Airport}
+ >>> xp.registerDrawCallback(MyDraw, refCon=refCon)
+ >>> refCon['element'] = xp.Element_VORWithCompassRose
+ >>> xp.unregisterDrawCallback(MyDraw, refCon=refCon)
 
  .. image:: /images/drawelement-29.png
 
  `Official SDK <https://developer.x-plane.com/sdk/XPUIGraphics/#XPDrawElement>`__ :index:`XPDrawElement`
  
 .. py:function:: getElementDefaultDimensions(style)
+
+ :param XPElementStyle style: :ref:`XPElementStyle`
+ :return: Tuple[width: int, height: int, canBeLit: int]                             
 
  Returns the recommended or minimum dimensions of a given UI
  element style :ref:`XPElementStyle` as a tuple (width, height, canBeLit).
@@ -87,7 +114,15 @@ Functions
 
 .. py:function:: drawTrack(left, bottom, right, top, minValue, maxValue, value, style, lit=0) -> None:
 
+ :param int left:
+ :param int bottom:
+ :param int right:
+ :param int top: dimensions of track element
+ :param int minValue: 
+ :param int maxValue: range of the track
+ :param int value: placement of thumb
  :param style: :ref:`XPTrackStyle`
+ :param int lit: 1= hightlight track
   
  This routine draws a track. You pass in the track dimensions, range of possible values,
  initial *value*, *style* (:ref:`XPTrackStyle`) and if it should be *lit*.
@@ -114,7 +149,10 @@ Functions
 
 .. py:function:: getTrackDefaultDimensions(style)
 
- This routine returns a track's default smaller dimension as a tuple ``(width, canBeLit)``.
+ :param style: :ref:`XPTrackStyle`
+ :return: Tuple[width: int, canBeLit: int]
+
+ This routine returns a track's *default smaller dimension* as a tuple ``(width, canBeLit)``.
 
  All tracks are scalable in the larger dimension. It also returns whether a track can be
  lit.
@@ -125,6 +163,16 @@ Functions
  `Official SDK <https://developer.x-plane.com/sdk/XPUIGraphics/#XPGetTrackDefaultDimensions>`__ :index:`XPGetTrackDefaultDimensions`
 
 .. py:function:: getTrackMetrics(left, bottom, right, top, minValue, maxValue, value, style)
+
+ :param int left:
+ :param int bottom:
+ :param int right:
+ :param int top: dimensions of track element
+ :param int minValue: 
+ :param int maxValue: range of the track
+ :param int value: placement of thumb
+ :param style: :ref:`XPTrackStyle`
+ :return: TrackMetrics instance              
 
  Returns a structure with metrics for the given track.
  If you want to write UI code
@@ -147,6 +195,8 @@ Functions
  the thumb, and the up area and button. For horizontal scrollers, the left
  button decreases; for vertical scrollers, the top button decreases.
 
+ (Tracks don't have to be drawn to retrieve this information.)
+ 
  >>> info = xp.getTrackMetrics(10, 100, 30, 300, 0, 100, 25, xp.Track_ScrollBar)
  >>> info.isVertical
  1

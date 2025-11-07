@@ -2,16 +2,18 @@
 #include <Python.h>
 #define XPPYTHON_H
 #include <pthread.h>
+#include <string>
 typedef struct {
   long fl_time; /* flight loop callback */
   long customw_time; /* custom widget drawing */
   long draw_time;  /* draw callback */
-  PyObject *pluginInstance;
+  const char* module_name;
 } PluginStats;
 
 extern PyObject *PythonModuleMTimes;
 extern PluginStats pluginStats[];
-int getPluginIndex(PyObject *);
+int getPluginIndex();
 void resetInternals();
+PyObject *XPPythonGetDictsFun(PyObject *, PyObject*);
 extern pthread_t pythonThread;
 #endif

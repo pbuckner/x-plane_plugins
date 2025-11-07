@@ -338,7 +338,10 @@ Use any of these device IDs with :py:func:`registerAvionicsCallbacksEx` or :py:f
   
     If you want to use a custom OS-based cursor, return :data:`CursorCustom` to ask
     X-Plane to show the cursor but not affect its image.  You can then use
-    :py:func:`xp.setCursor` to display a custom cursor you've loaded.
+    :py:func:`xp.setCursor` to display a custom cursor you've loaded. (See :func:`xp.setCursor` for details.)
+
+    Since X-Plane 12.3 the sim ships with a large number of useful "avionics" type cursor.
+    See :ref:`XPLMCursorStatus` for supported cursors.
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMAvionicsCursor_f/>`__ :index:`XPLMAvionicsCursor_f`
 
@@ -421,7 +424,10 @@ Custom Avionics Device Functions
 These functions allow you to programmatically create avionics and destroy avionics devices. With the resulting
 XPLMAvionicsID handle, you can then manipulate the popup window using functions lists with :ref:`popup_functions`.
 
-.. py:function:: createAvionicsEx(screenWidth=100, screenHeight=200, bezelWidth=140, bezelHeight=250, screenOffsetX=20, screenOffsetY=25, drawOnDemand=0, bezelDraw=None, screenDraw=None, bezelClick=None, bezelRightClick=None, bezelScroll=None, bezelCursor=None, screenTouch=None, screenRightTouch=None, screenScroll=None, screenCursor=None, keyboard=None, brightness=None, deviceID="deviceID", deviceName="deviceName", refcon=None)
+Want a feature-rich example? Check out the ``PI_Avionics1_Draw.py`` sample program downloaded into your ``PythonPlugins/samples``
+folder. Copy it into ``Resources/PythonPlugins/`` and restart X-Plane.
+
+.. py:function:: createAvionicsEx(screenWidth=100, screenHeight=200, bezelWidth=140, bezelHeight=250, screenOffsetX=20, screenOffsetY=25, drawOnDemand=0, bezelDraw=None, screenDraw=None, bezelClick=None, bezelRightClick=None, bezelScroll=None, bezelCursor=None, screenTouch=None, screenRightTouch=None, screenScroll=None, screenCursor=None, keyboard=None, brightness=None, deviceID="deviceID-<num>", deviceName="deviceName-<num>", refcon=None)
 
   :param int screenWidth: width of screen portion of device
   :param int screenHeight: height of screen portion of device
@@ -431,8 +437,8 @@ XPLMAvionicsID handle, you can then manipulate the popup window using functions 
   :param int screenOffsetY: vertical offset of the bottom edge of the screen from the bottom edge of the bezel
   :param int drawOnDemand: 1= draw device *only* on demand (See :py:func:`avionicsNeedsDrawing`); 0= draw every frame.
   :param callbacks: ... see below
-  :param str deviceID: *unique* string to identify the device. See notes below.
-  :param str deviceName: user-friendly name of the device
+  :param str deviceID: *unique* string to identify the device. See notes below. If not provided, we construct one as "device-ID-<num>"
+  :param str deviceName: user-friendly name of the device. If not provided, we construct one as "deviceName-<num>"
   :param Any refcon: reference constant to be passed to your callbacks.
   :return: XPLMAvionicsID
   
@@ -515,14 +521,33 @@ XPLMAvionicsID handle, you can then manipulate the popup window using functions 
 
     X-Plane *does not clear* your screen for you between
     calls - this means you can re-use portions to save drawing, but otherwise
-    you must call glClear() to erase the screen's contents. Similarly, it *does not flush*
-    your OpenGL calls, so you must call glFlush() when you're finished.
+    you must call glClear() to erase the screen's contents.
 
     This interacts with the value of the ``drawOnDemand`` parameter. If ``drawOnDemand=0``, this
     draw function is called every frame. If ``drawOnDemand=1``, this draw function is called once.
     To call it again, you need to call :py:func:`avionicsNeedsDrawing`, which will call
     this function one more time.
      
+       >>> from OpenGL import GL
+       >>> from XPPython3 import xpgl
+       >>> def MyScreenDraw(refCon):
+       ...    xpgl.clear()
+       ...    xp.setGraphicsState(depthWriting=1, alphaBlending=1)
+       ...    xpgl.drawTriangle(0, 0, refCon['s_width'], refCon['s_height'], refCon['s_width'], 0, color=xpgl.Colors['green'])
+       ...
+       >>> deviceSize = {'s_width': 100, 's_height': 200, 'b_width': 140, 'b_height': 250}
+       >>> avionicsID = xp.createAvionicsEx(screenDraw=MyScreenDraw, refCon=deviceSize)
+       >>> xp.setAvionicsPopupVisible(avionicsID)
+       
+    Note also, the screen is drawn *over* the bezel, and blends with whatever the background is. For example,
+    if you don't draw a bezel at all, as in the above example, your screen will blend with whatever is showing
+    in X-Plane, likely not what you want.
+
+    .. image:: /images/greentriangle-nobezel.png
+       :height: 200px
+
+    Commonly, you'll draw the bezel with a black background to avoid this see-through.
+
   .. py:function:: bezelDraw(r, g, b, refCon)
 
     This is the prototype for drawing callbacks for custom devices' bezel.
@@ -543,12 +568,31 @@ XPLMAvionicsID handle, you can then manipulate the popup window using functions 
     Unlike the :py:func:`screenDraw`, this function is called every frame and is
     not influenced by the ``drawOnDemand`` parameter.
 
-    You're drawing the full extent of the bezel, which includes space *behind* the
+    You're drawing the *full extent* of the bezel, which includes space *behind* the
     screen. Bezel and screen *will blend*, so most likely, you'll want to draw
     a black rectangle in the position (... at the offset) of the screen.
 
-    Unlike :py:func:`screenDraw`, you do not need to include calls to glClear() and glFlush().
+    Unlike :py:func:`screenDraw`, you do not need to include calls to glClear().
+    In the following example, we use ``MyScreenDraw`` as defined with :func:`screenDraw`,
+    and add ``MyBezelDraw``. For illustration purposes, we *also* draw using a non-black
+    color behind the screen area, so you can see the blending of screen + bezel.
     
+       >>> from OpenGL import GL
+       >>> from XPPython3 import xpgl
+       >>> def MyBezelDraw(r, g, b, refCon):
+       ...    xpgl.drawPolygon([(0, 0), (0, refCon['b_height']), (refCon['b_width'], refCon['b_height']), (refCon['b_width'], 0)], thickness=3, isFilled=True, color=xpgl.Colors['black'])
+       ...    xpgl.drawTriangle(0, 0, 0, refCon['b_height'], refCon['b_width'], 0, color=xpgl.Colors['orange'])
+       ...
+       >>> deviceSize = {'s_width': 100, 's_height': 200, 'b_width': 140, 'b_height': 250}
+       >>> avionicsID = xp.createAvionicsEx(screenDraw=MyScreenDraw, bezelDraw=MyBezelDraw, refCon=deviceSize)
+       >>> xp.setAvionicsPopupVisible(avionicsID)
+
+    .. image:: /images/greentriangle-orangebezel.png
+       :height: 200px
+
+    Note the color blending between screen and bezel, and note that the top of the bezel goes
+    up into the area where the close and pop-out buttons are located.
+
   .. py:function:: brightness(rheoValue, ambientBrightness, busVoltsRatio, refCon)
 
     This is the prototype for screen brightness callbacks for custom devices.
@@ -622,7 +666,7 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
   displayed in a popup window, this function returns 0. Note also, that if the 2D device is "popped-out" it is *also* visible,
   even if it is otherwise obscured by other windows.::
 
-     >>> xp.isAvionicPopupVisible(avionicsID)
+     >>> xp.isAvionicsPopupVisible(avionicsID)
      1
 
   Note "popup" refers to the 2D window displayed within the
@@ -649,6 +693,10 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
     >>> xp.isAvionicsPopupVisible(avionicsID)
     0
     
+  When you "close" a popped-up avionics device by clicking on the close button in upper left, or hide it using this fucntion,
+  the device *still exists* and its draw functions continue to be called. You may want
+  to consider this and change your avionics drawing functions based on device visibility.
+
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMSetAvionicsPopupVisible>`__ :index:`XPLMSetAvionicsPopupVisible`
 
 .. py:function:: isAvionicsPoppedOut(avionicsID)
@@ -736,7 +784,8 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
   :param XPLMAvionicsID avionicsID: as from :py:func:`createAvionicsEx`,  :py:func:`getAvionicsHandle`, or :py:func:`registerAvionicsCallbacksEx`
   :return: four integers (left, top, right, bottom)
 
-  Returns garbage values if the device *is* popped out.::
+  Returns garbage values if the device *is* popped out. (With 12.3 it appears to return (0, 0, 0, 0) when the device is
+  popped out.)::
 
     >>> xp.getAvionicsGeometry(avionicsID)
     (147, 728, 267, 609)
@@ -771,7 +820,8 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
   :return: four integers (left, top, right, bottom)
 
   Returns four integers for position of popped out avionics device in OS coordinates (left, top, right, bottom).
-  Returns garbage values if the device is *not* popped out.::
+  Returns garbage values if the device is *not* popped out. (With 12.3 it appears to return (0, 0, 0, 0) when not
+  popped out.)::
 
     >>> xp.getAvionicsGeometryOS(avionicsID)
     (1529, 1352, 2363, 810)
@@ -808,7 +858,7 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
   
   For devices not bound, the returns a value managed by the device itself::
 
-    >>> xp.getAvionicsBrightness(xp.getAvionicsHandle(xp.Device_G1000_PFD_1))
+    >>> xp.getAvionicsBrightnessRheo(xp.getAvionicsHandle(xp.Device_G1000_PFD_1))
     0.5
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMGetAvionicsBrightnessRheo>`__ :index:`XPLMGetAvionicsBrightnessRheo`
@@ -826,7 +876,7 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
   
   For devices not bound, this sets the value managed by the device itself::
 
-    >>> xp.setAvionicsBrightness(xp.getAvionicsHandle(xp.Device_G1000_PFD_1), .75)
+    >>> xp.setAvionicsBrightnessRheo(xp.getAvionicsHandle(xp.Device_G1000_PFD_1), .75)
 
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMSetAvionicsBrightnessRheo>`__ :index:`XPLMSetAvionicsBrightnessRheo`

@@ -36,6 +36,8 @@ Functions
 
 .. py:function:: findPluginsMenu()
 
+ :return: XPLMMenuID capsule
+
  This function returns the *menuID* of the plug-ins menu, which is created for you
  at startup.
 
@@ -43,9 +45,11 @@ Functions
 
  >>> menuID = xp.findPluginsMenu()
  >>> menuID
- <capsule object "XPLMMenuIDRef" at 0x7fdd40a74810>
+ <capsule object "XPLMMenuID" at 0x7fdd40a74810>
 
 .. py:function::  findAircraftMenu()
+
+ :return: XPLMMenuID capsule
 
  This function returns the *menuID* of the menu for the currently-loaded aircraft,
  used for showing aircraft-specific commands.
@@ -69,6 +73,13 @@ Functions
 
 .. py:function:: createMenu(name=None, parentMenuID=None, parentItem=0, handler=None, refCon=None)
 
+ :param str name: string to be displayed **if parentMenuID is None**, otherwise ignored
+ :param XPLMMenuID parentMenuID: Existing menu item to which you will be adding a '>' submenu, or None, to append to Plugin menu.
+ :param int parentItem: With parentMenuID, select which 0-based item to add the submenu.
+ :param Callable handler: Callback when this item is selected.
+ :param Any refCon: Reference constant passed to your handler
+ :return: XPLMMenuID capsule
+
  Create a new menu and return its menuID. Returns None if the menu cannot be created.
  
  For *parentMenuID*, pass in:
@@ -84,7 +95,7 @@ Functions
 
  >>> menuID = xp.createMenu()
  >>> menuID
- <capsule object "XPLMMenuIDRef" at 0x7fedf68fa030>
+ <capsule object "XPLMMenuID" at 0x7fedf68fa030>
  
  .. image:: /images/menu-module.png
 
@@ -101,10 +112,10 @@ Functions
  constants, **not** menuIDs.
 
  >>> def MyMenu(menuRefCon, itemRefCon):
- ...    xp.speakString(f"Menu {menuRefCon} selected")
+ ...    xp.speakString(f"You've selected {itemRefCon} from the {menuRefCon} Menu.")
  ...
- >>> menuID = xp.createMenu(handler=MyMenu, refCon="Menu1")
- >>> xp.appendMenuItem(menuID, "Item 1", refCon="Item1")
+ >>> menuID = xp.createMenu(handler=MyMenu, name="Available Meats", refCon="Meats")
+ >>> xp.appendMenuItem(menuID, "Tasty Spam", refCon="Spam")
  0
  
  On startup, each plugin as a (hidden) slot in the X-Plane Plugins menu.
@@ -139,7 +150,8 @@ Functions
    the menu. (This will clear only your python plugin's menu items -- it will
    not remove all menus of all python plugins.)
 
- These are equivalent, as both will add "New Menu" to the end of the top-level Plugins Menu::
+ These are equivalent, as both will add "New Menu" item with a '>' for an empty
+ submenu to the end of the top-level Plugins Menu::
 
    menuID = xp.createMenu("New Menu", parentMenuID=None, parentItem=0, handler=callback)
 
@@ -148,23 +160,33 @@ Functions
    itemID = xp.appendMenuItem(xp.findPluginsMenu(), "New Menu", 0)
    menuID = xp.createMenu(parentMenuID=xp.findPluginsMenu(), parentItem=itemID, handler=callback)
 
+ Confused abou menus and menuitems? See :doc:`/development/menus`.
+
  `Official SDK <https://developer.x-plane.com/sdk/XPLMMenus/#XPLMCreateMenu>`__ :index:`XPLMCreateMenu`
 
 .. py:function:: destroyMenu(menuID)
 
+ :param XPLMMenuID menuID: Menu to be destroyed.
+
  Destroy a menu.  Use this to remove a
  submenu if necessary.  (Normally this function will not be necessary.)
 
- The items below this menu are removed, and the provided menuID remains, but
+ The sub-items associated with this menu are removed, and the provided menuID remains, but
  will no longer have a right-arrow ('>') displayed. It will not be selectable,
  nor will you be able to :py:func:`appendMenuItem` to it.
+
+ To actually remove this menu item, you need to know its parent and item number and call :func:`removeMenuItem`,
+ but in all likelihood, you're not dynamically adding and removing menu items (that's bad UI design).
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMMenus/#XPLMDestroyMenu>`__ :index:`XPLMDestroyMenu`
 
 .. py:function:: clearAllMenuItems(menuID=None)
 
+ :param XPLMMenuID menuID: remove all menu items from given menu.
+
  Remove all menu items from a menu, allowing you to rebuild
- it.  Use this function if you need to change the number of items on a menu.
+ it.  Use this function if you need to change the number of items on a menu. (That is, the
+ menu still exists, unlike with :func:`destroyMenu`.)
 
  If *menuID* is None, (or is the value from :py:func:`findPluginsMenu`), we'll
  remove all menu items added by this plugin.
@@ -184,6 +206,11 @@ Functions
            ...
 
 .. py:function::  appendMenuItem(menuID=None, name="Item", refCon=None)
+
+ :param XPLMMenuID menuID: Menu to which named item is added (as a sub-item).
+ :param str name: String to be displayed for item
+ :param Any refCon: *itemRefCon* passed to menu's handler callback.
+ :return: integer index of this item relative the parent menu.
 
  Append a new menu item with *name* to the end of existing menu *menuID*.
  Return the new item's index. *refCon* will be passed to menu's ``handler()``
@@ -219,6 +246,11 @@ Functions
 
 .. py:function:: appendMenuItemWithCommand(menuID=None, name="Command", commandRef)
 
+ :param XPLMMenuID menuID: Menu to which named item is added
+ :param str name: String to be displayed fo ritem
+ :param XPLMCommandRef commandRef: Command to be executed (in lieu of menu callback)
+ :return: integer index of this item relative the parent menu
+    
  Like :py:func:`appendMenuItem`, but instead of the new menu item triggering the
  ``handler()`` callback of the containing menu, it will simply execute the
  command you pass in. Using a command for your menu item allows the user to
@@ -242,6 +274,9 @@ Functions
 
 .. py:function:: appendMenuSeparator(menuID=None)
 
+ :param XPLMMenuID menuID: Menu to which a separator is added (after existing sub-items)
+ :return: None, but, the menu index has increased by one.
+
  This routine adds a separator to the end of a menu. SDK303 this returns an integer
  menu index. SDK400 does not return a value (and yet, the separator indeed "consumes"
  a menu index.)
@@ -254,6 +289,10 @@ Functions
 
 .. py:function:: setMenuItemName(menuID=None, index=0, name="New Name")
 
+ :param XPLMMenuID menuID:
+ :param int index: Menu item to get the new name
+ :param str name: New name for menu item
+
  Change the *name* of an existing menu item given by *menuID* and item *index*.
 
  Sets *index* on main Plugin Menu if *menuID* is None.
@@ -261,6 +300,10 @@ Functions
  `Official SDK <https://developer.x-plane.com/sdk/XPLMMenus/#XPLMSetMenuItemName>`__ :index:`XPLMSetMenuItemName`
  
 .. py:function:: checkMenuItem(menuID=None, index=0, checked=Menu_Checked)
+
+ :param XPLMMenuID menuID:
+ :param int index: Menu item to be checked (or unchecked)
+ :param int: One of NoCheck, Unchecked or Checked
 
  Set whether a menu item is checked.  Pass in the *menuID* and item *index*,
  and value for *checked*, one of
@@ -286,7 +329,11 @@ Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMMenus/#XPLMCheckMenuItem>`__ :index:`XPLMCheckMenuItem`
 
-.. py:function:: checkMenuItemState(menuID, index)
+.. py:function:: checkMenuItemState(menuID=None, index=0)
+
+ :param XPLMMenuID menuID:
+ :param int index: Menu item whose state is being checked.   
+ :return: int, as with :func:`checkMenuItem`
 
  Returns whether a menu item is checked or not. A menu item's
  check mark may be on (``xp.Menu_Checked``) or off (``xp.Menu_Unchecked``),
@@ -301,7 +348,11 @@ Functions
  
  `Official SDK <https://developer.x-plane.com/sdk/XPLMMenus/#XPLMCheckMenuItemState>`__ :index:`XPLMCheckMenuItemState`
 
-.. py:function:: enableMenuItem(menuID, index, enabled=1)
+.. py:function:: enableMenuItem(menuID=None, index=0, enabled=1)
+
+ :param XPLMMenuID menuID:
+ :param int index: Menu item to be enabled
+ :param int enabled: 1=enable, 0=disable
 
  Sets whether this menu item is enabled.  Items start out enabled. Set
  *enabled*\=0 to disable.
@@ -311,7 +362,10 @@ Functions
  
  `Official SDK <https://developer.x-plane.com/sdk/XPLMMenus/#XPLMEnableMenuItem>`__ :index:`XPLMEnableMenuItem`
 
-.. py:function:: removeMenuItem(menuID, index)
+.. py:function:: removeMenuItem(menuID=None, index=0)
+
+ :param XPLMMenuID menuID:
+ :param int index: Menu item to be removed
 
  Removes one item with *index* from a menu *menuID*.
  Note that all menu items below are moved up

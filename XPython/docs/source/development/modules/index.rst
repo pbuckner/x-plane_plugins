@@ -23,6 +23,94 @@ each module separately::
   
   import XPLMMenus
 
+Not sure which modules contain what you want? Here's an overview arranged by features:
+
+* Accessing **dataRefs** (internal X-Plane data), and creating your own dataRefs. :doc:`dataaccess`
+
+  * with a simpler lua-like access using easy datarefs :doc:`datarefs`
+
+* **Command** creation and execution, also allows you to augment (or replace) existing defined commands :doc:`utilities`
+  
+  * with a simpler lua-like access using easy commands :doc:`commands`
+
+* Creating **Menus** to execute code or existing commands :doc:`menus`
+
+* Creating **flight loops**, which can execute your code at specific points in time, including every frame. :doc:`processing`
+
+  * **Timers**\: really just simple flight loops :doc:`timers`
+
+* Drawing:
+
+  * Drawing within a **window** :doc:`display_window`
+
+  * Drawing within an **avionics device window** :doc:`display_avionics`
+
+  * Drawing on the **screen** using old-style, and largely deprecated draw callbacks :doc:`display_direct`
+
+  * Using pre-defined 3d object for **Instance** drawing: :doc:`instance`. And access to existing library of objects :doc:`scenery`.
+    
+  * **OpenGL** interactions, state, textures (including weather radar): :doc:`graphics`
+    
+  * **Python OpenGL** drawing primitives (lines, polygons, text, transformations, etc.: :doc:`xpgl`
+    
+  * Simple (non-OpenGL) drawing primitives :doc:`graphics`, and graphical elements :doc:`uigraphics`
+
+  * **Widgets** Old style buttons, textboxes, checkboxes, etc. useful for basic user interaction. :doc:`widgets`, doc:`widgetutils`, doc:`standardwidgets`
+    
+  * **IMGUI** integration for newer-style buttons, etc. :doc:`xp_imgui`
+    
+  * **Cursor** manipulation :doc:`cursor`
+    
+* Querying and controlling the **weather** :doc:`weather`
+  
+* Accessing the **NavAid** database :doc:`navigation`
+
+* Interacting with **Flight Management Systems** (FMS) and flight plans :doc:`navigation`  
+
+* **Replay and situation files** loading and saving :doc:`utilities`
+
+* **Aircraft**: setting and moving the user plane, changing aircraft type, disabling AI aircraft. :doc:`planes`
+
+* Drawing on the pop-up **Map**. Adding labels and icons. :doc:`map`
+
+* Controlling the **Camera**, changing the position and location of the camera :doc:`camera`
+
+* Keyboard shortcuts:
+
+  * **Hot Keys**: Higher level keystroke intercept to execute code. Hot keys "listen" for a specific
+    keystroke, and are *only* called when that stroke is made. :doc:`display_hotkeys`.
+
+  * **Key Sniffing**: Intercept a keystroke and execute code. Lowest level and can "consume" the key blocking
+    other usage. Sniffer are called on *every* keystroke and are passed the current keystroke, which
+    they can opt to ignore: :doc:`display_sniffer`
+
+* Coordinate systems:
+
+  * OpenGL ("local") and Lat/Lng ("world") :doc:`graphics`
+
+  * Elapsed time, and cycle number :doc:`processing`
+
+  * Mesh probes (vertical distance to terrain) :doc:`scenery`
+
+  * Magnetic variation :doc:`scenery`
+
+* FMOD **Sound**, playing audio clips and positioning them in 3d space :doc:`sound`, or simple "speak string" for alerts :doc:`utilities`.
+  
+* Working with other **plugins**, messages your plugin will receive (PLANE_LOADED, PLANE_CRASHED, etc.) and finding
+  and messaging other plugins : :doc:`plugin`
+
+* **System information**: paths, version, language :doc:`utilities`
+
+* **Python** infrastructure: version, executable, paths. :doc:`python`.
+
+  * Python package management using **pip** :doc:`xp_pip`.
+
+  * Performance **Statistics**\: :doc:`python`
+
+  * Access to internal XPPython Datastructures to aid debugging: :doc:`python`
+
+* **Logging** to Log.txt and to XPPython3Log.txt :doc:`python`.
+
 For compatibility with Laminar documentation, this documentation splits the SDK along the same divisions:
 
 +------------------------+---------------------------------------------------------------------+

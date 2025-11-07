@@ -103,8 +103,16 @@ def enableMenuItem(menuID:Optional[XPLMMenuID]=None, index:int=0, enabled:int=1)
 def removeMenuItem(menuID:Optional[XPLMMenuID]=None, index:int=0) -> None:
     """
     Removes one item from menu.
-    
+
     Note that all menu items below are moved up one index.
+    """
+    ...
+
+def getMenuCallbackDict() -> dict:
+    """
+    Returns internal dictionary of menu callbacks
+
+    Intended for debugging only
     """
     ...
 

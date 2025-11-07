@@ -4,11 +4,84 @@ Change Log
 Known Bugs
 ----------
 
-* **Incorrect log message attribution**: In rare occasions XPPython3Log.txt will
-  incorrectly attribute a log message to
-  the wrong python plugin. This may be related to X-Plane calls to internal error reporting callback.
-  The message is correct apart from identifying the requesting plugin.
+  None. *Prove me wrong!*
+
+4.6.0 (Beta)
+------------
+
+:Fixes:
+   * **Custom Cursors for Widgets** XPPython3 passed incorrect information back to X-Plane from within
+     a widget callback function (:func:`xp.addWidgetCallback`) in response to the :data:`xp.Msg_CursorAdjust`
+     message. This has been corrected and documentation updated to support the correction. Custom Cursors
+     now work properly for widgets (they've always worked for non-widget windows.)
   
+   * **sharedData** Previously, :py:func:`xp.shareData` threw an exception when a shared dataRef was changed, but no callback was registered for it.
+     (Techinically, ``shareData`` didn't throw an exception, the ``setData`` function calling the shared dataRef would throw the exception.)
+     Callbacks are not required, so this fix simply recognizes when a callback is not provided and quietly continues without error.
+
+   * **DataRef Callbacks**: If a callback is not defined for a particular dataref, but there is an attempt to use that callback (e.g., calling
+     setDatavi() for a callback which only support a single float), we now log the fact that the callback does not exist, but will
+     *no longer* raise an exception. For get* callbacks, we'll return the value zero, with no indication of success or failure. For set*
+     callbacks we (continue to) return nothing. This more closely aligns with X-Plane behavior.
+
+   * **MSG_DATAREFS_ADDED**: This plugin message's C-language parameter value was ambiguously defined in the official
+     documentation. This has now been clarified, and XPPython3 now correctly returns the integer count of datarefs.
+     
+   |
+   
+:New Features:
+   * **Support for SDK420**, valid for X-Plane 12.3.0+. Note XPPython3 dynamically loads these new features
+     where available. That means you can continue to use this version of XPPython3 on older versions of X-Plane 12+,
+     but the new features (of course) won't be available.
+
+     * :doc:`/development/modules/weather`: for Weather API update which now allows you to set weather
+       at locations
+
+     * :doc:`/development/modules/instance`: for :func:`xp.instanceSetAutoShift` which may
+       save you some calculation effor for static instances.
+
+     * :doc:`/development/modules/display_window`: for new built-in cursors (:ref:`XPLMCursorStatus`), especially useful for your custom
+       avionics.
+  
+     * :doc:`/development/modules/graphics`: for :func:`xp.getTexture` and enumerations for weather radar textures.
+       avionics.
+
+   * **Support for .pyc compiled python plugins**: You can now simply deploy PI_<plugin>.pyc instead of your source PI_<plugin>.py file.
+     See :doc:`/development/deployment_compiled`.
+
+   * **Support for .xpyce encrypted python plugins**: We've re-introduced (and improved) using encrypted python. 
+     See :doc:`/development/deployment_encrypted`.
+
+   * **Support for including custom C-language modules**: Though we've always supported this python feature, we've included
+     documentation on how to create your on C shared library and add it to your python plugin.
+     See :doc:`/development/deployment_sharedlib`.
+
+     |
+
+:Improvements:
+   * **Major rewrite**: About 30,000 lines of code was converted from C to C++. This allowed me to take advantage of C++ data
+     structures such as vectors and unordered_maps, which are dramatically faster than previous implementation.
+     The inherent typing checking added by C++ also made it easier (less risky) to refactor code, eliminating some code
+     paths. Parameter marshaling (Python->C, and C->Python) improved and in many cases eliminated. Simple tests show
+     about a 20% reduction in time spent with XPPython3. Additionally, reference counting was checked which should
+     further reduce memory leaks and illegal memory accesses.
+
+   * **XPPython3/utils/datarefs.py**: Previous version had major implementation issues: how it got released is beyond me.
+     We've updated the module and extensively updated the documentation at :doc:`/development/modules/datarefs` and included
+     many more examples.
+     
+     |
+
+:Changes:
+   * **MacOS10.15**: Minimum Mac support is now Catalina, 10.15. Previously we supported as early as 10.12 Sierra. If
+     you still have such an old Mac, don't upgrade XPPython3.
+   
+   * **Internal data structure changed**: Due to code improvements, the internal hash tables have been changed. It is
+     unlike anyone was accessing these except for debugging purposes. The structures have changed, but they are now
+     fully documented in :doc:`development/xppythondicts`. They're still "internal" and should only be used to aid
+     debugging.
+     
+
 4.5.0 (21-Jan-2025)
 -------------------
 

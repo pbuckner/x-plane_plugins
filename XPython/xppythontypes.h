@@ -1,3 +1,6 @@
+#ifndef Py_PYTHON_H
+#include <Python.h>
+#endif
 extern PyTypeObject WeatherInfoType, WeatherInfoCloudsType, WeatherInfoWindsType;
 extern PyTypeObject DataRefInfoType,  HotKeyInfoType, PluginInfoType, NavAidInfoType, FMSEntryInfoType, TrackMetricsType,
   ProbeInfoType;
@@ -12,6 +15,8 @@ extern PyObject *PyWeatherInfo_New(int detail_found, float temperature_alt, floa
                                    float wind_dir_alt, float wind_spd_alt, float turbulence_alt,
                                    float wave_height, float wave_length, int wave_dir, float wave_speed,
                                    float visibility, float precip_rate, float thermal_climb, float pressure_sl,
-                                   PyObject *wind_layers,PyObject *cloud_layers);
+                                   PyObject *wind_layers,PyObject *cloud_layers,
+                                   PyObject *temp_layers, PyObject *dewp_layers,
+                                   float troposphere_alt, float troposphere_temp, float age, float radius_nm, float max_altitude_msl_ft);
 extern PyObject *PyWeatherInfoClouds_New(float cloud_type, float coverage, float alt_top, float alt_base);
 extern PyObject *PyWeatherInfoWinds_New(float alt_msl, float speed, float direction, float gust_speed, float shear, float turbulence);

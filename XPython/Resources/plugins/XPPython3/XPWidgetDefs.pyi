@@ -1,9 +1,6 @@
 from dataclasses import dataclass
 from typing import Any, Callable, Generic, Optional, Type, TypeVar, NewType, Literal, Sequence
-from XPPython3.xp_typing import *    
-MouseDown: XPLMMouseStatus
-MouseDrag: XPLMMouseStatus
-MouseUp: XPLMMouseStatus
+from XPPython3.xp_typing import *
 Property_Refcon: XPWidgetPropertyID
 Property_Dragging: XPWidgetPropertyID
 Property_DragXOff: XPWidgetPropertyID

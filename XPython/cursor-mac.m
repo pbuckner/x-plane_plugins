@@ -88,10 +88,8 @@ static PyObject *loadCursor(PyObject *self, PyObject *args, PyObject *kwargs)
     return NULL;
   }
 
-  Cursors[cursorIdx] = cursor_read_from_file(cursorFileName);
-  PyObject *cursorID = PyLong_FromLong(cursorIdx++);
-  Py_IncRef(cursorID);
-  return cursorID;
+  Cursors[cursorIdx] = cursor;
+  return PyLong_FromLong(cursorIdx++);
 }
 
 
@@ -112,7 +110,7 @@ cursor_read_from_file(const char *filename)
   NSImageRep *rep;
   NSPoint p;
   
-  char *filename_ext = (char *)malloc(strlen(filename) + 4);
+  char *filename_ext = (char *)malloc(strlen(filename) + 5);
   strcpy(filename_ext, filename);
   strcat(filename_ext, ".png");
 
@@ -145,7 +143,7 @@ static void cursor_make_current(cursor_t *cursor) {if (cursor == NULL || cursor-
 /* because cursors are only ever created and used from the main rendering
    thread, it is safe to use a simple unprotected global with refcount.
 */
-static dpy_refcont = 0;
+static int dpy_refcont = 0;
 static Display *dpy = NULL;
 static XPLMDataRef drSystemWindow;
 
@@ -157,7 +155,7 @@ cursor_read_from_file(const char *filename)
   int w, h;
   XcursorImage img = { .pixels = NULL };
 
-  char *filename_ext = (char *)malloc(strlen(filename) + 4);
+  char *filename_ext = (char *)malloc(strlen(filename) + 5);
   strcpy(filename_ext, filename);
   strcat(filename_ext, ".png");
 
@@ -214,7 +212,6 @@ cursor_free(cursor_t *cursor)
 void
 cursor_make_current(cursor_t *cursor)
 {
-  dr_t system_window_dr;
   int win_ptr[2];
   Window win;
   
@@ -222,7 +219,6 @@ cursor_make_current(cursor_t *cursor)
     return;
   }
 
-  int outValues[2];
   if (XPLMGetDatavi(drSystemWindow, win_ptr, 0, 2) != 2) {
     pythonLog("Failed to get system window dataref");
     return;

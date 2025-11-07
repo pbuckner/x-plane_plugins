@@ -18,7 +18,6 @@ XPLMDataRef = NewType('XPLMDataRef', int)
 XPLMDataTypeID = NewType('XPLMDataTypeID', int)
 XPLMDeviceID = NewType('XPLMDeviceID', int)
 XPLMDrawingPhase = NewType('XPLMDrawingPhase', int)
-XPLMFlighLoopPhaseType = NewType('XPLMFlighLoopPhaseType', int)
 XPLMFlightLoopID = NewType('XPLMFlightLoopID', int)
 XPLMFlightLoopPhaseType = NewType('XPLMFlightLoopPhaseType', int)
 XPLMFontID = NewType('XPLMFontID', int)
@@ -66,6 +65,16 @@ class XPLMDataRefInfo_t:
 
 @dataclass
 class XPLMDrawInfo_t:
+    x: float
+    y: float
+    z: float
+    pitch: float
+    heading: float
+    roll: float
+
+
+@dataclass
+class XPLMDrawInfoDouble_t:
     x: float
     y: float
     z: float

@@ -55,29 +55,41 @@ Some useful things to do:
   a slash followed by a word and we'll search the ``xp`` module and return a list of matching
   functions and constants.
 
-  >>> /font
-  Font_Basic
-  Font_Proportional
-  Property_Font
-  getFontDimensions
-  >>> help(xp.getFontDimensions)
-  Help on built-in function getFontDimensions in module XPLMGraphics:
-  |
-  getFontDimensions(fontID)
-  |     Get information about font
-  |
-  |     Returns (width, height, digitsOnly). Proportional fonts
-  |     return hopefully average width.
+    >>> /font
+    Font_Basic
+    Font_Proportional
+    Property_Font
+    getFontDimensions
+    >>> help(xp.getFontDimensions)
+    Help on built-in function getFontDimensions in module XPLMGraphics:
+    |
+    getFontDimensions(fontID)
+    |     Get information about font
+    |
+    |     Returns (width, height, digitsOnly). Proportional fonts
+    |     return hopefully average width.
+  
+* **Search DataRefs**: Search through currently registered datarefs using a
+  question mark. Your input will be interpreted as a case-insensitive regular
+  expression.
 
-* **Search DataRefs**: Search through datarefs (actually the Laminar provided DataRefs.txt file) using
-  a question mark.
+    >>> ?G1000
+    sim/cockpit/g1000/gcu478
+    sim/graphics/misc/kill_g1000_ah
+    sim/cockpit2/autopilot/vnav_armed
+  
+  Want to know more about the dataref, use :func:`xp.findDataRef` and :func:`xp.getDataRefInfo`.
+   
+* **Search Commands**: Search through currently registered commands using
+  a colon. Your input will be interpreted as a case-insensitive regular
+  expression.
 
-  >>> ?G1000
-  sim/cockpit/g1000/gcu478 input sel int y enum FMS=0 XPDR=1 COM=2 NAV=3
-  sim/graphics/misc/kill_g1000_ah int y boolean If set to true, the G1000 PFD instrument won't
-  |  draw the attitude indicator background
-  sim/cockpit2/autopilot/vnav_armed int n boolean Vnav is armed, o or 1 - this is different
-  |  from the "FMS" button - it is used ONLY for a physical G1000 connected by ethernet.
+    >>> :weather.*map
+    [searching commands]
+    sim/operation/toggle_weather_map   Toggle display of the weather map
+    [completed]
+    
+  This takes a few seconds as we need to spawn a separate process to access the built-in webserver for details. 
   
 * **Execute X-Plane Commands**:
 
@@ -90,7 +102,7 @@ Some useful things to do:
 
     >>> time = xp.findDataRef('sim/time/zulu_time_sec')
     >>> time
-    <capsule object "datarefRef" at 0x7fc44329920>
+    <capsule object "XPLMDataRef" at 0x7fc44329920>
     >>> xp.getDataf(time)
     44768.0
     >>> xp.getDataf(time)
@@ -108,20 +120,18 @@ Some useful things to do:
     >>> xp.createMenu('New Menu', handler=MyCallback)
     <capsule object "XPLMMenuIDRef" at 0x75334211d>
 
-* **Debug your Plugin**: Note that you'll need access to *your* plugin from the interpreter. You can
-  use some helper functions, defined by the interpreter (not part of ``xp`` module).
+* **Debug your Plugin**: Note that you'll need access to *your* plugin from the interpreter.
 
-  * ``getPluginList()`` returns list of python plugin signatures.
-
-  * ``getPluginInstance(signature)`` returns the PythonInterface object for the plugin with
+  * ``xp.getPluginInstance(signature)`` returns the PythonInterface object for the plugin with
     the named *signature*.
 
-  >>> getPluginList()
-  ['xppython3.firstTime', 'xppython3.updater.3.9', 'xppython3.minipython', 'test.myplugin']
-  >>> instance = getPluginInstance('test.myplugin')
+  >>> instance = xp.getPluginInstance('test.myplugin')
   >>> instance
   <PythonPlugins.PI_MyPlugin.PythonInterface object at 0x7fd692ae73a0>
 
   From there, you'll be able to access your full plugin instance, updating instance attributes, calling
   instance methods.
+
+  (Hint: ``self = xp.getPluginInstance('test.myplugin')`` makes working with your instance even easier
+  because you can probably just cut & paste source code directly.)
 

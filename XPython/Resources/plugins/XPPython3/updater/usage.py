@@ -22,15 +22,15 @@ class Usage:
             return
 
         plugins: List = []
-        for (interfaceObject, info) in xp.pythonGetDicts()['plugins'].items():
-            _name, sig, description, _module, module_name, disabled = info[0:6]  # [0:6] in case we add more variables later...
+        for (interfaceObject, info) in xp.getPluginDict().items():
+            module_name, _plugin_name, signature, description, disabled = info[0:5]  # [0:5] in case we add more variables later...
             if not (module_name.startswith('XPPython3.') or disabled):
                 try:
                     if getattr(interfaceObject, 'xp3_disable_usage_stats'):
                         continue
                 except AttributeError:
                     pass
-                plugins.append((module_name, sig, description))
+                plugins.append((module_name, signature, description))
         if plugins and requests is not None:
             try:
                 # blast it & not wait for response

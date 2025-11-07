@@ -228,7 +228,7 @@ def registerDataAccessor(name:str, dataType:int=Type_Unknown, writable:int=-1,
     """
     ...
 
-def unregisterDataAccessor(acccessor:XPLMDataRef) -> None:
+def unregisterDataAccessor(accessor:XPLMDataRef) -> None:
     """
     Unregisters data accessor.
     """
@@ -280,8 +280,20 @@ def unshareData(name:str, dataType:int, dataChanged:Optional[Callable[[Any], Non
     the callback will no longer be called on data changes.
     All parameter values must match those provided with shareData()
     in order to be successful.
-    
+
     Returns 1 on success, 0 otherwise
+    """
+    ...
+
+def getDataRefCallbackDict() -> dict[int, tuple[str, str, int, int, Any, Any, Any, Any, Any, Any, Any, Any, Any, Any, Any, Any]]:
+    """
+    Copy of internal DataRefInfo
+    """
+    ...
+
+def getSharedDataRefCallbackDict() -> dict[int, tuple[str, str, int, Any, Any]]:
+    """
+    Copy of internal Shared DataRefs Dict
     """
     ...
 

@@ -76,7 +76,7 @@ class WidgetMsgHelper:
                             'param2': lambda x: '<>', },
         xp.Msg_CursorAdjust: {'name': 'CursorAdjust',
                               'param1': lambda x: WidgetMsgHelper.mouseState(x),  # pylint: disable=unnecessary-lambda
-                              'param2': lambda x: f'<pointer 0x{x:x}>', },
+                              'param2': lambda x: f'<pointer 0x{x[0]:x}>', },
         xp.Msg_UserStart: {'name': 'UserStart',
                            'param1': lambda x: '<>',
                            'param2': lambda x: '<>', },

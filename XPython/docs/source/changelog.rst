@@ -6,8 +6,15 @@ Known Bugs
 
   None. *Prove me wrong!*
 
+4.6.1 (9-Nov-2025)
+------------------
+
+:Fixes:
+   * **XPPython3Log.txt File name** Bug was introduced which garbled the XPPython3 log file name. This has been fixed.
+     Plugin should have executed properly, it just logged results to a bad filename.
+  
 4.6.0 (6-Nov-2025)
-------------
+------------------
 
 :Fixes:
    * **Custom Cursors for Widgets** XPPython3 passed incorrect information back to X-Plane from within

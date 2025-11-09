@@ -54,27 +54,27 @@ def win_copy(text) -> None:
             CloseClipboard()
 
     CF_UNICODE_TEXT = 13
-    SetClipboardData = ctypes.windll.user32.SetClipboardData
+    SetClipboardData = ctypes.windll.user32.SetClipboardData  # type: ignore
     SetClipboardData.argtypes = [UINT, HANDLE]
     SetClipboardData.restype = HANDLE
 
-    EmptyClipboard = ctypes.windll.user32.EmptyClipboard
+    EmptyClipboard = ctypes.windll.user32.EmptyClipboard  # type: ignore
     EmptyClipboard.argtypes = []
     EmptyClipboard.restype = BOOL
 
-    GlobalAlloc = ctypes.windll.kernel32.GlobalAlloc
+    GlobalAlloc = ctypes.windll.kernel32.GlobalAlloc  # type: ignore
     GlobalAlloc.argtypes = [UINT, c_size_t]
     GlobalAlloc.restype = HGLOBAL
 
-    GlobalLock = ctypes.windll.kernel32.GlobalLock
+    GlobalLock = ctypes.windll.kernel32.GlobalLock  # type: ignore
     GlobalLock.argtypes = [HGLOBAL]
     GlobalLock.restype = LPVOID
 
-    GlobalUnlock = ctypes.windll.kernel32.GlobalUnlock
+    GlobalUnlock = ctypes.windll.kernel32.GlobalUnlock  # type: ignore
     GlobalUnlock.argtypes = [HGLOBAL]
     GlobalUnlock.restype = BOOL
 
-    wcslen = ctypes.windll.msvcrt.wcslen
+    wcslen = ctypes.windll.msvcrt.wcslen  # type: ignore
     wcslen.argtypes = [c_wchar_p]
     wcslen.restype = UINT
     GMEM_MOVEABLE = 0x0002

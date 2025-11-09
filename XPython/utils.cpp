@@ -92,16 +92,16 @@ void setLogFile(void) {
   static std::string ENV_logFileVar = "XPPYTHON3_LOG";  // set this environment to override logFileName
   static std::string ENV_logPreserve = "XPPYTHON3_PRESERVE";  // DO NOT truncate XPPython log on startup. If set, we preserve, if unset, we truncate
   static std::string logFileName = "XPPython3Log.txt";
-  const char *log;
+  std::string tmpLogFile;
 
   pythonFlushLog = xpy_config_get_int("Main.flush_log");/* 0= off, 1= on */
-  log = xpy_config_get("Main.log_file_name").c_str();
-  if (log != nullptr) {
-    logFileName = log;
+  tmpLogFile = xpy_config_get("Main.log_file_name");
+  if (tmpLogFile != "") {
+    logFileName = tmpLogFile;
   }
-  log = getenv(ENV_logFileVar.c_str());
-  if(log != nullptr){
-    logFileName = log;
+  const char *env_log = getenv(ENV_logFileVar.c_str());
+  if (env_log != nullptr && 0 != strcmp(env_log, "")) {
+    logFileName = std::string(env_log);
   }
   
   char *msg;

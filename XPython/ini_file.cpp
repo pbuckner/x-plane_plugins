@@ -45,8 +45,9 @@ std::string xpy_config_get(std::string item) {
   std::string a = item.substr(0, location);
   std::string b = item.substr(location + 1, item.length() - (location + 1));
 
-  if (ini.has(a) && ini[a].has(b))
-    return ini[a][b];
+  if (ini.has(a) && ini[a].has(b)) {
+    return std::string(ini[a][b]);
+  }
   
   return "";
 }

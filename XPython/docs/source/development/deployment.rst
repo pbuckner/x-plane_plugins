@@ -1,4 +1,4 @@
-Depolying your Plugin
+Deploying your Plugin
 =====================
 
 There are a few different ways you can package your plugin to make it available

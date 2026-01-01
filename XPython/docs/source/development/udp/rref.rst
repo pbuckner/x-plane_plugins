@@ -29,7 +29,7 @@ until you *unsubscribe* from it.
      (header,         # 'RREF'
       idx,            # integer, matching what you sent
       value           # single floating point value
-      ) = struct.unpack('<4xsif', data)
+      ) = struct.unpack('<4sxif', data)
 
    Note the received packet may contain multiple <index><value> pairs, see example below.
    

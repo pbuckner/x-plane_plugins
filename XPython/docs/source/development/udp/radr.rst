@@ -30,7 +30,7 @@ X-Plane 11
       lat,          # float latitude
       storm_level,  # precipitation level, 0 to 100
       storm_height  # storm tops in meters MSL
-      ) = struct.unpack("<4xffBf", packet)
+      ) = struct.unpack("<4sxffBf", packet)
 
 .. Note::
 
@@ -52,7 +52,7 @@ X-Plane 12
       tops_meters,  # float cloud tops in meters MSL
       clouds ratio, # float ratio, clouds present in the lat and lon
       precip_ratio  # float ratio, precipitation present at this lat and lon
-      ) = struct.unpack("<4xffffff", packet)
+      ) = struct.unpack("<4sxffffff", packet)
     
 .. toctree::
    :maxdepth: 1

@@ -16,6 +16,15 @@ and performing I/O.
  loop callbacks. Use the drawing callbacks (see :any:`XPLMDisplay` module for more info)
  for graphics.
 
+Flightloop callbacks are set to run either before or after the flight model has been
+calculated, as determined by the ``phase`` parameter. Generally, use the default
+*before* phase :data:`FlightLoop_Phase_BeforeFlightModel`.
+
+The **only** recommended use of post-flight model callbacks is to "patch" the
+computed values of the flightmodel using dataref read-writes, and to compute
+custom system values by reading the flightmodel. APIs that create resources or
+initialize the sim may issue warnings, crash the sim, or have unexpected results.
+
 
 Timing Functions
 ----------------
@@ -333,13 +342,16 @@ flight model is integrated by X-Plane.
  .. py:data:: FlightLoop_Phase_BeforeFlightModel
    :value: 0
 
-   Your callback runs before X-Plane integrates the flight model.
+   Your callback runs before X-Plane integrates the flight model. This is the normal case.
 
    `Official SDK <https://developer.x-plane.com/sdk/XPLMProcessing/#xplm_FlightLoop_Phase_BeforeFlightModel>`__ :index:`xplm_FlightLoop_Phase_BeforeFlightModel`
    
  .. py:data:: FlightLoop_Phase_AfterFlightModel
    :value: 1
 
-   Your callback runs after X-Plane integrates the flight model.
+   Your callback runs after X-Plane integrates the flight model. Do not create or initialize resources in *after* callbacks. The only
+   recommended use of post-flight model callbacks is to "patch" the computed values of the flightmodel using dataref read-writes, and
+   to compute custom system values by reading the flight model. APIs that create resources or initialize the sim may issue warnings, crash
+   the sim, or have unexpected results.
 
    `Official SDK <https://developer.x-plane.com/sdk/XPLMProcessing/#xplm_FlightLoop_Phase_AfterFlightModel>`__ :index:`xplm_FlightLoop_Phase_AfterFlightModel`

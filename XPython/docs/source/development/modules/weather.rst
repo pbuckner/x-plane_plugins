@@ -12,6 +12,14 @@ More detailed weather, and the ability to set weather is available with 12.3.0.
 
 All of these functions are relatively expensive, and *should not* be used per-frame.
 
+Weather can perhaps best be characterized as a three-dimensional mesh, where each node in the mesh
+is connected to nearby nodes. Getting weather for a particular location retrieves an interpolated
+point within the mesh. Setting weather pushes or pulls a node, but the resulting value is tempered by the
+neighboring values: You can't simply set a node's temperature to 100°C with the surrounding nodes at 15°C and
+expect that value to hold.
+
+See :doc:`weather_more` for additional examples, cautions and explanations.
+
 Theory of Operation
 -------------------
 
@@ -21,37 +29,31 @@ Theory of Operation
     representation of the current *simulated* weather. To get current weather at airport use :func:`getWeatherAtLocation` with
     the proper latitude, longitude.
 
-  + :func:`getWeatherAtLocation`: retrieve weather details at particular latitude, longitude. This
-    is current simulated weather. The returned datastructure depends on which version of X-Plane you
+  + :func:`getWeatherAtLocation`: retrieve weather details at particular latitude, longitude, and altitude. This
+    returns the current simulated weather. The returned data structure depends on which version of X-Plane you
     are running, where version 12.3.0 adds more data elements. You can query ``xp.XPLMWeatherInfo_t`` to
     get a full description.
   
 
 * **Set Weather**
 
-  Setting weather will *not change* the UI "Weather Settings", weather set via plugin "adds" to the set of information
-  used to calculate simulated weather. One way to visualize many of these changes is to enable the X-Plane Weather Map (Developer menu).
-  Then select "plugin METARS" Layer. You'll see weather that has been set by (all) plugins.
-
-  For example, in the following image, you can see weather set specifically at Cambridge airport (labeled EGSC) using :func:`setWeatherAtAirport`, and
-  weather set to nearby locations (labeled _PLG) using :func:`setWeatherAtLocation`.
-  Latitude, longitude are displayed in white along the edges of the image. Note the "Age" of the report at the bottom of each.
-  
-  .. image:: /images/weather_map_plugin.png
-  
+  Setting weather will *not change* the UI "Weather Settings": however, weather set via plugin "adds" to the set of information
+  used to calculate simulated weather.
   
   + :func:`setWeatherAtLocation`: sets (or perhaps "injects" is better...) weather at a particular latitude, longitude.
     This data is further combined with otherwise existing data to result in new weather. Your weather update
     merely *influences* the current weather simulation: the more data you inject (say over a particular region) the
-    greater the effect.
+    greater the effect. You'll provide an altitude with this function call. Think of this altitude as the location
+    of a weather-reporting station e.g., "ground level". 
 
-  + :func:`setWeatherAtAirport`: sets (or perhaps "injects" is better...) weather at a particular airport.
+  + :func:`setWeatherAtAirport`: sets ("injects"...) weather at a particular airport.
     This can be interpreted as replacing a previously downloaded METAR.
     This data is further combined with otherwise existing data to result in new weather. Your weather update
     merely *influences* the current weather simulation.
 
   + :func:`eraseWeatherAtLocation`: removes all weather effects your plugin has injected for the given location.
-    If other plugins have changed the weather, those plugin effects are still valid.
+    If other plugins have changed the weather, those plugin effects are still valid. Weather specified using
+    :func:`setWeatherAtAirport` is not effected by this function even when the latitude & longitude are the same.
     
   + :func:`eraseWeatherAtAirport`: removes all weather effects your plugin has injected for the given airport, similar
     to :func:`eraseWeatherAtLocation`.
@@ -60,8 +62,11 @@ Theory of Operation
     should bracket your changes between "begin" and "end". This function pair also allows you to indicate your
     changes are incremental, and if your changes should take effect "immediately" (as might be useful on startup) or
     transitioned over the next few minutes. For programming convenience, we've included a context manager :func:`weatherUpdateContext`
-    to avoid mis-handling an "end".
+    to avoid mishandling an "end".
     
+And, because someone asked: Yes, you can set weather even when using "Real-world weather". Your report will age and eventually be replaced
+by newer "real-weather".
+
 
 Get Weather
 -----------
@@ -170,7 +175,7 @@ Get Weather
   | 0 = Cirrus
   | 1 = Stratus
   | 2 = Cumulus
-  | 3 = Cumulo-nimbus
+  | 3 = Cumulonimbus
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLMGetWeatherAtLocation>`__ :index:`XPLMGetWeatherAtLocation`
   
@@ -180,29 +185,55 @@ Set Weather
 .. warning:: "Setting Weather" is available only with X-Plane 12.3.0 and above, which is currently in beta. There
           remain some bugs in the X-Plane implementation, so the following API and/or explanations may
           change.
-
    
 The following functions are *only* available with X-Plane 12.3.0+. Calling them on earlier
 versions of X-Plane will log an error.
 
+You must batch weather updates, surrounding them within the same callback with a begin/end or an update context. Never
+simply call ``setWeatherAt*()``. 
+
 The weather updates you provide, be they new observation using ``setWeatherAt*()`` or removing previous observations
-using ``eraseWeatherAt*()`` are transitioned over the next few minutes, unless they are surrounded with an "updateImmediately"
-begin/end context. Additionally, bare ``setWeatherAt*()`` calls result in incremental updates to plugin weather data already provided
-(i.e., "isIncremental") for the given location. If you want to reset weather ("now dammit!") use a weather context, and erase
-previous updates to be sure::
+using ``eraseWeatherAt*()``, are normally transitioned over the next few minutes, unless they are surrounded with an "updateImmediately"
+begin/end context. Additionally, each ``setWeatherAt*()`` call results in incremental updates to plugin weather data already provided
+(i.e., "isIncremental") for *all locations* from any python plugin.
+If you want to reset weather ("now dammit!") use a non-incremental weather context and don't provide any weather setting::
 
   >>> with xp.weatherUpdateContext(isIncremental=0, updateImmediately=1):
-  ...     xp.eraseWeatherAtLocation(34, -117)
-  ...     xp.setWeatherAtLocation(34, -117, 2000, info)
-  ...
+  ...     pass  
 
+Note that ``isIncremental=0`` removes **all** previously set weather, at the same and other locations. Additionally, because all XPPython3
+plugins are considered a single plugin by X-Plane, *your* incremental will apply to all other python plugins as well. (You cannot erase or clear
+weather created by other non-python plugins: you *can* add your observations at the same location which will cause the Laminar weather engine
+to alter its view of the current weather.)
+
+If you only want to remove selected updates, use ``isIncremental=1`` and ``eraseWeatherAt*()``, matching locations or airports for which
+you've previously provided weather.
+
+.. important:: Three attributes are *critical* to setting weather as otherwise *you will waste your time debugging* (ask me how I know).
+
+   * **age**: How recent is this report? Set to 0 to have full impact.
+
+   * **radius_nm**: Horizontally, what is the effective radius of this report? Default is 30nm. If it's zero, you'll set weather only at a
+     point in space, not very useful.
+
+   * **max_altitude_msl_ft**: Vertically, limit the effect of this report to be no higher than this value. Default is 10000 feet MSL. You
+     can't set the height of the troposphere (~36000') if you're limiting the effect to 10000'. Similarly, setting values for temperature
+     or wind layers above 10000' would not take effect.
+
+   One caution here is, if you start with a WeatherInfo_t value obtained from :func:`getWeatherAtLocation`, you **must** set radius_nm and
+   max_altitude_msl_ft as they will both be zero on return from xp.getWeatherAt* calls.
+   
 .. py:function:: setWeatherAtLocation(latitude, longitude, altitude_m, info)
                  
   :param float latitude:
   :param float longitude: floating point latitude and longitude
-  :param float altitude_m: altitude in meters MSL, where the weather is to be changed
+  :param float ground_altitude_msl: pseudo-altitude of reporting station to calibrate QNH in feet
   :param XPLMWeatherInfo_t info: :data:`XPLMWeatherInfo_t` data structure containing requested change. Note not all element members are applicable for "set".
                                   
+  Set the current weather conditions at a given location, as if the reporting station were at ``ground_altitude_msl``. Weather
+  effected is from 0 MSL up to the value of ``max_altitude_msl_ft``, with a horizontal radius of ``radius_nm``
+  in the passed :data:`XPLMWeatherInfo_t` data structure.
+
   `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLMSetWeatherAtLocation>`__ :index:`XPLMSetWeatherAtLocation`
 
 .. py:function:: setWeatherAtAirport(airport_id, info)
@@ -210,6 +241,9 @@ previous updates to be sure::
   :param str airport_id: airport ID
   :param XPLMWeatherInfo_t info: :data:`XPLMWeatherInfo_t` data structure containing requested change. Note not all element members are applicable for "set".
 
+  See :func:`setWeatherAtLocation`. This function is nearly identical to setWeatherAtLocation(), where the latitude, longitude, and altitude are
+  derived from the airport ID. You still need to set ``radius_nm`` and ``max_altitude_msl_ft``.
+  
   `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLMSetWeatherAtAirport>`__ :index:`XPLMSetWeatherAtAirport`
 
 .. py:function:: eraseWeatherAtLocation(latitude, longitude)
@@ -232,6 +266,15 @@ previous updates to be sure::
   It is not harmful to call :func:`eraseWeatherAtAirport` where you have not yet provided weather.
    
   `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLMEraseWeatherAtAirport>`__ :index:`XPLMEraseWeatherAtAirport`
+
+
+Update Context
+--------------
+
+You *must* surround your weather updates (set and erase) with a begin/end context, or use the python :func:`weatherUpdateContext` context.
+Additionally, a set of updates must occur within a single callback thread: You can have different updates in different threads, but each
+set must include begin/end context.
+
 
 .. py:function:: beginWeatherUpdate()
 
@@ -292,7 +335,8 @@ previous updates to be sure::
   :param int updateImmediately: Make changes immediately, or transition to the requested change over the next few minutes.
 
   This is a context manager which can be used to enforce calling :func:`beginWeatherUpdate` and :func:`endWeatherUpdate`.
-  Additionally, if your code has a bug in it, we'll catch it and apply :func:`endWeatherUpdate` to avoid catastrophe.::
+  Additionally, if your code has a bug in it, we'll catch it and call :func:`endWeatherUpdate` to avoid catastrophe. It
+  is the preferred way of specifying context rather than using the two functions to begin and end the update::
 
      >>> with xp.weatherUpdateContext(updateImmediately=1):
      ...     xp.eraseWeatherAtLocation(35, -177)
@@ -324,8 +368,7 @@ As with most python, you can get more information about it using ``help(xp.XPLMW
 This type was introduced in X-Plane 12.0, and then expanded with more fields in X-Plane 12.3.0. You
 can use this class with any X-Plane 12.0+, though some of the fields will not have meaning unless used with 12.3.0+
 
-Various fields within this class interact with each other. For example, the value for ``.dewpoint_alt`` is ignored unless
-``.dewp_layers[0] <= -100``. Be sure to fully understand all of the fields to get full value.
+Various fields within this class interact with each other.
 
 You can create a "blank" instance of this class, including associated lists by normal python means.::
 
@@ -333,14 +376,14 @@ You can create a "blank" instance of this class, including associated lists by n
 
 The instance will be initialized to useful defaults including:
 
-| .age = 0
-| .detail_found = -1
-| .radius_nm = :data:`DefaultWxrRadiusNm`
-| .max_altitude_msl_ft = :data:`DefaultWxrRadiusMslFt`
-| .temp_layers = [None, None, ..., None]
-| .dewp_layers = [None, None, ..., None]
-| .cloud_layers = [xp.XPLMWeatherInfoClouds_t(0, 0, 0, 0),  ... ]
-| .wind_layers = [xp.XPLMWeatherInfoWinds_t(0, -1, 0, 0, 0, 0),  ... ]
+    | .age = 0
+    | .detail_found = -1
+    | .radius_nm = :data:`DefaultWxrRadiusNm`
+    | .max_altitude_msl_ft = :data:`DefaultWxrLimitMslFt`
+    | .temp_layers = [None, None, ..., None]
+    | .dewp_layers = [None, None, ..., None]
+    | .cloud_layers = [xp.XPLMWeatherInfoClouds_t(0, 0, 0, 0),  ... ]
+    | .wind_layers = [xp.XPLMWeatherInfoWinds_t(0, -1, 0, 0, 0, 0),  ... ]
 
 +----------------------------------+------+------------------------------------------------+------------+-------------------+
 | Field                            | Type | Description                                    |  Get/Set   |  X_Plane_Version  |
@@ -353,26 +396,134 @@ The instance will be initialized to useful defaults including:
 +----------------------------------+------+------------------------------------------------+------------+-------------------+
 |         temperature_alt          |float |Temperature at altitude (Celsius).              |Get/Set     | | 12.0-Read       |
 |                                  |      |                                                |            | | 12.3-R/W        |
-|                                  |      |To **set** temperature, either use              |            |                   |
-|                                  |      |'temp_layers', *or* set ``temp_layers[0] =      |            |                   |
-|                                  |      |-100`` and set this attribute for ground level: |            |                   |
-|                                  |      |existing weather data will be used for          |            |                   |
-|                                  |      |temperatures at altitude.                       |            |                   |
+|                                  |      |To **set** temperature, use this parameter to   |            |                   |
+|                                  |      |set the ground-level temperature, and           |            |                   |
+|                                  |      |temperatures above ground level will be         |            |                   |
+|                                  |      |calculated using standard lapse rate. Set this  |            |                   |
+|                                  |      |to None (or -274) to ignore setting.            |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |You can *also* use 'temp_layers' which          |            |                   |
+|                                  |      |explicitly set temperatures at one or more      |            |                   |
+|                                  |      |altitude layers. Or, set this to None (or -274) |            |                   |
+|                                  |      |and only use 'temp_layers'.                     |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |The calculated temperatures during a read are   |            |                   |
+|                                  |      |also affected by the troposphere altitude and   |            |                   |
+|                                  |      |temperature, and the vertical limit of the      |            |                   |
+|                                  |      |effect. Do not expect to get the exact values   |            |                   |
+|                                  |      |you set.                                        |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
 |                                  |      |                                                |            |                   |
 |                                  |      |                                                |            |                   |
 +----------------------------------+------+------------------------------------------------+------------+-------------------+
 |dewpoint_alt                      |float |Dewpoint at altitude (Celsius).                 |Get/Set     | | 12.0-Read       |
 |                                  |      |                                                |            | | 12.3-R/W        |
-|                                  |      |Similar to ``temperature_alt``, to **set**, use |            |                   |
-|                                  |      |'dewpoint_layers' or set initial to -100 and use|            |                   |
-|                                  |      |this for ground level dewpoint                  |            |                   |
+|                                  |      |Similar to ``temperature_alt`` (and temp_layers)|            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
+|                                  |      |                                                |            |                   |
 +----------------------------------+------+------------------------------------------------+------------+-------------------+
 |pressure_alt                      |float |Pressure at altitude (Pascals).                 |Get/Set     | | 12.0-Read       |
 |                                  |      |                                                |            | | 12.3-R/W        |
 |                                  |      |On **set**, should be QNH as reported by station|            |                   |
-|                                  |      |at the ground altitude given, *or* set this to 0|            |                   |
-|                                  |      |and set sealevel pressure in 'pressure_sl'      |            |                   |
-|                                  |      |instead.                                        |            |                   |
+|                                  |      |at the named station or provided                |            |                   |
+|                                  |      |ground_altitude_msl, *or* set this to 0 and set |            |                   |
+|                                  |      |sealevel pressure in 'pressure_sl' instead.     |            |                   |
 |                                  |      |                                                |            |                   |
 +----------------------------------+------+------------------------------------------------+------------+-------------------+
 |precip_rate_alt                   |float |Precipitation rate at altitude (0.0 - 1.0)      |Get         |12.0-Read          |
@@ -404,8 +555,6 @@ The instance will be initialized to useful defaults including:
 +----------------------------------+------+------------------------------------------------+------------+-------------------+
 |wave_dir                          |int   |Wave direction (waves coming from...)  degrees. |Get/Set     | | 12.0-Read       |
 |                                  |      |                                                |            | | 12.3-R/W        |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
 +----------------------------------+------+------------------------------------------------+------------+-------------------+
 |wave_speed                        |float |Wave speed (meters/second).                     |Get         | | 12.0-Read       |
 |                                  |      |                                                |            | | 12.3-R/W        |
@@ -445,9 +594,10 @@ The instance will be initialized to useful defaults including:
 |                                  |      |For layer altitudes, see dataref                |            |                   |
 |                                  |      |'sim/weather/region/atmosphere_alt_levels_m'.   |            |                   |
 |                                  |      |                                                |            |                   |
-|                                  |      |On **set**, if temp_layers[0] <= -100.,         |            |                   |
-|                                  |      |'temperature_alt' is used for ground temperature|            |                   |
-|                                  |      |and existing altitude temps are used.           |            |                   |
+|                                  |      |On **set**, if temp_layers[x] is None (or <=    |            |                   |
+|                                  |      |-274.), 'temperature_alt' or other existing data|            |                   |
+|                                  |      |is used and lapse rate is applied.              |            |                   |
+|                                  |      |                                                |            |                   |
 +----------------------------------+------+------------------------------------------------+------------+-------------------+
 |dewp_layers                       |list  |List of floats for dewpoints in Celsius at      |Get/Set     |12.3               |
 |                                  |      |predefined atmosphere levels.                   |            |                   |
@@ -455,10 +605,10 @@ The instance will be initialized to useful defaults including:
 |                                  |      |For layer altitudes, see dataref                |            |                   |
 |                                  |      |'sim/weather/region/atmosphere_alt_levels_m'.   |            |                   |
 |                                  |      |                                                |            |                   |
-|                                  |      |On **set**, if dewp_layers[0] <= -100.,         |            |                   |
-|                                  |      |'dewpoint_alt' is used for ground dewpoint      |            |                   |
-|                                  |      |temperature and existing altitude dewpoints     |            |                   |
-|                                  |      |temps are used.                                 |            |                   |
+|                                  |      |On **set**, if dewp_layers[x] is None (or <=    |            |                   |
+|                                  |      |-274.), 'dewpoint_alt' or other existing data is|            |                   |
+|                                  |      |used and lapse rate is applied.                 |            |                   |
+|                                  |      |                                                |            |                   |
 |                                  |      |                                                |            |                   |
 |                                  |      |                                                |            |                   |
 +----------------------------------+------+------------------------------------------------+------------+-------------------+
@@ -468,6 +618,8 @@ The instance will be initialized to useful defaults including:
 |                                  |      |'troposphere_alt' and 'troposphere_temp' will be|            |                   |
 |                                  |      |derived from existing data.                     |            |                   |
 |                                  |      |                                                |            |                   |
+|                                  |      |Altitude and temperature may be clamped to      |            |                   |
+|                                  |      |internally-defined ranges.                      |            |                   |
 +----------------------------------+------+------------------------------------------------+------------+-------------------+
 |troposphere_temp                  |float |Temperature in Celsius of troposphere.          |Get/Set     |12.3               |
 |                                  |      |                                                |            |                   |
@@ -489,12 +641,15 @@ The instance will be initialized to useful defaults including:
 |                                  |      |                                                |            |                   |
 |                                  |      |This is meaningless on read.                    |            |                   |
 +----------------------------------+------+------------------------------------------------+------------+-------------------+
-|max_altitude_msl_ft               |float |Vertical radius of effect of this weather       |Set         |12.3               |
+|max_altitude_msl_ft               |float |Vertical limit of effect of this weather        |Set         |12.3               |
 |                                  |      |report, feet MSL. You need to set this to       |            |                   |
 |                                  |      |something.                                      |            |                   |
 |                                  |      |                                                |            |                   |
 |                                  |      |This is meaningless on read.                    |            |                   |
 +----------------------------------+------+------------------------------------------------+------------+-------------------+
+
+When setting both temperature and dewpoint from a single value (temperature_alt / dewpoint_alt), the rest of the
+atmosphere will be graded to fit between the given values and the troposphere values.
 
 .. data:: XPLMWeatherInfoClouds_t
 
@@ -547,7 +702,7 @@ The instance will be initialized to useful defaults including:
 |                                  |      |speed, not the amount of increase over the wind |            | | 12.3-R/W        |
 |                                  |      |speed.                                          |            |                   |
 +----------------------------------+------+------------------------------------------------+------------+-------------------+
-|shear                             |float |Search arc, degrees. The wind will shear 50% of |Get/Set     | | 12.0-Read       |
+|shear                             |float |Shear arc, degrees. The wind will shear 50% of  |Get/Set     | | 12.0-Read       |
 |                                  |      |this arc in either direction from base          |            | | 12.3-R/W        |
 |                                  |      |direction.                                      |            |                   |
 +----------------------------------+------+------------------------------------------------+------------+-------------------+
@@ -589,18 +744,18 @@ Constants
 .. py:data:: DefaultWxrRadiusNm
    :value: 30
 
-   Default horizonal radius of weather data points set using XPLMSetWeatherAtLocation and XPLMSetWeatherAtAirport.
+   Default horizontal radius of weather data points set using XPLMSetWeatherAtLocation and XPLMSetWeatherAtAirport.
    Note *you still need to specify this (or another) value* on set.
 
    `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLM_DEFAULT_WXR_RADIUS_NM>`__ :index:`XPLM_DEFAULT_WXR_RADIUS_NM`
 
-.. py:data:: DefaultWxrRadiusMslFt
+.. py:data:: DefaultWxrLimitMslFt
    :value: 10000
 
-   Default vertical radius of weather data points set using XPLMSetWeatherAtLocation and XPLMSetWeatherAtAirport.
+   Default vertical limit of weather data points set using XPLMSetWeatherAtLocation and XPLMSetWeatherAtAirport.
    Note *you still need to specify this (or another) value* on set.
 
-   `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLM_DEFAULT_WXR_RADIUS_MSL_FT>`__ :index:`XPLM_DEFAULT_WXR_RADIUS_MSL_FT`
+   `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLM_DEFAULT_WXR_LIMIT_MSL_FT>`__ :index:`XPLM_DEFAULT_WXR_LIMIT_MSL_FT`
 
 ..
   Weather notes:
@@ -620,7 +775,7 @@ Constants
 
   wind_speed set to -1 ("undefined") means no data for this layer (i.e., skip) This is different from 0 wind at layer.
 
-  I believe(?) you can pass a version1 XPLMWeatherInfo_t struct, in which case the default radius and radious msl_feet
+  I believe(?) you can pass a version1 XPLMWeatherInfo_t struct, in which case the default radius and radius msl_feet
   are set to XPLM_DEFAULT_WXR_RADIUS_NM and XPLM_DEFAULT_WXR_RADIUS_MSL_FT.
 
   When 'set' is done within begin/end

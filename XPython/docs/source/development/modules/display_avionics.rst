@@ -131,6 +131,9 @@ Use any of these device IDs with :py:func:`registerAvionicsCallbacksEx` or :py:f
  | .. py:data:: Device_MCDU_2             | Airbus MCDU, copilot side                                 |
  |  :value: 19                            |                                                           |
  +----------------------------------------+-----------------------------------------------------------+
+ | .. py:data:: Device_MCDU_3             | Airbus MCDU (requires X-Plane 12.4+)                      |
+ |  :value: 24                            |                                                           |
+ +----------------------------------------+-----------------------------------------------------------+
  
 .. py:function:: registerAvionicsCallbacksEx(deviceID, before, after, refCon, bezelClick, bezelRightClick, bezelScroll, bezelCursor, screenTouch, screenRightTouch, screenScroll, screenCursor, keyboard)
 

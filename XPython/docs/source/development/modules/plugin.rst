@@ -340,7 +340,8 @@ On startup, you'll see::
  plugin ID of the plugin asking for control of the planes now. You can use
  it to find out who is requesting and whether you should yield to them.
  Synthetic traffic providers should always yield to online networks. The
- parameter is unused and should be ignored.
+ parameter is unused and should be ignored. Do not send this message directly;
+ always use :py:func:`acquirePlanes` call.
 
 .. py:data:: MSG_FMOD_BANK_LOADED
   :value: 112

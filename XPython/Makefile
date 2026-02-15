@@ -2,10 +2,10 @@
 
 PLUGIN_PATH=Resources/plugins/XPPython3
 SERVER_SDK=400
-XP_SDK=../SDK420
+XP_SDK=../SDK430
 VERSIONS= 312
 # python versions are like 4.1.1 -> 4.1.2a1 -> 4.1.2a2 -> 4.1.2b1 -> 4.1.2 (letter is [ab], cannot end with letter)
-XPPYTHONVERSION=4.6.1
+XPPYTHONVERSION=4.7a1
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce 'b')
 ALPHA=$(shell echo $(XPPYTHONVERSION) | grep -ce 'a')
 FMOD=../FMOD
@@ -22,7 +22,7 @@ zipfiles = \
 # COMMON opts
 # eventually....:   -DPy_LIMITED_API=0x030a0000
 CFLAGS=-Wall -Wextra -g -fpic -fPIC -fvisibility=hidden -DXPPYTHON3VERSION=\"$(XPPYTHONVERSION)\"
-XPLM_CPPFLAGS = -DXPLM200 -DXPLM210 -DXPLM300 -DXPLM301 -DXPLM302 -DXPLM303 -DXPLM400 -DXPLM410 -DXPLM411 -DXPLM420 \
+XPLM_CPPFLAGS = -DXPLM200 -DXPLM210 -DXPLM300 -DXPLM301 -DXPLM302 -DXPLM303 -DXPLM400 -DXPLM410 -DXPLM411 -DXPLM420 -DXPLM430 \
                 -I$(XP_SDK)/CHeaders -I$(XP_SDK)/CHeaders/XPLM -I$(XP_SDK)/CHeaders/Widgets -I$(FMOD)/api/core/inc -I$(FMOD)/api/studio/inc
 
 # "ALPHA" make errCheck() function execute. Otherwise it is removed during compilation and optimization is enabled
@@ -235,10 +235,10 @@ install_beta : $(zipfiles)
 	# 1) rename each to beta naming xp3b.zip and xp-(win32|linux|darwin)b.zip
 	for f in $(filter %.zip, $^); do cp $$f `echo "$$f" | sed 's/\.zip/b.zip/g'`; done
 	# 2) upload them to server
-	scp Resources/plugins/xp3{,upgrade}{-darwin,-linux,-win32}b.zip pbuck@avnwx.com:/var/www/production/data/x-plane
+	scp Resources/plugins/xp3{,upgrade}{-darwin,-linux,-win32}b.zip pbuck@av-03.avnwx.com:/var/www/maps/data/x-plane
 	# 3) On the server, execute updatemd5.py <>.zip <version>
 	#    ... the server code will manage -win32, -darwin and -linux variants
-	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; \
+	ssh pbuck@av-03.avnwx.com 'cd /var/www/maps/data/x-plane; \
 		./db_updatemd5.py xp3b.zip $(SERVER_SDK) "$(XPPYTHONVERSION)"'
 
 install_remote : $(zipfiles)
@@ -246,8 +246,8 @@ install_remote : $(zipfiles)
 		echo "Current version is BETA: $(XPPYTHONVERSION). Not installing"; \
 		exit 1; \
 	fi
-	scp Resources/plugins/xp3{,upgrade}{-darwin,-linux,-win32}.zip pbuck@avnwx.com:/var/www/production/data/x-plane
-	ssh pbuck@avnwx.com 'cd /var/www/production/data/x-plane; \
+	scp Resources/plugins/xp3{,upgrade}{-darwin,-linux,-win32}.zip pbuck@av-03.avnwx.com:/var/www/maps/data/x-plane
+	ssh pbuck@av-03.avnwx.com 'cd /var/www/maps/data/x-plane; \
 		./db_updatemd5.py xp3.zip $(SERVER_SDK) "$(XPPYTHONVERSION)"'
 
 SUBDIRS = . mac lin win

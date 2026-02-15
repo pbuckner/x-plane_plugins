@@ -119,7 +119,7 @@ CursorUpDown: XPLMCursorStatus
 CustomObject: int
 DataFile_ReplayMovie: XPLMDataFileType
 DataFile_Situation: XPLMDataFileType
-DefaultWxrRadiusMslFt: int
+DefaultWxrLimitMslFt: int
 DefaultWxrRadiusNm: int
 Device_CDU739_1: XPLMDeviceID
 Device_CDU739_2: XPLMDeviceID
@@ -2374,7 +2374,7 @@ def endWeatherUpdate(isIncremental: int=1, updateImmediately: int=0) -> None:
         jump in the weather: otherwise weather is transitioned to new data.
     """
     ...
-def setWeatherAtLocation(latitude: float, longitude: float, altitude_m: float, info: XPLMWeatherInfo_t) -> None:
+def setWeatherAtLocation(latitude: float, longitude: float, ground_altitude_msl: float, info: XPLMWeatherInfo_t) -> None:
     """
         Set the current weather conditions at given location. See documentation
         for information on use of fields in XPLMWeatherInfo_t.

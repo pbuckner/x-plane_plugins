@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 from typing import Any, Callable, Generic, Optional, Type, TypeVar, NewType, Literal, Sequence
-from XPPython3.xp_typing import *    
+from XPPython3.xp_typing import *
 
 NumWindLayers: int
 NumCloudLayers: int
 NumTemperatureLayers: int
 WindUndefinedLayer: int
 DefaultWxrRadiusNm: int
-DefaultWxrRadiusMslFt: int
+DefaultWxrLimitMslFt: int
 
 def getMETARForAirport(airport_id:str) -> str:
     """
@@ -48,7 +48,7 @@ def endWeatherUpdate(isIncremental:int=1, updateImmediately:int=0) -> None:
     """
     ...
 
-def setWeatherAtLocation(latitude:float, longitude:float, altitude_m:float, info:XPLMWeatherInfo_t) -> None:
+def setWeatherAtLocation(latitude: float, longitude: float, ground_altitude_msl: float, info: XPLMWeatherInfo_t) -> None:
     """
     Set the current weather conditions at given location. See documentation
     for information on use of fields in XPLMWeatherInfo_t.

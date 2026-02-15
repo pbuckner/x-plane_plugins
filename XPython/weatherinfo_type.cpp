@@ -6,6 +6,7 @@
 #include "XPLMWeather.h"
 #include "xppythontypes.h"
 #include "utils.h"
+#define IGNORE_TEMPERATURE_LAYER (-274.0)
 
 /* WeatherInfo Type */
 typedef struct {
@@ -89,10 +90,14 @@ WeatherInfo_init(WeatherInfoObject *self, PyObject *args, PyObject *kwds)
 
   self->detail_found = -1;
   self->radius_nm = XPLM_DEFAULT_WXR_RADIUS_NM;
-  self->max_altitude_msl_ft = XPLM_DEFAULT_WXR_RADIUS_MSL_FT;
-  int result = PyArg_ParseTupleAndKeywords(args, kwds, "|ifffffffffifffffOOOOfffff", kwlist,
+  self->max_altitude_msl_ft = XPLM_DEFAULT_WXR_LIMIT_MSL_FT;
+  self->temperature_alt = IGNORE_TEMPERATURE_LAYER;
+  self->dewpoint_alt = IGNORE_TEMPERATURE_LAYER;
+  PyObject *temperature_alt_obj = NULL;
+  PyObject *dewpoint_alt_obj = NULL;
+  int result = PyArg_ParseTupleAndKeywords(args, kwds, "|iOOfffffffifffffOOOOfffff", kwlist,
                                    &self->detail_found,
-                                   &self->temperature_alt, &self->dewpoint_alt, &self->pressure_alt, &self->precip_rate_alt,
+                                   &temperature_alt_obj, &dewpoint_alt_obj, &self->pressure_alt, &self->precip_rate_alt,
                                    &self->wind_dir_alt, &self->wind_spd_alt, &self->turbulence_alt, &self->wave_height,
                                    &self->wave_length, &self->wave_dir, &self->wave_speed, &self->visibility,
                                    &self->precip_rate, &self->thermal_climb, &self->pressure_sl, &self->wind_layers,
@@ -101,6 +106,14 @@ WeatherInfo_init(WeatherInfoObject *self, PyObject *args, PyObject *kwds)
                                    &self->age, &self->radius_nm, &self->max_altitude_msl_ft);
   if (!result)
     return -1;
+  if (temperature_alt_obj != NULL && temperature_alt_obj != Py_None) {
+    self->temperature_alt = PyFloat_AsDouble(temperature_alt_obj);
+    if (PyErr_Occurred()) return -1;
+  }
+  if (dewpoint_alt_obj != NULL && dewpoint_alt_obj != Py_None) {
+    self->dewpoint_alt = PyFloat_AsDouble(dewpoint_alt_obj);
+    if (PyErr_Occurred()) return -1;
+  }
   if (self->temp_layers == 0) {
     self->temp_layers = PyList_New(XPLM_NUM_TEMPERATURE_LAYERS);
     for(int i=0; i< XPLM_NUM_TEMPERATURE_LAYERS; i++ ){
@@ -138,17 +151,83 @@ WeatherInfo_init(WeatherInfoObject *self, PyObject *args, PyObject *kwds)
   return 0;
 }
 
+static PyObject *
+WeatherInfo_get_temperature_alt(WeatherInfoObject *self, void *closure)
+{
+  (void)closure;
+  if (self->temperature_alt <= IGNORE_TEMPERATURE_LAYER) {
+    Py_RETURN_NONE;
+  }
+  return PyFloat_FromDouble(self->temperature_alt);
+}
+
+static int
+WeatherInfo_set_temperature_alt(WeatherInfoObject *self, PyObject *value, void *closure)
+{
+  (void)closure;
+  if (value == NULL) {
+    PyErr_SetString(PyExc_TypeError, "Cannot delete temperature_alt attribute");
+    return -1;
+  }
+  if (value == Py_None) {
+    self->temperature_alt = IGNORE_TEMPERATURE_LAYER;
+    return 0;
+  }
+  if (!PyFloat_Check(value) && !PyLong_Check(value)) {
+    PyErr_SetString(PyExc_TypeError, "temperature_alt must be None or a number");
+    return -1;
+  }
+  self->temperature_alt = PyFloat_AsDouble(value);
+  return 0;
+}
+
+static PyObject *
+WeatherInfo_get_dewpoint_alt(WeatherInfoObject *self, void *closure)
+{
+  (void)closure;
+  if (self->dewpoint_alt <= IGNORE_TEMPERATURE_LAYER) {
+    Py_RETURN_NONE;
+  }
+  return PyFloat_FromDouble(self->dewpoint_alt);
+}
+
+static int
+WeatherInfo_set_dewpoint_alt(WeatherInfoObject *self, PyObject *value, void *closure)
+{
+  (void)closure;
+  if (value == NULL) {
+    PyErr_SetString(PyExc_TypeError, "Cannot delete dewpoint_alt attribute");
+    return -1;
+  }
+  if (value == Py_None) {
+    self->dewpoint_alt = IGNORE_TEMPERATURE_LAYER;
+    return 0;
+  }
+  if (!PyFloat_Check(value) && !PyLong_Check(value)) {
+    PyErr_SetString(PyExc_TypeError, "dewpoint_alt must be None or a number");
+    return -1;
+  }
+  self->dewpoint_alt = PyFloat_AsDouble(value);
+  return 0;
+}
+
+static PyGetSetDef WeatherInfo_getsetters[] = {
+  {"temperature_alt", (getter)WeatherInfo_get_temperature_alt, (setter)WeatherInfo_set_temperature_alt,
+   "Temperature at altitude (Celsius), or None.\n"
+   "To set temperature, either use 'temp_layers', or set temp_layer[0] = None\n"
+   "and set this for ground level temperature: existing weather data will be\n"
+   "used for temperatures at altitude.",
+   NULL},
+  {"dewpoint_alt", (getter)WeatherInfo_get_dewpoint_alt, (setter)WeatherInfo_set_dewpoint_alt,
+   "Dewpoint at altitude (Celsius), or None.\n"
+   "On set, similar to 'temperature_alt' and 'temp_layers'.",
+   NULL},
+  {NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
+};
+
 static PyMemberDef WeatherInfo_members[] = {
   {"detail_found", T_INT, offsetof(WeatherInfoObject, detail_found), 0,
    "Return value from XPLMGetWeatherAtLocation(), 1='detailed weather found'"},
-  {"temperature_alt", T_FLOAT, offsetof(WeatherInfoObject, temperature_alt), 0,
-   "Temperature at altitude (Celsius).\n"
-   "To set temperature, either use 'temp_layers', or set temp_layer[0] = -100\n"
-   "and set this for ground level temperature: existing weather data will be\n"
-   "used for temperatures at altitude."},
-  {"dewpoint_alt", T_FLOAT, offsetof(WeatherInfoObject, dewpoint_alt), 0,
-   "Dewpoint at altitude (Celsius). On set, similiar to 'temperature_alt'\n"
-   "and 'temp_layers'."},
   {"pressure_alt", T_FLOAT, offsetof(WeatherInfoObject, pressure_alt), 0,
    "Pressure at altitude (Pascals). On set, should be QNH as reported\n"
    "by station at the ground altitude given, or 0 if you\n"
@@ -184,7 +263,7 @@ static PyMemberDef WeatherInfo_members[] = {
    "List of XPLMWeatherInfoClouds_t objects"},
   {"temp_layers", T_OBJECT_EX, offsetof(WeatherInfoObject, temp_layers), 0,
    "List of floats. See 'sim/weather/region/atmosphere_alt_levels_m'. \n"
-   "On set, if temp_layers[0] <= -100., 'temperature_alt' is used for\n"
+   "On set, if temp_layers[0] <= -274., 'temperature_alt' is used for\n"
    "ground temperature and existing altitude temps are used."},
   {"dewp_layers", T_OBJECT_EX, offsetof(WeatherInfoObject, dewp_layers), 0,
    "List of floats. See 'sim/weather/region/atmosphere_alt_levels_m'. \n"
@@ -233,19 +312,20 @@ WeatherInfoType = {
   .tp_traverse = (traverseproc) WeatherInfo_traverse,
   .tp_clear = (inquiry) WeatherInfo_clear,
   .tp_members = WeatherInfo_members,
+  .tp_getset = WeatherInfo_getsetters,
   .tp_init = (initproc) WeatherInfo_init,
   .tp_new = WeatherInfo_new,
 };
 
 PyObject *
-PyWeatherInfo_New(int detail_found, float temperature_alt, float dewpoint_alt, float pressure_alt, float precip_rate_alt,
+PyWeatherInfo_New(int detail_found, PyObject *temperature_alt_obj, PyObject *dewpoint_alt_obj, float pressure_alt, float precip_rate_alt,
                   float wind_dir_alt, float wind_spd_alt, float turbulence_alt, float wave_height,
                   float wave_length, int wave_dir, float wave_speed, float visibility, float precip_rate,
                   float thermal_climb, float pressure_sl, PyObject *wind_layers, PyObject *cloud_layers,
                   PyObject *temp_layers, PyObject *dewp_layers,
                   float troposphere_alt, float troposphere_temp, float age, float radius_nm, float max_altitude_msl_ft)
 {
-  PyObject *argsList = Py_BuildValue("ifffffffffifffffOOOOfffff", detail_found, temperature_alt, dewpoint_alt, pressure_alt, precip_rate_alt,
+  PyObject *argsList = Py_BuildValue("iOOfffffffifffffOOOOfffff", detail_found, temperature_alt_obj, dewpoint_alt_obj, pressure_alt, precip_rate_alt,
                                      wind_dir_alt, wind_spd_alt, turbulence_alt, wave_height, wave_length,
                                      wave_dir, wave_speed, visibility, precip_rate, thermal_climb, pressure_sl, wind_layers, cloud_layers,
                                      temp_layers, dewp_layers, troposphere_alt, troposphere_temp, age, radius_nm, max_altitude_msl_ft);

@@ -9,6 +9,8 @@
 #include "utils.h"
 #include "xppythontypes.h"
 
+#define IGNORE_TEMPERATURE_LAYER (-274.0)
+
 static PyObject *cleanup(PyObject *self, PyObject *args)
 {
   (void) self;
@@ -132,7 +134,7 @@ static int extractDewpLayersFromPyList(PyObject *dewpLayersList, float *dewp_lay
       return 0;
     }
     
-    dewp_layers[i] = (dewpValue == Py_None ? 0.0 : PyFloat_AsDouble(dewpValue));
+    dewp_layers[i] = (dewpValue == Py_None ? IGNORE_TEMPERATURE_LAYER : PyFloat_AsDouble(dewpValue));
     if (PyErr_Occurred()) {
       return 0;
     }
@@ -140,7 +142,7 @@ static int extractDewpLayersFromPyList(PyObject *dewpLayersList, float *dewp_lay
 
   // Fill remaining layers with default/empty values if needed
   for (Py_ssize_t i = dewpLayersSize; i < XPLM_NUM_TEMPERATURE_LAYERS; i++) {
-    dewp_layers[i] = 0.0f;
+    dewp_layers[i] = IGNORE_TEMPERATURE_LAYER;
   }
   return 1;
 }
@@ -170,7 +172,7 @@ static int extractTempLayersFromPyList(PyObject *tempLayersList, float *temp_lay
       return 0;
     }
     
-    temp_layers[i] = (tempValue == Py_None ? 0.0 : PyFloat_AsDouble(tempValue));
+    temp_layers[i] = (tempValue == Py_None ? IGNORE_TEMPERATURE_LAYER : PyFloat_AsDouble(tempValue));
     if (PyErr_Occurred()) {
       return 0;
     }
@@ -178,7 +180,7 @@ static int extractTempLayersFromPyList(PyObject *tempLayersList, float *temp_lay
 
   // Fill remaining layers with default/empty values if needed
   for (Py_ssize_t i = tempLayersSize; i < XPLM_NUM_TEMPERATURE_LAYERS; i++) {
-    temp_layers[i] = 0.0f;
+    temp_layers[i] = IGNORE_TEMPERATURE_LAYER;
   }
   return 1;
 }
@@ -187,8 +189,20 @@ static int setWeather(PyObject *infoObj, XPLMWeatherInfo_t *infop) {
   /* we KNOW this is SDK420 (at least)  */
   infop->structSize = sizeof(XPLMWeatherInfo_t);
 
-  if (!extractFloatAttr(infoObj, "temperature_alt", &infop->temperature_alt)) return 0;
-  if (!extractFloatAttr(infoObj, "dewpoint_alt", &infop->dewpoint_alt)) return 0;
+  if (PyObject_GetAttrString(infoObj, "temperature_alt") == Py_None) {
+    infop->temperature_alt = IGNORE_TEMPERATURE_LAYER;
+  } else {
+    if (!extractFloatAttr(infoObj, "temperature_alt", &infop->temperature_alt)) {
+      return 0;
+    }
+  }
+  if (PyObject_GetAttrString(infoObj, "dewpoint_alt") == Py_None) {
+    infop->dewpoint_alt = IGNORE_TEMPERATURE_LAYER;
+  } else {
+    if (!extractFloatAttr(infoObj, "dewpoint_alt", &infop->dewpoint_alt)) {
+      return 0;
+    }
+  }
   if (!extractFloatAttr(infoObj, "pressure_alt", &infop->pressure_alt)) return 0;
   
   //infop->precip_rate_alt: Not used for Set
@@ -243,6 +257,7 @@ static int setWeather(PyObject *infoObj, XPLMWeatherInfo_t *infop) {
     Py_DECREF(tempLayersList);
     return 0;
   }
+
   Py_DECREF(tempLayersList);
 
   // Extract dewp_layers from Python list
@@ -363,7 +378,7 @@ static PyObject *XPLMGetWeatherAtLocationFun(PyObject *self, PyObject *args, PyO
     PyList_SetItem(dewp_layers, i, layer);
   }
 
-  return PyWeatherInfo_New(ret, out_info.temperature_alt, out_info.dewpoint_alt, out_info.pressure_alt, out_info.precip_rate_alt,
+  return PyWeatherInfo_New(ret, PyFloat_FromDouble(out_info.temperature_alt), PyFloat_FromDouble(out_info.dewpoint_alt), out_info.pressure_alt, out_info.precip_rate_alt,
                            out_info.wind_dir_alt, out_info.wind_spd_alt, out_info.turbulence_alt, out_info.wave_height,
                            out_info.wave_length, out_info.wave_dir, out_info.wave_speed, out_info.visibility, out_info.precip_rate,
                            out_info.thermal_climb, out_info.pressure_sl, wind_layers, cloud_layers,
@@ -445,8 +460,8 @@ static PyObject *XPLMEraseWeatherAtLocationFun(PyObject *self, PyObject *args, P
 }
 
 My_DOCSTR(_setWeatherAtLocation__doc__, "setWeatherAtLocation",
-          "latitude, longitude, altitude_m, info",
-          "latitude:float, longitude:float, altitude_m:float, info:XPLMWeatherInfo_t",
+          "latitude, longitude, ground_altitude_msl, info",
+          "latitude:float, longitude:float, ground_altitude_msl:float, info:XPLMWeatherInfo_t",
           "None",
           "Set the current weather conditions at given location. See documentation\n"
           "for information on use of fields in XPLMWeatherInfo_t.");
@@ -454,7 +469,7 @@ My_DOCSTR(_setWeatherAtLocation__doc__, "setWeatherAtLocation",
 static PyObject *XPLMSetWeatherAtLocationFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void) self;
-  static char *keywords[] = {CHAR("latitude"), CHAR("longitude"), CHAR("altitude_m"), CHAR("info"), nullptr};
+  static char *keywords[] = {CHAR("latitude"), CHAR("longitude"), CHAR("ground_altitude_msl"), CHAR("info"), nullptr};
   if(!XPLMSetWeatherAtLocation_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMSetWeatherAtLocation is available only in XPLM420 and up.");
     return nullptr;
@@ -584,7 +599,7 @@ PyInit_XPLMWeather(void)
     PyModule_AddIntConstant(mod, "NumTemperatureLayers", XPLM_NUM_TEMPERATURE_LAYERS);
     PyModule_AddIntConstant(mod, "WindUndefinedLayer", XPLM_WIND_UNDEFINED_LAYER);
     PyModule_AddIntConstant(mod, "DefaultWxrRadiusNm", XPLM_DEFAULT_WXR_RADIUS_NM);
-    PyModule_AddIntConstant(mod, "DefaultWxrRadiusMslFt", XPLM_DEFAULT_WXR_RADIUS_MSL_FT);
+    PyModule_AddIntConstant(mod, "DefaultWxrLimitMslFt", XPLM_DEFAULT_WXR_LIMIT_MSL_FT);
   }
   return mod;
 }

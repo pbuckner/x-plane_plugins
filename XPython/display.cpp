@@ -2117,6 +2117,11 @@ PyInit_XPLMDisplay(void)
     PyModule_AddIntConstant(mod, "Device_MCDU_1", -1); // XPLMDeviceID
     PyModule_AddIntConstant(mod, "Device_MCDU_2", -1); // XPLMDeviceID
 #endif
+#if defined(XPLM430)
+    PyModule_AddIntConstant(mod, "Device_MCDU_3", xplm_device_MCDU_3); // XPLMDeviceID
+#else
+    PyModule_AddIntConstant(mod, "Device_MCDU_3", -1); // XPLMDeviceID
+#endif    
   }
 
   return mod;

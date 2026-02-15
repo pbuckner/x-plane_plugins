@@ -804,7 +804,7 @@ NumCloudLayers = XPLMWeather.NumCloudLayers
 NumTemperatureLayers = XPLMWeather.NumTemperatureLayers
 WindUndefinedLayer = XPLMWeather.WindUndefinedLayer
 DefaultWxrRadiusNm = XPLMWeather.DefaultWxrRadiusNm
-DefaultWxrRadiusMslFt = XPLMWeather.DefaultWxrRadiusMslFt
+DefaultWxrLimitMslFt = XPLMWeather.DefaultWxrRadiusMslFt
 import XPLMSound
 stopAudio = XPLMSound.stopAudio
 playPCMOnBus = XPLMSound.playPCMOnBus

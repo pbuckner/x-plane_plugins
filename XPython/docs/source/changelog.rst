@@ -6,6 +6,17 @@ Known Bugs
 
   None. *Prove me wrong!*
 
+4.7.0 (Beta)
+------------
+
+:New Features:
+   * **Support for SDK430**, valid for X-Plane 12.4.0+. Note XPPython3 dynamically loads these new features
+     where available. That means you can continue to use this version of XPPython3 on older versions of X-Plane 12+,
+     but the new features (of course) won't be available.
+     
+     * :doc:`/development/modules/defs`: Definition for third Airbus MCDU
+       
+
 4.6.1 (9-Nov-2025)
 ------------------
 

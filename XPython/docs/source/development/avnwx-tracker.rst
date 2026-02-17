@@ -5,9 +5,6 @@ This plugin allows users of my Aviation Weather website `maps.AvnWx.com <https:/
 aircraft positioned on an updating map. Both plugin and website are free, though a (free) login is required
 for the website.
 
-.. warning:: This is not yet (Jan-2026) fully deployed. While the plugin works, the website is not fully operational for
-          this feature
-
 The website gathers current NOAA-provided weather data from around the world. Airport and Navaid information is displayed
 as provided by the US National Flight Data Center (NFDC). The site has been operational since 2007, providing
 real-world weather to real-world pilots. With a bit of re-tooling, I've added the feature allowing you to send

@@ -288,8 +288,7 @@ XPLM_VK_A thru XPLM_VK_Z are the same as ASCII 'A' thru 'Z' (= 0x41 - 0x5A)
  ========================= ===========================
 
 .. caution:: With XP12, some of the above virtual keys (starting VK_F17) are
-              not coded properly in X-Plane and do not
-              work. See `XPD-17397 <https://developer.x-plane.com/x-plane-bug-database/?issue=XPD-17397>`__
+              not coded properly in X-Plane. This was fixed in XP12.4.
 
 The following definitions are extended and are not based on the Microsoft
 key set.
@@ -317,5 +316,4 @@ key set.
  ========================== ===========================
 
 .. caution:: With XP12, the above virtual keys (starting VK_EQUAL) are
-              not coded properly in X-Plane and do not
-              work. See `XPD-17397 <https://developer.x-plane.com/x-plane-bug-database/?issue=XPD-17397>`__
+              not coded properly in X-Plane. This was fixed in XP12.4.

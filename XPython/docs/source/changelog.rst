@@ -19,6 +19,10 @@ Known Bugs
      * :doc:`/development/modules/planes`: New flight initialization and update function which
        use JSON (or python dicts) to set parameters, as described in `Flight Initialization API <https://developer.x-plane.com/article/flight-initialization-api/>`_ developer note.
 
+   * **Moving Map via AvnWx.com**, the ``PI_AvnWx.py`` plugin, now included with samples, will post position data to https://maps.AvnWx.com,
+     allowing you to view your location on a free moving map. AvnWx.com has provided weather briefings to pilots, controllers, and dispatchers since
+     2007. Now it supports X-Plane. See :doc:`/development/avnwx-tracker` for details.    
+
 4.6.1 (9-Nov-2025)
 ------------------
 

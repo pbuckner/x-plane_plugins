@@ -133,6 +133,9 @@ PLUGIN_DLL(XPLMSetWeatherAtAirport);
 PLUGIN_DLL(XPLMEraseWeatherAtLocation);
 PLUGIN_DLL(XPLMEraseWeatherAtAirport);
 
+// XPLM_430
+PLUGIN_DLL(XPLMInitFlight);
+PLUGIN_DLL(XPLMUpdateFlight);
 
 bool loadSDKFunctions(void);
 

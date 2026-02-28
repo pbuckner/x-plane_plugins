@@ -27,6 +27,7 @@
 #include "ini_file.h"
 #include "capsules.h"
 #include "encryption.h"
+#include "utilities.h"
 
 #if !defined(Py_LIMITED_API)
 static int pythonVerbose = 0;
@@ -111,6 +112,7 @@ PyMODINIT_FUNC PyInit_XPythonLogWriter(void);
 
 static void
 debugErrorCallback(const char *inMessage) {
+  MostRecentCallbackMessageXPPython3 = inMessage;
   pythonLog("[XPPython3] Error Callback: %s", inMessage);
   pythonLogFlush();
 };

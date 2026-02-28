@@ -39,10 +39,18 @@ void resetCommands(void) {
   commandCallbacks.clear();
 }
 
+std::string MostRecentCallbackMessageXPPython3;
+
 static void error_callback(const char *inMessage)
 {
   //TODO: send the error only to the active plugin?
   // for now, pass to all registered
+
+
+  pythonLog("Error callback called with message %s", inMessage);
+  MostRecentCallbackMessageXPPython3 = inMessage;
+
+
   PyObject *msg = PyUnicode_DecodeUTF8(inMessage, strlen(inMessage), nullptr);
   
   for (const auto& pair : errorCallbacks) {
@@ -923,6 +931,10 @@ PyInit_XPLMUtilities(void)
     PyModule_AddIntConstant(mod, "CommandContinue", xplm_CommandContinue); // XPLMCommandPhase
     PyModule_AddIntConstant(mod, "CommandEnd", xplm_CommandEnd); // XPLMCommandPhase
 
+  }
+
+  if(errorCallbacks.empty()){
+    XPLMSetErrorCallback(error_callback);
   }
 
   return mod;

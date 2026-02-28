@@ -8,7 +8,35 @@
 #include <vector>
 #include <unordered_map>
 #include "utils.h"
+#include "utilities.h"
 #include "plugin_dl.h"
+
+static PyObject *FlightInitError = nullptr;
+
+static void raiseFlightInitError(const char *message, long code)
+{
+  // Create exception instance: FlightInitError("message (code=N)")
+  PyObject *display_msg = PyUnicode_FromFormat("%s (code=%ld)", message, code);
+  if (!display_msg) return;
+  PyObject *exc = PyObject_CallFunction(FlightInitError, "O", display_msg);
+  Py_DECREF(display_msg);
+  if (!exc) return;
+
+  // Set .message and .code attributes
+  PyObject *msg_obj = PyUnicode_FromString(message);
+  if (msg_obj) {
+    PyObject_SetAttrString(exc, "message", msg_obj);
+    Py_DECREF(msg_obj);
+  }
+  PyObject *code_obj = PyLong_FromLong(code);
+  if (code_obj) {
+    PyObject_SetAttrString(exc, "code", code_obj);
+    Py_DECREF(code_obj);
+  }
+
+  PyErr_SetObject(FlightInitError, exc);
+  Py_DECREF(exc);
+}
 
 static intptr_t availableCntr;
 struct AvailableInfo {
@@ -48,6 +76,112 @@ static PyObject *XPLMSetUsersAircraftFun(PyObject *self, PyObject *args, PyObjec
   XPLMSetUsersAircraft(inAircraftPath);
   Py_RETURN_NONE;
 }
+
+static const char *c_stringFromDict(PyObject* obj) {
+  PyObject *json_module = nullptr, *json_dumps_func = nullptr, *json_string = nullptr;
+  json_module = PyImport_ImportModule("json");
+  if (!json_module) {
+    PyErr_SetString(PyExc_RuntimeError , "Failed to load json module");
+    return nullptr;
+  }
+  
+  json_dumps_func = PyObject_GetAttrString(json_module, "dumps");
+  if (!json_dumps_func || !PyCallable_Check(json_dumps_func)) {
+    PyErr_SetString(PyExc_RuntimeError , "Failed to load usable json.dumps function");
+    Py_XDECREF(json_dumps_func);
+    Py_DECREF(json_module);
+    return nullptr;
+  }
+  
+  json_string = PyObject_CallObject(json_dumps_func, Py_BuildValue("(O)", obj));
+  if (!json_string) {
+    PyErr_SetString(PyExc_RuntimeError , "Failed to create json object from provided python object");
+    Py_DECREF(json_module);
+    Py_DECREF(json_dumps_func);
+    return nullptr;
+  }
+
+  Py_DECREF(json_module);
+  Py_DECREF(json_dumps_func);
+  return PyUnicode_AsUTF8(json_string);
+}
+
+My_DOCSTR(_initFlight__doc__, "initFlight",
+          "data",
+          "data:str",
+          "int",
+          "Initialize user flight with json data (either string or dict)");
+static PyObject *XPLMInitFlightFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {CHAR("data"), nullptr};
+  (void)self;
+  const char *data;
+  if (!XPLMInitFlight_ptr) {
+    PyErr_SetString(PyExc_RuntimeError , "XPLMInitFlight_ptr is available only in XPLM430 and up.");
+    return nullptr;
+  }
+  PyObject *obj = nullptr;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &obj)){
+    return nullptr;
+  }
+  long ret;
+  if (PyUnicode_Check(obj)) {
+    ret = (long)XPLMInitFlight(PyUnicode_AsUTF8(obj));
+  } else if (PyDict_Check(obj)) {
+    data = c_stringFromDict(obj); // returned 'data' points within PyObject *obj, has limited lifetime!
+    if (!data) return nullptr;
+    ret = (long)XPLMInitFlight(data);
+  } else {
+    PyErr_SetString(PyExc_RuntimeError , "XPLMInitFlight unknown data type.");
+    return nullptr;
+  }
+  if (ret != 0) {
+    raiseFlightInitError(MostRecentCallbackMessageXPPython3.c_str(), ret);
+    return nullptr;
+  }
+  return PyLong_FromLong(ret);
+}
+                          
+    
+My_DOCSTR(_updateFlight__doc__, "updateFlight",
+          "data",
+          "data:str",
+          "int",
+          "Update user flight with json data (either string or dict).");
+static PyObject *XPLMUpdateFlightFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {CHAR("data"), nullptr};
+  (void)self;
+  const char *data;
+  if (!XPLMUpdateFlight_ptr) {
+    PyErr_SetString(PyExc_RuntimeError , "XPLMUpdateFlight_ptr is available only in XPLM430 and up.");
+    return nullptr;
+  }
+
+  PyObject *obj = nullptr;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &obj)){
+    return nullptr;
+  }
+
+  long ret;
+  if (PyUnicode_Check(obj)) {
+    ret = XPLMUpdateFlight(PyUnicode_AsUTF8(obj));
+    return PyLong_FromLong(ret);
+  } else if (PyDict_Check(obj)) {
+    data = c_stringFromDict(obj); // returned 'data' points within PyObject *obj, has limited lifetime!
+    if (!data) return nullptr;
+    ret = XPLMUpdateFlight(data);
+  } else {
+    PyErr_SetString(PyExc_RuntimeError , "XPLMUpdateFlight unknown data type.");
+    return nullptr;
+  }
+  if (ret != 0) {
+    raiseFlightInitError(MostRecentCallbackMessageXPPython3.c_str(), ret);
+    return nullptr;
+  }
+  return PyLong_FromLong(ret);
+}
+
 
 My_DOCSTR(_placeUserAtAirport__doc__, "placeUserAtAirport",
           "code",
@@ -342,6 +476,10 @@ static PyMethodDef XPLMPlanesMethods[] = {
   {"XPLMSetAircraftModel", (PyCFunction)XPLMSetAircraftModelFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"disableAIForPlane", (PyCFunction)XPLMDisableAIForPlaneFun, METH_VARARGS | METH_KEYWORDS, _disableAIForPlane__doc__},
   {"XPLMDisableAIForPlane", (PyCFunction)XPLMDisableAIForPlaneFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"initFlight", (PyCFunction)XPLMInitFlightFun, METH_VARARGS | METH_KEYWORDS, _initFlight__doc__},
+  {"XPLMInitFlight", (PyCFunction)XPLMInitFlightFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"updateFlight", (PyCFunction)XPLMUpdateFlightFun, METH_VARARGS | METH_KEYWORDS, _updateFlight__doc__},
+  {"XPLMUpdateFlight", (PyCFunction)XPLMUpdateFlightFun, METH_VARARGS | METH_KEYWORDS, ""},
 #if defined(XPLM_DEPRECATED)
   // Removed: drawAircraft and reinitUsersPlane are deprecated and not implemented in XPPython3
   // {"drawAircraft", (PyCFunction)XPLMDrawAircraftFun, METH_VARARGS | METH_KEYWORDS, _drawAircraft__doc__},
@@ -378,6 +516,19 @@ PyInit_XPLMPlanes(void)
     PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
     PyModule_AddIntConstant(mod, "XPLM_USER_AIRCRAFT", XPLM_USER_AIRCRAFT);
     PyModule_AddIntConstant(mod, "USER_AIRCRAFT", XPLM_USER_AIRCRAFT);
+    PyModule_AddIntConstant(mod, "Init_Success", xplm_Init_Success);
+    PyModule_AddIntConstant(mod, "Init_Invalid", xplm_Init_Invalid);
+    PyModule_AddIntConstant(mod, "Init_MissingAircraft", xplm_Init_MissingAircraft);
+    PyModule_AddIntConstant(mod, "Init_MissingLivery", xplm_Init_MissingLivery);
+    PyModule_AddIntConstant(mod, "Init_MissingAirport", xplm_Init_MissingAirport);
+    PyModule_AddIntConstant(mod, "Init_MissingRamp", xplm_Init_MissingRamp);
+    PyModule_AddIntConstant(mod, "Init_MissingRunway", xplm_Init_MissingRunway);
+
+    FlightInitError = PyErr_NewException("XPLMPlanes.FlightInitError", nullptr, nullptr);
+    if (FlightInitError) {
+      Py_INCREF(FlightInitError);
+      PyModule_AddObject(mod, "FlightInitError", FlightInitError);
+    }
   }
 
   return mod;

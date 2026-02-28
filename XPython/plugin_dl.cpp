@@ -261,6 +261,13 @@ t_fcn_info funcs420[] = {
   {nullptr, nullptr}
 };
 
+typeof(XPLMInitFlight) *XPLMInitFlight_ptr = nullptr;
+typeof(XPLMUpdateFlight) *XPLMUpdateFlight_ptr = nullptr;
+t_fcn_info funcs430[] = {
+  {"XPLMInitFlight", (void **) &XPLMInitFlight_ptr},
+  {"XPLMUpdateFlight", (void **) &XPLMUpdateFlight_ptr},
+  {nullptr, nullptr}
+};
 
 
 bool loadFunctions(t_fcn_info *ptr, void *handle)
@@ -295,6 +302,7 @@ bool loadSDKFunctions(void)
   }
 
   bool res = true;
+  if(xplm_ver >= 430 || xp_ver >= 12400) res &= loadFunctions(funcs430, handle);
   if(xplm_ver >= 420) res &= loadFunctions(funcs420, handle);
   if(xplm_ver >= 410) res &= loadFunctions(funcs410, handle);
   if(xplm_ver >= 400) res &= loadFunctions(funcs400, handle);

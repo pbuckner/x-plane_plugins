@@ -308,3 +308,5 @@ from 67.5° to 112.5°. This is not commonly reported unless the variability is 
 
 About Barometric Pressure
 -------------------------
+
+[to be provided]

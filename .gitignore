@@ -1,8 +1,6 @@
 XPython/TAGS
 XPython/doc_strings.py
 XPython/FMOD/
-XPython/SDK400/
-XPython/SDK401/
 XPython/Resources/plugins/xp*-*.zip
 XPython/Resources/plugins/xp*b.zip
 XPython/mac/*.arm
@@ -33,11 +31,16 @@ XPython/Resources/plugins/XPPython3/win_x64/LICENSE.txt
 XPython/README_REFCNT.txt
 XPython/README_STABLE.txt
 XPython/SDK/
+XPython/SDK400/
+XPython/SDK401/
 XPython/SDK400.beta/
 XPython/SDK410.b/
 XPython/SDK410/
 XPython/SDK411/
 XPython/SDK420/
 XPython/SDK420.sv/
+XPython/SDK430.421/
+XPython/SDK430.v1/
+XPython/SDK430/
 .claude/
 CLAUDE.md

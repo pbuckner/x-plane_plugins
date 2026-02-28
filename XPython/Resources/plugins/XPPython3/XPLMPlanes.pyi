@@ -2,6 +2,23 @@ from dataclasses import dataclass
 from typing import Any, Callable, Generic, Optional, Type, TypeVar, NewType, Literal, Sequence
 from XPPython3.xp_typing import *    
 USER_AIRCRAFT: int
+Init_Success: int
+Init_Invalid: int
+Init_MissingAircraft: int
+Init_MissingLivery: int
+Init_MissingAirport: int
+Init_MissingRamp: int
+Init_MissingRunway: int
+def initFlight(data: str) -> int:
+    """
+    Initialize new flight
+    ...
+
+def updateFlight(data: str) -> int:
+    """
+    Updates current flight
+    ...
+
 def setUsersAircraft(path:str) -> None:
     """
     Change the user's aircraft and reinitialize.

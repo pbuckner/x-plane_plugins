@@ -430,6 +430,7 @@ Fpl_CoPilot_Approach = XPLMNavigation.Fpl_CoPilot_Approach
 Fpl_Pilot_Temporary = XPLMNavigation.Fpl_Pilot_Temporary
 Fpl_CoPilot_Temporary = XPLMNavigation.Fpl_CoPilot_Temporary
 import XPLMPlanes
+FlightInitError = XPLMPlanes.FlightInitError
 setUsersAircraft = XPLMPlanes.setUsersAircraft
 placeUserAtAirport = XPLMPlanes.placeUserAtAirport
 placeUserAtLocation = XPLMPlanes.placeUserAtLocation
@@ -440,7 +441,16 @@ releasePlanes = XPLMPlanes.releasePlanes
 setActiveAircraftCount = XPLMPlanes.setActiveAircraftCount
 setAircraftModel = XPLMPlanes.setAircraftModel
 disableAIForPlane = XPLMPlanes.disableAIForPlane
+initFlight = XPLMPlanes.initFlight
+updateFlight = XPLMPlanes.updateFlight
 USER_AIRCRAFT = XPLMPlanes.USER_AIRCRAFT
+Init_Success = XPLMPlanes.Init_Success
+Init_Invalid = XPLMPlanes.Init_Invalid
+Init_MissingAircraft = XPLMPlanes.Init_MissingAircraft
+Init_MissingLivery = XPLMPlanes.Init_MissingLivery
+Init_MissingAirport = XPLMPlanes.Init_MissingAirport
+Init_MissingRamp = XPLMPlanes.Init_MissingRamp
+Init_MissingRunway = XPLMPlanes.Init_MissingRunway
 import XPLMPlugin
 getMyID = XPLMPlugin.getMyID
 countPlugins = XPLMPlugin.countPlugins
@@ -804,7 +814,7 @@ NumCloudLayers = XPLMWeather.NumCloudLayers
 NumTemperatureLayers = XPLMWeather.NumTemperatureLayers
 WindUndefinedLayer = XPLMWeather.WindUndefinedLayer
 DefaultWxrRadiusNm = XPLMWeather.DefaultWxrRadiusNm
-DefaultWxrLimitMslFt = XPLMWeather.DefaultWxrRadiusMslFt
+DefaultWxrLimitMslFt = XPLMWeather.DefaultWxrLimitMslFt
 import XPLMSound
 stopAudio = XPLMSound.stopAudio
 playPCMOnBus = XPLMSound.playPCMOnBus

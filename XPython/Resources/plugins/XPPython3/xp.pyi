@@ -419,6 +419,13 @@ Type_Int: XPLMDataTypeID
 Type_IntArray: XPLMDataTypeID
 Type_Unknown: XPLMDataTypeID
 USER_AIRCRAFT: int
+Init_Success: int
+Init_Invalid: int
+Init_MissingAircraft: int
+Init_MissingLivery: int
+Init_MissingAirport: int
+Init_MissingRamp: int
+Init_MissingRunway: int
 UpFlag: XPLMKeyFlags
 VERSION: str
 VK_0: int
@@ -1817,6 +1824,17 @@ def saveFMSFlightPlan(device: Optional[int]=0) -> str:
         Use device=0 for pilot, device=1 for co-pilot side unit.
     """
     ...
+def initFlight(data: str) -> int:
+    """
+    Initialize flight
+    """
+    ...
+def updateFlight(data: str) -> int:
+    """
+    Update current flight
+    """
+    ...
+    
 def setUsersAircraft(path: str) -> None:
     """
         Change the user's aircraft and reinitialize.

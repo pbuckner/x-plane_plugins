@@ -6,8 +6,8 @@ Known Bugs
 
   None. *Prove me wrong!*
 
-4.7.0 (Beta)
-------------
+4.7.0 (28-Feb-2026)
+-------------------
 
 :New Features:
    * **Support for SDK430**, valid for X-Plane 12.4.0+. Note XPPython3 dynamically loads these new features
@@ -16,6 +16,8 @@ Known Bugs
      
      * :doc:`/development/modules/defs`: Definition for third Airbus MCDU
        
+     * :doc:`/development/modules/planes`: New flight initialization and update function which
+       use JSON (or python dicts) to set parameters, as described in `Flight Initialization API <https://developer.x-plane.com/article/flight-initialization-api/>`_ developer note.
 
 4.6.1 (9-Nov-2025)
 ------------------

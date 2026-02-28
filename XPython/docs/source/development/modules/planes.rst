@@ -10,9 +10,98 @@ To use::
 The XPLMPlanes APIs allow you to control the various aircraft in X-Plane,
 both the user's and the sim's.
 
+You cannot initialize a flight from just any XPLM callback. Only initialize
+in:
+
+* Command handlers
+
+* Menu handlers
+
+* UI handlers (mouse, keyboard callbacks from XPLMDisplay / widgets)
+
+* Flightmodel processing **pre-flightmodel phase only**
+
+Do not initialize during:
+
+* Flightmodel processing **post-flightmodel phase**
+
+* Dataref get/set handlers
+
+* Drawing callbacks of any kind
+
+Note that while it's *permitted* to execute some of these functions in the XPluginStart or XPluginEnable
+callbacks in your global plugin, it may not be *sensible*. Start and Enable are usually executed before
+the aircraft has been loaded, so any update you provide may be over-written by the normal startup.
+
+Check your work.
+
+With X-Plane version 12.4 introduced a new powerful way to initialize and modify a flight. Modifications
+include changing time, weather, failures, and AI aircraft. 
+
 
 Functions
 ---------
+
+.. py:function:: initFlight(data)
+
+  :param str data: dict or JSON string.
+  :return: 0 on success raises FlightInitError exception on error                   
+
+  Requires at least X-Plane 12.4.
+
+  Initializes a new flight, ending the users's current flight. The flight config
+  is provided as a json string. If parameter is a dict type, we'll convert it to JSON.
+  
+  See `Laminar Flight Initialization API <https://developer.x-plane.com/article/flight-initialization-api/>`_ for JSON
+  format specification.
+
+  To start a new flight, you must provide an aircraft and a start location (runway or ramp or ground start or air start, etc.)
+
+  For example, a quick start at Boston::
+
+    >>> s = {'ramp_start': {
+    ...           'airport_id': 'KBOS',
+    ...           'ramp': 'B3'
+    ...           },
+    ...      'aircraft': {
+    ...           'path': 'Aircraft/Laminar Research/Cessna 172 SP/Cessna_172SP.acf'
+    ...           }
+    ...     }
+    ...
+    >>> xp.initFlight(s)
+    0
+    
+  While there are resources you might use to determine available values for ramps and runways, Laminar has not provided
+  any way list them *a priori*. They are visible on the Map, if you zoom in far enough. Check log files for errors.
+
+.. py:function:: updateFlight(data)
+
+  :param str data: dict or JSON string.
+  :return: 0 on success raises FlightInitError exception on error                   
+
+  Requires at least X-Plane 12.4.
+
+  Updates the user's current flight, modifying some flight parameters. The flight config
+  is provided as a json string. If parameter is a dict type, we'll convert it to JSON.
+
+  >>> xp.updateFlight({'local_time': {'day_of_year': 15, 'time_in_24_hours': 2.}})
+  0
+  >>> xp.updateFlight({'weather': {'definition': 'vfr_few_clouds'}})
+  Traceback (most recent call last):
+  XPLMPlanes.FlightInitError: weather json invalid, one or more of these keys are missing: 'definition',
+  'vertical_speed_in_thermal_in_feet_per_minute', 'wave_height_in_meters', 'wave_direction_in_degrees',
+  'terrain_state', 'variation_across_region_percentage', 'evolution_over_time_enum'. Provided
+  string was: "vfr_few_clouds"
+  (code=1)
+
+  See `Laminar Flight Initialization API <https://developer.x-plane.com/article/flight-initialization-api/>`_ for JSON
+  format specification.
+
+Old style functions
+-------------------
+
+For X-Plane 12.4 and greater, the new JSON style functions are preferred. Otherwise you
+may use these older style initialization functions.
 
 .. py:function:: setUsersAircraft(path)
 
@@ -219,9 +308,43 @@ Functions
 Constants
 ---------
 
+.. py:data:: FlightInitError
+
+  Exception raised on bad :func:`initFlight` and :func:`updateFlight`. Has two attributes.
+
+  * code: one of :data:`XPLMInitResult`, and
+
+  * message: string describing the problem.
+
 .. py:data:: USER_AIRCRAFT
  :value: 0
 
  User's Aircraft             
 
-            
+Return value from initialization
+
+.. py:data:: XPLMInitResult
+
+  +--------------------------------------+----------------------------------------------------+
+  | Code                                 |Meaning                                             |
+  +======================================+====================================================+
+  | .. py:data:: Init_Success            |The initialization succeeded                        |
+  +--------------------------------------+----------------------------------------------------+
+  | .. py:data:: Init_Invalid            |Provided argument was invalid. Either not valid     |
+  |   :value: 1                          |json, or does not contain correct fields.           |
+  +--------------------------------------+----------------------------------------------------+
+  | .. py:data:: Init_MissingAircraft    |Valid argument, but one of the requested aircraft   |
+  |   :value: 2                          |could not be found on disk or loaded.               |
+  +--------------------------------------+----------------------------------------------------+
+  | .. py:data:: Init_MissingLivery      |Valid argument, but one of the requested aircraft's |
+  |   :value: 3                          |liveries could not be found or loaded.              |
+  +--------------------------------------+----------------------------------------------------+
+  | .. py:data:: Init_MissingAirport     |Valid argument, but the requested airport was not   |
+  |   :value: 4                          |found.                                              |
+  +--------------------------------------+----------------------------------------------------+
+  | .. py:data:: Init_MissingRamp        |Valid argument, but the requested ram start was not |
+  |   :value: 5                          |found at the specified airport.                     |
+  +--------------------------------------+----------------------------------------------------+
+  | .. py:data:: Init_MissingRunway      |Valid argument, but the requested runway was not    |
+  |   :value: 6                          |found at the specified airport.                     |
+  +--------------------------------------+----------------------------------------------------+

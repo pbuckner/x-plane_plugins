@@ -13,6 +13,9 @@ aircraft-position to the site which results in real-time updates on a moving map
 You'll need internet access from your X-Plane computer to get this to work as it will post your aircraft location once every
 second.
 
+.. image:: /images/avnwx-tracking.png
+  :width: 50%           
+
 To Enable
 ---------
 

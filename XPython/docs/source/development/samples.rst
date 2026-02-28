@@ -23,6 +23,13 @@ files from ``samples`` to get the plugin working.
    |                            | `"Drawing 2-D That Matches the 3-D world" <https://deve|
    |                            | loper.x-plane.com/code-sample/coachmarks/>`_.          |
    +----------------------------+--------------------------------------------------------+
+   |PI_AvnWx.py                 | Posts current aircraft location to AvnWx.com, which    |
+   |                            | enables live-tracking on https://maps.avnwx.com.       |
+   |                            |                                                        |
+   |                            | See :doc:`/development/avnwx-tracker` for details.     |
+   |                            |                                                        |
+   |                            |                                                        |
+   +----------------------------+--------------------------------------------------------+
    |PI_Arduino1.py              | Finds and connects with Arduino device and polls device|
    |                            | for information using a separate python Thread in order|
    |                            | to not slow down X-Plane.                              |
@@ -116,14 +123,14 @@ files from ``samples`` to get the plugin working.
    |                            | enabling and disabling plugins. Uses countPlugins,     |
    |                            | getNthPlugin, getMyID, disablePlugin                   |
    +----------------------------+--------------------------------------------------------+
-   |PI_Map.py                   | Ported from C version                                  |
+   |PI_Map.py                   | Ported from C version                                  |        
    |                            | `on developer.x-plane.com                              |
    |                            | <https://developer.x-plane.com/code-sample-type/       |
    |                            | xplm300-sdk/map/>`_.                                   |
    |                            | Draws on the X-Plane map using RegisterMapCreationHook,|
    |                            | OpenGL, drawMapLabel, mapProject, mapUnProject,        |
    |                            | mapScaleMeter.                                         |
-   |                            |                                                        |        
+   |                            |                                                        |
    |                            | To use, you'll also need to copy map-sample-image.png  |
    |                            | from ``PythonPlugins/samples`` into                    |
    |                            | ``Resources/plugins`` folder.                          |

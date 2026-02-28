@@ -51,7 +51,7 @@ The result of the ``DSEL`` command will be a simple data structure sent to the I
 
    The received packet will start with ``DATA``, followed by 9 floats.::
 
-     header, index, *vals = struct.unpack('<4xf8f', data)
+     header, index, *vals = struct.unpack('<4sxf8f', data)
      assert header == 'DATA'
   
    ``index`` is a float, but represents the (integer) index you requested with ``DSEL``. That way you know *which dataset* the

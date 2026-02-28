@@ -52,8 +52,7 @@ Functions
     >>> xp.getVirtualKeyDescription(xp.VK_SEMICOLON)
     ';'
 
-    .. note:: With XP 12.3 some key codes (VK_SEMICOLON included) are no longer translated properly. Bug
-              report filed with Laminar 5-October-2025 as `XPD-17397 <https://developer.x-plane.com/x-plane-bug-database/?issue=XPD-17397>`__.
+    .. note:: With XP 12.3 some key codes (VK_SEMICOLON included) are no longer translated properly. Fixed in XP 12.4.
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMGetVirtualKeyDescription>`__ :index:`XPLMGetVirtualKeyDescription`
 

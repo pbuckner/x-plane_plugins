@@ -37,7 +37,7 @@ RPOS - Request Aircraft Position
       Prad,            # float roll rate in radians per second
       Qrad,            # float pitch rate in radians per second
       Rrad,            # float yaw rate in radians per second
-      ) = struct.unpack("<4xdddffffffffff", packet)
+      ) = struct.unpack("<4sxdddffffffffff", packet)
     
 .. toctree::
    :maxdepth: 1

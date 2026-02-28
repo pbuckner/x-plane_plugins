@@ -6,6 +6,9 @@ is the `Mini Python Interpreter <https://github.com/pbuckner/xppython3-demos/mai
 Drop the file into your Resource/plugins/PythonPlugins folder. (Or download the latest using the **Download Samples**
 menu item & move the file up into the PythonPlugins folder.)
 
+ If you're using this on a Linux distro, you also need to install ``xclip`` (e.g., ``sudo apt install xclip``) to enable
+ cut and paste.
+
 .. note:: You can't set breakpoints, but you can create and execute most python code, including
           multi-line functions.
 

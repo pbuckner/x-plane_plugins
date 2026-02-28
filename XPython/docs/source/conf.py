@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath('../../stubs'))
 # -- Project information -----------------------------------------------------
 
 project = 'XPPython3'
-copyright = '2025, Peter Buckner'
+copyright = '2026, Peter Buckner'
 author = 'Peter Buckner'
 
 master_doc = 'index'
@@ -67,7 +67,7 @@ html_theme_options = {
     'root_url': '',
     'issues_url': '/en/latest/usage/getting_support.html',
     'collapsiblesidebar': True,
-    'versionhash': {'latest': 'v4.6.1',
+    'versionhash': {'latest': 'v4.7.0',
                     'beta': 'v4.7.0 BETA',
                     '3.1.5': 'v3.1.5'}
 }

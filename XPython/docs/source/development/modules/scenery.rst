@@ -100,7 +100,7 @@ will return the height of a 0 MSL sphere.
   :param Z float: (x, y, z) are local coordinates                          
   :return: XPLMProbeInfo instance
 
-  Probes the terrain. Pass in XPLMProbRef *probe*, and the *x*, *y*, *z* coordinates of the point.
+  Probes the terrain. Pass in XPLMProbeRef *probe*, and the *x*, *y*, *z* coordinates of the point.
   (You can obtain (x, y, z) information using, for example, :py:func:`worldToLocal` or
   datarefs ``sim/flightmodel/position/local_[xyz]``.) 
 
@@ -317,6 +317,14 @@ every successful call to :py:func:`loadObject` with a call to :py:func:`unloadOb
     >>> objRef
     <capsule object "XPLMObjectRef" at 0x7fe1d8353090>
 
+    .. caution::
+
+       There is a bug in X-Plane 12 (perhaps in 11 also) where XPLMLoadObject() will crash the sim
+       if called in XPluginStart or XPluginEnable callback **and** the object to be loaded has an emitter.
+       This is `XPD-16090 <https://developer.x-plane.com/x-plane-bug-database/?issue=XPD-16090>`_, and not
+       likely to be fixed any time soon. Instead, call :py:func:`loadObject` for these objects in a
+       flight loop callback. This may also occur with :py:func:`loadObjectAsync`: I don't know.
+       
     `Official SDK <https://developer.x-plane.com/sdk/XPLMScenery/#XPLMLoadObject>`__ :index:`XPLMLoadObject`
 
 
@@ -358,6 +366,10 @@ every successful call to :py:func:`loadObject` with a call to :py:func:`unloadOb
     the load to complete and then release the object if it is no longer
     desired.
 
+    .. caution::
+
+       But see Caution included with :py:func:`loadObject` above.
+       
     `Official SDK <https://developer.x-plane.com/sdk/XPLMScenery/#XPLMLoadObjectAsync>`__ :index:`XPLMLoadObjectAsync`
 
 .. py:function::  unloadObject(objectRef)

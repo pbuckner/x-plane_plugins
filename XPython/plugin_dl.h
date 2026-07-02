@@ -12,6 +12,7 @@
 #include <XPLM/XPLMInstance.h>
 #include <XPLM/XPLMMap.h>
 #include <XPLM/XPLMDisplay.h>
+#include <XPLM/XPLMPanelGraphics.h>
 #include <XPLM/XPLMPlanes.h>
 #include <XPLM/XPLMWeather.h>
 #include <XPLM/XPLMNavigation.h>
@@ -136,6 +137,64 @@ PLUGIN_DLL(XPLMEraseWeatherAtAirport);
 // XPLM_430
 PLUGIN_DLL(XPLMInitFlight);
 PLUGIN_DLL(XPLMUpdateFlight);
+
+// XPLM_440
+PLUGIN_DLL(XPLMReturnString);
+PLUGIN_DLL(XPLMWindowSetURL);
+PLUGIN_DLL(XPLMWindowRefresh);
+PLUGIN_DLL(XPLMWindowInjectScript);
+PLUGIN_DLL(XPLMWindowAddBrowserFunction);
+PLUGIN_DLL(XPLMIsAvionicsMappedToVR);
+PLUGIN_DLL(XPLMSetAvionicsMappedToVR);
+PLUGIN_DLL(XPLMMakeColor);
+PLUGIN_DLL(XPLMLines);
+PLUGIN_DLL(XPLMLinesWithWidth);
+PLUGIN_DLL(XPLMLinesStipple);
+PLUGIN_DLL(XPLMLinesc);
+PLUGIN_DLL(XPLMLinescWithWidth);
+PLUGIN_DLL(XPLMLineStrip);
+PLUGIN_DLL(XPLMLineStripWithWidth);
+PLUGIN_DLL(XPLMLineStripc);
+PLUGIN_DLL(XPLMLineStripcWithWidth);
+PLUGIN_DLL(XPLMLineStripStipple);
+PLUGIN_DLL(XPLMLineLoop);
+PLUGIN_DLL(XPLMLineLoopWithWidth);
+PLUGIN_DLL(XPLMLineLoopc);
+PLUGIN_DLL(XPLMLineLoopcWithWidth);
+PLUGIN_DLL(XPLMLineLoopStipple);
+PLUGIN_DLL(XPLMPolygon);
+PLUGIN_DLL(XPLMPolygonWithWidth);
+PLUGIN_DLL(XPLMPolygonc);
+PLUGIN_DLL(XPLMPolygoncWithWidth);
+PLUGIN_DLL(XPLMQuadstrip);
+PLUGIN_DLL(XPLMQuadstripWithWidth);
+PLUGIN_DLL(XPLMQuadstripc);
+PLUGIN_DLL(XPLMQuadstripcWithWidth);
+PLUGIN_DLL(XPLMTransformPush);
+PLUGIN_DLL(XPLMTransformPop);
+PLUGIN_DLL(XPLMTransformTranslate);
+PLUGIN_DLL(XPLMTransformRotate);
+PLUGIN_DLL(XPLMTransformScale);
+PLUGIN_DLL(XPLMScissorPush);
+PLUGIN_DLL(XPLMScissorPop);
+PLUGIN_DLL(XPLMScissorSet);
+PLUGIN_DLL(XPLMScissorShrink);
+PLUGIN_DLL(XPLMBeginSetupStencilMask);
+PLUGIN_DLL(XPLMEndSetupStencilMask);
+PLUGIN_DLL(XPLMUseStencilMask);
+PLUGIN_DLL(XPLMClearStencilMask);
+PLUGIN_DLL(XPLMCreateFont);
+PLUGIN_DLL(XPLMDestroyFont);
+PLUGIN_DLL(XPLMFontAddFace);
+PLUGIN_DLL(XPLMFontGetMetrics);
+PLUGIN_DLL(XPLMFontMeasureString);
+PLUGIN_DLL(XPLMFontGetLineCount);
+PLUGIN_DLL(XPLMFontFitForward);
+PLUGIN_DLL(XPLMFontFitReverse);
+PLUGIN_DLL(XPLMFontDrawString);
+PLUGIN_DLL(XPLMFontDrawStringFixedSpacing);
+PLUGIN_DLL(XPLMFontDrawStringWordWrapped);
+PLUGIN_DLL(XPLMFontDrawStringRotated);
 
 bool loadSDKFunctions(void);
 

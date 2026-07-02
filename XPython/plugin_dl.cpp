@@ -13,6 +13,7 @@
 #include <XPLM/XPLMInstance.h>
 #include <XPLM/XPLMMap.h>
 #include <XPLM/XPLMDisplay.h>
+#include <XPLM/XPLMPanelGraphics.h>
 #include <XPLM/XPLMPlanes.h>
 #include <XPLM/XPLMWeather.h>
 #include <XPLM/XPLMSound.h>
@@ -269,6 +270,122 @@ t_fcn_info funcs430[] = {
   {nullptr, nullptr}
 };
 
+typeof(XPLMReturnString) *XPLMReturnString_ptr = nullptr;
+typeof(XPLMWindowSetURL) *XPLMWindowSetURL_ptr = nullptr;
+typeof(XPLMWindowRefresh) *XPLMWindowRefresh_ptr = nullptr;
+typeof(XPLMWindowInjectScript) *XPLMWindowInjectScript_ptr = nullptr;
+typeof(XPLMWindowAddBrowserFunction) *XPLMWindowAddBrowserFunction_ptr = nullptr;
+typeof(XPLMIsAvionicsMappedToVR) *XPLMIsAvionicsMappedToVR_ptr = nullptr;
+typeof(XPLMSetAvionicsMappedToVR) *XPLMSetAvionicsMappedToVR_ptr = nullptr;
+typeof(XPLMMakeColor) *XPLMMakeColor_ptr = nullptr;
+typeof(XPLMLines) *XPLMLines_ptr = nullptr;
+typeof(XPLMLinesWithWidth) *XPLMLinesWithWidth_ptr = nullptr;
+typeof(XPLMLinesStipple) *XPLMLinesStipple_ptr = nullptr;
+typeof(XPLMLinesc) *XPLMLinesc_ptr = nullptr;
+typeof(XPLMLinescWithWidth) *XPLMLinescWithWidth_ptr = nullptr;
+typeof(XPLMLineStrip) *XPLMLineStrip_ptr = nullptr;
+typeof(XPLMLineStripWithWidth) *XPLMLineStripWithWidth_ptr = nullptr;
+typeof(XPLMLineStripc) *XPLMLineStripc_ptr = nullptr;
+typeof(XPLMLineStripcWithWidth) *XPLMLineStripcWithWidth_ptr = nullptr;
+typeof(XPLMLineStripStipple) *XPLMLineStripStipple_ptr = nullptr;
+typeof(XPLMLineLoop) *XPLMLineLoop_ptr = nullptr;
+typeof(XPLMLineLoopWithWidth) *XPLMLineLoopWithWidth_ptr = nullptr;
+typeof(XPLMLineLoopc) *XPLMLineLoopc_ptr = nullptr;
+typeof(XPLMLineLoopcWithWidth) *XPLMLineLoopcWithWidth_ptr = nullptr;
+typeof(XPLMLineLoopStipple) *XPLMLineLoopStipple_ptr = nullptr;
+typeof(XPLMPolygon) *XPLMPolygon_ptr = nullptr;
+typeof(XPLMPolygonWithWidth) *XPLMPolygonWithWidth_ptr = nullptr;
+typeof(XPLMPolygonc) *XPLMPolygonc_ptr = nullptr;
+typeof(XPLMPolygoncWithWidth) *XPLMPolygoncWithWidth_ptr = nullptr;
+typeof(XPLMQuadstrip) *XPLMQuadstrip_ptr = nullptr;
+typeof(XPLMQuadstripWithWidth) *XPLMQuadstripWithWidth_ptr = nullptr;
+typeof(XPLMQuadstripc) *XPLMQuadstripc_ptr = nullptr;
+typeof(XPLMQuadstripcWithWidth) *XPLMQuadstripcWithWidth_ptr = nullptr;
+typeof(XPLMTransformPush) *XPLMTransformPush_ptr = nullptr;
+typeof(XPLMTransformPop) *XPLMTransformPop_ptr = nullptr;
+typeof(XPLMTransformTranslate) *XPLMTransformTranslate_ptr = nullptr;
+typeof(XPLMTransformRotate) *XPLMTransformRotate_ptr = nullptr;
+typeof(XPLMTransformScale) *XPLMTransformScale_ptr = nullptr;
+typeof(XPLMScissorPush) *XPLMScissorPush_ptr = nullptr;
+typeof(XPLMScissorPop) *XPLMScissorPop_ptr = nullptr;
+typeof(XPLMScissorSet) *XPLMScissorSet_ptr = nullptr;
+typeof(XPLMScissorShrink) *XPLMScissorShrink_ptr = nullptr;
+typeof(XPLMBeginSetupStencilMask) *XPLMBeginSetupStencilMask_ptr = nullptr;
+typeof(XPLMEndSetupStencilMask) *XPLMEndSetupStencilMask_ptr = nullptr;
+typeof(XPLMUseStencilMask) *XPLMUseStencilMask_ptr = nullptr;
+typeof(XPLMClearStencilMask) *XPLMClearStencilMask_ptr = nullptr;
+typeof(XPLMCreateFont) *XPLMCreateFont_ptr = nullptr;
+typeof(XPLMDestroyFont) *XPLMDestroyFont_ptr = nullptr;
+typeof(XPLMFontAddFace) *XPLMFontAddFace_ptr = nullptr;
+typeof(XPLMFontGetMetrics) *XPLMFontGetMetrics_ptr = nullptr;
+typeof(XPLMFontMeasureString) *XPLMFontMeasureString_ptr = nullptr;
+typeof(XPLMFontGetLineCount) *XPLMFontGetLineCount_ptr = nullptr;
+typeof(XPLMFontFitForward) *XPLMFontFitForward_ptr = nullptr;
+typeof(XPLMFontFitReverse) *XPLMFontFitReverse_ptr = nullptr;
+typeof(XPLMFontDrawString) *XPLMFontDrawString_ptr = nullptr;
+typeof(XPLMFontDrawStringFixedSpacing) *XPLMFontDrawStringFixedSpacing_ptr = nullptr;
+typeof(XPLMFontDrawStringWordWrapped) *XPLMFontDrawStringWordWrapped_ptr = nullptr;
+typeof(XPLMFontDrawStringRotated) *XPLMFontDrawStringRotated_ptr = nullptr;
+t_fcn_info funcs440[] = {
+  {"XPLMReturnString", (void **) &XPLMReturnString_ptr},
+  {"XPLMWindowSetURL", (void **) &XPLMWindowSetURL_ptr},
+  {"XPLMWindowRefresh", (void **) &XPLMWindowRefresh_ptr},
+  {"XPLMWindowInjectScript", (void **) &XPLMWindowInjectScript_ptr},
+  {"XPLMWindowAddBrowserFunction", (void **) &XPLMWindowAddBrowserFunction_ptr},
+  {"XPLMIsAvionicsMappedToVR", (void **) &XPLMIsAvionicsMappedToVR_ptr},
+  {"XPLMSetAvionicsMappedToVR", (void **) &XPLMSetAvionicsMappedToVR_ptr},
+  {"XPLMMakeColor", (void **) &XPLMMakeColor_ptr},
+  {"XPLMLines", (void **) &XPLMLines_ptr},
+  {"XPLMLinesWithWidth", (void **) &XPLMLinesWithWidth_ptr},
+  {"XPLMLinesStipple", (void **) &XPLMLinesStipple_ptr},
+  {"XPLMLinesc", (void **) &XPLMLinesc_ptr},
+  {"XPLMLinescWithWidth", (void **) &XPLMLinescWithWidth_ptr},
+  {"XPLMLineStrip", (void **) &XPLMLineStrip_ptr},
+  {"XPLMLineStripWithWidth", (void **) &XPLMLineStripWithWidth_ptr},
+  {"XPLMLineStripc", (void **) &XPLMLineStripc_ptr},
+  {"XPLMLineStripcWithWidth", (void **) &XPLMLineStripcWithWidth_ptr},
+  {"XPLMLineStripStipple", (void **) &XPLMLineStripStipple_ptr},
+  {"XPLMLineLoop", (void **) &XPLMLineLoop_ptr},
+  {"XPLMLineLoopWithWidth", (void **) &XPLMLineLoopWithWidth_ptr},
+  {"XPLMLineLoopc", (void **) &XPLMLineLoopc_ptr},
+  {"XPLMLineLoopcWithWidth", (void **) &XPLMLineLoopcWithWidth_ptr},
+  {"XPLMLineLoopStipple", (void **) &XPLMLineLoopStipple_ptr},
+  {"XPLMPolygon", (void **) &XPLMPolygon_ptr},
+  {"XPLMPolygonWithWidth", (void **) &XPLMPolygonWithWidth_ptr},
+  {"XPLMPolygonc", (void **) &XPLMPolygonc_ptr},
+  {"XPLMPolygoncWithWidth", (void **) &XPLMPolygoncWithWidth_ptr},
+  {"XPLMQuadstrip", (void **) &XPLMQuadstrip_ptr},
+  {"XPLMQuadstripWithWidth", (void **) &XPLMQuadstripWithWidth_ptr},
+  {"XPLMQuadstripc", (void **) &XPLMQuadstripc_ptr},
+  {"XPLMQuadstripcWithWidth", (void **) &XPLMQuadstripcWithWidth_ptr},
+  {"XPLMTransformPush", (void **) &XPLMTransformPush_ptr},
+  {"XPLMTransformPop", (void **) &XPLMTransformPop_ptr},
+  {"XPLMTransformTranslate", (void **) &XPLMTransformTranslate_ptr},
+  {"XPLMTransformRotate", (void **) &XPLMTransformRotate_ptr},
+  {"XPLMTransformScale", (void **) &XPLMTransformScale_ptr},
+  {"XPLMScissorPush", (void **) &XPLMScissorPush_ptr},
+  {"XPLMScissorPop", (void **) &XPLMScissorPop_ptr},
+  {"XPLMScissorSet", (void **) &XPLMScissorSet_ptr},
+  {"XPLMScissorShrink", (void **) &XPLMScissorShrink_ptr},
+  {"XPLMBeginSetupStencilMask", (void **) &XPLMBeginSetupStencilMask_ptr},
+  {"XPLMEndSetupStencilMask", (void **) &XPLMEndSetupStencilMask_ptr},
+  {"XPLMUseStencilMask", (void **) &XPLMUseStencilMask_ptr},
+  {"XPLMClearStencilMask", (void **) &XPLMClearStencilMask_ptr},
+  {"XPLMCreateFont", (void **) &XPLMCreateFont_ptr},
+  {"XPLMDestroyFont", (void **) &XPLMDestroyFont_ptr},
+  {"XPLMFontAddFace", (void **) &XPLMFontAddFace_ptr},
+  {"XPLMFontGetMetrics", (void **) &XPLMFontGetMetrics_ptr},
+  {"XPLMFontMeasureString", (void **) &XPLMFontMeasureString_ptr},
+  {"XPLMFontGetLineCount", (void **) &XPLMFontGetLineCount_ptr},
+  {"XPLMFontFitForward", (void **) &XPLMFontFitForward_ptr},
+  {"XPLMFontFitReverse", (void **) &XPLMFontFitReverse_ptr},
+  {"XPLMFontDrawString", (void **) &XPLMFontDrawString_ptr},
+  {"XPLMFontDrawStringFixedSpacing", (void **) &XPLMFontDrawStringFixedSpacing_ptr},
+  {"XPLMFontDrawStringWordWrapped", (void **) &XPLMFontDrawStringWordWrapped_ptr},
+  {"XPLMFontDrawStringRotated", (void **) &XPLMFontDrawStringRotated_ptr},
+  {nullptr, nullptr}
+};
+
 
 bool loadFunctions(t_fcn_info *ptr, void *handle)
 {
@@ -302,6 +419,7 @@ bool loadSDKFunctions(void)
   }
 
   bool res = true;
+  if(xplm_ver >= 440 || xp_ver >= 12440) res &= loadFunctions(funcs440, handle);
   if(xplm_ver >= 430 || xp_ver >= 12400) res &= loadFunctions(funcs430, handle);
   if(xplm_ver >= 420) res &= loadFunctions(funcs420, handle);
   if(xplm_ver >= 410) res &= loadFunctions(funcs410, handle);

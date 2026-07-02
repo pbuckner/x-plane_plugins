@@ -2,10 +2,10 @@
 
 PLUGIN_PATH=Resources/plugins/XPPython3
 SERVER_SDK=400
-XP_SDK=../SDK430
+XP_SDK=../SDK440
 VERSIONS= 312
 # python versions are like 4.1.1 -> 4.1.2a1 -> 4.1.2a2 -> 4.1.2b1 -> 4.1.2 (letter is [ab], cannot end with letter)
-XPPYTHONVERSION=4.7.1a
+XPPYTHONVERSION=4.8.0a
 BETA=$(shell echo $(XPPYTHONVERSION) | grep -ce 'b')
 ALPHA=$(shell echo $(XPPYTHONVERSION) | grep -ce 'a')
 FMOD=../FMOD
@@ -22,7 +22,7 @@ zipfiles = \
 # COMMON opts
 # eventually....:   -DPy_LIMITED_API=0x030a0000
 CFLAGS=-Wall -Wextra -g -fpic -fPIC -fvisibility=hidden -DXPPYTHON3VERSION=\"$(XPPYTHONVERSION)\"
-XPLM_CPPFLAGS = -DXPLM200 -DXPLM210 -DXPLM300 -DXPLM301 -DXPLM302 -DXPLM303 -DXPLM400 -DXPLM410 -DXPLM411 -DXPLM420 -DXPLM430 \
+XPLM_CPPFLAGS = -DXPLMPG1 -DXPLM440 -DXPLM200 -DXPLM210 -DXPLM300 -DXPLM301 -DXPLM302 -DXPLM303 -DXPLM400 -DXPLM410 -DXPLM411 -DXPLM420 -DXPLM430 \
                 -I$(XP_SDK)/CHeaders -I$(XP_SDK)/CHeaders/XPLM -I$(XP_SDK)/CHeaders/Widgets -I$(FMOD)/api/core/inc -I$(FMOD)/api/studio/inc
 
 # "ALPHA" make errCheck() function execute. Otherwise it is removed during compilation and optimization is enabled
@@ -62,7 +62,7 @@ ifeq ($(TARGET), Linux)
 endif
 
 ifeq ($(TARGET), Darwin)
-  CFLAGS += ${XPLM_CPPFLAGS} -DIBM=0 -DAPL=1 -DLIN=0
+  CFLAGS += -Wno-c99-designator -Wno-c++20-designator ${XPLM_CPPFLAGS} -DIBM=0 -DAPL=1 -DLIN=0
   PYTHON_CONFIG_FLAGS = -I/Library/Frameworks/Python.framework/Versions/3.12/include/python3.12 -I/Library/Frameworks/Python.framework/Versions/3.12/include/python3.12 -fno-strict-overflow -Wsign-compare -Wunreachable-code -fno-common -dynamic -g -Wall -arch arm64 -arch x86_64 -g
 CFLAGS312=$(CFLAGS) $(PYTHON_CONFIG_FLAGS) -DPYTHONVERSION=\"3.12\"
   CFLAGS312+=$(OPTIMIZATION)
@@ -87,7 +87,7 @@ linux:
 	cd lin && $(MAKE)
 	cd ..
 
-PLUGIN_OBJ = plugin.o defs.o display.o display_keysniffer.o display_hotkey.o display_avionics.o \
+PLUGIN_OBJ = plugin.o defs.o display.o display_keysniffer.o display_hotkey.o display_avionics.o panel_graphics.o \
 	utils.o graphics.o data_access.o utilities.o scenery.o menus.o \
 	navigation.o plugins.o planes.o processing.o camera.o widget_defs.o widgets.o \
 	standard_widgets.o uigraphics.o widgetutils.o instance.o map.o plugin_dl.o sb.o utils.o xppython.o \
@@ -100,8 +100,8 @@ PLUGIN_OBJ = plugin.o defs.o display.o display_keysniffer.o display_hotkey.o dis
 
 cursor.o : cursor.cpp
 ifeq ($(TARGET),Darwin)
-	$(CC) -x objective-c++ -std=gnu++17 -target arm64-apple-macos11 -c $(CFLAGS312) $< -o $@.arm
-	$(CC) -x objective-c++ -std=gnu++17 -target x86_64-apple-macos10.15 -c $(CFLAGS312)  $< -o $@.x86
+	$(CC) -x objective-c++ -std=gnu++17 -target arm64-apple-macos12 -c $(CFLAGS312) $< -o $@.arm
+	$(CC) -x objective-c++ -std=gnu++17 -target x86_64-apple-macos12 -c $(CFLAGS312)  $< -o $@.x86
 	touch $@
 else
 	$(CC) -std=gnu++17 -c $(CFLAGS312) $< -o $@
@@ -109,8 +109,8 @@ endif
 
 %.o	: %.c
 ifeq ($(TARGET),Darwin)
-	$(CC) -target arm64-apple-macos11 -c $(CFLAGS312) $< -o $@.arm
-	$(CC) -target x86_64-apple-macos10.15 -c $(CFLAGS312) $< -o $@.x86
+	$(CC) -target arm64-apple-macos12 -c $(CFLAGS312) $< -o $@.arm
+	$(CC) -target x86_64-apple-macos12 -c $(CFLAGS312) $< -o $@.x86
 	touch $@
 else
 	$(CC) -c $(CFLAGS312) $< -o $@
@@ -118,8 +118,8 @@ endif
 
 %.o	: %.cpp
 ifeq ($(TARGET),Darwin)
-	$(CC) -std=gnu++17 -target arm64-apple-macos11 -c $(CFLAGS312) $< -o $@.arm
-	$(CC) -std=gnu++17 -target x86_64-apple-macos10.15 -c $(CFLAGS312) $< -o $@.x86
+	$(CC) -std=gnu++17 -target arm64-apple-macos12 -c $(CFLAGS312) $< -o $@.arm
+	$(CC) -std=gnu++17 -target x86_64-apple-macos12 -c $(CFLAGS312) $< -o $@.x86
 	touch $@
 else
 	$(CC) -std=gnu++17 -c $(CFLAGS312) $< -o $@
@@ -140,10 +140,10 @@ endif
 
 XPPython3.xpl: $(PLUGIN_OBJ)
 ifeq ($(TARGET), Darwin)
-	# $(LD) -headerpad_max_install_names -target arm64-apple-macos11 $(^:.o=.o.arm) $(LDFLAGS312) -o $@.arm
-	# $(LD) -headerpad_max_install_names -target x86_64-apple-macos10.15 $(^:.o=.o.x86) $(LDFLAGS312) -o $@.x86
-	$(LD) -target arm64-apple-macos11 $(^:.o=.o.arm) $(LDFLAGS312) -o $@.arm
-	$(LD) -target x86_64-apple-macos10.15 $(^:.o=.o.x86) $(LDFLAGS312) -o $@.x86
+	# $(LD) -headerpad_max_install_names -target arm64-apple-macos12 $(^:.o=.o.arm) $(LDFLAGS312) -o $@.arm
+	# $(LD) -headerpad_max_install_names -target x86_64-apple-macos12 $(^:.o=.o.x86) $(LDFLAGS312) -o $@.x86
+	$(LD) -target arm64-apple-macos12 $(^:.o=.o.arm) $(LDFLAGS312) -o $@.arm
+	$(LD) -target x86_64-apple-macos12 $(^:.o=.o.x86) $(LDFLAGS312) -o $@.x86
 	lipo -create -output $@ $@.arm $@.x86
 	install_name_tool \
 		-change /Library/Frameworks/Python.framework/Versions/3.12/Python  \

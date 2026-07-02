@@ -36,6 +36,8 @@ extern PyObject *XPLMIsAvionicsPopupVisibleFun(PyObject*, PyObject*, PyObject*);
 extern PyObject *XPLMIsCursorOverAvionicsFun(PyObject*, PyObject*, PyObject*);
 extern PyObject *XPLMPopOutAvionicsFun(PyObject*, PyObject*, PyObject*);
 extern PyObject *XPLMSetAvionicsPopupVisibleFun(PyObject*, PyObject*, PyObject*);
+extern PyObject *XPLMIsAvionicsMappedToVRFun(PyObject*, PyObject*, PyObject*);
+extern PyObject *XPLMSetAvionicsMappedToVRFun(PyObject*, PyObject*, PyObject*);
 extern PyObject *XPLMTakeAvionicsKeyboardFocusFun(PyObject*, PyObject*, PyObject*);
 extern PyObject *XPLMDestroyAvionicsFun(PyObject*, PyObject*, PyObject*);
 extern PyObject *XPLMCreateAvionicsExFun(PyObject*, PyObject*, PyObject*);

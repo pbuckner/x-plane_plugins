@@ -350,7 +350,7 @@ static PyObject *XPLMAcquirePlanesFun(PyObject *self, PyObject *args, PyObject *
       Py_DECREF(tmpObj);
     }
     inAircraft[i] = nullptr;
-    res = XPLMAcquirePlanes(inAircraft, planesAvailable, (void*)refcon);
+    res = XPLMAcquirePlanes((const char**)inAircraft, planesAvailable, (void*)refcon);
     i = 0;
     while(inAircraft[i]){
       free(inAircraft[i]);

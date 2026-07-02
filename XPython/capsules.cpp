@@ -200,7 +200,8 @@ std::vector<std::string> CapsuleTypes = {
   "XPLMAvionicsID",
   "XPLMCommandRef", // simple ID
   "XPLMDataRef",  "XPLMFlightLoopID",  "XPLMHotKeyID",  "XPLMInstanceRef",  "XPLMMapLayerID",
-  "XPLMMapProjectionID",  "XPLMMenuID",  "XPLMObjectRef", "XPLMProbeRef", "XPLMWindowID", "XPWidgetID",            
+  "XPLMMapProjectionID",  "XPLMMenuID",  "XPLMObjectRef", "XPLMProbeRef", "XPLMWindowID", "XPWidgetID",
+  "XPLMFontHandle"           
 };
 
 PyObject *makeCapsule(void *ptr, std::string name)

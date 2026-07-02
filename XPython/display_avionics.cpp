@@ -1249,6 +1249,43 @@ PyObject *XPLMSetAvionicsPopupVisibleFun(PyObject *self, PyObject *args, PyObjec
   XPLMSetAvionicsPopupVisible_ptr(avionics_id, visible);
   Py_RETURN_NONE;
 }
+
+PyObject *XPLMIsAvionicsMappedToVRFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {CHAR("avionicsID"), nullptr};
+  (void) self;
+  PyObject *avionicsID;
+  if (!XPLMIsAvionicsMappedToVR_ptr) {
+    PyErr_SetString(PyExc_RuntimeError , "XPLMIsAvionicsMappedToVR is available only in XPLM440 and up.");
+    return nullptr;
+  }
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
+    return nullptr;
+  }
+  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  return PyLong_FromLong(XPLMIsAvionicsMappedToVR_ptr(avionics_id));
+}
+
+PyObject *XPLMSetAvionicsMappedToVRFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {CHAR("avionicsID"), CHAR("mapped"), nullptr};
+  (void) self;
+  PyObject *avionicsID;
+  int mapped=1;
+  if (!XPLMSetAvionicsMappedToVR_ptr) {
+    PyErr_SetString(PyExc_RuntimeError , "XPLMSetAvionicsMappedToVR is available only in XPLM440 and up.");
+    return nullptr;
+  }
+
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", keywords, &avionicsID, &mapped)) {
+    return nullptr;
+  }
+  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMSetAvionicsMappedToVR_ptr(avionics_id, mapped);
+  Py_RETURN_NONE;
+}
+
 PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void) self;
@@ -1372,8 +1409,8 @@ PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObject *kwar
 
   if (avionics_params.bezelWidth < (avionics_params.screenWidth + avionics_params.screenOffsetX) || avionics_params.bezelHeight < (avionics_params.screenHeight + avionics_params.screenOffsetY)) {
     PyErr_SetString(PyExc_ValueError ,"createAvionicsEx() requires bezelWidth >= screenWidth + offsetX; and bezelHeight >= screenHeight + offsetY.\n");
-    free(avionics_params.deviceID);
-    free(avionics_params.deviceName);
+    free((void *)avionics_params.deviceID);
+    free((void *)avionics_params.deviceName);
     return nullptr;
   }
 
@@ -1400,8 +1437,8 @@ PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObject *kwar
         Py_INCREF(callbackList[i]);
       } else {
         PyErr_SetString(PyExc_ValueError ,"createAvionicsEx callback is not callable.\n");
-        free(avionics_params.deviceID);
-        free(avionics_params.deviceName);
+        free((void *)avionics_params.deviceID);
+        free((void *)avionics_params.deviceName);
         return nullptr;
       }
     }
@@ -1412,8 +1449,8 @@ PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObject *kwar
   PyObject *avDictsKey = PyLong_FromLong(avionicsCallbacksCntr);
   if(!avDictsKey){
     PyErr_SetString(PyExc_RuntimeError ,"Couldn't create long.\n");
-    free(avionics_params.deviceID);
-    free(avionics_params.deviceName);
+    free((void *)avionics_params.deviceID);
+    free((void *)avionics_params.deviceName);
     return nullptr;
   }
 
@@ -1443,15 +1480,15 @@ PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObject *kwar
   PyObject *avIDCapsule = makeCapsule(avionicsId, "XPLMAvionicsID");
   if(!avIDCapsule){
     PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterAvionicsCallbacksEx failed.\n");
-    free(avionics_params.deviceID);
-    free(avionics_params.deviceName);
+    free((void *)avionics_params.deviceID);
+    free((void *)avionics_params.deviceName);
     return nullptr;
   }
 
   Py_DECREF(avDictsKey);
   errCheck("end createAvionicsEx");
-  free(avionics_params.deviceID);
-  free(avionics_params.deviceName);
+  free((void *)avionics_params.deviceID);
+  free((void *)avionics_params.deviceName);
   return avIDCapsule;
 }
 

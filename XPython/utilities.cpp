@@ -10,6 +10,7 @@
 #include "utils.h"
 #include "utilities.h"
 #include "capsules.h"
+#include "plugin_dl.h"
 
 struct ErrorCallbackInfo {
     PyObject* callback;
@@ -85,6 +86,30 @@ static PyObject *XPLMSpeakStringFun(PyObject *self, PyObject *args, PyObject *kw
   }
   XPLMSpeakString(inString);
   Py_RETURN_NONE;
+}
+
+My_DOCSTR(_returnString__doc__, "returnString",
+          "string",
+          "string:str",
+          "str",
+          "Copy string into the host-managed return slot for the current callback.\n"
+          "This is the only sanctioned way for a `const char *` callback to hand a\n"
+          "string back to X-Plane.");
+static PyObject *XPLMReturnStringFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {CHAR("string"), nullptr};
+
+  (void) self;
+  if(!XPLMReturnString_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMReturnString is available only in XPLM440 and up.");
+    return nullptr;
+  }
+  const char *inString;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &inString)){
+    return nullptr;
+  }
+  const char *res = XPLMReturnString_ptr(inString);
+  return PyUnicode_DecodeUTF8(res, strlen(res), nullptr);
 }
 
 My_DOCSTR(_getVirtualKeyDescription__doc__, "getVirtualKeyDescription",
@@ -818,6 +843,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 static PyMethodDef XPLMUtilitiesMethods[] = {
   {"speakString", (PyCFunction)XPLMSpeakStringFun, METH_VARARGS | METH_KEYWORDS, _speakString__doc__},
   {"XPLMSpeakString", (PyCFunction)XPLMSpeakStringFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"returnString", (PyCFunction)XPLMReturnStringFun, METH_VARARGS | METH_KEYWORDS, _returnString__doc__},
+  {"XPLMReturnString", (PyCFunction)XPLMReturnStringFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"getVirtualKeyDescription", (PyCFunction)XPLMGetVirtualKeyDescriptionFun, METH_VARARGS | METH_KEYWORDS, _getVirtualKeyDescription__doc__},
   {"XPLMGetVirtualKeyDescription", (PyCFunction)XPLMGetVirtualKeyDescriptionFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"reloadScenery", (PyCFunction)XPLMReloadSceneryFun, METH_VARARGS, _reloadScenery__doc__},

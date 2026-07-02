@@ -86,6 +86,7 @@ pthread_t pythonThread = (pthread_t) nullptr;
 
 PyMODINIT_FUNC PyInit_XPLMDefs(void);
 PyMODINIT_FUNC PyInit_XPLMDisplay(void);
+PyMODINIT_FUNC PyInit_XPLMPanelGraphics(void);
 PyMODINIT_FUNC PyInit_XPLMGraphics(void);
 PyMODINIT_FUNC PyInit_XPLMDataAccess(void);
 PyMODINIT_FUNC PyInit_XPLMUtilities(void);
@@ -126,6 +127,7 @@ int initPython(void){
   PyImport_AppendInittab("XPPython", PyInit_XPPython);
   PyImport_AppendInittab("XPLMDefs", PyInit_XPLMDefs);
   PyImport_AppendInittab("XPLMDisplay", PyInit_XPLMDisplay);
+  PyImport_AppendInittab("XPLMPanelGraphics", PyInit_XPLMPanelGraphics);
   PyImport_AppendInittab("XPLMGraphics", PyInit_XPLMGraphics);
   PyImport_AppendInittab("XPLMDataAccess", PyInit_XPLMDataAccess);
   PyImport_AppendInittab("XPLMUtilities", PyInit_XPLMUtilities);

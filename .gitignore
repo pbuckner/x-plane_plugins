@@ -41,6 +41,8 @@ XPython/SDK420/
 XPython/SDK420.sv/
 XPython/SDK430.421/
 XPython/SDK430.v1/
-XPython/SDK430/
+XPython/SDK430
+XPython/SDK440/
+.playwright-mcp/
 .claude/
 CLAUDE.md

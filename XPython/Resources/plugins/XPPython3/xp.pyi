@@ -1965,6 +1965,18 @@ def reloadPlugins() -> None:
         Likely crashes the sim. DO NOT USE.
     """
     ...
+def reloadThisPlugin(forReplacement: int=0) -> None:
+    """
+        Reload *this* (the calling) plugin.
+
+        Once you return from the current callback, this plugin receives its
+        XPluginDisable / XPluginStop callbacks, is unloaded, then started again
+        as if the sim were starting up. If 'forReplacement' is true, a dialog is
+        shown after the .xpl is unloaded so you can swap in a newer one manually.
+
+        New in XPLM440. NOT thread-safe: call only from the main thread, in a callback.
+    """
+    ...
 def sendMessageToPlugin(pluginID: XPLMPluginID, message: int, param: Optional[Any]) -> None:
     """
         Send message to plugin

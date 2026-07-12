@@ -1,8 +1,10 @@
 #define _GNU_SOURCE 1
+#define PY_SSIZE_T_CLEAN   /* required for 'y#' (bytes+length) formats below */
 #include <Python.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstdint>
+#include <unordered_map>
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMPanelGraphics.h>
 #include "utils.h"
@@ -10,762 +12,6 @@
 #include "plugin_dl.h"
 #include "capsules.h"
 
-#define FONT_CAPSULE "XPLMFontHandle"
-
-/* Parse a Python sequence of (x, y) pairs into a malloc'd XPLMVertex_t array.
-   Caller must free() the result. On error, sets an exception and returns nullptr.
-   An empty sequence returns a non-null pointer with *outCount == 0. */
-static XPLMVertex_t *parseVertices(PyObject *verticesObj, Py_ssize_t *outCount)
-{
-  *outCount = 0;
-  PyObject *seq = PySequence_Fast(verticesObj, "vertices must be a sequence of (x, y) pairs");
-  if(!seq){
-    return nullptr;
-  }
-  Py_ssize_t count = PySequence_Fast_GET_SIZE(seq);
-  XPLMVertex_t *vertices = (XPLMVertex_t *)malloc((count ? count : 1) * sizeof(XPLMVertex_t));
-  if(!vertices){
-    Py_DECREF(seq);
-    PyErr_NoMemory();
-    return nullptr;
-  }
-  for(Py_ssize_t i = 0; i < count; i++){
-    PyObject *itemSeq = PySequence_Fast(PySequence_Fast_GET_ITEM(seq, i), "each vertex must be an (x, y) pair");
-    if(!itemSeq || PySequence_Fast_GET_SIZE(itemSeq) < 2){
-      Py_XDECREF(itemSeq);
-      free(vertices);
-      Py_DECREF(seq);
-      PyErr_SetString(PyExc_ValueError, "each vertex must be an (x, y) pair");
-      return nullptr;
-    }
-    vertices[i].x = (float)PyFloat_AsDouble(PySequence_Fast_GET_ITEM(itemSeq, 0));
-    vertices[i].y = (float)PyFloat_AsDouble(PySequence_Fast_GET_ITEM(itemSeq, 1));
-    Py_DECREF(itemSeq);
-  }
-  Py_DECREF(seq);
-  if(PyErr_Occurred()){
-    free(vertices);
-    return nullptr;
-  }
-  *outCount = count;
-  return vertices;
-}
-
-/* Parse a Python sequence of (x, y, color) triples into a malloc'd
-   XPLMVertexColor_t array. Caller must free() the result. */
-static XPLMVertexColor_t *parseVertexColors(PyObject *verticesObj, Py_ssize_t *outCount)
-{
-  *outCount = 0;
-  PyObject *seq = PySequence_Fast(verticesObj, "vertices must be a sequence of (x, y, color) triples");
-  if(!seq){
-    return nullptr;
-  }
-  Py_ssize_t count = PySequence_Fast_GET_SIZE(seq);
-  XPLMVertexColor_t *vertices = (XPLMVertexColor_t *)malloc((count ? count : 1) * sizeof(XPLMVertexColor_t));
-  if(!vertices){
-    Py_DECREF(seq);
-    PyErr_NoMemory();
-    return nullptr;
-  }
-  for(Py_ssize_t i = 0; i < count; i++){
-    PyObject *itemSeq = PySequence_Fast(PySequence_Fast_GET_ITEM(seq, i), "each vertex must be an (x, y, color) triple");
-    if(!itemSeq || PySequence_Fast_GET_SIZE(itemSeq) < 3){
-      Py_XDECREF(itemSeq);
-      free(vertices);
-      Py_DECREF(seq);
-      PyErr_SetString(PyExc_ValueError, "each vertex must be an (x, y, color) triple");
-      return nullptr;
-    }
-    vertices[i].x = (float)PyFloat_AsDouble(PySequence_Fast_GET_ITEM(itemSeq, 0));
-    vertices[i].y = (float)PyFloat_AsDouble(PySequence_Fast_GET_ITEM(itemSeq, 1));
-    vertices[i].color = (uint32_t)PyLong_AsUnsignedLong(PySequence_Fast_GET_ITEM(itemSeq, 2));
-    Py_DECREF(itemSeq);
-  }
-  Py_DECREF(seq);
-  if(PyErr_Occurred()){
-    free(vertices);
-    return nullptr;
-  }
-  *outCount = count;
-  return vertices;
-}
-
-My_DOCSTR(_makeColor__doc__, "makeColor",
-          "red, green, blue, alpha",
-          "red:float, green:float, blue:float, alpha:float",
-          "int",
-          "Pack four float color components (each 0.0-1.0, clamped) into a single\n"
-          "packed color value (ABGR) for use with the panel graphics routines.");
-static PyObject *XPLMMakeColorFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("red"), CHAR("green"), CHAR("blue"), CHAR("alpha"), nullptr};
-  (void) self;
-  float red, green, blue, alpha;
-  if(!XPLMMakeColor_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMMakeColor is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ffff", keywords, &red, &green, &blue, &alpha)){
-    return nullptr;
-  }
-  return PyLong_FromUnsignedLong(XPLMMakeColor_ptr(red, green, blue, alpha));
-}
-
-/* ---- Geometry primitives taking (color, vertices) ---- */
-
-My_DOCSTR(_lines__doc__, "lines",
-          "color, vertices",
-          "color:int, vertices:Sequence[tuple[float, float]]",
-          "None",
-          "Draw disconnected line segments. Each consecutive pair of vertices forms\n"
-          "one segment.");
-static PyObject *XPLMLinesFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("color"), CHAR("vertices"), nullptr};
-  (void) self;
-  unsigned long color;
-  PyObject *verticesObj;
-  if(!XPLMLines_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMLines is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "kO", keywords, &color, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertex_t *v = parseVertices(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMLines_ptr((uint32_t)color, v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_linesWithWidth__doc__, "linesWithWidth",
-          "color, lineWidth, vertices",
-          "color:int, lineWidth:float, vertices:Sequence[tuple[float, float]]",
-          "None",
-          "Draw disconnected line segments with the given line width.");
-static PyObject *XPLMLinesWithWidthFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("color"), CHAR("lineWidth"), CHAR("vertices"), nullptr};
-  (void) self;
-  unsigned long color;
-  float lineWidth;
-  PyObject *verticesObj;
-  if(!XPLMLinesWithWidth_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMLinesWithWidth is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "kfO", keywords, &color, &lineWidth, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertex_t *v = parseVertices(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMLinesWithWidth_ptr((uint32_t)color, lineWidth, v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_lineStrip__doc__, "lineStrip",
-          "color, vertices",
-          "color:int, vertices:Sequence[tuple[float, float]]",
-          "None",
-          "Draw a connected line strip; the last vertex is not closed back.");
-static PyObject *XPLMLineStripFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("color"), CHAR("vertices"), nullptr};
-  (void) self;
-  unsigned long color;
-  PyObject *verticesObj;
-  if(!XPLMLineStrip_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMLineStrip is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "kO", keywords, &color, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertex_t *v = parseVertices(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMLineStrip_ptr((uint32_t)color, v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_lineStripWithWidth__doc__, "lineStripWithWidth",
-          "color, lineWidth, vertices",
-          "color:int, lineWidth:float, vertices:Sequence[tuple[float, float]]",
-          "None",
-          "Draw a connected line strip with the given line width.");
-static PyObject *XPLMLineStripWithWidthFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("color"), CHAR("lineWidth"), CHAR("vertices"), nullptr};
-  (void) self;
-  unsigned long color;
-  float lineWidth;
-  PyObject *verticesObj;
-  if(!XPLMLineStripWithWidth_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMLineStripWithWidth is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "kfO", keywords, &color, &lineWidth, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertex_t *v = parseVertices(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMLineStripWithWidth_ptr((uint32_t)color, lineWidth, v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_lineLoop__doc__, "lineLoop",
-          "color, vertices",
-          "color:int, vertices:Sequence[tuple[float, float]]",
-          "None",
-          "Draw a closed line loop; the last vertex connects back to the first.");
-static PyObject *XPLMLineLoopFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("color"), CHAR("vertices"), nullptr};
-  (void) self;
-  unsigned long color;
-  PyObject *verticesObj;
-  if(!XPLMLineLoop_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMLineLoop is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "kO", keywords, &color, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertex_t *v = parseVertices(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMLineLoop_ptr((uint32_t)color, v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_lineLoopWithWidth__doc__, "lineLoopWithWidth",
-          "color, lineWidth, vertices",
-          "color:int, lineWidth:float, vertices:Sequence[tuple[float, float]]",
-          "None",
-          "Draw a closed line loop with the given line width.");
-static PyObject *XPLMLineLoopWithWidthFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("color"), CHAR("lineWidth"), CHAR("vertices"), nullptr};
-  (void) self;
-  unsigned long color;
-  float lineWidth;
-  PyObject *verticesObj;
-  if(!XPLMLineLoopWithWidth_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMLineLoopWithWidth is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "kfO", keywords, &color, &lineWidth, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertex_t *v = parseVertices(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMLineLoopWithWidth_ptr((uint32_t)color, lineWidth, v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_polygon__doc__, "polygon",
-          "color, vertices",
-          "color:int, vertices:Sequence[tuple[float, float]]",
-          "None",
-          "Draw a filled convex polygon (at least 3 vertices).");
-static PyObject *XPLMPolygonFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("color"), CHAR("vertices"), nullptr};
-  (void) self;
-  unsigned long color;
-  PyObject *verticesObj;
-  if(!XPLMPolygon_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMPolygon is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "kO", keywords, &color, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertex_t *v = parseVertices(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMPolygon_ptr((uint32_t)color, v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_polygonWithWidth__doc__, "polygonWithWidth",
-          "color, lineWidth, vertices",
-          "color:int, lineWidth:float, vertices:Sequence[tuple[float, float]]",
-          "None",
-          "Draw a filled convex polygon with the given outline width.");
-static PyObject *XPLMPolygonWithWidthFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("color"), CHAR("lineWidth"), CHAR("vertices"), nullptr};
-  (void) self;
-  unsigned long color;
-  float lineWidth;
-  PyObject *verticesObj;
-  if(!XPLMPolygonWithWidth_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMPolygonWithWidth is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "kfO", keywords, &color, &lineWidth, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertex_t *v = parseVertices(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMPolygonWithWidth_ptr((uint32_t)color, lineWidth, v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_quadstrip__doc__, "quadstrip",
-          "color, vertices",
-          "color:int, vertices:Sequence[tuple[float, float]]",
-          "None",
-          "Draw a series of connected filled quadrilaterals (count even, >= 4).");
-static PyObject *XPLMQuadstripFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("color"), CHAR("vertices"), nullptr};
-  (void) self;
-  unsigned long color;
-  PyObject *verticesObj;
-  if(!XPLMQuadstrip_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMQuadstrip is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "kO", keywords, &color, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertex_t *v = parseVertices(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMQuadstrip_ptr((uint32_t)color, v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_quadstripWithWidth__doc__, "quadstripWithWidth",
-          "color, lineWidth, vertices",
-          "color:int, lineWidth:float, vertices:Sequence[tuple[float, float]]",
-          "None",
-          "Draw a quad strip with the given outline width.");
-static PyObject *XPLMQuadstripWithWidthFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("color"), CHAR("lineWidth"), CHAR("vertices"), nullptr};
-  (void) self;
-  unsigned long color;
-  float lineWidth;
-  PyObject *verticesObj;
-  if(!XPLMQuadstripWithWidth_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMQuadstripWithWidth is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "kfO", keywords, &color, &lineWidth, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertex_t *v = parseVertices(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMQuadstripWithWidth_ptr((uint32_t)color, lineWidth, v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-/* ---- Stipple (dashed) variants taking (color, vertices, dashLength, lineWidth) ---- */
-
-My_DOCSTR(_linesStipple__doc__, "linesStipple",
-          "color, vertices, dashLength, lineWidth",
-          "color:int, vertices:Sequence[tuple[float, float]], dashLength:float, lineWidth:float",
-          "None",
-          "Draw disconnected dashed line segments.");
-static PyObject *XPLMLinesStippleFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("color"), CHAR("vertices"), CHAR("dashLength"), CHAR("lineWidth"), nullptr};
-  (void) self;
-  unsigned long color;
-  PyObject *verticesObj;
-  float dashLength, lineWidth;
-  if(!XPLMLinesStipple_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMLinesStipple is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "kOff", keywords, &color, &verticesObj, &dashLength, &lineWidth)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertex_t *v = parseVertices(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMLinesStipple_ptr((uint32_t)color, v, (int)count, dashLength, lineWidth);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_lineStripStipple__doc__, "lineStripStipple",
-          "color, vertices, dashLength, lineWidth",
-          "color:int, vertices:Sequence[tuple[float, float]], dashLength:float, lineWidth:float",
-          "None",
-          "Draw a connected dashed line strip.");
-static PyObject *XPLMLineStripStippleFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("color"), CHAR("vertices"), CHAR("dashLength"), CHAR("lineWidth"), nullptr};
-  (void) self;
-  unsigned long color;
-  PyObject *verticesObj;
-  float dashLength, lineWidth;
-  if(!XPLMLineStripStipple_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMLineStripStipple is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "kOff", keywords, &color, &verticesObj, &dashLength, &lineWidth)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertex_t *v = parseVertices(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMLineStripStipple_ptr((uint32_t)color, v, (int)count, dashLength, lineWidth);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_lineLoopStipple__doc__, "lineLoopStipple",
-          "color, vertices, dashLength, lineWidth",
-          "color:int, vertices:Sequence[tuple[float, float]], dashLength:float, lineWidth:float",
-          "None",
-          "Draw a closed dashed line loop.");
-static PyObject *XPLMLineLoopStippleFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("color"), CHAR("vertices"), CHAR("dashLength"), CHAR("lineWidth"), nullptr};
-  (void) self;
-  unsigned long color;
-  PyObject *verticesObj;
-  float dashLength, lineWidth;
-  if(!XPLMLineLoopStipple_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMLineLoopStipple is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "kOff", keywords, &color, &verticesObj, &dashLength, &lineWidth)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertex_t *v = parseVertices(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMLineLoopStipple_ptr((uint32_t)color, v, (int)count, dashLength, lineWidth);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-/* ---- Per-vertex-color variants taking (vertices) ---- */
-
-My_DOCSTR(_linesc__doc__, "linesc",
-          "vertices",
-          "vertices:Sequence[tuple[float, float, int]]",
-          "None",
-          "Draw disconnected line segments with per-vertex colors.");
-static PyObject *XPLMLinescFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("vertices"), nullptr};
-  (void) self;
-  PyObject *verticesObj;
-  if(!XPLMLinesc_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMLinesc is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertexColor_t *v = parseVertexColors(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMLinesc_ptr(v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_lineStripc__doc__, "lineStripc",
-          "vertices",
-          "vertices:Sequence[tuple[float, float, int]]",
-          "None",
-          "Draw a connected line strip with per-vertex colors.");
-static PyObject *XPLMLineStripcFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("vertices"), nullptr};
-  (void) self;
-  PyObject *verticesObj;
-  if(!XPLMLineStripc_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMLineStripc is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertexColor_t *v = parseVertexColors(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMLineStripc_ptr(v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_lineLoopc__doc__, "lineLoopc",
-          "vertices",
-          "vertices:Sequence[tuple[float, float, int]]",
-          "None",
-          "Draw a closed line loop with per-vertex colors.");
-static PyObject *XPLMLineLoopcFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("vertices"), nullptr};
-  (void) self;
-  PyObject *verticesObj;
-  if(!XPLMLineLoopc_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMLineLoopc is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertexColor_t *v = parseVertexColors(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMLineLoopc_ptr(v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_polygonc__doc__, "polygonc",
-          "vertices",
-          "vertices:Sequence[tuple[float, float, int]]",
-          "None",
-          "Draw a filled convex polygon with per-vertex colors.");
-static PyObject *XPLMPolygoncFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("vertices"), nullptr};
-  (void) self;
-  PyObject *verticesObj;
-  if(!XPLMPolygonc_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMPolygonc is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertexColor_t *v = parseVertexColors(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMPolygonc_ptr(v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_quadstripc__doc__, "quadstripc",
-          "vertices",
-          "vertices:Sequence[tuple[float, float, int]]",
-          "None",
-          "Draw a quad strip with per-vertex colors.");
-static PyObject *XPLMQuadstripcFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("vertices"), nullptr};
-  (void) self;
-  PyObject *verticesObj;
-  if(!XPLMQuadstripc_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMQuadstripc is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertexColor_t *v = parseVertexColors(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMQuadstripc_ptr(v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-/* ---- Per-vertex-color width variants taking (lineWidth, vertices) ---- */
-
-My_DOCSTR(_linescWithWidth__doc__, "linescWithWidth",
-          "lineWidth, vertices",
-          "lineWidth:float, vertices:Sequence[tuple[float, float, int]]",
-          "None",
-          "Draw disconnected line segments with per-vertex colors and line width.");
-static PyObject *XPLMLinescWithWidthFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("lineWidth"), CHAR("vertices"), nullptr};
-  (void) self;
-  float lineWidth;
-  PyObject *verticesObj;
-  if(!XPLMLinescWithWidth_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMLinescWithWidth is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "fO", keywords, &lineWidth, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertexColor_t *v = parseVertexColors(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMLinescWithWidth_ptr(lineWidth, v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_lineStripcWithWidth__doc__, "lineStripcWithWidth",
-          "lineWidth, vertices",
-          "lineWidth:float, vertices:Sequence[tuple[float, float, int]]",
-          "None",
-          "Draw a connected line strip with per-vertex colors and line width.");
-static PyObject *XPLMLineStripcWithWidthFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("lineWidth"), CHAR("vertices"), nullptr};
-  (void) self;
-  float lineWidth;
-  PyObject *verticesObj;
-  if(!XPLMLineStripcWithWidth_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMLineStripcWithWidth is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "fO", keywords, &lineWidth, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertexColor_t *v = parseVertexColors(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMLineStripcWithWidth_ptr(lineWidth, v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_lineLoopcWithWidth__doc__, "lineLoopcWithWidth",
-          "lineWidth, vertices",
-          "lineWidth:float, vertices:Sequence[tuple[float, float, int]]",
-          "None",
-          "Draw a closed line loop with per-vertex colors and line width.");
-static PyObject *XPLMLineLoopcWithWidthFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("lineWidth"), CHAR("vertices"), nullptr};
-  (void) self;
-  float lineWidth;
-  PyObject *verticesObj;
-  if(!XPLMLineLoopcWithWidth_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMLineLoopcWithWidth is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "fO", keywords, &lineWidth, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertexColor_t *v = parseVertexColors(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMLineLoopcWithWidth_ptr(lineWidth, v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_polygoncWithWidth__doc__, "polygoncWithWidth",
-          "lineWidth, vertices",
-          "lineWidth:float, vertices:Sequence[tuple[float, float, int]]",
-          "None",
-          "Draw a filled convex polygon with per-vertex colors and outline width.");
-static PyObject *XPLMPolygoncWithWidthFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("lineWidth"), CHAR("vertices"), nullptr};
-  (void) self;
-  float lineWidth;
-  PyObject *verticesObj;
-  if(!XPLMPolygoncWithWidth_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMPolygoncWithWidth is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "fO", keywords, &lineWidth, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertexColor_t *v = parseVertexColors(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMPolygoncWithWidth_ptr(lineWidth, v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_quadstripcWithWidth__doc__, "quadstripcWithWidth",
-          "lineWidth, vertices",
-          "lineWidth:float, vertices:Sequence[tuple[float, float, int]]",
-          "None",
-          "Draw a quad strip with per-vertex colors and outline width.");
-static PyObject *XPLMQuadstripcWithWidthFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("lineWidth"), CHAR("vertices"), nullptr};
-  (void) self;
-  float lineWidth;
-  PyObject *verticesObj;
-  if(!XPLMQuadstripcWithWidth_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMQuadstripcWithWidth is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "fO", keywords, &lineWidth, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertexColor_t *v = parseVertexColors(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMQuadstripcWithWidth_ptr(lineWidth, v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
 
 /* ---- Transform stack ---- */
 
@@ -1004,376 +250,116 @@ static PyObject *XPLMClearStencilMaskFun(PyObject *self, PyObject *args, PyObjec
   Py_RETURN_NONE;
 }
 
-/* ---- Fonts ---- */
+/* ---- Retained drawing ---- */
 
-My_DOCSTR(_createFont__doc__, "createFont",
-          "charset",
-          "charset:int",
-          "XPLMFontHandle",
-          "Create a new font handle for the given character set (one of\n"
-          "CharSetDigits, CharSetASCII, CharSetUnicode). Add one or more TrueType\n"
-          "faces with fontAddFace() before drawing, and destroyFont() when done.");
-static PyObject *XPLMCreateFontFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("charset"), nullptr};
-  (void) self;
-  int charset;
-  if(!XPLMCreateFont_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMCreateFont is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &charset)){
-    return nullptr;
-  }
-  XPLMFontHandle font = XPLMCreateFont_ptr((XPLMCharSet_t)charset);
-  if(!font){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMCreateFont failed.");
-    return nullptr;
-  }
-  return makeCapsule(font, FONT_CAPSULE);
-}
+/* Tracks whether a beginRetainedDrawing() recording is currently open, so we can
+   reject nested begins and unbalanced ends from Python before they reach the SDK
+   (the header warns recording sessions must not be nested). Single main thread,
+   so a plain bool is sufficient. */
+static bool retainedDrawingActive = false;
 
-My_DOCSTR(_destroyFont__doc__, "destroyFont",
-          "font",
-          "font:XPLMFontHandle",
-          "None",
-          "Destroy a font handle created with createFont() and free its resources.");
-static PyObject *XPLMDestroyFontFun(PyObject *self, PyObject *args, PyObject *kwargs)
+My_DOCSTR(_beginRetainedDrawing__doc__, "beginRetainedDrawing",
+          "", "", "None",
+          "Begin recording panel-graphics commands into a retained drawing. All\n"
+          "panel-graphics calls made until endRetainedDrawing() are captured instead\n"
+          "of being drawn immediately. Recording sessions must not be nested.");
+static PyObject *XPLMBeginRetainedDrawingFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {CHAR("font"), nullptr};
-  (void) self;
-  PyObject *fontCapsule;
-  if(!XPLMDestroyFont_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMDestroyFont is available only in XPLM440 and up.");
+  (void) self; (void) args; (void) kwargs;
+  if(!XPLMBeginRetainedDrawing_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMBeginRetainedDrawing is available only in XPLM440 and up.");
     return nullptr;
   }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &fontCapsule)){
+  if(retainedDrawingActive){
+    PyErr_SetString(PyExc_RuntimeError, "beginRetainedDrawing: a retained-drawing recording is already active (sessions must not be nested).");
     return nullptr;
   }
-  XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
-  XPLMDestroyFont_ptr(font);
-  deleteCapsule(fontCapsule);
+  XPLMBeginRetainedDrawing_ptr();
+  retainedDrawingActive = true;
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_fontAddFace__doc__, "fontAddFace",
-          "font, ttf_path",
-          "font:XPLMFontHandle, ttf_path:str",
-          "None",
-          "Add a TrueType (.ttf/.otf) face to a font handle. Multiple faces may be\n"
-          "added to provide fallback glyphs, searched in the order added.");
-static PyObject *XPLMFontAddFaceFun(PyObject *self, PyObject *args, PyObject *kwargs)
+My_DOCSTR(_endRetainedDrawing__doc__, "endRetainedDrawing",
+          "", "", "XPLMRetainedDrawing_t",
+          "End the recording started by beginRetainedDrawing() and return an opaque\n"
+          "handle to the captured commands. Replay it with drawRetained() and free it\n"
+          "with destroyRetainedDrawing(). If a font or texture atlas used during\n"
+          "recording is destroyed, you must destroy the retained drawing as well --\n"
+          "replaying it afterwards references invalid resources.");
+static PyObject *XPLMEndRetainedDrawingFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {CHAR("font"), CHAR("ttf_path"), nullptr};
+  (void) self; (void) args; (void) kwargs;
+  if(!XPLMEndRetainedDrawing_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMEndRetainedDrawing is available only in XPLM440 and up.");
+    return nullptr;
+  }
+  if(!retainedDrawingActive){
+    PyErr_SetString(PyExc_RuntimeError, "endRetainedDrawing: no retained-drawing recording is active (call beginRetainedDrawing() first).");
+    return nullptr;
+  }
+  XPLMRetainedDrawing_t drawing = XPLMEndRetainedDrawing_ptr();
+  retainedDrawingActive = false;
+  return makeCapsule(drawing, RETAINED_CAPSULE);
+}
+
+My_DOCSTR(_drawRetained__doc__, "drawRetained",
+          "drawing",
+          "drawing:XPLMRetainedDrawing_t",
+          "None",
+          "Replay a retained drawing captured with endRetainedDrawing(). May be\n"
+          "called any number of times per frame and across frames to redraw the same\n"
+          "content cheaply.");
+static PyObject *XPLMDrawRetainedFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {CHAR("drawing"), nullptr};
   (void) self;
-  PyObject *fontCapsule;
-  const char *ttfPath;
-  if(!XPLMFontAddFace_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMFontAddFace is available only in XPLM440 and up.");
+  PyObject *drawingCapsule;
+  if(!XPLMDrawRetained_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMDrawRetained is available only in XPLM440 and up.");
     return nullptr;
   }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Os", keywords, &fontCapsule, &ttfPath)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &drawingCapsule)){
     return nullptr;
   }
-  XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
-  XPLMFontAddFace_ptr(font, ttfPath);
+  XPLMRetainedDrawing_t drawing = getVoidPtr(drawingCapsule, RETAINED_CAPSULE);
+  if(!drawing && PyErr_Occurred()){
+    return nullptr;
+  }
+  XPLMDrawRetained_ptr(drawing);
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_fontGetMetrics__doc__, "fontGetMetrics",
-          "font, fontSize",
-          "font:XPLMFontHandle, fontSize:float",
-          "tuple[float, float, float]",
-          "Return (lineHeight, lineAscent, lineDescent) in pixels for the font at\n"
-          "the given size.");
-static PyObject *XPLMFontGetMetricsFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("font"), CHAR("fontSize"), nullptr};
-  (void) self;
-  PyObject *fontCapsule;
-  float fontSize;
-  if(!XPLMFontGetMetrics_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMFontGetMetrics is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Of", keywords, &fontCapsule, &fontSize)){
-    return nullptr;
-  }
-  XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
-  XPLMFontMetrics_t metrics;
-  metrics.structSize = sizeof(XPLMFontMetrics_t);
-  XPLMFontGetMetrics_ptr(font, fontSize, &metrics);
-  return Py_BuildValue("(fff)", metrics.lineHeight, metrics.lineAscent, metrics.lineDescent);
-}
-
-My_DOCSTR(_fontMeasureString__doc__, "fontMeasureString",
-          "font, fontSize, string",
-          "font:XPLMFontHandle, fontSize:float, string:str",
-          "float",
-          "Return the width in pixels the string would occupy if drawn. The string\n"
-          "is not drawn.");
-static PyObject *XPLMFontMeasureStringFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("font"), CHAR("fontSize"), CHAR("string"), nullptr};
-  (void) self;
-  PyObject *fontCapsule;
-  float fontSize;
-  const char *string;
-  if(!XPLMFontMeasureString_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMFontMeasureString is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Ofs", keywords, &fontCapsule, &fontSize, &string)){
-    return nullptr;
-  }
-  XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
-  return PyFloat_FromDouble(XPLMFontMeasureString_ptr(font, fontSize, string));
-}
-
-My_DOCSTR(_fontGetLineCount__doc__, "fontGetLineCount",
-          "font, fontSize, string, width",
-          "font:XPLMFontHandle, fontSize:float, string:str, width:float",
-          "int",
-          "Return how many lines the string would occupy if word-wrapped to width.");
-static PyObject *XPLMFontGetLineCountFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("font"), CHAR("fontSize"), CHAR("string"), CHAR("width"), nullptr};
-  (void) self;
-  PyObject *fontCapsule;
-  float fontSize, width;
-  const char *string;
-  if(!XPLMFontGetLineCount_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMFontGetLineCount is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Ofsf", keywords, &fontCapsule, &fontSize, &string, &width)){
-    return nullptr;
-  }
-  XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
-  return PyLong_FromLong(XPLMFontGetLineCount_ptr(font, fontSize, string, width));
-}
-
-My_DOCSTR(_fontFitForward__doc__, "fontFitForward",
-          "font, fontSize, string, width",
-          "font:XPLMFontHandle, fontSize:float, string:str, width:float",
-          "int",
-          "Return the number of characters from the start of the string that fit\n"
-          "within width, measured left to right.");
-static PyObject *XPLMFontFitForwardFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("font"), CHAR("fontSize"), CHAR("string"), CHAR("width"), nullptr};
-  (void) self;
-  PyObject *fontCapsule;
-  float fontSize, width;
-  const char *string;
-  if(!XPLMFontFitForward_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMFontFitForward is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Ofsf", keywords, &fontCapsule, &fontSize, &string, &width)){
-    return nullptr;
-  }
-  XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
-  return PyLong_FromLong(XPLMFontFitForward_ptr(font, fontSize, string, width));
-}
-
-My_DOCSTR(_fontFitReverse__doc__, "fontFitReverse",
-          "font, fontSize, string, width",
-          "font:XPLMFontHandle, fontSize:float, string:str, width:float",
-          "int",
-          "Return the START INDEX of the longest suffix that fits within width,\n"
-          "measured right to left; the fitting tail is string[index:]. (The SDK\n"
-          "header calls this a character count, but it returns an index: 0 when\n"
-          "the whole string fits, len(string) when nothing fits. Trailing-char\n"
-          "count = len(string) - index.)");
-static PyObject *XPLMFontFitReverseFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("font"), CHAR("fontSize"), CHAR("string"), CHAR("width"), nullptr};
-  (void) self;
-  PyObject *fontCapsule;
-  float fontSize, width;
-  const char *string;
-  if(!XPLMFontFitReverse_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMFontFitReverse is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Ofsf", keywords, &fontCapsule, &fontSize, &string, &width)){
-    return nullptr;
-  }
-  XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
-  return PyLong_FromLong(XPLMFontFitReverse_ptr(font, fontSize, string, width));
-}
-
-My_DOCSTR(_fontDrawString__doc__, "fontDrawString",
-          "font, color, fontSize, x, y, string, justification",
-          "font:XPLMFontHandle, color:int, fontSize:float, x:float, y:float, string:str, justification:int",
+My_DOCSTR(_destroyRetainedDrawing__doc__, "destroyRetainedDrawing",
+          "drawing",
+          "drawing:XPLMRetainedDrawing_t",
           "None",
-          "Draw a string at (x, y) (the baseline anchor) with the given font, size,\n"
-          "packed color, and justification (JustLeft, JustCenter, JustRight).");
-static PyObject *XPLMFontDrawStringFun(PyObject *self, PyObject *args, PyObject *kwargs)
+          "Destroy a retained drawing captured with endRetainedDrawing() and free its\n"
+          "resources. The handle must not be used after this call.");
+static PyObject *XPLMDestroyRetainedDrawingFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {CHAR("font"), CHAR("color"), CHAR("fontSize"), CHAR("x"), CHAR("y"),
-                             CHAR("string"), CHAR("justification"), nullptr};
+  static char *keywords[] = {CHAR("drawing"), nullptr};
   (void) self;
-  PyObject *fontCapsule;
-  unsigned long color;
-  float fontSize, x, y;
-  const char *string;
-  int justification;
-  if(!XPLMFontDrawString_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMFontDrawString is available only in XPLM440 and up.");
+  PyObject *drawingCapsule;
+  if(!XPLMDestroyRetainedDrawing_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMDestroyRetainedDrawing is available only in XPLM440 and up.");
     return nullptr;
   }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Okfffsi", keywords,
-                                  &fontCapsule, &color, &fontSize, &x, &y, &string, &justification)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &drawingCapsule)){
     return nullptr;
   }
-  XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
-  XPLMFontDrawString_ptr(font, (uint32_t)color, fontSize, x, y, string, (XPLMJustification_t)justification);
+  XPLMRetainedDrawing_t drawing = getVoidPtr(drawingCapsule, RETAINED_CAPSULE);
+  if(!drawing && PyErr_Occurred()){
+    return nullptr;
+  }
+  XPLMDestroyRetainedDrawing_ptr(drawing);
+  deleteCapsule(drawingCapsule);
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_fontDrawStringFixedSpacing__doc__, "fontDrawStringFixedSpacing",
-          "font, color, fontSize, x, y, string, fixedSpacing, justification",
-          "font:XPLMFontHandle, color:int, fontSize:float, x:float, y:float, string:str, fixedSpacing:int, justification:int",
-          "None",
-          "Draw a string using fixed per-character spacing (in pixels) instead of\n"
-          "the font's natural proportional spacing. Useful for numeric readouts.");
-static PyObject *XPLMFontDrawStringFixedSpacingFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("font"), CHAR("color"), CHAR("fontSize"), CHAR("x"), CHAR("y"),
-                             CHAR("string"), CHAR("fixedSpacing"), CHAR("justification"), nullptr};
-  (void) self;
-  PyObject *fontCapsule;
-  unsigned long color;
-  float fontSize, x, y;
-  const char *string;
-  int fixedSpacing, justification;
-  if(!XPLMFontDrawStringFixedSpacing_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMFontDrawStringFixedSpacing is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Okfffsii", keywords,
-                                  &fontCapsule, &color, &fontSize, &x, &y, &string, &fixedSpacing, &justification)){
-    return nullptr;
-  }
-  XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
-  XPLMFontDrawStringFixedSpacing_ptr(font, (uint32_t)color, fontSize, x, y, string, fixedSpacing,
-                                     (XPLMJustification_t)justification);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_fontDrawStringWordWrapped__doc__, "fontDrawStringWordWrapped",
-          "font, color, fontSize, x, y, string, wrapWidth, justification",
-          "font:XPLMFontHandle, color:int, fontSize:float, x:float, y:float, string:str, wrapWidth:int, justification:int",
-          "None",
-          "Draw a string with automatic word wrapping at wrapWidth pixels. Lines\n"
-          "stack downward from the initial y position by the font's line height.");
-static PyObject *XPLMFontDrawStringWordWrappedFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("font"), CHAR("color"), CHAR("fontSize"), CHAR("x"), CHAR("y"),
-                             CHAR("string"), CHAR("wrapWidth"), CHAR("justification"), nullptr};
-  (void) self;
-  PyObject *fontCapsule;
-  unsigned long color;
-  float fontSize, x, y;
-  const char *string;
-  int wrapWidth, justification;
-  if(!XPLMFontDrawStringWordWrapped_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMFontDrawStringWordWrapped is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Okfffsii", keywords,
-                                  &fontCapsule, &color, &fontSize, &x, &y, &string, &wrapWidth, &justification)){
-    return nullptr;
-  }
-  XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
-  XPLMFontDrawStringWordWrapped_ptr(font, (uint32_t)color, fontSize, x, y, string, wrapWidth,
-                                    (XPLMJustification_t)justification);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_fontDrawStringRotated__doc__, "fontDrawStringRotated",
-          "font, color, fontSize, x, y, string, angle, justification",
-          "font:XPLMFontHandle, color:int, fontSize:float, x:float, y:float, string:str, angle:float, justification:int",
-          "None",
-          "Draw a string rotated by angle degrees (positive counterclockwise)\n"
-          "around the (x, y) anchor point.");
-static PyObject *XPLMFontDrawStringRotatedFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("font"), CHAR("color"), CHAR("fontSize"), CHAR("x"), CHAR("y"),
-                             CHAR("string"), CHAR("angle"), CHAR("justification"), nullptr};
-  (void) self;
-  PyObject *fontCapsule;
-  unsigned long color;
-  float fontSize, x, y, angle;
-  const char *string;
-  int justification;
-  if(!XPLMFontDrawStringRotated_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMFontDrawStringRotated is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Okfffsfi", keywords,
-                                  &fontCapsule, &color, &fontSize, &x, &y, &string, &angle, &justification)){
-    return nullptr;
-  }
-  XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
-  XPLMFontDrawStringRotated_ptr(font, (uint32_t)color, fontSize, x, y, string, angle,
-                                (XPLMJustification_t)justification);
-  Py_RETURN_NONE;
-}
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-function-type"
 static PyMethodDef XPLMPanelGraphicsMethods[] = {
-  {"makeColor", (PyCFunction)XPLMMakeColorFun, METH_VARARGS | METH_KEYWORDS, _makeColor__doc__},
-  {"XPLMMakeColor", (PyCFunction)XPLMMakeColorFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"lines", (PyCFunction)XPLMLinesFun, METH_VARARGS | METH_KEYWORDS, _lines__doc__},
-  {"XPLMLines", (PyCFunction)XPLMLinesFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"linesWithWidth", (PyCFunction)XPLMLinesWithWidthFun, METH_VARARGS | METH_KEYWORDS, _linesWithWidth__doc__},
-  {"XPLMLinesWithWidth", (PyCFunction)XPLMLinesWithWidthFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"linesStipple", (PyCFunction)XPLMLinesStippleFun, METH_VARARGS | METH_KEYWORDS, _linesStipple__doc__},
-  {"XPLMLinesStipple", (PyCFunction)XPLMLinesStippleFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"linesc", (PyCFunction)XPLMLinescFun, METH_VARARGS | METH_KEYWORDS, _linesc__doc__},
-  {"XPLMLinesc", (PyCFunction)XPLMLinescFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"linescWithWidth", (PyCFunction)XPLMLinescWithWidthFun, METH_VARARGS | METH_KEYWORDS, _linescWithWidth__doc__},
-  {"XPLMLinescWithWidth", (PyCFunction)XPLMLinescWithWidthFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"lineStrip", (PyCFunction)XPLMLineStripFun, METH_VARARGS | METH_KEYWORDS, _lineStrip__doc__},
-  {"XPLMLineStrip", (PyCFunction)XPLMLineStripFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"lineStripWithWidth", (PyCFunction)XPLMLineStripWithWidthFun, METH_VARARGS | METH_KEYWORDS, _lineStripWithWidth__doc__},
-  {"XPLMLineStripWithWidth", (PyCFunction)XPLMLineStripWithWidthFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"lineStripc", (PyCFunction)XPLMLineStripcFun, METH_VARARGS | METH_KEYWORDS, _lineStripc__doc__},
-  {"XPLMLineStripc", (PyCFunction)XPLMLineStripcFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"lineStripcWithWidth", (PyCFunction)XPLMLineStripcWithWidthFun, METH_VARARGS | METH_KEYWORDS, _lineStripcWithWidth__doc__},
-  {"XPLMLineStripcWithWidth", (PyCFunction)XPLMLineStripcWithWidthFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"lineStripStipple", (PyCFunction)XPLMLineStripStippleFun, METH_VARARGS | METH_KEYWORDS, _lineStripStipple__doc__},
-  {"XPLMLineStripStipple", (PyCFunction)XPLMLineStripStippleFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"lineLoop", (PyCFunction)XPLMLineLoopFun, METH_VARARGS | METH_KEYWORDS, _lineLoop__doc__},
-  {"XPLMLineLoop", (PyCFunction)XPLMLineLoopFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"lineLoopWithWidth", (PyCFunction)XPLMLineLoopWithWidthFun, METH_VARARGS | METH_KEYWORDS, _lineLoopWithWidth__doc__},
-  {"XPLMLineLoopWithWidth", (PyCFunction)XPLMLineLoopWithWidthFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"lineLoopc", (PyCFunction)XPLMLineLoopcFun, METH_VARARGS | METH_KEYWORDS, _lineLoopc__doc__},
-  {"XPLMLineLoopc", (PyCFunction)XPLMLineLoopcFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"lineLoopcWithWidth", (PyCFunction)XPLMLineLoopcWithWidthFun, METH_VARARGS | METH_KEYWORDS, _lineLoopcWithWidth__doc__},
-  {"XPLMLineLoopcWithWidth", (PyCFunction)XPLMLineLoopcWithWidthFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"lineLoopStipple", (PyCFunction)XPLMLineLoopStippleFun, METH_VARARGS | METH_KEYWORDS, _lineLoopStipple__doc__},
-  {"XPLMLineLoopStipple", (PyCFunction)XPLMLineLoopStippleFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"polygon", (PyCFunction)XPLMPolygonFun, METH_VARARGS | METH_KEYWORDS, _polygon__doc__},
-  {"XPLMPolygon", (PyCFunction)XPLMPolygonFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"polygonWithWidth", (PyCFunction)XPLMPolygonWithWidthFun, METH_VARARGS | METH_KEYWORDS, _polygonWithWidth__doc__},
-  {"XPLMPolygonWithWidth", (PyCFunction)XPLMPolygonWithWidthFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"polygonc", (PyCFunction)XPLMPolygoncFun, METH_VARARGS | METH_KEYWORDS, _polygonc__doc__},
-  {"XPLMPolygonc", (PyCFunction)XPLMPolygoncFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"polygoncWithWidth", (PyCFunction)XPLMPolygoncWithWidthFun, METH_VARARGS | METH_KEYWORDS, _polygoncWithWidth__doc__},
-  {"XPLMPolygoncWithWidth", (PyCFunction)XPLMPolygoncWithWidthFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"quadstrip", (PyCFunction)XPLMQuadstripFun, METH_VARARGS | METH_KEYWORDS, _quadstrip__doc__},
-  {"XPLMQuadstrip", (PyCFunction)XPLMQuadstripFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"quadstripWithWidth", (PyCFunction)XPLMQuadstripWithWidthFun, METH_VARARGS | METH_KEYWORDS, _quadstripWithWidth__doc__},
-  {"XPLMQuadstripWithWidth", (PyCFunction)XPLMQuadstripWithWidthFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"quadstripc", (PyCFunction)XPLMQuadstripcFun, METH_VARARGS | METH_KEYWORDS, _quadstripc__doc__},
-  {"XPLMQuadstripc", (PyCFunction)XPLMQuadstripcFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"quadstripcWithWidth", (PyCFunction)XPLMQuadstripcWithWidthFun, METH_VARARGS | METH_KEYWORDS, _quadstripcWithWidth__doc__},
-  {"XPLMQuadstripcWithWidth", (PyCFunction)XPLMQuadstripcWithWidthFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"transformPush", (PyCFunction)XPLMTransformPushFun, METH_VARARGS | METH_KEYWORDS, _transformPush__doc__},
   {"XPLMTransformPush", (PyCFunction)XPLMTransformPushFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"transformPop", (PyCFunction)XPLMTransformPopFun, METH_VARARGS | METH_KEYWORDS, _transformPop__doc__},
@@ -1400,30 +386,14 @@ static PyMethodDef XPLMPanelGraphicsMethods[] = {
   {"XPLMUseStencilMask", (PyCFunction)XPLMUseStencilMaskFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"clearStencilMask", (PyCFunction)XPLMClearStencilMaskFun, METH_VARARGS | METH_KEYWORDS, _clearStencilMask__doc__},
   {"XPLMClearStencilMask", (PyCFunction)XPLMClearStencilMaskFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"createFont", (PyCFunction)XPLMCreateFontFun, METH_VARARGS | METH_KEYWORDS, _createFont__doc__},
-  {"XPLMCreateFont", (PyCFunction)XPLMCreateFontFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"destroyFont", (PyCFunction)XPLMDestroyFontFun, METH_VARARGS | METH_KEYWORDS, _destroyFont__doc__},
-  {"XPLMDestroyFont", (PyCFunction)XPLMDestroyFontFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"fontAddFace", (PyCFunction)XPLMFontAddFaceFun, METH_VARARGS | METH_KEYWORDS, _fontAddFace__doc__},
-  {"XPLMFontAddFace", (PyCFunction)XPLMFontAddFaceFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"fontGetMetrics", (PyCFunction)XPLMFontGetMetricsFun, METH_VARARGS | METH_KEYWORDS, _fontGetMetrics__doc__},
-  {"XPLMFontGetMetrics", (PyCFunction)XPLMFontGetMetricsFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"fontMeasureString", (PyCFunction)XPLMFontMeasureStringFun, METH_VARARGS | METH_KEYWORDS, _fontMeasureString__doc__},
-  {"XPLMFontMeasureString", (PyCFunction)XPLMFontMeasureStringFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"fontGetLineCount", (PyCFunction)XPLMFontGetLineCountFun, METH_VARARGS | METH_KEYWORDS, _fontGetLineCount__doc__},
-  {"XPLMFontGetLineCount", (PyCFunction)XPLMFontGetLineCountFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"fontFitForward", (PyCFunction)XPLMFontFitForwardFun, METH_VARARGS | METH_KEYWORDS, _fontFitForward__doc__},
-  {"XPLMFontFitForward", (PyCFunction)XPLMFontFitForwardFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"fontFitReverse", (PyCFunction)XPLMFontFitReverseFun, METH_VARARGS | METH_KEYWORDS, _fontFitReverse__doc__},
-  {"XPLMFontFitReverse", (PyCFunction)XPLMFontFitReverseFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"fontDrawString", (PyCFunction)XPLMFontDrawStringFun, METH_VARARGS | METH_KEYWORDS, _fontDrawString__doc__},
-  {"XPLMFontDrawString", (PyCFunction)XPLMFontDrawStringFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"fontDrawStringFixedSpacing", (PyCFunction)XPLMFontDrawStringFixedSpacingFun, METH_VARARGS | METH_KEYWORDS, _fontDrawStringFixedSpacing__doc__},
-  {"XPLMFontDrawStringFixedSpacing", (PyCFunction)XPLMFontDrawStringFixedSpacingFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"fontDrawStringWordWrapped", (PyCFunction)XPLMFontDrawStringWordWrappedFun, METH_VARARGS | METH_KEYWORDS, _fontDrawStringWordWrapped__doc__},
-  {"XPLMFontDrawStringWordWrapped", (PyCFunction)XPLMFontDrawStringWordWrappedFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"fontDrawStringRotated", (PyCFunction)XPLMFontDrawStringRotatedFun, METH_VARARGS | METH_KEYWORDS, _fontDrawStringRotated__doc__},
-  {"XPLMFontDrawStringRotated", (PyCFunction)XPLMFontDrawStringRotatedFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"beginRetainedDrawing", (PyCFunction)XPLMBeginRetainedDrawingFun, METH_VARARGS | METH_KEYWORDS, _beginRetainedDrawing__doc__},
+  {"XPLMBeginRetainedDrawing", (PyCFunction)XPLMBeginRetainedDrawingFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"endRetainedDrawing", (PyCFunction)XPLMEndRetainedDrawingFun, METH_VARARGS | METH_KEYWORDS, _endRetainedDrawing__doc__},
+  {"XPLMEndRetainedDrawing", (PyCFunction)XPLMEndRetainedDrawingFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"drawRetained", (PyCFunction)XPLMDrawRetainedFun, METH_VARARGS | METH_KEYWORDS, _drawRetained__doc__},
+  {"XPLMDrawRetained", (PyCFunction)XPLMDrawRetainedFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"destroyRetainedDrawing", (PyCFunction)XPLMDestroyRetainedDrawingFun, METH_VARARGS | METH_KEYWORDS, _destroyRetainedDrawing__doc__},
+  {"XPLMDestroyRetainedDrawing", (PyCFunction)XPLMDestroyRetainedDrawingFun, METH_VARARGS | METH_KEYWORDS, ""},
   {nullptr, nullptr, 0, nullptr}
 };
 #pragma GCC diagnostic pop
@@ -1450,6 +420,14 @@ PyInit_XPLMPanelGraphics(void)
   if(mod){
     PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
 
+    /* Merge the method-table fragments defined in the sibling
+       panel_graphics_*.cpp files. */
+    PyModule_AddFunctions(mod, panelGraphicsPrimitivesMethods);
+    PyModule_AddFunctions(mod, panelGraphicsFontMethods);
+    PyModule_AddFunctions(mod, panelGraphicsTextureMethods);
+    PyModule_AddFunctions(mod, panelGraphicsDisplayMethods);
+    PyModule_AddFunctions(mod, panelGraphicsTouchMethods);
+
     /* XPLMCharSet_t */
     PyModule_AddIntConstant(mod, "xplm_CharSetDigits", xplm_CharSetDigits);
     PyModule_AddIntConstant(mod, "xplm_CharSetASCII", xplm_CharSetASCII);
@@ -1457,6 +435,58 @@ PyInit_XPLMPanelGraphics(void)
     PyModule_AddIntConstant(mod, "CharSetDigits", xplm_CharSetDigits);
     PyModule_AddIntConstant(mod, "CharSetASCII", xplm_CharSetASCII);
     PyModule_AddIntConstant(mod, "CharSetUnicode", xplm_CharSetUnicode);
+
+    /* XPLMTextureSource */
+    PyModule_AddIntConstant(mod, "xplm_Texture_WeatherRadar1", xplm_Texture_WeatherRadar1);
+    PyModule_AddIntConstant(mod, "xplm_Texture_WeatherRadar2", xplm_Texture_WeatherRadar2);
+    PyModule_AddIntConstant(mod, "Texture_WeatherRadar1", xplm_Texture_WeatherRadar1);
+    PyModule_AddIntConstant(mod, "Texture_WeatherRadar2", xplm_Texture_WeatherRadar2);
+
+    /* XPLMSVTFeatures */
+    PyModule_AddIntConstant(mod, "xplm_SVT_Terrain", xplm_SVT_Terrain);
+    PyModule_AddIntConstant(mod, "xplm_SVT_Runways", xplm_SVT_Runways);
+    PyModule_AddIntConstant(mod, "xplm_SVT_Obstacles", xplm_SVT_Obstacles);
+    PyModule_AddIntConstant(mod, "xplm_SVT_FlightPath", xplm_SVT_FlightPath);
+    PyModule_AddIntConstant(mod, "xplm_SVT_Traffic", xplm_SVT_Traffic);
+    PyModule_AddIntConstant(mod, "xplm_SVT_AirportSigns", xplm_SVT_AirportSigns);
+    PyModule_AddIntConstant(mod, "xplm_SVT_ILSHoops", xplm_SVT_ILSHoops);
+    PyModule_AddIntConstant(mod, "xplm_SVT_HorizonHeading", xplm_SVT_HorizonHeading);
+    PyModule_AddIntConstant(mod, "xplm_SVT_All", xplm_SVT_All);
+    PyModule_AddIntConstant(mod, "SVT_Terrain", xplm_SVT_Terrain);
+    PyModule_AddIntConstant(mod, "SVT_Runways", xplm_SVT_Runways);
+    PyModule_AddIntConstant(mod, "SVT_Obstacles", xplm_SVT_Obstacles);
+    PyModule_AddIntConstant(mod, "SVT_FlightPath", xplm_SVT_FlightPath);
+    PyModule_AddIntConstant(mod, "SVT_Traffic", xplm_SVT_Traffic);
+    PyModule_AddIntConstant(mod, "SVT_AirportSigns", xplm_SVT_AirportSigns);
+    PyModule_AddIntConstant(mod, "SVT_ILSHoops", xplm_SVT_ILSHoops);
+    PyModule_AddIntConstant(mod, "SVT_HorizonHeading", xplm_SVT_HorizonHeading);
+    PyModule_AddIntConstant(mod, "SVT_All", xplm_SVT_All);
+
+    /* XPLMMapLayers */
+    PyModule_AddIntConstant(mod, "xplm_Map_Nexrad", xplm_Map_Nexrad);
+    PyModule_AddIntConstant(mod, "xplm_Map_IR", xplm_Map_IR);
+    PyModule_AddIntConstant(mod, "xplm_Map_Topo", xplm_Map_Topo);
+    PyModule_AddIntConstant(mod, "xplm_Map_Terrain", xplm_Map_Terrain);
+    PyModule_AddIntConstant(mod, "xplm_Map_Water", xplm_Map_Water);
+    PyModule_AddIntConstant(mod, "xplm_Map_EGPWS", xplm_Map_EGPWS);
+    PyModule_AddIntConstant(mod, "xplm_Map_raw_elev", xplm_Map_raw_elev);
+    PyModule_AddIntConstant(mod, "xplm_Map_safe_taxi", xplm_Map_safe_taxi);
+    PyModule_AddIntConstant(mod, "Map_Nexrad", xplm_Map_Nexrad);
+    PyModule_AddIntConstant(mod, "Map_IR", xplm_Map_IR);
+    PyModule_AddIntConstant(mod, "Map_Topo", xplm_Map_Topo);
+    PyModule_AddIntConstant(mod, "Map_Terrain", xplm_Map_Terrain);
+    PyModule_AddIntConstant(mod, "Map_Water", xplm_Map_Water);
+    PyModule_AddIntConstant(mod, "Map_EGPWS", xplm_Map_EGPWS);
+    PyModule_AddIntConstant(mod, "Map_raw_elev", xplm_Map_raw_elev);
+    PyModule_AddIntConstant(mod, "Map_safe_taxi", xplm_Map_safe_taxi);
+
+    /* XPLMTouchZone */
+    PyModule_AddIntConstant(mod, "xplm_TouchZone_Nothing", xplm_TouchZone_Nothing);
+    PyModule_AddIntConstant(mod, "xplm_TouchZone_Command", xplm_TouchZone_Command);
+    PyModule_AddIntConstant(mod, "xplm_TouchZone_Identifier", xplm_TouchZone_Identifier);
+    PyModule_AddIntConstant(mod, "TouchZone_Nothing", xplm_TouchZone_Nothing);
+    PyModule_AddIntConstant(mod, "TouchZone_Command", xplm_TouchZone_Command);
+    PyModule_AddIntConstant(mod, "TouchZone_Identifier", xplm_TouchZone_Identifier);
 
     /* XPLMJustification_t */
     PyModule_AddIntConstant(mod, "xplm_JustLeft", xplm_JustLeft);

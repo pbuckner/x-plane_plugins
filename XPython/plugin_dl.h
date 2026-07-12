@@ -13,6 +13,7 @@
 #include <XPLM/XPLMMap.h>
 #include <XPLM/XPLMDisplay.h>
 #include <XPLM/XPLMPanelGraphics.h>
+#include <XPLM/XPLMPlugin.h>
 #include <XPLM/XPLMPlanes.h>
 #include <XPLM/XPLMWeather.h>
 #include <XPLM/XPLMNavigation.h>
@@ -195,6 +196,40 @@ PLUGIN_DLL(XPLMFontDrawString);
 PLUGIN_DLL(XPLMFontDrawStringFixedSpacing);
 PLUGIN_DLL(XPLMFontDrawStringWordWrapped);
 PLUGIN_DLL(XPLMFontDrawStringRotated);
+PLUGIN_DLL(XPLMCreateTextureAtlas);
+PLUGIN_DLL(XPLMDestroyTextureAtlas);
+PLUGIN_DLL(XPLMTextureAtlasAddImageFile);
+PLUGIN_DLL(XPLMTextureAtlasAddImageFileSet);
+PLUGIN_DLL(XPLMTextureAtlasAddImage);
+PLUGIN_DLL(XPLMTextureAtlasAddImageSet);
+PLUGIN_DLL(XPLMTextureAtlasBake);
+PLUGIN_DLL(XPLMTextureAtlasGetImageWidth);
+PLUGIN_DLL(XPLMTextureAtlasGetImageHeight);
+PLUGIN_DLL(XPLMTextureAtlasGetImageUVMap);
+PLUGIN_DLL(XPLMTextureAtlasDrawAt);
+PLUGIN_DLL(XPLMTextureAtlasDrawIn);
+PLUGIN_DLL(XPLMTextureAtlasDrawStretched);
+PLUGIN_DLL(XPLMTextureAtlasDrawScaled);
+PLUGIN_DLL(XPLMTextureAtlasDrawMesh);
+PLUGIN_DLL(XPLMTextureSourceDrawIn);
+PLUGIN_DLL(XPLMTextureSourceDrawMesh);
+PLUGIN_DLL(XPLMBeginRetainedDrawing);
+PLUGIN_DLL(XPLMEndRetainedDrawing);
+PLUGIN_DLL(XPLMDrawRetained);
+PLUGIN_DLL(XPLMDestroyRetainedDrawing);
+PLUGIN_DLL(XPLMCreateSVTDisplay);
+PLUGIN_DLL(XPLMDestroySVTDisplay);
+PLUGIN_DLL(XPLMSVTDisplayDrawIn);
+PLUGIN_DLL(XPLMCreateMapDisplay);
+PLUGIN_DLL(XPLMDestroyMapDisplay);
+PLUGIN_DLL(XPLMMapDisplayDrawIn);
+PLUGIN_DLL(XPLMCreateTexture);
+PLUGIN_DLL(XPLMDestroyTexture);
+PLUGIN_DLL(XPLMDrawCalls);
+PLUGIN_DLL(XPLMAccumulateTouchZone);
+PLUGIN_DLL(XPLMAvionicsSetTouchEventHandler);
+PLUGIN_DLL(XPLMWindowSetTouchEventHandler);
+PLUGIN_DLL(XPLMReloadThisPlugin);
 
 bool loadSDKFunctions(void);
 

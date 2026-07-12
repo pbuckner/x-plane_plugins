@@ -10,6 +10,7 @@
 #include <XPLM/XPLMScenery.h>
 #include <XPLM/XPLMMenus.h>
 
+#include <XPLM/XPLMPlugin.h>
 #include <XPLM/XPLMInstance.h>
 #include <XPLM/XPLMMap.h>
 #include <XPLM/XPLMDisplay.h>
@@ -326,6 +327,40 @@ typeof(XPLMFontDrawString) *XPLMFontDrawString_ptr = nullptr;
 typeof(XPLMFontDrawStringFixedSpacing) *XPLMFontDrawStringFixedSpacing_ptr = nullptr;
 typeof(XPLMFontDrawStringWordWrapped) *XPLMFontDrawStringWordWrapped_ptr = nullptr;
 typeof(XPLMFontDrawStringRotated) *XPLMFontDrawStringRotated_ptr = nullptr;
+typeof(XPLMCreateTextureAtlas) *XPLMCreateTextureAtlas_ptr = nullptr;
+typeof(XPLMDestroyTextureAtlas) *XPLMDestroyTextureAtlas_ptr = nullptr;
+typeof(XPLMTextureAtlasAddImageFile) *XPLMTextureAtlasAddImageFile_ptr = nullptr;
+typeof(XPLMTextureAtlasAddImageFileSet) *XPLMTextureAtlasAddImageFileSet_ptr = nullptr;
+typeof(XPLMTextureAtlasAddImage) *XPLMTextureAtlasAddImage_ptr = nullptr;
+typeof(XPLMTextureAtlasAddImageSet) *XPLMTextureAtlasAddImageSet_ptr = nullptr;
+typeof(XPLMTextureAtlasBake) *XPLMTextureAtlasBake_ptr = nullptr;
+typeof(XPLMTextureAtlasGetImageWidth) *XPLMTextureAtlasGetImageWidth_ptr = nullptr;
+typeof(XPLMTextureAtlasGetImageHeight) *XPLMTextureAtlasGetImageHeight_ptr = nullptr;
+typeof(XPLMTextureAtlasGetImageUVMap) *XPLMTextureAtlasGetImageUVMap_ptr = nullptr;
+typeof(XPLMTextureAtlasDrawAt) *XPLMTextureAtlasDrawAt_ptr = nullptr;
+typeof(XPLMTextureAtlasDrawIn) *XPLMTextureAtlasDrawIn_ptr = nullptr;
+typeof(XPLMTextureAtlasDrawStretched) *XPLMTextureAtlasDrawStretched_ptr = nullptr;
+typeof(XPLMTextureAtlasDrawScaled) *XPLMTextureAtlasDrawScaled_ptr = nullptr;
+typeof(XPLMTextureAtlasDrawMesh) *XPLMTextureAtlasDrawMesh_ptr = nullptr;
+typeof(XPLMTextureSourceDrawIn) *XPLMTextureSourceDrawIn_ptr = nullptr;
+typeof(XPLMTextureSourceDrawMesh) *XPLMTextureSourceDrawMesh_ptr = nullptr;
+typeof(XPLMBeginRetainedDrawing) *XPLMBeginRetainedDrawing_ptr = nullptr;
+typeof(XPLMEndRetainedDrawing) *XPLMEndRetainedDrawing_ptr = nullptr;
+typeof(XPLMDrawRetained) *XPLMDrawRetained_ptr = nullptr;
+typeof(XPLMDestroyRetainedDrawing) *XPLMDestroyRetainedDrawing_ptr = nullptr;
+typeof(XPLMCreateSVTDisplay) *XPLMCreateSVTDisplay_ptr = nullptr;
+typeof(XPLMDestroySVTDisplay) *XPLMDestroySVTDisplay_ptr = nullptr;
+typeof(XPLMSVTDisplayDrawIn) *XPLMSVTDisplayDrawIn_ptr = nullptr;
+typeof(XPLMCreateMapDisplay) *XPLMCreateMapDisplay_ptr = nullptr;
+typeof(XPLMDestroyMapDisplay) *XPLMDestroyMapDisplay_ptr = nullptr;
+typeof(XPLMMapDisplayDrawIn) *XPLMMapDisplayDrawIn_ptr = nullptr;
+typeof(XPLMCreateTexture) *XPLMCreateTexture_ptr = nullptr;
+typeof(XPLMDestroyTexture) *XPLMDestroyTexture_ptr = nullptr;
+typeof(XPLMDrawCalls) *XPLMDrawCalls_ptr = nullptr;
+typeof(XPLMAccumulateTouchZone) *XPLMAccumulateTouchZone_ptr = nullptr;
+typeof(XPLMAvionicsSetTouchEventHandler) *XPLMAvionicsSetTouchEventHandler_ptr = nullptr;
+typeof(XPLMWindowSetTouchEventHandler) *XPLMWindowSetTouchEventHandler_ptr = nullptr;
+typeof(XPLMReloadThisPlugin) *XPLMReloadThisPlugin_ptr = nullptr;
 t_fcn_info funcs440[] = {
   {"XPLMReturnString", (void **) &XPLMReturnString_ptr},
   {"XPLMWindowSetURL", (void **) &XPLMWindowSetURL_ptr},
@@ -383,6 +418,40 @@ t_fcn_info funcs440[] = {
   {"XPLMFontDrawStringFixedSpacing", (void **) &XPLMFontDrawStringFixedSpacing_ptr},
   {"XPLMFontDrawStringWordWrapped", (void **) &XPLMFontDrawStringWordWrapped_ptr},
   {"XPLMFontDrawStringRotated", (void **) &XPLMFontDrawStringRotated_ptr},
+  {"XPLMCreateTextureAtlas", (void **) &XPLMCreateTextureAtlas_ptr},
+  {"XPLMDestroyTextureAtlas", (void **) &XPLMDestroyTextureAtlas_ptr},
+  {"XPLMTextureAtlasAddImageFile", (void **) &XPLMTextureAtlasAddImageFile_ptr},
+  {"XPLMTextureAtlasAddImageFileSet", (void **) &XPLMTextureAtlasAddImageFileSet_ptr},
+  {"XPLMTextureAtlasAddImage", (void **) &XPLMTextureAtlasAddImage_ptr},
+  {"XPLMTextureAtlasAddImageSet", (void **) &XPLMTextureAtlasAddImageSet_ptr},
+  {"XPLMTextureAtlasBake", (void **) &XPLMTextureAtlasBake_ptr},
+  {"XPLMTextureAtlasGetImageWidth", (void **) &XPLMTextureAtlasGetImageWidth_ptr},
+  {"XPLMTextureAtlasGetImageHeight", (void **) &XPLMTextureAtlasGetImageHeight_ptr},
+  {"XPLMTextureAtlasGetImageUVMap", (void **) &XPLMTextureAtlasGetImageUVMap_ptr},
+  {"XPLMTextureAtlasDrawAt", (void **) &XPLMTextureAtlasDrawAt_ptr},
+  {"XPLMTextureAtlasDrawIn", (void **) &XPLMTextureAtlasDrawIn_ptr},
+  {"XPLMTextureAtlasDrawStretched", (void **) &XPLMTextureAtlasDrawStretched_ptr},
+  {"XPLMTextureAtlasDrawScaled", (void **) &XPLMTextureAtlasDrawScaled_ptr},
+  {"XPLMTextureAtlasDrawMesh", (void **) &XPLMTextureAtlasDrawMesh_ptr},
+  {"XPLMTextureSourceDrawIn", (void **) &XPLMTextureSourceDrawIn_ptr},
+  {"XPLMTextureSourceDrawMesh", (void **) &XPLMTextureSourceDrawMesh_ptr},
+  {"XPLMBeginRetainedDrawing", (void **) &XPLMBeginRetainedDrawing_ptr},
+  {"XPLMEndRetainedDrawing", (void **) &XPLMEndRetainedDrawing_ptr},
+  {"XPLMDrawRetained", (void **) &XPLMDrawRetained_ptr},
+  {"XPLMDestroyRetainedDrawing", (void **) &XPLMDestroyRetainedDrawing_ptr},
+  {"XPLMCreateSVTDisplay", (void **) &XPLMCreateSVTDisplay_ptr},
+  {"XPLMDestroySVTDisplay", (void **) &XPLMDestroySVTDisplay_ptr},
+  {"XPLMSVTDisplayDrawIn", (void **) &XPLMSVTDisplayDrawIn_ptr},
+  {"XPLMCreateMapDisplay", (void **) &XPLMCreateMapDisplay_ptr},
+  {"XPLMDestroyMapDisplay", (void **) &XPLMDestroyMapDisplay_ptr},
+  {"XPLMMapDisplayDrawIn", (void **) &XPLMMapDisplayDrawIn_ptr},
+  {"XPLMCreateTexture", (void **) &XPLMCreateTexture_ptr},
+  {"XPLMDestroyTexture", (void **) &XPLMDestroyTexture_ptr},
+  {"XPLMDrawCalls", (void **) &XPLMDrawCalls_ptr},
+  {"XPLMAccumulateTouchZone", (void **) &XPLMAccumulateTouchZone_ptr},
+  {"XPLMAvionicsSetTouchEventHandler", (void **) &XPLMAvionicsSetTouchEventHandler_ptr},
+  {"XPLMWindowSetTouchEventHandler", (void **) &XPLMWindowSetTouchEventHandler_ptr},
+  {"XPLMReloadThisPlugin", (void **) &XPLMReloadThisPlugin_ptr},
   {nullptr, nullptr}
 };
 

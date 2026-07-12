@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include "utils.h"
 #include "xppythontypes.h"
+#include "plugin_dl.h"
 
 My_DOCSTR(_getMyID__doc__, "getMyID",
           "",
@@ -175,6 +176,34 @@ static PyObject *XPLMReloadPluginsFun(PyObject *self, PyObject *args)
   (void) self;
   (void) args;
   XPLMReloadPlugins();
+  Py_RETURN_NONE;
+}
+
+My_DOCSTR(_reloadThisPlugin__doc__, "reloadThisPlugin",
+          "forReplacement=0",
+          "forReplacement:int=0",
+          "None",
+          "Reload *this* (the calling) plugin.\n"
+          "\n"
+          "Once you return from the current callback, this plugin receives its\n"
+          "XPluginDisable / XPluginStop callbacks, is unloaded, then started again\n"
+          "as if the sim were starting up. If 'forReplacement' is true, a dialog is\n"
+          "shown after the .xpl is unloaded so you can swap in a newer one manually.\n"
+          "\n"
+          "New in XPLM440. NOT thread-safe: call only from the main thread, in a callback.");
+static PyObject *XPLMReloadThisPluginFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {CHAR("forReplacement"), nullptr};
+  (void) self;
+  int forReplacement = 0;
+  if(!XPLMReloadThisPlugin_ptr){
+    PyErr_SetString(PyExc_RuntimeError, "XPLMReloadThisPlugin is available only in XPLM440 and up.");
+    return nullptr;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", keywords, &forReplacement)){
+    return nullptr;
+  }
+  XPLMReloadThisPlugin_ptr(forReplacement);
   Py_RETURN_NONE;
 }
 
@@ -382,6 +411,8 @@ static PyMethodDef XPLMPluginMethods[] = {
   {"XPLMDisablePlugin", (PyCFunction)XPLMDisablePluginFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"reloadPlugins", (PyCFunction)XPLMReloadPluginsFun, METH_VARARGS, _reloadPlugins__doc__},
   {"XPLMReloadPlugins", (PyCFunction)XPLMReloadPluginsFun, METH_VARARGS, ""},
+  {"reloadThisPlugin", (PyCFunction)XPLMReloadThisPluginFun, METH_VARARGS | METH_KEYWORDS, _reloadThisPlugin__doc__},
+  {"XPLMReloadThisPlugin", (PyCFunction)XPLMReloadThisPluginFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"sendMessageToPlugin", (PyCFunction)XPLMSendMessageToPluginFun, METH_VARARGS | METH_KEYWORDS, _sendMessageToPlugin__doc__},
   {"XPLMSendMessageToPlugin", (PyCFunction)XPLMSendMessageToPluginFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"hasFeature", (PyCFunction)XPLMHasFeatureFun, METH_VARARGS | METH_KEYWORDS, _hasFeature__doc__},

@@ -100,7 +100,7 @@ will return the height of a 0 MSL sphere.
   :param Z float: (x, y, z) are local coordinates                          
   :return: XPLMProbeInfo instance
 
-  Probes the terrain. Pass in XPLMProbRef *probe*, and the *x*, *y*, *z* coordinates of the point.
+  Probes the terrain. Pass in XPLMProbeRef *probe*, and the *x*, *y*, *z* coordinates of the point.
   (You can obtain (x, y, z) information using, for example, :py:func:`worldToLocal` or
   datarefs ``sim/flightmodel/position/local_[xyz]``.) 
 

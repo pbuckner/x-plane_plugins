@@ -42,5 +42,9 @@ XPython/SDK420.sv/
 XPython/SDK430.421/
 XPython/SDK430.v1/
 XPython/SDK430/
+XPython/SDK440/
 .claude/
 CLAUDE.md
+
+# Playwright MCP session artifacts (bug-report form filling)
+XPython/.playwright-mcp/

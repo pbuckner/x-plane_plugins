@@ -46,3 +46,4 @@ extern PyObject *XPLMSetAvionicsBrightnessRheoFun(PyObject*, PyObject*, PyObject
 extern PyObject *XPLMGetAvionicsBusVoltsRatioFun(PyObject*, PyObject*, PyObject*);
 
 extern void resetAvionicsCallbacks(void);
+extern PyMethodDef displayAvionicsMethods[];

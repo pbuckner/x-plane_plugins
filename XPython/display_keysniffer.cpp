@@ -156,3 +156,42 @@ int genericKeySnifferCallback(char inChar, XPLMKeyFlags inFlags, char inVirtualK
   return res;
 }
 
+
+
+/* ---------------------------------------------------------------------------
+   Method-table fragment merged into the XPLMDisplay module by
+   PyInit_XPLMDisplay() in display.cpp. Docstrings live here, beside the
+   functions they document.
+   --------------------------------------------------------------------------- */
+My_DOCSTR(_registerKeySniffer__doc__, "registerKeySniffer",
+          "sniffer, before=0, refCon=None",
+          "sniffer:Callable[[int, XPLMKeyFlags, int, Any], int], before:int=0, refCon:Any=None",
+          "int",
+          "Registers a key sniffer callback function.\n"
+          "\n"
+          "sniffer() callback takes four parameters (key, flags, vKey, refCon) and\n"
+          "should return 0 to consume the key, 1 to pass it to next sniffer or X-Plane.\n"
+          "\n"
+          "before=1 will intercept keys before windows (i.e., the user may be typing in\n"
+          "input field), so generally, use before=0 to sniff keys not already consumed.\n"
+          "\nrefCon will be passed to your sniffer callback.");
+
+My_DOCSTR(_unregisterKeySniffer__doc__, "unregisterKeySniffer",
+          "sniffer, before=0, refCon=None",
+          "sniffer:Callable[[int, XPLMKeyFlags, int, Any], int], before:int=0, refCon:Any=None",
+          "int",
+          "Unregisters key sniffer.\n"
+          "\n"
+          "Parameters must match those provided with registerKeySniffer().\n"
+          "Returns 1 on success, 0 otherwise.");
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+PyMethodDef displayKeysnifferMethods[] = {
+  {"registerKeySniffer", (PyCFunction)XPLMRegisterKeySnifferFun, METH_VARARGS | METH_KEYWORDS, _registerKeySniffer__doc__},
+  {"XPLMRegisterKeySniffer", (PyCFunction)XPLMRegisterKeySnifferFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"unregisterKeySniffer", (PyCFunction)XPLMUnregisterKeySnifferFun, METH_VARARGS | METH_KEYWORDS, _unregisterKeySniffer__doc__},
+  {"XPLMUnregisterKeySniffer", (PyCFunction)XPLMUnregisterKeySnifferFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {nullptr, nullptr, 0, nullptr}
+};
+#pragma GCC diagnostic pop

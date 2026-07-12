@@ -17,3 +17,4 @@ extern PyObject* XPLMCountHotKeysFun(PyObject*, PyObject*);
 extern PyObject* XPLMGetNthHotKeyFun(PyObject*, PyObject*, PyObject *);
 extern PyObject* XPLMGetHotKeyInfoFun(PyObject*, PyObject*, PyObject *);
 extern PyObject* XPLMSetHotKeyCombinationFun(PyObject*, PyObject*, PyObject *);
+extern PyMethodDef displayHotkeyMethods[];

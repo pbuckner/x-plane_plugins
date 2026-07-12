@@ -203,3 +203,77 @@ PyObject *XPLMSetHotKeyCombinationFun(PyObject *self, PyObject *args, PyObject *
   XPLMSetHotKeyCombination(inHotkey, (char)inVirtualKey, inFlags);
   Py_RETURN_NONE;
 }
+
+
+/* ---------------------------------------------------------------------------
+   Method-table fragment merged into the XPLMDisplay module by
+   PyInit_XPLMDisplay() in display.cpp. Docstrings live here, beside the
+   functions they document.
+   --------------------------------------------------------------------------- */
+My_DOCSTR(_registerHotKey__doc__, "registerHotKey",
+          "vkey, flags=0, description='', hotKey=None, refCon=None",
+          "vkey:int, flags:XPLMKeyFlags=NoFlag, description:str='', "
+          "hotKey:Optional[Callable[[Any], None]]=None, "
+          "refCon:Any=None",
+          "XPLMHotKeyID",
+          "Registers hot key."
+          "\n"
+          "Callback is hotKey(refCon), it does not need to return anything.\n"
+          "Registration returns a hotKeyID, which can be used with unregisterHotKey()");
+
+My_DOCSTR(_unregisterHotKey__doc__, "unregisterHotKey",
+          "hotKeyID",
+          "hotKeyID:XPLMHotKeyID",
+          "None",
+          "Unregisters hot key associated with hotKeyID.\n"
+          "\n"
+          "hotKeyID must be registered to this plugin using registerHotKey()\n"
+          "otherwise unregistration will fail.");
+
+My_DOCSTR(_countHotKeys__doc__, "countHotKeys",
+          "",
+          "",
+          "int",
+          "Return number of hot keys currently defined in the simulator.");
+
+My_DOCSTR(_getNthHotKey__doc__, "getNthHotKey",
+          "index",
+          "index:int",
+          "XPLMHotKeyID",
+          "Return hotKeyID for (zero-based) Nth hot key defined in sim.");
+
+My_DOCSTR(_getHotKeyInfo__doc__, "getHotKeyInfo",
+          "hotKeyID",
+          "hotKeyID:XPLMHotKeyID",
+          "None | HotKeyInfo",
+          "Return object with hot key information.\n"
+          "\n"
+          "  .description\n"
+          "  .virtualKey\n"
+          "  .flags\n"
+          "  .plugin");
+
+My_DOCSTR(_setHotKeyCombination__doc__, "setHotKeyCombination",
+          "hotKeyID, vKey, flags=0",
+          "hotKeyID:XPLMHotKeyID, vKey:int, flags:XPLMKeyFlags=NoFlag",
+          "None",
+          "Update key combination for given hotKeyID to use vKey and flags");
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+PyMethodDef displayHotkeyMethods[] = {
+  {"registerHotKey", (PyCFunction)XPLMRegisterHotKeyFun, METH_VARARGS | METH_KEYWORDS, _registerHotKey__doc__},
+  {"XPLMRegisterHotKey", (PyCFunction)XPLMRegisterHotKeyFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"unregisterHotKey", (PyCFunction)XPLMUnregisterHotKeyFun, METH_VARARGS | METH_KEYWORDS, _unregisterHotKey__doc__},
+  {"XPLMUnregisterHotKey", (PyCFunction)XPLMUnregisterHotKeyFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"countHotKeys", (PyCFunction)XPLMCountHotKeysFun, METH_VARARGS, _countHotKeys__doc__},
+  {"XPLMCountHotKeys", (PyCFunction)XPLMCountHotKeysFun, METH_VARARGS, ""},
+  {"getNthHotKey", (PyCFunction)XPLMGetNthHotKeyFun, METH_VARARGS | METH_KEYWORDS, _getNthHotKey__doc__},
+  {"XPLMGetNthHotKey", (PyCFunction)XPLMGetNthHotKeyFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getHotKeyInfo", (PyCFunction)XPLMGetHotKeyInfoFun, METH_VARARGS | METH_KEYWORDS, _getHotKeyInfo__doc__},
+  {"XPLMGetHotKeyInfo", (PyCFunction)XPLMGetHotKeyInfoFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"setHotKeyCombination", (PyCFunction)XPLMSetHotKeyCombinationFun, METH_VARARGS | METH_KEYWORDS, _setHotKeyCombination__doc__},
+  {"XPLMSetHotKeyCombination", (PyCFunction)XPLMSetHotKeyCombinationFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {nullptr, nullptr, 0, nullptr}
+};
+#pragma GCC diagnostic pop

@@ -185,178 +185,29 @@ static PyObject *XPLMRegisterDrawCallbackFun(PyObject *self, PyObject *args, PyO
 }
 
 
-My_DOCSTR(_registerAvionicsCallbacksEx__doc__, "registerAvionicsCallbacksEx",
-          "deviceId, before=None, after=None, refCon=None, bezelClick=None, bezelRightClick=None, "
-          "bezelScroll=None, bezelCursor=None, screenTouch=None, screenRightTouch=None, screenScroll=None, "
-          "screenCursor=None, keyboard=None",
-          "deviceId:XPLMDeviceID, "
-          "before:Optional[Callable[[XPLMDeviceID, int, Any], int]]=None, "
-          "after:Optional[Callable[[XPLMDeviceID, int, Any], int]]=None, "
-          "refCon:Any=None,"
-          "bezelClick:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, "
-          "bezelRightClick:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, "
-          "bezelScroll:Optional[Callable[[int, int, int, int, Any], int]]=None, "
-          "bezelCursor:Optional[Callable[[int, int, Any], XPLMCursorStatus]]=None, "
-          "screenTouch:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, "
-          "screenRightTouch:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, "
-          "screenScroll:Optional[Callable[[int, int, int, int, Any], int]]=None, "
-          "screenCursor:Optional[Callable[[int, int, Any], XPLMCursorStatus]]=None, "
-          "keyboard:Optional[Callable[[int, XPLMKeyFlags, int, Any, int], int]]=None",
-          "XPLMAvionicsID",
-          "Registers draw callback for particular device.\n"
-          "\n"
-          "Registers drawing callback(s) to enhance or replace X-Plane drawing. For\n"
-          "'before' callback, return 1 to let X-Plane draw or 0 to suppress X-Plane\n"
-          "drawing. Return value for 'after' callback is ignored.\n"
-          "\n"
-          "Upon entry, OpenGL context will be correctly set in panel coordinates for 2d drawing.\n"
-          "OpenGL state (texturing, etc.) will be unknown.\n"
-          "\n"
-          "Successful registration returns an AvionicsID."
-         );
 
-My_DOCSTR(_unregisterAvionicsCallbacks__doc__, "unregisterAvionicsCallbacks",
-          "avionicsId",
-          "avionicsId:XPLMAvionicsID",
-          "None",
-          "Unregisters avionics draw callback(s) associated with given avionicsId.\n"
-          "\n"
-          "Does not return a value."
-         );
           
 
 
-My_DOCSTR(_getAvionicsHandle__doc__, "getAvionicsHandle",
-          "deviceID",
-          "deviceID:int",
-          "XPLMAvionicsID",
-          "Registers no callbacks for a cockpit device, but returns a\n"
-          "handle which allows you to interact using other Avionics Device\n"
-          "API. Use this if you do not wish to intercept drawing, clicks, or\n"
-          "touches but want to interact with its popup programmatically.\n"
-          "\n"
-          "Returns XPLMAvionicsID."
-          );
-
-My_DOCSTR(_isAvionicsBound__doc__, "isAvionicsBound",
-          "avionicsID",
-          "avionicsID:XPLMAvionicsID",
-          "int",
-          "Return 1 if cockpit device with given ID is used by the current aircraft.");
-
-My_DOCSTR(_isCursorOverAvionics__doc__, "isCursorOverAvionics",
-          "avionicsID",
-          "avionicsID:XPLMAvionicsID",
-          "tuple[int, int] | None",
-          "Is the cursor over the device with given avionicsID\n"
-          "\n"
-          "Returns tuple (x, y) with position or None.");
 
 
-My_DOCSTR(_isAvionicsPopupVisible__doc__, "isAvionicsPopupVisible",
-          "avionicsID",
-          "avionicsID:XPLMAvionicsID",
-          "int",
-          "Is the popup window for the device with given avionicsID visible?\n"
-          "(It may or may not be popped out into an OS window.)\n"
-          "\n"
-          "Returns 1 if true.");
-
-My_DOCSTR(_isAvionicsPoppedOut__doc__, "isAvionicsPoppedOut",
-          "avionicsID",
-          "avionicsID:XPLMAvionicsID",
-          "int",
-          "Returns 1 (true) if the popup window for the cockpit device is popped out\n"
-          "into an OS window.");
 
 
-My_DOCSTR(_hasAvionicsKeyboardFocus__doc__, "hasAvionicsKeyboardFocus",
-          "avionicsID",
-          "avionicsID:XPLMAvionicsID",
-          "int",
-          "Returns 1 (true) if cockpit device has keyboard focus.");
 
 
-My_DOCSTR(_avionicsNeedsDrawing__doc__, "avionicsNeedsDrawing",
-          "avionicsID",
-          "avionicsID:XPLMAvionicsID",
-          "None",
-          "Tells X-Plane that your device's screens needs to be re-drawn.\n"
-          "If your device is marked for on-demand drawing, XP will call your screen\n"
-          "drawing callback before drawing the next simulator frame. If your device\n"
-          "is already drawn every frame, this has no effect.");
 
 
-My_DOCSTR(_popOutAvionics__doc__, "popOutAvionics",
-          "avionicsID",
-          "avionicsID:XPLMAvionicsID",
-          "None",
-          "Pops out OS window for cockpit device.");
 
-My_DOCSTR(_takeAvionicsKeyboardFocus__doc__, "takeAvionicsKeyboardFocus",
-          "avionicsID",
-          "avionicsID:XPLMAvionicsID",
-          "None",
-          "Sets keyboard focus to the (already) visible popup window of cockpit device.\n"
-          "Does nothing if device is not visible.");
 
-My_DOCSTR(_destroyAvionics__doc__, "destroyAvionics",
-          "avionicsID",
-          "avionicsID:XPLMAvionicsID",
-          "None",
-          "Destroys the cockpit device and deallocates its framebuffer. You should\n"
-          "only ever call this for devices that you created, not stock X-Plane devices\n"
-          "you have customized.");
 
-My_DOCSTR(_getAvionicsBusVoltsRatio__doc__, "getAvionicsBusVoltsRatio",
-          "avionicsID",
-          "avionicsID:XPLMAvionicsID",
-          "float",
-          "Return ratio [0.0:1.0] of nominal voltage of electrical bus,\n"
-          "for given avionics device. Returns -1 if device is not bound\n"
-          "to the current aircraft.");
 
-My_DOCSTR(_getAvionicsBrightnessRheo__doc__, "getAvionicsBrightnessRheo",
-          "avionicsID",
-          "avionicsID:XPLMAvionicsID",
-          "float",
-          "Returns brightness setting between 0 and 1 for the screen of\n"
-          "this cockpit device.\n"
-          "If the device is bound to current aircraft, this is equivalent\n"
-          "to 'sim/cockpit2/switches/instrument_brightness_ratio[]' dataref\n"
-          "with the correct array slot for the bound device.\n"
-          "If the device is not bound, it returns brightness ratio for the\n"
-          "device alone.");
 
-My_DOCSTR(_setAvionicsBrightnessRheo__doc__, "setAvionicsBrightnessRheo",
-          "avionicsID, brightness=1.0",
-          "avionicsID:XPLMAvionicsID, brightness:float=1.0",
-          "None",
-          "Sets brightness setting between 0 and 1 for the screen of\n"
-          "this cockpit device.\n\n"
-          "If the device is bound to current aircraft, this is equivalent\n"
-          "to 'sim/cockpit2/switches/instrument_brightness_ratio[]' dataref\n"
-          "with the correct array slot for the bound device.\n\n"
-          "If the device is not bound, it sets brightness rheostat for the\n"
-          "device alone, even though not connected to the dataref.");
 
-My_DOCSTR(_setAvionicsPopupVisible__doc__, "setAvionicsPopupVisible",
-          "avionicsID, visible=1",
-          "avionicsID:XPLMAvionicsID, visible:int=1",
-          "None",
-          "Shows (visible=1) or Hides popup window for cockpit device.");
 
-My_DOCSTR(_isAvionicsMappedToVR__doc__, "isAvionicsMappedToVR",
-          "avionicsID",
-          "avionicsID:XPLMAvionicsID",
-          "int",
-          "Return 1 if the cockpit device with given ID is mapped into VR.");
 
-My_DOCSTR(_setAvionicsMappedToVR__doc__, "setAvionicsMappedToVR",
-          "avionicsID, mapped=1",
-          "avionicsID:XPLMAvionicsID, mapped:int=1",
-          "None",
-          "Map (mapped=1) or unmap the cockpit device with given ID into VR.");
+
+
+
 
 
 My_DOCSTR(_unregisterDrawCallback__doc__, "unregisterDrawCallback",
@@ -784,37 +635,6 @@ static int genericWindowMouseWheel(XPLMWindowID  inWindowID,
 }
 
 
-My_DOCSTR(_createAvionicsEx__doc__, "createAvionicsEx",
-          "screenWidth=100, screenHeight=200, bezelWidth=140, bezelHeight=250, screenOffsetX=20, screenOffsetY=25, "
-          "drawOnDemand=0, bezelDraw=None, screenDraw=None, bezelClick=None, bezelRightClick=None, "
-          "bezelScroll=None, bezelCursor=None, screenTouch=None, screenRightTouch=None, screenScroll=None, "
-          "screenCursor=None, keyboard=None, brightness=None, deviceID=\"deviceID-<num>\", deviceName=\"deviceName-<num>\", refcon=None",
-          "screenWidth: int = 100, screenHeight: int = 200, bezelWidth:int = 140, bezelHeight: int = 250, "
-          "screenOffsetX: int = 20, screenOffsetY: int = 25, drawOnDemand: int = 0, "
-          "bezelDraw: Optional[Callable[[float, float, float, Any], None]] = None, "
-          "screenDraw: Optional[Callable[[Any], None]] = None, "
-          "bezelClick: Optional[Callable[[int, int, XPLMMouseStatus, Any], int]] = None, "
-          "bezelRightClick: Optional[Callable[[int, int, XPLMMouseStatus, Any], int]] = None, "
-          "bezelScroll: Optional[Callable[[int, int, int, int, Any], int]] = None, "
-          "bezelCursor: Optional[Callable[[int, int, Any], XPLMCursorStatus]] = None, "
-          "screenTouch: Optional[Callable[[int, int, XPLMMouseStatus, Any], int]] = None, "
-          "screenRightTouch: Optional[Callable[[int, int, XPLMMouseStatus, Any], int]] = None, "
-          "screenScroll: Optional[Callable[[int, int, int, int, Any], int]] = None, "
-          "screenCursor: Optional[Callable[[int, int, Any], XPLMCursorStatus]] = None, "
-          "keyboard: Optional[Callable[[int, XPLMKeyFlags, int, Any, int], int]] = None, "
-          "brightness: Optional[Callable[[float, float, float, float], float]] = None, "
-          "deviceID: str = \"deviceID\", deviceName: str= \"deviceName\", "
-          "refCon: Any = None,"
-          ,
-          "XPLMAvionicsID",
-          "Creates glass cockpit device for 3D cockpit.\n"
-          "With 12.0 you needed to call this within your XPluginStart callback\n"
-          "to ensure your texture would be ready. Since 12.1, you may call this\n"
-          "at anytime and X-Plane will retroactively map your display to it.\n"
-          "Note, if not specified, we create a \"unique\" deviceID and deviceName,\n"
-          "as deviceID *must* be unique.\n"
-          "\n"
-          "Returns new avionicsID.");
 
 
 My_DOCSTR(_createWindowEx__doc__, "createWindowEx",
@@ -1481,7 +1301,7 @@ My_DOCSTR(_getWindowGeometryVR__doc__, "getWindowGeometryVR",
           "Gets window geometry for VR window (width, height)");
 static PyObject *XPLMGetWindowGeometryVRFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {nullptr};
+  static char *keywords[] = {CHAR("windowID"), CHAR("width"), CHAR("height"), nullptr};
   (void) self;
   PyObject *win;
   int returnValues = 0;
@@ -1493,7 +1313,8 @@ static PyObject *XPLMGetWindowGeometryVRFun(PyObject *self, PyObject *args, PyOb
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO", keywords, &win, &outWidthBoxels, &outHeightBoxels)) {
     returnValues = 1;
     PyErr_Clear();
-    if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &win)){
+    static char *nkeywords[] = {CHAR("windowID"), nullptr};
+    if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", nkeywords, &win)){
       return nullptr;
     }
   }
@@ -1966,16 +1787,6 @@ static PyObject *XPLMIsWindowInFrontFun(PyObject *self, PyObject *args, PyObject
 }
 
 
-My_DOCSTR(_registerHotKey__doc__, "registerHotKey",
-          "vkey, flags=0, description='', hotKey=None, refCon=None",
-          "vkey:int, flags:XPLMKeyFlags=NoFlag, description:str='', "
-          "hotKey:Optional[Callable[[Any], None]]=None, "
-          "refCon:Any=None",
-          "XPLMHotKeyID",
-          "Registers hot key."
-          "\n"
-          "Callback is hotKey(refCon), it does not need to return anything.\n"
-          "Registration returns a hotKeyID, which can be used with unregisterHotKey()");
 static PyObject *cleanup(PyObject *self, PyObject *args)
 {
   (void) self;
@@ -2047,60 +1858,7 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 }
 
 
-My_DOCSTR(_registerKeySniffer__doc__, "registerKeySniffer",
-          "sniffer, before=0, refCon=None",
-          "sniffer:Callable[[int, XPLMKeyFlags, int, Any], int], before:int=0, refCon:Any=None",
-          "int",
-          "Registers a key sniffer callback function.\n"
-          "\n"
-          "sniffer() callback takes four parameters (key, flags, vKey, refCon) and\n"
-          "should return 0 to consume the key, 1 to pass it to next sniffer or X-Plane.\n"
-          "\n"
-          "before=1 will intercept keys before windows (i.e., the user may be typing in\n"
-          "input field), so generally, use before=0 to sniff keys not already consumed.\n"
-          "\nrefCon will be passed to your sniffer callback.");
 
-My_DOCSTR(_unregisterKeySniffer__doc__, "unregisterKeySniffer",
-          "sniffer, before=0, refCon=None",
-          "sniffer:Callable[[int, XPLMKeyFlags, int, Any], int], before:int=0, refCon:Any=None",
-          "int",
-          "Unregisters key sniffer.\n"
-          "\n"
-          "Parameters must match those provided with registerKeySniffer().\n"
-          "Returns 1 on success, 0 otherwise.");
-My_DOCSTR(_unregisterHotKey__doc__, "unregisterHotKey",
-          "hotKeyID",
-          "hotKeyID:XPLMHotKeyID",
-          "None",
-          "Unregisters hot key associated with hotKeyID.\n"
-          "\n"
-          "hotKeyID must be registered to this plugin using registerHotKey()\n"
-          "otherwise unregistration will fail.");
-My_DOCSTR(_countHotKeys__doc__, "countHotKeys",
-          "",
-          "",
-          "int",
-          "Return number of hot keys currently defined in the simulator.");
-My_DOCSTR(_getNthHotKey__doc__, "getNthHotKey",
-          "index",
-          "index:int",
-          "XPLMHotKeyID",
-          "Return hotKeyID for (zero-based) Nth hot key defined in sim.");
-My_DOCSTR(_getHotKeyInfo__doc__, "getHotKeyInfo",
-          "hotKeyID",
-          "hotKeyID:XPLMHotKeyID",
-          "None | HotKeyInfo",
-          "Return object with hot key information.\n"
-          "\n"
-          "  .description\n"
-          "  .virtualKey\n"
-          "  .flags\n"
-          "  .plugin");
-My_DOCSTR(_setHotKeyCombination__doc__, "setHotKeyCombination",
-          "hotKeyID, vKey, flags=0",
-          "hotKeyID:XPLMHotKeyID, vKey:int, flags:XPLMKeyFlags=NoFlag",
-          "None",
-          "Update key combination for given hotKeyID to use vKey and flags");
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-function-type"
@@ -2109,10 +1867,6 @@ static PyMethodDef XPLMDisplayMethods[] = {
   {"XPLMRegisterDrawCallback", (PyCFunction)XPLMRegisterDrawCallbackFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"unregisterDrawCallback", (PyCFunction)XPLMUnregisterDrawCallbackFun, METH_VARARGS | METH_KEYWORDS, _unregisterDrawCallback__doc__},
   {"XPLMUnregisterDrawCallback", (PyCFunction)XPLMUnregisterDrawCallbackFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"registerKeySniffer", (PyCFunction)XPLMRegisterKeySnifferFun, METH_VARARGS | METH_KEYWORDS, _registerKeySniffer__doc__},
-  {"XPLMRegisterKeySniffer", (PyCFunction)XPLMRegisterKeySnifferFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"unregisterKeySniffer", (PyCFunction)XPLMUnregisterKeySnifferFun, METH_VARARGS | METH_KEYWORDS, _unregisterKeySniffer__doc__},
-  {"XPLMUnregisterKeySniffer", (PyCFunction)XPLMUnregisterKeySnifferFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"createWindowEx", (PyCFunction)XPLMCreateWindowExFun, METH_VARARGS | METH_KEYWORDS, _createWindowEx__doc__},
   {"XPLMCreateWindowEx", (PyCFunction)XPLMCreateWindowExFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"createWindow", (PyCFunction)XPLMCreateWindowFun, METH_VARARGS | METH_KEYWORDS, _createWindow__doc__},
@@ -2183,18 +1937,6 @@ static PyMethodDef XPLMDisplayMethods[] = {
   {"XPLMBringWindowToFront", (PyCFunction)XPLMBringWindowToFrontFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"isWindowInFront", (PyCFunction)XPLMIsWindowInFrontFun, METH_VARARGS | METH_KEYWORDS, _isWindowInFront__doc__},
   {"XPLMIsWindowInFront", (PyCFunction)XPLMIsWindowInFrontFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"registerHotKey", (PyCFunction)XPLMRegisterHotKeyFun, METH_VARARGS | METH_KEYWORDS, _registerHotKey__doc__},
-  {"XPLMRegisterHotKey", (PyCFunction)XPLMRegisterHotKeyFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"unregisterHotKey", (PyCFunction)XPLMUnregisterHotKeyFun, METH_VARARGS | METH_KEYWORDS, _unregisterHotKey__doc__},
-  {"XPLMUnregisterHotKey", (PyCFunction)XPLMUnregisterHotKeyFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"countHotKeys", (PyCFunction)XPLMCountHotKeysFun, METH_VARARGS, _countHotKeys__doc__},
-  {"XPLMCountHotKeys", (PyCFunction)XPLMCountHotKeysFun, METH_VARARGS, ""},
-  {"getNthHotKey", (PyCFunction)XPLMGetNthHotKeyFun, METH_VARARGS | METH_KEYWORDS, _getNthHotKey__doc__},
-  {"XPLMGetNthHotKey", (PyCFunction)XPLMGetNthHotKeyFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"getHotKeyInfo", (PyCFunction)XPLMGetHotKeyInfoFun, METH_VARARGS | METH_KEYWORDS, _getHotKeyInfo__doc__},
-  {"XPLMGetHotKeyInfo", (PyCFunction)XPLMGetHotKeyInfoFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"setHotKeyCombination", (PyCFunction)XPLMSetHotKeyCombinationFun, METH_VARARGS | METH_KEYWORDS, _setHotKeyCombination__doc__},
-  {"XPLMSetHotKeyCombination", (PyCFunction)XPLMSetHotKeyCombinationFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"getWindowGeometryVR", (PyCFunction)XPLMGetWindowGeometryVRFun, METH_VARARGS | METH_KEYWORDS, _getWindowGeometryVR__doc__},
   {"XPLMGetWindowGeometryVR", (PyCFunction)XPLMGetWindowGeometryVRFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"setWindowGeometryVR", (PyCFunction)XPLMSetWindowGeometryVRFun, METH_VARARGS | METH_KEYWORDS, _setWindowGeometryVR__doc__},
@@ -2202,46 +1944,6 @@ static PyMethodDef XPLMDisplayMethods[] = {
   {"windowIsInVR", (PyCFunction)XPLMWindowIsInVRFun, METH_VARARGS | METH_KEYWORDS, _windowIsInVR__doc__},
   {"XPLMWindowIsInVR", (PyCFunction)XPLMWindowIsInVRFun, METH_VARARGS | METH_KEYWORDS, ""},
 
-  // SDK 400
-  {"registerAvionicsCallbacksEx", (PyCFunction)XPLMRegisterAvionicsCallbacksExFun, METH_VARARGS | METH_KEYWORDS, _registerAvionicsCallbacksEx__doc__},
-  {"XPLMRegisterAvionicsCallbacksEx", (PyCFunction)XPLMRegisterAvionicsCallbacksExFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"unregisterAvionicsCallbacks", (PyCFunction)XPLMUnregisterAvionicsCallbacksFun, METH_VARARGS | METH_KEYWORDS, _unregisterAvionicsCallbacks__doc__},
-  {"XPLMUnregisterAvionicsCallbacks", (PyCFunction)XPLMUnregisterAvionicsCallbacksFun, METH_VARARGS | METH_KEYWORDS, ""},
-  // SDK 410
-  {"getAvionicsHandle", (PyCFunction)XPLMGetAvionicsHandleFun, METH_VARARGS | METH_KEYWORDS, _getAvionicsHandle__doc__},
-  {"XPLMGetAvionicsHandle", (PyCFunction)XPLMGetAvionicsHandleFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"isAvionicsBound", (PyCFunction)XPLMIsAvionicsBoundFun, METH_VARARGS | METH_KEYWORDS, _isAvionicsBound__doc__},
-  {"XPLMIsAvionicsBound", (PyCFunction)XPLMIsAvionicsBoundFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"isCursorOverAvionics", (PyCFunction)XPLMIsCursorOverAvionicsFun, METH_VARARGS | METH_KEYWORDS, _isCursorOverAvionics__doc__},
-  {"XPLMIsCursorOverAvionics", (PyCFunction)XPLMIsCursorOverAvionicsFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"isAvionicsPopupVisible", (PyCFunction)XPLMIsAvionicsPopupVisibleFun, METH_VARARGS | METH_KEYWORDS, _isAvionicsPopupVisible__doc__},
-  {"XPLMIsAvionicsPopupVisible", (PyCFunction)XPLMIsAvionicsPopupVisibleFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"isAvionicsPoppedOut", (PyCFunction)XPLMIsAvionicsPoppedOutFun, METH_VARARGS | METH_KEYWORDS, _isAvionicsPoppedOut__doc__},
-  {"XPLMIsAvionicsPoppedOut", (PyCFunction)XPLMIsAvionicsPoppedOutFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"hasAvionicsKeyboardFocus", (PyCFunction)XPLMHasAvionicsKeyboardFocusFun, METH_VARARGS | METH_KEYWORDS, _hasAvionicsKeyboardFocus__doc__},
-  {"XPLMHasAvionicsKeyboardFocus", (PyCFunction)XPLMHasAvionicsKeyboardFocusFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"avionicsNeedsDrawing", (PyCFunction)XPLMAvionicsNeedsDrawingFun, METH_VARARGS | METH_KEYWORDS, _avionicsNeedsDrawing__doc__},
-  {"XPLMAvionicsNeedsDrawing", (PyCFunction)XPLMAvionicsNeedsDrawingFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"setAvionicsPopupVisible", (PyCFunction)XPLMSetAvionicsPopupVisibleFun, METH_VARARGS | METH_KEYWORDS, _setAvionicsPopupVisible__doc__},
-  {"XPLMSetAvionicsPopupVisible", (PyCFunction)XPLMSetAvionicsPopupVisibleFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"isAvionicsMappedToVR", (PyCFunction)XPLMIsAvionicsMappedToVRFun, METH_VARARGS | METH_KEYWORDS, _isAvionicsMappedToVR__doc__},
-  {"XPLMIsAvionicsMappedToVR", (PyCFunction)XPLMIsAvionicsMappedToVRFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"setAvionicsMappedToVR", (PyCFunction)XPLMSetAvionicsMappedToVRFun, METH_VARARGS | METH_KEYWORDS, _setAvionicsMappedToVR__doc__},
-  {"XPLMSetAvionicsMappedToVR", (PyCFunction)XPLMSetAvionicsMappedToVRFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"popOutAvionics", (PyCFunction)XPLMPopOutAvionicsFun, METH_VARARGS | METH_KEYWORDS, _popOutAvionics__doc__},
-  {"XPLMPopOutAvionics", (PyCFunction)XPLMPopOutAvionicsFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"takeAvionicsKeyboardFocus", (PyCFunction)XPLMTakeAvionicsKeyboardFocusFun, METH_VARARGS | METH_KEYWORDS, _takeAvionicsKeyboardFocus__doc__},
-  {"XPLMTakeAvionicsKeyboardFocus", (PyCFunction)XPLMTakeAvionicsKeyboardFocusFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"destroyAvionics", (PyCFunction)XPLMDestroyAvionicsFun, METH_VARARGS | METH_KEYWORDS, _destroyAvionics__doc__},
-  {"XPLMDestroyAvionics", (PyCFunction)XPLMDestroyAvionicsFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"createAvionicsEx", (PyCFunction)XPLMCreateAvionicsExFun, METH_VARARGS | METH_KEYWORDS, _createAvionicsEx__doc__},
-  {"XPLMCreateAvionicsEx", (PyCFunction)XPLMCreateAvionicsExFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"setAvionicsBrightnessRheo", (PyCFunction)XPLMSetAvionicsBrightnessRheoFun, METH_VARARGS | METH_KEYWORDS, _setAvionicsBrightnessRheo__doc__},
-  {"XPLMSetAvionicsBrightnessRheo", (PyCFunction)XPLMSetAvionicsBrightnessRheoFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"getAvionicsBrightnessRheo", (PyCFunction)XPLMGetAvionicsBrightnessRheoFun, METH_VARARGS | METH_KEYWORDS, _getAvionicsBrightnessRheo__doc__},
-  {"XPLMGetAvionicsBrightnessRheo", (PyCFunction)XPLMGetAvionicsBrightnessRheoFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"getAvionicsBusVoltsRatio", (PyCFunction)XPLMGetAvionicsBusVoltsRatioFun, METH_VARARGS | METH_KEYWORDS, _getAvionicsBusVoltsRatio__doc__},
-  {"XPLMGetAvionicsBusVoltsRatio", (PyCFunction)XPLMGetAvionicsBusVoltsRatioFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"getDrawCallbackDict", (PyCFunction)buildDrawCallbackDict, METH_VARARGS, "Copy of internal DrawCallbackInfo"},
   {"getWindowCallbackDict", (PyCFunction)buildWindowCallbackDict, METH_VARARGS, "Copy of internal WindowCallbackInfo"},
   {"getAvionicsCallbackDict", (PyCFunction)buildAvionicsCallbackDict, METH_VARARGS, "Copy of internal AvionicsCallbackInfo"},
@@ -2274,6 +1976,9 @@ PyInit_XPLMDisplay(void)
   PyObject *mod = PyModule_Create(&XPLMDisplayModule);
   if(mod){
     PyModule_AddStringConstant(mod, "__author__", "Peter Buckner (pbuck@xppython3.org)");
+    PyModule_AddFunctions(mod, displayAvionicsMethods);
+    PyModule_AddFunctions(mod, displayHotkeyMethods);
+    PyModule_AddFunctions(mod, displayKeysnifferMethods);
 #if defined(XPLM_DEPRECATED)
     PyModule_AddIntConstant(mod, "xplm_Phase_FirstScene", xplm_Phase_FirstScene); //XPLMDrawingPhase
     PyModule_AddIntConstant(mod, "xplm_Phase_Terrain", xplm_Phase_Terrain); //XPLMDrawingPhase

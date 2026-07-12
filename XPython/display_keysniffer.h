@@ -11,3 +11,4 @@ extern std::unordered_map<intptr_t, KeySnifferCallbackInfo> keySnifferCallbackDi
 void resetKeySnifferCallbacks(void);
 PyObject *XPLMRegisterKeySnifferFun(PyObject*, PyObject*, PyObject*);
 PyObject *XPLMUnregisterKeySnifferFun(PyObject*, PyObject*, PyObject*);
+extern PyMethodDef displayKeysnifferMethods[];

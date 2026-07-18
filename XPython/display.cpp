@@ -1325,7 +1325,8 @@ My_DOCSTR(_getWindowGeometryVR__doc__, "getWindowGeometryVR",
           "Gets window geometry for VR window (width, height)");
 static PyObject *XPLMGetWindowGeometryVRFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {nullptr};
+  static char *keywords[] = {CHAR("windowID"), CHAR("width"), CHAR("height"), nullptr};
+  static char *nkeywords[] = {CHAR("windowID"), nullptr};
   (void) self;
   PyObject *win;
   int returnValues = 0;
@@ -1337,7 +1338,7 @@ static PyObject *XPLMGetWindowGeometryVRFun(PyObject *self, PyObject *args, PyOb
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO", keywords, &win, &outWidthBoxels, &outHeightBoxels)) {
     returnValues = 1;
     PyErr_Clear();
-    if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &win)){
+    if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", nkeywords, &win)){
       return nullptr;
     }
   }

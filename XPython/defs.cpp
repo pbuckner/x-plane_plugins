@@ -52,6 +52,9 @@ PyInit_XPLMDefs(void)
     PyModule_AddIntConstant(mod, "xplm_ControlFlag", xplm_ControlFlag); //XPLMKeyFlags
     PyModule_AddIntConstant(mod, "xplm_DownFlag", xplm_DownFlag); //XPLMKeyFlags
     PyModule_AddIntConstant(mod, "xplm_UpFlag", xplm_UpFlag); //XPLMKeyFlags
+#if defined(XPLM440)
+    PyModule_AddIntConstant(mod, "xplm_CapsLockFlag", xplm_CapsLockFlag); //XPLMKeyFlags
+#endif
 
     PyModule_AddIntConstant(mod, "NoFlag", 0); //XPLMKeyFlags
     PyModule_AddIntConstant(mod, "ShiftFlag", xplm_ShiftFlag); //XPLMKeyFlags
@@ -59,6 +62,9 @@ PyInit_XPLMDefs(void)
     PyModule_AddIntConstant(mod, "ControlFlag", xplm_ControlFlag); //XPLMKeyFlags
     PyModule_AddIntConstant(mod, "DownFlag", xplm_DownFlag); //XPLMKeyFlags
     PyModule_AddIntConstant(mod, "UpFlag", xplm_UpFlag); //XPLMKeyFlags
+#if defined(XPLM440)
+    PyModule_AddIntConstant(mod, "CapsLockFlag", xplm_CapsLockFlag); //XPLMKeyFlags
+#endif
 
     PyModule_AddIntConstant(mod, "xplm_CursorDefault", xplm_CursorDefault); //XPLMCursorStatus
     PyModule_AddIntConstant(mod, "xplm_CursorHidden",  xplm_CursorHidden); //XPLMCursorStatus

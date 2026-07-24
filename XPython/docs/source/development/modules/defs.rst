@@ -85,6 +85,13 @@ For ``xp.py``, these are defined without the leading ``xplm_`` e.g., ``xp.ShiftF
 
    The key is being released. `Official SDK <https://developer.x-plane.com/sdk/XPLMDefs/#xplm_UpFlag>`__: :index:`xplm_UpFlag`
 
+ .. py:data:: CapsLockFlag
+   :value: 32
+
+   The caps-lock key is engaged. New with X-Plane 12.4 (SDK 440); available only
+   when running under X-Plane 12.4+. See also :func:`getModifierKeys`.
+   `Official SDK <https://developer.x-plane.com/sdk/XPLMDefs/#xplm_CapsLockFlag>`__: :index:`xplm_CapsLockFlag`
+
 
 
 ASCII Control Key Codes

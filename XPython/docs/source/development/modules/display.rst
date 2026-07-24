@@ -24,6 +24,10 @@ overlay the cockpit over the world (and the gauges over the panel, etc.).
 There are three ways you can draw: directly, directly onto avionics screens,
 and in a window.
 
+.. note:: You can also "draw" by creating three-dimensional objects and "placing" them
+          in the view. This is most commonly used for scenery objects and described
+          in the :any:`XPLMInstance`.
+
 * **Direct drawing** involves drawing to the screen before or after X-Plane
   finishes a phase of drawing.  When you draw directly, you can specify
   whether x-plane is to complete this phase or not.  This allows you to do
@@ -54,6 +58,17 @@ and in a window.
   Even when the OpenGL window contains more than 1024x768 pixels, the cockpit
   drawing is magnified so that only 1024x768 pixels are available.
 
+  When you create a window, you'll specify the *Content Type* which will dictate
+  the set of drawing primitives available:
+
+  * :data:`WindowContentTypeOpenGL`: OpenGL, you're kinda on your own.
+
+  * :data:`WindowContentTypePanelGraphics`: PanelGraphics, a set of X-Plane drawing primitives.
+
+  * :data:`WindowContentTypeBrowser`: Embedded `CEF Browser <https://en.wikipedia.org/wiki/Chromium_Embedded_Framework>`_ with full HTML and Javascript.
+
+  Note: PanelGraphics and Browsers are available starting with 12.5, otherwise your only choice is OpenGL.
+
   See :doc:`display_window`.
 
 * **Avionics API** (X-Plane 12+) allows you to draw directly onto
@@ -67,6 +82,17 @@ and in a window.
 
   To create new devices, you'll create the device using :py:func:`createAvionicsEx`, providing
   the necessary callbacks.
+
+  Similar to WindowAPI, When you create a device window, you'll specify the *Content Type* which will dictate
+  the set of drawing primitives available:
+
+  * :data:`WindowContentTypeOpenGL`: OpenGL, you're kinda on your own.
+
+  * :data:`WindowContentTypePanelGraphics`: PanelGraphics, a set of X-Plane drawing primitives.
+
+  * :data:`WindowContentTypeBrowser`: Embedded `CEF Browser <https://en.wikipedia.org/wiki/Chromium_Embedded_Framework>`_ with full HTML and Javascript.
+
+  Note: PanelGraphics and Browsers are available starting with 12.5, otherwise your only choice is OpenGL.
 
   See :doc:`display_avionics`.
   
@@ -100,6 +126,8 @@ There are three ways to get keystrokes:
 
   See :doc:`display_sniffer`.
 
+* **Modifier Keys** If all you need is to detect modifier keys (Shift, Option, Control, etc.)
+  you can directly call :func:`getModifierKeys` at any time.
 
 .. toctree::
    :hidden:

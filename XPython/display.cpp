@@ -54,7 +54,8 @@ struct WindowCallbackInfo {
   PyObject *wheel;
   PyObject *rightClick;
   PyObject *refCon;
-  PyObject *browserNav;
+  PyObject *browserLoadFinished;
+  PyObject *browserLoadError;
   const char* module_name;
 };
 
@@ -65,8 +66,9 @@ static void genericWindowKey(XPLMWindowID, char inKey, XPLMKeyFlags inFlags, cha
 static XPLMCursorStatus genericWindowCursor(XPLMWindowID inWindowID, int x, int y, void *inRefcon);
 static int genericWindowMouseWheel(XPLMWindowID  inWindowID, int x, int y, int wheel, int clicks, void *inRefcon);
 static int genericWindowRightClick(XPLMWindowID inWindowID, int x, int y, XPLMMouseStatus inMouse, void *inRefcon);
-#if defined(XPLMPG1)
-static void genericBrowserNavigation(XPLMWindowID inWindow, const char *inURL, int inSuccess, const char *inError, void *inRefcon);
+#if defined(XPLM440)
+static void genericBrowserLoadFinished(XPLMWindowID inWindow, const char *inURL, void *inRefcon);
+static void genericBrowserLoadError(XPLMWindowID inWindow, const char *inURL, const char *inError, void *inRefcon);
 #endif
 
 /* Browser functions registered with XPLMWindowAddBrowserFunction. The X-Plane refcon
@@ -78,7 +80,7 @@ struct BrowserFunctionInfo {
 };
 static std::unordered_map<intptr_t, BrowserFunctionInfo> browserFunctionDict;
 static intptr_t browserFunctionCntr;
-#if defined(XPLMPG1)
+#if defined(XPLM440)
 static const char *genericBrowserCallback(XPLMWindowID inWindowID, const char *inJSON, void *inRefcon);
 #endif
 
@@ -111,7 +113,8 @@ void resetWindows(void) {
     Py_DECREF(pair.second.wheel);
     Py_DECREF(pair.second.rightClick);
     Py_DECREF(pair.second.refCon);
-    Py_DECREF(pair.second.browserNav);
+    Py_DECREF(pair.second.browserLoadFinished);
+    Py_DECREF(pair.second.browserLoadError);
   }
   windowDict.clear();
 
@@ -295,38 +298,67 @@ static void genericWindowDraw(XPLMWindowID  inWindowID,
   pluginStats[0].draw_time += (all_stop.tv_sec - all_start.tv_sec) * 1000000 + (all_stop.tv_nsec - all_start.tv_nsec) / 1000;
 }
 
-#if defined(XPLMPG1)
-static void genericBrowserNavigation(XPLMWindowID inWindow, const char *inURL, int inSuccess, const char *inError, void *inRefcon)
+#if defined(XPLM440)
+static void genericBrowserLoadFinished(XPLMWindowID inWindow, const char *inURL, void *inRefcon)
 {
-  errCheck("prior genericBrowserNavigation");
+  // NOTE!!! sometimes this will be called on YOUR window, but with url=about:blank, you must check the URL!!
+  
+  errCheck("prior genericBrowserLoadFinished");
   auto it = windowDict.find(inWindow);
   if(it == windowDict.end()){
-    pythonLog("Unknown window passed to genericBrowserNavigation (%p).", inWindow);
+    pythonLog("Unknown window passed to genericBrowserLoadFinished (%p).", inWindow);
     return;
   }
-  PyObject *func = it->second.browserNav;
+  PyObject *func = it->second.browserLoadFinished;
+  if (func != Py_None) {
+    PyObject *pID = makeCapsule(inWindow, "XPLMWindowID");
+    PyObject *pURL = inURL ? PyUnicode_FromString(inURL) : (Py_INCREF(Py_None), Py_None);
+    set_moduleName(it->second.module_name);
+
+    PyObject *args[] = {pID, pURL, (PyObject*)inRefcon};
+    PyObject *oRes = PyObject_Vectorcall(func, args, 3, nullptr);
+    Py_DECREF(pID);
+    Py_DECREF(pURL);
+
+    if(PyErr_Occurred()) {
+      pythonLogException();
+      pythonLog("disabling browserLoadFinished function");
+      it->second.browserLoadFinished = Py_None;
+    }
+    Py_XDECREF(oRes);
+  }
+  errCheck("end genericBrowserLoadFinished");
+}
+
+static void genericBrowserLoadError(XPLMWindowID inWindow, const char *inURL, const char *inError, void *inRefcon)
+{
+  errCheck("prior genericBrowserLoadError");
+  auto it = windowDict.find(inWindow);
+  if(it == windowDict.end()){
+    pythonLog("Unknown window passed to genericBrowserLoadError (%p).", inWindow);
+    return;
+  }
+  PyObject *func = it->second.browserLoadError;
   if (func != Py_None) {
     PyObject *pID = makeCapsule(inWindow, "XPLMWindowID");
     PyObject *pURL = inURL ? PyUnicode_FromString(inURL) : (Py_INCREF(Py_None), Py_None);
     PyObject *pErr = inError ? PyUnicode_FromString(inError) : (Py_INCREF(Py_None), Py_None);
-    PyObject *pSuccess = PyLong_FromLong(inSuccess);
     set_moduleName(it->second.module_name);
 
-    PyObject *args[] = {pID, pURL, pSuccess, pErr, (PyObject*)inRefcon};
-    PyObject *oRes = PyObject_Vectorcall(func, args, 5, nullptr);
+    PyObject *args[] = {pID, pURL, pErr, (PyObject*)inRefcon};
+    PyObject *oRes = PyObject_Vectorcall(func, args, 4, nullptr);
     Py_DECREF(pID);
     Py_DECREF(pURL);
-    Py_DECREF(pSuccess);
     Py_DECREF(pErr);
 
     if(PyErr_Occurred()) {
       pythonLogException();
-      pythonLog("disabling browserNavigation function");
-      it->second.browserNav = Py_None;
+      pythonLog("disabling browserLoadError function");
+      it->second.browserLoadError = Py_None;
     }
     Py_XDECREF(oRes);
   }
-  errCheck("end genericBrowserNavigation");
+  errCheck("end genericBrowserLoadError");
 }
 
 static const char *genericBrowserCallback(XPLMWindowID inWindowID, const char *inJSON, void *inRefcon)
@@ -638,7 +670,7 @@ static int genericWindowMouseWheel(XPLMWindowID  inWindowID,
 
 
 My_DOCSTR(_createWindowEx__doc__, "createWindowEx",
-          "left=100, top=200, right=200, bottom=100, visible=0, draw=None, click=None, key=None, cursor=None, wheel=None, refCon=None, decoration=WindowDecorationRoundRectangle, layer=WindowLayerFloatingWindows, rightClick=None, windowContentType=WindowContentTypeOpenGL, browserNavigation=None",
+          "left=100, top=200, right=200, bottom=100, visible=0, draw=None, click=None, key=None, cursor=None, wheel=None, refCon=None, decoration=WindowDecorationRoundRectangle, layer=WindowLayerFloatingWindows, rightClick=None, windowContentType=WindowContentTypeOpenGL, browserLoadFinished=None, browserLoadError=None",
           "left:int=100, top:int=200, right:int=200, bottom:int=100,"
           "visible:int=0, "
           "draw:Optional[Callable[[XPLMWindowID, Any], None]]=None,"
@@ -649,7 +681,7 @@ My_DOCSTR(_createWindowEx__doc__, "createWindowEx",
           "refCon:Any=None, decoration:XPLMWindowDecoration=WindowDecorationRoundRectangle, "
           "layer:XPLMWindowLayer=WindowLayerFloatingWindows, "
           "rightClick:Optional[Callable[[XPLMWindowID, int, int, XPLMMouseStatus, Any], int]]=None, "
-          "windowContentType:XPLMWindowContentType=WindowContentTypeOpenGL, browserNavigation:Optional[Callable[[XPLMWindowID, str, int, str, Any], None]]=None", 
+          "windowContentType:XPLMWindowContentType=WindowContentTypeOpenGL, browserLoadFinished:Optional[Callable[[XPLMWindowID, str, Any], None]]=None, browserLoadError:Optional[Callable[[XPLMWindowID, str, str, Any], None]]=None",
           "XPLMWindowID",
           "Creates modern window\n"
           "\n"
@@ -660,6 +692,8 @@ My_DOCSTR(_createWindowEx__doc__, "createWindowEx",
           "  click(windowID, x, y, mouseStatus, refCon) with 1= consume click, else 0.\n"
           "  rightClick(windowID, x, y, mouseStatus, refCon) with 1= consume click, else 0.\n"
           "  wheel(windowID, x, y, wheel, clicks, refCon) with 1= consume click, else 0.\n"
+          "  browserLoadFinished(windowID, url, refCon) with no return value (browser content).\n"
+          "  browserLoadError(windowID, url, error, refCon) with no return value (browser content).\n"
           "\n"
           "Returns new windowID.");
           
@@ -669,7 +703,7 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
   errCheck("prior CreateWindowEx");
   static char *keywords[] = {CHAR("left"), CHAR("top"), CHAR("right"), CHAR("bottom"), CHAR("visible"), CHAR("draw"), CHAR("click"), CHAR("key"), CHAR("cursor"),
                              CHAR("wheel"), CHAR("refCon"), CHAR("decoration"), CHAR("layer"), CHAR("rightClick"),
-                             CHAR("windowContentType"), CHAR("browserNavigation"), nullptr};
+                             CHAR("windowContentType"), CHAR("browserLoadFinished"), CHAR("browserLoadError"), nullptr};
   (void) self;
   PyObject *firstObj=Py_None;
   int left=100, right=200, top=200, bottom=100;
@@ -678,13 +712,13 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
   int layer=xplm_WindowLayerFloatingWindows;
   int windowContentType=xplm_WindowContentTypeOpenGL;
   PyObject *draw=Py_None, *click=Py_None, *key=Py_None, *cursor=Py_None, *wheel=Py_None, *rightClick=Py_None, *refCon=Py_None;
-  PyObject *browserNav=Py_None;
+  PyObject *browserLoadFinished=Py_None, *browserLoadError=Py_None;
   PyObject *paramsObj=Py_None;
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OiiiiOOOOOOiiOiO", keywords,
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OiiiiOOOOOOiiOiOO", keywords,
                                   &firstObj, &top, &right, &bottom, &visible,
                                   &draw, &click, &key, &cursor, &wheel, &refCon,
                                   &decoration, &layer, &rightClick,
-                                  &windowContentType, &browserNav)){
+                                  &windowContentType, &browserLoadFinished, &browserLoadError)){
     return nullptr;
   }
 
@@ -694,8 +728,8 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
 
   XPLMCreateWindow_t window_params;
   memset(&window_params, 0, sizeof(window_params));
-#if defined(XPLMPG1)
-  window_params.structSize = (xplm_ver >= 440 || xp_ver >= 12440)
+#if defined(XPLM440)
+  window_params.structSize = (xplm_ver >= 440)
     ? sizeof(XPLMCreateWindow_t)
     : offsetof(XPLMCreateWindow_t, windowContentType);
 #else
@@ -715,8 +749,8 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
   } else if (PySequence_Check(firstObj)) {
     paramsObj = firstObj;
     Py_ssize_t numValues = PySequence_Length(paramsObj);
-    if (numValues != 14 && numValues != 16) {
-      PyErr_SetString(PyExc_AttributeError ,"createWindowEx tuple did not contain 14 or 16 values\n.");
+    if (numValues != 14 && numValues != 17) {
+      PyErr_SetString(PyExc_AttributeError ,"createWindowEx tuple did not contain 14 or 17 values\n.");
       return nullptr;
     }
     PyObject *paramsTuple = PySequence_Tuple(paramsObj);
@@ -739,9 +773,10 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
     cursor = PyTuple_GetItem(paramsTuple, 8);
     wheel = PyTuple_GetItem(paramsTuple, 9);
     rightClick = PyTuple_GetItem(paramsTuple, 13);
-    if (numValues == 16) {
+    if (numValues == 17) {
       windowContentType = PyLong_AsLong(PyTuple_GetItem(paramsTuple, 14));
-      browserNav = PyTuple_GetItem(paramsTuple, 15);
+      browserLoadFinished = PyTuple_GetItem(paramsTuple, 15);
+      browserLoadError = PyTuple_GetItem(paramsTuple, 16);
     }
 
     Py_DECREF(paramsTuple);
@@ -778,14 +813,19 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
     return nullptr;
   }
 
-  if (!PyCallable_Check(browserNav) && browserNav != Py_None) {
-    PyErr_SetString(PyExc_ValueError ,"createWindowEx browserNavigation() is not callable.\n");
+  if (!PyCallable_Check(browserLoadFinished) && browserLoadFinished != Py_None) {
+    PyErr_SetString(PyExc_ValueError ,"createWindowEx browserLoadFinished() is not callable.\n");
     return nullptr;
   }
 
-#if defined(XPLMPG1)
-  if ((xp_ver < 12440 && xplm_ver < 440) && (windowContentType != xplm_WindowContentTypeOpenGL || browserNav != Py_None)) {
-    PyErr_SetString(PyExc_RuntimeError ,"createWindowEx windowContentType and browserNavigation require X-Plane with XPLM440 or later.\n");
+  if (!PyCallable_Check(browserLoadError) && browserLoadError != Py_None) {
+    PyErr_SetString(PyExc_ValueError ,"createWindowEx browserLoadError() is not callable.\n");
+    return nullptr;
+  }
+
+#if defined(XPLM440)
+  if ((xplm_ver < 440) && (windowContentType != xplm_WindowContentTypeOpenGL || browserLoadFinished != Py_None || browserLoadError != Py_None)) {
+    PyErr_SetString(PyExc_RuntimeError ,"createWindowEx windowContentType and browser callbacks require X-Plane with XPLM440 or later.\n");
     return nullptr;
   }
 #endif
@@ -796,7 +836,8 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
   Py_INCREF(cursor);
   Py_INCREF(wheel);
   Py_INCREF(rightClick);
-  Py_INCREF(browserNav);
+  Py_INCREF(browserLoadFinished);
+  Py_INCREF(browserLoadError);
 
   Py_INCREF(window_params.refcon);
 
@@ -807,10 +848,11 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
   window_params.handleMouseWheelFunc = genericWindowMouseWheel;
   window_params.handleRightClickFunc = genericWindowRightClick;
 
-#if defined(XPLMPG1)
+#if defined(XPLM440)
   if (xplm_ver >= 440 || xp_ver >= 12440) {
     window_params.windowContentType = windowContentType;
-    window_params.browserNavigationFunc = browserNav != Py_None ? genericBrowserNavigation : nullptr;
+    window_params.browserLoadFinishedFunc = browserLoadFinished != Py_None ? genericBrowserLoadFinished : nullptr;
+    window_params.browserLoadErrorFunc = browserLoadError != Py_None ? genericBrowserLoadError : nullptr;
   }
 #endif
 
@@ -823,7 +865,8 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
     Py_DECREF(cursor);
     Py_DECREF(wheel);
     Py_DECREF(rightClick);
-    Py_DECREF(browserNav);
+    Py_DECREF(browserLoadFinished);
+    Py_DECREF(browserLoadError);
     Py_DECREF(window_params.refcon);
     return nullptr;
   }
@@ -838,7 +881,8 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
     .wheel = wheel,
     .rightClick = rightClick,
     .refCon = refCon,
-    .browserNav = browserNav,
+    .browserLoadFinished = browserLoadFinished,
+    .browserLoadError = browserLoadError,
     .module_name = CurrentPythonModuleName
   };
 
@@ -1612,7 +1656,7 @@ static PyObject *XPLMWindowInjectScriptFun(PyObject *self, PyObject *args, PyObj
   Py_RETURN_NONE;
 }
 
-#if defined(XPLMPG1)
+#if defined(XPLM440)
 My_DOCSTR(_windowAddBrowserFunction__doc__, "windowAddBrowserFunction",
           "windowID, name, function, refCon=None",
           "windowID:XPLMWindowID, name:str, function:Callable[[XPLMWindowID, str, Any], Optional[str]], refCon:Any=None",
@@ -1751,6 +1795,21 @@ static PyObject *XPLMHasKeyboardFocusFun(PyObject *self, PyObject *args, PyObjec
   return PyLong_FromLong(XPLMHasKeyboardFocus_ptr(inWindowID));
 }
 
+My_DOCSTR(_getModifierKeys__doc__, "getModifierKeys",
+          "", "", "XPLMKeyFlags",
+          "Returns the modifier keys currently held down, as an XPLMKeyFlags bitfield.\n"
+          "Only modifier bits are ever set (ShiftFlag, OptionAltFlag, ControlFlag,\n"
+          "CapsLockFlag); the DownFlag/UpFlag key-event bits are never returned.");
+static PyObject *XPLMGetModifierKeysFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  (void) self; (void) args; (void) kwargs;
+  if(!XPLMGetModifierKeys_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMGetModifierKeys is available only in XPLM440 and up.");
+    return nullptr;
+  }
+  return PyLong_FromLong(XPLMGetModifierKeys_ptr());
+}
+
 My_DOCSTR(_bringWindowToFront__doc__, "bringWindowToFront",
           "windowID",
           "windowID:XPLMWindowID",
@@ -1817,7 +1876,8 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
     Py_DECREF(info.key);
     Py_DECREF(info.cursor);
     Py_DECREF(info.rightClick);
-    Py_DECREF(info.browserNav);
+    Py_DECREF(info.browserLoadFinished);
+    Py_DECREF(info.browserLoadError);
   }
   windowDict.clear();
 
@@ -1921,7 +1981,7 @@ static PyMethodDef XPLMDisplayMethods[] = {
   {"XPLMWindowRefresh", (PyCFunction)XPLMWindowRefreshFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"windowInjectScript", (PyCFunction)XPLMWindowInjectScriptFun, METH_VARARGS | METH_KEYWORDS, _windowInjectScript__doc__},
   {"XPLMWindowInjectScript", (PyCFunction)XPLMWindowInjectScriptFun, METH_VARARGS | METH_KEYWORDS, ""},
-#if defined(XPLMPG1)
+#if defined(XPLM440)
   {"windowAddBrowserFunction", (PyCFunction)XPLMWindowAddBrowserFunctionFun, METH_VARARGS | METH_KEYWORDS, _windowAddBrowserFunction__doc__},
   {"XPLMWindowAddBrowserFunction", (PyCFunction)XPLMWindowAddBrowserFunctionFun, METH_VARARGS | METH_KEYWORDS, ""},
 #endif
@@ -1933,6 +1993,8 @@ static PyMethodDef XPLMDisplayMethods[] = {
   {"XPLMTakeKeyboardFocus", (PyCFunction)XPLMTakeKeyboardFocusFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"hasKeyboardFocus", (PyCFunction)XPLMHasKeyboardFocusFun, METH_VARARGS | METH_KEYWORDS, _hasKeyboardFocus__doc__},
   {"XPLMHasKeyboardFocus", (PyCFunction)XPLMHasKeyboardFocusFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getModifierKeys", (PyCFunction)XPLMGetModifierKeysFun, METH_VARARGS | METH_KEYWORDS, _getModifierKeys__doc__},
+  {"XPLMGetModifierKeys", (PyCFunction)XPLMGetModifierKeysFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"bringWindowToFront", (PyCFunction)XPLMBringWindowToFrontFun, METH_VARARGS | METH_KEYWORDS, _bringWindowToFront__doc__},
   {"XPLMBringWindowToFront", (PyCFunction)XPLMBringWindowToFrontFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"isWindowInFront", (PyCFunction)XPLMIsWindowInFrontFun, METH_VARARGS | METH_KEYWORDS, _isWindowInFront__doc__},
@@ -2070,7 +2132,7 @@ PyInit_XPLMDisplay(void)
     PyModule_AddIntConstant(mod, "WindowDecorationSelfDecorated", xplm_WindowDecorationSelfDecorated); // XPLMWindowDecoration
     PyModule_AddIntConstant(mod, "WindowDecorationSelfDecoratedResizable", xplm_WindowDecorationSelfDecoratedResizable); // XPLMWindowDecoration
 
-#if defined(XPLMPG1)
+#if defined(XPLM440)
     PyModule_AddIntConstant(mod, "xplm_WindowContentTypeOpenGL", xplm_WindowContentTypeOpenGL); // XPLMWindowContentType
     PyModule_AddIntConstant(mod, "xplm_WindowContentTypePanelGraphics", xplm_WindowContentTypePanelGraphics); // XPLMWindowContentType
     PyModule_AddIntConstant(mod, "xplm_WindowContentTypeBrowser", xplm_WindowContentTypeBrowser); // XPLMWindowContentType
@@ -2331,8 +2393,8 @@ PyObject* buildWindowCallbackDict(void)
       goto cleanup_iteration;
     }
 
-    // Build tuple: (module_name, draw, click, key, cursor, wheel, rightClick, refCon, browserNav)
-    value = PyTuple_New(9);
+    // Build tuple: (module_name, draw, click, key, cursor, wheel, rightClick, refCon, browserLoadFinished, browserLoadError)
+    value = PyTuple_New(10);
     if (!value) {
       error_occurred = true;
       goto cleanup_iteration;
@@ -2363,8 +2425,11 @@ PyObject* buildWindowCallbackDict(void)
     Py_INCREF(info.refCon);                             // increment for tuple
     PyTuple_SetItem(value, 7, info.refCon);             // steals ref
 
-    Py_INCREF(info.browserNav);                         // increment for tuple
-    PyTuple_SetItem(value, 8, info.browserNav);         // steals ref
+    Py_INCREF(info.browserLoadFinished);                // increment for tuple
+    PyTuple_SetItem(value, 8, info.browserLoadFinished); // steals ref
+
+    Py_INCREF(info.browserLoadError);                   // increment for tuple
+    PyTuple_SetItem(value, 9, info.browserLoadError);   // steals ref
 
     // Add to dictionary (PyDict_SetItem does NOT steal references)
     if (PyDict_SetItem(dict, key, value) < 0) {

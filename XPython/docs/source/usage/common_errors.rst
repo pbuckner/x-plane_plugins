@@ -44,9 +44,9 @@ You get popup on initial execution:
 On Linux
 ========
 
-    Some distros, apparently, don't contain one or more of the "other" libraries we require. For example Arch distro (for
-    one user) didn't include ``libbsd`` shared library. If you *don't see anything* in your Log.txt file post installation
-    of XPPython3, check the linked shared objects and install any that are missing::
+Some distros, apparently, don't contain one or more of the "other" libraries we require. For example Arch distro (for
+one user) didn't include ``libbsd`` shared library. If you *don't see anything* in your Log.txt file post installation
+of XPPython3, check the linked shared objects and install any that are missing::
 
       $ ldd XPPython3.xpl
           linux-vdso.so.1 (0x00007ffe8d3d)
@@ -59,6 +59,57 @@ On Linux
           libz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007fed3f8d)
           libexpat.so.1 => /lib/x86_64-linux-gnu/libexpat.so.1 (0x00007fed3f8d)
       
+
+On Linux with Steam
+===================
+
+If you're running X-Plane under Steam, on Linux distros, you will probably need to include a special launch option. Steam
+alters the way shared libraries are loaded which can cause XPPython3 to fail to properly find some libraries. You'll most
+likely see in the ``XPPython3Log.txt`` file something like::
+
+  [XPPython3] Version 4.7.0 Started -- Sat May 16 20:39:04 2026
+  [XPPython3] Python shared library loaded: 'Resources/plugins/XPPython3/lin_x64/python3.12/lib/libpython3.12.so'
+  [XPPython3] Cryptography package not installed, XPPython3.xpyce will not be supported. See Documentation.
+  EXCEPTION>> [XPPython3.I_PI_Updater] Traceback (most recent call last):
+  EXCEPTION>> [XPPython3.I_PI_Updater] 
+  EXCEPTION>> [XPPython3.I_PI_Updater]   File ".local/share/Steam/steamapps/common/X-Plane 12/Resources/plugins/XPPython3/scriptupdate.py", line 15, in <module>
+  EXCEPTION>> [XPPython3.I_PI_Updater]     from ssl import SSLCertVerificationError  # py 3.7+
+  EXCEPTION>> [XPPython3.I_PI_Updater]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  EXCEPTION>> [XPPython3.I_PI_Updater]   File "python3.12/lib/python3.12/ssl.py", line 100, in <module>
+  EXCEPTION>> [XPPython3.I_PI_Updater] ImportError: libssl.so.3: cannot open shared object file: No such file or directory
+  EXCEPTION>> [XPPython3.I_PI_Updater] 
+  EXCEPTION>> [XPPython3.I_PI_Updater] During handling of the above exception, another exception occurred:
+  EXCEPTION>> [XPPython3.I_PI_Updater] 
+  EXCEPTION>> [XPPython3.I_PI_Updater] Traceback (most recent call last):
+  EXCEPTION>> [XPPython3.I_PI_Updater]   File ".local/share/Steam/steamapps/common/X-Plane 12/Resources/plugins/XPPython3/I_PI_Updater.py", line 5, in <module>
+  EXCEPTION>> [XPPython3.I_PI_Updater]     from XPPython3 import scriptupdate
+  EXCEPTION>> [XPPython3.I_PI_Updater]   File ".local/share/Steam/steamapps/common/X-Plane 12/Resources/plugins/XPPython3/scriptupdate.py", line 17, in <module>
+  EXCEPTION>> [XPPython3.I_PI_Updater]     from ssl import CertificateError as SSLCertVerificationError  # py < 3.7, py2
+  EXCEPTION>> [XPPython3.I_PI_Updater]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  EXCEPTION>> [XPPython3.I_PI_Updater]   File "python3.12/lib/python3.12/ssl.py", line 100, in <module>
+  EXCEPTION>> [XPPython3.I_PI_Updater] ImportError: libssl.so.3: cannot open shared object file: No such file or directory
+  [XPPython3] Failed to load pluginInstance for 'XPPython3.I_PI_Updater'
+
+The key bit is "cannot open shared object file: No such file or directory", while referring to ``libssl`` and or ``libcrypto``. Python uses the
+standard OS versions of these libraries (usually) found in ``/usr/lib``. Because Steam has altered the load path, the system library is not consulted
+so these libraries are not found.
+
+To fix, add an environment variable to the Stream Launch Options:
+
+  1) Right-click X-Plane app in your Stream Library
+
+  2) Select "Properties..." and under "General", set the Launch Options to the string::
+
+       env LD_PRELOAD=/usr/lib/libcrypto.so.3:/usr/lib/libssl.so.3 %command%
+
+     In this example, make sure the two libraries match *your existing file paths*, based on your distro. This
+     will forcibly load these two libraries prior to launching X-Plane.
+
+     Alternatively, you can alter the LD_LIBRARY_PATH to the system directory, as this will catch any
+     other missing library. (I've not tested this, so if you see a better solution, please let me know.)::
+
+       env LD_LIBRARY_PATH="/usr/lib:$LD_LIBRARY_PATH" %command%
+       
 
 
 ----

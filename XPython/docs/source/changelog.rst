@@ -6,6 +6,14 @@ Known Bugs
 
   None. *Prove me wrong!*
 
+4.7.1 (12-Jul-2026)
+-------------------
+
+:Fixes:
+   * **getWindowGeometryVR()** parameter error. Python function was not recognizing correct
+     parameter usage for this function and failed. This has been corrected. 
+
+
 4.7.0 (28-Feb-2026)
 -------------------
 

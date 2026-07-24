@@ -36,7 +36,18 @@ XPLMPluginID
  .. py:data:: kVersion
     :value: 400
 
-    The current XPLM SDK revision for X-Plane 11.55 is 303. X-Plane 12 is 400, X-Plane 12.3 is 421.
+    The current XPLM SDK revision. Recent values are:
+
+    =======  ===
+    X-Plane  SDK
+    =======  ===
+    11.55    303
+    12.0     400
+    12.3     421
+    12.4     430
+    12.5     440
+    =======  ===
+
     `Official SDK <https://developer.x-plane.com/sdk/XPLMDefs/#kXPLM_Version>`__: :index:`kXPLM_Version`
 
 
@@ -57,6 +68,10 @@ Macintosh, providing a consistent interface across platforms that does not
 necessarily match the Macintosh user interface guidelines.  There is not
 yet a way for plugins to access the Macintosh control keys without using
 #ifdefed code.
+
+These modifier keys (except UpFlag and DownFlag) can be directly queried
+using :func:`getModifierKeys`, available since X-Plane 12.5 (SDK 440). They
+are also provided as flags in window :func:`key` callback.
 
 For ``xp.py``, these are defined without the leading ``xplm_`` e.g., ``xp.ShiftFlag``
 
@@ -88,8 +103,7 @@ For ``xp.py``, these are defined without the leading ``xplm_`` e.g., ``xp.ShiftF
  .. py:data:: CapsLockFlag
    :value: 32
 
-   The caps-lock key is engaged. New with X-Plane 12.4 (SDK 440); available only
-   when running under X-Plane 12.4+. See also :func:`getModifierKeys`.
+   The caps-lock key is engaged. New with X-Plane 12.4 (SDK 440).
    `Official SDK <https://developer.x-plane.com/sdk/XPLMDefs/#xplm_CapsLockFlag>`__: :index:`xplm_CapsLockFlag`
 
 

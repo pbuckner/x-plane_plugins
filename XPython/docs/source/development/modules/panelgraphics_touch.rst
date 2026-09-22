@@ -27,7 +27,7 @@ Functions
 .. py:function:: accumulateTouchZone(type, left, top, right, bottom, command=None, identifier=0) -> bool
 
     :param int type: One of :data:`TouchZone_Nothing`, :data:`TouchZone_Command`, :data:`TouchZone_Identifier`
-    :param int left: Left edge in panel coordinates
+    :param int left: Left edge, in the coordinates you are drawing in
     :param int top: Top edge
     :param int right: Right edge
     :param int bottom: Bottom edge
@@ -40,10 +40,26 @@ Functions
     from your drawing callback for each region. Zones registered later win
     overlaps. (That is, overlapping zones will *not* result in multiple callbacks.)
 
-    For display windows (e.g., :func:`createWindowEx`) active transformations are ignored, so
-    you'll need to set, for example, ``left`` to be window geometry ``left`` + whatever offset you want within your window.
-    You'll also need to handle window scaling.
-    See example code at bottom of this page.
+    A touch zone rides the transform stack, exactly like the drawing it sits on
+    top of. Declare the zone in the same coordinates you drew in and X-Plane
+    applies the transform in force for you --- **do not** offset or scale the
+    rectangle yourself, or the transform is applied twice. Draw a button and put
+    a zone on it using the same numbers, under any combination of translations
+    and scales, and the two stay together. This holds for windows and avionics
+    devices alike. See the example at the bottom of this page.
+
+    Two limits follow from a zone being an axis-aligned rectangle:
+
+    .. rst-class:: compact
+
+    * Do not declare a zone while a rotation is in effect. An axis-aligned
+      rectangle cannot describe a rotated graphic, so this is an error --- and
+      it is decided by whether you called :func:`transformRotate` at all, not by
+      the angle, so a rotation of zero degrees still counts.
+    * A zone cannot be declared inside a :func:`beginRetainedDrawing` recording.
+      A zone is per-frame state rather than drawing, and a retained drawing holds
+      drawing only. Accumulate your zones outside the recording, once per frame;
+      they are cheap to re-declare and are meant to be re-declared.
 
     .. rst-class:: compact
                    
@@ -86,11 +102,11 @@ Callback
 
     :param int identifier: The *identifier* of the touched zone (from :func:`accumulateTouchZone`)
     :param int status: Touch phase (press / move / release)
-    :param int x: Touch X in panel coordinates
-    :param int y: Touch Y in panel coordinates
-    :param int dx: X movement since the last event
-    :param int dy: Y movement since the last event
-    :param int button: Which mouse button / touch point
+    :param int x: Touch X, in the coordinates the zone was declared in
+    :param int y: Touch Y, in the same coordinates
+    :param int dx: X delta from the initial click point
+    :param int dy: Y delta from the initial click point
+    :param int button: 0 for left, 1 for right
     :param refCon: The *refCon* you registered with SetTouchEvent, *not with window or device* refCon
 
     The handler you pass to :func:`avionicsSetTouchEventHandler` /
@@ -165,29 +181,25 @@ Logs:
        Touch region #42, status=3 at (24, 13) with button #0
 
 Showing initial :data:`MouseDown`, followed with :data:`MouseUp`,
-using button #0 (Left). Right, center and wheel are not supported.
+using button #0 (Left). Button #1 is Right; center and wheel deliver no event
+at all.
 
-For regular windows, you'll have to manage scale and translation
-yourself as Touch Zone ignore this information.
-
-To place the blue button in a window, and correctly track positions
-you have more work:
+The same button in a window, drawn inside a transform so it scales with the
+window. Note that the zone is declared with the *same* numbers the button is
+drawn with --- X-Plane runs the transform stack over the rectangle for you, and
+hands the results back to your handler in that same space, so there is no
+geometry arithmetic to do on either side:
 
 .. code-block:: python
                 
     >>> def myDraw(windowID, refCon):
     ...     left, top, right, bottom = xp.getWindowGeometry(windowID)
-    ...     scalex = (right-left) / 200.
-    ...     scaley = (top-bottom) / 100.
     ...     rect = [(10, 10), (50, 10), (50, 30), (10, 30)]
     ...     with xp.transformContext():
     ...         xp.transformTranslate(left, bottom)
-    ...         xp.transformScale((right-left) / 200., (top-bottom) / 100.)
+    ...         xp.transformScale((right - left) / 200., (top - bottom) / 100.)
     ...         ret = xp.accumulateTouchZone(xp.TouchZone_Identifier,
-    ...                   left=int(left + (10 * scalex)),
-    ...                   top=int(bottom + (30 * scaley)),
-    ...                   right=int(left + (50 * scalex)),
-    ...                   bottom=int(bottom+ (10 * scaley)),
+    ...                   left=10, top=30, right=50, bottom=10,
     ...                   command=None, identifier=42)
     ...         if ret:
     ...             xp.polygon(xp.makeColor(1, 0, 1, 1), rect)
@@ -199,10 +211,7 @@ you have more work:
     ...                           contentType=xp.WindowContentTypePanelGraphics)
     ...
     >>> def touchHandler(identifier, status, x, y, dx, dy, button, refCon):
-    ...     left, top, right, bottom = xp.getWindowGeometry(refCon)
-    ...     scalex = (right-left) / 200.
-    ...     scaley = (top-bottom) / 100.
-    ...     xp.log(f"Touch region #{identifier}, {status=} at ({(x-left) / scalex}, {(y-bottom) / scaley}) with button #{button}")
+    ...     xp.log(f"Touch region #{identifier}, {status=} at ({x}, {y}) with button #{button}")
     ...
     >>> xp.windowSetTouchEventHandler(winID, touchHandler, winID)
 
@@ -219,4 +228,13 @@ Logs:
        Touch region #42, status=3 at (24, 13) with button #0
 
 Showing initial :data:`MouseDown`, a few (non-moving) :data:`MouseDrag` while the mouse was pressed, ending with :data:`MouseUp`,
-using button #0 (Left). Button #1 is Right. Center and wheel are not supported.
+using button #0 (Left). Button #1 is Right; center and wheel deliver no event at all.
+
+The logged coordinates are in the 200x100 space the button was drawn and the
+zone declared in, whatever size the user has dragged the window to. Resize the
+window and the numbers do not change.
+
+.. note:: On an avionics device, ``MouseUp`` is reported at (0, 0) and
+          ``MouseDrag`` is not delivered, so a drag cannot be tracked there the
+          way it can in a window. Reported to Laminar as
+          `XPD-18371 <https://developer.x-plane.com/x-plane-bug-database/?issue=XPD-18371>`_.

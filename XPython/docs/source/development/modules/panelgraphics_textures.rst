@@ -29,6 +29,28 @@ The atlas creation, addition, baking,  and queries (i.e., height, width) can be 
 do not need to be done within a draw callback (generally, they *should not* be done within a
 callback, for performance reasons.)
 
+.. _pg-atlas-preconditions:
+
+An atlas is either being **filled** or **baked**, and most routines require one
+or the other. The order is create, add images, bake, draw, destroy --- and that
+order is a requirement, not a suggestion:
+
+.. rst-class:: compact
+
+* the :func:`textureAtlasAddImageFile` family and :func:`textureAtlasBake`
+  require an atlas that has **not** been baked; an atlas is baked exactly once
+  and takes no more images after that;
+* every draw routine requires one that **has** been baked;
+* :func:`destroyTextureAtlas`, :func:`textureAtlasGetImageWidth` and
+  :func:`textureAtlasGetImageHeight` have no precondition at all --- they are
+  legal at any point in an atlas's life.
+
+X-Plane reports a violated precondition to your error callback and to
+``Log.txt`` so you can find it, but a violated precondition is a bug in your
+plugin, so **no return value is defined for one** --- do not write code that
+tests for it. The ``-1`` returned by the add routines is a different thing: it
+means the image could not be loaded.
+
 Drawing (``textureAtlasDraw*()``, ``textureSourceDraw*()``) must be done within a window
 or avionics device with :data:`WindowContentTypePanelGraphics` context.
 
@@ -71,8 +93,9 @@ every ``textureAtlasDraw*`` entry point in a labelled grid.
     :param str imageFilePath: Path to a PNG file
     :return: The zero-based image index assigned, -1 on error
 
-    Load a PNG file and add it to the atlas as a single image. Call before
-    :func:`textureAtlasBake`. Returns -1 if file not found or cannot be loaded.
+    Load a PNG file and add it to the atlas as a single image. The atlas must not have been baked yet
+    (see :ref:`above <pg-atlas-preconditions>`). Returns -1 if the file is not
+    found or cannot be loaded.
 
     ``imageFilePath`` can be absolute path, or relative to X-Plane root.      
 
@@ -89,7 +112,7 @@ every ``textureAtlasDraw*`` entry point in a labelled grid.
     :param str imageFilePath: Path to a PNG file
     :param int cellsX: Number of columns
     :param int cellsY: Number of rows
-    :return: Index of the *first* (top-left) cell; cell ``(x, y)`` is ``index + y * cellsX + x``
+    :return: Index of the *first* (top-left) cell, -1 on error; cell ``(x, y)`` is ``index + y * cellsX + x``
 
     Load a PNG file and subdivide it into a ``cellsX`` × ``cellsY`` grid, adding
     each cell as a separate image (useful for sprite sheets).
@@ -113,7 +136,7 @@ every ``textureAtlasDraw*`` entry point in a labelled grid.
     :param bytes image: Raw RGBA pixel data (4 bytes/pixel, rows top to bottom)
     :param int width: Image width in pixels
     :param int height: Image height in pixels
-    :return: The zero-based image index assigned
+    :return: The zero-based image index assigned, -1 on error
 
     Add a single image from raw RGBA pixel data. *image* must hold at least
     ``width * height * 4`` bytes.
@@ -137,7 +160,7 @@ every ``textureAtlasDraw*`` entry point in a labelled grid.
     :param int height: Image height in pixels
     :param int cellsX: Number of columns
     :param int cellsY: Number of rows
-    :return: Index of the first cell; cell ``(x, y)`` is ``index + y * cellsX + x``
+    :return: Index of the first cell, -1 on error; cell ``(x, y)`` is ``index + y * cellsX + x``
 
     Add raw RGBA pixel data subdivided into a ``cellsX`` × ``cellsY`` grid; each
     cell becomes a separate image. *image* must hold at least ``width * height * 4``
@@ -175,7 +198,10 @@ every ``textureAtlasDraw*`` entry point in a labelled grid.
     >>> xp.textureAtlasGetImageWidth(atlas, 1000)
     0
     
-    .. warning:: X-Plane will crash if you call this function before calling :func:`textureAtlasBake`.
+    This works both before and after :func:`textureAtlasBake`, and returns the
+    same answer either way --- packing an atlas never resizes your images. Being
+    able to measure before baking is usually when you want to know: laying out a
+    panel around art you have added but not yet packed.
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMPanelGraphics/#XPLMTextureAtlasGetImageWidth>`__ :index:`XPLMTextureAtlasGetImageWidth`
 
@@ -195,7 +221,8 @@ every ``textureAtlasDraw*`` entry point in a labelled grid.
     >>> xp.textureAtlasGetImageHeight(atlas, 1000)
     0
     
-    .. warning:: X-Plane will crash if you call this function before calling :func:`textureAtlasBake`
+    This works both before and after :func:`textureAtlasBake`, and returns the
+    same answer either way --- packing an atlas never resizes your images.
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMPanelGraphics/#XPLMTextureAtlasGetImageHeight>`__ :index:`XPLMTextureAtlasGetImageHeight`
 

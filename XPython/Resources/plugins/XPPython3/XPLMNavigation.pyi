@@ -267,7 +267,7 @@ def setFMSFlightPlanEntryLatLon(flightPlan: XPLMNavFlightPlan, index: int, lat: 
     ...
 
 
-def setFMSFlightPlanEntryLatLonWithId(flightPlan: XPLMNavFlightPlan, index: int, lat: float, lon: float, altitude: int = 0, ID: str = None) -> None:
+def setFMSFlightPlanEntryLatLonWithId(flightPlan: XPLMNavFlightPlan, index: int, lat: float, lon: float, altitude: int = 0, ID: Optional[str] = None) -> None:
     """
     Sets entry in the FMS to a lat/lon entry, with the given coordinates
     and display ID for the waypoint.

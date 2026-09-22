@@ -65,7 +65,7 @@ def appendMenuItemWithCommand(menuID: Optional[XPLMMenuID] = None, name: str = '
     ...
 
 
-def appendMenuSeparator(menuID: XPLMMenuID = None) -> None | int:
+def appendMenuSeparator(menuID: Optional[XPLMMenuID] = None) -> None | int:
     """
     Adds separator to end of menu.
 

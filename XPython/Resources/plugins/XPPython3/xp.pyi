@@ -2063,7 +2063,7 @@ def appendMenuItemWithCommand(menuID: Optional[XPLMMenuID] = None, name: str = '
     ...
 
 
-def appendMenuSeparator(menuID: XPLMMenuID = None) -> None | int:
+def appendMenuSeparator(menuID: Optional[XPLMMenuID] = None) -> None | int:
     """
         Adds separator to end of menu.
 
@@ -2364,7 +2364,7 @@ def setFMSFlightPlanEntryLatLon(flightPlan: XPLMNavFlightPlan, index: int, lat: 
     ...
 
 
-def setFMSFlightPlanEntryLatLonWithId(flightPlan: XPLMNavFlightPlan, index: int, lat: float, lon: float, altitude: int = 0, ID: str = None) -> None:
+def setFMSFlightPlanEntryLatLonWithId(flightPlan: XPLMNavFlightPlan, index: int, lat: float, lon: float, altitude: int = 0, ID: Optional[str] = None) -> None:
     """
         Sets entry in the FMS to a lat/lon entry, with the given coordinates
         and display ID for the waypoint.

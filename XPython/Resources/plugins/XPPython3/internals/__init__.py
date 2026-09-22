@@ -15,4 +15,4 @@ def getFlightLoops() -> List[XPLMFlightLoopID]:
 
 def getCommands() -> List[tuple[Any, Any, Any, Any]]:
     moduleName = xp.getSelfModuleName()
-    return [[x[1], x[2], x[3], x[4]] for x in xp.getCommandCallbackDict().values() if x[0] == moduleName]
+    return [(x[1], x[2], x[3], x[4]) for x in xp.getCommandCallbackDict().values() if x[0] == moduleName]

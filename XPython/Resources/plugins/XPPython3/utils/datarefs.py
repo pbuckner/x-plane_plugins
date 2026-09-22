@@ -2,15 +2,16 @@ from __future__ import annotations
 from typing import Any, Callable, Union, List, Iterable, SupportsIndex, overload, Optional, Self, Literal, Sequence, Dict
 from itertools import takewhile
 from XPPython3 import xp
+from XPPython3.xp_typing import XPLMDataTypeID
 import re
 
 # (getSelfModuleName was added to XPPython 4.6 & allows this code to distinguish between "my" datarefs and "other" python
 # plugin datarefs... without it, all python datarefs appear to be "mine" & therefore read/writeable)
 try:
-    getSelfModuleName = xp.getSelfModueName
+    getSelfModuleName = xp.getSelfModuleName
 except AttributeError:
-    def getSelfModuleName() -> Optional[str]:
-        return None
+    def getSelfModuleName() -> str:
+        return "Unknown"
 
 
 _DataRefs: Dict[str, 'DataRef'] = {}
@@ -23,8 +24,10 @@ class DataRef:
     # If the dataref is not ours, we gather information
     # about it from X-Plane.
     # ----------------------
-    def __init__(self: Self, name: str, make: bool = False, callback: Union[Callable[['DataRef'], None], Literal[False]] = None,
-                 dataType: int = 0, dim: int = 512, dataRefType: Optional[str] = None) -> None:
+    def __init__(self: Self, name: str, make: bool = False,
+                 callback: Union[Callable[['DataRef'], None],
+                                 Optional[Literal[False]]] = None,
+                 dataType: XPLMDataTypeID = XPLMDataTypeID(0), dim: int = 512, dataRefType: Optional[str] = None) -> None:
         self.name: str = name
         self._ours: bool = False
         self._our_value: Any = None
@@ -53,6 +56,9 @@ class DataRef:
 
         # we didn't find an existing dataref, so we try to create one
         if make and self.dref is None:
+            # array-ness of a dataref we create comes from dataRefType ("array[x]"), never
+            # from a subscript in the name: registerDataAccessor() would otherwise create a
+            # dataref literally named 'foo[2]', which _dref_name ('foo') would never find.
             if self._subscripted:
                 raise ValueError(f"Cannot create dataref with a subscripted name: {name}")
             self._owning_plugin = getSelfModuleName()
@@ -170,12 +176,18 @@ class DataRef:
             xp.setDatab(self.dref, value, offset=self._index, count=self._count)
 
     @property
-    def value(self: Self) -> Union[int, float, str, List[Union[int, float]], 'DList']:
+    def value(self: Self) -> Any:
         """
         "getting" value of dataref:
         If it's 'our' dataref, simply return the value
 
         If it's X-Plane dataref, do the appropriate query and return value
+
+        Returns int, float, str (for 'data' datarefs) or DList / list of
+        numbers (for array datarefs) -- which one depends on the dataref, so
+        it cannot be known statically.  Annotated Any rather than that union
+        because a caller can never narrow it: the union makes ordinary use
+        (arithmetic, passing to a float parameter) a type error.
         """
         if self._ours:
             if 'data' in self.types:
@@ -475,10 +487,11 @@ def create_dataref(name: str, dataRefType: str = "number", callback: Union[Calla
     if callable(dataRefType) and not callback:
         callback = dataRefType
         dataRefType = 'number'
-    dataType = ((xp.Type_Int | xp.Type_Float | xp.Type_Double) if dataRefType == "number"
-                else (xp.Type_IntArray | xp.Type_FloatArray) if dataRefType.startswith("array[")
-                else xp.Type_Data if dataRefType in ('string', 'data')
-                else xp.Type_Unknown)
+    dataType = XPLMDataTypeID(
+        (xp.Type_Int | xp.Type_Float | xp.Type_Double) if dataRefType == "number"
+        else (xp.Type_IntArray | xp.Type_FloatArray) if dataRefType.startswith("array[")
+        else xp.Type_Data if dataRefType in ('string', 'data')
+        else xp.Type_Unknown)
     assert dataType != xp.Type_Unknown, 'dataRefType must be one of "number" | "array[]" | "string" | "data"'
 
     dim: int = 512  # ignored except for array types

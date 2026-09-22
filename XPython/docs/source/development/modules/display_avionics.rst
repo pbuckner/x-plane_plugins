@@ -478,7 +478,8 @@ folder. Copy it into ``Resources/PythonPlugins/`` and restart X-Plane.
   The size of the bezel must be *at least* as much as the screen + offset.
 
   The :func:`bezelDraw` function is *only* called when the device is poppedup or popped out: while the device is
-  embedded in the cockpit, ``bezelDraw()`` is not called.
+  embedded in the cockpit --- or drawn on an object, see :py:func:`setObjectAvionics`
+  --- ``bezelDraw()`` is not called.
 
   The default parameter values:
 
@@ -620,7 +621,10 @@ folder. Copy it into ``Resources/PythonPlugins/`` and restart X-Plane.
 
     :param float rheoValue: current instrument rheostat brightness [0..1]
     :param float ambientBrightness: ambientBrightness [0..1]
-    :param float busVoltsRatio: busVoltsRatio [0..1], or -1 if device not bound
+    :param float busVoltsRatio: busVoltsRatio [0..1], 0 if no bus has usable power,
+                                or -1 if the device is not bound to the current
+                                aircraft --- which is always the case for a device
+                                drawn on an object, see :py:func:`setObjectAvionics`
     :param Any refCon: reference constant provided with :py:func:`createAvionicsEx`
     :return float: ratio [0..1] of the screen's maximum brightness to display the screen in 3D cockpit
                    
@@ -1026,10 +1030,44 @@ rather than only in the cockpit or a popup.
 
 
 
+  Three things about an object-bound device differ from a cockpit one, and each
+  will otherwise look like a failed bind:
+
+  **Give the object a black albedo.** The device screen is composited *over* the
+  object's lit surface --- it does not replace it. An object with no ``TEXTURE``
+  therefore shows a sunlit **white** surface through everything you draw. Give the
+  object a texture whose screen area is black, as Laminar's own devices do. (A
+  bind that failed outright renders the screen solid black instead, and
+  :py:func:`setObjectAvionics` returns 0 --- usually a ``deviceID`` mismatch.)
+
+  **Decide how the screen is powered.** An object-bound device is not bound to the
+  aircraft, so it has no electrical bus and :py:func:`brightness` receives
+  ``busVoltsRatio`` of ``-1``. What that means for you depends on whether you
+  supply the callback at all:
+
+  .. rst-class:: compact
+
+  * **no callback** --- the screen follows the aircraft bus, so it stays dark
+    until Master is on (or Standby Battery is in ARM). Right for a device that
+    should only be alive with ship's power;
+  * **return 1.0** --- always lit, independent of any electrical system. Brightness
+    on the object follows the device's own callback, so this is the supported way
+    to opt out;
+  * **return** ``ambientBrightness`` --- dims realistically with the ambient light.
+
+  Because ``busVoltsRatio`` is ``-1`` here, you cannot branch on it inside the
+  callback. To tie an object's screen to some power source of your own, read the
+  relevant dataref instead.
+
+  **The bezel is pop-up only.** :py:func:`bezelDraw` is never called for a device
+  drawn on an object: ``ATTR_cockpit_device`` marks the screen polygons and there
+  is nowhere for a bezel to go. ``bezelWidth``, ``bezelHeight``, ``screenOffsetX``
+  and ``screenOffsetY`` likewise shape only the 2-D pop-up.
+
   See ``samples/PI_ObjAvionics.py`` for a working example: it writes its own
-  single-quad .obj (with the matching ``ATTR_cockpit_device``) and texture at
-  enable, binds a device to it, and pins the instance ahead of the aircraft so
-  the screen rides with you.
+  single-quad .obj (with the matching ``ATTR_cockpit_device``) and its black
+  albedo at enable, binds a device to it, and pins the instance ahead of the
+  aircraft so the screen rides with you.
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMSetObjectAvionics>`__ :index:`XPLMSetObjectAvionics`
 

@@ -26,6 +26,7 @@ xpWidgetClass_ListBox = 10019  # not used
 
 NEW_STYLE = True
 
+
 class Prop(IntEnum):
     # Properties greater than xpProperty_UserStart will be treated as Python Objects
     # rather than ints by XPPython3.
@@ -451,7 +452,6 @@ class XPListBox:
                 xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, sliderPosition - 1)
         else:
             xp.setWidgetProperty(widget, Prop.ListBoxScrollBarSliderPosition, sliderPosition)
-
 
 
 def XPCreateListBox(left: int, top: int, right: int, bottom: int, visible: int, container: XPWidgetID) -> XPListBox:

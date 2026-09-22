@@ -1,14 +1,9 @@
 import re
 import queue
 import time
-import os
 import requests
 import threading
 import multiprocessing as mp
-try:
-    from XPPython3 import xp
-except ModuleNotFoundError:
-    pass
 
 
 # Status

@@ -44,7 +44,6 @@ def _bufferAt(address: int, nbytes: int) -> Any:
     return (ctypes.c_char * nbytes).from_address(address)
 
 
-
 class XPPanelGraphicsRenderer:
     """Renders ImGui frames through xp.drawCalls().
 

@@ -1,4 +1,4 @@
-from typing import Any, Self, cast, Optional
+from typing import Any, Self, Optional
 from XPPython3 import xp, internals
 from XPPython3.utils import xlua
 from XPPython3.xp_typing import XPLMFlightLoopID

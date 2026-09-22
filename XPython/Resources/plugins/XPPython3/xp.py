@@ -1082,7 +1082,7 @@ def retainedDrawing():
     try:
         yield holder
     except BaseException:
-        XPLMPanelGraphics.destroyRetainedDrawing(XPLMPanelGraphics.endRetainedDrawing())        
+        XPLMPanelGraphics.destroyRetainedDrawing(XPLMPanelGraphics.endRetainedDrawing())
         raise
     holder.handle = XPLMPanelGraphics.endRetainedDrawing()
 
@@ -1093,7 +1093,7 @@ class Retained:
 
     def __init__(self):
         self.handle = None
-        
+
     def draw(self):
         if self.handle is not None:
             XPLMPanelGraphics.drawRetained(self.handle)

@@ -20,7 +20,7 @@ from XPPython3 import xp
 from XPPython3.scriptconfig import Config
 from XPPython3.zip_download import ZipDownload
 # (We don't use Version or VersionUnknownException in this module, but other scripts assume it exists in this module)
-from XPPython3.updater.version import calc_update, Version, VersionUnknownException  # pylint: disable=unused-import
+from XPPython3.updater.version import calc_update, Version, VersionUnknownException  # noqa: F401  # pylint: disable=unused-import
 
 
 class Updater(Config):

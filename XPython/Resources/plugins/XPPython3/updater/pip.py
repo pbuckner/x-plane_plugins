@@ -84,7 +84,7 @@ class Pip:
                                                        1, '', 0, self.window.widgetID,
                                                        xp.WidgetClass_Caption)
 
-    def pipWidgetCallback(self:Self, inMessage: XPWidgetMessage, _inWidget: XPWidgetID, inParam1: Any, _inParam2: Any) -> int:
+    def pipWidgetCallback(self: Self, inMessage: XPWidgetMessage, _inWidget: XPWidgetID, inParam1: Any, _inParam2: Any) -> int:
         if inMessage == xp.Message_CloseButtonPushed:
             if self.window.widgetID is not None:
                 xp.hideWidget(self.window.widgetID)

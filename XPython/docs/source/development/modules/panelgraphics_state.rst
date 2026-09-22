@@ -33,12 +33,15 @@ draw, then pop to restore.
 .. py:function:: transformPush() -> None
 .. py:function:: transformPop() -> None
 
-    You should
-    surround transformation with :func:`transformPush` and :func:`transformPop` to isolate
-    the transformation to a subset of your drawing commands.
-    
-    Using the :func:`transformContext` context manager is preferred over individually calling
-    :func:`transformPush` and :func:`transformPop`.
+    :func:`transformTranslate`, :func:`transformRotate` and :func:`transformScale`
+    **must** be called inside a :func:`transformPush` / :func:`transformPop` pair
+    --- calling one outside a pair is an error. X-Plane does not push a transform
+    scope around your drawing callback, so a transform with no enclosing push has
+    no defined end.
+
+    Using the :func:`transformContext` context manager is therefore preferred over
+    calling :func:`transformPush` and :func:`transformPop` yourself: it cannot
+    leave the pair unbalanced, even if your drawing code raises.
 
     Transformations can be nested.
     
@@ -118,6 +121,8 @@ There are three basic transformations:
 
     Offset all subsequent drawing by ``(dx, dy)`` pixels.
 
+    Must be called inside a :func:`transformPush` / :func:`transformPop` pair.
+
     See example at the top of this page.
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMPanelGraphics/#XPLMTransformTranslate>`__ :index:`XPLMTransformTranslate`
@@ -130,6 +135,8 @@ There are three basic transformations:
 
     Rotate subsequent drawing around ``(centerX, centerY)`` counter-clockwise by
     *angle* degrees.
+
+    Must be called inside a :func:`transformPush` / :func:`transformPop` pair.
     
     >>> def rotateLines(windowID, _refCon):
     ...     left, top, right, bottom = xp.getWindowGeometry(windowID)
@@ -176,6 +183,13 @@ There are three basic transformations:
     :param float scaleY: Vertical scale factor
 
     Scale subsequent drawing by ``(scaleX, scaleY)`` relative to the origin.
+
+    Must be called inside a :func:`transformPush` / :func:`transformPop` pair.
+
+    **Neither factor may be zero**: a zero scale collapses the coordinate system
+    onto a line, so a position expressed in it can no longer be recovered.
+    Negative factors are fine, and mirror your drawing --- ``transformScale(-1, 1)``
+    flips it horizontally about the current origin.
 
     >>> def scalePoly(windowID, _refCon):
     ...     left, top, right, bottom = xp.getWindowGeometry(windowID)

@@ -541,7 +541,7 @@ These take no *color* argument; each vertex is a ``(x, y, color)`` tuple, where
 
 .. py:function:: quadstripc(vertices) -> None
 
-    :param vertices: Sequence of ``(x, y, color)`` tuples
+    :param vertices: Sequence of ``(x, y, color)`` tuples (even count, at least 4)
 
     Draw a quad strip with per-vertex colors.
 

@@ -54,6 +54,9 @@ Basic FMOD interface
   by listening for the callback which is invoked when the sounds is finished (or stopped). The
   callback is optional, because if you have no intention of interacting with the sounds after it's
   launched, then you don't need to keep the channel pointer at all.
+
+  The callback is never invoked more than once per completion, so it is safe to
+  free whatever the sound was using the first time it fires.
   
   The sound is not started instantly. Instead it will be started the next time X-Plane refreshes the sound system,
   typically at the start of the next frame. This allows you to set the initial position for the sound,

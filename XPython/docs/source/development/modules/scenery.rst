@@ -242,6 +242,10 @@ system.
     immediately and takes two parameters, one is the found path and the other is the *refCon*
     provided with the :py:func:`lookupObjects` call. Alternatively, use :func:`getObjects`.
 
+    The enumerator is *fully* synchronous: it is called once per matching object,
+    and every call completes before :py:func:`lookupObjects` returns. So results
+    your enumerator collected are ready to use on the next line.
+
     >>> def MyEnumerator(path, refCon):
     ...   refCon.append(path)
     ...
@@ -340,6 +344,9 @@ every successful call to :py:func:`loadObject` with a call to :py:func:`unloadOb
     You provide an *loaded* callback function that is called once the load has completed.
     Note that if the object cannot be loaded, you will not find out until the
     callback function is called with a None object handle.
+
+    There is no way to cancel an asynchronous load once started: you must wait for
+    it to complete, then :py:func:`unloadObject` the result if you no longer want it.
 
     The callback function takes two parameters, the ``objectRef`` of the object
     loaded, and your ``refCon``. For example:

@@ -366,6 +366,10 @@ when it is created (:py:func:`registerMapCreationHook`).
      Called just before your map layer gets deleted. Because SDK-created map
      layers have the same lifetime as the X-Plane map that contains them, if the
      map gets unloaded from memory, your layer will too.
+
+     This fires *exactly once*, just before deletion, and none of the layer's
+     other callbacks are used afterwards --- so it is the right place to release
+     whatever the layer was holding.
      
      >>> def deleteLayer(layerID, refCon):
      ...    xp.log("Layer being deleted")

@@ -86,14 +86,14 @@ My_DOCSTR(_playPCMOnBus__doc__, "playPCMOnBus",
           "audioBuffer, bufferSize, soundFormat, freqHz, numChannels, loop=0, audioType=8, callback=None, refCon=None",
           "audioBuffer:Any, bufferSize:int, soundFormat:int, freqHz:int, numChannels:int, loop:int=0, "
           "audioType:XPLMAudioBus=AudioUI, callback:Optional[Callable[[Any, int], None]]=None, refCon:Any=None",
-          "None | FMODChannel",
+          "None | FMOD_CHANNEL",
           "Play provided data, of length bufferSize on the bus indicated by audioType. On\n"
           "completion, or stoppage, invoke (optional) callback with provided refCon.\n"
           " * soundFormat is # bytes per frame 1=8bit, 2=16bit, etc.\n"
           " * freqHz is sample framerate, e.g., 800, 22000, 44100\n"
           " * numChannels is e.g., 1=mono, 2=stereo\n"
           "\n"
-          "Return audio FMODChannel on success.");
+          "Return audio FMOD_CHANNEL on success.");
           
 /*
   with open('Resouces/sounds/alert/40ft.wav', 'rb') as fp:

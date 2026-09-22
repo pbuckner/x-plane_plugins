@@ -9,11 +9,10 @@ This script:
 """
 
 import ast
-import os
+import re
 import sys
 from pathlib import Path
-from typing import Set, List, Dict, Any
-from collections import OrderedDict
+from typing import Set, List, Dict
 
 
 EXTRA_STUB = "xp_extra.pyi"
@@ -40,6 +39,46 @@ def module_level_names(tree: ast.Module, include_imports: bool = False) -> Set[s
             for alias in node.names:
                 names.add(alias.asname or alias.name.split('.')[0])
     return names
+
+
+def split_extra(text: str):
+    """Split xp_extra.pyi into (imports, body).
+
+    imports maps module -> set of imported names; body is the file with its
+    import statements, their explanatory comments and its pylint header
+    removed.  Appending the fragment verbatim would leave its imports partway
+    down xp.pyi, which is three E402s and a duplicated import block; hoisting
+    them into the generated header instead keeps the joined file clean.
+    """
+    tree = ast.parse(text)
+    lines = text.splitlines()
+    imports: Dict[str, Set[str]] = {}
+    drop: Set[int] = set()
+
+    for node in tree.body:
+        if not isinstance(node, (ast.Import, ast.ImportFrom)):
+            continue
+        module = node.module if isinstance(node, ast.ImportFrom) else ""
+        imports.setdefault(module, set()).update(a.name for a in node.names)
+        drop.update(range(node.lineno, (node.end_lineno or node.lineno) + 1))
+        # take the comment block sitting directly above the statement with it
+        ln = node.lineno - 1
+        while ln >= 1 and lines[ln - 1].lstrip().startswith("#"):
+            drop.add(ln)
+            ln -= 1
+
+    # the generated header already carries the pylint disables
+    ln = 1
+    while ln <= len(lines) and lines[ln - 1].lstrip().startswith("#"):
+        if "pylint:" in lines[ln - 1]:
+            drop.add(ln)
+            drop.add(ln + 1)  # its explanatory second line
+        ln += 1
+
+    body = "\n".join(line for i, line in enumerate(lines, 1) if i not in drop)
+    # removing the imports leaves their surrounding blank lines stacked up
+    body = re.sub(r"\n{3,}", "\n\n\n", body)
+    return imports, body.strip("\n")
 
 
 def check_coverage(stub_content: str, xp_py: Path) -> List[str]:
@@ -96,10 +135,10 @@ class StubGenerator:
 
     def get_docstring(self, node: ast.FunctionDef) -> str | None:
         """Extract docstring from function definition."""
-        if (node.body and
-            isinstance(node.body[0], ast.Expr) and
-            isinstance(node.body[0].value, ast.Constant) and
-            isinstance(node.body[0].value.value, str)):
+        if (node.body
+                and isinstance(node.body[0], ast.Expr)
+                and isinstance(node.body[0].value, ast.Constant)
+                and isinstance(node.body[0].value.value, str)):
             return node.body[0].value.value
         return None
 
@@ -241,9 +280,11 @@ class StubGenerator:
 
     def track_used_types(self, code: str):
         """Track which types from xp_typing are used in the code."""
-        # Look for type names that might be from xp_typing
-        for type_name in self.xp_typing_defs.keys():
-            if type_name in code:
+        # Whole-word match only.  A plain substring test also fires on names
+        # that merely contain the type, e.g. FMODChannel inside
+        # getFMODChannelGroup, and drags an unused import into xp.pyi.
+        for type_name in self.xp_typing_defs:
+            if re.search(rf"\b{re.escape(type_name)}\b", code):
                 self.used_types.add(type_name)
 
     def parse_file(self, filepath: Path):
@@ -312,9 +353,12 @@ class StubGenerator:
         lines = []
 
         # Add file header
-        lines.append("# pylint: disable = unused-argument, line-too-long, useless-import-alias")
+        lines.append("# pylint: disable = unused-argument, line-too-long, useless-import-alias, redefined-builtin, redefined-outer-name")
         lines.append("# (a stub's parameters are never used -- there is no body; signatures are")
-        lines.append("#  emitted on one line; 'X as X' is the stub re-export form mypy requires)")
+        lines.append("#  emitted on one line; 'X as X' is the stub re-export form mypy requires.")
+        lines.append("#  Some X-Plane parameters are named object/map/type/dir, and drawCalls")
+        lines.append("#  takes a drawCalls argument -- renaming them would break keyword callers,")
+        lines.append("#  and a stub has no body for the shadowing to affect.)")
         lines.append("# Type stub file generated from XP*.pyi files")
         lines.append("# This file contains type hints for all functions, classes, and constants")
         lines.append("")
@@ -344,14 +388,14 @@ class StubGenerator:
             # 'Module "XPPython3.xp" does not explicitly export attribute "X"'
             # for every dataclass a plugin reads off xp.
             if len(sorted_types) > 5:
-                lines.append("from XPPython3.xp_typing import (")
+                lines.append("from XPPython3.xp_typing import (  # noqa: F401 -- re-exports  # pylint: disable=unused-import")
                 for i, type_name in enumerate(sorted_types):
                     comma = "," if i < len(sorted_types) - 1 else ""
                     lines.append(f"    {type_name} as {type_name}{comma}")
                 lines.append(")")
             else:
                 aliased = ', '.join(f"{t} as {t}" for t in sorted_types)
-                lines.append(f"from XPPython3.xp_typing import {aliased}")
+                lines.append(f"from XPPython3.xp_typing import {aliased}  # noqa: F401 -- re-exports  # pylint: disable=unused-import")
 
         # Add other from imports (excluding typing and dataclasses to avoid duplicates).
         # XPPython3.* names are re-exports, so they need the "X as X" form or mypy
@@ -481,17 +525,28 @@ def main():
         print(f"Processing {filepath.name}...")
         generator.parse_file(filepath)
 
-    # Step 5: Generate stub file
-    stub_content = generator.generate_stub()
-
-    # Step 6: Append the hand-maintained fragment for xp.py's own definitions
+    # Step 5: Fold xp_extra.pyi's imports into the generated header, so the
+    # fragment can be appended as body only (no imports partway down the file)
     extra = script_dir / EXTRA_STUB
+    extra_body = ""
     if extra.exists():
-        print(f"Appending {EXTRA_STUB}")
-        # two blank lines at the seam keeps the joined file PEP8-clean (E305)
-        stub_content = stub_content.rstrip("\n") + "\n\n\n" + extra.read_text(encoding="utf-8")
+        extra_imports, extra_body = split_extra(extra.read_text(encoding="utf-8"))
+        for module, names in extra_imports.items():
+            if module == "XPPython3.xp_typing":
+                generator.used_types.update(names)
+            elif module:
+                generator.add_from_import(module, sorted(names))
+            else:
+                generator.imports.update(names)
     else:
         print(f"Warning: {extra} not found -- xp.py's own definitions will be missing")
+
+    # Step 6: Generate stub file, then append the fragment's body
+    stub_content = generator.generate_stub()
+    if extra_body:
+        print(f"Appending {EXTRA_STUB}")
+        # two blank lines at the seam keeps the joined file PEP8-clean (E305)
+        stub_content = stub_content.rstrip("\n") + "\n\n\n" + extra_body + "\n"
 
     # Step 7: Warn about names defined twice (e.g. a class in both a module
     # stub and xp_extra.pyi) -- mypy reports those as no-redef errors

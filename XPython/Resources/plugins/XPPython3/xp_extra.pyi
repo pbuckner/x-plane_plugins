@@ -3,10 +3,11 @@
 # Hand-maintained stub fragment for names defined in xp.py itself.
 #
 # generate_xp_pyi.py builds xp.pyi from the XP*.pyi C-module stubs, which know
-# nothing about the helpers xp.py adds on top of them.  This file is appended
-# verbatim to the generated xp.pyi, so anything declared here survives a
-# regeneration.  Add a declaration here whenever you add a module-level name to
-# xp.py; the generator warns about any xp.py name that neither source covers.
+# nothing about the helpers xp.py adds on top of them.  The generator hoists the
+# imports below into xp.pyi's header and appends the rest of this file, so
+# anything declared here survives a regeneration.  Add a declaration here
+# whenever you add a module-level name to xp.py; the generator warns about any
+# xp.py name that neither source covers.
 
 from contextlib import AbstractContextManager
 from typing import Any, Callable, Optional

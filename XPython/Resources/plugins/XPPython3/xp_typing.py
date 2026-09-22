@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from typing import NewType
-FMODChannel = NewType('FMODChannel', object)
 FMOD_CHANNEL = NewType('FMOD_CHANNEL', int)
 FMOD_CHANNELGROUP = NewType('FMOD_CHANNELGROUP', object)
 FMOD_STUDIO_SYSTEM = NewType('FMOD_STUDIO_SYSTEM', object)

@@ -1,12 +1,14 @@
-# pylint: disable = unused-argument, line-too-long, useless-import-alias
+# pylint: disable = unused-argument, line-too-long, useless-import-alias, redefined-builtin, redefined-outer-name
 # (a stub's parameters are never used -- there is no body; signatures are
-#  emitted on one line; 'X as X' is the stub re-export form mypy requires)
+#  emitted on one line; 'X as X' is the stub re-export form mypy requires.
+#  Some X-Plane parameters are named object/map/type/dir, and drawCalls
+#  takes a drawCalls argument -- renaming them would break keyword callers,
+#  and a stub has no body for the shadowing to affect.)
 # Type stub file generated from XP*.pyi files
 # This file contains type hints for all functions, classes, and constants
 
 from typing import Any, Callable, Literal, Optional, Sequence, Union
-from XPPython3.xp_typing import (
-    FMODChannel as FMODChannel,
+from XPPython3.xp_typing import (  # noqa: F401 -- re-exports  # pylint: disable=unused-import
     FMOD_CHANNEL as FMOD_CHANNEL,
     FMOD_CHANNELGROUP as FMOD_CHANNELGROUP,
     FMOD_STUDIO_SYSTEM as FMOD_STUDIO_SYSTEM,
@@ -66,6 +68,8 @@ from XPPython3.xp_typing import (
     XPLMTexture as XPLMTexture,
     XPLMTextureAtlasRef as XPLMTextureAtlasRef,
     XPLMTextureID as XPLMTextureID,
+    XPLMWeatherInfoClouds_t as XPLMWeatherInfoClouds_t,
+    XPLMWeatherInfoWinds_t as XPLMWeatherInfoWinds_t,
     XPLMWeatherInfo_t as XPLMWeatherInfo_t,
     XPLMWindowContentType as XPLMWindowContentType,
     XPLMWindowDecoration as XPLMWindowDecoration,
@@ -79,6 +83,7 @@ from XPPython3.xp_typing import (
     XPWidgetPropertyID as XPWidgetPropertyID,
     XPWindowStyle as XPWindowStyle
 )
+from contextlib import AbstractContextManager
 
 # Constants
 AircraftCarrier: int
@@ -4405,25 +4410,14 @@ def getWidgetPropertiesDict() -> dict[XPWidgetID, dict[int, Any]]:
     ...
 
 
-# pylint: disable=unused-argument
-# (a stub's parameters are never used -- there is no body)
 # Hand-maintained stub fragment for names defined in xp.py itself.
 #
 # generate_xp_pyi.py builds xp.pyi from the XP*.pyi C-module stubs, which know
-# nothing about the helpers xp.py adds on top of them.  This file is appended
-# verbatim to the generated xp.pyi, so anything declared here survives a
-# regeneration.  Add a declaration here whenever you add a module-level name to
-# xp.py; the generator warns about any xp.py name that neither source covers.
-
-from contextlib import AbstractContextManager
-from typing import Any, Callable, Optional
-# "X as X" is the stub re-export form -- a plain import would not make these
-# visible as xp.<name> to mypy.
-from XPPython3.xp_typing import (FMOD_CHANNEL as FMOD_CHANNEL,  # noqa: F401 (re-exports)
-                                 XPLMAudioBus as XPLMAudioBus,
-                                 XPLMRetainedDrawing as XPLMRetainedDrawing,
-                                 XPLMWeatherInfoClouds_t as XPLMWeatherInfoClouds_t,
-                                 XPLMWeatherInfoWinds_t as XPLMWeatherInfoWinds_t)
+# nothing about the helpers xp.py adds on top of them.  The generator hoists the
+# imports below into xp.pyi's header and appends the rest of this file, so
+# anything declared here survives a regeneration.  Add a declaration here
+# whenever you add a module-level name to xp.py; the generator warns about any
+# xp.py name that neither source covers.
 
 
 MsgEnteredVR: int

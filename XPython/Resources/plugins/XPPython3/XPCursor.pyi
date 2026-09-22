@@ -1,7 +1,6 @@
 # pylint: disable=unused-argument
 # (a stub's parameters are never used -- there is no body)
-from typing import Any, Callable, Optional
-from XPPython3.xp_typing import *
+
 
 def loadCursor(name: str) -> int:
     """
@@ -16,11 +15,13 @@ def loadCursor(name: str) -> int:
     """
     ...
 
+
 def setCursor(cursor_id: int) -> None:
     """
     Set the cursor to the given cursor reference.
     """
     ...
+
 
 def unloadCursor(cursor_id: int) -> None:
     """

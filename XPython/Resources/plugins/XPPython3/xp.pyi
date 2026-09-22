@@ -4,7 +4,7 @@
 # Type stub file generated from XP*.pyi files
 # This file contains type hints for all functions, classes, and constants
 
-from typing import Any, Callable, Generic, Literal, NewType, Optional, Sequence, Type, TypeVar, Union
+from typing import Any, Callable, Literal, Optional, Sequence, Union
 from XPPython3.xp_typing import (
     FMODChannel as FMODChannel,
     FMOD_CHANNEL as FMOD_CHANNEL,
@@ -311,7 +311,7 @@ Mode_DirectAllCallbacks: XPDispatchMode
 Mode_Once: XPDispatchMode
 Mode_Recursive: XPDispatchMode
 Mode_UpChain: XPDispatchMode = XPDispatchMode(1)
-ModuleMTimes: object
+ModuleMTimes: dict
 MouseDown: XPLMMouseStatus
 MouseDrag: XPLMMouseStatus
 MouseUp: XPLMMouseStatus
@@ -3112,14 +3112,14 @@ def setUsersAircraft(path: str) -> None:
     ...
 
 
-def initFlight(data: str) -> int:
+def initFlight(data: Union[str, dict]) -> int:
     """
         Initialize user flight with json data (either string or dict)
     """
     ...
 
 
-def updateFlight(data: str) -> int:
+def updateFlight(data: Union[str, dict]) -> int:
     """
         Update user flight with json data (either string or dict).
     """

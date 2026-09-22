@@ -14,7 +14,6 @@ XPython/Resources/plugins/xppython*-*.zip
 XPython/Resources/plugins/xppython*b.zip
 XPython/Resources/plugins/xp*b.zip
 XPython/Resources/plugins/XPPython3/version.txt
-XPython/Resources/plugins/XPPython3/setup.cfg
 XPython/macros.emacs
 XPython/docs/recent_annotations.py
 XPython/Resources/plugins/xp.zip

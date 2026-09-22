@@ -51,6 +51,7 @@ Known Bugs
      when you install or upgrade. Examples of most new Panel Graphics routines.
      
    * :func:`xp.getObjects` convenience function to simplify loading of library objects.
+
    |
    
 :Improvements:

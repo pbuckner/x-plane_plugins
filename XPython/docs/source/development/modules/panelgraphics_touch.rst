@@ -81,6 +81,16 @@ Functions
     zones on the given avionics device. Pass ``handler=None`` to remove the current
     handler. See :func:`touchHandler` for the callback signature.
 
+    .. warning:: Drag cannot be tracked on an avionics device. :data:`MouseUp` is
+                 reported at ``(0, 0)`` rather than the release position, and
+                 :data:`MouseDrag` is never delivered at all --- so press-and-hold
+                 works, but scrubbing a slider or dragging a map does not. The
+                 same zones on a *window* handler
+                 (:func:`windowSetTouchEventHandler`) stream :data:`MouseDrag`
+                 correctly, so prefer a window where the interaction needs a drag.
+                 Reported to Laminar as
+                 `XPD-18371 <https://developer.x-plane.com/x-plane-bug-database/?issue=XPD-18371>`_.
+
     `Official SDK <https://developer.x-plane.com/sdk/XPLMPanelGraphics/#XPLMAvionicsSetTouchEventHandler>`__ :index:`XPLMAvionicsSetTouchEventHandler`
 
 .. py:function:: windowSetTouchEventHandler(window, handler, refCon=None) -> None
@@ -233,8 +243,3 @@ using button #0 (Left). Button #1 is Right; center and wheel deliver no event at
 The logged coordinates are in the 200x100 space the button was drawn and the
 zone declared in, whatever size the user has dragged the window to. Resize the
 window and the numbers do not change.
-
-.. note:: On an avionics device, ``MouseUp`` is reported at (0, 0) and
-          ``MouseDrag`` is not delivered, so a drag cannot be tracked there the
-          way it can in a window. Reported to Laminar as
-          `XPD-18371 <https://developer.x-plane.com/x-plane-bug-database/?issue=XPD-18371>`_.

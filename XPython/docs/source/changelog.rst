@@ -6,8 +6,8 @@ Known Bugs
 
   None. *Prove me wrong!*
 
-4.8.0
------
+4.8.0b1 (23-Sep-2026)
+---------------------
 
 :Fixes:
    * **utils/dataref.py**: ``xp.find_dataref('foo/bar[0]')`` used to return a list of elements, rather

@@ -75,7 +75,7 @@ Want to do something more interesting? Work through the next :doc:`quickstart` e
    :caption: Development Resources:
 
    quickstart
-   Python SDK Modules <modules/index>
+   plugin_tasks
    Graphics options <graphics>
    tools
    deployment

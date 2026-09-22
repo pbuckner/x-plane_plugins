@@ -1,3 +1,5 @@
+.. index: Avionics, Tasks; Avionics
+
 Avionics API
 ============
 
@@ -12,22 +14,24 @@ To use::
 The Avionics API allows you to modify the drawing and behavior of built-in cockpit devices (GNS, G1000, etc.),
 and create new cockpit devices.
 
-:ref:`built-in devices` allow you to draw before and/or after X-Plane, and optionally prevent X-Plane from drawing
-on the cockpit device at all.
+* :ref:`built-in devices` allow you to draw before and/or after X-Plane, and optionally prevent X-Plane from drawing
+  on the cockpit device at all.
 
-* :py:func:`registerAvionicsCallbacksEx` and :py:func:`unregisterAvionicsCallbacks`
-  for built-in devices, with :py:func:`getAvionicsHandle`
-  to get the device handle to be used with other Avionics API..
+  * :py:func:`registerAvionicsCallbacksEx` and :py:func:`unregisterAvionicsCallbacks`
+    for built-in devices, with :py:func:`getAvionicsHandle`
+    to get the device handle to be used with other Avionics API..
 
-:ref:`custom devices` allow you to create new cockpit devices, where you're responsible for drawing the screen and the bezel.
+* :ref:`custom devices` allow you to create new cockpit devices, where you're responsible for drawing the screen and the bezel.
 
-* :py:func:`createAvionicsEx` and :py:func:`destroyAvionics` for custom devices.
+  * :py:func:`createAvionicsEx` and :py:func:`destroyAvionics` for custom devices.
 
 Regardless of the device, the API allows allows you to receive mouse events for your device (click, drag, scroll, etc.) for the screen
 and bezel. Events are available for popped-out 2d cockpit devices, and 3d devices (provided you have
 created a ``ATTR_manip_device`` manipulator for you Object).
 
 :ref:`popup_functions` allow you to manipulate the state and position of the popup device windows.
+
+.. rst-class:: compact
 
 * :py:func:`isAvionicsBound` to see if the device is used by the current aircraft
 
@@ -47,9 +51,14 @@ created a ``ATTR_manip_device`` manipulator for you Object).
 
 * :py:func:`avionicsNeedsDrawing` to optimize drawing of the custom device.  
 
-When working with avionics devices, all coordinates for drawing & mouse events are in texels, with (0,0) origin in the lower
-left corner. X-Plane handles scaling for popped-out 2D windows. When your draw function is called, OpenGL is properly set
-for the device's viewport.
+* Drawing *within* the avionics device (bezel and screen):
+
+  * :doc:`xpgl`: OpenGL, when content type is :data:`WindowContentTypeOpenGL`
+  * :doc:`panelgraphics`: Panel Graphics, when content type is :data:`WindowContentTypePanelGraphics`
+  * :doc:`display_window_browser`: HTML, javascript, when content type is :data:`WindowContentTypeBrowser`
+
+.. note:: When working with avionics devices, all coordinates for drawing & mouse events are in texels, with (0,0)
+          origin in the lower left corner. X-Plane handles scaling for popped-out 2D windows. 
 
 .. _built-in devices:
 
@@ -135,12 +144,12 @@ Use any of these device IDs with :py:func:`registerAvionicsCallbacksEx` or :py:f
  |  :value: 24                            |                                                           |
  +----------------------------------------+-----------------------------------------------------------+
  
-.. py:function:: registerAvionicsCallbacksEx(deviceID, before, after, refCon, bezelClick, bezelRightClick, bezelScroll, bezelCursor, screenTouch, screenRightTouch, screenScroll, screenCursor, keyboard)
+.. py:function:: registerAvionicsCallbacksEx(deviceID, before, after, refCon, bezelClick, bezelRightClick, bezelScroll, bezelCursor, screenTouch, screenRightTouch, screenScroll, screenCursor, keyboard) -> XPLMAvionicsID
 
   :param int deviceID: One of built-in integer devices as listed above
   :param Any refCon: reference constant to be passed to your callbacks
   :param callbacks: ... default to None. See below for specific callbacks
-  :return: XPLMAvionicsID or None on error.                 
+  :return: :class:`XPLMAvionicsID` or None on error.                 
  
   If not specified, any callback (and the refCon) will be set to None.
 
@@ -199,8 +208,8 @@ Use any of these device IDs with :py:func:`registerAvionicsCallbacksEx` or :py:f
 
   Each callback is further described next:
 
-  .. py:function:: before(deviceID, isBefore, refCon)
-                   after(deviceID, isBefore, refCon)
+  .. py:function:: before(deviceID, isBefore, refCon) -> int
+                   after(deviceID, isBefore, refCon) -> int
 
     :param int deviceID: integer device ID used on registration
     :param int isBefore: 1= ``before`` callback, 0= ``after`` callback
@@ -228,10 +237,10 @@ Use any of these device IDs with :py:func:`registerAvionicsCallbacksEx` or :py:f
    
     `Official SDK <https://developer.x-plane.com/sdk/XPLMAvionicsCallback_f/>`__ :index:`XPLMAvionicsCallback_f`
  
-  .. py:function:: bezelClick(x, y, mouseStatus, refCon)
-                 bezelRightClick(x, y, mouseStatus, refCon)
-                 screenTouch(x, y, mouseStatus, refCon)
-                 screenRightTouch(x, y, mouseStatus, refCon)
+  .. py:function:: bezelClick(x, y, mouseStatus, refCon) -> int
+                 bezelRightClick(x, y, mouseStatus, refCon) -> int
+                 screenTouch(x, y, mouseStatus, refCon) -> int
+                 screenRightTouch(x, y, mouseStatus, refCon) -> int
 
     :param int x: horizontal position of mouse relative lower-left corner of screen or bezel
     :param int y: vertical position of mouse relative lower-left corner of screen or bezel
@@ -277,8 +286,8 @@ Use any of these device IDs with :py:func:`registerAvionicsCallbacksEx` or :py:f
     `Official SDK <https://developer.x-plane.com/sdk/XPLMAvionicsMouse_f/>`__ :index:`XPLMAvionicsMouse_f`
               
        
-  .. py:function:: bezelScroll(x, y, wheel, clicks, refCon)
-                   screenScroll(x, y, wheel, clicks, refCon)
+  .. py:function:: bezelScroll(x, y, wheel, clicks, refCon) -> int
+                   screenScroll(x, y, wheel, clicks, refCon) -> int
 
     Mouse wheel handling callback prototype.
  
@@ -310,13 +319,13 @@ Use any of these device IDs with :py:func:`registerAvionicsCallbacksEx` or :py:f
 
       
  
-  .. py:function:: bezelCursor(x, y, refCon)
-                   screenCursor(x, y, refCon)
+  .. py:function:: bezelCursor(x, y, refCon) -> XPLMCursorStatus
+                   screenCursor(x, y, refCon) -> XPLMCursorStatus
  
     :param int x: horizontal position of mouse
     :param int y: vertical position of mouse
     :param Any refCon: refCon you provided on creation
-    :return: XPLMCursorStatus, such as ``xp.CursorDefault``
+    :return: :class:`XPLMCursorStatus`, such as ``xp.CursorDefault``
 
     The SDK calls your cursor status callback when the mouse is over your
     bezel or screen.  Return a cursor status code to indicate how you would like
@@ -348,7 +357,7 @@ Use any of these device IDs with :py:func:`registerAvionicsCallbacksEx` or :py:f
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMAvionicsCursor_f/>`__ :index:`XPLMAvionicsCursor_f`
 
-  .. py:function:: keyboard(key, flags, vKey, refCon, losingFocus) 
+  .. py:function:: keyboard(key, flags, vKey, refCon, losingFocus)  -> int
 
     Process key press.
 
@@ -390,23 +399,22 @@ Use any of these device IDs with :py:func:`registerAvionicsCallbacksEx` or :py:f
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMAvionicsKeyboard_f/>`__ :index:`XPLMAvionicsKeyboard_f`
 
-.. py:function:: unregisterAvionicsCallbacks(avionicsID)
-
-  Unregisters specified avionics callbacks.
+.. py:function:: unregisterAvionicsCallbacks(avionicsID) -> None
 
   :param XPLMAvionicsID avionicsID: from :py:func:`registerAvionicsCallbacksEx` or :py:func:`getAvionicsHandle`
-  :return: None                   
+
+  Unregisters specified avionics callbacks.
 
   >>> xp.unregisterAvionicsCallbacks(avionicsID)
  
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMUnregisterAvionicsCallbacks>`__ :index:`XPLMUnregisterAvionicsCallbacks`
  
-.. py:function:: getAvionicsHandle(deviceID)
+.. py:function:: getAvionicsHandle(deviceID) -> XPLMAvionicsID
 
   Returns XPLMAvionicsID for specified device.
 
   :param int deviceID: Built-in avionics device enumeration.
-  :return: XPLMAvionicsID
+  :return: :class:`XPLMAvionicsID` for existing device
 
   Called only for built-in devices (e.g., Device_G1000_PFD_1), returns an XPLMAvionicsID handle for
   the indicated device. This is similar to calling :py:func:`registerAvionicsCallbacksEx` with no registered
@@ -430,7 +438,7 @@ XPLMAvionicsID handle, you can then manipulate the popup window using functions 
 Want a feature-rich example? Check out the ``PI_Avionics1_Draw.py`` sample program downloaded into your ``PythonPlugins/samples``
 folder. Copy it into ``Resources/PythonPlugins/`` and restart X-Plane.
 
-.. py:function:: createAvionicsEx(screenWidth=100, screenHeight=200, bezelWidth=140, bezelHeight=250, screenOffsetX=20, screenOffsetY=25, drawOnDemand=0, bezelDraw=None, screenDraw=None, bezelClick=None, bezelRightClick=None, bezelScroll=None, bezelCursor=None, screenTouch=None, screenRightTouch=None, screenScroll=None, screenCursor=None, keyboard=None, brightness=None, deviceID="deviceID-<num>", deviceName="deviceName-<num>", refcon=None)
+.. py:function:: createAvionicsEx(screenWidth=100, screenHeight=200, bezelWidth=140, bezelHeight=250, screenOffsetX=20, screenOffsetY=25, drawOnDemand=0, bezelDraw=None, screenDraw=None, bezelClick=None, bezelRightClick=None, bezelScroll=None, bezelCursor=None, screenTouch=None, screenRightTouch=None, screenScroll=None, screenCursor=None, keyboard=None, brightness=None, deviceID="deviceID-<num>", deviceName="deviceName-<num>", refcon=None, contentType=WindowContentTypeOpenGL, windowWithChrome=0, browserLoadFinished=None, browserLoadError=None) -> XPLMAvionicsID
 
   :param int screenWidth: width of screen portion of device
   :param int screenHeight: height of screen portion of device
@@ -443,11 +451,16 @@ folder. Copy it into ``Resources/PythonPlugins/`` and restart X-Plane.
   :param str deviceID: *unique* string to identify the device. See notes below. If not provided, we construct one as "device-ID-<num>"
   :param str deviceName: user-friendly name of the device. If not provided, we construct one as "deviceName-<num>"
   :param Any refcon: reference constant to be passed to your callbacks.
-  :return: XPLMAvionicsID
+  :param int contentType: How the screen is drawn: ``WindowContentTypeOpenGL`` (default), ``ContentTypePanelGraphics`` (draw with the :doc:`panelgraphics` calls), or ``ContentTypeBrowser`` (a CEF web view). New with SDK 440. See :doc:`display_window_browser`.
+  :param int windowWithChrome: If 1, X-Plane draws the close / pop-out chrome *outside* your bezel rather than stealing pixels from it. New with SDK 440.
+  :param browserLoadFinished: Browser-device callback ``f(avionicsID, url, refCon)`` (default: None). See :func:`browserLoadFinished`.
+  :type browserLoadFinished: Optional[Callable[[XPLMAvionicsID, str, Any], None]]
+  :param browserLoadError: Browser-device callback ``f(avionicsID, url, error, refCon)`` (default: None). See :func:`browserLoadError`.
+  :type browserLoadError: Optional[Callable[[XPLMAvionicsID, str, str, Any], None]]
+  :return: :class:`XPLMAvionicsID` for new device
   
   Creates a custom Avionics device and returns an avionicsID handle (XPLMAvionicsID), which should
   be passed to :py:func:`destroyAvionics` when no longer needed.
-
   
   Without parameters, a simple blank device is drawn. Note that the bezel is transparent,
   the screen background is OpenGL default,
@@ -463,6 +476,9 @@ folder. Copy it into ``Resources/PythonPlugins/`` and restart X-Plane.
   is resized, you can treat it as the same height and width (and mouse events will be similarly mapped.)
   
   The size of the bezel must be *at least* as much as the screen + offset.
+
+  The :func:`bezelDraw` function is *only* called when the device is poppedup or popped out: while the device is
+  embedded in the cockpit, ``bezelDraw()`` is not called.
 
   The default parameter values:
 
@@ -509,22 +525,25 @@ folder. Copy it into ``Resources/PythonPlugins/`` and restart X-Plane.
      for ``P`` position records with your device id.)
 
   Most of the callbacks are identical to those used with :py:func:`registerAvionicsCallbacksEx` above, with the
-  exception of :py:func:`screenDraw`, :py:func:`bezelDraw`, and :py:func:`brightness` which we describe below:
+  exception of :py:func:`screenDraw`, :py:func:`bezelDraw`, and :py:func:`brightness` which we describe below.
+  :func:`browserLoadFinished` and :func:`browserLoadError` callbacks are only relevant for :data:`WindowContentTypeBrowser` windows.
+  See :doc:`display_window_browser`.
 
-  .. py:function:: screenDraw(refCon)
 
-    This is the prototype for drawing callbacks for custom devices' screens.
+  .. py:function:: screenDraw(refCon) -> None
 
     :param Any refCon: reference constant provided with :py:func:`createAvionicsEx`
-    :return: None
+
+    This is the prototype for drawing callbacks for custom devices' screens.
 
     Upon entry the OpenGL context will be correctly set up for you and OpenGL
     will be in panel coordinates for 2d drawing.  The OpenGL state (texturing,
     etc.) will be unknown.
 
     X-Plane *does not clear* your screen for you between
-    calls - this means you can re-use portions to save drawing, but otherwise
-    you must call glClear() to erase the screen's contents.
+    calls (in :data:`WindowContentTypeOpenGL`) - this means you can re-use portions to save drawing, but otherwise
+    you must call glClear() to erase the screen's contents. You do not need to call glClear() when using
+    :data:`WindowContentTypePanelGraphics`.
 
     This interacts with the value of the ``drawOnDemand`` parameter. If ``drawOnDemand=0``, this
     draw function is called every frame. If ``drawOnDemand=1``, this draw function is called once.
@@ -542,24 +561,25 @@ folder. Copy it into ``Resources/PythonPlugins/`` and restart X-Plane.
        >>> avionicsID = xp.createAvionicsEx(screenDraw=MyScreenDraw, refCon=deviceSize)
        >>> xp.setAvionicsPopupVisible(avionicsID)
        
-    Note also, the screen is drawn *over* the bezel, and blends with whatever the background is. For example,
-    if you don't draw a bezel at all, as in the above example, your screen will blend with whatever is showing
-    in X-Plane, likely not what you want.
+    Note also, the screen is drawn *over* the bezel *when it is popped up / popped out*, and blends with whatever the background is.
+    For example, if you don't draw a bezel at all, as in the above example, your screen will blend with whatever is showing
+    in X-Plane, likely not what you want. (When device is not popped up / out, the screen blends with whatever your console has
+    behind it -- not the bezel.)
 
     .. image:: /images/greentriangle-nobezel.png
        :height: 200px
 
     Commonly, you'll draw the bezel with a black background to avoid this see-through.
 
-  .. py:function:: bezelDraw(r, g, b, refCon)
-
-    This is the prototype for drawing callbacks for custom devices' bezel.
+  .. py:function:: bezelDraw(r, g, b, refCon) -> None
 
     :param float r: ambient Red
     :param float g: ambient Green
     :param float b: ambient Blue
     :param Any refCon: reference constant provided with :py:func:`createAvionicsEx`
     :return: None
+
+    This is the prototype for drawing callbacks for custom devices' bezel.
 
     You are passed in the red, green, and blue values you can optionally use for
     tinting your bezel according to ambient light.
@@ -596,9 +616,7 @@ folder. Copy it into ``Resources/PythonPlugins/`` and restart X-Plane.
     Note the color blending between screen and bezel, and note that the top of the bezel goes
     up into the area where the close and pop-out buttons are located.
 
-  .. py:function:: brightness(rheoValue, ambientBrightness, busVoltsRatio, refCon)
-
-    This is the prototype for screen brightness callbacks for custom devices.
+  .. py:function:: brightness(rheoValue, ambientBrightness, busVoltsRatio, refCon) -> float
 
     :param float rheoValue: current instrument rheostat brightness [0..1]
     :param float ambientBrightness: ambientBrightness [0..1]
@@ -606,6 +624,8 @@ folder. Copy it into ``Resources/PythonPlugins/`` and restart X-Plane.
     :param Any refCon: reference constant provided with :py:func:`createAvionicsEx`
     :return float: ratio [0..1] of the screen's maximum brightness to display the screen in 3D cockpit
                    
+    This is the prototype for screen brightness callbacks for custom devices.
+
     If you provide a callback, you can return the ratio of the screen's maximum
     brightness that the simulator should use when displaying the screen in the
     3D cockpit.
@@ -620,15 +640,20 @@ folder. Copy it into ``Resources/PythonPlugins/`` and restart X-Plane.
     readable, but not blind the pilot).
     
     *busVoltsRatio* is the ratio of the nominal voltage currently present on
-    the bus to which the device is bound, or -1 if the device is not bound to
-    the current aircraft.
+    the electrical bus powering the device. This is the same value as :func:`getAvionicsBusVoltsRatio`,
+    including its handing of devices wired to several buses: 1.0 if the author assigned the device to
+    no but at all, and -1 if the device is not bound to the current aircraft.
+
+    This callback allows you to override some default behavior. For example, if your
+    device needs to be "powered on" even when the aircraft isn't, you can always return ``1.0``
+    for brightness. Or multiply your ``1.0`` return with ambientBrightness (but not busVoltsRatio) to
+    adjust for ambient light.
     
     `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMCreateAvionicsEx>`__ :index:`XPLMCreateAvionicsEx`
 
-.. py:function:: destroyAvionics(avionicsID)
+.. py:function:: destroyAvionics(avionicsID) -> None
 
-  :param avionicsID: XPLMAvionicsHandle as obtained using :py:func:`createAvionicsEx`.
-  :return: None                     
+  :param XPLMAvionicsID avionicsID: as obtained using :py:func:`createAvionicsEx`.
 
   Removes the custom Avionics device. If it is being displayed, it is removed from the screen.::
 
@@ -646,7 +671,7 @@ Avionics Popup Functions
 You can query and manipulate a built-it or custom avionics device window, once you have its
 AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`createAvionicsEx`, or :py:func:`getAvionicsHandle`.
 
-.. py:function:: isAvionicsBound(avionicsID)
+.. py:function:: isAvionicsBound(avionicsID) -> int
 
   :param XPLMAvionicsID avionicsID: as from :py:func:`createAvionicsEx`,  :py:func:`getAvionicsHandle`, or :py:func:`registerAvionicsCallbacksEx`
   :return int: 1 if device is used by the current aircraft, 0 otherwise                     
@@ -660,7 +685,7 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMIsAvionicsBound>`__ :index:`XPLMIsAvionicsBound`
 
-.. py:function:: isAvionicsPopupVisible(avionicsID)
+.. py:function:: isAvionicsPopupVisible(avionicsID) -> in
 
   :param XPLMAvionicsID avionicsID: as from :py:func:`createAvionicsEx`,  :py:func:`getAvionicsHandle`, or :py:func:`registerAvionicsCallbacksEx`
   :return int: 1 if device is currently displayed in a popup window.
@@ -680,7 +705,7 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMIsAvionicsPopupVisible>`__ :index:`XPLMIsAvionicsPopupVisible`
 
-.. py:function:: setAvionicsPopupVisible(avionicsID, visible=1)
+.. py:function:: setAvionicsPopupVisible(avionicsID, visible=1) -> int
 
   :param XPLMAvionicsID avionicsID: as from :py:func:`createAvionicsEx`,  :py:func:`getAvionicsHandle`, or :py:func:`registerAvionicsCallbacksEx`
   :param int visible: 1= make visible, 0= remove popup (will also remove popped-out window)
@@ -702,7 +727,7 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMSetAvionicsPopupVisible>`__ :index:`XPLMSetAvionicsPopupVisible`
 
-.. py:function:: isAvionicsPoppedOut(avionicsID)
+.. py:function:: isAvionicsPoppedOut(avionicsID) -> int
 
   :param XPLMAvionicsID avionicsID: as from :py:func:`createAvionicsEx`,  :py:func:`getAvionicsHandle`, or :py:func:`registerAvionicsCallbacksEx`
   :return int: 1 if device is currently displayed in an OS popped-out window.
@@ -716,10 +741,9 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
  
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMIsAvionicsPoppedOut>`__ :index:`XPLMIsAvionicsPoppedOut`
 
-.. py:function:: popOutAvionics(avionicsID)
+.. py:function:: popOutAvionics(avionicsID) -> None
 
   :param XPLMAvionicsID avionicsID: as from :py:func:`createAvionicsEx`,  :py:func:`getAvionicsHandle`, or :py:func:`registerAvionicsCallbacksEx`
-  :return: None
 
   Shows the device's 2d window as a popped-out window, separate from the X-Plane window. Note you can "unset"
   a popped-out device by setting it not visible ``xp.setAvionicsPopupVisible(avionicsID, visible=0)``.::
@@ -735,12 +759,12 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMPopOutAvionics>`__ :index:`XPLMPopOutAvionics`
 
-.. py:function:: isCursorOverAvionics(avionicsID)
-
-  Is cursor over 2D device *screen*?
+.. py:function:: isCursorOverAvionics(avionicsID) -> Tuple[int, int]
 
   :param XPLMAvionicsID avionicsID: as from :py:func:`createAvionicsEx`,  :py:func:`getAvionicsHandle`, or :py:func:`registerAvionicsCallbacksEx`
   :return (int, int): x, y mouse position if over popped up, or popped out device *and* the device has focus. None otherwise.
+
+  Is cursor over 2D device *screen*?
 
   Note that (x, y) reflects device's screen coordinates, and will return None if cursor is over the bezel or other part of X-Plane,
   or if some other window has focus.
@@ -750,12 +774,12 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMIsCursorOverAvionics>`__ :index:`XPLMIsCursorOverAvionics`
 
-.. py:function:: hasAvionicsKeyboardFocus(avionicsID)
-
-  Does avionics device *currently* have keyboard focus.
+.. py:function:: hasAvionicsKeyboardFocus(avionicsID) -> int
 
   :param XPLMAvionicsID avionicsID: as from :py:func:`createAvionicsEx`,  :py:func:`getAvionicsHandle`, or :py:func:`registerAvionicsCallbacksEx`
   :return int: 1 if device has keyboard focus
+
+  Does avionics device *currently* have keyboard focus.
 
   Keyboard focus may be associated with a device, a window, or to X-Plane as a whole. This checks
   to see if the current device has focus.  All Custom devices *may* have keyboard focus.
@@ -770,19 +794,18 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMHasAvionicsKeyboardFocus>`__ :index:`XPLMHasAvionicsKeyboardFocus`
 
-.. py:function:: takeAvionicsKeyboardFocus(avionicsID)
+.. py:function:: takeAvionicsKeyboardFocus(avionicsID) -> None
+
+  :param XPLMAvionicsID avionicsID: as from :py:func:`createAvionicsEx`,  :py:func:`getAvionicsHandle`, or :py:func:`registerAvionicsCallbacksEx`
 
   Transfer keyboard focus to device, if possible
   
-  :param XPLMAvionicsID avionicsID: as from :py:func:`createAvionicsEx`,  :py:func:`getAvionicsHandle`, or :py:func:`registerAvionicsCallbacksEx`
-  :return: None
-
   If the device is capable of receiving keyboard focus, this function sets focus to that device. Subsequent keystrokes will
   be handled by the device. The avionics device needs to be either in a popup, or popped out.
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMTakeAvionicsKeyboardFocus>`__ :index:`XPLMTakeAvionicsKeyboardFocus`
 
-.. py:function:: getAvionicsGeometry(avionicsID)                 
+.. py:function:: getAvionicsGeometry(avionicsID) -> Tuple[int, int, int, int]
 
   :param XPLMAvionicsID avionicsID: as from :py:func:`createAvionicsEx`,  :py:func:`getAvionicsHandle`, or :py:func:`registerAvionicsCallbacksEx`
   :return: four integers (left, top, right, bottom)
@@ -799,14 +822,13 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
             
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMGetAvionicsGeometry>`__ :index:`XPLMGetAvionicsGeometry`
 
-.. py:function:: setAvionicsGeometry(avionicsID, left, top, right, bottom)
+.. py:function:: setAvionicsGeometry(avionicsID, left, top, right, bottom) -> None
 
   :param XPLMAvionicsID avionicsID: as from :py:func:`createAvionicsEx`,  :py:func:`getAvionicsHandle`, or :py:func:`registerAvionicsCallbacksEx`
   :param int left:
   :param int top:
   :param int right:
   :param int bottom: integer positions
-  :return: None
 
   You can set the pop-up's geometry while the device is not visible (e.g., ``setAvionicsPopupVisible(avionicsID, visible=0)``),
   but the device is "popped out" you cannot set the pop-up's geometry. The call is ignored.::
@@ -817,7 +839,7 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMSetAvionicsGeometry>`__ :index:`XPLMSetAvionicsGeometry`
 
-.. py:function:: getAvionicsGeometryOS(avionicsID)
+.. py:function:: getAvionicsGeometryOS(avionicsID) -> Tuple[int, int, int, int]
 
   :param XPLMAvionicsID avionicsID: as from :py:func:`createAvionicsEx`,  :py:func:`getAvionicsHandle`, or :py:func:`registerAvionicsCallbacksEx`
   :return: four integers (left, top, right, bottom)
@@ -834,14 +856,13 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMGetAvionicsGeometryOS>`__ :index:`XPLMGetAvionicsGeometryOS`
 
-.. py:function:: setAvionicsGeometryOS(avionicsID, left, top, right, bottom)
+.. py:function:: setAvionicsGeometryOS(avionicsID, left, top, right, bottom) -> None
 
   :param XPLMAvionicsID avionicsID: as from :py:func:`createAvionicsEx`,  :py:func:`getAvionicsHandle`, or :py:func:`registerAvionicsCallbacksEx`
   :param int left:
   :param int top:
   :param int right:
   :param int bottom: integer positions
-  :return: None
 
   Sets position (and size) of popped out avionics device. You cannot set OS geometry if the device is *not* popped out.::
 
@@ -849,7 +870,7 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMSetAvionicsGeometryOS>`__ :index:`XPLMSetAvionicsGeometryOS`
 
-.. py:function:: getAvionicsBrightnessRheo(avionicsID)
+.. py:function:: getAvionicsBrightnessRheo(avionicsID) -> float
 
   Returns the brightness setting for the cockpit device screen.
 
@@ -866,13 +887,12 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMGetAvionicsBrightnessRheo>`__ :index:`XPLMGetAvionicsBrightnessRheo`
 
-.. py:function:: setAvionicsBrightnessRheo(avionicsID, brightness)
+.. py:function:: setAvionicsBrightnessRheo(avionicsID, brightness) -> None
                  
-  Sets the brightness for the device
-
   :param XPLMAvionicsID avionicsID: as from :py:func:`createAvionicsEx`,  :py:func:`getAvionicsHandle`, or :py:func:`registerAvionicsCallbacksEx`
   :param float brightness: ratio 0= dark, 1= full brightness
-  :return: None
+
+  Sets the brightness for the device
 
   For devices bound to the current aircraft, this is a shortcut to setting the brightness rheostat value from
   dataref array ``sim/cockpit2/switches/instrument_brightness_ratio``, using the appropriate index into the array.
@@ -884,13 +904,25 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMSetAvionicsBrightnessRheo>`__ :index:`XPLMSetAvionicsBrightnessRheo`
 
-.. py:function:: getAvionicsBusVoltsRatio(avionicsID)
+.. py:function:: getAvionicsBusVoltsRatio(avionicsID) -> float
 
-  Nominal bus voltage for given device
-  
   :param XPLMAvionicsID avionicsID: as from :py:func:`createAvionicsEx`,  :py:func:`getAvionicsHandle`, or :py:func:`registerAvionicsCallbacksEx`
   :return float: [0..1] representing nominal bus voltage, -1 if device not bound to aircraft
 
+  Returns the ratio of the nominal voltage (1.0 means full nominal voltage)
+  of the electrical bus powering the cockpit device with the given handle.
+  
+  An aircraft author can wire a device to any combination of the six
+  electrical buses. When more than one is selected, this returns the ratio
+  for the highest-numbered selected bus that both exists on the current
+  aircraft and is above the aircraft's low-voltage red line. If no selected
+  bus meets that test, this returns 0 - so 0 means the device has no usable
+  power, not that a bus measured zero volts.
+ 
+  If the device is bound but the author assigned it to no bus at all, this
+  returns 1.0; X-Plane treats such a device as always powered. If the device
+  is not bound to the current aircraft, this returns -1.
+  
   >>> xp.getAvionicsBusVoltsRatio(xp.getAvionicsHandle(xp.Device_G1000_PFD_1))
   0.91567
   >>> xp.getAvionicsBusVoltsRatio(xp.getAvionicsHandle(xp.Device_G1000_PFD_2))
@@ -906,12 +938,11 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
   
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMGetAvionicsBusVoltsRatio>`__ :index:`XPLMGetAvionicsBusVoltsRatio`
 
-.. py:function:: avionicsNeedsDrawing(avionicsID)
+.. py:function:: avionicsNeedsDrawing(avionicsID) -> None
 
   Tells X-Plane that your device's screen needs to be redrawn.
   
   :param XPLMAvionicsID avionicsID: *only* for custom avionics devices (:py:func:`createAvionicsEx`).
-  :return: None                     
 
   If your device is marked for on-demand drawing (``drawOnDemand=1``),
   X-Plane will call your screen drawing callback before drawing the name frame. If your device is already drawn every
@@ -923,4 +954,113 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMAvionicsNeedsDrawing>`__ :index:`XPLMAvionicsNeedsDrawing`
 
-.. |TBD| image:: /images/tbd.png  
+VR Mapping
+**********
+
+.. py:function:: isAvionicsMappedToVR(avionicsID) -> int
+
+  :param XPLMAvionicsID avionicsID: as from :py:func:`createAvionicsEx`, :py:func:`getAvionicsHandle`, or :py:func:`registerAvionicsCallbacksEx`
+  :return: 1 if the device's popup is currently mapped into VR, else 0
+
+  Return whether the cockpit device's popup window is currently mapped into VR.
+  New with X-Plane 12.4.4 (SDK 440).
+
+  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMIsAvionicsMappedToVR>`__ :index:`XPLMIsAvionicsMappedToVR`
+
+.. py:function:: setAvionicsMappedToVR(avionicsID, mapped=1) -> None
+
+  :param XPLMAvionicsID avionicsID: as from :py:func:`createAvionicsEx`, :py:func:`getAvionicsHandle`, or :py:func:`registerAvionicsCallbacksEx`
+  :param int mapped: 1 to map the device's popup into VR, 0 to unmap
+
+  Map (``mapped=1``) or unmap the cockpit device's popup window into VR. New with
+  X-Plane 12.4.4 (SDK 440).
+
+  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMSetAvionicsMappedToVR>`__ :index:`XPLMSetAvionicsMappedToVR`
+
+Object-Bound Avionics
+*********************
+
+New with X-Plane 12.4.4 (SDK 440): draw a custom device's screen onto a 3-D object
+you loaded (typically one you draw in the world with the :doc:`instance` API),
+rather than only in the cockpit or a popup.
+
+.. py:function:: setObjectAvionics(object, avionicsID) -> int
+
+  :param XPLMObjectRef object: a fully-loaded object (see :py:func:`loadObject`)
+  :param XPLMAvionicsID avionicsID: a device *you* created with :py:func:`createAvionicsEx`
+  :return: 1 if the object had a matching device screen and the binding succeeded, else 0
+
+  Glue a device you created with :py:func:`createAvionicsEx` onto a loaded 3-D
+  object, so the device's screen is drawn on that object. The object must declare
+  an ``ATTR_cockpit_device`` with the **same** ``deviceID`` string you passed to
+  :py:func:`createAvionicsEx`. The binding is a property of the object, so every
+  instance you draw from that object shows the same device. You may only bind
+  devices you created yourself, not X-Plane's built-in devices.
+
+  >>> obj = xp.loadObject('Custom Scenery/Tetra/obj/tetrahedron/tetrahedron.obj')
+  >>> refCon = {'draw_f': lambda :None}  # initially the draw function does nothing
+  >>> def myScreenDraw(refCon):
+  ...     refCon['draw_f']()
+  ...
+  >>> def myBezelDraw(r, g, b, refCon):
+  ...     xp.polygon(xp.makeColor(0, 0, 0, 1), [(0, 0), (200, 0), (200, 100), (0, 100)])
+  ...
+  >>> avionicsID = xp.createAvionicsEx(screenDraw=myScreenDraw, bezelDraw=myBezelDraw,
+  ...                                  screenWidth=200, screenHeight=100, bezelWidth=200, bezelHeight=100,
+  ...                                  screenOffsetX=0, screenOffsetY=0,
+  ...                                  deviceID="MYG1000_PDF1",
+  ...                                  contentType=xp.WindowContentTypePanelGraphics, refCon=refCon)
+  ...
+  >>> def myLinesW():
+  ...     xp.linesWithWidth(xp.makeColor(1, 0, 1, 1), 10, [(10, 10), (190, 90), (10, 20), (90, 20)])
+  ... 
+  >>> refCon['draw_f'] = myLinesW
+  >>> xp.setObjectAvionics(obj, avionicsID)
+  >>> instance = xp.createInstance(obj)
+  >>> x = xp.getDatad(xp.findDataRef('sim/flightmodel/position/local_x'))
+  >>> y = xp.getDatad(xp.findDataRef('sim/flightmodel/position/local_y'))
+  >>> z = xp.getDatad(xp.findDataRef('sim/flightmodel/position/local_z'))
+  >>> pitch, heading, roll = (0, 0, 0)
+  >>> position = x, y, z + 10, pitch, heading, roll
+  >>> xp.instanceSetPosition(instance, position)
+
+
+
+  See ``samples/PI_ObjAvionics.py`` for a working example: it writes its own
+  single-quad .obj (with the matching ``ATTR_cockpit_device``) and texture at
+  enable, binds a device to it, and pins the instance ahead of the aircraft so
+  the screen rides with you.
+
+  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMSetObjectAvionics>`__ :index:`XPLMSetObjectAvionics`
+
+.. py:function:: clearObjectAvionics(object, avionicsID) -> None
+
+  :param XPLMObjectRef object: the object previously bound with :py:func:`setObjectAvionics`
+  :param XPLMAvionicsID avionicsID: the bound device
+
+  Remove a binding previously made with :py:func:`setObjectAvionics`, restoring
+  the object's device screen to black. Bindings are also cleared automatically
+  when you :py:func:`destroyAvionics`.
+
+  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMClearObjectAvionics>`__ :index:`XPLMClearObjectAvionics`
+
+Types
+-----
+
+.. py:type:: XPLMMouseStatus
+
+    An int: the mouse status passed to a click callback. See the values
+    listed with :func:`bezelClick`.
+
+
+.. py:class:: XPLMAvionicsID
+
+    Opaque capsule representing a cockpit device, as returned by
+    :func:`createAvionicsEx`, :func:`registerAvionicsCallbacksEx` and
+    :func:`getAvionicsHandle`.
+
+    Release a device you created with :func:`destroyAvionics` -- only ever for
+    devices you created yourself, not for stock X-Plane devices you have
+    customized. To stop drawing into a stock device you registered callbacks
+    for, use :func:`unregisterAvionicsCallbacks` instead.
+  

@@ -36,6 +36,7 @@ typedef struct {
   float age;
   float radius_nm;
   float max_altitude_msl_ft;
+  float snow_coverage_pct;
 } WeatherInfoObject;
 
 static PyObject *
@@ -86,16 +87,18 @@ WeatherInfo_init(WeatherInfoObject *self, PyObject *args, PyObject *kwds)
                            CHAR("wave_length"), CHAR("wave_dir"), CHAR("wave_speed"), CHAR("visibility"),
                            CHAR("precip_rate"), CHAR("thermal_climb"), CHAR("pressure_sl"), CHAR("wind_layers"), CHAR("cloud_layers"),
                            CHAR("temp_layers"), CHAR("dewp_layers"), CHAR("troposphere_alt"), CHAR("troposphere_temp"),
-                           CHAR("age"), CHAR("radius_nm"), CHAR("max_altitude_msl_ft"), nullptr};
+                           CHAR("age"), CHAR("radius_nm"), CHAR("max_altitude_msl_ft"),
+                           CHAR("snow_coverage_pct"), nullptr};
 
   self->detail_found = -1;
   self->radius_nm = XPLM_DEFAULT_WXR_RADIUS_NM;
   self->max_altitude_msl_ft = XPLM_DEFAULT_WXR_LIMIT_MSL_FT;
+  self->snow_coverage_pct = 0.0f;
   self->temperature_alt = IGNORE_TEMPERATURE_LAYER;
   self->dewpoint_alt = IGNORE_TEMPERATURE_LAYER;
   PyObject *temperature_alt_obj = NULL;
   PyObject *dewpoint_alt_obj = NULL;
-  int result = PyArg_ParseTupleAndKeywords(args, kwds, "|iOOfffffffifffffOOOOfffff", kwlist,
+  int result = PyArg_ParseTupleAndKeywords(args, kwds, "|iOOfffffffifffffOOOOffffff", kwlist,
                                    &self->detail_found,
                                    &temperature_alt_obj, &dewpoint_alt_obj, &self->pressure_alt, &self->precip_rate_alt,
                                    &self->wind_dir_alt, &self->wind_spd_alt, &self->turbulence_alt, &self->wave_height,
@@ -103,7 +106,8 @@ WeatherInfo_init(WeatherInfoObject *self, PyObject *args, PyObject *kwds)
                                    &self->precip_rate, &self->thermal_climb, &self->pressure_sl, &self->wind_layers,
                                    &self->cloud_layers,
                                    &self->temp_layers, &self->dewp_layers, &self->troposphere_alt, &self->troposphere_temp,
-                                   &self->age, &self->radius_nm, &self->max_altitude_msl_ft);
+                                   &self->age, &self->radius_nm, &self->max_altitude_msl_ft,
+                                   &self->snow_coverage_pct);
   if (!result)
     return -1;
   if (temperature_alt_obj != NULL && temperature_alt_obj != Py_None) {
@@ -281,6 +285,8 @@ static PyMemberDef WeatherInfo_members[] = {
    "Horizontal radius of effect of this weather report, nautical miles"},
   {"max_altitude_msl_ft", T_FLOAT, offsetof(WeatherInfoObject, max_altitude_msl_ft), 0,
    "Vertical radius of effect of this weather report, feet MSL."},
+  {"snow_coverage_pct", T_FLOAT, offsetof(WeatherInfoObject, snow_coverage_pct), 0,
+   "Snow coverage, percent (0-1). XPLM440."},
   {nullptr, T_INT, 0, 0, ""} /* Sentinel */
 };
 
@@ -323,12 +329,14 @@ PyWeatherInfo_New(int detail_found, PyObject *temperature_alt_obj, PyObject *dew
                   float wave_length, int wave_dir, float wave_speed, float visibility, float precip_rate,
                   float thermal_climb, float pressure_sl, PyObject *wind_layers, PyObject *cloud_layers,
                   PyObject *temp_layers, PyObject *dewp_layers,
-                  float troposphere_alt, float troposphere_temp, float age, float radius_nm, float max_altitude_msl_ft)
+                  float troposphere_alt, float troposphere_temp, float age, float radius_nm, float max_altitude_msl_ft,
+                  float snow_coverage_pct)
 {
-  PyObject *argsList = Py_BuildValue("iOOfffffffifffffOOOOfffff", detail_found, temperature_alt_obj, dewpoint_alt_obj, pressure_alt, precip_rate_alt,
+  PyObject *argsList = Py_BuildValue("iOOfffffffifffffOOOOffffff", detail_found, temperature_alt_obj, dewpoint_alt_obj, pressure_alt, precip_rate_alt,
                                      wind_dir_alt, wind_spd_alt, turbulence_alt, wave_height, wave_length,
                                      wave_dir, wave_speed, visibility, precip_rate, thermal_climb, pressure_sl, wind_layers, cloud_layers,
-                                     temp_layers, dewp_layers, troposphere_alt, troposphere_temp, age, radius_nm, max_altitude_msl_ft);
+                                     temp_layers, dewp_layers, troposphere_alt, troposphere_temp, age, radius_nm, max_altitude_msl_ft,
+                                     snow_coverage_pct);
   PyObject *obj = PyObject_CallObject((PyObject *) &WeatherInfoType, argsList);
   Py_DECREF(argsList);
   return (PyObject*)obj;

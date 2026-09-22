@@ -23,9 +23,16 @@ each module separately::
   
   import XPLMMenus
 
-Not sure which modules contain what you want? Here's an overview arranged by features:
+Modules by Feature
+------------------
+
+Not sure which modules contain what you want? Here's an overview arranged by features, or check :doc:`/development/plugin_tasks`:
+
+.. rst-class:: compact
 
 * Accessing **dataRefs** (internal X-Plane data), and creating your own dataRefs. :doc:`dataaccess`
+
+  .. rst-class:: compact
 
   * with a simpler lua-like access using easy datarefs :doc:`datarefs`
 
@@ -52,7 +59,11 @@ Not sure which modules contain what you want? Here's an overview arranged by fea
   * **OpenGL** interactions, state, textures (including weather radar): :doc:`graphics`
     
   * **Python OpenGL** drawing primitives (lines, polygons, text, transformations, etc.: :doc:`xpgl`
-    
+
+  * **Panel graphics** X-Plane's native (non-OpenGL) 2-D drawing for windows and avionics devices:
+    lines, polygons, text, textures, synthetic-vision and moving-map displays, and touch zones. New with
+    X-Plane 12.4.4 :doc:`panelgraphics`
+
   * Simple (non-OpenGL) drawing primitives :doc:`graphics`, and graphical elements :doc:`uigraphics`
 
   * **Widgets** Old style buttons, textboxes, checkboxes, etc. useful for basic user interaction. :doc:`widgets`, doc:`widgetutils`, doc:`standardwidgets`
@@ -111,6 +122,24 @@ Not sure which modules contain what you want? Here's an overview arranged by fea
 
 * **Logging** to Log.txt and to XPPython3Log.txt :doc:`python`.
 
+Core XPPython3 modules
+----------------------
+
++-----------------------------------------------------+---------------------------------------------------------------------+
+|:doc:`xp`                                            |The only python modules you really need. This page also describes the|
+|                                                     |pythonic, simplified API mapping with optional and keyword           |
+|                                                     |parameters.                                                          |
++-----------------------------------------------------+---------------------------------------------------------------------+
+|:doc:`python`                                        |* Logging functions                                                  |
+|                                                     |                                                                     |
+|                                                     |* Access internal XPPython3 data structures, perhaps useful for      |
+|                                                     |  debugging new plugins.                                             |
++-----------------------------------------------------+---------------------------------------------------------------------+
+
+
+Core XPLM modules
+-----------------
+
 For compatibility with Laminar documentation, this documentation splits the SDK along the same divisions:
 
 +------------------------+---------------------------------------------------------------------+
@@ -150,6 +179,14 @@ For compatibility with Laminar documentation, this documentation splits the SDK 
 |                        |* Get/Set Flight Management Systems (FMS) entries. (This includes    |
 |                        |  basic systems such as G530 and more advanced systems found in      |
 |                        |  airliners.)                                                        |
++------------------------+---------------------------------------------------------------------+
+|:doc:`panelgraphics`    |Native (non-OpenGL) 2-D panel drawing (X-Plane 12.4.4+): lines,      |
+|                        |polygons, text, textures, synthetic-vision (SVT) and moving-map      |
+|                        |displays, and touch zones. For windows and avionics devices.         |
++------------------------+---------------------------------------------------------------------+
+|:doc:`planes`           |* Get/Set user's aircraft and initial location.                      |
+|                        |                                                                     |
+|                        |* Disable AI aircraft.                                               |
 +------------------------+---------------------------------------------------------------------+
 |:doc:`planes`           |* Get/Set user's aircraft and initial location.                      |
 |                        |                                                                     |
@@ -195,11 +232,13 @@ For compatibility with Laminar documentation, this documentation splits the SDK 
 +------------------------+---------------------------------------------------------------------+
 |:doc:`weather`          |* Get METAR for given airport                                        |
 |                        |                                                                     |
-|                        |* Get Weather Information for given location (latitude, longitude,   |
-|                        |  altitude).                                                         |
+|                        |* Get and Set Weather Information for given location (latitude,      |
+|                        |  longitude, altitude).                                              |
+|                        |                                                                     |
 +------------------------+---------------------------------------------------------------------+
 
-X-Planes's Widget modules:
+X-Planes's Widget modules
+-------------------------
 
 +------------------------+---------------------------------------------------------------------+
 |:doc:`widgets`          |Create, destroy and otherwise manipulated pre-defined ("standard")   |
@@ -220,53 +259,40 @@ X-Planes's Widget modules:
 |:doc:`widgetutils`      |Mostly useless functions.                                            |
 +------------------------+---------------------------------------------------------------------+
 
-Some "helper" pure-python modules, built on top of the others, making basic functionality easier
-to implement.
+XPPython3 Helper modules
+------------------------
 
-+-------------------------+---------------------------------------------------------------------+
-|:doc:`timers`            |Create and schedule one-shot and interval timers. Easier than working|
-|                         |with flight loops.                                                   |
-|                         |                                                                     |
-+-------------------------+---------------------------------------------------------------------+
-|:doc:`commands`          |Create and execute X-Plane commands. Alter existing commands.        |
-|                         |                                                                     |
-|                         |                                                                     |
-+-------------------------+---------------------------------------------------------------------+
-|:doc:`datarefs`          |Create and access datarefs.                                          |
-|                         |                                                                     |
-|                         |                                                                     |
-+-------------------------+---------------------------------------------------------------------+
-|:doc:`easy_python`       |Optional parent class for required PythonInterface class. Provides a |
-|                         |number of well-defined callback points, making it easier for you to  |
-|                         |code a plugin.                                                       |
-+-------------------------+---------------------------------------------------------------------+
-|:doc:`xlua_variables`    |Convenience code with pre-defined global parameters, also commonly   |
-|                         |used in xlua programs.                                               |
-|                         |                                                                     |
-+-------------------------+---------------------------------------------------------------------+
+Some pure-python modules, built on top of the others, making basic functionality easier
+to implement. These need to be explicitly imported (they are not included with ``from XPPython3 import xp``)
 
-More pure-python modules useful for graphics:
++-----------------------------------------------------+---------------------------------------------------------------------+
+|:doc:`timers`                                        |Create and schedule one-shot and interval timers. Easier than working|
+|                                                     |with flight loops.                                                   |
+|                                                     |                                                                     |
++-----------------------------------------------------+---------------------------------------------------------------------+
+|:doc:`commands`                                      |Create and execute X-Plane commands. Alter existing commands.        |
++-----------------------------------------------------+---------------------------------------------------------------------+
+|:doc:`datarefs`                                      |Create and access datarefs.                                          |
++-----------------------------------------------------+---------------------------------------------------------------------+
+|:doc:`easy_python`                                   |Optional parent class for required PythonInterface class. Provides a |
+|                                                     |number of well-defined callback points, making it easier for you to  |
+|                                                     |code a plugin.                                                       |
++-----------------------------------------------------+---------------------------------------------------------------------+
+|:doc:`xlua_variables`                                |Convenience code with pre-defined global parameters, also commonly   |
+|                                                     |used in xlua programs.                                               |
++-----------------------------------------------------+---------------------------------------------------------------------+
+|:doc:`xpgl`                                          |Convenience wrapper around common OpenGL routines allowing you to    |
+|                                                     |quickly draw shapes, load images, and fonts.                         |
++-----------------------------------------------------+---------------------------------------------------------------------+
+|:doc:`xp_imgui`                                      |API to the Dear ImGui graphics library, with examples.               |
++-----------------------------------------------------+---------------------------------------------------------------------+
+|:doc:`xp_pip`                                        |Programmatically load python modules either individually or using a  |
+|                                                     |requirements.txt file.                                               |
++-----------------------------------------------------+---------------------------------------------------------------------+
+|:doc:`xpyce </development/deployment_encrypted>`     |Support module for encrypted python                                  |
+|                                                     |                                                                     |
++-----------------------------------------------------+---------------------------------------------------------------------+
 
-+------------------------+---------------------------------------------------------------------+
-|:doc:`xpgl`             |Convenience wrapper around common OpenGL routines allowing you to    |
-|                        |quickly draw shapes, load images, and fonts.                         |
-|                        |                                                                     |
-+------------------------+---------------------------------------------------------------------+
-
-And three XPPython-specific additions (also accessible with simple ``import xp``.)
-
-+------------------------+---------------------------------------------------------------------+
-|:doc:`xp`               |The only python modules you really need. This page also describes the|
-|                        |pythonic, simplified API mapping with optional and keyword           |
-|                        |parameters.                                                          |
-+------------------------+---------------------------------------------------------------------+
-|:doc:`xp_imgui`         |API to the Dear ImGui graphics library, with examples.               |
-+------------------------+---------------------------------------------------------------------+
-|:doc:`python`           |* Logging functions                                                  |
-|                        |                                                                     |
-|                        |* Access internal XPPython3 data structures, perhaps useful for      |
-|                        |  debugging new plugins.                                             |
-+------------------------+---------------------------------------------------------------------+
 
 .. toctree::
    :hidden:
@@ -280,6 +306,7 @@ And three XPPython-specific additions (also accessible with simple ``import xp``
    map
    menus
    navigation
+   panelgraphics
    planes
    plugin
    processing

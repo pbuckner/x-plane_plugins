@@ -1286,6 +1286,122 @@ PyObject *XPLMSetAvionicsMappedToVRFun(PyObject *self, PyObject *args, PyObject 
   Py_RETURN_NONE;
 }
 
+#if defined(XPLM440)
+/* Browser functions registered with XPLMAvionicsAddBrowserFunction. The X-Plane
+   refcon is an incrementing counter used to look up the real Python callback + refcon.
+   Kept separate from the window-side dict in display.cpp. */
+struct AvionicsBrowserFunctionInfo {
+  PyObject *callback;
+  PyObject *refCon;
+  const char* module_name;
+};
+std::unordered_map<intptr_t, AvionicsBrowserFunctionInfo> avionicsBrowserFunctionDict;
+static intptr_t avionicsBrowserFunctionCntr;
+
+/* browserLoadFinished/browserLoadError callbacks: like the generic avionics draw
+   callbacks, inRefcon is the avionicsCallbacksDict counter, not a PyObject*. */
+static void genericAvionicsBrowserLoadFinished(XPLMAvionicsID inAvionics, const char *inURL, void *inRefcon)
+{
+  // NOTE!!! sometimes this fires with url=about:blank, you must check the URL!!
+  errCheck("prior genericAvionicsBrowserLoadFinished");
+  auto it = avionicsCallbacksDict.find((intptr_t)inRefcon);
+  if(it == avionicsCallbacksDict.end()){
+    pythonLog("Unknown refcon passed to genericAvionicsBrowserLoadFinished (%p).", inRefcon);
+    return;
+  }
+  AvionicsCallbackInfo& info = it->second;
+  if (info.browserLoadFinished != Py_None) {
+    PyObject *pID = makeCapsule(inAvionics, "XPLMAvionicsID");
+    PyObject *pURL = inURL ? PyUnicode_FromString(inURL) : (Py_INCREF(Py_None), Py_None);
+    set_moduleName(info.module_name);
+
+    PyObject *args[] = {pID, pURL, info.refCon};
+    PyObject *oRes = PyObject_Vectorcall(info.browserLoadFinished, args, 3, nullptr);
+    Py_DECREF(pID);
+    Py_DECREF(pURL);
+
+    if(PyErr_Occurred()) {
+      pythonLogException();
+      pythonLog("disabling avionics browserLoadFinished function");
+      info.browserLoadFinished = Py_None;
+    }
+    Py_XDECREF(oRes);
+  }
+  errCheck("end genericAvionicsBrowserLoadFinished");
+}
+
+static void genericAvionicsBrowserLoadError(XPLMAvionicsID inAvionics, const char *inURL, const char *inError, void *inRefcon)
+{
+  errCheck("prior genericAvionicsBrowserLoadError");
+  auto it = avionicsCallbacksDict.find((intptr_t)inRefcon);
+  if(it == avionicsCallbacksDict.end()){
+    pythonLog("Unknown refcon passed to genericAvionicsBrowserLoadError (%p).", inRefcon);
+    return;
+  }
+  AvionicsCallbackInfo& info = it->second;
+  if (info.browserLoadError != Py_None) {
+    PyObject *pID = makeCapsule(inAvionics, "XPLMAvionicsID");
+    PyObject *pURL = inURL ? PyUnicode_FromString(inURL) : (Py_INCREF(Py_None), Py_None);
+    PyObject *pErr = inError ? PyUnicode_FromString(inError) : (Py_INCREF(Py_None), Py_None);
+    set_moduleName(info.module_name);
+
+    PyObject *args[] = {pID, pURL, pErr, info.refCon};
+    PyObject *oRes = PyObject_Vectorcall(info.browserLoadError, args, 4, nullptr);
+    Py_DECREF(pID);
+    Py_DECREF(pURL);
+    Py_DECREF(pErr);
+
+    if(PyErr_Occurred()) {
+      pythonLogException();
+      pythonLog("disabling avionics browserLoadError function");
+      info.browserLoadError = Py_None;
+    }
+    Py_XDECREF(oRes);
+  }
+  errCheck("end genericAvionicsBrowserLoadError");
+}
+
+static const char *genericAvionicsBrowserCallback(XPLMAvionicsID inAvionics, const char *inJSON, void *inRefcon)
+{
+  errCheck("prior genericAvionicsBrowserCallback");
+  /* The only sanctioned way to return a string is via XPLMReturnString, which copies
+     into the host-managed slot. Return an empty string on any error. */
+  const char *result = XPLMReturnString_ptr ? XPLMReturnString_ptr("") : "";
+  auto it = avionicsBrowserFunctionDict.find((intptr_t)inRefcon);
+  if(it == avionicsBrowserFunctionDict.end()){
+    pythonLog("Unknown refcon passed to genericAvionicsBrowserCallback (%p).", inRefcon);
+    return result;
+  }
+  PyObject *func = it->second.callback;
+  PyObject *pID = makeCapsule(inAvionics, "XPLMAvionicsID");
+  PyObject *pJSON = inJSON ? PyUnicode_FromString(inJSON) : (Py_INCREF(Py_None), Py_None);
+  set_moduleName(it->second.module_name);
+
+  PyObject *args[] = {pID, pJSON, it->second.refCon};
+  PyObject *oRes = PyObject_Vectorcall(func, args, 3, nullptr);
+  Py_DECREF(pID);
+  Py_DECREF(pJSON);
+
+  if(PyErr_Occurred()) {
+    pythonLogException();
+  } else if (oRes && oRes != Py_None) {
+    PyObject *str = PyObject_Str(oRes);
+    if (str) {
+      const char *tmp = PyUnicode_AsUTF8(str);
+      if (tmp && XPLMReturnString_ptr) {
+        result = XPLMReturnString_ptr(tmp);    // copies tmp into host slot while str is alive
+      }
+      Py_DECREF(str);
+    } else {
+      PyErr_Clear();
+    }
+  }
+  Py_XDECREF(oRes);
+  errCheck("end genericAvionicsBrowserCallback");
+  return result;
+}
+#endif /* XPLM440 */
+
 PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void) self;
@@ -1296,7 +1412,8 @@ PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObject *kwar
                              CHAR("screenTouch"), CHAR("screenRightTouch"), CHAR("screenScroll"), CHAR("screenCursor"),
                              CHAR("keyboard"), CHAR("brightness"),
                              CHAR("deviceID"), CHAR("deviceName"), CHAR("refCon"),
-                             CHAR("contentType"), CHAR("windowWithChrome"), nullptr};
+                             CHAR("contentType"), CHAR("windowWithChrome"),
+                             CHAR("browserLoadFinished"), CHAR("browserLoadError"), nullptr};
 
 
   /*float brt(float rheo, float photo_cell, float bus_ratio) {
@@ -1333,6 +1450,8 @@ PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObject *kwar
     *screenCursor=Py_None,
     *keyboard=Py_None,
     *brightness=Py_None,
+    *browserLoadFinished=Py_None,
+    *browserLoadError=Py_None,
     *refcon=Py_None;
   char *deviceIDstr = nullptr;
   char *deviceName = nullptr;
@@ -1342,7 +1461,7 @@ PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObject *kwar
     return nullptr;
   }
 
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OiiiiiiOOOOOOOOOOOOssOii", keywords,
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OiiiiiiOOOOOOOOOOOOssOiiOO", keywords,
                                   &firstObj, &screenHeight, &bezelWidth, &bezelHeight, &screenOffsetX, &screenOffsetY,
                                   &drawOnDemand,
                                   &bezelDraw, &screenDraw,
@@ -1353,7 +1472,9 @@ PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObject *kwar
                                   &deviceName,
                                   &refcon,
                                   &contentType,
-                                  &windowWithChrome
+                                  &windowWithChrome,
+                                  &browserLoadFinished,
+                                  &browserLoadError
                                   )){
     return nullptr;
   }
@@ -1379,8 +1500,8 @@ PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObject *kwar
     avionics_params.deviceName = strdup(deviceName);
   } else if (PySequence_Check(firstObj)) {
     paramsObj = firstObj;
-    if (PySequence_Length(paramsObj) != 22) {
-      PyErr_SetString(PyExc_AttributeError ,"createAvionicsEx tuple did not contain 22 values\n.");
+    if (PySequence_Length(paramsObj) != 24) {
+      PyErr_SetString(PyExc_AttributeError ,"createAvionicsEx tuple did not contain 24 values\n.");
       return nullptr;
     }
     PyObject *paramsTuple = PySequence_Tuple(paramsObj);
@@ -1408,6 +1529,8 @@ PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObject *kwar
     brightness = PyTuple_GetItem(paramsTuple, 18);
 
     refcon = PyTuple_GetItem(paramsTuple, 21);
+    browserLoadFinished = PyTuple_GetItem(paramsTuple, 22);
+    browserLoadError = PyTuple_GetItem(paramsTuple, 23);
     Py_DECREF(paramsTuple);
 
   } else {
@@ -1423,9 +1546,11 @@ PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObject *kwar
   }
 
   avionics_params.refcon = (void *) ++avionicsCallbacksCntr;
-#if defined(XPLMPG1)
+#if defined(XPLM440)
   avionics_params.contentType = (XPLMWindowContentType) contentType;
   avionics_params.windowWithChrome = windowWithChrome;
+  avionics_params.browserLoadFinishedFunc = browserLoadFinished != Py_None ? genericAvionicsBrowserLoadFinished : nullptr;
+  avionics_params.browserLoadErrorFunc = browserLoadError != Py_None ? genericAvionicsBrowserLoadError : nullptr;
 #else
   (void) contentType;
   (void) windowWithChrome;
@@ -1445,8 +1570,9 @@ PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObject *kwar
 
   /* check which are callable & Py_INCREF as appropriate */
   PyObject *callbackList[] = {bezelDraw, screenDraw, bezelClick, bezelRightClick, bezelScroll,
-                              bezelCursor, screenTouch, screenRightTouch, screenScroll, screenCursor, keyboard, brightness};
-  for (int i=0; i< 12; i++) {
+                              bezelCursor, screenTouch, screenRightTouch, screenScroll, screenCursor, keyboard, brightness,
+                              browserLoadFinished, browserLoadError};
+  for (int i=0; i< 14; i++) {
     if (callbackList[i] != Py_None) {
       if (PyCallable_Check(callbackList[i])) {
         Py_INCREF(callbackList[i]);
@@ -1489,6 +1615,8 @@ PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObject *kwar
     .screen_cursor = screenCursor,
     .keyboard = keyboard,
     .brightness = brightness,
+    .browserLoadFinished = browserLoadFinished,
+    .browserLoadError = browserLoadError,
     .create = 1
   };
 
@@ -1505,6 +1633,130 @@ PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObject *kwar
   free((void *)avionics_params.deviceID);
   free((void *)avionics_params.deviceName);
   return avIDCapsule;
+}
+
+PyObject *XPLMAvionicsSetURLFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {CHAR("avionicsID"), CHAR("url"), nullptr};
+  (void) self;
+  PyObject *avionicsID;
+  const char *inURL;
+  if(!XPLMAvionicsSetURL_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMAvionicsSetURL is available only in XPLM440 and up.");
+    return nullptr;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Os", keywords, &avionicsID, &inURL)){
+    return nullptr;
+  }
+  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsSetURL_ptr(avionics_id, inURL);
+  Py_RETURN_NONE;
+}
+
+PyObject *XPLMAvionicsRefreshFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {CHAR("avionicsID"), CHAR("ignoreCache"), nullptr};
+  (void) self;
+  PyObject *avionicsID;
+  int inIgnoreCache = 0;
+  if(!XPLMAvionicsRefresh_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMAvionicsRefresh is available only in XPLM440 and up.");
+    return nullptr;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", keywords, &avionicsID, &inIgnoreCache)){
+    return nullptr;
+  }
+  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsRefresh_ptr(avionics_id, inIgnoreCache);
+  Py_RETURN_NONE;
+}
+
+PyObject *XPLMAvionicsInjectScriptFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {CHAR("avionicsID"), CHAR("script"), nullptr};
+  (void) self;
+  PyObject *avionicsID;
+  const char *inScript;
+  if(!XPLMAvionicsInjectScript_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMAvionicsInjectScript is available only in XPLM440 and up.");
+    return nullptr;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Os", keywords, &avionicsID, &inScript)){
+    return nullptr;
+  }
+  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsInjectScript_ptr(avionics_id, inScript);
+  Py_RETURN_NONE;
+}
+
+PyObject *XPLMAvionicsAddBrowserFunctionFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {CHAR("avionicsID"), CHAR("name"), CHAR("function"), CHAR("refCon"), nullptr};
+  (void) self;
+  PyObject *avionicsID;
+  const char *inName;
+  PyObject *function;
+  PyObject *refCon = Py_None;
+  if(!XPLMAvionicsAddBrowserFunction_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMAvionicsAddBrowserFunction is available only in XPLM440 and up.");
+    return nullptr;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OsO|O", keywords, &avionicsID, &inName, &function, &refCon)){
+    return nullptr;
+  }
+  if(!PyCallable_Check(function)){
+    PyErr_SetString(PyExc_ValueError ,"avionicsAddBrowserFunction function is not callable.\n");
+    return nullptr;
+  }
+#if defined(XPLM440)
+  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  intptr_t idx = ++avionicsBrowserFunctionCntr;
+  Py_INCREF(function);
+  Py_INCREF(refCon);
+  avionicsBrowserFunctionDict[idx] = {
+    .callback = function,
+    .refCon = refCon,
+    .module_name = CurrentPythonModuleName
+  };
+  XPLMAvionicsAddBrowserFunction_ptr(avionics_id, inName, genericAvionicsBrowserCallback, (void *)idx);
+#endif
+  Py_RETURN_NONE;
+}
+
+PyObject *XPLMSetObjectAvionicsFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {CHAR("object"), CHAR("avionicsID"), nullptr};
+  (void) self;
+  PyObject *object, *avionicsID;
+  if(!XPLMSetObjectAvionics_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMSetObjectAvionics is available only in XPLM440 and up.");
+    return nullptr;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO", keywords, &object, &avionicsID)){
+    return nullptr;
+  }
+  XPLMObjectRef inObject = getVoidPtr(object, "XPLMObjectRef");
+  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  int res = XPLMSetObjectAvionics_ptr(inObject, avionics_id);
+  return PyLong_FromLong(res);
+}
+
+PyObject *XPLMClearObjectAvionicsFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {CHAR("object"), CHAR("avionicsID"), nullptr};
+  (void) self;
+  PyObject *object, *avionicsID;
+  if(!XPLMClearObjectAvionics_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMClearObjectAvionics is available only in XPLM440 and up.");
+    return nullptr;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO", keywords, &object, &avionicsID)){
+    return nullptr;
+  }
+  XPLMObjectRef inObject = getVoidPtr(object, "XPLMObjectRef");
+  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMClearObjectAvionics_ptr(inObject, avionics_id);
+  Py_RETURN_NONE;
 }
 
 void resetAvionicsCallbacks(void) {
@@ -1530,6 +1782,8 @@ void resetAvionicsCallbacks(void) {
     Py_DECREF(info.screen_cursor);
     Py_DECREF(info.keyboard);
     Py_DECREF(info.brightness);
+    Py_DECREF(info.browserLoadFinished);
+    Py_DECREF(info.browserLoadError);
     if (info.create) {
       XPLMDestroyAvionics_ptr(info.avionicsID);
       errCheck("afterXPLMDestroyAvionics in reset");
@@ -1541,6 +1795,14 @@ void resetAvionicsCallbacks(void) {
     deleteCapsuleByPtr((void*)info.avionicsID, "XPLMAvionicsID");
   }
   avionicsCallbacksDict.clear();
+
+#if defined(XPLM440)
+  for (auto& pair : avionicsBrowserFunctionDict) {
+    Py_DECREF(pair.second.callback);
+    Py_DECREF(pair.second.refCon);
+  }
+  avionicsBrowserFunctionDict.clear();
+#endif
 }
 
 
@@ -1722,7 +1984,7 @@ My_DOCSTR(_createAvionicsEx__doc__, "createAvionicsEx",
           "drawOnDemand=0, bezelDraw=None, screenDraw=None, bezelClick=None, bezelRightClick=None, "
           "bezelScroll=None, bezelCursor=None, screenTouch=None, screenRightTouch=None, screenScroll=None, "
           "screenCursor=None, keyboard=None, brightness=None, deviceID=\"deviceID-<num>\", deviceName=\"deviceName-<num>\", refcon=None, "
-          "contentType=WindowContentTypeOpenGL, windowWithChrome=0",
+          "contentType=WindowContentTypeOpenGL, windowWithChrome=0, browserLoadFinished=None, browserLoadError=None",
           "screenWidth: int = 100, screenHeight: int = 200, bezelWidth:int = 140, bezelHeight: int = 250, "
           "screenOffsetX: int = 20, screenOffsetY: int = 25, drawOnDemand: int = 0, "
           "bezelDraw: Optional[Callable[[float, float, float, Any], None]] = None, "
@@ -1739,7 +2001,9 @@ My_DOCSTR(_createAvionicsEx__doc__, "createAvionicsEx",
           "brightness: Optional[Callable[[float, float, float, float], float]] = None, "
           "deviceID: str = \"deviceID\", deviceName: str= \"deviceName\", "
           "refCon: Any = None, "
-          "contentType: XPLMWindowContentType = WindowContentTypeOpenGL, windowWithChrome: int = 0,"
+          "contentType: XPLMWindowContentType = WindowContentTypeOpenGL, windowWithChrome: int = 0, "
+          "browserLoadFinished: Optional[Callable[[XPLMAvionicsID, str, Any], None]] = None, "
+          "browserLoadError: Optional[Callable[[XPLMAvionicsID, str, str, Any], None]] = None,"
           ,
           "XPLMAvionicsID",
           "Creates glass cockpit device for 3D cockpit.\n"
@@ -1749,7 +2013,70 @@ My_DOCSTR(_createAvionicsEx__doc__, "createAvionicsEx",
           "Note, if not specified, we create a \"unique\" deviceID and deviceName,\n"
           "as deviceID *must* be unique.\n"
           "\n"
+          "For contentType=WindowContentTypeBrowser (XPLM440), the device screen is a\n"
+          "CEF web view driven with avionicsSetURL()/avionicsRefresh()/etc.;\n"
+          "browserLoadFinished(avionicsID, url, refCon) fires when the main frame\n"
+          "finishes loading (which also happens for rendered HTTP error pages -- treat\n"
+          "browserLoadError as authoritative and ignore url='about:blank'), and\n"
+          "browserLoadError(avionicsID, url, error, refCon) fires on a network-level\n"
+          "navigation failure.\n"
+          "\n"
           "Returns new avionicsID.");
+
+My_DOCSTR(_avionicsSetURL__doc__, "avionicsSetURL",
+          "avionicsID, url",
+          "avionicsID:XPLMAvionicsID, url:str",
+          "None",
+          "Load a URL into a browser-content-type avionics device.\n"
+          "Safe to call immediately after createAvionicsEx; the load is queued\n"
+          "until the browser is ready. Subsequent calls replace the page.");
+
+My_DOCSTR(_avionicsRefresh__doc__, "avionicsRefresh",
+          "avionicsID, ignoreCache=0",
+          "avionicsID:XPLMAvionicsID, ignoreCache:int=0",
+          "None",
+          "Reload the current URL in a browser-content-type avionics device.\n"
+          "Pass ignoreCache=1 to bypass the HTTP cache (shift-reload).");
+
+My_DOCSTR(_avionicsInjectScript__doc__, "avionicsInjectScript",
+          "avionicsID, script",
+          "avionicsID:XPLMAvionicsID, script:str",
+          "None",
+          "Execute a JavaScript snippet in a browser device's main frame.\n"
+          "The script runs once with access to the same `xplane.*` namespace\n"
+          "exposed to the page. If injected before the page finishes loading,\n"
+          "it may run against an empty document.");
+
+My_DOCSTR(_avionicsAddBrowserFunction__doc__, "avionicsAddBrowserFunction",
+          "avionicsID, name, function, refCon=None",
+          "avionicsID:XPLMAvionicsID, name:str, function:Callable[[XPLMAvionicsID, str, Any], Optional[str]], refCon:Any=None",
+          "None",
+          "Register a callback the browser page can invoke as `xplane.<name>(arg)`.\n"
+          "function(avionicsID, json, refCon) is called with the JSON argument string;\n"
+          "its return value (a str, parsed as JSON) resolves the page's Promise.");
+
+My_DOCSTR(_setObjectAvionics__doc__, "setObjectAvionics",
+          "object, avionicsID",
+          "object:XPLMObjectRef, avionicsID:XPLMAvionicsID",
+          "int",
+          "Glue a device you created with createAvionicsEx() onto a loaded 3D\n"
+          "object, so the device's screen draws on that object (e.g. one drawn\n"
+          "in the world via the instancing API).\n"
+          "\n"
+          "The object must declare an ATTR_cockpit_device with the same deviceID\n"
+          "string passed to createAvionicsEx(). You may only bind devices you\n"
+          "created yourself.\n"
+          "\n"
+          "Returns 1 if the object had a matching device screen and the binding\n"
+          "succeeded, 0 otherwise.");
+
+My_DOCSTR(_clearObjectAvionics__doc__, "clearObjectAvionics",
+          "object, avionicsID",
+          "object:XPLMObjectRef, avionicsID:XPLMAvionicsID",
+          "None",
+          "Remove a binding previously made with setObjectAvionics(), restoring\n"
+          "the object's device screen to black. Bindings are also cleared\n"
+          "automatically when you destroy the device with destroyAvionics().");
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-function-type"
@@ -1794,6 +2121,19 @@ PyMethodDef displayAvionicsMethods[] = {
   {"XPLMGetAvionicsBrightnessRheo", (PyCFunction)XPLMGetAvionicsBrightnessRheoFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"getAvionicsBusVoltsRatio", (PyCFunction)XPLMGetAvionicsBusVoltsRatioFun, METH_VARARGS | METH_KEYWORDS, _getAvionicsBusVoltsRatio__doc__},
   {"XPLMGetAvionicsBusVoltsRatio", (PyCFunction)XPLMGetAvionicsBusVoltsRatioFun, METH_VARARGS | METH_KEYWORDS, ""},
+  // SDK 440
+  {"avionicsSetURL", (PyCFunction)XPLMAvionicsSetURLFun, METH_VARARGS | METH_KEYWORDS, _avionicsSetURL__doc__},
+  {"XPLMAvionicsSetURL", (PyCFunction)XPLMAvionicsSetURLFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"avionicsRefresh", (PyCFunction)XPLMAvionicsRefreshFun, METH_VARARGS | METH_KEYWORDS, _avionicsRefresh__doc__},
+  {"XPLMAvionicsRefresh", (PyCFunction)XPLMAvionicsRefreshFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"avionicsInjectScript", (PyCFunction)XPLMAvionicsInjectScriptFun, METH_VARARGS | METH_KEYWORDS, _avionicsInjectScript__doc__},
+  {"XPLMAvionicsInjectScript", (PyCFunction)XPLMAvionicsInjectScriptFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"avionicsAddBrowserFunction", (PyCFunction)XPLMAvionicsAddBrowserFunctionFun, METH_VARARGS | METH_KEYWORDS, _avionicsAddBrowserFunction__doc__},
+  {"XPLMAvionicsAddBrowserFunction", (PyCFunction)XPLMAvionicsAddBrowserFunctionFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"setObjectAvionics", (PyCFunction)XPLMSetObjectAvionicsFun, METH_VARARGS | METH_KEYWORDS, _setObjectAvionics__doc__},
+  {"XPLMSetObjectAvionics", (PyCFunction)XPLMSetObjectAvionicsFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"clearObjectAvionics", (PyCFunction)XPLMClearObjectAvionicsFun, METH_VARARGS | METH_KEYWORDS, _clearObjectAvionics__doc__},
+  {"XPLMClearObjectAvionics", (PyCFunction)XPLMClearObjectAvionicsFun, METH_VARARGS | METH_KEYWORDS, ""},
   {nullptr, nullptr, 0, nullptr}
 };
 #pragma GCC diagnostic pop

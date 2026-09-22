@@ -70,6 +70,18 @@ Couple of quick points common to all XPPython3 plugins:
     myWindowID = xp.createWindow()
     XPLMDisplay.XPLMDestroyWindow(myWindowID)
 
+* Within the :doc:`/development/debugger`, you can use built-in python ``help()`` command to get documentation
+  of *xp* interfaces::
+
+   >>> help(xp.createMenu)
+   Help on built-in function createMenu in module XPLMMenus:
+  
+   createMenu(name=None, parentMenuID=None, parentItem=0, handler=None, refCon=None)
+      Creates menu, returning menuID or None on error.
+  
+      parentMenuId=None adds menu to PluginsMenu.
+
+  
 * Finally, if you write bad python code, or use Python2 rather than Python3 syntax, you'll see the exception in
   XPPython3Log.txt -- usually, but see warning.
 
@@ -89,7 +101,8 @@ Code Examples
 
 * :doc:`hellowidget`. Create and display widgets in a window.
 
-* :doc:`samples`.   Ported versions of C++ and Python2 demos. Many of
+* :doc:`samples`.   Ported versions of C, C++, and older Python2 demos. Also, extended demonstrations of
+  newer SDK features. Many of
   these are copied to your ``PythonPlugins/samples/`` folder on installation, but there may be more, and more recent demos
   on github. You can download the latest set, refreshing the ``samples`` folder, by selecting **Download Samples** from the
   XPPython3 menu.
@@ -100,5 +113,4 @@ Code Examples
    skeleton
    helloworld
    hellowidget
-   samples
 

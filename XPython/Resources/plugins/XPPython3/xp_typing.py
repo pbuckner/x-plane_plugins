@@ -12,6 +12,7 @@ XPLMBankID = NewType('XPLMBankID', int)
 XPLMCameraControlDuration = NewType('XPLMCameraControlDuration', int)
 XPLMCommandPhase = NewType('XPLMCommandPhase', int)
 XPLMCommandRef = NewType('XPLMCommandRef', int)
+XPLMCoordinateSpace_t = NewType('XPLMCoordinateSpace_t', int)
 XPLMCursorStatus = NewType('XPLMCursorStatus', int)
 XPLMDataFileType = NewType('XPLMDataFileType', int)
 XPLMDataRef = NewType('XPLMDataRef', int)
@@ -20,6 +21,8 @@ XPLMDeviceID = NewType('XPLMDeviceID', int)
 XPLMDrawingPhase = NewType('XPLMDrawingPhase', int)
 XPLMFlightLoopID = NewType('XPLMFlightLoopID', int)
 XPLMFlightLoopPhaseType = NewType('XPLMFlightLoopPhaseType', int)
+XPLMEGPWSStyle = NewType('XPLMEGPWSStyle', int)
+XPLMFontHandle = NewType('XPLMFontHandle', int)
 XPLMFontID = NewType('XPLMFontID', int)
 XPLMHostApplicationID = NewType('XPLMHostApplicationID', int)
 XPLMHotKeyID = NewType('XPLMHotKeyID', int)
@@ -42,7 +45,13 @@ XPLMPluginID = NewType('XPLMPluginID', int)
 XPLMProbeRef = NewType('XPLMProbeRef', int)
 XPLMProbeResult = NewType('XPLMProbeResult', int)
 XPLMProbeType = NewType('XPLMProbeType', int)
+XPLMMapDisplayRef = NewType('XPLMMapDisplayRef', int)
+XPLMSVTDisplayRef = NewType('XPLMSVTDisplayRef', int)
+XPLMTexture = NewType('XPLMTexture', int)
+XPLMTextureAtlasRef = NewType('XPLMTextureAtlasRef', int)
+XPLMRetainedDrawing = NewType('XPLMRetainedDrawing', int)
 XPLMTextureID = NewType('XPLMTextureID', int)
+XPLMWindowContentType = NewType('XPLMWindowContentType', int)
 XPLMWindowDecoration = NewType('XPLMWindowDecoration', int)
 XPLMWindowID = NewType('XPLMWindowID', int)
 XPLMWindowLayer = NewType('XPLMWindowLayer', int)
@@ -170,6 +179,14 @@ class XPLMWeatherInfo_t:
     pressure_sl: float
     wind_layers: list[XPLMWeatherInfoWinds_t]
     cloud_layers: list[XPLMWeatherInfoClouds_t]
+    temp_layers: list[float]
+    dewp_layers: list[float]
+    troposphere_alt: float
+    troposphere_temp: float
+    age: float
+    radius_nm: float
+    max_altitude_msl_ft: float
+    snow_coverage_pct: float
 
 
 @dataclass

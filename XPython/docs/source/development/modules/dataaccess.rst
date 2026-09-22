@@ -1,3 +1,5 @@
+.. index:: DataRefs, Tasks; DataRefs
+
 XPLMDataAccess
 ==============
 .. py:module:: XPLMDataAccess
@@ -58,6 +60,8 @@ page, choose Documentation https://developer.x-plane.com/datarefs/).
 
 The general flow is:
 
+.. rst-class:: compact
+
  1. :py:func:`findDataRef`: Lookup the string name and receive a ``dataRef`` handle.
 
  2. :py:func:`getDatai`: Using the ``dataRef`` handle, retrieve current value. The exact accessor function to use
@@ -69,6 +73,8 @@ The general flow is:
 
 You can get some limited information about a particular dataRef:
 
+.. rst-class:: compact
+
  * :py:func:`canWriteDataRef`: If the ``dataRef`` advertises it is writable (though it may not be...)
 
  * :py:func:`getDataRefTypes`: What underlying data types are supported by this ``dataRef``.
@@ -76,6 +82,8 @@ You can get some limited information about a particular dataRef:
  * :py:func:`getDataRefInfo`: Given a dataRef, retrieve the string ``name``, owning plugin, writability, and type.
 
 You can create your own dataRefs, which makes them available to other plugins / external programs.
+
+.. rst-class:: compact
 
  1. :py:func:`registerDataAccessor`: Association the string name with a set of callback functions
 
@@ -85,12 +93,16 @@ If you have multiple plugins which all need the same data, but you don't want to
 plugin to own the data, you can create a *Shared DataRef*, where the underlying data is managed by X-Plane
 and your only access to it is via ``dataRefs``.
 
+.. rst-class:: compact
+
  1. :py:func:`shareData`: Request X-Plane to create shared data, adding a notification callback so you can know
     if the data is changed.
 
  2. :py:func:`unshareData`: Remove your notification callback. Perhaps removing final reference to the shared data.
 
 You can retrieve all dataRefs by interating through a full list known by X-Plane.
+
+.. rst-class:: compact
 
  1. :py:func:`countDataRefs` returns the number of currently registered dataRefs, and
 
@@ -104,10 +116,10 @@ based on index.
 Functions
 ---------
 
-.. py:function:: findDataRef(name)
+.. py:function:: findDataRef(name) -> XPLMDataRef
 
     :param str name: String name of existing dataRef to be found
-    :return: XPLMDataRef or None if not found                     
+    :return: :class:`XPLMDataRef` or None if not found                     
 
     Given a data ref string *name*, return the
     actual opaque integer that you use to read and write the data. The
@@ -127,7 +139,7 @@ Functions
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMFindDataRef>`__: :index:`XPLMFindDataRef`
 
-.. py:function:: canWriteDataRef(dataRef)
+.. py:function:: canWriteDataRef(dataRef) -> bool
 
     :param XPLMDataRef dataRef: dataRef ID
     :return: boolean True if dataRef is writable.                            
@@ -147,22 +159,29 @@ Functions
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMCanWriteDataRef>`__: :index:`XPLMCanWriteDataRef`
 
-.. py:function:: isDataRefGood(dataRef)
+.. py:function:: isDataRefGood(dataRef) -> bool
 
-    .. Warning:: This function is deprecated and should not be used. Datarefs are
-     valid until plugins are reloaded or the sim quits. Plugins sharing datarefs
-     should support these semantics by not unregistering datarefs during
-     operation. (You should however unregister datarefs when your plugin is
-     unloaded/stopped, as part of general resource cleanup.)
+    :param XPLMDataRef dataRef: dataRef ID
+    :return: boolean True if dataRef is writable.                            
+
+    Datarefs are
+    valid until plugins are reloaded or the sim quits. Plugins sharing datarefs
+    should support these semantics by not unregistering datarefs during
+    operation. (You should however unregister datarefs when your plugin is
+    unloaded/stopped, as part of general resource cleanup.)
 
     This function returns whether a *dataRef* is still valid. If it returns
     False, you should re-find the data ref from its original string. Calling an
     accessor function on a bad data ref will return a default value, typically
     0 or 0-length data.
 
+       >>> dataRef = xp.findDataRef('sim/aircraft/electrical/num_batteries')
+       >>> xp.isDataRefGood(dataRef)
+       True
+
     `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMIsDataRefGood>`__: :index:`XPLMIsDataRefGood`
 
-.. py:function:: getDataRefTypes(dataRef)
+.. py:function:: getDataRefTypes(dataRef) -> int
 
     :param XPLMDataRef dataRef: dataRefID
     :return: integer bit field of types supported by this dataRef
@@ -200,18 +219,13 @@ Functions
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMGetDataRefTypes>`__: :index:`XPLMGetDataRefTypes`
 
-.. py:function:: getDataRefInfo(dataRef)
+.. py:function:: getDataRefInfo(dataRef) -> XPLMDataRefInfo_t
    
   :param XPLMDataRef dataRef: dataRefID
-  :return: XPLMDataRefInfo for particular dataRef
+  :return: :class:`XPLMDataRefInfo_t` for particular dataRef
 
-  This XP12 function returns a DataRefInfo object for the provided ``dataRef``.
-  The object has the following members:
-
-   | **name**: the string name of the dataRef
-   | **type**: the OR'd bitfield matching the return from :func:`getDataRefTypes`
-   | **writable**: boolen
-   | **owner**: pluginID of the owning plugin (or 0 if owned by X-Plane).
+  This XP12 function returns an :class:`XPLMDataRefInfo_t` object for the provided
+  ``dataRef``: see that type for the full set of attributes.
 
   >>> dataRef = xp.getDataRefsByIndex()[0]
   >>> info = xp.getDataRefInfo(dataRef)
@@ -226,7 +240,7 @@ Functions
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMGetDataRefInfo>`__: :index:`XPLMGetDataRefInfo`
    
-.. py:function:: countDataRefs
+.. py:function:: countDataRefs() -> int
 
   :return: Integer, total number of datarefs registered in X-Plane.
 
@@ -238,7 +252,7 @@ Functions
   
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDataAccess/#XPLMCountDataRefs>`__: :index:`XPLMCountDataRefs`
 
-.. py:function:: getDataRefsByIndex(offset=0, count=1)
+.. py:function:: getDataRefsByIndex(offset=0, count=1) -> Tuple[XPLMDataRef, ...]
 
   :param int offset:
   :param int count:
@@ -1263,6 +1277,37 @@ data is changed, use shared data references.
 
 Types
 -----
+
+.. py:class:: XPLMDataRef
+
+    Opaque capsule representing a dataref, as returned by :func:`findDataRef`
+    and :func:`registerDataAccessor`. An accessor you registered is released
+    with :func:`unregisterDataAccessor`.
+
+.. py:class:: XPLMDataRefInfo_t
+
+    Result of :func:`getDataRefInfo`, with attributes:
+
+    .. py:attribute:: name
+        :type: str
+
+        Name of dataRef
+
+    .. py:attribute:: type
+        :type: int
+
+        DataRef type: a bitfield, matching the return from :func:`getDataRefTypes`
+
+    .. py:attribute:: writable
+        :type: bool
+
+        DataRef is writable
+
+    .. py:attribute:: owner
+        :type: int
+
+        PluginID of owner: 0 is X-Plane built-in
+
 
 .. data:: XPLMDataTypeID
    :annotation: bitfield used to identify the type of data

@@ -48,6 +48,8 @@ Next:
    usage/logfiles
    usage/add_plugin
    development/index
+   Python SDK Modules <development/modules/index>
+   development/samples
    development/udp/index
    changelog
 

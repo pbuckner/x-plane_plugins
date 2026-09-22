@@ -14,7 +14,7 @@
 /* ---- Fonts ---- */
 
 My_DOCSTR(_createFont__doc__, "createFont",
-          "charset",
+          "charset=CharSetUnicode",
           "charset:int",
           "XPLMFontHandle",
           "Create a new font handle for the given character set (one of\n"
@@ -24,12 +24,12 @@ static PyObject *XPLMCreateFontFun(PyObject *self, PyObject *args, PyObject *kwa
 {
   static char *keywords[] = {CHAR("charset"), nullptr};
   (void) self;
-  int charset;
+  int charset = xplm_CharSetUnicode;
   if(!XPLMCreateFont_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMCreateFont is available only in XPLM440 and up.");
     return nullptr;
   }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "i", keywords, &charset)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", keywords, &charset)){
     return nullptr;
   }
   XPLMFontHandle font = XPLMCreateFont_ptr((XPLMCharSet_t)charset);
@@ -66,9 +66,11 @@ static PyObject *XPLMDestroyFontFun(PyObject *self, PyObject *args, PyObject *kw
 My_DOCSTR(_fontAddFace__doc__, "fontAddFace",
           "font, ttf_path",
           "font:XPLMFontHandle, ttf_path:str",
-          "None",
+          "int",
           "Add a TrueType (.ttf/.otf) face to a font handle. Multiple faces may be\n"
-          "added to provide fallback glyphs, searched in the order added.");
+          "added to provide fallback glyphs, searched in the order added.\n"
+          "\n"
+          "Returns 1 on success 0 otherwise.");
 static PyObject *XPLMFontAddFaceFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   static char *keywords[] = {CHAR("font"), CHAR("ttf_path"), nullptr};
@@ -83,8 +85,8 @@ static PyObject *XPLMFontAddFaceFun(PyObject *self, PyObject *args, PyObject *kw
     return nullptr;
   }
   XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
-  XPLMFontAddFace_ptr(font, ttfPath);
-  Py_RETURN_NONE;
+  int ret = XPLMFontAddFace_ptr(font, ttfPath);
+  return PyLong_FromLong(ret);
 }
 
 My_DOCSTR(_fontGetMetrics__doc__, "fontGetMetrics",
@@ -188,11 +190,11 @@ My_DOCSTR(_fontFitReverse__doc__, "fontFitReverse",
           "font, fontSize, string, width",
           "font:XPLMFontHandle, fontSize:float, string:str, width:float",
           "int",
-          "Return the START INDEX of the longest suffix that fits within width,\n"
-          "measured right to left; the fitting tail is string[index:]. (The SDK\n"
-          "header calls this a character count, but it returns an index: 0 when\n"
-          "the whole string fits, len(string) when nothing fits. Trailing-char\n"
-          "count = len(string) - index.)");
+          "Return the number of leading characters to skip so the remaining\n"
+          "tail (string[index:]) fits within width, measured right to left:\n"
+          "0 when the whole string fits, len(string) when nothing fits. This\n"
+          "is equivalently the start index of the fitting suffix, and matches\n"
+          "the SDK header ('characters that must be skipped to fit').");
 static PyObject *XPLMFontFitReverseFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   static char *keywords[] = {CHAR("font"), CHAR("fontSize"), CHAR("string"), CHAR("width"), nullptr};
@@ -304,7 +306,7 @@ My_DOCSTR(_fontDrawStringRotated__doc__, "fontDrawStringRotated",
           "font, color, fontSize, x, y, string, angle, justification",
           "font:XPLMFontHandle, color:int, fontSize:float, x:float, y:float, string:str, angle:float, justification:int",
           "None",
-          "Draw a string rotated by angle degrees (positive counterclockwise)\n"
+          "Draw a string rotated by angle degrees (positive clockwise)\n"
           "around the (x, y) anchor point.");
 static PyObject *XPLMFontDrawStringRotatedFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {

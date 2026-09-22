@@ -1,3 +1,5 @@
+.. index:: Weather, Tasks; Weather
+           
 XPLMWeather
 ===========
 .. py:module:: XPLMWeather
@@ -71,7 +73,7 @@ by newer "real-weather".
 Get Weather
 -----------
 
-.. py:function:: getMETARForAirport(airport_id)
+.. py:function:: getMETARForAirport(airport_id) -> str
 
   :param str airport_id: ICAO code
   :return: Last known METAR for airport (`str`)
@@ -99,12 +101,12 @@ Get Weather
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLMGetMETARForAirport>`__ :index:`XPLMGetMETARForAirport`
 
-.. py:function:: getWeatherAtLocation(latitude, longitude, altitude_m)
+.. py:function:: getWeatherAtLocation(latitude, longitude, altitude_m) -> XPLMWeatherInfo_t
 
   :param float latitude:
   :param float longitude: A "nearby" location   
   :param float altitude_m: Altitude (MSL) in meters
-  :return: :data:`XPLMWeatherInfo_t` or None on error.                         
+  :return: :class:`XPLMWeatherInfo_t` or None on error.                         
 
   Get the current weather conditions at a given location. Note that this is not effective outside
   the surrounding region.
@@ -136,9 +138,9 @@ Get Weather
     temperature to a bogus number and if post-query it is still bad, we assume
     data was not successfully obtained, and return ``None``.)
 
-  On success, :func:`getWeatherAtLocation` returns a :data:`XPLMWeatherInfo_t` object. See below for details or
+  On success, :func:`getWeatherAtLocation` returns a :class:`XPLMWeatherInfo_t` object. See below for details or
   interactively using ``help(xp.XPLMWeatherInfo_t)``. The WeatherInfo object includes
-  a list of wind layers :data:`XPLMWeatherInfoWinds_t`, a list of cloud layers :data:`XPLMWeatherInfoClouds_t`,
+  a list of wind layers :class:`XPLMWeatherInfoWinds_t`, a list of cloud layers :class:`XPLMWeatherInfoClouds_t`,
   and a list of floats for temperature and dewpoint layers.
 
   For example:
@@ -223,30 +225,30 @@ you've previously provided weather.
    One caution here is, if you start with a WeatherInfo_t value obtained from :func:`getWeatherAtLocation`, you **must** set radius_nm and
    max_altitude_msl_ft as they will both be zero on return from xp.getWeatherAt* calls.
    
-.. py:function:: setWeatherAtLocation(latitude, longitude, altitude_m, info)
+.. py:function:: setWeatherAtLocation(latitude, longitude, altitude_m, info) -> None
                  
   :param float latitude:
   :param float longitude: floating point latitude and longitude
   :param float ground_altitude_msl: pseudo-altitude of reporting station to calibrate QNH in feet
-  :param XPLMWeatherInfo_t info: :data:`XPLMWeatherInfo_t` data structure containing requested change. Note not all element members are applicable for "set".
+  :param XPLMWeatherInfo_t info: :class:`XPLMWeatherInfo_t` data structure containing requested change. Note not all element members are applicable for "set".
                                   
   Set the current weather conditions at a given location, as if the reporting station were at ``ground_altitude_msl``. Weather
   effected is from 0 MSL up to the value of ``max_altitude_msl_ft``, with a horizontal radius of ``radius_nm``
-  in the passed :data:`XPLMWeatherInfo_t` data structure.
+  in the passed :class:`XPLMWeatherInfo_t` data structure.
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLMSetWeatherAtLocation>`__ :index:`XPLMSetWeatherAtLocation`
 
-.. py:function:: setWeatherAtAirport(airport_id, info)
+.. py:function:: setWeatherAtAirport(airport_id, info) -> None
 
   :param str airport_id: airport ID
-  :param XPLMWeatherInfo_t info: :data:`XPLMWeatherInfo_t` data structure containing requested change. Note not all element members are applicable for "set".
+  :param XPLMWeatherInfo_t info: :class:`XPLMWeatherInfo_t` data structure containing requested change. Note not all element members are applicable for "set".
 
   See :func:`setWeatherAtLocation`. This function is nearly identical to setWeatherAtLocation(), where the latitude, longitude, and altitude are
   derived from the airport ID. You still need to set ``radius_nm`` and ``max_altitude_msl_ft``.
   
   `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLMSetWeatherAtAirport>`__ :index:`XPLMSetWeatherAtAirport`
 
-.. py:function:: eraseWeatherAtLocation(latitude, longitude)
+.. py:function:: eraseWeatherAtLocation(latitude, longitude) -> None
 
   :param float latitude:
   :param float longitude: floating point latitude and longitude
@@ -257,7 +259,7 @@ you've previously provided weather.
    
   `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLMEraseWeatherAtLocation>`__ :index:`XPLMEraseWeatherAtLocation`
 
-.. py:function:: eraseWeatherAtAirport(airport_id)
+.. py:function:: eraseWeatherAtAirport(airport_id) -> None
 
   :param str airport_id: airport ID
 
@@ -276,7 +278,7 @@ Additionally, a set of updates must occur within a single callback thread: You c
 set must include begin/end context.
 
 
-.. py:function:: beginWeatherUpdate()
+.. py:function:: beginWeatherUpdate() -> None
 
   Inform the simulator that you are starting a batch update of weather information.
   **You must call** :func:`endWeatherUpdate` **prior to exiting your callback**. Failure to
@@ -309,7 +311,7 @@ set must include begin/end context.
      
   `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLMBeginWeatherUpdate>`__ :index:`XPLMBeginWeatherUpdate`
 
-.. py:function:: endWeatherUpdate(isIncremental=1, updateImmediately=0)
+.. py:function:: endWeatherUpdate(isIncremental=1, updateImmediately=0) -> None
 
   :param int isIncremental: Make incremental update or over-write plugin weather
   :param int updateImmediately: Make changes immediately, or transition to the requested change over the next few minutes.
@@ -329,7 +331,7 @@ set must include begin/end context.
    
   `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLMEndWeatherUpdate>`__ :index:`XPLMEndWeatherUpdate`
 
-.. py:function:: weatherUpdateContext(isIncremental=1, updateImmediately=0)
+.. py:function:: weatherUpdateContext(isIncremental=1, updateImmediately=0) -> None
 
   :param int isIncremental: Make incremental update or over-write plugin weather
   :param int updateImmediately: Make changes immediately, or transition to the requested change over the next few minutes.
@@ -352,363 +354,270 @@ Types
 
 Weather data is stored within an instance of
 
-* :data:`XPLMWeatherInfo_t`, which includes lists of
+.. rst-class:: compact
+               
+* :class:`XPLMWeatherInfo_t`, which includes lists of
 
-  * :data:`XPLMWeatherInfoWinds_t` and
+  * :class:`XPLMWeatherInfoWinds_t` and
 
-  * :data:`XPLMWeatherInfoClouds_t`.
+  * :class:`XPLMWeatherInfoClouds_t`.
 
 Each of these types are described below.
 
-.. data:: XPLMWeatherInfo_t
+.. py:class:: XPLMWeatherInfo_t
 
-Weather information is stored in the XPLMWeatherInfo_t type. It is represented in XPPython3 as a class.
-As with most python, you can get more information about it using ``help(xp.XPLMWeatherInfo_t)``.
+    Weather information is stored in the XPLMWeatherInfo_t type. It is represented in XPPython3 as a class.
+    As with most python, you can get more information about it using ``help(xp.XPLMWeatherInfo_t)``.
 
-This type was introduced in X-Plane 12.0, and then expanded with more fields in X-Plane 12.3.0. You
-can use this class with any X-Plane 12.0+, though some of the fields will not have meaning unless used with 12.3.0+
+    This type was introduced in X-Plane 12.0, and then expanded with more fields in X-Plane 12.3.0. You
+    can use this class with any X-Plane 12.0+, though some of the fields will not have meaning unless used with 12.3.0+
 
-Various fields within this class interact with each other.
+    Various fields within this class interact with each other.
 
-You can create a "blank" instance of this class, including associated lists by normal python means.::
+    You can create a "blank" instance of this class, including associated lists by normal python means.::
 
-  >>> info = xp.XPLMWeatherInfo_t()
+      >>> info = xp.XPLMWeatherInfo_t()
 
-The instance will be initialized to useful defaults including:
+    The instance will be initialized to useful defaults including:
 
-    | .age = 0
-    | .detail_found = -1
-    | .radius_nm = :data:`DefaultWxrRadiusNm`
-    | .max_altitude_msl_ft = :data:`DefaultWxrLimitMslFt`
-    | .temp_layers = [None, None, ..., None]
-    | .dewp_layers = [None, None, ..., None]
-    | .cloud_layers = [xp.XPLMWeatherInfoClouds_t(0, 0, 0, 0),  ... ]
-    | .wind_layers = [xp.XPLMWeatherInfoWinds_t(0, -1, 0, 0, 0, 0),  ... ]
+        | .age = 0
+        | .detail_found = -1
+        | .radius_nm = :data:`DefaultWxrRadiusNm`
+        | .max_altitude_msl_ft = :data:`DefaultWxrLimitMslFt`
+        | .snow_coverage_pct = 0.0
+        | .temp_layers = [None, None, ..., None]
+        | .dewp_layers = [None, None, ..., None]
+        | .cloud_layers = [xp.XPLMWeatherInfoClouds_t(0, 0, 0, 0),  ... ]
+        | .wind_layers = [xp.XPLMWeatherInfoWinds_t(0, -1, 0, 0, 0, 0),  ... ]
 
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-| Field                            | Type | Description                                    |  Get/Set   |  X_Plane_Version  |
-+==================================+======+================================================+============+===================+
-|           detail_found           | int  |Return value from                               |Get         |12.0-Read          |
-|                                  |      |xp.getWeatherAtLocation().                      |            |                   |
-|                                  |      |1='detailed                                     |            |                   |
-|                                  |      |weather found'. Not meaningful                  |            |                   |
-|                                  |      |otherwise.                                      |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|         temperature_alt          |float |Temperature at altitude (Celsius).              |Get/Set     | | 12.0-Read       |
-|                                  |      |                                                |            | | 12.3-R/W        |
-|                                  |      |To **set** temperature, use this parameter to   |            |                   |
-|                                  |      |set the ground-level temperature, and           |            |                   |
-|                                  |      |temperatures above ground level will be         |            |                   |
-|                                  |      |calculated using standard lapse rate. Set this  |            |                   |
-|                                  |      |to None (or -274) to ignore setting.            |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |You can *also* use 'temp_layers' which          |            |                   |
-|                                  |      |explicitly set temperatures at one or more      |            |                   |
-|                                  |      |altitude layers. Or, set this to None (or -274) |            |                   |
-|                                  |      |and only use 'temp_layers'.                     |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |The calculated temperatures during a read are   |            |                   |
-|                                  |      |also affected by the troposphere altitude and   |            |                   |
-|                                  |      |temperature, and the vertical limit of the      |            |                   |
-|                                  |      |effect. Do not expect to get the exact values   |            |                   |
-|                                  |      |you set.                                        |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|dewpoint_alt                      |float |Dewpoint at altitude (Celsius).                 |Get/Set     | | 12.0-Read       |
-|                                  |      |                                                |            | | 12.3-R/W        |
-|                                  |      |Similar to ``temperature_alt`` (and temp_layers)|            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|pressure_alt                      |float |Pressure at altitude (Pascals).                 |Get/Set     | | 12.0-Read       |
-|                                  |      |                                                |            | | 12.3-R/W        |
-|                                  |      |On **set**, should be QNH as reported by station|            |                   |
-|                                  |      |at the named station or provided                |            |                   |
-|                                  |      |ground_altitude_msl, *or* set this to 0 and set |            |                   |
-|                                  |      |sealevel pressure in 'pressure_sl' instead.     |            |                   |
-|                                  |      |                                                |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|precip_rate_alt                   |float |Precipitation rate at altitude (0.0 - 1.0)      |Get         |12.0-Read          |
-|                                  |      |                                                |            |                   |
-|                                  |      |Ignored on **set**.                             |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|wind_dir_alt                      |float |Wind direction at altitude. (0.0 - 360.0)       |Get         |12.0-Read          |
-|                                  |      |                                                |            |                   |
-|                                  |      |Ignored on **set**. (Use wind_layers.)          |            |                   |
-|                                  |      |                                                |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|wind_spd_alt                      |float |Wind speed at altitude (meters/second).         |Get         |12.0-Read          |
-|                                  |      |                                                |            |                   |
-|                                  |      |Ignored on **set**. (Use wind_layers.)          |            |                   |
-|                                  |      |                                                |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|turbulence_alt                    |float |Clear-air turbulence ratio at altitude. (Values |Get         |12.0-Read          |
-|                                  |      |to be determined)                               |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |Ignored on **set**. (Use wind_layers)           |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|wave_height                       |float |Wave height (meters)                            |Get/Set     | | 12.0-Read       |
-|                                  |      |                                                |            | | 12.3-R/W        |
-|                                  |      |                                                |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|wave_length                       |float |Wave length (meters).                           |Get         |12.0-Read          |
-|                                  |      |                                                |            |                   |
-|                                  |      |Ignored on **set**. (Derived from other data)   |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|wave_dir                          |int   |Wave direction (waves coming from...)  degrees. |Get/Set     | | 12.0-Read       |
-|                                  |      |                                                |            | | 12.3-R/W        |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|wave_speed                        |float |Wave speed (meters/second).                     |Get         | | 12.0-Read       |
-|                                  |      |                                                |            | | 12.3-R/W        |
-|                                  |      |Ignored on **set**. (Derived from other data.)  |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|visibility                        |float |Base visibility at *0 altitude* (distance in    |Get/Set     | | 12.0-Read       |
-|                                  |      |meters)                                         |            | | 12.3-R/W        |
-|                                  |      |                                                |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|precip_rate                       |float |Base precipitation ratio at *0 altitude*. (0.0 -|Get/Set     | | 12.0-Read       |
-|                                  |      |1.0)                                            |            | | 12.3-R/W        |
-|                                  |      |                                                |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|thermal_climb                     |float |Climb rate due to thermals (meters/second)      |Get/Set     | | 12.0-Read       |
-|                                  |      |                                                |            | | 12.3-R/W        |
-|                                  |      |                                                |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|pressure_sl                       |float |Pressure at sealevel (Pascals).                 |Get/Set     | | 12.0-Read       |
-|                                  |      |                                                |            | | 12.3-R/W        |
-|                                  |      |On **set**, this is ignored if 'pressure_alt' is|            |                   |
-|                                  |      |non-zero.                                       |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|wind_layers                       |list  |List of up to :data:`NumWindLayers`             |Get/Set     | | 12.0-Read       |
-|                                  |      |:data:`XPLMWeatherInfoWinds_t` objects.         |            | | 12.3-R/W        |
-|                                  |      |                                                |            |                   |
-|                                  |      |Not all wind layers are always defined.         |            |                   |
-|                                  |      |                                                |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|cloud_layers                      |list  |List of up to :data:`NumCloudLayers`            |Get/Set     | | 12.0-Read       |
-|                                  |      |:data:`XPLMWeatherInfoClouds_t` objects.        |            | | 12.3-R/W        |
-|                                  |      |                                                |            |                   |
-|                                  |      |Not all cloud layers are always defined.        |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|temp_layers                       |list  |List of floats for temperature in Celsius at    |Get/Set     |12.3               |
-|                                  |      |predefined atmosphere levels.                   |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |For layer altitudes, see dataref                |            |                   |
-|                                  |      |'sim/weather/region/atmosphere_alt_levels_m'.   |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |On **set**, if temp_layers[x] is None (or <=    |            |                   |
-|                                  |      |-274.), 'temperature_alt' or other existing data|            |                   |
-|                                  |      |is used and lapse rate is applied.              |            |                   |
-|                                  |      |                                                |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|dewp_layers                       |list  |List of floats for dewpoints in Celsius at      |Get/Set     |12.3               |
-|                                  |      |predefined atmosphere levels.                   |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |For layer altitudes, see dataref                |            |                   |
-|                                  |      |'sim/weather/region/atmosphere_alt_levels_m'.   |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |On **set**, if dewp_layers[x] is None (or <=    |            |                   |
-|                                  |      |-274.), 'dewpoint_alt' or other existing data is|            |                   |
-|                                  |      |used and lapse rate is applied.                 |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |                                                |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|troposphere_alt                   |float |Altitude of troposphere in meters.              |Get/Set     |12.3               |
-|                                  |      |                                                |            |                   |
-|                                  |      |On **set**, if this is 0 or lower,              |            |                   |
-|                                  |      |'troposphere_alt' and 'troposphere_temp' will be|            |                   |
-|                                  |      |derived from existing data.                     |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |Altitude and temperature may be clamped to      |            |                   |
-|                                  |      |internally-defined ranges.                      |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|troposphere_temp                  |float |Temperature in Celsius of troposphere.          |Get/Set     |12.3               |
-|                                  |      |                                                |            |                   |
-|                                  |      |On **set** this is ignored when                 |            |                   |
-|                                  |      |``troposphere_alt`` is 0 or less.               |            |                   |
-|                                  |      |                                                |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|age                               |float |Age in seconds of this weather report. Age      |Set         |12.3               |
-|                                  |      |affects how strongly the report affects the     |            |                   |
-|                                  |      |weather. Commonly, you will set this to zero so |            |                   |
-|                                  |      |you change will be effective.                   |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |This is meaningless on read and *should* be     |            |                   |
-|                                  |      |zero.                                           |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|radius_nm                         |float |Horizontal radius of effect of this weather     |Set         |12.3               |
-|                                  |      |report, nautical miles. You need to set this to |            |                   |
-|                                  |      |something.                                      |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |This is meaningless on read.                    |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|max_altitude_msl_ft               |float |Vertical limit of effect of this weather        |Set         |12.3               |
-|                                  |      |report, feet MSL. You need to set this to       |            |                   |
-|                                  |      |something.                                      |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |This is meaningless on read.                    |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    | Field                            | Type | Description                                    |  Get/Set   |  X_Plane_Version  |
+    +==================================+======+================================================+============+===================+
+    |           detail_found           | int  |Return value from                               |Get         |12.0-Read          |
+    |                                  |      |xp.getWeatherAtLocation().                      |            |                   |
+    |                                  |      |1='detailed                                     |            |                   |
+    |                                  |      |weather found'. Not meaningful                  |            |                   |
+    |                                  |      |otherwise.                                      |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |         temperature_alt          |float |Temperature at altitude (Celsius).              |Get/Set     | | 12.0-Read       |
+    |                                  |      |                                                |            | | 12.3-R/W        |
+    |                                  |      |To **set** temperature, use this parameter to   |            |                   |
+    |                                  |      |set the ground-level temperature, and           |            |                   |
+    |                                  |      |temperatures above ground level will be         |            |                   |
+    |                                  |      |calculated using standard lapse rate. Set this  |            |                   |
+    |                                  |      |to None (or -274) to ignore setting.            |            |                   |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |You can *also* use 'temp_layers' which          |            |                   |
+    |                                  |      |explicitly set temperatures at one or more      |            |                   |
+    |                                  |      |altitude layers. Or, set this to None (or -274) |            |                   |
+    |                                  |      |and only use 'temp_layers'.                     |            |                   |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |The calculated temperatures during a read are   |            |                   |
+    |                                  |      |also affected by the troposphere altitude and   |            |                   |
+    |                                  |      |temperature, and the vertical limit of the      |            |                   |
+    |                                  |      |effect. Do not expect to get the exact values   |            |                   |
+    |                                  |      |you set.                                        |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |dewpoint_alt                      |float |Dewpoint at altitude (Celsius).                 |Get/Set     | | 12.0-Read       |
+    |                                  |      |                                                |            | | 12.3-R/W        |
+    |                                  |      |Similar to ``temperature_alt`` (and temp_layers)|            |                   |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |                                                |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |pressure_alt                      |float |Pressure at altitude (Pascals).                 |Get/Set     | | 12.0-Read       |
+    |                                  |      |                                                |            | | 12.3-R/W        |
+    |                                  |      |On **set**, should be QNH as reported by station|            |                   |
+    |                                  |      |at the named station or provided                |            |                   |
+    |                                  |      |ground_altitude_msl, *or* set this to 0 and set |            |                   |
+    |                                  |      |sealevel pressure in 'pressure_sl' instead.     |            |                   |
+    |                                  |      |                                                |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |precip_rate_alt                   |float |Precipitation rate at altitude (0.0 - 1.0)      |Get         |12.0-Read          |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |Ignored on **set**.                             |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |wind_dir_alt                      |float |Wind direction at altitude. (0.0 - 360.0)       |Get         |12.0-Read          |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |Ignored on **set**. (Use wind_layers.)          |            |                   |
+    |                                  |      |                                                |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |wind_spd_alt                      |float |Wind speed at altitude (meters/second).         |Get         |12.0-Read          |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |Ignored on **set**. (Use wind_layers.)          |            |                   |
+    |                                  |      |                                                |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |turbulence_alt                    |float |Clear-air turbulence ratio at altitude. (Values |Get         |12.0-Read          |
+    |                                  |      |to be determined)                               |            |                   |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |Ignored on **set**. (Use wind_layers)           |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |wave_height                       |float |Wave height (meters)                            |Get/Set     | | 12.0-Read       |
+    |                                  |      |                                                |            | | 12.3-R/W        |
+    |                                  |      |                                                |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |wave_length                       |float |Wave length (meters).                           |Get         |12.0-Read          |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |Ignored on **set**. (Derived from other data)   |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |wave_dir                          |int   |Wave direction (waves coming from...)  degrees. |Get/Set     | | 12.0-Read       |
+    |                                  |      |                                                |            | | 12.3-R/W        |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |wave_speed                        |float |Wave speed (meters/second).                     |Get         | | 12.0-Read       |
+    |                                  |      |                                                |            | | 12.3-R/W        |
+    |                                  |      |Ignored on **set**. (Derived from other data.)  |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |visibility                        |float |Base visibility at *0 altitude* (distance in    |Get/Set     | | 12.0-Read       |
+    |                                  |      |meters)                                         |            | | 12.3-R/W        |
+    |                                  |      |                                                |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |precip_rate                       |float |Base precipitation ratio at *0 altitude*. (0.0 -|Get/Set     | | 12.0-Read       |
+    |                                  |      |1.0)                                            |            | | 12.3-R/W        |
+    |                                  |      |                                                |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |thermal_climb                     |float |Climb rate due to thermals (meters/second)      |Get/Set     | | 12.0-Read       |
+    |                                  |      |                                                |            | | 12.3-R/W        |
+    |                                  |      |                                                |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |pressure_sl                       |float |Pressure at sealevel (Pascals).                 |Get/Set     | | 12.0-Read       |
+    |                                  |      |                                                |            | | 12.3-R/W        |
+    |                                  |      |On **set**, this is ignored if 'pressure_alt' is|            |                   |
+    |                                  |      |non-zero.                                       |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |wind_layers                       |list  |List of up to :data:`NumWindLayers`             |Get/Set     | | 12.0-Read       |
+    |                                  |      |:class:`XPLMWeatherInfoWinds_t` objects.        |            | | 12.3-R/W        |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |Not all wind layers are always defined.         |            |                   |
+    |                                  |      |                                                |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |cloud_layers                      |list  |List of up to :data:`NumCloudLayers`            |Get/Set     | | 12.0-Read       |
+    |                                  |      |:class:`XPLMWeatherInfoClouds_t` objects.       |            | | 12.3-R/W        |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |Not all cloud layers are always defined.        |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |temp_layers                       |list  |List of floats for temperature in Celsius at    |Get/Set     |12.3               |
+    |                                  |      |predefined atmosphere levels.                   |            |                   |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |For layer altitudes, see dataref                |            |                   |
+    |                                  |      |'sim/weather/region/atmosphere_alt_levels_m'.   |            |                   |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |On **set**, if temp_layers[x] is None (or <=    |            |                   |
+    |                                  |      |-274.), 'temperature_alt' or other existing data|            |                   |
+    |                                  |      |is used and lapse rate is applied.              |            |                   |
+    |                                  |      |                                                |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |dewp_layers                       |list  |List of floats for dewpoints in Celsius at      |Get/Set     |12.3               |
+    |                                  |      |predefined atmosphere levels.                   |            |                   |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |For layer altitudes, see dataref                |            |                   |
+    |                                  |      |'sim/weather/region/atmosphere_alt_levels_m'.   |            |                   |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |On **set**, if dewp_layers[x] is None (or <=    |            |                   |
+    |                                  |      |-274.), 'dewpoint_alt' or other existing data is|            |                   |
+    |                                  |      |used and lapse rate is applied.                 |            |                   |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |                                                |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |troposphere_alt                   |float |Altitude of troposphere in meters.              |Get/Set     |12.3               |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |On **set**, if this is 0 or lower,              |            |                   |
+    |                                  |      |'troposphere_alt' and 'troposphere_temp' will be|            |                   |
+    |                                  |      |derived from existing data.                     |            |                   |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |Altitude and temperature may be clamped to      |            |                   |
+    |                                  |      |internally-defined ranges.                      |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |troposphere_temp                  |float |Temperature in Celsius of troposphere.          |Get/Set     |12.3               |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |On **set** this is ignored when                 |            |                   |
+    |                                  |      |``troposphere_alt`` is 0 or less.               |            |                   |
+    |                                  |      |                                                |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |age                               |float |Age in seconds of this weather report. Age      |Set         |12.3               |
+    |                                  |      |affects how strongly the report affects the     |            |                   |
+    |                                  |      |weather. Commonly, you will set this to zero so |            |                   |
+    |                                  |      |you change will be effective.                   |            |                   |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |This is meaningless on read and *should* be     |            |                   |
+    |                                  |      |zero.                                           |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |radius_nm                         |float |Horizontal radius of effect of this weather     |Set         |12.3               |
+    |                                  |      |report, nautical miles. You need to set this to |            |                   |
+    |                                  |      |something.                                      |            |                   |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |This is meaningless on read.                    |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |max_altitude_msl_ft               |float |Vertical limit of effect of this weather        |Set         |12.3               |
+    |                                  |      |report, feet MSL. You need to set this to       |            |                   |
+    |                                  |      |something.                                      |            |                   |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |This is meaningless on read.                    |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |snow_coverage_pct                 |float |Snow coverage, as a fraction 0.0 -- 1.0.        |Get/Set     |12.4.4             |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
 
-When setting both temperature and dewpoint from a single value (temperature_alt / dewpoint_alt), the rest of the
-atmosphere will be graded to fit between the given values and the troposphere values.
+    When setting both temperature and dewpoint from a single value (temperature_alt / dewpoint_alt), the rest of the
+    atmosphere will be graded to fit between the given values and the troposphere values.
 
-.. data:: XPLMWeatherInfoClouds_t
+.. py:class:: XPLMWeatherInfoClouds_t
 
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-| Field                            | Type | Description                                    |  Get/Set   |  X_Plane_Version  |
-+==================================+======+================================================+============+===================+
-|            cloud_type            |float |Cloud Type, effectively an enumeration:         |Get/Set     | | 12.0-Read       |
-|                                  |      |                                                |            | | 12.3-R/W        |
-|                                  |      |  | 0 = Cirrus                                  |            |                   |
-|                                  |      |  | 1 = Stratus                                 |            |                   |
-|                                  |      |  | 2 = Cumulus                                 |            |                   |
-|                                  |      |  | 3 = Cumulo-nimbus                           |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|             coverage             |float |Coverage radio (0.0 - 1.0)                      |Get/Set     | | 12.0-Read       |
-|                                  |      |                                                |            | | 12.3-R/W        |
-|                                  |      |                                                |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|alt_top                           |float |Altitude of cloud top. (MSL in meters)          |Get/Set     | | 12.0-Read       |
-|                                  |      |                                                |            | | 12.3-R/W        |
-|                                  |      |When alt_top == alt_base, the cloud layer is    |            |                   |
-|                                  |      |undefined.                                      |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|alt_base                          |float |Altitude of cloud base. (MSL in meters)         |Get/Set     | | 12.0-Read       |
-|                                  |      |                                                |            | | 12.3 R/W        |
-|                                  |      |                                                |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    | Field                            | Type | Description                                    |  Get/Set   |  X_Plane_Version  |
+    +==================================+======+================================================+============+===================+
+    |            cloud_type            |float |Cloud Type, effectively an enumeration:         |Get/Set     | | 12.0-Read       |
+    |                                  |      |                                                |            | | 12.3-R/W        |
+    |                                  |      |  | 0 = Cirrus                                  |            |                   |
+    |                                  |      |  | 1 = Stratus                                 |            |                   |
+    |                                  |      |  | 2 = Cumulus                                 |            |                   |
+    |                                  |      |  | 3 = Cumulo-nimbus                           |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |             coverage             |float |Coverage radio (0.0 - 1.0)                      |Get/Set     | | 12.0-Read       |
+    |                                  |      |                                                |            | | 12.3-R/W        |
+    |                                  |      |                                                |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |alt_top                           |float |Altitude of cloud top. (MSL in meters)          |Get/Set     | | 12.0-Read       |
+    |                                  |      |                                                |            | | 12.3-R/W        |
+    |                                  |      |When alt_top == alt_base, the cloud layer is    |            |                   |
+    |                                  |      |undefined.                                      |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |alt_base                          |float |Altitude of cloud base. (MSL in meters)         |Get/Set     | | 12.0-Read       |
+    |                                  |      |                                                |            | | 12.3 R/W        |
+    |                                  |      |                                                |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
 
-.. data:: XPLMWeatherInfoWinds_t
+.. py:class:: XPLMWeatherInfoWinds_t
 
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-| Field                            | Type | Description                                    |  Get/Set   |  X_Plane_Version  |
-+==================================+======+================================================+============+===================+
-|             alt_msl              |float |Altitude of wind layer. (MSL in meters)         |Get/Set     | | 12.0-Read       |
-|                                  |      |                                                |            | | 12.3-R/W        |
-|                                  |      |(Depth of wind layer is not specified.)         |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|              speed               |float |Wind speed (meters/second)                      |Get/Set     | | 12.0-Read       |
-|                                  |      |                                                |            | | 12.3-R/W        |
-|                                  |      |On **set** if this is                           |            |                   |
-|                                  |      |:data:`WindUndefinedLayer` (-1), this layer is  |            |                   |
-|                                  |      |undefined and (effectively) skipped.            |            |                   |
-|                                  |      |                                                |            |                   |
-|                                  |      |You can have defined layers above undefined     |            |                   |
-|                                  |      |layers.                                         |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|direction                         |float |Wind direction (degrees True) (0.0-360.0)       |Get/Set     | | 12.0-Read       |
-|                                  |      |                                                |            | | 12.3-R/W        |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|gust_speed                        |float |Gust speed, (meters/second). This is the total  |Get/Set     | | 12.0-Read       |
-|                                  |      |speed, not the amount of increase over the wind |            | | 12.3-R/W        |
-|                                  |      |speed.                                          |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|shear                             |float |Shear arc, degrees. The wind will shear 50% of  |Get/Set     | | 12.0-Read       |
-|                                  |      |this arc in either direction from base          |            | | 12.3-R/W        |
-|                                  |      |direction.                                      |            |                   |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
-|turbulence                        |float |Clear Air Turbulence ratio                      |Get/Set     | | 12.0-Read       |
-|                                  |      |                                                |            | | 12.3-R/W        |
-+----------------------------------+------+------------------------------------------------+------------+-------------------+
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    | Field                            | Type | Description                                    |  Get/Set   |  X_Plane_Version  |
+    +==================================+======+================================================+============+===================+
+    |             alt_msl              |float |Altitude of wind layer. (MSL in meters)         |Get/Set     | | 12.0-Read       |
+    |                                  |      |                                                |            | | 12.3-R/W        |
+    |                                  |      |(Depth of wind layer is not specified.)         |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |              speed               |float |Wind speed (meters/second)                      |Get/Set     | | 12.0-Read       |
+    |                                  |      |                                                |            | | 12.3-R/W        |
+    |                                  |      |On **set** if this is                           |            |                   |
+    |                                  |      |:data:`WindUndefinedLayer` (-1), this layer is  |            |                   |
+    |                                  |      |undefined and (effectively) skipped.            |            |                   |
+    |                                  |      |                                                |            |                   |
+    |                                  |      |You can have defined layers above undefined     |            |                   |
+    |                                  |      |layers.                                         |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |direction                         |float |Wind direction (degrees True) (0.0-360.0)       |Get/Set     | | 12.0-Read       |
+    |                                  |      |                                                |            | | 12.3-R/W        |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |gust_speed                        |float |Gust speed, (meters/second). This is the total  |Get/Set     | | 12.0-Read       |
+    |                                  |      |speed, not the amount of increase over the wind |            | | 12.3-R/W        |
+    |                                  |      |speed.                                          |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |shear                             |float |Shear arc, degrees. The wind will shear 50% of  |Get/Set     | | 12.0-Read       |
+    |                                  |      |this arc in either direction from base          |            | | 12.3-R/W        |
+    |                                  |      |direction.                                      |            |                   |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
+    |turbulence                        |float |Clear Air Turbulence ratio                      |Get/Set     | | 12.0-Read       |
+    |                                  |      |                                                |            | | 12.3-R/W        |
+    +----------------------------------+------+------------------------------------------------+------------+-------------------+
 
 Constants
 ---------
@@ -716,21 +625,21 @@ Constants
 .. py:data:: NumWindLayers
    :value: 13
 
-   Length of the list of ``.wind_layers`` in :data:`XPLMWeatherInfo_t`.
+   Length of the list of ``.wind_layers`` in :class:`XPLMWeatherInfo_t`.
 
    `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLM_NUM_WIND_LAYERS>`__ :index:`XPLM_NUM_WIND_LAYERS`
 
 .. py:data:: NumCloudLayers
    :value: 3
 
-   Length of the list of ``.cloud_layers`` in :data:`XPLMWeatherInfo_t`.
+   Length of the list of ``.cloud_layers`` in :class:`XPLMWeatherInfo_t`.
 
    `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLM_NUM_CLOUD_LAYERS>`__ :index:`XPLM_NUM_CLOUD_LAYERS`
 
 .. py:data:: NumTemperatureLayers
    :value: 13
 
-   Length of the list of ``.temp_layers`` and ``.dewp_layers`` in :data:`XPLMWeatherInfo_t`.
+   Length of the list of ``.temp_layers`` and ``.dewp_layers`` in :class:`XPLMWeatherInfo_t`.
 
    `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLM_NUM_TEMPERATURE_LAYERS>`__ :index:`XPLM_NUM_TEMPERATURE_LAYERS`
 
@@ -740,6 +649,14 @@ Constants
    Value to use as the wind speed in ``.wind_layer`` item to cause this layer to be ignored (i.e., "no data" vs. "zero wind").
    
    `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLM_NUM_UNDEFINED_LAYER>`__ :index:`XPLM_NUM_UNDEFINED_LAYER`
+
+.. py:data:: TempUndefinedLayer
+   :value: -274
+
+   Value to use for a temperature-related layer to mark it undefined when setting. Below
+   absolute zero, so it cannot collide with a real temperature.
+
+   `Official SDK <https://developer.x-plane.com/sdk/XPLMWeather/#XPLM_TEMP_UNDEFINED_LAYER>`__ :index:`XPLM_TEMP_UNDEFINED_LAYER`
 
 .. py:data:: DefaultWxrRadiusNm
    :value: 30
@@ -781,3 +698,8 @@ Constants
   When 'set' is done within begin/end
 
   WeatherInfo vs XPLMWeatherInfo_t ??
+
+.. toctree::
+   :hidden:
+
+   weather_more

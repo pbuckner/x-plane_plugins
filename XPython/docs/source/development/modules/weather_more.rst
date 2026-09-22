@@ -1,6 +1,10 @@
 More about Weather
 ==================
 
+.. warning:: This page is under review. The X-Plane weather module is
+      not well documented by Laminar and this page is an attempt to rationalize
+      some of the observed behavior. I welcome comments and corrections.
+
 Viewing Plugin Weather
 ----------------------
 

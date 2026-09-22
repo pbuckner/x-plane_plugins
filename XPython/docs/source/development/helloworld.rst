@@ -115,6 +115,6 @@ vastly simplify it to::
                                         draw=self.drawWindowCallback)
       return self.name, self.sig, self.desc
 
-From here on, we'll never use the c-style tuple passing.
+From here on, we'll never use the C-style tuple passing.
 
 See :doc:`hellowidget` for next example.

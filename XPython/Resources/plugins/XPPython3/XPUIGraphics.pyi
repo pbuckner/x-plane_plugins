@@ -1,30 +1,8 @@
-from dataclasses import dataclass
-from typing import Any, Callable, Generic, Optional, Type, TypeVar, NewType, Literal, Sequence
-from XPPython3.xp_typing import *    
-PushButton: int
-WindowCloseBox: int
-LittleDownArrow: int
-LittleUpArrow: int
-Ship: int
-ILSGlideScope: int
-MarkerLeft: int
-_Airport: int
-NDB: int
-VOR: int
-RadioTower: int
-AircraftCarrier: int
-Fire: int
-MarkerRight: int
-CustomObject: int
-CoolingTower: int
-SmokeStack: int
-Building: int
-PowerLine: int
-VORWithCompassRose: int
-OilPlatform: int
-OilPlatformSmall: int
+# pylint: disable=unused-argument
+# (a stub's parameters are never used -- there is no body)
+from XPPython3.xp_typing import TrackMetrics, XPElementStyle, XPTrackStyle, XPWindowStyle
 Window_Help: XPWindowStyle
-Window_MainWindow: XPWindowStyle
+Window_MainWindow: XPWindowStyle = XPWindowStyle(1)
 Window_SubWindow: XPWindowStyle
 Window_Screen: XPWindowStyle
 Window_ListView: XPWindowStyle
@@ -67,38 +45,44 @@ Element_WindowDragBarSmooth: XPElementStyle
 Track_ScrollBar: XPTrackStyle
 Track_Slider: XPTrackStyle
 Track_Progress: XPTrackStyle
-def drawWindow(left:int, bottom:int, right:int, top:int, style:XPWindowStyle=Window_MainWindow) -> None:
+
+
+def drawWindow(left: int, bottom: int, right: int, top: int, style: XPWindowStyle = Window_MainWindow) -> None:
     """
     Draw window at location
     """
     ...
 
-def getWindowDefaultDimensions(style:XPWindowStyle=Window_MainWindow) -> tuple[int, int]:
+
+def getWindowDefaultDimensions(style: XPWindowStyle = Window_MainWindow) -> tuple[int, int]:
     """
     Default dimension for indicated style
-    
+
     Returns (width, height)
     """
     ...
 
-def drawElement(left:int, bottom:int, right:int, top:int, style:XPElementStyle, lit:int=0) -> None:
+
+def drawElement(left: int, bottom: int, right: int, top: int, style: XPElementStyle, lit: int = 0) -> None:
     """
     Draw element, possibly lit, at location.
     """
     ...
 
-def getElementDefaultDimensions(style:XPElementStyle) -> tuple[int, int, int]:
+
+def getElementDefaultDimensions(style: XPElementStyle) -> tuple[int, int, int]:
     """
     Default dimension for indicated element
-    
+
     Returns (width, height, canBeLit)
     """
     ...
 
-def drawTrack(left:int, bottom:int, right:int, top:int, minValue:int, maxValue:int, value:int, style:XPTrackStyle, lit:int=0) -> None:
+
+def drawTrack(left: int, bottom: int, right: int, top: int, minValue: int, maxValue: int, value: int, style: XPTrackStyle, lit: int = 0) -> None:
     """
     Draw track at location, with min/max values and current value.
-    
+
     Track may be 'reversed' if minValue > maxValue.
     Styles are:
       Track_Scrollbar=0
@@ -107,18 +91,20 @@ def drawTrack(left:int, bottom:int, right:int, top:int, minValue:int, maxValue:i
     """
     ...
 
-def getTrackDefaultDimensions(style:XPTrackStyle) -> tuple[int, int]:
+
+def getTrackDefaultDimensions(style: XPTrackStyle) -> tuple[int, int]:
     """
     Default dimension for indicated track style
-    
+
     Returns (width, canBeLit)
     """
     ...
 
-def getTrackMetrics(left:int, bottom:int, right:int, top:int, minValue:int, maxValue:int, value:int, style:XPTrackStyle) -> TrackMetrics:
+
+def getTrackMetrics(left: int, bottom: int, right: int, top: int, minValue: int, maxValue: int, value: int, style: XPTrackStyle) -> TrackMetrics:
     """
     Return object with metrics about track
-    
+
     Object attributes are:
       .isVertical
       .downBtnSize
@@ -128,4 +114,3 @@ def getTrackMetrics(left:int, bottom:int, right:int, top:int, minValue:int, maxV
       .upBtnSize
     """
     ...
-

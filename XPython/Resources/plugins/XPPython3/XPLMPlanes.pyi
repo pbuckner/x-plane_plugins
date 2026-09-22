@@ -1,3 +1,5 @@
+# pylint: disable=unused-argument
+# (a stub's parameters are never used -- there is no body)
 from dataclasses import dataclass
 from typing import Any, Callable, Generic, Optional, Type, TypeVar, NewType, Literal, Sequence
 from XPPython3.xp_typing import *    
@@ -9,14 +11,9 @@ Init_MissingLivery: int
 Init_MissingAirport: int
 Init_MissingRamp: int
 Init_MissingRunway: int
-def initFlight(data: str) -> int:
-    """
-    Initialize new flight
-    ...
 
-def updateFlight(data: str) -> int:
-    """
-    Updates current flight
+class FlightInitError(Exception):
+    """Raised by initFlight()/updateFlight() when X-Plane rejects the flight."""
     ...
 
 def setUsersAircraft(path:str) -> None:
@@ -25,6 +22,18 @@ def setUsersAircraft(path:str) -> None:
     
     path is either relative X-Plane root, or fully qualified,
     including the .acf extension.
+    """
+    ...
+
+def initFlight(data:str) -> int:
+    """
+    Initialize user flight with json data (either string or dict)
+    """
+    ...
+
+def updateFlight(data:str) -> int:
+    """
+    Update user flight with json data (either string or dict).
     """
     ...
 
@@ -95,4 +104,3 @@ def disableAIForPlane(index:int) -> None:
     Plane will continue to draw, but will not move itself.
     """
     ...
-

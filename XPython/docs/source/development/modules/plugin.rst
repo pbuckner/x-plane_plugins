@@ -17,7 +17,7 @@ plugin.
 
 .. note:: These interfaces are used to communicate with non-XPPython3 plugins.
 
-.. py:function:: getMyID()
+.. py:function:: getMyID() -> int
 
  :return: integer, plugin ID
 
@@ -36,7 +36,7 @@ plugin.
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMGetMyID>`__ :index:`XPLMGetMyID`
 
 
-.. py:function::  countPlugins()
+.. py:function::  countPlugins() -> int
 
  :return: integer number of XPLM plugins, with all python plugins counting as 1
 
@@ -49,7 +49,7 @@ plugin.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMCountPlugins>`__ :index:`XPLMCountPlugins`
  
-.. py:function:: getNthPlugin(index)
+.. py:function:: getNthPlugin(index) -> int
 
  :param int index: 0-based index of plugin to be retrieved
  :return: integer plugin ID of nth plugin
@@ -63,7 +63,7 @@ plugin.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMGetNthPlugin>`__ :index:`XPLMGetNthPlugin`
 
-.. py:function::  findPluginByPath(path)
+.. py:function::  findPluginByPath(path) -> int
 
  :param str path: full absolute path to \*.xpl file
  :return: integer plugin ID or -1
@@ -83,7 +83,7 @@ plugin.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMFindPluginByPath>`__ :index:`XPLMFindPluginByPath`
  
-.. py:function:: findPluginBySignature(signature)
+.. py:function:: findPluginBySignature(signature) -> int
 
  :param str signature: signature of plugin to find
  :return: integer plugin ID or -1                       
@@ -106,23 +106,14 @@ plugin.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMFindPluginBySignature>`__ :index:`XPLMFindPluginBySignature`
  
-.. py:function:: getPluginInfo(pluginID)
+.. py:function:: getPluginInfo(pluginID) -> PluginInfo
  
- :param int pluginID: Plugin ID in question
- :return: :data:`PluginInfo` instance                      
+ :param int pluginID: Plugin ID in question -> PluginInfo
+ :return: :class:`PluginInfo` instance
 
- Return information about a plugin given its *pluginID* (Not its index!).
+ Return information about a plugin given its *pluginID* (Not its index!):
+ see :class:`PluginInfo` for the full set of attributes.
 
-     .. py:data:: PluginInfo
-    
-     Object returned by :py:func:`getPluginInfo` containing
-     information about a plugin. It has the following string attributes:
-    
-     | .name
-     | .filePath
-     | .signature
-     | .description
-    
  Conveniently, we also provide a ``str()`` representation for the information
  
  >>> info = xp.getPluginInfo(3)
@@ -139,7 +130,7 @@ plugin.
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMGetPluginInfo>`__ :index:`XPLMGetPluginInfo`
 
 
-.. py:function::  isPluginEnabled(pluginID)
+.. py:function::  isPluginEnabled(pluginID) -> int
 
  :param int pluginID: Plugin ID in question
  :return: 1= enabled, 0 otherwise
@@ -154,7 +145,7 @@ plugin.
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMIsPluginEnabled>`__ :index:`XPLMIsPluginEnabled`
 
 
-.. py:function:: enablePlugin(pluginID)
+.. py:function:: enablePlugin(pluginID) -> int
 
  :param int pluginID: Plugin ID in question
  :return: 1= enabled, 0 otherwise
@@ -172,10 +163,9 @@ plugin.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMEnablePlugin>`__ :index:`XPLMEnablePlugin`
  
-.. py:function:: disablePlugin(pluginID)
+.. py:function:: disablePlugin(pluginID) -> None
 
  :param int pluginID: Plugin ID in question
- :return: None                      
 
  This routine disables (non-python) *pluginID*. No error is returned.
 
@@ -184,7 +174,7 @@ plugin.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMDisablePlugin>`__ :index:`XPLMDisablePlugin`
  
-.. py:function:: reloadPlugins()
+.. py:function:: reloadPlugins() -> None
 
  This routine reloads **all** plugins.  Once this routine is called and you
  return from the callback you were within (e.g. a menu select callback) you
@@ -210,7 +200,17 @@ plugin.
  >>> xp.reloadPlugins()
     
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMReloadPlugins>`__ :index:`XPLMReloadPlugins`
- 
+
+.. py:function:: reloadThisPlugin(forReplacement=0) -> None
+
+    :param int forReplacement: If true (1), signals that you intend to replace this plugin's files on disk
+
+    .. note:: Not supported. For XPPython3, prefer reload  your Python scripts using the
+       Reload Scripts menu item (see :doc:`/usage/runtime_menus`) and command.
+
+    `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMReloadThisPlugin>`__ :index:`XPLMReloadThisPlugin`
+
+.. index:: Inter-plugin Messaging, Tasks; Inter-plugin Messaging
 .. _Inter-plugin Messaging:
 
 Inter-plugin Messaging
@@ -365,7 +365,13 @@ On startup, you'll see::
   is enabled/disabled through the use of the ``XPLM_WANTS_DATAREF_NOTIFICATIONS`` feature,
   but as XPPython3 requires this to be enabled, you'll always get these messages.
 
-.. py:function:: sendMessageToPlugin(pluginID, message, param=None)
+.. py:data:: MSG_WEATHER_DELIVERED
+  :value: 115             
+
+  A new weather moment has bee delivered for display. The parameter is 0 for a normal
+  async update, 1 for a sync update.
+
+.. py:function:: sendMessageToPlugin(pluginID, message, param=None) -> None
 
  :param int pluginID: plugin to which the message should be sent
  :param int message: message number to send
@@ -417,7 +423,7 @@ Each feature is defined by a permanent string name.  The feature string
 names will vary with the particular  installation of X-Plane, so plugins
 should not expect a feature to be guaranteed present.
 
-.. py:function:: hasFeature(feature)
+.. py:function:: hasFeature(feature) -> int
 
  :param str feature: feature name
  :return: 1 if feature is supported, 0 otherwise                    
@@ -434,7 +440,7 @@ should not expect a feature to be guaranteed present.
  
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMHasFeature>`__ :index:`XPLMHasFeature`
  
-.. py:function:: isFeatureEnabled(feature)
+.. py:function:: isFeatureEnabled(feature) -> int
 
  :param str feature: feature name to be queried
  :return: 1= currently enabled, 0 otherwise                    
@@ -449,7 +455,7 @@ should not expect a feature to be guaranteed present.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMIsFeatureEnabled>`__ :index:`XPLMIsFeatureEnabled`
 
-.. py:function::  enableFeature(feature, enable=1)
+.. py:function::  enableFeature(feature, enable=1) -> None
 
  :param str feature: feature name to be enabled/disabled
  :return: None, but see note
@@ -471,7 +477,7 @@ should not expect a feature to be guaranteed present.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMEnableFeature>`__ :index:`XPLMEnableFeature`
 
-.. py:function:: enumerateFeatures(enumerator, refCon)
+.. py:function:: enumerateFeatures(enumerator, refCon) -> None
 
   :param Callable enumerator: callback function (see below)
   :param Any refCon: Reference constant for callback
@@ -505,4 +511,30 @@ Constants
 
    `Official SDK <https://developer.x-plane.com/sdk/XPLMPlugin/#XPLMPluginID>`__ :index:`XPLMPluginID`
 
-    
+Types
+-----
+
+.. py:class:: PluginInfo
+
+    Object returned by :py:func:`getPluginInfo`, containing information about a
+    plugin.
+
+    .. py:attribute:: name
+        :type: str
+
+        Plugin name.
+
+    .. py:attribute:: filePath
+        :type: str
+
+        Full path to the plugin's .xpl file.
+
+    .. py:attribute:: signature
+        :type: str
+
+        Plugin signature.
+
+    .. py:attribute:: description
+        :type: str
+
+        Description of the plugin.

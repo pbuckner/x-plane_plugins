@@ -17,11 +17,21 @@ def drawLine(x1: float, y1: float, x2: float, y2: float, thickness: float = 1.,
 
 
 def drawPolyLine(points: List | Tuple, thickness: float = 1., color: RGBColor = Colors['white']) -> None:
+    # Declare our state unconditionally: it is not an anti-aliasing detail. Without
+    # it we inherit whatever X-Plane left current, and in (e.g.) a widget draw
+    # callback that includes an enabled texture unit -- GL_MODULATE then multiplies
+    # 'color' by a texel of the UI atlas and the line draws black. numberTexUnits=0
+    # (the default) turns texturing off. alphaBlending=1 enables GL_BLEND, so the
+    # blend func has to be set here too, not only on the smooth path.
+    xp.setGraphicsState(alphaTesting=1, alphaBlending=1)
+    GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
     if Smooth_Lines:
-        xp.setGraphicsState(alphaTesting=1, alphaBlending=1)
         GL.glEnable(GL.GL_LINE_SMOOTH)  # for anti-aliasing
-        GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
         GL.glHint(GL.GL_LINE_SMOOTH_HINT, GL.GL_DONT_CARE)
+    else:
+        # GL_LINE_SMOOTH is not reset below, so a previous smooth call would
+        # otherwise leave it enabled for everything that follows.
+        GL.glDisable(GL.GL_LINE_SMOOTH)
 
     if Pattern != 0xffff:
         GL.glEnable(GL.GL_LINE_STIPPLE)

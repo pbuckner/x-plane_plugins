@@ -76,6 +76,14 @@ PyObject *getExecutable()
 
 
 
+My_DOCSTR(_disablePythonPlugin__doc__, "disablePythonPlugin",
+          "signature",
+          "signature:str",
+          "None",
+          "Disables python plugin matching signature.\n"
+          "\n"
+          "Returns None whether or not a matching plugin was found; failure to\n"
+          "find a match is noted in the log.");
 static PyObject *disablePythonPlugin(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void) self;
@@ -335,6 +343,13 @@ static PyObject *XPGetCapsuleDictFun(PyObject *self, PyObject *args)
   return buildCapsuleDict();
 }
 
+My_DOCSTR(_getPluginDict__doc__, "getPluginDict",
+          "",
+          "",
+          "dict",
+          "Returns copy of internal PluginInfo dictionary.\n"
+          "\n"
+          "Internal debugging aid: contents and structure may change between releases.");
 static PyObject* buildPluginInfoDict(void)
 {
   PyObject *pluginDict = PyDict_New();
@@ -512,8 +527,8 @@ static PyMethodDef XPPythonMethods[] = {
   {"XPReloadPlugin", (PyCFunction)XPReloadPlugin, METH_VARARGS | METH_KEYWORDS, ""},
   {"getSelfModuleName", (PyCFunction)XPGetSelfModuleNameFun, METH_VARARGS | METH_KEYWORDS, _getSelfName__doc__},
   {"XPGetSelfModuleName", (PyCFunction)XPGetSelfModuleNameFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"getPluginDict", (PyCFunction)buildPluginInfoDict, METH_VARARGS, "Copy of internal PluginInfo"},
-  {"disablePythonPlugin", (PyCFunction)disablePythonPlugin, METH_VARARGS | METH_KEYWORDS, "Disable python plugin by signature"},
+  {"getPluginDict", (PyCFunction)buildPluginInfoDict, METH_VARARGS, _getPluginDict__doc__},
+  {"disablePythonPlugin", (PyCFunction)disablePythonPlugin, METH_VARARGS | METH_KEYWORDS, _disablePythonPlugin__doc__},
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {nullptr, nullptr, 0, nullptr}
 };

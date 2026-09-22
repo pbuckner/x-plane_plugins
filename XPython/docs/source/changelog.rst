@@ -6,6 +6,57 @@ Known Bugs
 
   None. *Prove me wrong!*
 
+4.8.0
+-----
+
+:Fixes:
+   * **utils/dataref.py**: ``xp.find_dataref('foo/bar[0]')`` used to return a list of elements, rather
+     than the single 'zeroth' element. ``xp.find_dataref('foo/bar[1]')``, correctly returned only
+     the single element. ``[0]`` has been fixed.
+
+   * **xpgl not setting graphics state**: :doc:`/development/modules/xpgl` (OpenGL helper functions) set graphics state on
+     some drawing routine (e.g., textures and fonts) but not on others (e.g., polygons and lines).
+     The (could) result in color polygons only being displayed in black. This has been corrected.
+     Note that with new Panel Graphics routines, you should be migrating over to this new (faster) feature
+     rather than using raw OpenGL.
+
+   |
+   
+:New Features:
+   * **Support for SDK440**, valid for X-Plane 12.4.4+. As always, XPPython3 dynamically loads
+     these new features where available, so you can continue to run this version on older
+     X-Plane 12+ releases (the new features simply won't be available there).
+
+     * :doc:`/development/modules/panelgraphics`: A large new module for X-Plane's **native**
+       (non-OpenGL) 2-D panel drawing --- lines, polygons, text, textures, synthetic-vision (SVT)
+       and moving-map displays, and touch zones --- for use in windows and avionics devices. Also
+       direct support for `Python Imaging Library (PIL) <https://pillow.readthedocs.io/en/stable/>`_ drawing in windows. 
+
+     * **Browser (CEF web view)** windows, viewable in display windows and avionics devices.
+       :func:`xp.windowSetURL`, :func:`xp.avionicsSetURL`. See :doc:`/development/modules/display_window_browser`
+
+     * **Additional Avionics device functions**, to add devices to custom objects :func:`xp.setObjectAvionics`
+       and support VR :func:`xp.setAvionicsMappedToVR`.
+
+     * **Object Instance utilities**, wrap multiple objects together :func:`xp.createInstanceEx` with
+       settable coordinate space (:func:`xp.instanceSetCoordinateSpace`) for world / aircraft / camera-relative
+       placement.
+
+     * **Added** :data:`xp.CapsLockFlag` modifier-key flag.
+
+     * **Snow coverage data** :attr:`snow_coverage_pct` added to ``XPLMWeatherInfo_t``, and :data:`xp.TempUndefinedLayer` for marking a
+       temperature layer undefined when setting.
+
+   * **Demos, Demos, Demos!** Lots more example code in :doc:`/development/samples`, still automatically downloaded
+     when you install or upgrade. Examples of most new Panel Graphics routines.
+     
+   * :func:`xp.getObjects` convenience function to simplify loading of library objects.
+   |
+   
+:Improvements:
+   * Online documentation has been re-ordered a bit for clarity and I've added pages to help you
+     understand :doc:`/development/plugin_tasks`, :doc:`/development/graphics`
+
 4.7.1 (12-Jul-2026)
 -------------------
 

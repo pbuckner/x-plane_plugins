@@ -14,6 +14,7 @@ XPython/Resources/plugins/xppython*-*.zip
 XPython/Resources/plugins/xppython*b.zip
 XPython/Resources/plugins/xp*b.zip
 XPython/Resources/plugins/XPPython3/version.txt
+XPython/Resources/plugins/XPPython3/setup.cfg
 XPython/macros.emacs
 XPython/docs/recent_annotations.py
 XPython/Resources/plugins/xp.zip
@@ -43,7 +44,12 @@ XPython/SDK430.421/
 XPython/SDK430.v1/
 XPython/SDK430/
 XPython/SDK440/
+XPython/SDK440_d1/
+XPython/SDK440_d2/
+XPython/SDK440_d3/
+XPython/SDK440_d4/
 .playwright-mcp/
+.playwright-cli/
 .claude/
 CLAUDE.md
 

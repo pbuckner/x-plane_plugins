@@ -586,7 +586,7 @@ My_DOCSTR(_setFMSFlightPlanEntryLatLonWithId__doc__, "setFMSFlightPlanEntryLatLo
           "flightPlan, index, lat, lon, altitude=0, ID=None",
           "flightPlan:XPLMNavFlightPlan, index:int, lat:float, lon:float, altitude:int=0, ID:str=None",
           "None",
-          "Sets entry in the FMS to a lat/lon entry, with the given coordinates\n"
+          "Sets entry in the FMS to a lat/lon entry, with the given coordinates, altitude in feet\n"
           "and display ID for the waypoint.");
 static PyObject *XPLMSetFMSFlightPlanEntryLatLonWithIdFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {

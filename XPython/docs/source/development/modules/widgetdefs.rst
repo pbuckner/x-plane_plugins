@@ -24,6 +24,8 @@ Constants
 XPWidgetPropertyID
 ******************
 
+.. py:type:: XPWidgetPropertyID
+
 Properties are values attached to instances of your widgets. A property is
 identified by a 32-bit ID, and may be accessed using :py:func:`setWidgetProperty` and :py:func:`getWidgetProperty`.
 
@@ -34,68 +36,70 @@ widget; it then stays there for the life of the widget.
 Some property IDs are predefined by the widget package; you can make up
 your own property IDs as well.
 
-+----------------------------------------+------------------------------------------------------------------------------------------+
-| .. py:data:: Property_Refcon           |A window's refcon is an opaque value used by client code to find other data based on it.  |
-|  :value: 0                             |                                                                                          |
-|                                        |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_Refcon>`__      |
-|                                        |:index:`xpProperty_Refcon`                                                                |
-+----------------------------------------+------------------------------------------------------------------------------------------+
-| .. py:data:: Property_Dragging         |These properties are used by the utilities to implement dragging.                         |
-|  :value: 1                             |                                                                                          |
-| .. py:data:: Property_DragXOff         |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_Dragging>`__    |
-|  :value: 2                             |:index:`xpProperty_Dragging`                                                              |
-| .. py:data:: Property_DragYOff         |                                                                                          |
-|  :value: 3                             |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_DragXOff>`__    |
-|                                        |:index:`xpProperty_DragXOff`                                                              |
-|                                        |                                                                                          |
-|                                        |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_DragYOff>`__    |
-|                                        |:index:`xpProperty_DragYOff`                                                              |
-|                                        |                                                                                          |
-+----------------------------------------+------------------------------------------------------------------------------------------+
-| .. py:data:: Property_Hilited          |Is the widget hilited?  (For widgets that support this kind of thing.)                    |
-|  :value: 4                             |                                                                                          |
-|                                        |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_Hilited>`__     |
-|                                        |:index:`xpProperty_Hilited`                                                               |
-|                                        |                                                                                          |
-+----------------------------------------+------------------------------------------------------------------------------------------+
-| .. py:data:: Property_Object           |Is there a C++ object attached to this widget?                                            |
-|  :value: 5                             |                                                                                          |
-|                                        |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_Object>`__      |
-|                                        |:index:`xpProperty_Object`                                                                |
-+----------------------------------------+------------------------------------------------------------------------------------------+
-| .. py:data:: Property_Clip             |If this property is 1, the widget package will use OpenGL to restrict drawing to the      |
-|  :value: 6                             |Widget's exposed rectangle.                                                               |
-|                                        |                                                                                          |
-|                                        |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_Clip>`__        |
-|                                        |:index:`xpProperty_Clip`                                                                  |
-+----------------------------------------+------------------------------------------------------------------------------------------+
-|.. py:data:: Property_Enabled           |Is this widget enabled (for those that have a disabled state too)?                        |
-|  :value: 7                             |                                                                                          |
-|                                        |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_Enabled>`__     |
-|                                        |:index:`xpProperty_Enabled`                                                               |
-+----------------------------------------+------------------------------------------------------------------------------------------+
-|                                        |                                                                                          |
-+----------------------------------------+------------------------------------------------------------------------------------------+
-|.. py:data:: Property_UserStart         |Minimum value for a user-defined property                                                 |
-|  :value: 10000                         |                                                                                          |
-|                                        |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_UserStart>`__   |
-|                                        |:index:`xpProperty_UserStart`                                                             |
-+----------------------------------------+------------------------------------------------------------------------------------------+
-
-.. note:: Property IDs 1 - 999 are reserved for the widget's library.
-.. note:: Property IDs 1000 - 9999 are allocated to the standard widget classes
-  provided with the library Properties 1000 - 1099 are for widget class 0,
-  1100 - 1199 for widget class 1, etc.
-
-  If you create your own property, make sure it's value is greater than :py:data:`Property_UserStart`.
-  Such properties will use Python object for storage rather than a simple int or float.
-
+  +----------------------------------------+------------------------------------------------------------------------------------------+
+  | .. py:data:: Property_Refcon           |A window's refcon is an opaque value used by client code to find other data based on it.  |
+  |  :value: 0                             |                                                                                          |
+  |                                        |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_Refcon>`__      |
+  |                                        |:index:`xpProperty_Refcon`                                                                |
+  +----------------------------------------+------------------------------------------------------------------------------------------+
+  | .. py:data:: Property_Dragging         |These properties are used by the utilities to implement dragging.                         |
+  |  :value: 1                             |                                                                                          |
+  | .. py:data:: Property_DragXOff         |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_Dragging>`__    |
+  |  :value: 2                             |:index:`xpProperty_Dragging`                                                              |
+  | .. py:data:: Property_DragYOff         |                                                                                          |
+  |  :value: 3                             |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_DragXOff>`__    |
+  |                                        |:index:`xpProperty_DragXOff`                                                              |
+  |                                        |                                                                                          |
+  |                                        |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_DragYOff>`__    |
+  |                                        |:index:`xpProperty_DragYOff`                                                              |
+  |                                        |                                                                                          |
+  +----------------------------------------+------------------------------------------------------------------------------------------+
+  | .. py:data:: Property_Hilited          |Is the widget hilited?  (For widgets that support this kind of thing.)                    |
+  |  :value: 4                             |                                                                                          |
+  |                                        |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_Hilited>`__     |
+  |                                        |:index:`xpProperty_Hilited`                                                               |
+  |                                        |                                                                                          |
+  +----------------------------------------+------------------------------------------------------------------------------------------+
+  | .. py:data:: Property_Object           |Is there a C++ object attached to this widget?                                            |
+  |  :value: 5                             |                                                                                          |
+  |                                        |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_Object>`__      |
+  |                                        |:index:`xpProperty_Object`                                                                |
+  +----------------------------------------+------------------------------------------------------------------------------------------+
+  | .. py:data:: Property_Clip             |If this property is 1, the widget package will use OpenGL to restrict drawing to the      |
+  |  :value: 6                             |Widget's exposed rectangle.                                                               |
+  |                                        |                                                                                          |
+  |                                        |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_Clip>`__        |
+  |                                        |:index:`xpProperty_Clip`                                                                  |
+  +----------------------------------------+------------------------------------------------------------------------------------------+
+  |.. py:data:: Property_Enabled           |Is this widget enabled (for those that have a disabled state too)?                        |
+  |  :value: 7                             |                                                                                          |
+  |                                        |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_Enabled>`__     |
+  |                                        |:index:`xpProperty_Enabled`                                                               |
+  +----------------------------------------+------------------------------------------------------------------------------------------+
+  |                                        |                                                                                          |
+  +----------------------------------------+------------------------------------------------------------------------------------------+
+  |.. py:data:: Property_UserStart         |Minimum value for a user-defined property                                                 |
+  |  :value: 10000                         |                                                                                          |
+  |                                        |`Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpProperty_UserStart>`__   |
+  |                                        |:index:`xpProperty_UserStart`                                                             |
+  +----------------------------------------+------------------------------------------------------------------------------------------+
+  
+  .. note:: Property IDs 1 - 999 are reserved for the widget's library.
+  .. note:: Property IDs 1000 - 9999 are allocated to the standard widget classes
+    provided with the library Properties 1000 - 1099 are for widget class 0,
+    1100 - 1199 for widget class 1, etc.
+  
+    If you create your own property, make sure it's value is greater than :py:data:`Property_UserStart`.
+    Such properties will use Python object for storage rather than a simple int or float.
+  
 
 
 .. _XPDispatchMode:
 
 XPDispatchMode
 **************
+
+.. py:type:: XPDispatchMode
 
 The dispatching modes describe how the widgets library sends out messages.
 
@@ -145,6 +149,8 @@ The dispatching modes describe how the widgets library sends out messages.
 XPWidgetClass
 *************
 
+.. py:type:: XPWidgetClass
+
 Widget classes define predefined widget types. A widget class basically
 specifies from a library the widget function to be used for the widget.
 Most widgets can be made right from classes.
@@ -161,13 +167,19 @@ Most widgets can be made right from classes.
 XPWidgetMessage
 ***************
 
+.. py:type:: XPWidgetMessage
+
+    An int: one of the widget message values listed below.
+
 Widgets receive 32-bit messages indicating what action is to be taken or
 notifications of events. The list of messages may be expanded.
 
 You can intercept widget messages by adding a callback (:py:func:`addWidgetCallback`)
 to the widget, or one of its parents.
 
- .. note:: Additional widget messages are defined in :py:mod:`XPStandardWidgets`.
+.. note:: Additional widget messages are defined in :py:mod:`XPStandardWidgets`.
+
+Predefined messages include:
 
  .. py:data:: Msg_None
   :value: 0
@@ -221,7 +233,7 @@ to the widget, or one of its parents.
   The paint message is sent to your widget to draw itself. The paint message 
   is the bare-bones message; in response you must draw yourself, draw your   
   children, set up clipping and culling, check for visibility, etc. If you   
-  don't want to do all of this, ignore the paint message and a :py:data:`Msg_Paint`
+  don't want to do all of this, ignore the paint message and a :py:data:`Msg_Draw`
   (see below) will be sent to you.                                           
                                                                               
   .. table::
@@ -398,7 +410,7 @@ to the widget, or one of its parents.
      =========== =========================== ===============================
      Dispatching Param1                      Param2
      =========== =========================== ===============================
-     Up-chain    WidgetID of original        :ref:`XPwidgetGeometryChange_t`
+     Up-chain    WidgetID of original        :ref:`XPWidgetGeometryChange_t`
                  reshaped target.            tuple.
      =========== =========================== ===============================
 
@@ -604,8 +616,8 @@ to the widget, or one of its parents.
 
   `Official SDK <https://developer.x-plane.com/sdk/XPWidgetDefs/#xpMsg_UserStart>`__ :index:`xpMsg_UserStart`
 
-Tuples
-------
+Types
+-----
 
 The C-API packed some returns in a structure, requiring you
 to manipulate it to extract out the values. XPPython3 extracts the

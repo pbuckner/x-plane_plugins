@@ -1,9 +1,18 @@
-from typing import List, Tuple
+from typing import List, Tuple, Any
 import math
 import OpenGL.GL as GL
+try:
+    xp: Any  # this quiets mypy type checking
+    from XPPython3 import xp
+except ModuleNotFoundError:
+    from .mock_xp import xp
 from .colors import RGBColor, Colors
 from . import triangulate
-from .lines import Smooth_Lines, Pattern, drawPolyLine
+# Import the MODULE, not the values: Smooth_Lines/Pattern are rebound at runtime
+# (setLinePattern), and 'from .lines import Pattern' would freeze a copy taken at
+# import time, so setLinePattern() would never reach the outline path below.
+from . import lines
+from .lines import drawPolyLine
 
 
 def drawTriangle(x1: float, y1: float, x2: float, y2: float, x3: float, y3: float,
@@ -29,6 +38,11 @@ def drawPolygon(points: List | Tuple, isFilled: bool = True, thickness: float = 
     # https://github.com/yaugenst/triangulation/blob/master/sources/main.py
     #  and code in triangulation
 
+    # Declare our state, as images/fonts/lines do: without this we inherit whatever
+    # X-Plane left current, and in (e.g.) a widget draw callback that includes an
+    # enabled texture unit -- GL_MODULATE then multiplies 'color' by a texel of the
+    # UI atlas and the shape draws black. numberTexUnits=0 turns texturing off.
+    xp.setGraphicsState(alphaTesting=1, alphaBlending=1)
     width = GL.glGetFloat(GL.GL_LINE_WIDTH)
     GL.glColor(*color, 1)
     if isFilled:
@@ -49,12 +63,15 @@ def drawPolygon(points: List | Tuple, isFilled: bool = True, thickness: float = 
         GL.glLineWidth(width)
         return
 
-    if Smooth_Lines:
+    if lines.Smooth_Lines:
         GL.glEnable(GL.GL_LINE_SMOOTH)  # for anti-aliasing
         GL.glHint(GL.GL_LINE_SMOOTH_HINT, GL.GL_DONT_CARE)
-    if Pattern != 0xffff:
+    else:
+        # not reset below, so a previous smooth call would otherwise leave it on
+        GL.glDisable(GL.GL_LINE_SMOOTH)
+    if lines.Pattern != 0xffff:
         GL.glEnable(GL.GL_LINE_STIPPLE)
-        GL.glLineStipple(int(thickness), Pattern)
+        GL.glLineStipple(int(thickness), lines.Pattern)
     GL.glLineWidth(thickness)
     GL.glBegin(GL.GL_LINE_LOOP)
     for i in points:
@@ -63,7 +80,7 @@ def drawPolygon(points: List | Tuple, isFilled: bool = True, thickness: float = 
         GL.glVertex(points[0][0], points[0][1])
     GL.glEnd()
     GL.glLineWidth(width)
-    if Pattern != 0xffff:
+    if lines.Pattern != 0xffff:
         GL.glDisable(GL.GL_LINE_STIPPLE)
 
 

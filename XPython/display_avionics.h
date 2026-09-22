@@ -21,6 +21,8 @@ struct AvionicsCallbackInfo {
   PyObject *screen_cursor;
   PyObject *keyboard;
   PyObject *brightness;
+  PyObject *browserLoadFinished;
+  PyObject *browserLoadError;
   int create;
 };
 extern std::unordered_map<intptr_t, AvionicsCallbackInfo> avionicsCallbacksDict;
@@ -44,6 +46,12 @@ extern PyObject *XPLMCreateAvionicsExFun(PyObject*, PyObject*, PyObject*);
 extern PyObject *XPLMGetAvionicsBrightnessRheoFun(PyObject*, PyObject*, PyObject*);
 extern PyObject *XPLMSetAvionicsBrightnessRheoFun(PyObject*, PyObject*, PyObject*);
 extern PyObject *XPLMGetAvionicsBusVoltsRatioFun(PyObject*, PyObject*, PyObject*);
+extern PyObject *XPLMAvionicsSetURLFun(PyObject*, PyObject*, PyObject*);
+extern PyObject *XPLMAvionicsRefreshFun(PyObject*, PyObject*, PyObject*);
+extern PyObject *XPLMAvionicsInjectScriptFun(PyObject*, PyObject*, PyObject*);
+extern PyObject *XPLMAvionicsAddBrowserFunctionFun(PyObject*, PyObject*, PyObject*);
+extern PyObject *XPLMSetObjectAvionicsFun(PyObject*, PyObject*, PyObject*);
+extern PyObject *XPLMClearObjectAvionicsFun(PyObject*, PyObject*, PyObject*);
 
 extern void resetAvionicsCallbacks(void);
 extern PyMethodDef displayAvionicsMethods[];

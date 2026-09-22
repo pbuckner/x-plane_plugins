@@ -1,3 +1,5 @@
+.. index: Windows, Tasks; Windows
+
 Window API
 ==========
 
@@ -44,6 +46,8 @@ In addition to the basic functions :py:func:`createWindowEx` and :py:func:`destr
 
 * Obtain and manipulate window geometry:
 
+  .. rst-class:: compact
+
   * :py:func:`getWindowGeometry`, :py:func:`setWindowGeometry`
   * :py:func:`getWindowGeometryOS`, :py:func:`setWindowGeometryOS`
   * :py:func:`getWindowGeometryVR`, :py:func:`setWindowGeometryVR`
@@ -52,11 +56,15 @@ In addition to the basic functions :py:func:`createWindowEx` and :py:func:`destr
 
 * Change window visibility and keyboard focus:
 
+  .. rst-class:: compact
+
   * :py:func:`getWindowIsVisible`, :py:func:`setWindowIsVisible`
   * :py:func:`takeKeyboardFocus`, :py:func:`hasKeyboardFocus`
   * :py:func:`bringWindowToFront`, :py:func:`isWindowInFront`
 
 * Change window resize and positioning:
+
+  .. rst-class:: compact
 
   * :py:func:`setWindowGravity`
   * :py:func:`setWindowResizingLimits`
@@ -64,13 +72,23 @@ In addition to the basic functions :py:func:`createWindowEx` and :py:func:`destr
 
 * Change window attributes:
 
+  .. rst-class:: compact
+
   * :py:func:`setWindowTitle`
   * :py:func:`getWindowRefCon`, :py:func:`setWindowRefCon`
+
+* Drawing *within* the window:
+
+  .. rst-class:: compact
+
+  * :doc:`xpgl`: OpenGL, when content type is :data:`WindowContentTypeOpenGL`
+  * :doc:`panelgraphics`: Panel Graphics, when content type is :data:`WindowContentTypePanelGraphics`
+  * :doc:`display_window_browser`: HTML, javascript, when content type is :data:`WindowContentTypeBrowser`
 
 Window Drawing Functions
 ************************
 
-.. py:function:: createWindowEx(left=100, top=200, right=200, bottom=100, visible=0, draw=None, click=None, key=None, cursor=None, wheel=None, refCon=None, decoration=WindowDecorationRoundRectangle, layer=WindowLayerFloatingWindows, rightClick=None)
+.. py:function:: createWindowEx(left=100, top=200, right=200, bottom=100, visible=0, draw=None, click=None, key=None, cursor=None, wheel=None, refCon=None, decoration=WindowDecorationRoundRectangle, layer=WindowLayerFloatingWindows, rightClick=None, contentType=WindowContentTypeOpenGL, browserLoadFinished=None, browserLoadError=None) -> XPLMWindowID
 
  Create a new "modern" window.
 
@@ -84,26 +102,32 @@ Window Drawing Functions
  :type bottom: int
  :param visible: 1 for visible, 0 for hidden (default: 0)
  :type visible: int
- :param draw: Draw callback function (default: None)
- :type draw: Optional[Callable[[:data:`XPLMWindowID`, Any], None]]
- :param click: Left-click callback function (default: None)
- :type click: Optional[Callable[[:data:`XPLMWindowID`, int, int, int, Any], int]]
- :param key: Keyboard callback function (default: None)
- :type key: Optional[Callable[[:data:`XPLMWindowID`, int, int, int, Any, int], None]]
- :param cursor: Cursor callback function (default: None)
- :type cursor: Optional[Callable[[:data:`XPLMWindowID`, int, int, Any], int]]
- :param wheel: Mouse wheel callback function (default: None)
- :type wheel: Optional[Callable[[:data:`XPLMWindowID`, int, int, int, int, Any], int]]
+ :param draw: Draw callback |br| ``draw(windowID, refCon) -> None``
+ :type draw: Optional[Callable]
+ :param click: Left-click callback |br| ``click(windowID, x, y, mouseStatus, refCon) -> int``
+ :type click: Optional[Callable]
+ :param key: Keyboard callback |br| ``key(windowID, key, flags, vKey, refCon, losingFocus) -> None``
+ :type key: Optional[Callable]
+ :param cursor: Cursor callback |br| ``cursor(windowID, x, y, refCon) -> cursorStatus``
+ :type cursor: Optional[Callable]
+ :param wheel: Mouse wheel callback |br| ``wheel(windowID, x, y, wheel, clicks, refCon) -> int``
+ :type wheel: Optional[Callable]
  :param refCon: Reference constant passed to callbacks (default: None)
  :type refCon: Any
  :param decoration: Window decoration style (default: WindowDecorationRoundRectangle)
  :type decoration: int
  :param layer: Window layer (default: WindowLayerFloatingWindows)
  :type layer: int
- :param rightClick: Right-click callback function (default: None)
- :type rightClick: Optional[Callable[[:data:`XPLMWindowID`, int, int, int, Any], int]]
+ :param rightClick: Right-click callback |br| ``right(windowID, x, y, mouseStatus, refCon) -> int``
+ :type rightClick: Optional[Callable]
+ :param contentType: How the window contents are drawn: (default ``WindowContentTypeOpenGL``)
+ :type contentType: int
+ :param browserLoadFinished: Browser-window load callback |br| See :func:`browserLoadFinished`
+ :type browserLoadFinished: Optional[Callable]
+ :param browserLoadError: Browser-window error callback |br| See :func:`browserLoadError`
+ :type browserLoadError: Optional[Callable]
  :return: WindowID for the created window
- :rtype: :data:`XPLMWindowID`
+ :rtype: :class:`XPLMWindowID`
 
  Window style is indicated by *decoration*, and can only be specified at creation time. By default, window is created
  as ``WindowDecorationRoundRectangle`` and looks like:
@@ -192,11 +216,42 @@ Window Drawing Functions
  |                                             | :index:`xplm_WindowLayerGrowlNotifications`                                            |
  +---------------------------------------------+----------------------------------------------------------------------------------------+
 
+ .. _window-content-type:
+
+ :index:`XPLMWindowContentType`
+
+ +---------------------------------------------+---------------------------------------------------------------------------------------------------+
+ | Content Type                                | Meaning                                                                                           |
+ +=============================================+===================================================================================================+
+ | .. py:data:: WindowContentTypeOpenGL        | Legacy OpenGL drawing within your *draw* callback (the default). This is only option prior to     |
+ |   :value: 0                                 | X-Plane 12.4.4.                                                                                   |
+ |                                             |                                                                                                   |
+ |                                             | `Official SDK                                                                                     |
+ |                                             | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_WindowContentTypeOpenGL>`__                  |
+ |                                             | :index:`xplm_WindowContentTypeOpenGL`                                                             |
+ +---------------------------------------------+---------------------------------------------------------------------------------------------------+
+ | .. py:data:: WindowContentTypePanelGraphics | Native X-Plane graphics primitives (see :doc:`panelgraphics`) using your *draw* callback. You may |
+ |   :value: 1                                 | not use OpenGL calls directly if you specify this content type.                                   |
+ |                                             |                                                                                                   |
+ |                                             | `Official SDK                                                                                     |
+ |                                             | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_WindowContentTypePanelGraphics>`__           |
+ |                                             | :index:`xplm_WindowContentTypePanelGraphics`                                                      |
+ |                                             |                                                                                                   |
+ +---------------------------------------------+---------------------------------------------------------------------------------------------------+
+ | .. py:data:: WindowContentTypeBrowser       | A CEF web view, your *draw* function is ignored. Use :func:`windowSetURL` and related functions to|
+ |   :value: 2                                 | drive display. See :doc:`display_window_browser`                                                  |
+ |                                             |                                                                                                   |
+ |                                             | `Official SDK                                                                                     |
+ |                                             | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_WindowContentTypeBrowser>`__                 |
+ |                                             | :index:`xplm_WindowContentTypeBrowser`                                                            |
+ |                                             |                                                                                                   |
+ +---------------------------------------------+---------------------------------------------------------------------------------------------------+
+       
  >>> windowID = xp.createWindowEx(visible=1)
 
  .. image:: /images/small_round_rect_window.png
 
- There are six possible callback functions to be provided.
+ There are eight possible callback functions to be provided. If you don't provide a callback, we'll default it to None.
 
  .. table::
     :align: left
@@ -206,13 +261,13 @@ Window Drawing Functions
     +========================================================+====================+
     |draw(windowID, refCon)                                  | No return          |
     +--------------------------------------------------------+--------------------+
-    |key(windowID, key, flags, vKey, refCon, losingFocus)    | No return          |
-    +--------------------------------------------------------+--------------------+
-    |cursor(windowID, x, y, refCon)                          |cursorStatus        |
-    +--------------------------------------------------------+--------------------+
     |click(windowID, x, y, mouseStatus, refCon)              | 1 =Consume click   |
     |                                                        +--------------------+
     |                                                        | 0 =Pass it through |
+    +--------------------------------------------------------+--------------------+
+    |key(windowID, key, flags, vKey, refCon, losingFocus)    | No return          |
+    +--------------------------------------------------------+--------------------+
+    |cursor(windowID, x, y, refCon)                          |cursorStatus        |
     +--------------------------------------------------------+--------------------+
     |wheel(windowID, x, y, wheel, clicks, refCon)            | 1 =Consume click   |
     |                                                        +--------------------+
@@ -222,10 +277,12 @@ Window Drawing Functions
     |                                                        +--------------------+
     |                                                        | 0 =Pass it through |
     +--------------------------------------------------------+--------------------+
-     
-
+    |browserLoadFinished(windowID, url, refCon)              | No return          |
+    +--------------------------------------------------------+--------------------+
+    |browerLoadError(windowID, url, error, refCon)           | No return          |
+    +--------------------------------------------------------+--------------------+
  
- For legacy purposes, you may pass a 14-element tuple *instead of* individually specifying
+ For legacy purposes, you may pass a 17-element tuple *instead of* individually specifying
  the parameters.
 
  The tuple is:
@@ -243,7 +300,10 @@ Window Drawing Functions
        refCon,
        decoration,
        layer,
-       rightClick
+       rightClick,
+       contentType,
+       browserLoadFinished,
+       browserLoadError
      )
     
  Note the order is very important!
@@ -253,8 +313,8 @@ Window Drawing Functions
  >>> t = (100, 200, 200, 100, 1,
  ...      None, None, None, None, None,
  ...      None,
- ...      xp.WindowDecorationRoundRectangle, xp.WindowLayerFloatingWindows,
- ...      None)
+ ...      xp.WindowDecorationRoundRectangle, xp.WindowLayerFloatingWindows, xp.WindowContentTypeOpenGL,
+ ...      None, None, None)
  ...
  >>> windowID = xp.createWindowEx(t)
 
@@ -262,13 +322,12 @@ Window Drawing Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMCreateWindowEx>`__ :index:`XPLMCreateWindowEx`
 
-.. py:function:: destroyWindow(windowID)
+.. py:function:: destroyWindow(windowID) -> None
 
  Destroys a window based on the handle passed in.
 
  :param windowID: Window to be destroyed
- :type windowID: :data:`XPLMWindowID`
- :return: None
+ :type windowID: :class:`XPLMWindowID`
 
  The callbacks are not called after this call. Keyboard focus is removed
  from the window before destroying it.
@@ -282,11 +341,12 @@ Window Drawing Callbacks
 These are the callbacks you'll provide and pass into :py:func:`createWindowEx` when creating
 the window, or using the tuple.
 
-.. py:function:: draw(windowID, refCon)
+.. py:function:: draw(windowID, refCon) -> None
  
   Window drawing callback prototype.
  
   :param windowID: window to be drawn
+  :type windowID: :class:`XPLMWindowID`
   :param refCon: refCon you provided on creation
   :return: No return value
  
@@ -306,8 +366,8 @@ the window, or using the tuple.
   >>>
   >>> xp.destroyWindow(windowID)
   
-.. py:function::  click(windowID, x, y, mouseStatus, refCon)
-                  rightClick(windowID, x, y, mouseStatus, refCon)
+.. py:function::  click(windowID, x, y, mouseStatus, refCon) -> int
+                  rightClick(windowID, x, y, mouseStatus, refCon) -> int
  
   Mouse handling callback prototype. Same signature
   for Left-clicks and Right-clicks. (Note if you do use the same callback for both
@@ -316,6 +376,7 @@ the window, or using the tuple.
   use two different functions.)
  
   :param windowID: window receiving the mouse click
+  :type windowID: :class:`XPLMWindowID`
   :param x: horizontal position of mouse
   :param y: vertical position of mouse
   :param mouseStatus: flag, see table below.
@@ -374,17 +435,17 @@ the window, or using the tuple.
             move) and *you will not receive events* near the edges. This includes what might be considered the
             "title bar", the 25 pixels or so at the top of the popup window.
               
-.. py:function:: key(windowID, key, flags, vKey, refCon, losingFocus)
+.. py:function:: key(windowID, key, flags, vKey, refCon, losingFocus) -> None
 
   Window keyboard input handling callback prototype.
  
   :param windowID: window receiving the key press or focus
+  :type windowID: :class:`XPLMWindowID`
   :param key: Key pressed
-  :param flags: OR'd values for Shift / Ctrl, etc. See table below
+  :param flags: OR'd values for Shift / Ctrl, etc. (:ref:`XPLMKeyFlags`)
   :param vKey: Virtual key code (:ref:`Virtual Key Codes`)
   :param refCon: refCon you provided on creation
   :param losingFocus: 1= your window is losing keyboard focus (and key should be ignored)
-  :return: No return value
  
   This function is called when a key is pressed or keyboard focus is taken
   away from your window.  If losingFocus is 1, you are losing the keyboard
@@ -420,23 +481,6 @@ the window, or using the tuple.
   >>>
   >>> xp.destroyWindow(windowID)
   
-  .. table::
-     :align: left
-
-     +-----------------------+---------------------------+
-     | Key Flags Value       | SDK Value                 |
-     +=======================+===========================+
-     |:index:`ShiftFlag`     |:index:`xplm_ShiftFlag`    |
-     +-----------------------+---------------------------+
-     |:index:`OptionAltFlag` |:index:`xplm_OptionAltFlag`|
-     +-----------------------+---------------------------+
-     |:index:`ControlFlag`   |:index:`xplm_ControlFlag`  |
-     +-----------------------+---------------------------+
-     |:index:`DownFlag`      |:index:`xplm_DownFlag`     |
-     +-----------------------+---------------------------+
-     |:index:`UpFlag`        |:index:`xplm_UpFlag`       |
-     +-----------------------+---------------------------+
-
   .. warning:: X-Plane sends the wrong *windowID* when *losingFocus* is set. We're supposed to get
                the windowID of the losing window, instead we get the windowID of the window
                gaining focus. The problem is, we cannot determine which window is actually losing
@@ -446,15 +490,16 @@ the window, or using the tuple.
 
                As a result, *you will never receive* a callback with ``losingFocus=1``.
  
-.. py:function:: cursor(windowID, x, y, refCon)
+.. py:function:: cursor(windowID, x, y, refCon) -> XPLMCursorStatus
  
   Mouse cursor handling callback prototype.
  
   :param windowID: window receiving the notice
+  :type windowID: :class:`XPLMWindowID`
   :param x: horizontal position of mouse
   :param y: vertical position of mouse
   :param refCon: refCon you provided on creation
-  :return: Cursor status (see below)
+  :return: :class:`XPLMCursorStatus` Cursor status 
  
   The SDK calls your cursor status callback when the mouse is over your
   plugin window.  Return a cursor status code to indicate how you would like
@@ -488,203 +533,12 @@ the window, or using the tuple.
   :py:func:`xp.setCursor` to display a custom cursor you've loaded. (See
   :py:func:`xp.setCursor` for detailed example.)
 
-
-  .. _XPLMCursorStatus:
-
-  :index:`XPLMCursorStatus`
-  =========================       
-
-  .. table::
-     :align: left
-
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | Cursor Status Value                 | SDK Value                                                                       |
-     +=====================================+=================================================================================+
-     | .. data:: CursorDefault             | X-Plane manages the cursor normally,                                            |
-     |  :value: 0                          | plugins does not affect the cursor.                                             |
-     |                                     |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorDefault>`__          |
-     |                                     | :index:`xplm_CursorDefault`                                                     |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorHidden              | X-Plane hides the cursor.                                                       |
-     |  :value: 1                          |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorHidden>`__           |
-     |                                     | :index:`xplm_CursorHidden`                                                      |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorArrow               | X-Plane shows the cursor as the                                                 |
-     |  :value: 2                          | default arrow.                                                                  |
-     |                                     |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorArrow>`__            |
-     |                                     | :index:`xplm_CursorArrow`                                                       |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorCustom              | X-Plane shows the cursor but lets                                               |
-     |  :value: 3                          | you select an OS cursor. See :doc:`cursor`.                                     |
-     |                                     |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorCustom>`__           |
-     |                                     | :index:`xplm_CursorCustom`                                                      |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorRotateSmall         | X-Plane shows the small left-right rotation cursor.                             |
-     |  :value: 4                          |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateSmall>`__      |
-     |                                     | :index:`xplm_CursorRotateSmall`                                                 |
-     |                                     |                                                                                 |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorRotateSmallLeft     | X-Plane shows the small left rotation cursor.                                   |
-     |  :value: 5                          |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateSmallLeft>`__  |
-     |                                     | :index:`xplm_CursorRotateSmallLeft`                                             |
-     |                                     |                                                                                 |
-     |                                     |                                                                                 |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorRotateSmallRight    | X-Plane shows the small right rotation cursor.                                  |
-     |  :value: 6                          |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateSmallRight>`__ |
-     |                                     | :index:`xplm_CursorRotateSmallRight`                                            |
-     |                                     |                                                                                 |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorRotateMedium        | X-Plane shows the medium left-right rotation cursor.                            |
-     |  :value: 7                          |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateMedium>`__     |
-     |                                     | :index:`xplm_CursorRotateMedium`                                                |
-     |                                     |                                                                                 |
-     |                                     |                                                                                 |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorRotateMediumLeft    | X-Plane shows the medium left rotation cursor.                                  |
-     |  :value: 8                          |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateMediumLeft>`__ |
-     |                                     | :index:`xplm_CursorRotateMediumLeft`                                            |
-     |                                     |                                                                                 |
-     |                                     |                                                                                 |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorRotateMediumRight   | X-Plane shows the medium right rotation cursor.                                 |
-     |  :value: 9                          |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateMediumRight>`__|
-     |                                     | :index:`xplm_CursorRotateMediumRight`                                           |
-     |                                     |                                                                                 |
-     |                                     |                                                                                 |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorRotateLarge         | X-Plane shows the large left-right rotation cursor.                             |
-     |  :value: 10                         |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateLarge>`__      |
-     |                                     | :index:`xplm_CursorRotateLarge`                                                 |
-     |                                     |                                                                                 |
-     |                                     |                                                                                 |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorRotateLargeLeft     | X-Plane shows the large left rotation cursor.                                   |
-     |  :value: 11                         |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateLargeLeft>`__  |
-     |                                     | :index:`xplm_CursorRotateLargeLeft`                                             |
-     |                                     |                                                                                 |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorRotateLargeRight    | X-Plane shows the large right rotation cursor.                                  |
-     |  :value: 12                         |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateLargeRight>`__ |
-     |                                     | :index:`xplm_CursorRotateLargeRight`                                            |
-     |                                     |                                                                                 |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorUpDown              | X-Plane shows the up-down arrow cursor.                                         |
-     |  :value: 13                         |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorUpDown>`__           |
-     |                                     | :index:`xplm_CursorUpDown`                                                      |
-     |                                     |                                                                                 |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorDown                | X-Plane shows the down arrow cursor.                                            |
-     |  :value: 14                         |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorDown>`__             |
-     |                                     | :index:`xplm_CursorDown`                                                        |
-     |                                     |                                                                                 |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorUp                  | X-Plane shows the up arrow cursor.                                              |
-     |  :value: 15                         |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorUp>`__               |
-     |                                     | :index:`xplm_CursorUp`                                                          |
-     |                                     |                                                                                 |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorLeftRight           | X-Plane shows the left-right arrow cursor.                                      |
-     |  :value: 16                         |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorLeftRight>`__        |
-     |                                     | :index:`xplm_CursorLeftRight`                                                   |
-     |                                     |                                                                                 |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorLeft                | X-Plane shows the left arrow cursor.                                            |
-     |  :value: 17                         |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorLeft>`__             |
-     |                                     | :index:`xplm_CursorLeft`                                                        |
-     |                                     |                                                                                 |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorRight               | X-Plane shows the right arrow cursor.                                           |
-     |  :value: 18                         |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRight>`__            |
-     |                                     | :index:`xplm_CursorRight`                                                       |
-     |                                     |                                                                                 |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorButton              | X-Plane shows the button-pushing cursor.                                        |
-     |  :value: 19                         |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorButton>`__           |
-     |                                     | :index:`xplm_CursorButton`                                                      |
-     |                                     |                                                                                 |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorHandle              | X-Plane shows the handle-grabbing cursor.                                       |
-     |  :value: 20                         |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorHandle>`__           |
-     |                                     | :index:`xplm_CursorHandle`                                                      |
-     |                                     |                                                                                 |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorFourArrows          | X-Plane shows the four-arrows cursor.                                           |
-     |  :value: 21                         |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorFourArrows>`__       |
-     |                                     | :index:`xplm_CursorFourArrows`                                                  |
-     |                                     |                                                                                 |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorSplitterH           | X-Plane shows the cursor to drag a horizontal splitter bar.                     |
-     |  :value: 22                         |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorSplitterH>`__        |
-     |                                     | :index:`xplm_CursorSplitterH`                                                   |
-     |                                     |                                                                                 |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorSplitterV           | X-Plane shows the cursor to drag a vertical splitter bar.                       |
-     |  :value: 23                         |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorSplitterV>`__        |
-     |                                     | :index:`xplm_CursorSplitterV`                                                   |
-     |                                     |                                                                                 |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-     | .. data:: CursorText                | X-Plane shows the I-Beam cursor for text editing.                               |
-     |  :value: 24                         |                                                                                 |
-     |                                     | `Official SDK                                                                   |
-     |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorText>`__             |
-     |                                     | :index:`xplm_CursorText`                                                        |
-     |                                     |                                                                                 |
-     +-------------------------------------+---------------------------------------------------------------------------------+
-
-.. py:function:: wheel(windowID, x, y, wheel, clicks, refCon)
+.. py:function:: wheel(windowID, x, y, wheel, clicks, refCon) -> int
  
   Mouse wheel handling callback prototype.
  
   :param windowID: window receiving the mouse event
+  :type windowID: :class:`XPLMWindowID`
   :param x: horizontal position of mouse
   :param y: vertical position of mouse
   :param wheel: 0= vertical axis, 1= horizontal axis
@@ -703,6 +557,29 @@ the window, or using the tuple.
   The units for x and y values matches the units used in your window (i.e., boxels),
   with origin in lower left of global desktop space.
 
+  See :func:`browserLoadFinished` and :func:`browserLoadError` for description
+  of these callbacks. They are only relevant for :data:`WindowContentTypeBrowser` windows.
+
+
+Modifier Keys
+*************
+
+.. py:function:: getModifierKeys() -> XPLMKeyFlags
+
+    :return: :class:`XPLMKeyFlags`, bitfield of the modifier keys currently held down
+
+    Return the live modifier-key state as an :ref:`XPLMKeyFlags` bitfield ---
+    a bitwise-OR of :data:`ShiftFlag`, :data:`OptionAltFlag`, :data:`ControlFlag`,
+    :data:`CapsLockFlag`. New with X-Plane 12.4.4 (SDK 440)
+
+    Unlike the *flags* passed to a :func:`key` callback (which describe a single
+    keystroke), this queries the current state at any time.
+
+    >>> if xp.getModifierKeys() & xp.ShiftFlag:
+    ...     pass  # shift is held
+
+    `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMGetModifierKeys>`__ :index:`XPLMGetModifierKeys`
+
 
 Screen and Monitor Functions
 ****************************
@@ -710,12 +587,11 @@ See detailed explanation of screens vs. monitors and positioning windows
 within bounds in :doc:`/development/window_position`.
 
 
-.. py:function:: getScreenSize()
+.. py:function:: getScreenSize() -> Tuple[int, int]
 
  Query X-Plane screen size.
 
  :return: Tuple of (width, height) in pixels
- :rtype: tuple[int, int]
 
  This routine returns the size of the size of the X-Plane OpenGL window in
  pixels.  Please note that this is not the size of the screen when doing
@@ -729,12 +605,11 @@ within bounds in :doc:`/development/window_position`.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMGetScreenSize>`__ :index:`XPLMGetScreenSize`
 
-.. py:function::  getScreenBoundsGlobal()
+.. py:function::  getScreenBoundsGlobal() -> Tuple[int, int, int, int]
 
  This routine returns the bounds of the "global" X-Plane desktop, in boxels.
 
- :return: Tuple of (left, top, right, bottom) in boxels
- :rtype: tuple[int, int, int, int]
+ :return: Tuple (left, top, right, bottom) in boxels
 
  Unlike the non-global version :func:`getScreenSize`, this is multi-monitor
  aware. There are three primary consequences of multimonitor awareness:
@@ -774,7 +649,7 @@ within bounds in :doc:`/development/window_position`.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMGetScreenBoundsGlobal>`__ :index:`XPLMGetScreenBoundsGlobal`
 
-.. py:function:: getAllMonitorBoundsGlobal(bounds, refCon)
+.. py:function:: getAllMonitorBoundsGlobal(bounds, refCon) -> None
 
  This routine immediately calls your *bounds()* function the bounds (in boxels) of each
  full-screen X-Plane window within the X- Plane global desktop space.
@@ -783,7 +658,6 @@ within bounds in :doc:`/development/window_position`.
  :type bounds: Callable[[int, int, int, int, int, Any], None]
  :param refCon: Reference constant passed to callback
  :type refCon: Any
- :return: None
 
  Note that if a monitor is not covered by an X-Plane window, you cannot get its bounds this
  way. Likewise, monitors with only an X-Plane window (not in full-screen mode)
@@ -816,7 +690,7 @@ within bounds in :doc:`/development/window_position`.
  screen on a monitor in order for that monitor to be passed to you in this callback. If
  it is not running full screen, the function will set data to ``{}``.
 
-.. py:function:: getAllMonitorBoundsOS(bounds, refCon)
+.. py:function:: getAllMonitorBoundsOS(bounds, refCon) -> None
 
  This routine immediately calls your *bounds()* function with the bounds (in pixels) of each monitor
  within the operating system's global desktop space.
@@ -825,7 +699,6 @@ within bounds in :doc:`/development/window_position`.
  :type bounds: Callable[[int, int, int, int, int, Any], None]
  :param refCon: Reference constant passed to callback
  :type refCon: Any
- :return: None
 
  Note that unlike :func:`getAllMonitorBoundsGlobal`, this may include monitors that have no X-Plane window
  on them.
@@ -851,12 +724,11 @@ within bounds in :doc:`/development/window_position`.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMGetAllMonitorBoundsOS>`__ :index:`XPLMGetAllMonitorBoundsOS`
 
-.. py:function:: getMouseLocationGlobal()
+.. py:function:: getMouseLocationGlobal() -> Tuple[int, int]
 
  Returns the current mouse location in global desktop boxels.
 
  :return: Tuple of (x, y) in boxels
- :rtype: tuple[int, int]
 
  Unlike older :func:`getMouseLocation`, the bottom left of the main X-Plane window is not guaranteed
  to be (0, 0). Instead, the origin is the lower left of the entire global desktop space.
@@ -881,14 +753,13 @@ within bounds in :doc:`/development/window_position`.
 Window Functions
 ****************
 
-.. py:function:: getWindowGeometry(windowID)
+.. py:function:: getWindowGeometry(windowID) -> Tuple[int, int, int, int]
 
  This routine returns the position and size of a window.
 
  :param windowID: Window to query
- :type windowID: :data:`XPLMWindowID`
+ :type windowID: :class:`XPLMWindowID`
  :return: Tuple of (left, top, right, bottom)
- :rtype: tuple[int, int, int, int]
 
  The units and coordinate system vary depending on the type of window you have.
 
@@ -920,12 +791,12 @@ Window Functions
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMGetWindowGeometry>`__ :index:`XPLMGetWindowGeometry`
 
 
-.. py:function:: setWindowGeometry(windowID, left, top, right, bottom)
+.. py:function:: setWindowGeometry(windowID, left, top, right, bottom) -> None
 
  Set window position and size.
 
  :param windowID: Window to modify
- :type windowID: :data:`XPLMWindowID`
+ :type windowID: :class:`XPLMWindowID`
  :param left: Left edge coordinate
  :type left: int
  :param top: Top edge coordinate
@@ -934,7 +805,6 @@ Window Functions
  :type right: int
  :param bottom: Bottom edge coordinate
  :type bottom: int
- :return: None
 
  This routine allows you to set the position and size of a window.
 
@@ -956,15 +826,14 @@ Window Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMSetWindowGeometry>`__ :index:`XPLMSetWindowGeometry`
 
-.. py:function:: getWindowGeometryOS(windowID)
+.. py:function:: getWindowGeometryOS(windowID) -> Tuple[int, int, int, int]
 
  This routine returns the position and size of a "popped out" window (i.e., a window
  whose positioning mode is WindowPopOut), in operating system pixels.
 
  :param windowID: Window to query (must be popped out)
- :type windowID: :data:`XPLMWindowID`
+ :type windowID: :class:`XPLMWindowID`
  :return: Tuple of (left, top, right, bottom) in OS pixels
- :rtype: tuple[int, int, int, int]
 
  If the window is not popped out, do not use.
 
@@ -978,13 +847,13 @@ Window Functions
  
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMGetWindowGeometryOS>`__ :index:`XPLMGetWindowGeometryOS`
 
-.. py:function:: setWindowGeometryOS(windowID, left, top, right, bottom)
+.. py:function:: setWindowGeometryOS(windowID, left, top, right, bottom) -> None
 
  This routine allows you to set the position and size, in operating system pixel
  coordinates, of a popped out window.
 
  :param windowID: Window to modify (must be popped out)
- :type windowID: :data:`XPLMWindowID`
+ :type windowID: :class:`XPLMWindowID`
  :param left: Left edge in OS pixels
  :type left: int
  :param top: Top edge in OS pixels
@@ -993,7 +862,6 @@ Window Functions
  :type right: int
  :param bottom: Bottom edge in OS pixels
  :type bottom: int
- :return: None
 
  The window must have positioning mode :data:`WindowPopOut`, which exists outside the X-Plane simulation window, in its
  own first-class operating system window.
@@ -1004,14 +872,13 @@ Window Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMSetWindowGeometryOS>`__ :index:`XPLMSetWindowGeometryOS`
 
-.. py:function:: getWindowGeometryVR(windowID)
+.. py:function:: getWindowGeometryVR(windowID) -> Tuple[int, int]
 
  Returns the width and height, in boxels, of a window in VR.
 
  :param windowID: Window to query (must be in VR)
- :type windowID: :data:`XPLMWindowID`
+ :type windowID: :class:`XPLMWindowID`
  :return: Tuple of (widthBoxels, heightBoxels)
- :rtype: tuple[int, int]
 
  Note that you are responsible for ensuring your window is in VR (using :func:`windowIsInVR`).
 
@@ -1023,17 +890,16 @@ Window Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMGetWindowGeometryVR>`__ :index:`XPLMGetWindowGeometryVR`
 
-.. py:function:: setWindowGeometryVR(windowID, width, height)
+.. py:function:: setWindowGeometryVR(windowID, width, height) -> None
 
  This routine allows you to set the size, in boxels, of a window in VR.
 
  :param windowID: Window to modify (must be in VR)
- :type windowID: :data:`XPLMWindowID`
+ :type windowID: :class:`XPLMWindowID`
  :param width: Width in boxels
  :type width: int
  :param height: Height in boxels
  :type height: int
- :return: None
 
  The window must have positioning mode :data:`WindowVR`.
 
@@ -1041,14 +907,13 @@ Window Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMSetWindowGeometryVR>`__ :index:`XPLMSetWindowGeometryVR`
 
-.. py:function:: getWindowIsVisible(windowID)
+.. py:function:: getWindowIsVisible(windowID) -> int
 
  Get window's isVisible attribute value.
 
  :param windowID: Window to query
- :type windowID: :data:`XPLMWindowID`
+ :type windowID: :class:`XPLMWindowID`
  :return: 1 if visible, 0 otherwise
- :rtype: int
 
  >>> windowID = xp.createWindowEx()
  >>> xp.getWindowIsVisible(windowID)
@@ -1057,27 +922,25 @@ Window Functions
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMGetWindowIsVisible>`__ :index:`XPLMGetWindowIsVisible`
 
 
-.. py:function::  setWindowIsVisible(windowID, visible=1)
+.. py:function::  setWindowIsVisible(windowID, visible=1) -> None
 
  Set window's visible attribute value.
 
  :param windowID: Window to modify
- :type windowID: :data:`XPLMWindowID`
+ :type windowID: :class:`XPLMWindowID`
  :param visible: 1 for visible, 0 for hidden (default: 1)
  :type visible: int
- :return: None
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMSetWindowIsVisible>`__ :index:`XPLMSetWindowIsVisible`
 
-.. py:function:: windowIsPoppedOut(windowID)
+.. py:function:: windowIsPoppedOut(windowID) -> int
 
  True if this window has been popped out (making it a first-class window in the
  operating system).
 
  :param windowID: Window to query
- :type windowID: :data:`XPLMWindowID`
+ :type windowID: :class:`XPLMWindowID`
  :return: 1 if window is popped out, 0 otherwise
- :rtype: int
 
  This is true if and only if you have set the window's positioning mode to :data:`WindowPopOut`.
 
@@ -1087,14 +950,13 @@ Window Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMWindowIsPoppedOut>`__ :index:`XPLMWindowIsPoppedOut`
  
-.. py:function:: windowIsInVR(windowID)
+.. py:function:: windowIsInVR(windowID) -> int
 
  True if this window has been moved to the virtual reality (VR) headset.
 
  :param windowID: Window to query
- :type windowID: :data:`XPLMWindowID`
+ :type windowID: :class:`XPLMWindowID`
  :return: 1 if window is in VR, 0 otherwise
- :rtype: int
 
  This is true if and only if you have set the window's positioning mode to :data:`WindowVR`.
 
@@ -1103,12 +965,12 @@ Window Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMWindowIsInVR>`__ :index:`XPLMWindowIsInVR`
 
-.. py:function::  setWindowGravity(windowID, left, top, right, bottom)
+.. py:function::  setWindowGravity(windowID, left, top, right, bottom) -> None
 
  A window's "gravity" controls how the window shifts as the whole X-Plane window resizes.
 
  :param windowID: Window to modify
- :type windowID: :data:`XPLMWindowID`
+ :type windowID: :class:`XPLMWindowID`
  :param left: Left edge gravity (0.0 to 1.0)
  :type left: float
  :param top: Top edge gravity (0.0 to 1.0)
@@ -1117,7 +979,6 @@ Window Functions
  :type right: float
  :param bottom: Bottom edge gravity (0.0 to 1.0)
  :type bottom: float
- :return: None
 
  A gravity of 1 means the window maintains its positioning relative to the right or top
  edges, 0 the left/bottom, and 0.5 keeps it centered.
@@ -1195,12 +1056,12 @@ Window Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMSetWindowGravity>`__ :index:`XPLMSetWindowGravity`
  
-.. py:function:: setWindowResizingLimits(windowID, minWidth=0, minHeight=0, maxWidth=10000, maxHeight=10000)
+.. py:function:: setWindowResizingLimits(windowID, minWidth=0, minHeight=0, maxWidth=10000, maxHeight=10000) -> None
 
  Sets the minimum and maximum size of the client rectangle of the given window.
 
  :param windowID: Window to modify
- :type windowID: :data:`XPLMWindowID`
+ :type windowID: :class:`XPLMWindowID`
  :param minWidth: Minimum width in boxels (default: 0)
  :type minWidth: int
  :param minHeight: Minimum height in boxels (default: 0)
@@ -1209,7 +1070,6 @@ Window Functions
  :type maxWidth: int
  :param maxHeight: Maximum height in boxels (default: 10000)
  :type maxHeight: int
- :return: None
 
  The client rectangle does not include any window styling that you might have asked X-Plane to apply on your
  behalf. All resizing operations are constrained to these sizes. (Except see Note below.)
@@ -1232,17 +1092,16 @@ Window Functions
  >>> windowID = xp.createWindowEx(visible=1, left=100, right=200)
  >>> xp.setWindowResizingLimits(windowID, minWidth=100)
 
-.. py:function:: setWindowPositioningMode(windowID, mode, index=-1)
+.. py:function:: setWindowPositioningMode(windowID, mode, index=-1) -> None
 
  Sets the policy for how X-Plane will position your window.
 
  :param windowID: Window to modify
- :type windowID: :data:`XPLMWindowID`
+ :type windowID: :class:`XPLMWindowID`
  :param mode: Positioning mode constant
  :type mode: int
  :param index: Monitor index, or -1 for main monitor (default: -1)
  :type index: int
- :return: None
 
  Some positioning modes apply to a particular monitor. For those modes, you can pass a negative
  monitor index to position the window on the main X-Plane monitor (the screen with the X-Plane
@@ -1312,15 +1171,14 @@ Window Functions
     |                                             | :index:`xplm_WindowVR`                                                                      |
     +---------------------------------------------+---------------------------------------------------------------------------------------------+
 
-.. py:function:: setWindowTitle(windowID, title)
+.. py:function:: setWindowTitle(windowID, title) -> None
 
  Sets the name for a window.
 
  :param windowID: Window to modify
- :type windowID: :data:`XPLMWindowID`
+ :type windowID: :class:`XPLMWindowID`
  :param title: New window title
  :type title: str
- :return: None
 
  This only applies to windows that opted-in to styling as an X-Plane
  11 floating window (i.e., with styling mode :data:`xplm_WindowDecorationRoundRectangle`) when they
@@ -1331,12 +1189,12 @@ Window Functions
  
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMSetWindowTitle>`__: :index:`XPLMSetWindowTitle`
 
-.. py:function:: getWindowRefCon(windowID)
+.. py:function:: getWindowRefCon(windowID) -> Any
 
  Return window's refCon attribute value (which you provided on window creation.)
 
  :param windowID: Window to query
- :type windowID: :data:`XPLMWindowID`
+ :type windowID: :class:`XPLMWindowID`
  :return: Reference constant value
  :rtype: Any
 
@@ -1346,15 +1204,14 @@ Window Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMGetWindowRefCon>`__: :index:`XPLMGetWindowRefCon`
 
-.. py:function:: setWindowRefCon(windowID, refCon)
+.. py:function:: setWindowRefCon(windowID, refCon) -> None
 
  Set window's refcon attribute value.
 
  :param windowID: Window to modify
- :type windowID: :data:`XPLMWindowID`
+ :type windowID: :class:`XPLMWindowID`
  :param refCon: Reference constant value to store
  :type refCon: Any
- :return: None
 
  Use this to pass data to yourself in the callbacks.
 
@@ -1368,13 +1225,12 @@ Window Functions
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMSetWindowRefCon>`__: :index:`XPLMSetWindowRefCon`
 
 
-.. py:function:: takeKeyboardFocus(windowID)
+.. py:function:: takeKeyboardFocus(windowID) -> None
 
  Give a specific window keyboard focus.
 
  :param windowID: Window to receive focus, or 0 to give focus to X-Plane
- :type windowID: :data:`XPLMWindowID`
- :return: None
+ :type windowID: :class:`XPLMWindowID`
 
  This routine gives a specific window keyboard focus. Keystrokes will be sent to that window.
  Pass a window ID of 0 to remove keyboard focus from any plugin-created windows and instead
@@ -1391,26 +1247,24 @@ Window Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMTakeKeyboardFocus>`__: :index:`XPLMTakeKeyboardFocus`
 
-.. py:function:: hasKeyboardFocus(windowID)
+.. py:function:: hasKeyboardFocus(windowID) -> int
 
  Returns 1 if the indicated window has keyboard focus.
 
  :param windowID: Window to query, or 0 for X-Plane focus
- :type windowID: :data:`XPLMWindowID`
+ :type windowID: :class:`XPLMWindowID`
  :return: 1 if window has focus, 0 otherwise
- :rtype: int
 
  Pass a window ID of 0 to see if no plugin window has focus, and all keystrokes will go directly to X-Plane.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMHasKeyboardFocus>`__: :index:`XPLMHasKeyboardFocus`
 
-.. py:function:: bringWindowToFront(windowID)
+.. py:function:: bringWindowToFront(windowID) -> None
 
  Bring window to the front of the Z-order.
 
  :param windowID: Window to bring to front
- :type windowID: :data:`XPLMWindowID`
- :return: None
+ :type windowID: :class:`XPLMWindowID`
 
  This routine brings the window to the front of the Z-order for its layer. Windows are brought
  to the front automatically when they are created. Beyond that, you should make sure you are
@@ -1426,15 +1280,14 @@ Window Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMBringWindowToFront>`__: :index:`XPLMBringWindowToFront`
 
-.. py:function:: isWindowInFront(windowID)
+.. py:function:: isWindowInFront(windowID) -> int
 
  This routine returns 1 if the window you passed in is the frontmost visible window in
  its layer.
 
  :param windowID: Window to query
- :type windowID: :data:`XPLMWindowID`
+ :type windowID: :class:`XPLMWindowID`
  :return: 1 if window is in front of its layer, 0 otherwise
- :rtype: int
 
  See :ref:`Window layer<window-layer>` for more information.
 
@@ -1450,9 +1303,204 @@ Window Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMIsWindowInFront>`__: :index:`XPLMIsWindowInFront`
 
-Capsules
---------
+Types
+-----
 
-.. py:data:: XPLMWindowID
+.. py:class:: XPLMWindowID
 
-    Capsule for XPLMWindow         
+    Opaque capsule representing a window, as returned by :func:`createWindowEx`.
+    Pass it to the window functions in this module, and release it with
+    :func:`destroyWindow`.
+
+.. _XPLMCursorStatus:
+
+XPLMCursorStatus
+****************
+
+.. py:type:: XPLMCursorStatus
+
+.. table::
+   :align: left
+
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | Cursor Status Value                 | SDK Value                                                                       |
+   +=====================================+=================================================================================+
+   | .. data:: CursorDefault             | X-Plane manages the cursor normally,                                            |
+   |  :value: 0                          | plugins does not affect the cursor.                                             |
+   |                                     |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorDefault>`__          |
+   |                                     | :index:`xplm_CursorDefault`                                                     |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorHidden              | X-Plane hides the cursor.                                                       |
+   |  :value: 1                          |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorHidden>`__           |
+   |                                     | :index:`xplm_CursorHidden`                                                      |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorArrow               | X-Plane shows the cursor as the                                                 |
+   |  :value: 2                          | default arrow.                                                                  |
+   |                                     |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorArrow>`__            |
+   |                                     | :index:`xplm_CursorArrow`                                                       |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorCustom              | X-Plane shows the cursor but lets                                               |
+   |  :value: 3                          | you select an OS cursor. See :doc:`cursor`.                                     |
+   |                                     |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorCustom>`__           |
+   |                                     | :index:`xplm_CursorCustom`                                                      |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorRotateSmall         | X-Plane shows the small left-right rotation cursor.                             |
+   |  :value: 4                          |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateSmall>`__      |
+   |                                     | :index:`xplm_CursorRotateSmall`                                                 |
+   |                                     |                                                                                 |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorRotateSmallLeft     | X-Plane shows the small left rotation cursor.                                   |
+   |  :value: 5                          |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateSmallLeft>`__  |
+   |                                     | :index:`xplm_CursorRotateSmallLeft`                                             |
+   |                                     |                                                                                 |
+   |                                     |                                                                                 |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorRotateSmallRight    | X-Plane shows the small right rotation cursor.                                  |
+   |  :value: 6                          |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateSmallRight>`__ |
+   |                                     | :index:`xplm_CursorRotateSmallRight`                                            |
+   |                                     |                                                                                 |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorRotateMedium        | X-Plane shows the medium left-right rotation cursor.                            |
+   |  :value: 7                          |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateMedium>`__     |
+   |                                     | :index:`xplm_CursorRotateMedium`                                                |
+   |                                     |                                                                                 |
+   |                                     |                                                                                 |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorRotateMediumLeft    | X-Plane shows the medium left rotation cursor.                                  |
+   |  :value: 8                          |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateMediumLeft>`__ |
+   |                                     | :index:`xplm_CursorRotateMediumLeft`                                            |
+   |                                     |                                                                                 |
+   |                                     |                                                                                 |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorRotateMediumRight   | X-Plane shows the medium right rotation cursor.                                 |
+   |  :value: 9                          |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateMediumRight>`__|
+   |                                     | :index:`xplm_CursorRotateMediumRight`                                           |
+   |                                     |                                                                                 |
+   |                                     |                                                                                 |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorRotateLarge         | X-Plane shows the large left-right rotation cursor.                             |
+   |  :value: 10                         |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateLarge>`__      |
+   |                                     | :index:`xplm_CursorRotateLarge`                                                 |
+   |                                     |                                                                                 |
+   |                                     |                                                                                 |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorRotateLargeLeft     | X-Plane shows the large left rotation cursor.                                   |
+   |  :value: 11                         |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateLargeLeft>`__  |
+   |                                     | :index:`xplm_CursorRotateLargeLeft`                                             |
+   |                                     |                                                                                 |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorRotateLargeRight    | X-Plane shows the large right rotation cursor.                                  |
+   |  :value: 12                         |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRotateLargeRight>`__ |
+   |                                     | :index:`xplm_CursorRotateLargeRight`                                            |
+   |                                     |                                                                                 |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorUpDown              | X-Plane shows the up-down arrow cursor.                                         |
+   |  :value: 13                         |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorUpDown>`__           |
+   |                                     | :index:`xplm_CursorUpDown`                                                      |
+   |                                     |                                                                                 |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorDown                | X-Plane shows the down arrow cursor.                                            |
+   |  :value: 14                         |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorDown>`__             |
+   |                                     | :index:`xplm_CursorDown`                                                        |
+   |                                     |                                                                                 |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorUp                  | X-Plane shows the up arrow cursor.                                              |
+   |  :value: 15                         |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorUp>`__               |
+   |                                     | :index:`xplm_CursorUp`                                                          |
+   |                                     |                                                                                 |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorLeftRight           | X-Plane shows the left-right arrow cursor.                                      |
+   |  :value: 16                         |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorLeftRight>`__        |
+   |                                     | :index:`xplm_CursorLeftRight`                                                   |
+   |                                     |                                                                                 |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorLeft                | X-Plane shows the left arrow cursor.                                            |
+   |  :value: 17                         |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorLeft>`__             |
+   |                                     | :index:`xplm_CursorLeft`                                                        |
+   |                                     |                                                                                 |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorRight               | X-Plane shows the right arrow cursor.                                           |
+   |  :value: 18                         |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorRight>`__            |
+   |                                     | :index:`xplm_CursorRight`                                                       |
+   |                                     |                                                                                 |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorButton              | X-Plane shows the button-pushing cursor.                                        |
+   |  :value: 19                         |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorButton>`__           |
+   |                                     | :index:`xplm_CursorButton`                                                      |
+   |                                     |                                                                                 |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorHandle              | X-Plane shows the handle-grabbing cursor.                                       |
+   |  :value: 20                         |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorHandle>`__           |
+   |                                     | :index:`xplm_CursorHandle`                                                      |
+   |                                     |                                                                                 |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorFourArrows          | X-Plane shows the four-arrows cursor.                                           |
+   |  :value: 21                         |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorFourArrows>`__       |
+   |                                     | :index:`xplm_CursorFourArrows`                                                  |
+   |                                     |                                                                                 |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorSplitterH           | X-Plane shows the cursor to drag a horizontal splitter bar.                     |
+   |  :value: 22                         |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorSplitterH>`__        |
+   |                                     | :index:`xplm_CursorSplitterH`                                                   |
+   |                                     |                                                                                 |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorSplitterV           | X-Plane shows the cursor to drag a vertical splitter bar.                       |
+   |  :value: 23                         |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorSplitterV>`__        |
+   |                                     | :index:`xplm_CursorSplitterV`                                                   |
+   |                                     |                                                                                 |
+   +-------------------------------------+---------------------------------------------------------------------------------+
+   | .. data:: CursorText                | X-Plane shows the I-Beam cursor for text editing.                               |
+   |  :value: 24                         |                                                                                 |
+   |                                     | `Official SDK                                                                   |
+   |                                     | <https://developer.x-plane.com/sdk/XPLMDisplay/#xplm_CursorText>`__             |
+   |                                     | :index:`xplm_CursorText`                                                        |
+   |                                     |                                                                                 |
+   +-------------------------------------+---------------------------------------------------------------------------------+

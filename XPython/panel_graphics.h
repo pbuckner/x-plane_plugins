@@ -5,7 +5,7 @@
 /* Capsule type names shared across the panel_graphics_*.cpp files. */
 #define FONT_CAPSULE "XPLMFontHandle"
 #define ATLAS_CAPSULE "XPLMTextureAtlasRef"
-#define RETAINED_CAPSULE "XPLMRetainedDrawing_t"
+#define RETAINED_CAPSULE "XPLMRetainedDrawing"
 #define SVT_CAPSULE "XPLMSVTDisplayRef"
 #define MAP_CAPSULE "XPLMMapDisplayRef"
 #define TEXTURE_CAPSULE "XPLMTexture"

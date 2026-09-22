@@ -1,3 +1,5 @@
+.. index:: Camera, Tasks; Camera
+
 XPLMCamera
 ==========
 
@@ -16,9 +18,10 @@ The XPLMCamera APIs allow plug-ins to
 control the camera angle in X-Plane. This has a number of applications,
 including but not limited to:
 
- - Creating new views (including dynamic/user-controllable views) for the user.
+.. rst-class:: compact
 
- - Creating applications that use X-Plane as a renderer of scenery, aircraft, or both.
+- Creating new views (including dynamic/user-controllable views) for the user.
+- Creating applications that use X-Plane as a renderer of scenery, aircraft, or both.
 
 The camera is controlled via six parameters: a location in OpenGL
 coordinates (i.e., x, y and z) pitch, roll and yaw, similar to an airplane's position.
@@ -48,12 +51,11 @@ to get correct sound and 2-d panel behavior.
 Functions
 ---------
 
-.. py:function:: controlCamera(howLong=ControlCameraUntilViewChanges, controlFunc=None, refCon=None)
+.. py:function:: controlCamera(howLong=ControlCameraUntilViewChanges, controlFunc=None, refCon=None) -> None
 
     :param int howLong: :data:`ControlCameraUntilViewChanges` or :data:`ControlCameraForever`
     :param Callable controlFunc: your callback called during draw cycle (See below).
     :param Any refCon: Reference constant passed to your callback
-    :return: None
 
     Repositions the camera on the next drawing cycle.
 
@@ -62,42 +64,45 @@ Functions
     or control is forcibly taken by another plugin.
 
     *controlFunc* is your callback, called during draw cycle. It will be called with three parameters:
-      * **position**: list of seven floats
-          - x, y, z (OpenGL position)
-          - pitch
-          - heading
-          - roll
-          - zoom
 
-        Update one or more values in the list to change position, and return 1. Zero return indicates
-        you do not want to change position, *and you relinquish control*.
+    * **position**: list of seven floats
+        .. rst-class:: compact
 
-        .. note:: Laminar says *position* list values are undefined on input, so you should call :py:func:`readCameraPosition`
-                  and update the position accordingly. (In practice, it appears *position* is initialized
-                  with the correct information, but this `is not guaranteed`.)
+        - x, y, z (OpenGL position)
+        - pitch
+        - heading
+        - roll
+        - zoom
 
-                  *Do not* create a **new** *position* list, you need to update the container provided, so the
-                  calling function has the same pointer to the data structure:
+      Update one or more values in the list to change position, and return 1. Zero return indicates
+      you do not want to change position, *and you relinquish control*.
 
-                  ::
+      .. note:: Laminar says *position* list values are undefined on input, so you should call :py:func:`readCameraPosition`
+                and update the position accordingly. (In practice, it appears *position* is initialized
+                with the correct information, but this `is not guaranteed`.)
 
-                     # THIS WILL FAIL -- the value for 'position' is changed
-                     def myControlFunc(position, isLosingControl, refCon):
-                         position = xp.readCameraPosition()
-                         position[4] = position[4] + 0.5
-                         ...
+                *Do not* create a **new** *position* list, you need to update the container provided, so the
+                calling function has the same pointer to the data structure:
 
-                     # THIS WORKS -- the value is unchanged, the contents are changed
-                     def myControlFunc(position, isLosingControl, refCon):
-                         position.clear()
-                         position.extend(xp.readCameraPosition())
-                         position[4] = position[4] + 0.5
-                         ...
+                ::
 
-      * **isLosingControl**:
-          - 1 if you are losing control, 0 otherwise
-      * **refCon**:
-          - reference constant you provided with call to `controlCamera()`
+                   # THIS WILL FAIL -- the value for 'position' is changed
+                   def myControlFunc(position, isLosingControl, refCon):
+                       position = xp.readCameraPosition()
+                       position[4] = position[4] + 0.5
+                       ...
+
+                   # THIS WORKS -- the value is unchanged, the contents are changed
+                   def myControlFunc(position, isLosingControl, refCon):
+                       position.clear()
+                       position.extend(xp.readCameraPosition())
+                       position[4] = position[4] + 0.5
+                       ...
+
+    * **isLosingControl**:
+        - 1 if you are losing control, 0 otherwise
+    * **refCon**:
+        - reference constant you provided with call to `controlCamera()`
 
     The final *refCon* is a reference constant passed to your *controlFunc()*. :py:func:`controlCamera` requires only the *controlFunc* parameter.
     ::
@@ -120,9 +125,7 @@ Functions
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMCamera/#XPLMControlCamera>`__: :index:`XPLMControlCamera`
 
-.. py:function:: dontControlCamera()
-
-    :return: None
+.. py:function:: dontControlCamera() -> None
 
     Releases control of camera. (See :py:func:`controlCamera`). You should not use this routine unless
     you have possession of the camera. (See :py:func:`isCameraBeingControlled`).
@@ -132,7 +135,7 @@ Functions
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMCamera/#XPLMDontControlCamera>`__: :index:`XPLMDontControlCamera`
 
-.. py:function:: isCameraBeingControlled()
+.. py:function:: isCameraBeingControlled() -> Tuple[int, int]
                  
     :return: Tuple [isBeingControlled: int, howLong: int]
 
@@ -159,7 +162,7 @@ Functions
     
     `Official SDK <https://developer.x-plane.com/sdk/XPLMCamera/#XPLMIsCameraBeingControlled>`__: :index:`XPLMIsCameraBeingControlled`
 
-.. py:function:: readCameraPosition()
+.. py:function:: readCameraPosition() -> Tuple[float, ...]
                  
    :return: Tuple of seven floats
 
@@ -197,19 +200,19 @@ You can relinquish control by calling :py:func:`dontControlCamera` or returning
 zero from your :py:func:`controlCamera` callback function.
     
 
-    .. py:data:: ControlCameraUntilViewChanges
-        :value: 1
-    
-        Camera is controlled until the view changes (e.g., user requests "External View" from X-Plane menu.)
+  .. py:data:: ControlCameraUntilViewChanges
+      :value: 1
+  
+      Camera is controlled until the view changes (e.g., user requests "External View" from X-Plane menu.)
 
-        `Official SDK <https://developer.x-plane.com/sdk/XPLMCamera/#xplm_ControlCameraUntilViewChanges>`__: :index:`xplm_ControlCameraUntilViewChanges`
-    
-    .. py:data:: ControlCameraForever
-        :value: 2
-    
-        Camera is controlled forever.
+      `Official SDK <https://developer.x-plane.com/sdk/XPLMCamera/#xplm_ControlCameraUntilViewChanges>`__: :index:`xplm_ControlCameraUntilViewChanges`
+  
+  .. py:data:: ControlCameraForever
+      :value: 2
+  
+      Camera is controlled forever.
 
-        `Official SDK <https://developer.x-plane.com/sdk/XPLMCamera/#xplm_ControlCameraForever>`__: :index:`xplm_ControlCameraForever`
+      `Official SDK <https://developer.x-plane.com/sdk/XPLMCamera/#xplm_ControlCameraForever>`__: :index:`xplm_ControlCameraForever`
     
 Example
 -------

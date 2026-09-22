@@ -47,7 +47,7 @@ Custom cursors can be set (:py:func:`setCursor`)  in only a few very-specific ca
 Functions
 ---------
 
-.. py:function:: loadCursor(name)
+.. py:function:: loadCursor(name) -> int
 
     Loads a custom cursor from a file using the provided name and
     a platform-specific filename extension.
@@ -55,7 +55,6 @@ Functions
     :param name: Cursor name (path relative to X-Plane root, without extension)
     :type name: str
     :return: Cursor ID for use with setCursor and unloadCursor
-    :rtype: int
     :raises: Exception if file cannot be read or has incorrect format
 
     The file to be loaded will be `<name>.png` for Linux and Mac; `<name>.cur` for Windows.
@@ -70,26 +69,24 @@ Functions
         You don't need to (i.e., you should not) load any of the pre-defined cursors listed below
         as that is just a waste of space.
 
-.. py:function:: unloadCursor(cursor_id)
+.. py:function:: unloadCursor(cursor_id) -> None
 
     Unloads image data related to the given cursor ID.
 
     :param cursor_id: Cursor ID returned by loadCursor
     :type cursor_id: int
-    :return: None
 
     ::
 
       >>> xp.unloadCursor(18)
 
-.. py:function:: setCursor(cursor_id)
-
-    Temporarily replaces system cursor with the given custom cursor.
+.. py:function:: setCursor(cursor_id) -> None
 
     :param cursor_id: Cursor ID from loadCursor or preloaded cursor ID
     :type cursor_id: int
-    :return: None
     :raises: Exception if cursor_id is not a known cursor
+
+    Temporarily replaces system cursor with the given custom cursor.
 
     **For X-Plane windows** (i.e., created with :py:func:`xp.createWindowEx`), you should
     define a `cursor` callback, and within that callback, call :py:func:`setCursor`

@@ -10,7 +10,7 @@ To use::
 Functions
 ---------
 
-.. py:function:: drawWindow(left, bottom, right, top, style=1)
+.. py:function:: drawWindow(left, bottom, right, top, style=1) -> None
 
  :param int left:
  :param int bottom:
@@ -43,7 +43,7 @@ Functions
  
  `Official SDK <https://developer.x-plane.com/sdk/XPUIGraphics/#XPDrawWindow>`__ :index:`XPDrawWindow`
  
-.. py:function:: getWindowDefaultDimensions(style)
+.. py:function:: getWindowDefaultDimensions(style) -> Tuple[int, int]
 
  :param int style: :ref:`XPWindowStyle`
  :return: Tuple (width: int, height: int)
@@ -60,7 +60,7 @@ Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPUIGraphics/#XPGetWindowDefaultDimensions>`__ :index:`XPGetWindowDefaultDimensions`
  
-.. py:function:: drawElement(left, bottom, right, top, style, lit=0)
+.. py:function:: drawElement(left, bottom, right, top, style, lit=0) -> None
 
  :param int left:
  :param int bottom:
@@ -96,7 +96,7 @@ Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPUIGraphics/#XPDrawElement>`__ :index:`XPDrawElement`
  
-.. py:function:: getElementDefaultDimensions(style)
+.. py:function:: getElementDefaultDimensions(style) -> Tuple[int, int, int]
 
  :param XPElementStyle style: :ref:`XPElementStyle`
  :return: Tuple[width: int, height: int, canBeLit: int]                             
@@ -147,7 +147,7 @@ Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPUIGraphics/#XPDrawTrack>`__ :index:`XPDrawTrack`
 
-.. py:function:: getTrackDefaultDimensions(style)
+.. py:function:: getTrackDefaultDimensions(style) -> Tuple[int, int]
 
  :param style: :ref:`XPTrackStyle`
  :return: Tuple[width: int, canBeLit: int]
@@ -162,7 +162,7 @@ Functions
  
  `Official SDK <https://developer.x-plane.com/sdk/XPUIGraphics/#XPGetTrackDefaultDimensions>`__ :index:`XPGetTrackDefaultDimensions`
 
-.. py:function:: getTrackMetrics(left, bottom, right, top, minValue, maxValue, value, style)
+.. py:function:: getTrackMetrics(left, bottom, right, top, minValue, maxValue, value, style) -> TrackMetrics
 
  :param int left:
  :param int bottom:
@@ -172,7 +172,7 @@ Functions
  :param int maxValue: range of the track
  :param int value: placement of thumb
  :param style: :ref:`XPTrackStyle`
- :return: TrackMetrics instance              
+ :return: :class:`TrackMetrics`
 
  Returns a structure with metrics for the given track.
  If you want to write UI code
@@ -181,14 +181,8 @@ Functions
  in is enough information. However, the track drawing routine does some
  automatic placement; this routine lets you know where things ended up. You
  pass almost everything you would pass to the draw routine. You get out the
- orientation, and other useful stuff as an object with the following attributes:
-
-   | .isVertical: 1= true
-   | .downBtnSize: int       
-   | .downPageSize: int       
-   | .thumbSize: int
-   | .upPageSize: int
-   | .upBtnSize: int
+ orientation, and other useful stuff as a :class:`TrackMetrics` instance: see that
+ type for the full set of attributes.
 
  Besides orientation, you get five dimensions for the five parts of a
  scrollbar, which are the down button, down area (area before the thumb),
@@ -216,6 +210,8 @@ Constants
 
 XPWindowStyle
 *************
+
+.. py:type:: XPWindowStyle
 
 There are a few built-in window styles in X-Plane that you can use.
 
@@ -261,6 +257,8 @@ There are a few built-in window styles in X-Plane that you can use.
 
 XPElementStyle
 **************
+
+.. py:type:: XPElementStyle
 
 Elements are individually drawable UI things like push buttons, etc. The
 style defines what kind of element you are drawing. Elements can be
@@ -322,6 +320,8 @@ elements can be lit.
 XPTrackStyle
 ************
 
+.. py:type:: XPTrackStyle
+
 A track is a UI element that displays a value vertically or horizontally.
 X-Plane has three kinds of tracks: scroll bars, sliders, and progress bars.
 Tracks can be displayed either horizontally or vertically; tracks will
@@ -361,9 +361,41 @@ choose their own layout based on the larger dimension of their dimensions
 |is going.                                                       |                                               |                                               |
 |                                                                |                                               |                                               |
 +----------------------------------------------------------------+-----------------------------------------------+-----------------------------------------------+
- 
 
- 
+Types
+-----
 
+.. py:class:: TrackMetrics
 
+    Metrics for a track (scrollbar or slider), as returned by :func:`getTrackMetrics`.
+    Not instantiated directly.
 
+    .. py:attribute:: isVertical
+        :type: int
+
+        1= vertically aligned, horizontal otherwise
+
+    .. py:attribute:: downBtnSize
+        :type: int
+
+        Down (or left) button size (pixels)
+
+    .. py:attribute:: downPageSize
+        :type: int
+
+        Down page size, between button and thumb (pixels)
+
+    .. py:attribute:: thumbSize
+        :type: int
+
+        Size of thumb (pixels)
+
+    .. py:attribute:: upPageSize
+        :type: int
+
+        Up page size, thumb and button (pixels)
+
+    .. py:attribute:: upBtnSize
+        :type: int
+
+        Up (or right) button size (pixels)

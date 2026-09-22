@@ -51,7 +51,7 @@ any problem enabling them yet running X-Plane without a network connection.
 
 .. note:: Information is stored anonymously on secure servers physically in the United States,
   and is accessible *only* by me. I don't have, nor do I care to have, your name, email, phone
-  number or pet's name. Other than what is viewable by the above graphs,
+  number or pet's name. Other than what is viewable by the `usage graphs <https://maps.avnwx.com/x-plane/stats>`_,
   no information is sold or shared with anyone else.
 
 When we say the data is collected "anonymously", here's what we mean. As with *every*

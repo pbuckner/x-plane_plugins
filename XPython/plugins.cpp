@@ -183,28 +183,26 @@ My_DOCSTR(_reloadThisPlugin__doc__, "reloadThisPlugin",
           "forReplacement=0",
           "forReplacement:int=0",
           "None",
-          "Reload *this* (the calling) plugin.\n"
+          "Do not use.\n"
           "\n"
-          "Once you return from the current callback, this plugin receives its\n"
-          "XPluginDisable / XPluginStop callbacks, is unloaded, then started again\n"
-          "as if the sim were starting up. If 'forReplacement' is true, a dialog is\n"
-          "shown after the .xpl is unloaded so you can swap in a newer one manually.\n"
+          "The X-Plane 'XPLMReloadThisPlugin' does not work to reload 'XPPython'\n"
+          "You should execute the XPPython3 built-in command 'XPPython3/reloadScripts'\n"
+          "to reload python scripts."
           "\n"
           "New in XPLM440. NOT thread-safe: call only from the main thread, in a callback.");
 static PyObject *XPLMReloadThisPluginFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {CHAR("forReplacement"), nullptr};
   (void) self;
-  int forReplacement = 0;
+  (void) args;
+  (void) kwargs;
+  // static char *keywords[] = {CHAR("forReplacement"), nullptr};
+  // int forReplacement = 0;
   if(!XPLMReloadThisPlugin_ptr){
     PyErr_SetString(PyExc_RuntimeError, "XPLMReloadThisPlugin is available only in XPLM440 and up.");
     return nullptr;
   }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", keywords, &forReplacement)){
-    return nullptr;
-  }
-  XPLMReloadThisPlugin_ptr(forReplacement);
-  Py_RETURN_NONE;
+  PyErr_SetString(PyExc_RuntimeError, "XPLMReloadThisPlugin is not supported. Use command 'XPPython3/reloadScripts'");
+  return nullptr;
 }
 
 My_DOCSTR(_sendMessageToPlugin__doc__, "sendMessageToPlugin",
@@ -502,6 +500,13 @@ PyInit_XPLMPlugin(void)
     PyModule_AddIntConstant(mod, "MsgFmodBankUnloading", -1);
     PyModule_AddIntConstant(mod, "MsgDatarefsAdded", -1);
 #endif
+#if defined(XPLM430)
+    PyModule_AddIntConstant(mod, "MSG_WEATHER_DELIVERED", XPLM_MSG_WEATHER_DELIVERED);
+    PyModule_AddIntConstant(mod, "MsgWeatherDelivered", XPLM_MSG_WEATHER_DELIVERED);
+#else
+    PyModule_AddIntConstant(mod, "MsgWeatherDelivered", -1);
+#endif
+
   }
   return mod;
 }

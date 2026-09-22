@@ -271,14 +271,24 @@ t_fcn_info funcs430[] = {
   {nullptr, nullptr}
 };
 
+typeof(XPLMGetModifierKeys) *XPLMGetModifierKeys_ptr = nullptr;
 typeof(XPLMReturnString) *XPLMReturnString_ptr = nullptr;
 typeof(XPLMWindowSetURL) *XPLMWindowSetURL_ptr = nullptr;
 typeof(XPLMWindowRefresh) *XPLMWindowRefresh_ptr = nullptr;
 typeof(XPLMWindowInjectScript) *XPLMWindowInjectScript_ptr = nullptr;
 typeof(XPLMWindowAddBrowserFunction) *XPLMWindowAddBrowserFunction_ptr = nullptr;
+typeof(XPLMAvionicsSetURL) *XPLMAvionicsSetURL_ptr = nullptr;
+typeof(XPLMAvionicsRefresh) *XPLMAvionicsRefresh_ptr = nullptr;
+typeof(XPLMAvionicsInjectScript) *XPLMAvionicsInjectScript_ptr = nullptr;
+typeof(XPLMAvionicsAddBrowserFunction) *XPLMAvionicsAddBrowserFunction_ptr = nullptr;
+typeof(XPLMSetObjectAvionics) *XPLMSetObjectAvionics_ptr = nullptr;
+typeof(XPLMClearObjectAvionics) *XPLMClearObjectAvionics_ptr = nullptr;
+typeof(XPLMCreateInstanceEx) *XPLMCreateInstanceEx_ptr = nullptr;
+typeof(XPLMInstanceSetCoordinateSpace) *XPLMInstanceSetCoordinateSpace_ptr = nullptr;
 typeof(XPLMIsAvionicsMappedToVR) *XPLMIsAvionicsMappedToVR_ptr = nullptr;
 typeof(XPLMSetAvionicsMappedToVR) *XPLMSetAvionicsMappedToVR_ptr = nullptr;
 typeof(XPLMMakeColor) *XPLMMakeColor_ptr = nullptr;
+typeof(XPLMSetLineCap) *XPLMSetLineCap_ptr = nullptr;
 typeof(XPLMLines) *XPLMLines_ptr = nullptr;
 typeof(XPLMLinesWithWidth) *XPLMLinesWithWidth_ptr = nullptr;
 typeof(XPLMLinesStipple) *XPLMLinesStipple_ptr = nullptr;
@@ -295,13 +305,9 @@ typeof(XPLMLineLoopc) *XPLMLineLoopc_ptr = nullptr;
 typeof(XPLMLineLoopcWithWidth) *XPLMLineLoopcWithWidth_ptr = nullptr;
 typeof(XPLMLineLoopStipple) *XPLMLineLoopStipple_ptr = nullptr;
 typeof(XPLMPolygon) *XPLMPolygon_ptr = nullptr;
-typeof(XPLMPolygonWithWidth) *XPLMPolygonWithWidth_ptr = nullptr;
 typeof(XPLMPolygonc) *XPLMPolygonc_ptr = nullptr;
-typeof(XPLMPolygoncWithWidth) *XPLMPolygoncWithWidth_ptr = nullptr;
 typeof(XPLMQuadstrip) *XPLMQuadstrip_ptr = nullptr;
-typeof(XPLMQuadstripWithWidth) *XPLMQuadstripWithWidth_ptr = nullptr;
 typeof(XPLMQuadstripc) *XPLMQuadstripc_ptr = nullptr;
-typeof(XPLMQuadstripcWithWidth) *XPLMQuadstripcWithWidth_ptr = nullptr;
 typeof(XPLMTransformPush) *XPLMTransformPush_ptr = nullptr;
 typeof(XPLMTransformPop) *XPLMTransformPop_ptr = nullptr;
 typeof(XPLMTransformTranslate) *XPLMTransformTranslate_ptr = nullptr;
@@ -310,7 +316,7 @@ typeof(XPLMTransformScale) *XPLMTransformScale_ptr = nullptr;
 typeof(XPLMScissorPush) *XPLMScissorPush_ptr = nullptr;
 typeof(XPLMScissorPop) *XPLMScissorPop_ptr = nullptr;
 typeof(XPLMScissorSet) *XPLMScissorSet_ptr = nullptr;
-typeof(XPLMScissorShrink) *XPLMScissorShrink_ptr = nullptr;
+typeof(XPLMScissorIntersect) *XPLMScissorIntersect_ptr = nullptr;
 typeof(XPLMBeginSetupStencilMask) *XPLMBeginSetupStencilMask_ptr = nullptr;
 typeof(XPLMEndSetupStencilMask) *XPLMEndSetupStencilMask_ptr = nullptr;
 typeof(XPLMUseStencilMask) *XPLMUseStencilMask_ptr = nullptr;
@@ -336,7 +342,6 @@ typeof(XPLMTextureAtlasAddImageSet) *XPLMTextureAtlasAddImageSet_ptr = nullptr;
 typeof(XPLMTextureAtlasBake) *XPLMTextureAtlasBake_ptr = nullptr;
 typeof(XPLMTextureAtlasGetImageWidth) *XPLMTextureAtlasGetImageWidth_ptr = nullptr;
 typeof(XPLMTextureAtlasGetImageHeight) *XPLMTextureAtlasGetImageHeight_ptr = nullptr;
-typeof(XPLMTextureAtlasGetImageUVMap) *XPLMTextureAtlasGetImageUVMap_ptr = nullptr;
 typeof(XPLMTextureAtlasDrawAt) *XPLMTextureAtlasDrawAt_ptr = nullptr;
 typeof(XPLMTextureAtlasDrawIn) *XPLMTextureAtlasDrawIn_ptr = nullptr;
 typeof(XPLMTextureAtlasDrawStretched) *XPLMTextureAtlasDrawStretched_ptr = nullptr;
@@ -354,6 +359,11 @@ typeof(XPLMSVTDisplayDrawIn) *XPLMSVTDisplayDrawIn_ptr = nullptr;
 typeof(XPLMCreateMapDisplay) *XPLMCreateMapDisplay_ptr = nullptr;
 typeof(XPLMDestroyMapDisplay) *XPLMDestroyMapDisplay_ptr = nullptr;
 typeof(XPLMMapDisplayDrawIn) *XPLMMapDisplayDrawIn_ptr = nullptr;
+typeof(XPLMMapDisplayProject) *XPLMMapDisplayProject_ptr = nullptr;
+typeof(XPLMMapDisplayUnproject) *XPLMMapDisplayUnproject_ptr = nullptr;
+typeof(XPLMMapDisplayScaleMeter) *XPLMMapDisplayScaleMeter_ptr = nullptr;
+typeof(XPLMMapDisplayGetNorthHeading) *XPLMMapDisplayGetNorthHeading_ptr = nullptr;
+typeof(XPLMMapDisplayGetTerrainAltitudes) *XPLMMapDisplayGetTerrainAltitudes_ptr = nullptr;
 typeof(XPLMCreateTexture) *XPLMCreateTexture_ptr = nullptr;
 typeof(XPLMDestroyTexture) *XPLMDestroyTexture_ptr = nullptr;
 typeof(XPLMDrawCalls) *XPLMDrawCalls_ptr = nullptr;
@@ -362,14 +372,24 @@ typeof(XPLMAvionicsSetTouchEventHandler) *XPLMAvionicsSetTouchEventHandler_ptr =
 typeof(XPLMWindowSetTouchEventHandler) *XPLMWindowSetTouchEventHandler_ptr = nullptr;
 typeof(XPLMReloadThisPlugin) *XPLMReloadThisPlugin_ptr = nullptr;
 t_fcn_info funcs440[] = {
+  {"XPLMGetModifierKeys", (void **) &XPLMGetModifierKeys_ptr},
   {"XPLMReturnString", (void **) &XPLMReturnString_ptr},
   {"XPLMWindowSetURL", (void **) &XPLMWindowSetURL_ptr},
   {"XPLMWindowRefresh", (void **) &XPLMWindowRefresh_ptr},
   {"XPLMWindowInjectScript", (void **) &XPLMWindowInjectScript_ptr},
   {"XPLMWindowAddBrowserFunction", (void **) &XPLMWindowAddBrowserFunction_ptr},
+  {"XPLMAvionicsSetURL", (void **) &XPLMAvionicsSetURL_ptr},
+  {"XPLMAvionicsRefresh", (void **) &XPLMAvionicsRefresh_ptr},
+  {"XPLMAvionicsInjectScript", (void **) &XPLMAvionicsInjectScript_ptr},
+  {"XPLMAvionicsAddBrowserFunction", (void **) &XPLMAvionicsAddBrowserFunction_ptr},
+  {"XPLMSetObjectAvionics", (void **) &XPLMSetObjectAvionics_ptr},
+  {"XPLMClearObjectAvionics", (void **) &XPLMClearObjectAvionics_ptr},
+  {"XPLMCreateInstanceEx", (void **) &XPLMCreateInstanceEx_ptr},
+  {"XPLMInstanceSetCoordinateSpace", (void **) &XPLMInstanceSetCoordinateSpace_ptr},
   {"XPLMIsAvionicsMappedToVR", (void **) &XPLMIsAvionicsMappedToVR_ptr},
   {"XPLMSetAvionicsMappedToVR", (void **) &XPLMSetAvionicsMappedToVR_ptr},
   {"XPLMMakeColor", (void **) &XPLMMakeColor_ptr},
+  {"XPLMSetLineCap", (void **) &XPLMSetLineCap_ptr},
   {"XPLMLines", (void **) &XPLMLines_ptr},
   {"XPLMLinesWithWidth", (void **) &XPLMLinesWithWidth_ptr},
   {"XPLMLinesStipple", (void **) &XPLMLinesStipple_ptr},
@@ -386,13 +406,9 @@ t_fcn_info funcs440[] = {
   {"XPLMLineLoopcWithWidth", (void **) &XPLMLineLoopcWithWidth_ptr},
   {"XPLMLineLoopStipple", (void **) &XPLMLineLoopStipple_ptr},
   {"XPLMPolygon", (void **) &XPLMPolygon_ptr},
-  {"XPLMPolygonWithWidth", (void **) &XPLMPolygonWithWidth_ptr},
   {"XPLMPolygonc", (void **) &XPLMPolygonc_ptr},
-  {"XPLMPolygoncWithWidth", (void **) &XPLMPolygoncWithWidth_ptr},
   {"XPLMQuadstrip", (void **) &XPLMQuadstrip_ptr},
-  {"XPLMQuadstripWithWidth", (void **) &XPLMQuadstripWithWidth_ptr},
   {"XPLMQuadstripc", (void **) &XPLMQuadstripc_ptr},
-  {"XPLMQuadstripcWithWidth", (void **) &XPLMQuadstripcWithWidth_ptr},
   {"XPLMTransformPush", (void **) &XPLMTransformPush_ptr},
   {"XPLMTransformPop", (void **) &XPLMTransformPop_ptr},
   {"XPLMTransformTranslate", (void **) &XPLMTransformTranslate_ptr},
@@ -401,7 +417,7 @@ t_fcn_info funcs440[] = {
   {"XPLMScissorPush", (void **) &XPLMScissorPush_ptr},
   {"XPLMScissorPop", (void **) &XPLMScissorPop_ptr},
   {"XPLMScissorSet", (void **) &XPLMScissorSet_ptr},
-  {"XPLMScissorShrink", (void **) &XPLMScissorShrink_ptr},
+  {"XPLMScissorIntersect", (void **) &XPLMScissorIntersect_ptr},
   {"XPLMBeginSetupStencilMask", (void **) &XPLMBeginSetupStencilMask_ptr},
   {"XPLMEndSetupStencilMask", (void **) &XPLMEndSetupStencilMask_ptr},
   {"XPLMUseStencilMask", (void **) &XPLMUseStencilMask_ptr},
@@ -427,7 +443,6 @@ t_fcn_info funcs440[] = {
   {"XPLMTextureAtlasBake", (void **) &XPLMTextureAtlasBake_ptr},
   {"XPLMTextureAtlasGetImageWidth", (void **) &XPLMTextureAtlasGetImageWidth_ptr},
   {"XPLMTextureAtlasGetImageHeight", (void **) &XPLMTextureAtlasGetImageHeight_ptr},
-  {"XPLMTextureAtlasGetImageUVMap", (void **) &XPLMTextureAtlasGetImageUVMap_ptr},
   {"XPLMTextureAtlasDrawAt", (void **) &XPLMTextureAtlasDrawAt_ptr},
   {"XPLMTextureAtlasDrawIn", (void **) &XPLMTextureAtlasDrawIn_ptr},
   {"XPLMTextureAtlasDrawStretched", (void **) &XPLMTextureAtlasDrawStretched_ptr},
@@ -445,6 +460,11 @@ t_fcn_info funcs440[] = {
   {"XPLMCreateMapDisplay", (void **) &XPLMCreateMapDisplay_ptr},
   {"XPLMDestroyMapDisplay", (void **) &XPLMDestroyMapDisplay_ptr},
   {"XPLMMapDisplayDrawIn", (void **) &XPLMMapDisplayDrawIn_ptr},
+  {"XPLMMapDisplayProject", (void **) &XPLMMapDisplayProject_ptr},
+  {"XPLMMapDisplayUnproject", (void **) &XPLMMapDisplayUnproject_ptr},
+  {"XPLMMapDisplayScaleMeter", (void **) &XPLMMapDisplayScaleMeter_ptr},
+  {"XPLMMapDisplayGetNorthHeading", (void **) &XPLMMapDisplayGetNorthHeading_ptr},
+  {"XPLMMapDisplayGetTerrainAltitudes", (void **) &XPLMMapDisplayGetTerrainAltitudes_ptr},
   {"XPLMCreateTexture", (void **) &XPLMCreateTexture_ptr},
   {"XPLMDestroyTexture", (void **) &XPLMDestroyTexture_ptr},
   {"XPLMDrawCalls", (void **) &XPLMDrawCalls_ptr},
@@ -488,7 +508,7 @@ bool loadSDKFunctions(void)
   }
 
   bool res = true;
-  if(xplm_ver >= 440 || xp_ver >= 12440) res &= loadFunctions(funcs440, handle);
+  if(xplm_ver >= 440) res &= loadFunctions(funcs440, handle);
   if(xplm_ver >= 430 || xp_ver >= 12400) res &= loadFunctions(funcs430, handle);
   if(xplm_ver >= 420) res &= loadFunctions(funcs420, handle);
   if(xplm_ver >= 410) res &= loadFunctions(funcs410, handle);

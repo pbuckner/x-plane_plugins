@@ -1,6 +1,7 @@
-from dataclasses import dataclass
-from typing import Any, Callable, Generic, Optional, Type, TypeVar, NewType, Literal, Sequence
-from XPPython3.xp_typing import *
+# pylint: disable=unused-argument
+# (a stub's parameters are never used -- there is no body)
+from typing import Any
+from XPPython3.xp_typing import XPDispatchMode, XPWidgetMessage, XPWidgetPropertyID
 Property_Refcon: XPWidgetPropertyID
 Property_Dragging: XPWidgetPropertyID
 Property_DragXOff: XPWidgetPropertyID
@@ -11,7 +12,7 @@ Property_Clip: XPWidgetPropertyID
 Property_Enabled: XPWidgetPropertyID
 Property_UserStart: XPWidgetPropertyID
 Mode_Direct: XPDispatchMode
-Mode_UpChain: XPDispatchMode
+Mode_UpChain: XPDispatchMode = XPDispatchMode(1)
 Mode_Recursive: XPDispatchMode
 Mode_DirectAllCallbacks: XPDispatchMode
 Mode_Once: XPDispatchMode
@@ -39,3 +40,21 @@ Msg_PropertyChanged: XPWidgetMessage
 Msg_MouseWheel: XPWidgetMessage
 Msg_CursorAdjust: XPWidgetMessage
 Msg_UserStart: XPWidgetMessage
+
+
+def PI_GetMouseState(param: Any) -> Any:
+    """
+    Python2 backward compatibility only: returns its argument unchanged.
+
+    Not required for XPPython3 -- widget callbacks already receive mouse state.
+    """
+    ...
+
+
+def PI_GetKeyState(param: Any) -> Any:
+    """
+    Python2 backward compatibility only: returns its argument unchanged.
+
+    Not required for XPPython3 -- widget callbacks already receive key state.
+    """
+    ...

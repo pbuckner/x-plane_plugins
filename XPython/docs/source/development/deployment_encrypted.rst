@@ -360,3 +360,10 @@ Alternative Execution Startup
          If it's non-commercial, and the reason you're doing this is simply to obfuscate code, *include the key in your code*.
          We'll decrypt the file on the fly, but never re-create the source code: Your plugin will be usable, though unreadable,
          without needing to distribute the key out-of-band.
+
+
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+
+   xpyce_compile

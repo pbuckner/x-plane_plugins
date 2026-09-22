@@ -96,7 +96,7 @@ static XPLMVertexColor_t *parseVertexColors(PyObject *verticesObj, Py_ssize_t *o
 }
 
 My_DOCSTR(_makeColor__doc__, "makeColor",
-          "red, green, blue, alpha",
+          "red=1, green=1, blue=1, alpha=1",
           "red:float, green:float, blue:float, alpha:float",
           "int",
           "Pack four float color components (each 0.0-1.0, clamped) into a single\n"
@@ -105,15 +105,42 @@ static PyObject *XPLMMakeColorFun(PyObject *self, PyObject *args, PyObject *kwar
 {
   static char *keywords[] = {CHAR("red"), CHAR("green"), CHAR("blue"), CHAR("alpha"), nullptr};
   (void) self;
-  float red, green, blue, alpha;
+  float red=1.0, green=1.0, blue=1.0, alpha=1.0;
   if(!XPLMMakeColor_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMMakeColor is available only in XPLM440 and up.");
     return nullptr;
   }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ffff", keywords, &red, &green, &blue, &alpha)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|ffff", keywords, &red, &green, &blue, &alpha)){
     return nullptr;
   }
   return PyLong_FromUnsignedLong(XPLMMakeColor_ptr(red, green, blue, alpha));
+}
+
+My_DOCSTR(_setLineCap__doc__, "setLineCap",
+          "lineCap=LineCapButt",
+          "lineCap:int",
+          "None",
+          "Set how subsequent lines are capped at their start and end points.\n"
+          "\n"
+          "lineCap is LineCapButt (straight edge at the endpoint), LineCapRound\n"
+          "(half circle centered on the endpoint), or LineCapSquare (half square\n"
+          "centered on the endpoint). Called with no argument, it restores the\n"
+          "default LineCapButt, which is also in effect at the start of each\n"
+          "drawing callback.");
+static PyObject *XPLMSetLineCapFun(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {CHAR("lineCap"), nullptr};
+  (void) self;
+  int lineCap = xplm_LineCapButt;
+  if(!XPLMSetLineCap_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMSetLineCap is available only in XPLM440 and up.");
+    return nullptr;
+  }
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", keywords, &lineCap)){
+    return nullptr;
+  }
+  XPLMSetLineCap_ptr(lineCap);
+  Py_RETURN_NONE;
 }
 
 /* ---- Geometry primitives taking (color, vertices) ---- */
@@ -318,35 +345,6 @@ static PyObject *XPLMPolygonFun(PyObject *self, PyObject *args, PyObject *kwargs
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_polygonWithWidth__doc__, "polygonWithWidth",
-          "color, lineWidth, vertices",
-          "color:int, lineWidth:float, vertices:Sequence[tuple[float, float]]",
-          "None",
-          "Draw a filled convex polygon with the given outline width.");
-static PyObject *XPLMPolygonWithWidthFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("color"), CHAR("lineWidth"), CHAR("vertices"), nullptr};
-  (void) self;
-  unsigned long color;
-  float lineWidth;
-  PyObject *verticesObj;
-  if(!XPLMPolygonWithWidth_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMPolygonWithWidth is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "kfO", keywords, &color, &lineWidth, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertex_t *v = parseVertices(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMPolygonWithWidth_ptr((uint32_t)color, lineWidth, v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
 My_DOCSTR(_quadstrip__doc__, "quadstrip",
           "color, vertices",
           "color:int, vertices:Sequence[tuple[float, float]]",
@@ -371,35 +369,6 @@ static PyObject *XPLMQuadstripFun(PyObject *self, PyObject *args, PyObject *kwar
     return nullptr;
   }
   XPLMQuadstrip_ptr((uint32_t)color, v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_quadstripWithWidth__doc__, "quadstripWithWidth",
-          "color, lineWidth, vertices",
-          "color:int, lineWidth:float, vertices:Sequence[tuple[float, float]]",
-          "None",
-          "Draw a quad strip with the given outline width.");
-static PyObject *XPLMQuadstripWithWidthFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("color"), CHAR("lineWidth"), CHAR("vertices"), nullptr};
-  (void) self;
-  unsigned long color;
-  float lineWidth;
-  PyObject *verticesObj;
-  if(!XPLMQuadstripWithWidth_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMQuadstripWithWidth is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "kfO", keywords, &color, &lineWidth, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertex_t *v = parseVertices(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMQuadstripWithWidth_ptr((uint32_t)color, lineWidth, v, (int)count);
   free(v);
   Py_RETURN_NONE;
 }
@@ -716,67 +685,13 @@ static PyObject *XPLMLineLoopcWithWidthFun(PyObject *self, PyObject *args, PyObj
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_polygoncWithWidth__doc__, "polygoncWithWidth",
-          "lineWidth, vertices",
-          "lineWidth:float, vertices:Sequence[tuple[float, float, int]]",
-          "None",
-          "Draw a filled convex polygon with per-vertex colors and outline width.");
-static PyObject *XPLMPolygoncWithWidthFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("lineWidth"), CHAR("vertices"), nullptr};
-  (void) self;
-  float lineWidth;
-  PyObject *verticesObj;
-  if(!XPLMPolygoncWithWidth_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMPolygoncWithWidth is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "fO", keywords, &lineWidth, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertexColor_t *v = parseVertexColors(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMPolygoncWithWidth_ptr(lineWidth, v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
-My_DOCSTR(_quadstripcWithWidth__doc__, "quadstripcWithWidth",
-          "lineWidth, vertices",
-          "lineWidth:float, vertices:Sequence[tuple[float, float, int]]",
-          "None",
-          "Draw a quad strip with per-vertex colors and outline width.");
-static PyObject *XPLMQuadstripcWithWidthFun(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-  static char *keywords[] = {CHAR("lineWidth"), CHAR("vertices"), nullptr};
-  (void) self;
-  float lineWidth;
-  PyObject *verticesObj;
-  if(!XPLMQuadstripcWithWidth_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMQuadstripcWithWidth is available only in XPLM440 and up.");
-    return nullptr;
-  }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "fO", keywords, &lineWidth, &verticesObj)){
-    return nullptr;
-  }
-  Py_ssize_t count;
-  XPLMVertexColor_t *v = parseVertexColors(verticesObj, &count);
-  if(!v){
-    return nullptr;
-  }
-  XPLMQuadstripcWithWidth_ptr(lineWidth, v, (int)count);
-  free(v);
-  Py_RETURN_NONE;
-}
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-function-type"
 PyMethodDef panelGraphicsPrimitivesMethods[] = {
   {"makeColor", (PyCFunction)XPLMMakeColorFun, METH_VARARGS | METH_KEYWORDS, _makeColor__doc__},
   {"XPLMMakeColor", (PyCFunction)XPLMMakeColorFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"setLineCap", (PyCFunction)XPLMSetLineCapFun, METH_VARARGS | METH_KEYWORDS, _setLineCap__doc__},
+  {"XPLMSetLineCap", (PyCFunction)XPLMSetLineCapFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"lines", (PyCFunction)XPLMLinesFun, METH_VARARGS | METH_KEYWORDS, _lines__doc__},
   {"XPLMLines", (PyCFunction)XPLMLinesFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"linesWithWidth", (PyCFunction)XPLMLinesWithWidthFun, METH_VARARGS | METH_KEYWORDS, _linesWithWidth__doc__},
@@ -809,20 +724,12 @@ PyMethodDef panelGraphicsPrimitivesMethods[] = {
   {"XPLMLineLoopStipple", (PyCFunction)XPLMLineLoopStippleFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"polygon", (PyCFunction)XPLMPolygonFun, METH_VARARGS | METH_KEYWORDS, _polygon__doc__},
   {"XPLMPolygon", (PyCFunction)XPLMPolygonFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"polygonWithWidth", (PyCFunction)XPLMPolygonWithWidthFun, METH_VARARGS | METH_KEYWORDS, _polygonWithWidth__doc__},
-  {"XPLMPolygonWithWidth", (PyCFunction)XPLMPolygonWithWidthFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"polygonc", (PyCFunction)XPLMPolygoncFun, METH_VARARGS | METH_KEYWORDS, _polygonc__doc__},
   {"XPLMPolygonc", (PyCFunction)XPLMPolygoncFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"polygoncWithWidth", (PyCFunction)XPLMPolygoncWithWidthFun, METH_VARARGS | METH_KEYWORDS, _polygoncWithWidth__doc__},
-  {"XPLMPolygoncWithWidth", (PyCFunction)XPLMPolygoncWithWidthFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"quadstrip", (PyCFunction)XPLMQuadstripFun, METH_VARARGS | METH_KEYWORDS, _quadstrip__doc__},
   {"XPLMQuadstrip", (PyCFunction)XPLMQuadstripFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"quadstripWithWidth", (PyCFunction)XPLMQuadstripWithWidthFun, METH_VARARGS | METH_KEYWORDS, _quadstripWithWidth__doc__},
-  {"XPLMQuadstripWithWidth", (PyCFunction)XPLMQuadstripWithWidthFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"quadstripc", (PyCFunction)XPLMQuadstripcFun, METH_VARARGS | METH_KEYWORDS, _quadstripc__doc__},
   {"XPLMQuadstripc", (PyCFunction)XPLMQuadstripcFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"quadstripcWithWidth", (PyCFunction)XPLMQuadstripcWithWidthFun, METH_VARARGS | METH_KEYWORDS, _quadstripcWithWidth__doc__},
-  {"XPLMQuadstripcWithWidth", (PyCFunction)XPLMQuadstripcWithWidthFun, METH_VARARGS | METH_KEYWORDS, ""},
   {nullptr, nullptr, 0, nullptr}
 };
 #pragma GCC diagnostic pop

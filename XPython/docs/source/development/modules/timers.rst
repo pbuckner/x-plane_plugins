@@ -42,6 +42,8 @@ will be available within you callback. For example::
 
 To start a timer, use:
 
+.. rst-class:: compact
+               
 * :py:func:`run_after_time`: execute callback once after a delay
 
 * :py:func:`run_at_interval`: execute callback repeatedly, at given interval
@@ -62,14 +64,16 @@ or dataref ``sim/time/sim_speed``). Change in ground-speed multiplier does `not`
 execution.
 
 
+.. index:: Timers, Tasks; Timers
+.. _task-timers:
+
 Functions
 ---------
 
-.. py:function:: run_after_time(func, delay)
+.. py:function:: run_after_time(func, delay) -> None
 
   :param func Callable: function to be run
   :param delay float: Number of seconds to wait prior to execution. Run *once*.
-  :return: None                   
 
   Run function once after `delay` seconds. This does not return any value.
   You can stop this timer prior to execution if required by passing the same
@@ -87,11 +91,10 @@ Functions
   
   This is implemented as ``run_timer(func, delay, 0)``.
 
-.. py:function:: run_at_interval(func, interval)
+.. py:function:: run_at_interval(func, interval) -> None
 
   :param func Callable: function to be run
   :param interval float: Number of seconds to wait prior to execution, and repeat at interval.
-  :return: None                   
 
   Run function until stopped, after each ``interval`` seconds. The
   `first` execution of the call back is `after` the initial interval.
@@ -111,12 +114,11 @@ Functions
 
   This is implemented as ``run_timer(func, interval, interval)``.
 
-.. py:function:: run_timer(func, delay, interval)
+.. py:function:: run_timer(func, delay, interval) -> None
 
   :param func Callable: function to be run
   :param delay float: Number of seconds to wait prior to first execution.
   :param interval float: Number of seconds, after `delay`, to repeat at interval.
-  :return: None                   
 
   Run function until stopped. First execution is after ``delay`` seconds
   (which may be 0), and each subsequent execution is after ``interval``
@@ -130,7 +132,7 @@ Functions
     True
     >>> stop_timer(func)
   
-.. py:function:: is_timer_scheduled(func)
+.. py:function:: is_timer_scheduled(func) -> bool
 
   :param func Callable: function to stop
   :return: Boolean, True if given callback function is scheduled.
@@ -140,9 +142,8 @@ Functions
   If timer has already executed (and is not repeating),
   stopped, or never scheduled, returns False.
 
-.. py:function:: stop_timer(func)  
+.. py:function:: stop_timer(func) -> None
 
   :param func Callable: function to stop
-  :return: None                   
  
   Stops timer with given callback. No error if timer is not found.

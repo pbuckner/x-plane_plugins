@@ -65,12 +65,12 @@ This is all required:
    * Your ``PythonInterface`` can inherit from other classes.
    * BUT, you must have exactly one ``class PythonInterface``. That's how we get the plugin's entry point.
 
-#. You **must** have two named methods: ``XPluginStart()`` and ``XPluginEnable()``
+#. Your PythonInterface class **must** have two named methods: ``XPluginStart()`` and ``XPluginEnable()``
 
    * You can have other methods also.
    * The required methods could be imported from another class.
    * Order of methods are not important.
-   * BUT, they all must exist. X-Plane will invoke your methods directly, calling your ``PI_avDD3.PythonInterface().XPluginStart()`` when
+   * BUT, Start and Enable must exist. X-Plane will invoke your methods directly, calling your ``PI_avDD3.PythonInterface().XPluginStart()`` when
      it is ready to start your plugin, so that had better exist.
 
 #. Your ``XPPluginStart`` **must** return three strings, in this order:
@@ -89,6 +89,8 @@ This is all required:
    * These are not required, and their absence is handled with a sane default.
    * If included, the need to have the correct signature with the correct return value.
    * See :ref:`Inter-plugin Messaging` for more information about ``XPluginReceiveMessage()``.
+   * It's python, of course you can have additional methods, but only the five **XPlugin** methods will be called
+     by X-Plane to start and stop your plugin.
 
 #. Your ``XPluginEnable`` **should** return ``1``.
 

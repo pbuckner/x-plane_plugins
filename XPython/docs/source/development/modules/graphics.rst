@@ -38,7 +38,7 @@ planet.
 
 These functions are divided into three sections:
 
-* :ref:`opengl-functions`\: Allowing you to set up and manage OpenGL state.
+* :ref:`opengl-functions`\: Allowing you to set up and manage OpenGL state. (Do not use these with :doc:`panelgraphics`.)
 
    | :py:func:`setGraphicsState`,
    | :py:func:`bindTexture2d`,
@@ -49,7 +49,7 @@ These functions are divided into three sections:
    | :py:func:`worldToLocal`,
    | :py:func:`localToWorld`
 
-* :ref:`basic_draw`\: Allowing you to do basic drawing, without knowing OpenGL.
+* :ref:`basic_draw`\: Allowing you to do basic drawing, without knowing OpenGL. (Do not use these with :doc:`panelgraphics`.)
 
    | :py:func:`drawTranslucentDarkBox`,
    | :py:func:`drawString`,
@@ -62,7 +62,7 @@ These functions are divided into three sections:
 OpenGL Functions
 ----------------
 
-.. py:function:: setGraphicsState(fog=0, numberTexUnits=0, lighting=0, alphaTesting=0, alphaBlending=0, depthTesting=0, depthWriting=0)
+.. py:function:: setGraphicsState(fog=0, numberTexUnits=0, lighting=0, alphaTesting=0, alphaBlending=0, depthTesting=0, depthWriting=0) -> None
 
  :param int fog: (GL_FOG)
  :param int numberTexUnits: (GL_TEXTURE_2D)
@@ -113,7 +113,7 @@ OpenGL Functions
  
  `Official SDK <https://developer.x-plane.com/sdk/XPLMGraphics/#XPLMSetGraphicsState>`__ :index:`XPLMSetGraphicsState`
 
-.. py:function:: bindTexture2d(textureID, textureUnit)
+.. py:function:: bindTexture2d(textureID, textureUnit) -> int
 
  :param int textureID: ID of texture to be bound (
  :param int textureUnit: Unit id (0-3)
@@ -138,7 +138,7 @@ OpenGL Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMGraphics/#XPLMBindTexture2d>`__ :index:`XPLMBindTexture2d`
 
-.. py:function:: generateTextureNumbers(count)
+.. py:function:: generateTextureNumbers(count) -> Tuple[int, ...]
 
  :param int count: Count of texture numbers to be generated
  :return: List[int] texture number(s). Note a list generated even for count == 1
@@ -166,7 +166,7 @@ OpenGL Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMGraphics/#XPLMGenerateTextureNumbers>`__ :index:`XPLMGenerateTextureNumbers`
 
-.. py:function:: getTexture(textureID)
+.. py:function:: getTexture(textureID) -> int
 
  :param XPLMTextureID  textureID: One of specific :ref:`XPLMTextureID`
  :return: OpenGL texture ID   
@@ -227,7 +227,7 @@ OpenGL Functions
 Coordinate Conversion Functions
 -------------------------------
 
-.. py:function:: worldToLocal(lat, lon, alt=0)
+.. py:function:: worldToLocal(lat, lon, alt=0) -> Tuple[float, float, float]
  
  :param float lat:
  :param float lon: Latitude and longitude in decimal degrees
@@ -253,7 +253,7 @@ Coordinate Conversion Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMGraphics/#XPLMWorldToLocal>`__ :index:`XPLMWorldToLocal`
 
-.. py:function:: localToWorld(x, y, z)
+.. py:function:: localToWorld(x, y, z) -> Tuple[float, float, float]
 
  :param float x:
  :param float y:
@@ -292,7 +292,7 @@ Basic Drawing Functions
 Note :py:func:`drawTranslucentDarkBox`, :py:func:`drawString`, and :py:func:`drawNumber` must
 be called within a draw callback: they *will not* work otherwise.
 
-.. py:function:: drawTranslucentDarkBox(left, top, right, bottom)
+.. py:function:: drawTranslucentDarkBox(left, top, right, bottom) -> None
 
  :param int left:
  :param int top:
@@ -316,8 +316,7 @@ be called within a draw callback: they *will not* work otherwise.
  `Official SDK <https://developer.x-plane.com/sdk/XPLMGraphics/#XPLMDrawTranslucentDarkBox>`__ :index:`XPLMDrawTranslucentDarkBox`            
 
 
-.. py:function:: drawString(rgb=white_tuple, x=0, y=0, \
-                 value="", wordWrapWidth=None, fontID=Font_Proportional)
+.. py:function:: drawString(rgb=white_tuple, x=0, y=0, value="", wordWrapWidth=None, fontID=Font_Proportional) -> None
 
  :param Tuple[float] rgb: (r, g, b) values ranging 0.0 to 1.0, defaults to white
  :param int x:                         
@@ -344,7 +343,7 @@ be called within a draw callback: they *will not* work otherwise.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMGraphics/#XPLMDrawString>`__ :index:`XPLMDrawString`            
 
-.. py:function:: drawNumber(rgb=white_tuple, x=0, y=0, value=0.0, digits=-1, decimals=0, showSign=1, fontID=Font_Proportional)
+.. py:function:: drawNumber(rgb=white_tuple, x=0, y=0, value=0.0, digits=-1, decimals=0, showSign=1, fontID=Font_Proportional) -> None
 
  :param Tuple[float] rgb: (r, g, b) values ranging 0.0 to 1.0, defaults to white
  :param int x:                         
@@ -396,7 +395,7 @@ be called within a draw callback: they *will not* work otherwise.
 
  .. image:: /images/drawNumber.png
             
-.. py:function::  getFontDimensions(fontID)
+.. py:function::  getFontDimensions(fontID) -> Tuple[int, int, int]
 
  :param XPLMFontID fontID: one of :ref:`XPLMFontID`
  :return: 3-element tuple: width, height, 1 if supports only digits
@@ -416,7 +415,7 @@ be called within a draw callback: they *will not* work otherwise.
  
  `Official SDK <https://developer.x-plane.com/sdk/XPLMGraphics/#XPLMGetFontDimensions>`__ :index:`XPLMGetFontDimensions`
 
-.. py:function:: measureString(fontID, string)
+.. py:function:: measureString(fontID, string) -> float
 
  :param XPLMFontID fontID: one of :ref:`XPLMFontID`
  :param str string: string to be measured
@@ -452,6 +451,8 @@ Constants
 XPLMFontID
 **********
 
+.. py:type:: XPLMFontID
+
 .. image:: /images/font_example.png
 
 X-Plane features some fixed-character fonts.  Each font may have its own
@@ -476,6 +477,8 @@ metrics.
 
 XPLMTextureID
 *************
+
+.. py:type:: XPLMTextureID
 
 Predefined texture bitmaps for use with :func:`getTexture`.
 

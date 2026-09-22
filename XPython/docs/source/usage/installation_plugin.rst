@@ -4,8 +4,11 @@ Plugin Installation
 Requirements
 ============
 
-* **X-Plane 12.00+**. Linux, Mac (Intel and M-series processors) or Windows.
-  This plugin is built with SDK 420 and is NOT guaranteed to be backward compatible to X-Plane 11 or earlier.
+* **X-Plane 12.00+**. Linux, Mac (Intel and M-series processors) or Windows. |BR|
+  This plugin is built with SDK 440 and is NOT guaranteed to be backward compatible to X-Plane 11 or earlier. SDK
+  features available in X-Plane release newer than 12.0.0 are dynamically loaded. That is, this plugin will work
+  with X-Plane 12.00 and 12.4.4+, but SDK features/functions added to X-Plane 12.4.4 cannot be used on earlier
+  versions of X-Plane 12.
 
 .. note:: This version of XPPython3 requires X-Plane 12. If you are using X-Plane 11.52, you
    must install XPPython3 v3.1.5.
@@ -80,6 +83,7 @@ Three steps:
   On installation success, we'll popup a window:
 
   .. image:: /images/python_samples_popup.png
+     :width: 300px
 
   Depending on the version installed, we may popup up other window(s) detailing downloading
   and installation of ancillary software.

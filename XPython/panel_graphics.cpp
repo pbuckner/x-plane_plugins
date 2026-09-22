@@ -16,7 +16,9 @@
 /* ---- Transform stack ---- */
 
 My_DOCSTR(_transformPush__doc__, "transformPush",
-          "", "", "None",
+          "",
+          "",
+          "None",
           "Save the current transformation matrix onto the transform stack.");
 static PyObject *XPLMTransformPushFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -30,7 +32,9 @@ static PyObject *XPLMTransformPushFun(PyObject *self, PyObject *args, PyObject *
 }
 
 My_DOCSTR(_transformPop__doc__, "transformPop",
-          "", "", "None",
+          "",
+          "",
+          "None",
           "Restore the transformation matrix from the top of the transform stack.");
 static PyObject *XPLMTransformPopFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -65,7 +69,7 @@ static PyObject *XPLMTransformTranslateFun(PyObject *self, PyObject *args, PyObj
 }
 
 My_DOCSTR(_transformRotate__doc__, "transformRotate",
-          "centerX, centerY, angle",
+          "centerX=0, centerY=0, angle=0",
           "centerX:float, centerY:float, angle:float",
           "None",
           "Rotate subsequent drawing around (centerX, centerY) counter-clockwise by angle degrees.");
@@ -73,12 +77,12 @@ static PyObject *XPLMTransformRotateFun(PyObject *self, PyObject *args, PyObject
 {
   static char *keywords[] = {CHAR("centerX"), CHAR("centerY"), CHAR("angle"), nullptr};
   (void) self;
-  float centerX, centerY, angle;
+  float centerX=0.0, centerY=0.0, angle=0.0;
   if(!XPLMTransformRotate_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMTransformRotate is available only in XPLM440 and up.");
     return nullptr;
   }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "fff", keywords, &centerX, &centerY, &angle)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|fff", keywords, &centerX, &centerY, &angle)){
     return nullptr;
   }
   XPLMTransformRotate_ptr(centerX, centerY, angle);
@@ -86,7 +90,7 @@ static PyObject *XPLMTransformRotateFun(PyObject *self, PyObject *args, PyObject
 }
 
 My_DOCSTR(_transformScale__doc__, "transformScale",
-          "scaleX, scaleY",
+          "scaleX=1, scaleY=1",
           "scaleX:float, scaleY:float",
           "None",
           "Scale subsequent drawing by (scaleX, scaleY) relative to the origin.");
@@ -94,12 +98,12 @@ static PyObject *XPLMTransformScaleFun(PyObject *self, PyObject *args, PyObject 
 {
   static char *keywords[] = {CHAR("scaleX"), CHAR("scaleY"), nullptr};
   (void) self;
-  float scaleX, scaleY;
+  float scaleX=1.0, scaleY=1.0;
   if(!XPLMTransformScale_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMTransformScale is available only in XPLM440 and up.");
     return nullptr;
   }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ff", keywords, &scaleX, &scaleY)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|ff", keywords, &scaleX, &scaleY)){
     return nullptr;
   }
   XPLMTransformScale_ptr(scaleX, scaleY);
@@ -109,7 +113,9 @@ static PyObject *XPLMTransformScaleFun(PyObject *self, PyObject *args, PyObject 
 /* ---- Scissor stack ---- */
 
 My_DOCSTR(_scissorPush__doc__, "scissorPush",
-          "", "", "None",
+          "",
+          "",
+          "None",
           "Save the current scissor rectangle onto the scissor stack.");
 static PyObject *XPLMScissorPushFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -123,7 +129,9 @@ static PyObject *XPLMScissorPushFun(PyObject *self, PyObject *args, PyObject *kw
 }
 
 My_DOCSTR(_scissorPop__doc__, "scissorPop",
-          "", "", "None",
+          "",
+          "",
+          "None",
           "Restore the scissor rectangle from the top of the scissor stack.");
 static PyObject *XPLMScissorPopFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -137,44 +145,46 @@ static PyObject *XPLMScissorPopFun(PyObject *self, PyObject *args, PyObject *kwa
 }
 
 My_DOCSTR(_scissorSet__doc__, "scissorSet",
-          "top, left, bottom, right",
-          "top:int, left:int, bottom:int, right:int",
+          "left, top, right, bottom",
+          "left:int, top:int, right:int, bottom:int",
           "None",
           "Set an absolute scissor rectangle; only pixels inside are drawn.");
 static PyObject *XPLMScissorSetFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {CHAR("top"), CHAR("left"), CHAR("bottom"), CHAR("right"), nullptr};
+  static char *keywords[] = {CHAR("left"), CHAR("top"), CHAR("right"), CHAR("bottom"), nullptr};
   (void) self;
-  int top, left, bottom, right;
+  int left, top, right, bottom;
   if(!XPLMScissorSet_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMScissorSet is available only in XPLM440 and up.");
     return nullptr;
   }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiii", keywords, &top, &left, &bottom, &right)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiii", keywords, &left, &top, &right, &bottom)){
     return nullptr;
   }
-  XPLMScissorSet_ptr(top, left, bottom, right);
+  XPLMScissorSet_ptr(left, top, right, bottom);
   Py_RETURN_NONE;
 }
 
-My_DOCSTR(_scissorShrink__doc__, "scissorShrink",
-          "top, left, bottom, right",
-          "top:int, left:int, bottom:int, right:int",
+My_DOCSTR(_scissorIntersect__doc__, "scissorIntersect",
+          "left, top, right, bottom",
+          "left:int, top:int, right:int, bottom:int",
           "None",
-          "Inset the current scissor rectangle by the given amounts on each side.");
-static PyObject *XPLMScissorShrinkFun(PyObject *self, PyObject *args, PyObject *kwargs)
+          "Intersect the current scissor box with the absolute rectangle given by\n"
+          "edges (left, top, right, bottom) in panel pixels; the result is their\n"
+          "overlap (drawable area only shrinks).");
+static PyObject *XPLMScissorIntersectFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {CHAR("top"), CHAR("left"), CHAR("bottom"), CHAR("right"), nullptr};
+  static char *keywords[] = {CHAR("left"), CHAR("top"), CHAR("right"), CHAR("bottom"), nullptr};
   (void) self;
-  int top, left, bottom, right;
-  if(!XPLMScissorShrink_ptr){
-    PyErr_SetString(PyExc_RuntimeError , "XPLMScissorShrink is available only in XPLM440 and up.");
+  int left, top, right, bottom;
+  if(!XPLMScissorIntersect_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMScissorIntersect is available only in XPLM440 and up.");
     return nullptr;
   }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiii", keywords, &top, &left, &bottom, &right)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "iiii", keywords, &left, &top, &right, &bottom)){
     return nullptr;
   }
-  XPLMScissorShrink_ptr(top, left, bottom, right);
+  XPLMScissorIntersect_ptr(left, top, right, bottom);
   Py_RETURN_NONE;
 }
 
@@ -184,7 +194,9 @@ My_DOCSTR(_beginSetupStencilMask__doc__, "beginSetupStencilMask",
           "bits, mask",
           "bits:int, mask:int",
           "None",
-          "Begin stencil mask setup; subsequent drawing writes to the stencil buffer.");
+          "Begin stencil mask setup; subsequent drawing writes to the stencil buffer.\n"
+          "Parameters are limited to 8-bit quantities."
+          );
 static PyObject *XPLMBeginSetupStencilMaskFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   static char *keywords[] = {CHAR("bits"), CHAR("mask"), nullptr};
@@ -202,7 +214,9 @@ static PyObject *XPLMBeginSetupStencilMaskFun(PyObject *self, PyObject *args, Py
 }
 
 My_DOCSTR(_endSetupStencilMask__doc__, "endSetupStencilMask",
-          "", "", "None",
+          "",
+          "",
+          "None",
           "End stencil mask setup; subsequent drawing renders to the screen again.");
 static PyObject *XPLMEndSetupStencilMaskFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -216,7 +230,7 @@ static PyObject *XPLMEndSetupStencilMaskFun(PyObject *self, PyObject *args, PyOb
 }
 
 My_DOCSTR(_useStencilMask__doc__, "useStencilMask",
-          "bits, mask",
+          "bits=0, mask=0",
           "bits:int, mask:int",
           "None",
           "Activate stencil testing for subsequent drawing.");
@@ -224,12 +238,12 @@ static PyObject *XPLMUseStencilMaskFun(PyObject *self, PyObject *args, PyObject 
 {
   static char *keywords[] = {CHAR("bits"), CHAR("mask"), nullptr};
   (void) self;
-  unsigned int bits, mask;
+  unsigned int bits=0, mask=0;
   if(!XPLMUseStencilMask_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMUseStencilMask is available only in XPLM440 and up.");
     return nullptr;
   }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "II", keywords, &bits, &mask)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|II", keywords, &bits, &mask)){
     return nullptr;
   }
   XPLMUseStencilMask_ptr(bits, mask);
@@ -237,7 +251,9 @@ static PyObject *XPLMUseStencilMaskFun(PyObject *self, PyObject *args, PyObject 
 }
 
 My_DOCSTR(_clearStencilMask__doc__, "clearStencilMask",
-          "", "", "None",
+          "",
+          "",
+          "None",
           "Clear the stencil buffer and disable stencil testing.");
 static PyObject *XPLMClearStencilMaskFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -259,7 +275,9 @@ static PyObject *XPLMClearStencilMaskFun(PyObject *self, PyObject *args, PyObjec
 static bool retainedDrawingActive = false;
 
 My_DOCSTR(_beginRetainedDrawing__doc__, "beginRetainedDrawing",
-          "", "", "None",
+          "",
+          "",
+          "None",
           "Begin recording panel-graphics commands into a retained drawing. All\n"
           "panel-graphics calls made until endRetainedDrawing() are captured instead\n"
           "of being drawn immediately. Recording sessions must not be nested.");
@@ -280,7 +298,9 @@ static PyObject *XPLMBeginRetainedDrawingFun(PyObject *self, PyObject *args, PyO
 }
 
 My_DOCSTR(_endRetainedDrawing__doc__, "endRetainedDrawing",
-          "", "", "XPLMRetainedDrawing_t",
+          "",
+          "",
+          "XPLMRetainedDrawing",
           "End the recording started by beginRetainedDrawing() and return an opaque\n"
           "handle to the captured commands. Replay it with drawRetained() and free it\n"
           "with destroyRetainedDrawing(). If a font or texture atlas used during\n"
@@ -304,7 +324,7 @@ static PyObject *XPLMEndRetainedDrawingFun(PyObject *self, PyObject *args, PyObj
 
 My_DOCSTR(_drawRetained__doc__, "drawRetained",
           "drawing",
-          "drawing:XPLMRetainedDrawing_t",
+          "drawing:XPLMRetainedDrawing",
           "None",
           "Replay a retained drawing captured with endRetainedDrawing(). May be\n"
           "called any number of times per frame and across frames to redraw the same\n"
@@ -331,7 +351,7 @@ static PyObject *XPLMDrawRetainedFun(PyObject *self, PyObject *args, PyObject *k
 
 My_DOCSTR(_destroyRetainedDrawing__doc__, "destroyRetainedDrawing",
           "drawing",
-          "drawing:XPLMRetainedDrawing_t",
+          "drawing:XPLMRetainedDrawing",
           "None",
           "Destroy a retained drawing captured with endRetainedDrawing() and free its\n"
           "resources. The handle must not be used after this call.");
@@ -376,8 +396,8 @@ static PyMethodDef XPLMPanelGraphicsMethods[] = {
   {"XPLMScissorPop", (PyCFunction)XPLMScissorPopFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"scissorSet", (PyCFunction)XPLMScissorSetFun, METH_VARARGS | METH_KEYWORDS, _scissorSet__doc__},
   {"XPLMScissorSet", (PyCFunction)XPLMScissorSetFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"scissorShrink", (PyCFunction)XPLMScissorShrinkFun, METH_VARARGS | METH_KEYWORDS, _scissorShrink__doc__},
-  {"XPLMScissorShrink", (PyCFunction)XPLMScissorShrinkFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"scissorIntersect", (PyCFunction)XPLMScissorIntersectFun, METH_VARARGS | METH_KEYWORDS, _scissorIntersect__doc__},
+  {"XPLMScissorIntersect", (PyCFunction)XPLMScissorIntersectFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"beginSetupStencilMask", (PyCFunction)XPLMBeginSetupStencilMaskFun, METH_VARARGS | METH_KEYWORDS, _beginSetupStencilMask__doc__},
   {"XPLMBeginSetupStencilMask", (PyCFunction)XPLMBeginSetupStencilMaskFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"endSetupStencilMask", (PyCFunction)XPLMEndSetupStencilMaskFun, METH_VARARGS | METH_KEYWORDS, _endSetupStencilMask__doc__},
@@ -427,6 +447,14 @@ PyInit_XPLMPanelGraphics(void)
     PyModule_AddFunctions(mod, panelGraphicsTextureMethods);
     PyModule_AddFunctions(mod, panelGraphicsDisplayMethods);
     PyModule_AddFunctions(mod, panelGraphicsTouchMethods);
+
+    /* XPLMLineCap_t */
+    PyModule_AddIntConstant(mod, "xplm_LineCapButt", xplm_LineCapButt);
+    PyModule_AddIntConstant(mod, "xplm_LineCapRound", xplm_LineCapRound);
+    PyModule_AddIntConstant(mod, "xplm_LineCapSquare", xplm_LineCapSquare);
+    PyModule_AddIntConstant(mod, "LineCapButt", xplm_LineCapButt);
+    PyModule_AddIntConstant(mod, "LineCapRound", xplm_LineCapRound);
+    PyModule_AddIntConstant(mod, "LineCapSquare", xplm_LineCapSquare);
 
     /* XPLMCharSet_t */
     PyModule_AddIntConstant(mod, "xplm_CharSetDigits", xplm_CharSetDigits);
@@ -479,6 +507,11 @@ PyInit_XPLMPanelGraphics(void)
     PyModule_AddIntConstant(mod, "Map_EGPWS", xplm_Map_EGPWS);
     PyModule_AddIntConstant(mod, "Map_raw_elev", xplm_Map_raw_elev);
     PyModule_AddIntConstant(mod, "Map_safe_taxi", xplm_Map_safe_taxi);
+
+    PyModule_AddIntConstant(mod, "xplm_EGPWS_Style_Blocky", xplm_EGPWS_Style_Blocky); //XPLMEGPWSStyle
+    PyModule_AddIntConstant(mod, "xplm_EGPWS_Style_Smooth", xplm_EGPWS_Style_Smooth); //XPLMEGPWSStyle
+    PyModule_AddIntConstant(mod, "EGPWS_Style_Blocky", xplm_EGPWS_Style_Blocky); //XPLMEGPWSStyle
+    PyModule_AddIntConstant(mod, "EGPWS_Style_Smooth", xplm_EGPWS_Style_Smooth); //XPLMEGPWSStyle
 
     /* XPLMTouchZone */
     PyModule_AddIntConstant(mod, "xplm_TouchZone_Nothing", xplm_TouchZone_Nothing);

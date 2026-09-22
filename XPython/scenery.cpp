@@ -332,6 +332,45 @@ static PyObject *XPLMLookupObjectsFun(PyObject *self, PyObject *args, PyObject *
   return PyLong_FromLong(res);
 }
 
+My_DOCSTR(_getObjects__doc__, "getObjects",
+          "path, latitude=0.0, longitude=0.0",
+          "path:str, latitude:float=0.0, longitude:float=0.0",
+          "tuple[XPLMObjectRef | None]",
+          "Converts virtual path to tuple of XPLMObjectRef.\n"
+          "\n"
+          "Path is virtual path, which may have zero or more matching file paths\n"
+          "in library. Each file path is converted to XPLMObjectRef, and resulting\n"
+          "tuple returned. Note that objects which fail to load will be returned\n"
+          "as None within the tuple rather than XPLMObjectRef. Remember to unload\n"
+          "each object when finished to avoid leaks.");
+static PyObject *getObjects(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  static char *keywords[] = {CHAR("path"), CHAR("latitude"), CHAR("longitude"), nullptr};
+  (void)self;
+  const char *inPath;
+  float inLatitude=0.0, inLongitude=0.0;
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s|ff", keywords, &inPath, &inLatitude, &inLongitude)) {
+    return nullptr;
+  }
+
+  std::vector<std::string> strings = {};
+
+  auto enumerator = [](const char *real_path, void *ref) {
+    ((std::vector<std::string> *)(ref))->emplace_back(real_path);
+  };
+  (void) XPLMLookupObjects(inPath, inLatitude, inLongitude, enumerator, (void*)&strings);
+  PyObject *tuple = PyTuple_New(strings.size());
+  if (!tuple) {
+    return nullptr;
+  }
+  int count = 0;
+  for (const std::string &s : strings) {
+    PyTuple_SetItem(tuple, count++, makeCapsule(XPLMLoadObject(s.c_str()), "XPLMObjectRef"));
+  }
+  return tuple;
+}
+
+
 static PyObject *cleanup(PyObject *self, PyObject *args)
 {
   (void) self;
@@ -372,6 +411,7 @@ static PyMethodDef XPLMSceneryMethods[] = {
   {"XPLMUnloadObject", (PyCFunction)XPLMUnloadObjectFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"lookupObjects", (PyCFunction)XPLMLookupObjectsFun, METH_VARARGS | METH_KEYWORDS, _lookupObjects__doc__},
   {"XPLMLookupObjects", (PyCFunction)XPLMLookupObjectsFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"getObjects", (PyCFunction)getObjects, METH_VARARGS | METH_KEYWORDS, _getObjects__doc__},
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {nullptr, nullptr, 0, nullptr}
 };

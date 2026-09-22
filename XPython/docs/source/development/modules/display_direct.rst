@@ -21,7 +21,7 @@ another begins; they may be nested.
 Register and Unregister your drawing callback(s). You may register a callback multiple times for
 the same or different phases as long as the reference constant is unique for each registration.
 
-.. py:function:: registerDrawCallback(draw, phase=Phase_Window, after=1, refCon=None)
+.. py:function:: registerDrawCallback(draw, phase=Phase_Window, after=1, refCon=None) -> int
 
   Register a low level drawing callback.
 
@@ -156,7 +156,7 @@ the same or different phases as long as the reference constant is unique for eac
   to use python's ``numpy`` module, we were able to speed up draw times by a factor of 36 (from 65 milliseconds
   per frame to 1.8 msec!).
 
-.. py:function:: unregisterDrawCallback(draw, phase=Phase_Window, after=1, refCon=None)
+.. py:function:: unregisterDrawCallback(draw, phase=Phase_Window, after=1, refCon=None) -> int
 
   Unregister a low level drawing callback.
 

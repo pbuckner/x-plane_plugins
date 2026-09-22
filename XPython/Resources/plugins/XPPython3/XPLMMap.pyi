@@ -1,79 +1,93 @@
-from dataclasses import dataclass
-from typing import Any, Callable, Generic, Optional, Type, TypeVar, NewType, Literal, Sequence
-from XPPython3.xp_typing import *    
+# pylint: disable=unused-argument
+# (a stub's parameters are never used -- there is no body)
+from typing import Any, Callable, Optional
+from XPPython3.xp_typing import (XPLMMapLayerID, XPLMMapLayerType, XPLMMapOrientation,
+                                 XPLMMapProjectionID, XPLMMapStyle)
 MapStyle_VFR_Sectional: XPLMMapStyle
 MapStyle_IFR_LowEnroute: XPLMMapStyle
 MapStyle_IFR_HighEnroute: XPLMMapStyle
 MapLayer_Fill: XPLMMapLayerType
-MapLayer_Markings: XPLMMapLayerType
-MAP_USER_INTERFACE: str
+MapLayer_Markings: XPLMMapLayerType = XPLMMapLayerType(1)
+MAP_USER_INTERFACE: str = 'XPLM_MAP_USER_INTERFACE'
 MAP_IOS: str
 MapOrientation_Map: XPLMMapOrientation
 MapOrientation_UI: XPLMMapOrientation
-def createMapLayer(mapType:str=MAP_USER_INTERFACE, 
-          layerType:XPLMMapLayerType=MapLayer_Markings, 
-          delete:Optional[Callable[[XPLMMapLayerID, Any], None]]=None, 
-          prep:Optional[Callable[[XPLMMapLayerID, float, XPLMMapProjectionID, Any], None]]=None, 
-          draw:Optional[Callable[[XPLMMapLayerID, float, float, float, XPLMMapStyle, XPLMMapProjectionID, Any], None]]=None, 
-          icon:Optional[Callable[[XPLMMapLayerID, float, float, float, XPLMMapStyle, XPLMMapProjectionID, Any], None]]=None, 
-          label:Optional[Callable[[XPLMMapLayerID, float, float, float, XPLMMapStyle, XPLMMapProjectionID, Any], None]]=None, 
-          showToggle:int=1, 
-          name:str='', 
-          refCon:Any=None) -> XPLMMapLayerID:
+
+
+def createMapLayer(mapType: str = MAP_USER_INTERFACE,
+                   layerType: XPLMMapLayerType = MapLayer_Markings,
+                   delete: Optional[Callable[[XPLMMapLayerID, Any], None]] = None,
+                   prep: Optional[Callable[[XPLMMapLayerID, float, XPLMMapProjectionID, Any], None]] = None,
+                   draw: Optional[Callable[[XPLMMapLayerID, float, float, float, XPLMMapStyle, XPLMMapProjectionID, Any], None]] = None,
+                   icon: Optional[Callable[[XPLMMapLayerID, float, float, float, XPLMMapStyle, XPLMMapProjectionID, Any], None]] = None,
+                   label: Optional[Callable[[XPLMMapLayerID, float, float, float, XPLMMapStyle, XPLMMapProjectionID, Any], None]] = None,
+                   showToggle: int = 1,
+                   name: Optional[str] = None,
+                   refCon: Any = None) -> XPLMMapLayerID:
     """
     Returns layerID of newly created map layer, setting callbacks.
-    
+
+    name defaults to the calling plugin's module name (map.cpp uses
+    CurrentPythonModuleName when name is omitted).
+
     If map does not currently exist, returns 0.
     """
     ...
 
-def destroyMapLayer(layerID:XPLMMapLayerID) -> int:
+
+def destroyMapLayer(layerID: XPLMMapLayerID) -> int:
     """
     Destroys map layer given by layerID.
     """
     ...
 
-def registerMapCreationHook(mapCreated:Callable[[str, Any], None], refCon:Any=None) -> None:
+
+def registerMapCreationHook(mapCreated: Callable[[str, Any], None], refCon: Any = None) -> None:
     """
     Registers mapCreated() callback to notify you when a map is created.
-    
+
     Callback gets two parameters: (mapType, refCon)
     """
     ...
 
-def mapExists(mapType:str) -> int:
+
+def mapExists(mapType: str) -> int:
     """
     Returns 1 if mapType exists, 0 otherwise.
-    
+
     mapType is either xp.MAP_USER_INTERFACE or xp.MAP_IOS
     """
     ...
 
-def drawMapIconFromSheet(layerID:XPLMMapLayerID, png:str, s:int, t:int, ds:int, dt:int, x:float, y:float, orientation:XPLMMapOrientation, rotationDegrees:float, mapWidth:float) -> None:
+
+def drawMapIconFromSheet(layerID: XPLMMapLayerID, png: str, s: int, t: int, ds: int, dt: int, x: float, y: float, orientation: XPLMMapOrientation, rotationDegrees: float, mapWidth: float) -> None:
     """
     Draws icon into map layer.
-    
+
     Only valid within iconLayer() callback.
     """
     ...
 
-def drawMapLabel(layerID:XPLMMapLayerID, text:str, x:float, y:float, orientation:XPLMMapOrientation, rotationDegrees:float) -> None:
+
+def drawMapLabel(layerID: XPLMMapLayerID, text: str, x: float, y: float, orientation: XPLMMapOrientation, rotationDegrees: float) -> None:
     """
     Draws label within map layer.
-    
+
     Only valid within labelLayer() callback.
     """
     ...
 
-def mapProject(projection:XPLMMapProjectionID, latitude:float, longitude:float) -> None | tuple[float, float]:
+
+def mapProject(projection: XPLMMapProjectionID, latitude: float, longitude: float) -> None | tuple[float, float]:
     """
     Returns map layer (x, y) for given latitude, longitude.
-    
+
     Only valid within map layer callbacks.
     """
     ...
 
-def mapUnproject(projection:XPLMMapProjectionID, x:float, y:float) -> None | tuple[float, float]:
+
+def mapUnproject(projection: XPLMMapProjectionID, x: float, y: float) -> None | tuple[float, float]:
     """
     Returns latitude, longitude for given map coordinates.
 
@@ -81,15 +95,17 @@ def mapUnproject(projection:XPLMMapProjectionID, x:float, y:float) -> None | tup
     """
     ...
 
-def mapScaleMeter(projection:XPLMMapProjectionID, x:float, y:float) -> float:
+
+def mapScaleMeter(projection: XPLMMapProjectionID, x: float, y: float) -> float:
     """
     Returns number of units for 'one meter' using current projection.
-    
+
     Only valid within map layer callbacks.
     """
     ...
 
-def mapGetNorthHeading(projection:XPLMMapProjectionID, x:float, y:float) -> float:
+
+def mapGetNorthHeading(projection: XPLMMapProjectionID, x: float, y: float) -> float:
     """
     Returns mapping angle for map projection at point.
 
@@ -97,11 +113,11 @@ def mapGetNorthHeading(projection:XPLMMapProjectionID, x:float, y:float) -> floa
     """
     ...
 
+
 def getMapCallbackDict() -> dict:
     """
-    Returns internal dictionary of map callbacks
+    Returns copy of internal MapCallbackInfo dictionary.
 
-    Intended for debugging only
+    Internal debugging aid: contents and structure may change between releases.
     """
     ...
-

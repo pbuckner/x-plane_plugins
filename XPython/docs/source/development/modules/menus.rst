@@ -1,3 +1,5 @@
+.. index:: Menus, Tasks; Menus
+
 XPLMMenus
 =========
 
@@ -34,9 +36,9 @@ For more about menus and menu items see :doc:`/development/menus`.
 Functions
 ---------
 
-.. py:function:: findPluginsMenu()
+.. py:function:: findPluginsMenu() -> XPLMMenuID
 
- :return: XPLMMenuID capsule
+ :return: :class:`XPLMMenuID`
 
  This function returns the *menuID* of the plug-ins menu, which is created for you
  at startup.
@@ -47,9 +49,9 @@ Functions
  >>> menuID
  <capsule object "XPLMMenuID" at 0x7fdd40a74810>
 
-.. py:function::  findAircraftMenu()
+.. py:function::  findAircraftMenu() -> XPLMMenuID
 
- :return: XPLMMenuID capsule
+ :return: :class:`XPLMMenuID`
 
  This function returns the *menuID* of the menu for the currently-loaded aircraft,
  used for showing aircraft-specific commands.
@@ -71,14 +73,14 @@ Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMMenus/#XPLMFindAircraftMenu>`__ :index:`XPLMFindAircraftMenu`
 
-.. py:function:: createMenu(name=None, parentMenuID=None, parentItem=0, handler=None, refCon=None)
+.. py:function:: createMenu(name=None, parentMenuID=None, parentItem=0, handler=None, refCon=None) -> XPLMMenuID
 
  :param str name: string to be displayed **if parentMenuID is None**, otherwise ignored
  :param XPLMMenuID parentMenuID: Existing menu item to which you will be adding a '>' submenu, or None, to append to Plugin menu.
  :param int parentItem: With parentMenuID, select which 0-based item to add the submenu.
  :param Callable handler: Callback when this item is selected.
  :param Any refCon: Reference constant passed to your handler
- :return: XPLMMenuID capsule
+ :return: :class:`XPLMMenuID` of newly created menu
 
  Create a new menu and return its menuID. Returns None if the menu cannot be created.
  
@@ -164,7 +166,7 @@ Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMMenus/#XPLMCreateMenu>`__ :index:`XPLMCreateMenu`
 
-.. py:function:: destroyMenu(menuID)
+.. py:function:: destroyMenu(menuID) -> None
 
  :param XPLMMenuID menuID: Menu to be destroyed.
 
@@ -180,7 +182,7 @@ Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMMenus/#XPLMDestroyMenu>`__ :index:`XPLMDestroyMenu`
 
-.. py:function:: clearAllMenuItems(menuID=None)
+.. py:function:: clearAllMenuItems(menuID=None) -> None
 
  :param XPLMMenuID menuID: remove all menu items from given menu.
 
@@ -205,7 +207,7 @@ Functions
            ...                                             commandRef=self.toggleCommandRef)
            ...
 
-.. py:function::  appendMenuItem(menuID=None, name="Item", refCon=None)
+.. py:function::  appendMenuItem(menuID=None, name="Item", refCon=None) -> int
 
  :param XPLMMenuID menuID: Menu to which named item is added (as a sub-item).
  :param str name: String to be displayed for item
@@ -244,7 +246,7 @@ Functions
     which is required, yet deprecated and ignored. XPPython3 function only
     has three parameters.
 
-.. py:function:: appendMenuItemWithCommand(menuID=None, name="Command", commandRef)
+.. py:function:: appendMenuItemWithCommand(menuID=None, name="Command", commandRef) -> int
 
  :param XPLMMenuID menuID: Menu to which named item is added
  :param str name: String to be displayed fo ritem
@@ -272,7 +274,7 @@ Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMMenus/#XPLMAppendMenuItemWithCommand>`__ :index:`XPLMAppendMenuItemWithCommand`
 
-.. py:function:: appendMenuSeparator(menuID=None)
+.. py:function:: appendMenuSeparator(menuID=None) -> None
 
  :param XPLMMenuID menuID: Menu to which a separator is added (after existing sub-items)
  :return: None, but, the menu index has increased by one.
@@ -287,7 +289,7 @@ Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMMenus/#XPLMAppendMenuSeparator>`__ :index:`XPLMAppendMenuSeparator`
 
-.. py:function:: setMenuItemName(menuID=None, index=0, name="New Name")
+.. py:function:: setMenuItemName(menuID=None, index=0, name="New Name") -> None
 
  :param XPLMMenuID menuID:
  :param int index: Menu item to get the new name
@@ -299,7 +301,7 @@ Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMMenus/#XPLMSetMenuItemName>`__ :index:`XPLMSetMenuItemName`
  
-.. py:function:: checkMenuItem(menuID=None, index=0, checked=Menu_Checked)
+.. py:function:: checkMenuItem(menuID=None, index=0, checked=Menu_Checked) -> None
 
  :param XPLMMenuID menuID:
  :param int index: Menu item to be checked (or unchecked)
@@ -329,7 +331,7 @@ Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMMenus/#XPLMCheckMenuItem>`__ :index:`XPLMCheckMenuItem`
 
-.. py:function:: checkMenuItemState(menuID=None, index=0)
+.. py:function:: checkMenuItemState(menuID=None, index=0) -> int
 
  :param XPLMMenuID menuID:
  :param int index: Menu item whose state is being checked.   
@@ -348,7 +350,7 @@ Functions
  
  `Official SDK <https://developer.x-plane.com/sdk/XPLMMenus/#XPLMCheckMenuItemState>`__ :index:`XPLMCheckMenuItemState`
 
-.. py:function:: enableMenuItem(menuID=None, index=0, enabled=1)
+.. py:function:: enableMenuItem(menuID=None, index=0, enabled=1) -> None
 
  :param XPLMMenuID menuID:
  :param int index: Menu item to be enabled
@@ -362,7 +364,7 @@ Functions
  
  `Official SDK <https://developer.x-plane.com/sdk/XPLMMenus/#XPLMEnableMenuItem>`__ :index:`XPLMEnableMenuItem`
 
-.. py:function:: removeMenuItem(menuID=None, index=0)
+.. py:function:: removeMenuItem(menuID=None, index=0) -> None
 
  :param XPLMMenuID menuID:
  :param int index: Menu item to be removed
@@ -413,3 +415,11 @@ For more about menus and menu items see :doc:`/development/menus`.
    :hidden:
 
    /development/menus
+
+Types
+-----
+
+.. py:class:: XPLMMenuID
+
+    Opaque capsule representing a menu, as returned by :func:`findPluginsMenu` and
+    :func:`createMenu`. Release one you created with :func:`destroyMenu`.

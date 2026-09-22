@@ -1,6 +1,8 @@
-from dataclasses import dataclass
-from typing import Any, Callable, Generic, Optional, Type, TypeVar, NewType, Literal, Sequence
-from XPPython3.xp_typing import *    
+# pylint: disable=unused-argument
+# (a stub's parameters are never used -- there is no body)
+from typing import Any, Callable, Optional, Sequence
+from XPPython3.xp_typing import (FMOD_CHANNEL, FMOD_CHANNELGROUP,
+                                 FMOD_STUDIO_SYSTEM, XPLMAudioBus, XPLMBankID)
 AudioRadioCom1: XPLMAudioBus
 AudioRadioCom2: XPLMAudioBus
 AudioRadioPilot: XPLMAudioBus
@@ -9,13 +11,15 @@ AudioExteriorAircraft: XPLMAudioBus
 AudioExteriorEnvironment: XPLMAudioBus
 AudioExteriorUnprocessed: XPLMAudioBus
 AudioInterior: XPLMAudioBus
-AudioUI: XPLMAudioBus
+AudioUI: XPLMAudioBus = XPLMAudioBus(8)
 AudioGround: XPLMAudioBus
 Master: XPLMAudioBus
 MasterBank: XPLMBankID
 RadioBank: XPLMBankID
 FMOD_OK: int
 FMOD_SOUND_FORMAT_PCM16: int
+
+
 def getFMODStudio() -> FMOD_STUDIO_SYSTEM:
     """
     Get PyCapsule to FMOD_STUDIO_SYSTEM, allowing you to load/process whatever
@@ -24,59 +28,64 @@ def getFMODStudio() -> FMOD_STUDIO_SYSTEM:
     """
     ...
 
-def getFMODChannelGroup(audioType:XPLMAudioBus) -> FMOD_CHANNELGROUP:
+
+def getFMODChannelGroup(audioType: XPLMAudioBus) -> FMOD_CHANNELGROUP:
     """
     Returns PyCapsule to the FMOD_CHANNELGROUP with the given index.
     You will need to use python ctypes to access. See documentation.
     """
     ...
 
-def playPCMOnBus(audioBuffer:Any, bufferSize:int, soundFormat:int, freqHz:int, numChannels:int, loop:int=0, 
-          audioType:XPLMAudioBus=AudioUI, callback:Optional[Callable[[Any, int], None]]=None, refCon:Any=None) -> None | FMODChannel:
+
+def playPCMOnBus(audioBuffer: Any, bufferSize: int, soundFormat: int, freqHz: int, numChannels: int, loop: int = 0,
+                 audioType: XPLMAudioBus = AudioUI, callback: Optional[Callable[[Any, int], None]] = None, refCon: Any = None) -> None | FMOD_CHANNEL:
     """
-    Play provided data, of length bufferSize on the bus indicatedd by audioType. On
+    Play provided data, of length bufferSize on the bus indicated by audioType. On
     completion, or stoppage, invoke (optional) callback with provided refCon.
      * soundFormat is # bytes per frame 1=8bit, 2=16bit, etc.
      * freqHz is sample framerate, e.g., 800, 22000, 44100
      * numChannels is e.g., 1=mono, 2=stereo
-    
-    Return audio FMODChannel on success.
+
+    Return audio FMOD_CHANNEL capsule on success.
     """
     ...
 
-def stopAudio(channel:FMOD_CHANNEL) -> int:
+
+def stopAudio(channel: FMOD_CHANNEL) -> int:
     """
     Stop playing an active FMOD channel. If you defined a completion callback,
     this will be called. After this, the FMOD::Channel* will no longer be valid
     and must not be used in any future calls
-    
+
     Returns FMOD_RESULT, 0= FMOD_OK
     """
     ...
 
-def setAudioPosition(channel:FMOD_CHANNEL, position:Sequence[float], velocity:Optional[Sequence[float]]=None) -> int:
+
+def setAudioPosition(channel: FMOD_CHANNEL, position: Sequence[float], velocity: Optional[Sequence[float]] = None) -> int:
     """
-    For audio channel, set position (for panning and attenuation) 
+    For audio channel, set position (for panning and attenuation)
     and velocity (for use with doppler).
      * position is OpenGL position (x, y, z) -- list of three float.
      * velocity is (meters/second) change in each (x, y, z) direction. None = (0, 0, 0)
     """
     ...
 
-def setAudioFadeDistance(channel:FMOD_CHANNEL, min_distance:float=1.0, max_distance:float=10000.0) -> int:
+
+def setAudioFadeDistance(channel: FMOD_CHANNEL, min_distance: float = 1.0, max_distance: float = 10000.0) -> int:
     """
     Sets minimum and maximum distance for the channel.
     When the listener is in-between the minimum distance and the source, the volume
     will be at it's maximum. As the listener moves from the minimum distance to the
     maximum distance, the sound will attenuate. When outside the maximum distance
     the sound will no longer attenuate.
-    
+
     Use minimum distance to give the impression that the sound is loud or soft: Small
-    quiet objects such as a bumblebee, set minimum to 0.1. This would cause it to 
-    attenuate quickly and dissapear when only a few meters away. A jumbo jet minimum
+    quiet objects such as a bumblebee, set minimum to 0.1. This would cause it to
+    attenuate quickly and disappear when only a few meters away. A jumbo jet minimum
     might be 100 meters, thereby maintaining maximum volume until 100 meters away, with
     fade out over the next hundred meters.
-    
+
     Maximum distance is effectively obsolete unless you need the sound to stop fading
     at a certain point. Do not adjust this from the default if you don't need to. Do
     not confuse maximum distance as the point where the sound will fade to zero, this
@@ -84,7 +93,8 @@ def setAudioFadeDistance(channel:FMOD_CHANNEL, min_distance:float=1.0, max_dista
     """
     ...
 
-def setAudioVolume(channel:FMOD_CHANNEL, volume:float=1.0) -> int:
+
+def setAudioVolume(channel: FMOD_CHANNEL, volume: float = 1.0) -> int:
     """
     Set the current volume of an active FMOD channel. This should be used to
     handle changes in the audio source volume, not for fading with distance.
@@ -93,7 +103,8 @@ def setAudioVolume(channel:FMOD_CHANNEL, volume:float=1.0) -> int:
     """
     ...
 
-def setAudioPitch(channel:FMOD_CHANNEL, pitch:float=1.0) -> int:
+
+def setAudioPitch(channel: FMOD_CHANNEL, pitch: float = 1.0) -> int:
     """
     Change the current pitch of an active FMOD channel.
     This is a multiplier to the original channel value *not* a new frequency,
@@ -102,7 +113,8 @@ def setAudioPitch(channel:FMOD_CHANNEL, pitch:float=1.0) -> int:
     """
     ...
 
-def setAudioCone(channel:FMOD_CHANNEL, inside_angle:float=360.0, outside_angle:float=360.0, outside_volume:float=1.0, orientation:Optional[tuple[float, float, float]]=None) -> int:
+
+def setAudioCone(channel: FMOD_CHANNEL, inside_angle: float = 360.0, outside_angle: float = 360.0, outside_volume: float = 1.0, orientation: Optional[tuple[float, float, float]] = None) -> int:
     """
     Set a direction code for an active FMOD channel. The orientation vector is in local coordinates.
     This will set the sound to 3D if it is not already.
@@ -112,4 +124,3 @@ def setAudioCone(channel:FMOD_CHANNEL, inside_angle:float=360.0, outside_angle:f
      * Orientation of sound: OpenGL vector (x, y, z). None == (0,0,-1) which is due North
     """
     ...
-

@@ -28,7 +28,7 @@ and in a window.
           in the view. This is most commonly used for scenery objects and described
           in the :any:`XPLMInstance`.
 
-* **Direct drawing** involves drawing to the screen before or after X-Plane
+* **Direct drawing** (deprecated in XP12) involves drawing to the screen before or after X-Plane
   finishes a phase of drawing.  When you draw directly, you can specify
   whether x-plane is to complete this phase or not.  This allows you to do
   three things: draw before x-plane does (under it), draw after x-plane does
@@ -54,20 +54,17 @@ and in a window.
   also allows you to sign up for key presses and receive mouse clicks, and
   control window visibility and position.
 
-  Note: all 2-d (and thus all window drawing) is done in 'cockpit pixels'.
-  Even when the OpenGL window contains more than 1024x768 pixels, the cockpit
-  drawing is magnified so that only 1024x768 pixels are available.
-
   When you create a window, you'll specify the *Content Type* which will dictate
-  the set of drawing primitives available:
+  the set of drawing primitives available. Before X-Plane 12.4.4, the *only* option was OpenGL,
+  which continues to be the default:
 
-  * :data:`WindowContentTypeOpenGL`: OpenGL, you're kinda on your own.
+  * :data:`WindowContentTypeOpenGL`: |BR| OpenGL, you're kinda on your own.
 
-  * :data:`WindowContentTypePanelGraphics`: PanelGraphics, a set of X-Plane drawing primitives.
+  * :data:`WindowContentTypePanelGraphics`: |BR| PanelGraphics, a set of X-Plane drawing primitives.
 
-  * :data:`WindowContentTypeBrowser`: Embedded `CEF Browser <https://en.wikipedia.org/wiki/Chromium_Embedded_Framework>`_ with full HTML and Javascript.
+  * :data:`WindowContentTypeBrowser`: |BR| Embedded `CEF Browser <https://en.wikipedia.org/wiki/Chromium_Embedded_Framework>`_ with full HTML and Javascript.
 
-  Note: PanelGraphics and Browsers are available starting with 12.5, otherwise your only choice is OpenGL.
+  Note: PanelGraphics and Browsers are available starting with 12.4.4, otherwise your only choice is OpenGL.
 
   See :doc:`display_window`.
 
@@ -86,13 +83,13 @@ and in a window.
   Similar to WindowAPI, When you create a device window, you'll specify the *Content Type* which will dictate
   the set of drawing primitives available:
 
-  * :data:`WindowContentTypeOpenGL`: OpenGL, you're kinda on your own.
+  * :data:`WindowContentTypeOpenGL`: |BR| OpenGL, you're kinda on your own.
 
-  * :data:`WindowContentTypePanelGraphics`: PanelGraphics, a set of X-Plane drawing primitives.
+  * :data:`WindowContentTypePanelGraphics`: |BR| PanelGraphics, a set of X-Plane drawing primitives.
 
-  * :data:`WindowContentTypeBrowser`: Embedded `CEF Browser <https://en.wikipedia.org/wiki/Chromium_Embedded_Framework>`_ with full HTML and Javascript.
+  * :data:`WindowContentTypeBrowser`: |BR| Embedded `CEF Browser <https://en.wikipedia.org/wiki/Chromium_Embedded_Framework>`_ with full HTML and Javascript.
 
-  Note: PanelGraphics and Browsers are available starting with 12.5, otherwise your only choice is OpenGL.
+  Note: PanelGraphics and Browsers are available starting with 12.4.4, otherwise your only choice is OpenGL.
 
   See :doc:`display_avionics`.
   
@@ -135,6 +132,7 @@ There are three ways to get keystrokes:
    /development/modules/display_direct
    /development/modules/display_window
    /development/modules/display_avionics
+   /development/modules/display_window_browser
    /development/modules/display_sniffer
    /development/modules/display_hotkeys
    /development/window_position

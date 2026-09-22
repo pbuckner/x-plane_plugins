@@ -10,7 +10,7 @@ To use::
 Functions
 ---------
 
-.. py:function:: speakString(string)
+.. py:function:: speakString(string) -> None
 
     Display *string* in a translucent overlay over the current
     display and also speak the string if text-to-speech is enabled.
@@ -31,7 +31,7 @@ Functions
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMSpeakString>`__ :index:`XPLMSpeakString`               
     
-.. py:function:: getVirtualKeyDescription(vKey)
+.. py:function:: getVirtualKeyDescription(vKey) -> str
 
     Given a virtual key code *vKey* (as defined in :py:mod:`XPLMDefs`) this routine returns a
     human-readable string describing the character.
@@ -39,7 +39,6 @@ Functions
     :param vKey: Virtual key code
     :type vKey: int
     :return: Human-readable string describing the key
-    :rtype: str
 
     This routine is provided for showing users what keyboard mappings they have set up. The string may
     read 'unknown' or be a blank or none string if the virtual key is unknown.
@@ -56,11 +55,9 @@ Functions
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMGetVirtualKeyDescription>`__ :index:`XPLMGetVirtualKeyDescription`
 
-.. py:function::  reloadScenery()
+.. py:function::  reloadScenery() -> None
 
     Reload the current set of scenery.
-
-    :return: None
 
     You can use this function in two typical ways: simply call it to reload the scenery, picking
     up any new installed scenery, .env files, etc. from disk. Or, change the
@@ -74,12 +71,9 @@ Functions
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMReloadScenery>`__ :index:`XPLMReloadScenery`
 
-.. py:function:: getSystemPath()
-
-    Return the full path to the X-Plane folder.
+.. py:function:: getSystemPath() -> str
 
     :return: Full path to X-Plane folder (ends with /)
-    :rtype: str
 
     Note that this is a directory path, so it ends in a trailing  /.
 
@@ -89,13 +83,12 @@ Functions
     `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMGetSystemPath>`__ :index:`XPLMGetSystemPath`
 
 
-.. py:function:: getPrefsPath()
+.. py:function:: getPrefsPath() -> str
+
+    :return: Full path to a file in preferences directory
 
     This routine returns a full path to **a file** that is within X-Plane's
     preferences directory.
-
-    :return: Full path to a file in preferences directory
-    :rtype: str
 
     (You should remove the file name back to the last
     directory separator to get the preferences directory.)
@@ -107,12 +100,11 @@ Functions
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMGetPrefsPath>`__ :index:`XPLMGetPrefsPath`
 
-.. py:function:: getDirectorySeparator()
-
-    This routine returns a string the directory separator for the current platform.
+.. py:function:: getDirectorySeparator() -> str
 
     :return: Directory separator character
-    :rtype: str
+
+    This routine returns a string the directory separator for the current platform.
 
     This allows you to write code that concatenates directory paths without having
     to check for the platform.
@@ -124,14 +116,13 @@ Functions
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMGetDirectorySeparator>`__ :index:`XPLMGetDirectorySeparator`
 
-.. py:function:: extractFileAndPath(fullPath)
-
-    Given a full path to a file, this routine separates the path from the file.
+.. py:function:: extractFileAndPath(fullPath) -> Tuple[str, str]
 
     :param fullPath: Full path to a file
     :type fullPath: str
     :return: Tuple of (filename, path)
-    :rtype: tuple[str, str]
+
+    Given a full path to a file, this routine separates the path from the file.
 
     If the path is a partial directory (e.g. ends in : or \) the trailing
     directory separator is removed. This routine works in-place; a pointer to
@@ -149,7 +140,7 @@ Functions
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMExtractFileAndPath>`__ :index:`XPLMExtractFileAndPath`
 
-.. py:function:: getDirectoryContents(dir, firstReturn=0, bufSize=2048, maxFiles=100)
+.. py:function:: getDirectoryContents(dir, firstReturn=0, bufSize=2048, maxFiles=100) -> Tuple [int, List[str], int]
 
     Return a list of files and directories in a directory *dir*.
 
@@ -162,7 +153,6 @@ Functions
     :param maxFiles: Maximum number of files to return (default: 100)
     :type maxFiles: int
     :return: Tuple of (result, names, totalFiles)
-    :rtype: tuple[int, list[str], int]
 
     The output is returned as a three-element tuple (res, names, totalFiles):
 
@@ -194,12 +184,11 @@ Functions
     `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMGetDirectoryContents>`__ :index:`XPLMGetDirectoryContents`
     
 
-.. py:function:: getVersions()
-
-    Return the revision of X-Plane, XPLM SDK, and the host ID of the app running us.
+.. py:function:: getVersions() -> Tuple[int, int, int]
 
     :return: Tuple of (xplaneVersion, xplmVersion, hostID)
-    :rtype: tuple[int, int, int]
+
+    Return the revision of X-Plane, XPLM SDK, and the host ID of the app running us.
 
     The most common use of this routine is to special-case around X-Plane
     version-specific behavior.
@@ -222,12 +211,11 @@ Functions
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMGetVersions>`__ :index:`XPLMGetVersions`
 
-.. py:function::  getLanguage()
-
- Returns the language code the sim is running in.
+.. py:function::  getLanguage() -> int
 
  :return: Language code constant
- :rtype: int
+
+ Returns the language code the sim is running in.
 
   .. table::
    :align: left
@@ -258,13 +246,12 @@ Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMGetLanguage>`__ :index:`XPLMGetLanguage`
 
-.. py:function:: debugString(string)
-
-    This routine outputs a string to the Log.txt file.
+.. py:function:: debugString(string) -> None
 
     :param string: String to write to Log.txt
     :type string: str
-    :return: None
+
+    This routine outputs a string to the Log.txt file.
 
     You'll likely want to append a newline to the string. The buffer is
     immediately flushed so you will not lose data. (This does cause a
@@ -278,20 +265,28 @@ Functions
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMDebugString>`__ :index:`XPLMDebugString`
 
-.. py:function:: setErrorCallback(callback)
-
-    Install an error-reporting callback for your plugin.
+.. py:function:: setErrorCallback(callback) -> None
 
     :param callback: Callback function to receive error messages
     :type callback: Callable[[str], None]
-    :return: None
+
+    Install an error-reporting callback for your plugin.
 
     Normally the plugin system performs minimum diagnostics to maximize
     performance. When you install an error callback, you will receive calls due
     to certain plugin errors, such as passing bad parameters or incorrect data.
 
-    .. py:function:: MyCallback(message)
+    The error callback reports *programming* errors, e.g., bad API parameters.
+    Every error that is returned by the error callback represents a mistake
+    in your plugin that you should fix. A few APIs also use it to explain
+    why a call that can legitimately fail did fail -- for example,
+    :func:`fontAddFace` reports the reason it could not load a font file. But the
+    callback is not a general channel for run-time conditions your plugin is expected to handle.     
+
+    .. py:function:: MyCallback(message) -> None
     
+        :param str message:
+
         Your error callback takes a single string and should not return any value.
         NOTE: for the sake of debugging, your error callback will be
         called even if your plugin is not enabled, allowing you to receive debug
@@ -327,14 +322,13 @@ Functions
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMSetErrorCallback>`__ :index:`XPLMSetErrorCallback`
 
-.. py:function:: findSymbol(symbol)
+.. py:function:: findSymbol(symbol) -> int
 
     This routine will attempt to find the C-API *symbol*.
 
     :param symbol: C-API symbol name to find
     :type symbol: str
     :return: Integer pointer to the symbol, or None if not found
-    :rtype: Optional[int]
 
     If the symbol is found a pointer the function is returned,
     in the form of a integer constructed from the pointer.
@@ -364,7 +358,7 @@ Functions
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMFindSymbol>`__ :index:`XPLMFindSymbol`
 
-.. py:function:: loadDataFile(fileType, path)
+.. py:function:: loadDataFile(fileType, path) -> int
 
    Loads a data file of a given type.
 
@@ -373,7 +367,6 @@ Functions
    :param path: Path to file (absolute or relative to getSystemPath), or None to clear replay
    :type path: Optional[str]
    :return: 1 on success (file found), 0 otherwise
-   :rtype: int
 
    *path* may be absolute, or relative :py:func:`getSystemPath`
    To clear the replay, pass a None *path* (this is only valid with
@@ -394,7 +387,7 @@ Functions
 
    `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMLoadDataFile>`__ :index:`XPLMLoadDataFile`
 
-.. py:function::  saveDataFile(fileType, path)
+.. py:function::  saveDataFile(fileType, path) -> int
 
     Saves the current situation or replay.
 
@@ -403,7 +396,6 @@ Functions
     :param path: Path to file (absolute or relative to getSystemPath)
     :type path: str
     :return: 1 on success, 0 otherwise
-    :rtype: int
 
     *path* is absolute, or relative to :py:func:`getSystemPath`.
     See File Types in :py:func:`loadDataFile`.
@@ -412,6 +404,23 @@ Functions
     1
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMSaveDataFile>`__ :index:`XPLMSaveDataFile`
+
+.. py:function:: returnString(string) -> str
+
+    :param str string: String to hand back to X-Plane
+    :return: the same string (from the host-managed slot)
+
+    Copy *string* into the host-managed return slot for the current callback. New
+    with X-Plane 12.4.4 (SDK 440).
+
+    This is a low-level helper: it is the only sanctioned way for a callback that
+    must return a ``const char *`` to hand a string back to X-Plane. In practice
+    you rarely call it yourself. XPPython3 uses it internally to return the
+    values of browser-function callbacks (see :func:`windowAddBrowserFunction` and
+    :func:`avionicsAddBrowserFunction`), where you simply ``return`` a Python
+    string and XPPython3 marshals it for you.
+
+    `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMReturnString>`__ :index:`XPLMReturnString`
 
 X-Plane Command Management
 --------------------------
@@ -429,28 +438,26 @@ Note that a command is not "owned" by a particular plugin. Since many
 plugins may participate in a command's execution, the command does not go
 away if the plugin that created it is unloaded.
 
-.. py:function:: findCommand(name)
-
-    Look up a command by *name*, and return its commandRef
-    or None if the command does not exist.
+.. py:function:: findCommand(name) -> XPLMCommandRef
 
     :param name: Command name to find
     :type name: str
-    :return: CommandRef if found, None otherwise
-    :rtype: Optional[:data:`XPLMCommandRef`]
+    :return: :class:`XPLMCommandRef` if found, None otherwise
+
+    Look up a command by *name*, and return its commandRef
+    or None if the command does not exist.
 
     >>> xp.findCommand('xppython3/about')
     <capsule object "XPLMCommandRef" at 0x7fab99874536>
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMFindCommand>`__ :index:`XPLMFindCommand`
 
-.. py:function:: commandBegin(commandRef)
-
-    Start the execution of a command, specified by its *commandRef*.
+.. py:function:: commandBegin(commandRef) -> None
 
     :param commandRef: Command to begin executing
-    :type commandRef: :data:`XPLMCommandRef`
-    :return: None
+    :type commandRef: :class:`XPLMCommandRef`
+
+    Start the execution of a command, specified by its *commandRef*.
 
     The command is "held down" until you call :py:func:`commandEnd`.
 
@@ -462,14 +469,13 @@ away if the plugin that created it is unloaded.
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMCommandBegin>`__ :index:`XPLMCommandBegin`
 
-.. py:function:: commandEnd(commandRef)
+.. py:function:: commandEnd(commandRef) -> None
+
+    :param commandRef: Command to end
+    :type commandRef: :class:`XPLMCommandRef`
 
     End the execution of a given command, specified by its *commandRef*
     that was started with :py:func:`commandBegin`.
-
-    :param commandRef: Command to end
-    :type commandRef: :data:`XPLMCommandRef`
-    :return: None
 
     >>> commandRef = xp.findCommand('sim/flight_controls/brakes_max')
     >>> xp.commandBegin(commandRef)
@@ -477,13 +483,12 @@ away if the plugin that created it is unloaded.
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMCommandEnd>`__ :index:`XPLMCommandEnd`
     
-.. py:function:: commandOnce(commandRef)
-
-    This executes a given *commandRef*, doing both CommandBegin and CommandEnd.
+.. py:function:: commandOnce(commandRef) -> None
 
     :param commandRef: Command to execute
-    :type commandRef: :data:`XPLMCommandRef`
-    :return: None
+    :type commandRef: :class:`XPLMCommandRef`
+
+    This executes a given *commandRef*, doing both CommandBegin and CommandEnd.
 
     You can use this as a replacement for the deprecated
     ``XPLMCommandKeyStroke``.
@@ -492,16 +497,15 @@ away if the plugin that created it is unloaded.
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMCommandOnce>`__ :index:`XPLMCommandOnce`
 
-.. py:function:: createCommand(name, description=None)
-
-    Create a new command for a given string.
+.. py:function:: createCommand(name, description=None) -> XPLMCommandRef
 
     :param name: Command name
     :type name: str
     :param description: Human-readable description (default: uses name)
     :type description: Optional[str]
-    :return: CommandRef for the created or existing command
-    :rtype: :data:`XPLMCommandRef`
+    :return: XPLMCommandRef for the created or existing command
+
+    Create a new command for a given string.
 
     If the command already exists, the existing commandRef is returned. The description
     may appear in user interface contexts, such as the joystick configuration
@@ -514,19 +518,18 @@ away if the plugin that created it is unloaded.
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMCreateCommand>`__ :index:`XPLMCreateCommand`
 
-.. py:function:: registerCommandHandler(commandRef, callback, before=1, refCon=None)
-
-    Register a *callback* for the given *commandRef*.
+.. py:function:: registerCommandHandler(commandRef, callback, before=1, refCon=None) -> None
 
     :param commandRef: Command to monitor
-    :type commandRef: :data:`XPLMCommandRef`
+    :type commandRef: :class:`XPLMCommandRef`
     :param callback: Callback function to execute
-    :type callback: Callable[[:data:`XPLMCommandRef`, int, Any], int]
+    :type callback: Callable[[:class:`XPLMCommandRef`, int, Any], int]
     :param before: 1 to run before X-Plane, 0 to run after (default: 1)
     :type before: int
     :param refCon: Reference constant passed to callback (default: None)
     :type refCon: Any
-    :return: None
+
+    Register a *callback* for the given *commandRef*.
 
     You provide a callback with a reference constant.
 
@@ -538,7 +541,7 @@ away if the plugin that created it is unloaded.
 
     Your callback should look like:
 
-    .. py:function:: commandCallback(commandRef, phase, refCon)
+    .. py:function:: commandCallback(commandRef, phase, refCon) -> int
     
         Your callback receives the *commandRef* for the
         particular command, the *phase* of the command that is executing, and the
@@ -591,19 +594,18 @@ away if the plugin that created it is unloaded.
     `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMRegisterCommandHandler>`__ :index:`XPLMRegisterCommandHandler`
 
 
-.. py:function:: unregisterCommandHandler(commandRef, callback, before, refCon)
-
-    Remove a command callback registered with :py:func:`registerCommandHandler`.
+.. py:function:: unregisterCommandHandler(commandRef, callback, before, refCon) -> None
 
     :param commandRef: Command that was monitored
-    :type commandRef: :data:`XPLMCommandRef`
+    :type commandRef: :class:`XPLMCommandRef`
     :param callback: Callback function that was registered
-    :type callback: Callable[[:data:`XPLMCommandRef`, int, Any], int]
+    :type callback: Callable[[:class:`XPLMCommandRef`, int, Any], int]
     :param before: 1 if registered before X-Plane, 0 if after
     :type before: int
     :param refCon: Reference constant used during registration
     :type refCon: Any
-    :return: None
+
+    Remove a command callback registered with :py:func:`registerCommandHandler`.
 
     Parameters much match those used with registration.
 
@@ -613,14 +615,14 @@ away if the plugin that created it is unloaded.
 
 .. _XPLMCommandRef:
 
-Capsules
-********
+Types
+*****
 
-.. data:: XPLMCommandRef
+.. py:class:: XPLMCommandRef
 
-A command ref is an opaque identifier for an X-Plane command. Command
-references stay the same for the life of your plugin but not between
-executions of X-Plane. Command refs are used to execute commands, create
-commands, and create callbacks for particular commands. A command ref
-is returned by :py:func:`findCommand` or created by :py:func:`createCommand`.
+    A command ref is an opaque identifier for an X-Plane command. Command
+    references stay the same for the life of your plugin but not between
+    executions of X-Plane. Command refs are used to execute commands, create
+    commands, and create callbacks for particular commands. A command ref
+    is returned by :py:func:`findCommand` or created by :py:func:`createCommand`.
 

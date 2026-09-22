@@ -56,9 +56,11 @@ Where is X-Plane? We don't know yet -- we've only looked at what the OS is telli
 
 Let's look at a few different ways of running X-Plane:
 
- * Single window on one of the monitors ("Windowed Simulator")
- * Full Screen on one of the monitors
- * Full Screen on two of the monitors
+.. rst-class:: compact
+               
+* Single window on one of the monitors ("Windowed Simulator")
+* Full Screen on one of the monitors
+* Full Screen on two of the monitors
 
 Windowed Simulator
 ------------------
@@ -156,21 +158,21 @@ Positioning Windows
 So how does one position windows? You can use a combination of :py:func:`setWindowPositioningMode` and the bounds information
 described above.
 
- * :data:`WindowPositionFree`: WindowPositionFree is the default and will put the window at whatever coordinates
-   defined using CreateWindowEx (or subsequently changed using :py:func:`setWindowGeometry`).
+* :data:`WindowPositionFree`: WindowPositionFree is the default and will put the window at whatever coordinates
+  defined using CreateWindowEx (or subsequently changed using :py:func:`setWindowGeometry`).
 
- * :data:`WindowCenterOnMonitor`: WindowCenterOnMonitor will center the window on the specified monitor index, with -1
-   setting it centered on the main X-Plane monitor, whichever that might be. (Note: the Main X-Plane Monitor is the one with the menu,
-   which may not be the Main OS Monitor!)
-   In this case, values passed using CreateWindowEx are ignored except
-   to determine the length and width of the window.
+* :data:`WindowCenterOnMonitor`: WindowCenterOnMonitor will center the window on the specified monitor index, with -1
+  setting it centered on the main X-Plane monitor, whichever that might be. (Note: the Main X-Plane Monitor is the one with the menu,
+  which may not be the Main OS Monitor!)
+  In this case, values passed using CreateWindowEx are ignored except
+  to determine the length and width of the window.
 
- * :data:`WindowPopOut`: WindowPopup will display the window outside of X-Plane, as an OS-hosted window. This window
-   can be on any monitor, even monitors not being used by X-Plane. The coordinates of the window still match the overall coordinates.
+* :data:`WindowPopOut`: WindowPopup will display the window outside of X-Plane, as an OS-hosted window. This window
+  can be on any monitor, even monitors not being used by X-Plane. The coordinates of the window still match the overall coordinates.
 
- * :data:`WindowVR`: The window is centered in the VR display. This is similar to ``WindowCenterOnMonitor`` in that
-   the length and width of the window are obtained from the window geometry. The window position is simply centered and remains centered
-   in the user's view as the user moves around.
+* :data:`WindowVR`: The window is centered in the VR display. This is similar to ``WindowCenterOnMonitor`` in that
+  the length and width of the window are obtained from the window geometry. The window position is simply centered and remains centered
+  in the user's view as the user moves around.
 
 (The other to positioning modes ``WindowFullScreenOnMonitor``, and ``WindowFullScreenOnAllMonitors`` are rarely used but should be
 self-explanatory.)

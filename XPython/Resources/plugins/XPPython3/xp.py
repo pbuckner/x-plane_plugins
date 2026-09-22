@@ -68,6 +68,7 @@ OptionAltFlag = XPLMDefs.OptionAltFlag
 ControlFlag = XPLMDefs.ControlFlag
 DownFlag = XPLMDefs.DownFlag
 UpFlag = XPLMDefs.UpFlag
+CapsLockFlag = XPLMDefs.CapsLockFlag
 NoFlag = XPLMDefs.NoFlag
 NO_PLUGIN_ID = XPLMDefs.NO_PLUGIN_ID
 PLUGIN_XPLANE = XPLMDefs.PLUGIN_XPLANE
@@ -238,8 +239,16 @@ isAvionicsPoppedOut = XPLMDisplay.isAvionicsPoppedOut
 hasAvionicsKeyboardFocus = XPLMDisplay.hasAvionicsKeyboardFocus
 avionicsNeedsDrawing = XPLMDisplay.avionicsNeedsDrawing
 setAvionicsPopupVisible = XPLMDisplay.setAvionicsPopupVisible
+isAvionicsMappedToVR = XPLMDisplay.isAvionicsMappedToVR
+setAvionicsMappedToVR = XPLMDisplay.setAvionicsMappedToVR
 popOutAvionics = XPLMDisplay.popOutAvionics
 takeAvionicsKeyboardFocus = XPLMDisplay.takeAvionicsKeyboardFocus
+avionicsSetURL = XPLMDisplay.avionicsSetURL
+avionicsRefresh = XPLMDisplay.avionicsRefresh
+avionicsInjectScript = XPLMDisplay.avionicsInjectScript
+avionicsAddBrowserFunction = XPLMDisplay.avionicsAddBrowserFunction
+setObjectAvionics = XPLMDisplay.setObjectAvionics
+clearObjectAvionics = XPLMDisplay.clearObjectAvionics
 getWindowGeometryVR = XPLMDisplay.getWindowGeometryVR
 setWindowGeometryVR = XPLMDisplay.setWindowGeometryVR
 getWindowIsVisible = XPLMDisplay.getWindowIsVisible
@@ -250,10 +259,15 @@ setWindowGravity = XPLMDisplay.setWindowGravity
 setWindowResizingLimits = XPLMDisplay.setWindowResizingLimits
 setWindowPositioningMode = XPLMDisplay.setWindowPositioningMode
 setWindowTitle = XPLMDisplay.setWindowTitle
+windowSetURL = XPLMDisplay.windowSetURL
+windowRefresh = XPLMDisplay.windowRefresh
+windowInjectScript = XPLMDisplay.windowInjectScript
+windowAddBrowserFunction = XPLMDisplay.windowAddBrowserFunction
 getWindowRefCon = XPLMDisplay.getWindowRefCon
 setWindowRefCon = XPLMDisplay.setWindowRefCon
 takeKeyboardFocus = XPLMDisplay.takeKeyboardFocus
 hasKeyboardFocus = XPLMDisplay.hasKeyboardFocus
+getModifierKeys = XPLMDisplay.getModifierKeys
 bringWindowToFront = XPLMDisplay.bringWindowToFront
 isWindowInFront = XPLMDisplay.isWindowInFront
 registerKeySniffer = XPLMDisplay.registerKeySniffer
@@ -288,6 +302,9 @@ WindowDecorationNone = XPLMDisplay.WindowDecorationNone
 WindowDecorationRoundRectangle = XPLMDisplay.WindowDecorationRoundRectangle
 WindowDecorationSelfDecorated = XPLMDisplay.WindowDecorationSelfDecorated
 WindowDecorationSelfDecoratedResizable = XPLMDisplay.WindowDecorationSelfDecoratedResizable
+WindowContentTypeOpenGL = XPLMDisplay.WindowContentTypeOpenGL
+WindowContentTypePanelGraphics = XPLMDisplay.WindowContentTypePanelGraphics
+WindowContentTypeBrowser = XPLMDisplay.WindowContentTypeBrowser
 WindowPositionFree = XPLMDisplay.WindowPositionFree
 WindowCenterOnMonitor = XPLMDisplay.WindowCenterOnMonitor
 WindowFullScreenOnMonitor = XPLMDisplay.WindowFullScreenOnMonitor
@@ -314,25 +331,9 @@ Device_Primus_RMU_1 = XPLMDisplay.Device_Primus_RMU_1
 Device_Primus_RMU_2 = XPLMDisplay.Device_Primus_RMU_2
 Device_MCDU_1 = XPLMDisplay.Device_MCDU_1
 Device_MCDU_2 = XPLMDisplay.Device_MCDU_2
-import XPLMGraphics
-setGraphicsState = XPLMGraphics.setGraphicsState
-bindTexture2d = XPLMGraphics.bindTexture2d
-generateTextureNumbers = XPLMGraphics.generateTextureNumbers
-worldToLocal = XPLMGraphics.worldToLocal
-localToWorld = XPLMGraphics.localToWorld
-drawTranslucentDarkBox = XPLMGraphics.drawTranslucentDarkBox
-drawString = XPLMGraphics.drawString
-drawNumber = XPLMGraphics.drawNumber
-getFontDimensions = XPLMGraphics.getFontDimensions
-measureString = XPLMGraphics.measureString
-getTexture = XPLMGraphics.getTexture
-Font_Basic = XPLMGraphics.Font_Basic
-Font_Proportional = XPLMGraphics.Font_Proportional
-Tex_GeneralInterface = XPLMGraphics.Tex_GeneralInterface
-Tex_Radar_Pilot = XPLMGraphics.Tex_Radar_Pilot
-Tex_Radar_Copilot = XPLMGraphics.Tex_Radar_Copilot
 import XPLMPanelGraphics
 makeColor = XPLMPanelGraphics.makeColor
+setLineCap = XPLMPanelGraphics.setLineCap
 lines = XPLMPanelGraphics.lines
 linesWithWidth = XPLMPanelGraphics.linesWithWidth
 linesStipple = XPLMPanelGraphics.linesStipple
@@ -349,13 +350,9 @@ lineLoopc = XPLMPanelGraphics.lineLoopc
 lineLoopcWithWidth = XPLMPanelGraphics.lineLoopcWithWidth
 lineLoopStipple = XPLMPanelGraphics.lineLoopStipple
 polygon = XPLMPanelGraphics.polygon
-polygonWithWidth = XPLMPanelGraphics.polygonWithWidth
 polygonc = XPLMPanelGraphics.polygonc
-polygoncWithWidth = XPLMPanelGraphics.polygoncWithWidth
 quadstrip = XPLMPanelGraphics.quadstrip
-quadstripWithWidth = XPLMPanelGraphics.quadstripWithWidth
 quadstripc = XPLMPanelGraphics.quadstripc
-quadstripcWithWidth = XPLMPanelGraphics.quadstripcWithWidth
 transformPush = XPLMPanelGraphics.transformPush
 transformPop = XPLMPanelGraphics.transformPop
 transformTranslate = XPLMPanelGraphics.transformTranslate
@@ -364,7 +361,7 @@ transformScale = XPLMPanelGraphics.transformScale
 scissorPush = XPLMPanelGraphics.scissorPush
 scissorPop = XPLMPanelGraphics.scissorPop
 scissorSet = XPLMPanelGraphics.scissorSet
-scissorShrink = XPLMPanelGraphics.scissorShrink
+scissorIntersect = XPLMPanelGraphics.scissorIntersect
 beginSetupStencilMask = XPLMPanelGraphics.beginSetupStencilMask
 endSetupStencilMask = XPLMPanelGraphics.endSetupStencilMask
 useStencilMask = XPLMPanelGraphics.useStencilMask
@@ -390,7 +387,6 @@ textureAtlasAddImageSet = XPLMPanelGraphics.textureAtlasAddImageSet
 textureAtlasBake = XPLMPanelGraphics.textureAtlasBake
 textureAtlasGetImageWidth = XPLMPanelGraphics.textureAtlasGetImageWidth
 textureAtlasGetImageHeight = XPLMPanelGraphics.textureAtlasGetImageHeight
-textureAtlasGetImageUVMap = XPLMPanelGraphics.textureAtlasGetImageUVMap
 textureAtlasDrawAt = XPLMPanelGraphics.textureAtlasDrawAt
 textureAtlasDrawIn = XPLMPanelGraphics.textureAtlasDrawIn
 textureAtlasDrawStretched = XPLMPanelGraphics.textureAtlasDrawStretched
@@ -408,12 +404,20 @@ svtDisplayDrawIn = XPLMPanelGraphics.svtDisplayDrawIn
 createMapDisplay = XPLMPanelGraphics.createMapDisplay
 destroyMapDisplay = XPLMPanelGraphics.destroyMapDisplay
 mapDisplayDrawIn = XPLMPanelGraphics.mapDisplayDrawIn
+mapDisplayProject = XPLMPanelGraphics.mapDisplayProject
+mapDisplayUnproject = XPLMPanelGraphics.mapDisplayUnproject
+mapDisplayScaleMeter = XPLMPanelGraphics.mapDisplayScaleMeter
+mapDisplayGetNorthHeading = XPLMPanelGraphics.mapDisplayGetNorthHeading
+mapDisplayGetTerrainAltitudes = XPLMPanelGraphics.mapDisplayGetTerrainAltitudes
 createTexture = XPLMPanelGraphics.createTexture
 destroyTexture = XPLMPanelGraphics.destroyTexture
 drawCalls = XPLMPanelGraphics.drawCalls
 accumulateTouchZone = XPLMPanelGraphics.accumulateTouchZone
 avionicsSetTouchEventHandler = XPLMPanelGraphics.avionicsSetTouchEventHandler
 windowSetTouchEventHandler = XPLMPanelGraphics.windowSetTouchEventHandler
+LineCapButt = XPLMPanelGraphics.LineCapButt
+LineCapRound = XPLMPanelGraphics.LineCapRound
+LineCapSquare = XPLMPanelGraphics.LineCapSquare
 CharSetDigits = XPLMPanelGraphics.CharSetDigits
 CharSetASCII = XPLMPanelGraphics.CharSetASCII
 CharSetUnicode = XPLMPanelGraphics.CharSetUnicode
@@ -439,15 +443,40 @@ Map_Water = XPLMPanelGraphics.Map_Water
 Map_EGPWS = XPLMPanelGraphics.Map_EGPWS
 Map_raw_elev = XPLMPanelGraphics.Map_raw_elev
 Map_safe_taxi = XPLMPanelGraphics.Map_safe_taxi
+EGPWS_Style_Blocky = XPLMPanelGraphics.EGPWS_Style_Blocky
+EGPWS_Style_Smooth = XPLMPanelGraphics.EGPWS_Style_Smooth
 TouchZone_Nothing = XPLMPanelGraphics.TouchZone_Nothing
 TouchZone_Command = XPLMPanelGraphics.TouchZone_Command
 TouchZone_Identifier = XPLMPanelGraphics.TouchZone_Identifier
+import XPLMGraphics
+setGraphicsState = XPLMGraphics.setGraphicsState
+bindTexture2d = XPLMGraphics.bindTexture2d
+generateTextureNumbers = XPLMGraphics.generateTextureNumbers
+worldToLocal = XPLMGraphics.worldToLocal
+localToWorld = XPLMGraphics.localToWorld
+drawTranslucentDarkBox = XPLMGraphics.drawTranslucentDarkBox
+drawString = XPLMGraphics.drawString
+drawNumber = XPLMGraphics.drawNumber
+getFontDimensions = XPLMGraphics.getFontDimensions
+measureString = XPLMGraphics.measureString
+getTexture = XPLMGraphics.getTexture
+Font_Basic = XPLMGraphics.Font_Basic
+Font_Proportional = XPLMGraphics.Font_Proportional
+Tex_GeneralInterface = XPLMGraphics.Tex_GeneralInterface
+Tex_Radar_Pilot = XPLMGraphics.Tex_Radar_Pilot
+Tex_Radar_Copilot = XPLMGraphics.Tex_Radar_Copilot
 import XPLMInstance
 createInstance = XPLMInstance.createInstance
 destroyInstance = XPLMInstance.destroyInstance
 instanceSetAutoShift = XPLMInstance.instanceSetAutoShift
 instanceSetPosition = XPLMInstance.instanceSetPosition
 instanceSetPositionDouble = XPLMInstance.instanceSetPositionDouble
+createInstanceEx = XPLMInstance.createInstanceEx
+instanceSetCoordinateSpace = XPLMInstance.instanceSetCoordinateSpace
+CoordSpace_World = XPLMInstance.CoordSpace_World
+CoordSpace_AircraftInterior = XPLMInstance.CoordSpace_AircraftInterior
+CoordSpace_AircraftExterior = XPLMInstance.CoordSpace_AircraftExterior
+CoordSpace_Camera = XPLMInstance.CoordSpace_Camera
 import XPLMMap
 createMapLayer = XPLMMap.createMapLayer
 destroyMapLayer = XPLMMap.destroyMapLayer
@@ -593,6 +622,7 @@ MSG_RELEASE_PLANES = XPLMPlugin.MSG_RELEASE_PLANES
 MSG_FMOD_BANK_LOADED = XPLMPlugin.MSG_FMOD_BANK_LOADED
 MSG_FMOD_BANK_UNLOADING = XPLMPlugin.MSG_FMOD_BANK_UNLOADING
 MSG_DATAREFS_ADDED = XPLMPlugin.MSG_DATAREFS_ADDED
+MSG_WEATHER_DELIVERED = XPLMPlugin.MSG_WEATHER_DELIVERED
 MsgPlaneCrashed = XPLMPlugin.MSG_PLANE_CRASHED
 MsgPlaneLoaded = XPLMPlugin.MSG_PLANE_LOADED
 MsgAirportLoaded = XPLMPlugin.MSG_AIRPORT_LOADED
@@ -604,6 +634,10 @@ MsgLiveryLoaded = XPLMPlugin.MSG_LIVERY_LOADED
 MsgEnteredVR = XPLMPlugin.MSG_ENTERED_VR
 MsgExitingVR = XPLMPlugin.MSG_EXITING_VR
 MsgReleasePlanes = XPLMPlugin.MSG_RELEASE_PLANES
+MsgFmodBankLoaded = XPLMPlugin.MSG_FMOD_BANK_LOADED
+MsgFmodBankUnloading = XPLMPlugin.MSG_FMOD_BANK_UNLOADING
+MsgDatarefsAdded = XPLMPlugin.MSG_DATAREFS_ADDED
+MsgWeatherDelivered = XPLMPlugin.MSG_WEATHER_DELIVERED
 import XPLMProcessing
 getElapsedTime = XPLMProcessing.getElapsedTime
 getCycleNumber = XPLMProcessing.getCycleNumber
@@ -628,6 +662,7 @@ loadObject = XPLMScenery.loadObject
 loadObjectAsync = XPLMScenery.loadObjectAsync
 unloadObject = XPLMScenery.unloadObject
 lookupObjects = XPLMScenery.lookupObjects
+getObjects = XPLMScenery.getObjects
 ProbeY = XPLMScenery.ProbeY
 ProbeHitTerrain = XPLMScenery.ProbeHitTerrain
 ProbeError = XPLMScenery.ProbeError
@@ -636,6 +671,7 @@ import XPLMUtilities
 getCommandCallbackDict = XPLMUtilities.getCommandCallbackDict
 getErrorCallbackDict = XPLMUtilities.getErrorCallbackDict
 speakString = XPLMUtilities.speakString
+returnString = XPLMUtilities.returnString
 getVirtualKeyDescription = XPLMUtilities.getVirtualKeyDescription
 reloadScenery = XPLMUtilities.reloadScenery
 getSystemPath = XPLMUtilities.getSystemPath
@@ -925,6 +961,7 @@ NumWindLayers = XPLMWeather.NumWindLayers
 NumCloudLayers = XPLMWeather.NumCloudLayers
 NumTemperatureLayers = XPLMWeather.NumTemperatureLayers
 WindUndefinedLayer = XPLMWeather.WindUndefinedLayer
+TempUndefinedLayer = XPLMWeather.TempUndefinedLayer
 DefaultWxrRadiusNm = XPLMWeather.DefaultWxrRadiusNm
 DefaultWxrLimitMslFt = XPLMWeather.DefaultWxrLimitMslFt
 import XPLMSound
@@ -997,6 +1034,74 @@ def weatherUpdateContext(isIncremental: int = 1, updateImmediately: int = 0):
         yield
     finally:
         endWeatherUpdate(isIncremental, updateImmediately)
+
+
+@contextmanager
+def transformContext():
+    """
+    trivial context manager for panel graphics transforms
+    """
+    XPLMPanelGraphics.transformPush()
+    try:
+        yield
+    finally:
+        XPLMPanelGraphics.transformPop()
+
+
+@contextmanager
+def scissorContext():
+    """
+    trivial context manager for panel graphics scissors
+    """
+    XPLMPanelGraphics.scissorPush()
+    try:
+        yield
+    finally:
+        XPLMPanelGraphics.scissorPop()
+
+
+@contextmanager
+def setupStencilMask(bits, mask):
+    """
+    context manager for panel graphics stencil mask setup
+    """
+    XPLMPanelGraphics.beginSetupStencilMask(bits, mask)
+    try:
+        yield
+    finally:
+        XPLMPanelGraphics.endSetupStencilMask()
+
+
+@contextmanager
+def retainedDrawing():
+    """
+    trivial context manager for panel graphics scissors
+    """
+    holder = Retained()
+    XPLMPanelGraphics.beginRetainedDrawing()
+    try:
+        yield holder
+    except BaseException:
+        XPLMPanelGraphics.destroyRetainedDrawing(XPLMPanelGraphics.endRetainedDrawing())        
+        raise
+    holder.handle = XPLMPanelGraphics.endRetainedDrawing()
+
+
+class Retained:
+    """Holds a retained-drawing handle; empty until the with-block exits."""
+    __slots__ = ('handle',)
+
+    def __init__(self):
+        self.handle = None
+        
+    def draw(self):
+        if self.handle is not None:
+            XPLMPanelGraphics.drawRetained(self.handle)
+
+    def destroy(self):
+        if self.handle is not None:
+            XPLMPanelGraphics.destroyRetainedDrawing(self.handle)
+            self.handle = None
 
 
 def getPluginInstance(signature: str = None):

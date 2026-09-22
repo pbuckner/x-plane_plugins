@@ -31,10 +31,6 @@ Our Solution
 To support this, we import global plugins as part of the ``PythonPlugins`` package, so your
 ``PI_MyPlugin.py`` is imported as the module ``PythonPlugins.PI_MyPlugin``.
 
-.. |br| raw:: html
-
-   <br>
-   
 ================= =========================================================================
 Plugin Type       Example .py |br|                                             
                   Module name for importing

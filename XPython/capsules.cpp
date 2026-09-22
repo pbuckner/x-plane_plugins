@@ -201,7 +201,7 @@ std::vector<std::string> CapsuleTypes = {
   "XPLMCommandRef", // simple ID
   "XPLMDataRef",  "XPLMFlightLoopID",  "XPLMHotKeyID",  "XPLMInstanceRef",  "XPLMMapLayerID",
   "XPLMMapProjectionID",  "XPLMMenuID",  "XPLMObjectRef", "XPLMProbeRef", "XPLMWindowID", "XPWidgetID",
-  "XPLMFontHandle", "XPLMTextureAtlasRef", "XPLMRetainedDrawing_t",
+  "XPLMFontHandle", "XPLMTextureAtlasRef", "XPLMRetainedDrawing",
   "XPLMSVTDisplayRef", "XPLMMapDisplayRef", "XPLMTexture"
 };
 

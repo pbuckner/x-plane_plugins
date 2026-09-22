@@ -1,6 +1,6 @@
-XPPython
-============
-.. py:module:: XPPython
+XPPython3
+=========
+.. py:module:: XPPython3
 .. py:currentmodule:: xp
                       
 To use::
@@ -12,7 +12,7 @@ This module provides some XPPython3 specific constants and functions.
 Functions
 ---------
 
-.. py:function:: pythonGetDicts()
+.. py:function:: pythonGetDicts() -> Dict
 
  :return: Dictionary of internal data   
 
@@ -31,10 +31,9 @@ Functions
  The dictionaries are intended to be read-only and for debugging purposes
  only. They are documented in :doc:`/development/xppythondicts`.
 
-.. py:function:: log(s)
+.. py:function:: log(s) -> None
 
  :param str s: String to log
- :return: None              
 
  Print string into XPPython3Log.txt file, appending a newline.
  Normally, the log is *not* flushed after each write. To force
@@ -48,11 +47,11 @@ Functions
 
  See also :doc:`/usage/logfiles` for more information about logging and log files.
  
-.. py:function:: systemLog(s)
-.. py:function:: sys_log(s)
+.. py:function:: systemLog(s) -> None
+.. py:function:: sys_log(s) -> None
 
  :param str s: String to log
- :return: None               
+
 
  Print string into X-Plane System log file, ``Log.txt``, appending a newline.
  The log *is* flushed after each write. (``sys_log`` is an alias of ``systemLog``).
@@ -65,7 +64,7 @@ Functions
  >>> xp.systemLog(f"This is version {xp.VERSION}")
  [XP3: PythonPlugins.PI_MiniPython] This is version 3.0.12a1 - for Python 3.9
 
-.. py:function:: getCapsuleDict()
+.. py:function:: getCapsuleDict() -> Dict
 
  :return: dict
 
@@ -99,7 +98,7 @@ Functions
  
  Note these instances will cover all python plugins, not just your own.
  
-.. py:function:: getPluginStats
+.. py:function:: getPluginStats() -> Dict
 
   :return: dict
            

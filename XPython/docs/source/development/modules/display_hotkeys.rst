@@ -1,3 +1,5 @@
+.. index:: Hot Keys, Tasks; Hot Keys
+
 Hot Keys
 ========
 .. py:module:: XPLMDisplay
@@ -14,7 +16,7 @@ Keystrokes that can be managed by others. These are lower-level than window keyb
 If you have a sniffer and a hot key, the sniffer is called first (even if it is an "after" sniffer)
 and if it consumes the key, the hot key will not be called.
 
-.. py:function:: registerHotKey(vKey, flags, description="", hotKey, refCon=None)
+.. py:function:: registerHotKey(vKey, flags, description="", hotKey, refCon=None) -> XPLMHotKeyID
 
  :param int vKey: one of :ref:`Virtual Key Codes`
  :param int flags: bitwise OR of :ref:`XPLMKeyFlags`
@@ -51,10 +53,9 @@ and if it consumes the key, the hot key will not be called.
  >>>
  >>> xp.unregisterHotKey(hotKeyID)
 
-.. py:function:: unregisterHotKey(hotKeyID)
+.. py:function:: unregisterHotKey(hotKeyID) -> None
 
  :param XPLMHotKeyID hotKeyID: value received from :py:func:`registerHotKey`.
- :return: None
 
  Unregister a hotkey. Raises RuntimeError if hotkey is not registered/found.
 
@@ -63,7 +64,7 @@ and if it consumes the key, the hot key will not be called.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMUnregisterHotKey>`__ :index:`XPLMUnregisterHotKey`
 
-.. py:function:: countHotKeys()
+.. py:function:: countHotKeys() -> int
 
  :return: integer
 
@@ -72,7 +73,7 @@ and if it consumes the key, the hot key will not be called.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMUnregisterHotKey>`__ :index:`XPLMUnregisterHotKey`
 
-.. py:function:: getNthHotKey(index)
+.. py:function:: getNthHotKey(index) -> XPLMHotKeyID
 
  :param int index: 0-based index                 
  :return: XPLMHotKeyID capsule of *nth* hotkey in the whole sim.
@@ -85,17 +86,13 @@ and if it consumes the key, the hot key will not be called.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMGetNthHotKey>`__ :index:`XPLMGetNthHotKey`
 
-.. py:function:: getHotKeyInfo(hotKeyID)
+.. py:function:: getHotKeyInfo(hotKeyID) -> HotKeyInfo
 
  :param XPLMHotKeyID hotKeyID: HotKey to look up.
- :return: HotKeyInfo instance, or ValueError if not found.   
+ :return: :class:`HotKeyInfo` instance, or ValueError if not found.
 
- Return information about the hotkey as a HotKeyInfo object with attributes:
-
-   | description: str
-   | virtualKey:  int (:ref:`Virtual Key Codes`)
-   | flags: int (:ref:`XPLMKeyFlags`)
-   | plugin: int (:ref:`XPLMPluginID`)
+ Return information about the hotkey as a :class:`HotKeyInfo` object: see that
+ type for the full set of attributes.
 
  >>> info = xp.getHotKeyInfo(xp.getNthHotKey(0))
  >>> info.description
@@ -113,7 +110,7 @@ and if it consumes the key, the hot key will not be called.
  (from python) to determine which python plugin created a hotkey, but non-python
  plugins will always see all python hot keys as originating with the XPPython3 plugin. 
 
-.. py:function:: setHotKeyCombination(hotKeyID, vKey, flags)
+.. py:function:: setHotKeyCombination(hotKeyID, vKey, flags) -> None
 
  :param XPLMHotKeyID hotKeyID: hot key to change
  :param int vKey:
@@ -136,3 +133,34 @@ and if it consumes the key, the hot key will not be called.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMGetHotKeyInfo>`__ :index:`XPLMGetHotKeyInfo`
 
+Types
+-----
+
+.. py:class:: XPLMHotKeyID
+
+    Opaque capsule representing a hot key, as returned by :func:`registerHotKey`
+    and :func:`getNthHotKey`. Release one you registered with :func:`unregisterHotKey`.
+
+.. py:class:: HotKeyInfo
+
+    Result of :func:`getHotKeyInfo`, with attributes:
+
+    .. py:attribute:: description
+        :type: str
+
+        Description provided when the hot key was registered.
+
+    .. py:attribute:: virtualKey
+        :type: int
+
+        Virtual key code, see :ref:`Virtual Key Codes`.
+
+    .. py:attribute:: flags
+        :type: int
+
+        Modifier keys, see :ref:`XPLMKeyFlags`.
+
+    .. py:attribute:: plugin
+        :type: int
+
+        Owning plugin, see :ref:`XPLMPluginID`.

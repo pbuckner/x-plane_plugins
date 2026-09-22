@@ -1,16 +1,17 @@
-from dataclasses import dataclass
-from typing import Any, Callable, Generic, Optional, Type, TypeVar, NewType, Literal, Sequence
-from XPPython3.xp_typing import *
+# pylint: disable=unused-argument
+# (a stub's parameters are never used -- there is no body)
+from XPPython3.xp_typing import XPLMCursorStatus, XPLMKeyFlags, XPLMMouseStatus
 kXPLM_Version: int
 NO_PLUGIN_ID: int
 PLUGIN_XPLANE: int
 kVersion: int
-NoFlag: XPLMKeyFlags
+NoFlag: XPLMKeyFlags = XPLMKeyFlags(0)
 ShiftFlag: XPLMKeyFlags
 OptionAltFlag: XPLMKeyFlags
 ControlFlag: XPLMKeyFlags
 DownFlag: XPLMKeyFlags
 UpFlag: XPLMKeyFlags
+CapsLockFlag: XPLMKeyFlags
 CursorDefault: XPLMCursorStatus
 CursorHidden: XPLMCursorStatus
 CursorArrow: XPLMCursorStatus

@@ -632,6 +632,13 @@ static PyObject *XPLMRemoveMenuItemFun(PyObject *self, PyObject *args, PyObject 
   Py_RETURN_NONE;
 }
 
+My_DOCSTR(_getMenuCallbackDict__doc__, "getMenuCallbackDict",
+          "",
+          "",
+          "dict",
+          "Returns copy of internal MenuCallbackInfo dictionary.\n"
+          "\n"
+          "Internal debugging aid: contents and structure may change between releases.");
 PyObject* buildMenuCallbackDict(void)
 {
   PyObject *dict = PyDict_New();
@@ -791,7 +798,7 @@ static PyMethodDef XPLMMenusMethods[] = {
   {"XPLMEnableMenuItem", (PyCFunction)XPLMEnableMenuItemFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"removeMenuItem", (PyCFunction)XPLMRemoveMenuItemFun, METH_VARARGS | METH_KEYWORDS, _removeMenuItem__doc__},
   {"XPLMRemoveMenuItem", (PyCFunction)XPLMRemoveMenuItemFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"getMenuCallbackDict", (PyCFunction)buildMenuCallbackDict, METH_VARARGS, "Copy of internal MenuCallbackInfo"},
+  {"getMenuCallbackDict", (PyCFunction)buildMenuCallbackDict, METH_VARARGS, _getMenuCallbackDict__doc__},
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {nullptr, nullptr, 0, nullptr}
 };

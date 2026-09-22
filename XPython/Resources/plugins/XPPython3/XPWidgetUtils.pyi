@@ -1,3 +1,5 @@
+# pylint: disable=unused-argument
+# (a stub's parameters are never used -- there is no body)
 from dataclasses import dataclass
 from typing import Any, Callable, Generic, Optional, Type, TypeVar, NewType, Literal, Sequence
 from XPPython3.xp_typing import *    
@@ -69,4 +71,3 @@ def dragWidget(message:XPWidgetMessage, widgetID:XPWidgetID, param1:int, param2:
     is initiated, this callback will cause the widget to move.
     """
     ...
-

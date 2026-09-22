@@ -1,3 +1,5 @@
+.. index:: Sounds, Tasks; Sounds
+
 XPLMSound
 ===========
 .. py:module:: XPLMSound
@@ -14,15 +16,15 @@ routines.
 This allows you to load a sound file and set playing parameters using :py:func:`playPCMOnBus`
 or :py:func:`playWaveOnBus`. The result is an FMOD channel, with which you can:
 
-  * Locate the sound in 3d space with :py:func:`setAudioPosition`.
+* Locate the sound in 3d space with :py:func:`setAudioPosition`.
 
-  * Change sound attenuation (fade) based on distance from the source with :py:func:`setAudioFadeDistance`
+* Change sound attenuation (fade) based on distance from the source with :py:func:`setAudioFadeDistance`
 
-  * Create a direction cone of sound, outside of which the sound is more quiet (or silent) with :py:func:`setAudioCone`
+* Create a direction cone of sound, outside of which the sound is more quiet (or silent) with :py:func:`setAudioCone`
 
-  * Change source sound pitch :py:func:`setAudioPitch` and volume :py:func:`setAudioPitch`
+* Change source sound pitch :py:func:`setAudioPitch` and volume :py:func:`setAudioPitch`
 
-  * Stop a playing sound :py:func:`stopAudio`
+* Stop a playing sound :py:func:`stopAudio`
 
 These sound functions are sufficient for basic FMOD behaviors.
 
@@ -33,7 +35,7 @@ access to FMODStudio and FMODChannelGroups. This requires (from python) the heav
 Basic FMOD interface
 --------------------
 
-.. py:function:: playPCMOnBus(audioBuffer, bufferSize, soundFormat, freqHz, numChannels, loop=0, audioType=8, callback=None, refCon=None)
+.. py:function:: playPCMOnBus(audioBuffer, bufferSize, soundFormat, freqHz, numChannels, loop=0, audioType=8, callback=None, refCon=None) -> FMOD_CHANNEL
 
   :param bytes audioBuffer: raw data
   :param int bufferSize: integer length of audioBuffer
@@ -44,7 +46,7 @@ Basic FMOD interface
   :param int audioType: Where the audio should be played: :ref:`XPLMAudioBus`
   :param Callable callback: notify me when complete
   :param Any refCon: reference constant sent to callback
-  :return: FMOD_CHANNEL capsule ("channel pointer")
+  :return: :class:`FMOD_CHANNEL` ("channel pointer")
 
   Play an in-memory audio buffer as a given audioType (:ref:`XPLMAudioBus`). The resulting FMOD channel
   is returned. When the sound completes or is stopped by X-Plane, *the channel will go away*. It is up to
@@ -69,18 +71,20 @@ Basic FMOD interface
 
   * `loop` indicates sound should loop (0= do not loop)
 
-  * `audioType` selects the audioBus on which to play the audio. Defaults to 8= ``AudioUI``. See :ref:`XPLMAudioBus`
+  * `audioType` selects the audioBus on which to play the audio. Defaults to 8= :py:data:`AudioUI`. See :ref:`XPLMAudioBus`
 
   Optional callback will receive two parameters, it does not need to return a value:
 
-    * **refCon**:
+  .. rst-class:: compact
+                 
+  * **refCon**:
 
-      * reference constant you provided with call to :py:func:`playPCMOnBus` or :py:func:`playWaveOnBus`.
+    * reference constant you provided with call to :py:func:`playPCMOnBus` or :py:func:`playWaveOnBus`.
 
-    * **status**:
+  * **status**:
 
-      * integer status code, FMOD_RESULT. 0= FMOD_OK.  See `FMOD_RESULT <https://documentation.help/FMOD-Studio-API/FMOD_RESULT.html>`__
-        for full list of possible codes.
+    * integer status code, FMOD_RESULT. 0= FMOD_OK.  See `FMOD_RESULT <https://documentation.help/FMOD-Studio-API/FMOD_RESULT.html>`__
+      for full list of possible codes.
 
   Note that a really easy way to work with PCM files on python is using the standard ``wave`` module. It can
   read the data and extract the required parameters:
@@ -105,20 +109,20 @@ Basic FMOD interface
   >>> print(channel)
   <capsule object "FMOD_CHANNEL" at 0x1e45c5710>
   
-  Take a look in XPPython3Log.txt and you'll see the entry:
+  Take a look in XPPython3Log.txt and you'll see the entry::
   
-    ``[PythonPlugins.PI_MiniPython] Sound 'SeatBelt' ended, status is 0``
+    [PythonPlugins.PI_MiniPython] Sound 'SeatBelt' ended, status is 0
   
   `Official SDK <https://developer.x-plane.com/sdk/XPLMSound/#XPLMPlayPCMOnBus>`__ :index:`XPLMPlayPCMOnBus`
 
-.. py:function:: playWaveOnBus(wav, loop, audioType, callback, refCon)
+.. py:function:: playWaveOnBus(wav, loop, audioType, callback, refCon) -> FMOD_CHANNEL
 
   :param wave.Wave_read wav: value of wave.open()
   :param int loop: 1= loop until stopped using :func:`stopAudio`                           
   :param int audioType: Where the audio should be played: :ref:`XPLMAudioBus`
   :param Callable callback: notify me when complete
   :param Any refCon: reference constant sent to callback
-  :return: FMOD_CHANNEL capsule ("channel pointer")
+  :return: :class:`FMOD_CHANNEL` ("channel pointer")
 
   This is a pure-python convenience function which takes an opened Wave object and provides
   the parameters similar to what was done in the :py:func:`playPCMOnBus` example.
@@ -128,7 +132,7 @@ Basic FMOD interface
   >>> print(channel)
   <capsule object "FOD_CHANNEL" at 0x1e45c5710>
   
-.. py:function:: stopAudio(channel)
+.. py:function:: stopAudio(channel) -> FMOD_RESULT
 
   :param FMOD_CHANNEL channel: return from :func:`playPCMOnBus` or :func:`playWaveOnBus`
   :return: int FMOD_RESULT
@@ -148,7 +152,7 @@ Basic FMOD interface
   
   `Official SDK <https://developer.x-plane.com/sdk/XPLMSound/#XPLMStopAudio>`__ :index:`XPLMStopAudio`
 
-.. py:function:: setAudioPosition(channel, position, velocity=None)
+.. py:function:: setAudioPosition(channel, position, velocity=None) -> FMOD_RESULT
 
   :param FMOD_CHANNEL channel: return from :func:`playPCMOnBus` or :func:`playWaveOnBus`
   :param Tuple position: local (x, y, z) float coordinates
@@ -194,7 +198,7 @@ Basic FMOD interface
   `Official SDK <https://developer.x-plane.com/sdk/XPLMSound/#XPLMSetAudioPosition>`__ :index:`XPLMSetAudioPosition`
 
   
-.. py:function:: setAudioFadeDistance(channel, min_distance=1.0, max_distance=10000.0)
+.. py:function:: setAudioFadeDistance(channel, min_distance=1.0, max_distance=10000.0) -> FMOD_RESULT
              
   :param FMOD_CHANNEL channel: return from :func:`playPCMOnBus` or :func:`playWaveOnBus`
   :param float min_distance:
@@ -235,7 +239,7 @@ Basic FMOD interface
   
   `Official SDK <https://developer.x-plane.com/sdk/XPLMSound/#XPLMSetAudioFadeDistance>`__ :index:`XPLMSetAudioFadeDistance`
 
-.. py:function:: setAudioVolume(channel, volume=1.0)
+.. py:function:: setAudioVolume(channel, volume=1.0) -> FMOD_RESULT
 
   :param FMOD_CHANNEL channel: return from :func:`playPCMOnBus` or :func:`playWaveOnBus`
   :param float volume: volume multiplier
@@ -253,7 +257,7 @@ Basic FMOD interface
   
   `Official SDK <https://developer.x-plane.com/sdk/XPLMSound/#XPLMSetAudioVolume>`__ :index:`XPLMSetAudioVolume`
   
-.. py:function:: setAudioPitch(channel, pitch=1.0)
+.. py:function:: setAudioPitch(channel, pitch=1.0) -> FMOD_RESULT
 
   :param FMOD_CHANNEL channel: return from :func:`playPCMOnBus` or :func:`playWaveOnBus`
   :param float pitch: pitch multiplier
@@ -275,7 +279,7 @@ Basic FMOD interface
   `Official SDK <https://developer.x-plane.com/sdk/XPLMSound/#XPLMSetAudioPitch>`__ :index:`XPLMSetAudioPitch`
   
    
-.. py:function:: setAudioCone(channel, inside_angle=360.0, outside_angle=360.0, outside_volume=1.0, orientation=None)
+.. py:function:: setAudioCone(channel, inside_angle=360.0, outside_angle=360.0, outside_volume=1.0, orientation=None) -> FMOD_RESULT
 
   :param FMOD_CHANNEL channel: return from :func:`playPCMOnBus` or :func:`playWaveOnBus`
   :param float inside_angle: angle at 100% volume inside, 
@@ -315,54 +319,6 @@ Basic FMOD interface
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMSound/#XPLMSetAudioCone>`__ :index:`XPLMSetAudioCone`
 
-.. _XPLMAudioBus:
-
-XPLMAudioBus
-************
-
-This enumeration states the type of audio you wish to play -- that is, the part of
-the simulated environment that the audio belongs in. If you use FMOD directly, note that COM1, COM2,
-Pilot and GND exist in a different FMOD bank so you may see these channels being unloaded/reloaded
-independently of the others.
-
- +----------------------------------------------------------+------------------------------------------------------------------------------+
- |.. py:data:: AudioRadioCom1                               |Incoming speech on COM1                                                       |
- |  :value: 0                                               |                                                                              |
- +----------------------------------------------------------+------------------------------------------------------------------------------+
- |.. py:data:: AudioRadioCom2                               |Incoming speech on COM2                                                       |
- |  :value: 1                                               |                                                                              |
- +----------------------------------------------------------+------------------------------------------------------------------------------+
- |.. py:data:: AudioRadioPilot                              |Pilot's own speech                                                            |
- |  :value: 2                                               |                                                                              |
- +----------------------------------------------------------+------------------------------------------------------------------------------+
- |.. py:data:: AudioRadioCopilot                            |Copilot's own speech                                                          |
- |  :value: 3                                               |                                                                              |
- +----------------------------------------------------------+------------------------------------------------------------------------------+
- |.. py:data:: AudioExteriorAircraft                        |                                                                              |
- |  :value: 4                                               |                                                                              |
- +----------------------------------------------------------+------------------------------------------------------------------------------+
- |.. py:data:: AudioExteriorEnvironment                     |                                                                              |
- |  :value: 5                                               |                                                                              |
- +----------------------------------------------------------+------------------------------------------------------------------------------+
- |.. py:data:: AudioExteriorUnprocessed                     |                                                                              |
- |  :value: 6                                               |                                                                              |
- +----------------------------------------------------------+------------------------------------------------------------------------------+
- |.. py:data:: AudioInterior                                |                                                                              |
- |  :value: 7                                               |                                                                              |
- +----------------------------------------------------------+------------------------------------------------------------------------------+
- |.. py:data:: AudioUI                                      |                                                                              |
- |  :value: 8                                               |                                                                              |
- +----------------------------------------------------------+------------------------------------------------------------------------------+
- |.. py:data:: AudioGround                                  |Dedicated ground vehicle cable.                                               |
- |  :value: 9                                               |                                                                              |
- +----------------------------------------------------------+------------------------------------------------------------------------------+
- |.. py:data:: Master                                       |Master bus. Not normally to be used directly.                                 |
- |  :value: 10                                              |                                                                              |
- +----------------------------------------------------------+------------------------------------------------------------------------------+
-                                                             
-
- `Official SDK <https://developer.x-plane.com/sdk/XPLMAudioBus/>`__ :index:`XPLMAudioBus`
- 
 Advanced FMOD interface
 -----------------------
 
@@ -372,9 +328,9 @@ to access additional FMOD functionality not otherwise supported via the interfac
 .. note:: This gets you into the murky world of Python ``ctypes``, which is an exceptionally quick
           way to crash the simulator. The trade-off is you can do most anything.
           
-.. py:function:: getFMODStudio()
+.. py:function:: getFMODStudio() -> FMOD_STUDIO_SYSTEM
 
-  :return: FMOD_STUDIO_SYSTEM capsule
+  :return: :class:`FMOD_STUDIO_SYSTEM`
 
   Retrieve handle (PyCapsule) to FMOD_STUDIO_SYSTEM, allowing you to load/process
   whatever else you need.
@@ -384,10 +340,10 @@ to access additional FMOD functionality not otherwise supported via the interfac
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMSound/#XPLMGetFMODStudio>`__ :index:`XPLMGetFMODStudio`
 
-.. py:function:: getFMODChannelGroup(audioType)
+.. py:function:: getFMODChannelGroup(audioType) -> FMOD_CHANNELGROUP
 
   :param XPLMAudioBus audioType: one of :ref:`XPLMAudioBus`
-  :return: FMOD_CHANNELGROUP capsule
+  :return: :class:`FMOD_CHANNELGROUP`
 
   Returns handle (PyCapsule) to the FMOD_CHANNELGROUP with the given index (one of
   :ref:`XPLMAudioBus`.)
@@ -439,3 +395,83 @@ Then, you can using ctypes to access other C-language functions, such as FMOD_St
    c_void_p(1404993998824)
    
 See the ``PI_FMOD_Advanced.py`` in :doc:`../samples`.
+
+Types
+-----
+
+.. py:class:: FMOD_CHANNEL
+
+    Opaque capsule representing a playing sound ("channel pointer"), as returned by
+    :func:`playPCMOnBus` and :func:`playWaveOnBus`. Pass it to :func:`stopAudio`,
+    :func:`setAudioPosition`, :func:`setAudioFadeDistance`, :func:`setAudioVolume`,
+    :func:`setAudioPitch` and :func:`setAudioCone`.
+
+.. py:class:: FMOD_CHANNELGROUP
+
+    Opaque capsule representing one of X-Plane's audio buses, as returned by
+    :func:`getFMODChannelGroup`.
+
+.. py:class:: FMOD_STUDIO_SYSTEM
+
+    Opaque capsule representing the FMOD Studio system, as returned by
+    :func:`getFMODStudio`.
+
+.. _XPLMAudioBus:
+
+XPLMAudioBus
+************
+
+.. py:type:: XPLMAudioBus
+
+This enumeration states the type of audio you wish to play -- that is, the part of
+the simulated environment that the audio belongs in. If you use FMOD directly, note that COM1, COM2,
+Pilot and GND exist in a different FMOD bank so you may see these channels being unloaded/reloaded
+independently of the others.
+
+ .. py:data:: AudioRadioCom1
+   :value: 0
+
+   Incoming speech on COM1
+
+ .. py:data:: AudioRadioCom2
+   :value: 1
+
+   Incoming speech on COM2
+
+ .. py:data:: AudioRadioPilot
+   :value: 2
+
+   Pilot's own speech
+
+ .. py:data:: AudioRadioCopilot
+   :value: 3
+
+   Copilot's own speech
+
+ .. py:data:: AudioExteriorAircraft
+   :value: 4
+
+ .. py:data:: AudioExteriorEnvironment
+   :value: 5
+
+ .. py:data:: AudioExteriorUnprocessed
+   :value: 6
+
+ .. py:data:: AudioInterior
+   :value: 7
+
+ .. py:data:: AudioUI
+   :value: 8
+
+ .. py:data:: AudioGround
+   :value: 9
+
+   Dedicated ground vehicle cable.
+
+ .. py:data:: Master
+   :value: 10
+
+   Master bus. Not normally to be used directly.
+
+`Official SDK <https://developer.x-plane.com/sdk/XPLMAudioBus/>`__ :index:`XPLMAudioBus`
+

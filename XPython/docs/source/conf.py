@@ -26,13 +26,21 @@ author = 'Peter Buckner'
 master_doc = 'index'
 
 # The full version, including alpha/beta/rc tags
-release = 'latest'
+release = 'beta'
 
 # -- general configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
+
+rst_prolog = """
+.. |br| raw:: html
+
+   <br/>
+
+"""
+
 extensions = [
     'sphinx_comments',
     'sphinx.ext.autodoc',
@@ -86,6 +94,8 @@ html_show_sourcelink = False
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+html_compact_lists = False  # always add blank line between list items (.. rst-class:: compact otherwise)
 
 add_module_names = False
 

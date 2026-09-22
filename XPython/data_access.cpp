@@ -159,7 +159,7 @@ My_DOCSTR(_isDataRefGood__doc__, "isDataRefGood",
           "dataRef",
           "dataRef:XPLMDataRef",
           "bool",
-          "(Deprecated, do not use.)");
+          "Returns true if dataref is still valid.");
 static PyObject *XPLMIsDataRefGoodFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   static char *keywords[] = {CHAR("dataRef"), nullptr};
@@ -1800,6 +1800,13 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+My_DOCSTR(_getDataRefCallbackDict__doc__, "getDataRefCallbackDict",
+          "",
+          "",
+          "dict",
+          "Returns copy of internal DataRefInfo dictionary.\n"
+          "\n"
+          "Internal debugging aid: contents and structure may change between releases.");
 PyObject* buildDataRefCallbackDict(void)
 {
   PyObject *dataRefs = PyDict_New();
@@ -1860,6 +1867,13 @@ PyObject* buildDataRefCallbackDict(void)
   return dataRefs;
 }
 
+My_DOCSTR(_getSharedDataRefCallbackDict__doc__, "getSharedDataRefCallbackDict",
+          "",
+          "",
+          "dict",
+          "Returns copy of internal shared DataRefs dictionary.\n"
+          "\n"
+          "Internal debugging aid: contents and structure may change between releases.");
 PyObject* buildSharedDataRefCallbackDict(void)
 {
   PyObject *sharedDataRefs = PyDict_New();
@@ -1941,8 +1955,8 @@ static PyMethodDef XPLMDataAccessMethods[] = {
   {"XPLMGetDataRefsByIndex", (PyCFunction)XPLMGetDataRefsByIndexFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"getDataRefInfo", (PyCFunction)XPLMGetDataRefInfoFun, METH_VARARGS | METH_KEYWORDS, _getDataRefInfo__doc__},
   {"XPLMGetDataRefInfo", (PyCFunction)XPLMGetDataRefInfoFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"getDataRefCallbackDict", (PyCFunction)buildDataRefCallbackDict, METH_VARARGS, "Copy of internal DataRefInfo"},
-  {"getSharedDataRefCallbackDict", (PyCFunction)buildSharedDataRefCallbackDict, METH_VARARGS, "Copy of internal Shared DataRefs Dict"},
+  {"getDataRefCallbackDict", (PyCFunction)buildDataRefCallbackDict, METH_VARARGS, _getDataRefCallbackDict__doc__},
+  {"getSharedDataRefCallbackDict", (PyCFunction)buildSharedDataRefCallbackDict, METH_VARARGS, _getSharedDataRefCallbackDict__doc__},
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {nullptr, nullptr, 0, nullptr}
 };

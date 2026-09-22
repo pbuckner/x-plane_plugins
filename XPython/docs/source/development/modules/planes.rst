@@ -1,3 +1,5 @@
+.. index:: Initialize Flight, Tasks; Initialize Flight
+
 XPLMPlanes
 ==========
 .. py:module:: XPLMPlanes
@@ -13,6 +15,8 @@ both the user's and the sim's.
 You cannot initialize a flight from just any XPLM callback. Only initialize
 in:
 
+.. rst-class:: compact
+               
 * Command handlers
 
 * Menu handlers
@@ -23,6 +27,8 @@ in:
 
 Do not initialize during:
 
+.. rst-class:: compact
+               
 * Flightmodel processing **post-flightmodel phase**
 
 * Dataref get/set handlers
@@ -42,7 +48,7 @@ include changing time, weather, failures, and AI aircraft.
 Functions
 ---------
 
-.. py:function:: initFlight(data)
+.. py:function:: initFlight(data) -> int
 
   :param str data: dict or JSON string.
   :return: 0 on success raises FlightInitError exception on error                   
@@ -74,7 +80,7 @@ Functions
   While there are resources you might use to determine available values for ramps and runways, Laminar has not provided
   any way list them *a priori*. They are visible on the Map, if you zoom in far enough. Check log files for errors.
 
-.. py:function:: updateFlight(data)
+.. py:function:: updateFlight(data) -> int
 
   :param str data: dict or JSON string.
   :return: 0 on success raises FlightInitError exception on error                   
@@ -103,7 +109,7 @@ Old style functions
 For X-Plane 12.4 and greater, the new JSON style functions are preferred. Otherwise you
 may use these older style initialization functions.
 
-.. py:function:: setUsersAircraft(path)
+.. py:function:: setUsersAircraft(path) -> None
 
  :param str path: Full or relative path to aircraft's ".acf" file.
 
@@ -121,7 +127,7 @@ may use these older style initialization functions.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMSetUsersAircraft>`__ :index:`XPLMSetUsersAircraft`
 
-.. py:function::  placeUserAtAirport(code)
+.. py:function::  placeUserAtAirport(code) -> None
 
  :param str code: Airport ICAO code
 
@@ -139,7 +145,7 @@ may use these older style initialization functions.
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMPlaceUserAtAirport>`__ :index:`XPLMPlaceUserAtAirport`
  
 
-.. py:function:: placeUserAtLocation(latitude, longitude, elevation, heading, speed)
+.. py:function:: placeUserAtLocation(latitude, longitude, elevation, heading, speed) -> None
 
  :param float latitude:
  :param float longitude: location in decimal degrees
@@ -163,12 +169,14 @@ may use these older style initialization functions.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMPlaceUserAtLocation>`__ :index:`XPLMPlaceUserAtLocation`
  
-.. py:function::  countAircraft()
+.. py:function::  countAircraft() -> Tuple[int, int, int]
 
  :return: Tuple of three integers (max aircraft, current aircraft, controlling plugin)
 
  Return three integers representing:
 
+ .. rst-class:: compact
+                
  * the number of aircraft X-Plane is capable of having,
 
  * the number of aircraft that are currently active.
@@ -183,22 +191,24 @@ may use these older style initialization functions.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMCountAircraft>`__ :index:`XPLMCountAircraft`
  
-.. py:function:: getNthAircraftModel(int: index) -> (model, path):
+.. py:function:: getNthAircraftModel(int: index) -> Tuple[str, str]
 
  :param int index: 0-based index of aircraft information to get                
  :return: Tuple with two elements: (filename, full path)
 
  Return two strings based on the aircraft *index*. User's aircraft is always 0.
 
-    * filename of aircraft
-    * path to the model filename
+ .. rst-class:: compact
+              
+ * filename of aircraft
+ * path to the model filename
 
  >>> xp.getNthAircraftModel(0)
  ('Cessna_172SP.acf', '/Volumes/SSD1/X-Plane/Aircraft/Laminar Research/Cessna 172SP/Cessna_172SP.acf')
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMGetNthAircraftModel>`__ :index:`XPLMGetNthAircraftModel`
 
-.. py:function::  acquirePlanes(aircraft=None, callable=None, refCon=none)
+.. py:function::  acquirePlanes(aircraft=None, callable=None, refCon=none) -> int
 
  :param None aircraft: this parameter is deprecated
  :param Callable callable: Callback to notify you *when* you're able to acquire planes
@@ -231,7 +241,7 @@ may use these older style initialization functions.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMAcquirePlanes>`__ :index:`XPLMAcquirePlanes`
 
-.. py:function::  releasePlanes()
+.. py:function::  releasePlanes() -> None
 
  Call this function to release access to the planes (:py:func:`acquirePlanes`).  Note that if your plugin is
  disabled, access to planes is released for you and you must reacquire it.
@@ -239,7 +249,7 @@ may use these older style initialization functions.
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMReleasePlanes>`__ :index:`XPLMReleasePlanes`
 
  
-.. py:function:: setActiveAircraftCount(count)
+.. py:function:: setActiveAircraftCount(count) -> None
 
  :param int count: Sets number of active planes (effectively reducing # of AI aircraft)
 
@@ -263,10 +273,10 @@ may use these older style initialization functions.
  
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMSetActiveAircraftCount>`__ :index:`XPLMSetActiveAircraftCount`
 
-.. py:function:: setAircraftModel(index, path)
+.. py:function:: setAircraftModel(index, path) -> None
 
  :param int index: aircraft index (i.e., which AI aircraft...)
- :param str path: Aircraft *.acf file
+ :param str path: Aircraft ``.acf`` file
 
  This routine loads an aircraft model.  It may only be called if you  have
  exclusive access to the airplane APIs (:py:func:`acquirePlanes`).
@@ -287,7 +297,7 @@ may use these older style initialization functions.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMSetAircraftModel>`__ :index:`XPLMSetAircraftModel`
 
-.. py:function:: disableAIForPlane(index)
+.. py:function:: disableAIForPlane(index) -> None
 
  :param int index: aircraft index                 
 
@@ -312,6 +322,8 @@ Constants
 
   Exception raised on bad :func:`initFlight` and :func:`updateFlight`. Has two attributes.
 
+  .. rst-class:: compact
+                
   * code: one of :data:`XPLMInitResult`, and
 
   * message: string describing the problem.

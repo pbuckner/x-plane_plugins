@@ -17,6 +17,7 @@ extern PyObject *PyWeatherInfo_New(int detail_found, PyObject *temperature_alt, 
                                    float visibility, float precip_rate, float thermal_climb, float pressure_sl,
                                    PyObject *wind_layers,PyObject *cloud_layers,
                                    PyObject *temp_layers, PyObject *dewp_layers,
-                                   float troposphere_alt, float troposphere_temp, float age, float radius_nm, float max_altitude_msl_ft);
+                                   float troposphere_alt, float troposphere_temp, float age, float radius_nm, float max_altitude_msl_ft,
+                                   float snow_coverage_pct);
 extern PyObject *PyWeatherInfoClouds_New(float cloud_type, float coverage, float alt_top, float alt_base);
 extern PyObject *PyWeatherInfoWinds_New(float alt_msl, float speed, float direction, float gust_speed, float shear, float turbulence);

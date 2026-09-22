@@ -16,6 +16,46 @@ from typing import Set, List, Dict, Any
 from collections import OrderedDict
 
 
+EXTRA_STUB = "xp_extra.pyi"
+
+
+def module_level_names(tree: ast.Module, include_imports: bool = False) -> Set[str]:
+    """Top-level names a module binds: defs, classes and simple assignments.
+
+    include_imports counts imported names too.  That is right for the stub
+    (an imported name is visible as xp.<name>) but wrong for xp.py, whose
+    imports are implementation detail, not API.
+    """
+    names: Set[str] = set()
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            names.add(node.name)
+        elif isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    names.add(target.id)
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            names.add(node.target.id)
+        elif include_imports and isinstance(node, (ast.Import, ast.ImportFrom)):
+            for alias in node.names:
+                names.add(alias.asname or alias.name.split('.')[0])
+    return names
+
+
+def check_coverage(stub_content: str, xp_py: Path) -> List[str]:
+    """Return the xp.py top-level names that the generated stub fails to declare.
+
+    xp.pyi is built from the XP*.pyi C-module stubs, which know nothing about
+    the helpers xp.py layers on top.  Anything reported here needs a
+    declaration in xp_extra.pyi, or it is invisible to mypy.
+    """
+    if not xp_py.exists():
+        return []
+    declared = module_level_names(ast.parse(stub_content), include_imports=True)
+    exported = module_level_names(ast.parse(xp_py.read_text(encoding="utf-8")))
+    return sorted(n for n in exported - declared if not n.startswith('_'))
+
+
 class StubGenerator:
     """Generate Python stub files from source code."""
 
@@ -48,7 +88,9 @@ class StubGenerator:
 
         if default is not None:
             default_str = ast.unparse(default)
-            arg_str += f"={default_str}"
+            # PEP8: annotated parameters space the '=', bare ones do not
+            sep = " = " if arg.annotation else "="
+            arg_str += f"{sep}{default_str}"
 
         return arg_str
 
@@ -171,9 +213,16 @@ class StubGenerator:
         return constants
 
     def process_annotated_assign(self, node: ast.AnnAssign) -> str:
-        """Process an annotated assignment."""
+        """Process an annotated assignment, keeping any assigned value.
+
+        A bare "NAME: Type" annotation declares a type but binds no name, so
+        pyflakes reports F821 for every function that uses NAME as a default
+        argument.  Carrying the value through keeps those defaults legal.
+        """
         if isinstance(node.target, ast.Name):
             type_str = ast.unparse(node.annotation)
+            if node.value is not None:
+                return f"{node.target.id}: {type_str} = {ast.unparse(node.value)}"
             return f"{node.target.id}: {type_str}"
         return ""
 
@@ -263,6 +312,9 @@ class StubGenerator:
         lines = []
 
         # Add file header
+        lines.append("# pylint: disable = unused-argument, line-too-long, useless-import-alias")
+        lines.append("# (a stub's parameters are never used -- there is no body; signatures are")
+        lines.append("#  emitted on one line; 'X as X' is the stub re-export form mypy requires)")
         lines.append("# Type stub file generated from XP*.pyi files")
         lines.append("# This file contains type hints for all functions, classes, and constants")
         lines.append("")
@@ -288,21 +340,38 @@ class StubGenerator:
             sorted_types = sorted(self.used_types)
 
             # Format imports nicely - if too many, split across multiple lines
+            # "X as X" is the stub re-export form: without it mypy reports
+            # 'Module "XPPython3.xp" does not explicitly export attribute "X"'
+            # for every dataclass a plugin reads off xp.
             if len(sorted_types) > 5:
                 lines.append("from XPPython3.xp_typing import (")
                 for i, type_name in enumerate(sorted_types):
-                    if i < len(sorted_types) - 1:
-                        lines.append(f"    {type_name},")
-                    else:
-                        lines.append(f"    {type_name}")
+                    comma = "," if i < len(sorted_types) - 1 else ""
+                    lines.append(f"    {type_name} as {type_name}{comma}")
                 lines.append(")")
             else:
-                lines.append(f"from XPPython3.xp_typing import {', '.join(sorted_types)}")
+                aliased = ', '.join(f"{t} as {t}" for t in sorted_types)
+                lines.append(f"from XPPython3.xp_typing import {aliased}")
 
-        # Add other from imports (excluding typing and dataclasses to avoid duplicates)
+        # Add other from imports (excluding typing and dataclasses to avoid duplicates).
+        # XPPython3.* names are re-exports, so they need the "X as X" form or mypy
+        # reports 'Module "XPPython3.xp" does not explicitly export attribute "X"'.
+        # A name this file declares itself must not also be imported, or mypy
+        # reports no-redef (e.g. NoFlag, declared by XPLMDefs.pyi and imported
+        # by XPLMDisplay.pyi).
+        declared_here = {c.split(':')[0].strip() for c in self.constants}
+        declared_here |= {sig.split('(')[0][4:].strip()
+                          for sig, _ in self.functions if sig.startswith('def ')}
         for module, names in sorted(self.from_imports.items()):
             if module not in ('typing', 'dataclasses'):
-                lines.append(f"from {module} import {', '.join(sorted(names))}")
+                names = sorted(set(names) - declared_here)
+                if not names:
+                    continue
+                if module.startswith('XPPython3'):
+                    items = ', '.join(f"{n} as {n}" for n in names)
+                else:
+                    items = ', '.join(names)
+                lines.append(f"from {module} import {items}")
 
         # Add regular imports
         for module in sorted(self.imports):
@@ -330,13 +399,14 @@ class StubGenerator:
         if self.classes:
             lines.append("# Classes")
             for cls in self.classes:
+                lines.extend(["", ""])        # PEP8: two blank lines before a class
                 lines.append(cls)
-                lines.append("")
 
         # Add functions
         if self.functions:
             lines.append("# Functions")
             for signature, docstring in self.functions:
+                lines.extend(["", ""])        # PEP8: two blank lines before a def
                 if docstring:
                     # Clean up docstring - remove leading/trailing blank lines and normalize indentation
                     doc_lines = docstring.split('\n')
@@ -382,8 +452,10 @@ def main():
     else:
         print(f"Warning: {old_pyi} does not exist")
 
-    # Step 2: Find all XP*.pyi files (excluding xp.pyi itself)
-    xp_files = sorted([f for f in script_dir.glob("XP*.pyi") if f.name != "xp.pyi"])
+    # Step 2: Find all XP*.pyi files (excluding xp.pyi and the hand-maintained
+    # xp_extra.pyi -- note macOS globs case-insensitively, so compare lowercased)
+    xp_files = sorted([f for f in script_dir.glob("XP*.pyi")
+                       if f.name.lower() not in ("xp.pyi", EXTRA_STUB.lower())])
 
     if not xp_files:
         print("No XP*.pyi files found in current directory")
@@ -412,7 +484,42 @@ def main():
     # Step 5: Generate stub file
     stub_content = generator.generate_stub()
 
-    # Step 6: Write new xp.pyi
+    # Step 6: Append the hand-maintained fragment for xp.py's own definitions
+    extra = script_dir / EXTRA_STUB
+    if extra.exists():
+        print(f"Appending {EXTRA_STUB}")
+        # two blank lines at the seam keeps the joined file PEP8-clean (E305)
+        stub_content = stub_content.rstrip("\n") + "\n\n\n" + extra.read_text(encoding="utf-8")
+    else:
+        print(f"Warning: {extra} not found -- xp.py's own definitions will be missing")
+
+    # Step 7: Warn about names defined twice (e.g. a class in both a module
+    # stub and xp_extra.pyi) -- mypy reports those as no-redef errors
+    seen, dupes = set(), []
+    for node in ast.parse(stub_content).body:
+        name = None
+        if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
+            name = node.name
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            name = node.target.id
+        if name:
+            if name in seen:
+                dupes.append(name)
+            seen.add(name)
+    if dupes:
+        print(f"\nWarning: {len(dupes)} name(s) defined more than once:")
+        for name in sorted(set(dupes)):
+            print(f"  - {name}")
+
+    # Step 8: Warn about anything xp.py exports that neither source declares
+    missing = check_coverage(stub_content, script_dir / "xp.py")
+    if missing:
+        print(f"\nWarning: {len(missing)} name(s) in xp.py are not declared in the stub.")
+        print(f"Add them to {EXTRA_STUB}:")
+        for name in missing:
+            print(f"  - {name}")
+
+    # Step 9: Write new xp.pyi
     new_pyi = script_dir / "xp.pyi"
     print(f"\nWriting {new_pyi}")
     with open(new_pyi, 'w', encoding='utf-8') as f:
@@ -424,6 +531,8 @@ def main():
     print(f"  - {len(generator.enums)} enums")
     print(f"  - {len(generator.classes)} classes")
     print(f"  - {len(generator.functions)} functions")
+    if extra.exists():
+        print(f"  - plus {EXTRA_STUB}")
 
     return 0
 

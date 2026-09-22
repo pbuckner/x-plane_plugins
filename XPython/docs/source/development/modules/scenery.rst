@@ -17,19 +17,26 @@ Scenery-related APIs include:
 
 * Understanding magnetic variation (declination) at a particular point:
 
+  .. rst-class:: compact
+                 
   * :py:func:`getMagneticVariation`
 
   * :py:func:`degTrueToDegMagnetic` and :py:func:`degMagneticToDegTrue`
     
 * Finding and loading scenery library objects:
 
+  .. rst-class:: compact
+                 
   * :py:func:`lookupObjects`
     
   * :py:func:`loadObject`, :py:func:`loadObjectAsync`
 
+  * :py:func:`getObjects`
+    
   * :py:func:`unloadObject`
 
-    
+.. index:: Probe Terrain, Tasks; Probe Terrain
+..  _terrain-testing:
     
 Terrain Y-Testing
 -----------------
@@ -59,7 +66,7 @@ Note: the Y-testing API is limited to probing the loaded scenery area,
 which is approximately 300x300 km in X-Plane 9. ProbeRefs outside this area
 will return the height of a 0 MSL sphere.
 
-.. py:function:: createProbe(probeType=0)
+.. py:function:: createProbe(probeType=0) -> XPLMProbeRef
 
   :param int probeType: 0, the only probe type supported
   :return: XPLMProbeRef capsule                      
@@ -80,10 +87,9 @@ will return the height of a 0 MSL sphere.
            
   `Official SDK <https://developer.x-plane.com/sdk/XPLMScenery/#XPLMCreateProbe>`__ :index:`XPLMCreateProbe`
 
-.. py:function:: destroyProbe(probe)
+.. py:function:: destroyProbe(probe) -> None
 
   :param XPLMProbeRef probe: XPLMProbeRef capsule from :func:`createProbe`                 
-  :return: None
 
   Deallocates an existing *probe* created by :py:func:`createProbe`.
 
@@ -92,34 +98,23 @@ will return the height of a 0 MSL sphere.
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMScenery/#XPLMDestroyProbe>`__ :index:`XPLMDestroyProbe`
 
-.. py:function:: probeTerrainXYZ(probe, x, y, z)
+.. py:function:: probeTerrainXYZ(probe, x, y, z) -> XPLMProbeInfo
 
   :param XPLMProbeRef probe: as created by :func:`createProbe`                 
   :param x float:                           
   :param y float:                           
   :param Z float: (x, y, z) are local coordinates                          
-  :return: XPLMProbeInfo instance
+  :return: :class:`XPLMProbeInfo` instance
 
   Probes the terrain. Pass in XPLMProbeRef *probe*, and the *x*, *y*, *z* coordinates of the point.
   (You can obtain (x, y, z) information using, for example, :py:func:`worldToLocal` or
   datarefs ``sim/flightmodel/position/local_[xyz]``.) 
 
-  .. note:: Check ``info.result``. Your *only* indication of error is the value of this
-            element. This includes passing in a bad XPLMProbeRef.
+  .. note:: Check :attr:`XPLMProbeInfo.result`. Your *only* indication of error is the value
+            of this element. This includes passing in a bad :class:`XPLMProbeRef`.
 
-  The return value is an object with attributes:
-
-   | .result: integer probe result value (See table below)
-   | .locationX,
-   | .locationY,
-   | .locationZ: OpenGL point hit by the probe.
-   | .normalX,
-   | .normalY,
-   | .normalZ: normal vector (e.g., the slope) of the terrain found
-   | .velocityX,
-   | .velocityY,
-   | .velocityZ: velocity vector (e.g., meter/s) of movement of the terrain found
-   | .is_wet: tells if the surface we hit is water (1= water)
+  The return value is an :class:`XPLMProbeInfo` instance: see that type for the
+  full set of attributes. ``result`` is described in the table below.
 
   For example, to determine actual height above terrain, get current aircraft
   (x, y, z) position, call :py:func:`probeTerrainXYZ` for that position. The returned
@@ -163,6 +158,9 @@ will return the height of a 0 MSL sphere.
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMScenery/#XPLMProbeTerrainXYZ>`__ :index:`XPLMProbeTerrainXYZ`
 
+.. index:: Magnetic Variation, Tasks; Magnetic Variation
+..  _magnetic-variation:
+
 Magnetic Variation
 ------------------
 
@@ -177,7 +175,7 @@ necessarily match what a magnetic compass shows as north.
 Using this API ensures that you present the same offsets to users as
 X-Plane's built-in instruments.
 
-.. py:function:: getMagneticVariation(latitude, longitude)
+.. py:function:: getMagneticVariation(latitude, longitude) -> float
 
  :param float latitude:
  :param float longitude: location
@@ -191,7 +189,7 @@ X-Plane's built-in instruments.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMScenery/#XPLMGetMagneticVariation>`__ :index:`XPLMGetMagneticVariation`
 
-.. py:function::  degTrueToDegMagnetic(degreesTrue=0.0)
+.. py:function::  degTrueToDegMagnetic(degreesTrue=0.0) -> float
 
  :param float degreesTrue: heading to convert
  :return: float magnetic heading at current location
@@ -206,7 +204,7 @@ X-Plane's built-in instruments.
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMScenery/#XPLMDegTrueToDegMagnetic>`__ :index:`XPLMDegTrueToDegMagnetic`
 
-.. py:function::  degMagneticToDegTrue(degreesMagnetic=0.0)
+.. py:function::  degMagneticToDegTrue(degreesMagnetic=0.0) -> float
 
  :param float degreesTrue: magnetic heading to convert
  :return: true heading at current location
@@ -228,7 +226,7 @@ objects, allowing plugin-drawn objects to be extended using the library
 system.
 
 
-.. py:function:: lookupObjects(path, latitude, longitude, enumerator, refCon)
+.. py:function:: lookupObjects(path, latitude, longitude, enumerator, refCon) -> int
 
     :param str path: virtual path of object to find
     :param float latitude:
@@ -242,7 +240,7 @@ system.
     You provide an *enumerator* callback to get loadable paths. (One virtual path may
     match many objects in the library). Your enumerator function will be called
     immediately and takes two parameters, one is the found path and the other is the *refCon*
-    provided with the :py:func:`lookupObjects` call.
+    provided with the :py:func:`lookupObjects` call. Alternatively, use :func:`getObjects`.
 
     >>> def MyEnumerator(path, refCon):
     ...   refCon.append(path)
@@ -289,7 +287,7 @@ Objects are loaded by file path and managed via an opaque handle. X-Plane
 naturally reference counts objects, so it is important that you balance
 every successful call to :py:func:`loadObject` with a call to :py:func:`unloadObject`!
 
-.. py:function:: loadObject(path)
+.. py:function:: loadObject(path) -> XPLMObjectRef
 
     :param str path: Relative path to OBJ file
     :return: XPLMObjectRef capsule                 
@@ -328,12 +326,11 @@ every successful call to :py:func:`loadObject` with a call to :py:func:`unloadOb
     `Official SDK <https://developer.x-plane.com/sdk/XPLMScenery/#XPLMLoadObject>`__ :index:`XPLMLoadObject`
 
 
-.. py:function:: loadObjectAsync(path, loaded, refCon)
+.. py:function:: loadObjectAsync(path, loaded, refCon) -> None
 
     :param str path: Relative path to OBJ file
     :param Callable loaded: callback function on completion
     :param Any refCon: reference constant passed to your callback function
-    :return: None
              
     This routine loads an object asynchronously; control is returned to you
     immediately while X-Plane loads the object. The sim will not stop flying
@@ -372,10 +369,28 @@ every successful call to :py:func:`loadObject` with a call to :py:func:`unloadOb
        
     `Official SDK <https://developer.x-plane.com/sdk/XPLMScenery/#XPLMLoadObjectAsync>`__ :index:`XPLMLoadObjectAsync`
 
-.. py:function::  unloadObject(objectRef)
+.. py:function:: getObjects(path, latitude=0.0, longitude=0.0) -> [XPLMObjectRef, ...]
+
+    :param str path: **library** path of object(s) to load
+    :param float latitude:
+    :param float longitude: location to bias the search (e.g., find "European" houses vs "USA" houses)
+    :return: tuple of XPLMObjectRef capsules
+             
+    This is a convenience function which calls :func:`lookupObjects` followed by immediately calling :func:`loadObject` on
+    each object returned from the library. If an object cannot be loaded, ``None`` is returned as its value in the
+    tuple. You must still create one or more ``XPLMInstanceRef`` using :func:`createInstanceEx` or :func:`createInstance`,
+    followed by :func:`instanceSetPosition` on each instance to get them displayed,
+    and :func:`unloadObject` when finished. Available XPPython3 v4.8+.
+
+    Note the ``path`` is a *library* path, not a file system path. This is consistent with :func:`lookupObjects`.
+
+    >>> objects = xp.getObjects('lib/ships/bulk_carriers/BulkCarrier_155A.obj')
+    >>> objects
+    (<capsule object "XPLMObjectRef" at 0x765498831224>, <capsule object "XPLMObjectRef" at 0x746533425765>, <capsule object "XPLMObjectRef" at 0x83d566739aa1>)
+    
+.. py:function::  unloadObject(objectRef) -> None
 
     :param XPLMObjectRef objectRef: XPLMObjectRef obtained from :func:`loadObject` or :func:`loadObjectAsync`
-    :return: None                                
 
     This routine marks an *objectRef* as no longer being used by your plugin.
     Objects are reference counted: once no plugins are using an object, it is
@@ -400,4 +415,54 @@ every successful call to :py:func:`loadObject` with a call to :py:func:`unloadOb
     >>> position = x, y, z + 10, pitch, heading, roll
     >>> xp.instanceSetPosition(instance, position)
 
+Types
+-----
 
+.. py:class:: XPLMObjectRef
+
+    Opaque capsule representing a loaded X-Plane object, as returned by
+    :func:`loadObject`, :func:`loadObjectAsync` and :func:`getObjects`.
+    Release it with :func:`unloadObject`.
+
+.. py:class:: XPLMProbeRef
+
+    Opaque capsule representing a terrain probe, as returned by
+    :func:`createProbe` and used with :func:`probeTerrainXYZ`.
+    Release it with :func:`destroyProbe`.
+
+.. py:class:: XPLMProbeInfo
+
+    Result of :func:`probeTerrainXYZ`. Not instantiated directly.
+
+    .. py:attribute:: result
+        :type: int
+
+        Probe result: one of :py:data:`ProbeHitTerrain`, :py:data:`ProbeError`
+        or :py:data:`ProbeMissed`. This is your *only* indication of error,
+        including having passed a bad :class:`XPLMProbeRef`.
+
+    .. py:attribute:: locationX
+                      locationY
+                      locationZ
+        :type: float
+
+        OpenGL point hit by the probe.
+
+    .. py:attribute:: normalX
+                      normalY
+                      normalZ
+        :type: float
+
+        Normal vector (that is, the slope) of the terrain found.
+
+    .. py:attribute:: velocityX
+                      velocityY
+                      velocityZ
+        :type: float
+
+        Velocity vector (meters/second) of movement of the terrain found.
+
+    .. py:attribute:: is_wet
+        :type: int
+
+        1 if the surface hit is water.

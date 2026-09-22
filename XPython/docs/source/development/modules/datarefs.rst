@@ -203,7 +203,7 @@ Both functions return a :py:class:`DataRef` instance.
 Functions
 ---------
 
-.. py:function:: find_dataref(name: str)
+.. py:function:: find_dataref(name: str) -> DataRef
 
   :param str name: Name of existing dataref to find
   :return: :py:class:`DataRef`                   
@@ -259,7 +259,7 @@ Functions
   silently ignored.
     
 
-.. py:function::  create_dataref(name:str, dataRefType:str="number"|"array"|"string", callback:None|False|Callable=None)
+.. py:function::  create_dataref(name:str, dataRefType:str="number"|"array"|"string", callback:None|False|Callable=None) -> DataRef
                   
   :param str name: Name of dataref to be created
   :param str dataRefType: See table for possible values

@@ -1,3 +1,5 @@
+# pylint: disable=unused-argument
+# (a stub's parameters are never used -- there is no body)
 from typing import Any, Callable, Optional
 from XPPython3.xp_typing import *
 

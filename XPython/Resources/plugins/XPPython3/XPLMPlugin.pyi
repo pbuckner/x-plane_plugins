@@ -1,6 +1,7 @@
-from dataclasses import dataclass
-from typing import Any, Callable, Generic, Optional, Type, TypeVar, NewType, Literal, Sequence
-from XPPython3.xp_typing import *    
+# pylint: disable=unused-argument
+# (a stub's parameters are never used -- there is no body)
+from typing import Any, Callable, Optional
+from XPPython3.xp_typing import PluginInfo, XPLMPluginID
 MSG_PLANE_CRASHED: int
 MSG_PLANE_LOADED: int
 MSG_AIRPORT_LOADED: int
@@ -16,28 +17,33 @@ MsgPlaneCrashed: int
 MsgPlaneLoaded: int
 MsgAirportLoaded: int
 MsgSceneryLoaded: int
+MsgWeatherDelivered: int
 MsgAirplaneCountChanged: int
 MsgPlaneUnloaded: int
 MsgWillWritePrefs: int
-MsgLivery_Loaded: int
+MsgLiveryLoaded: int
 MsgEnteredVr: int
 MsgExitingVr: int
 MsgReleasePlanes: int
 MSG_FMOD_BANK_LOADED: int
 MSG_FMOD_BANK_UNLOADING: int
 MSG_DATAREFS_ADDED: int
+MSG_WEATHER_DELIVERED: int
 MsgFmodBankLoaded: int
 MsgFmodBankUnloading: int
 MsgDatarefs_Added: int
 MsgDatarefsAdded: int
-def getMyID() -> int:
+
+
+def getMyID() -> XPLMPluginID:
     """
     Returns plugin ID of calling plugin.
-    
+
     For XPPython3, this is *always* the ID of the XPPython3 plugin
     not any particular python plugin.
     """
     ...
+
 
 def countPlugins() -> int:
     """
@@ -45,30 +51,34 @@ def countPlugins() -> int:
     """
     ...
 
-def getNthPlugin(index:int) -> XPLMPluginID:
+
+def getNthPlugin(index: int) -> XPLMPluginID:
     """
     Return the ID of a (non-python) plugin by index.
     """
     ...
 
-def findPluginByPath(path:str) -> XPLMPluginID:
+
+def findPluginByPath(path: str) -> XPLMPluginID:
     """
     Return pluginID of (non-python) plugin whose file exists at path.
-    
+
     Path must be absolute.
     """
     ...
 
-def findPluginBySignature(signature:str) -> XPLMPluginID:
+
+def findPluginBySignature(signature: str) -> XPLMPluginID:
     """
     Return the pluginID of the (non-python) plugin whose signature matches.
     """
     ...
 
-def getPluginInfo(pluginID:XPLMPluginID) -> PluginInfo:
+
+def getPluginInfo(pluginID: XPLMPluginID) -> PluginInfo:
     """
     Return information about plugin.
-    
+
     Return value is an object with attributes:
       .name
       .filePath
@@ -77,23 +87,27 @@ def getPluginInfo(pluginID:XPLMPluginID) -> PluginInfo:
     """
     ...
 
-def isPluginEnabled(pluginID:XPLMPluginID) -> int:
+
+def isPluginEnabled(pluginID: XPLMPluginID) -> int:
     """
     Return 1 if plugin is enabled, 0 otherwise
     """
     ...
 
-def enablePlugin(pluginID:XPLMPluginID) -> int:
+
+def enablePlugin(pluginID: XPLMPluginID) -> int:
     """
     Enables plugin.
     """
     ...
 
-def disablePlugin(pluginID:XPLMPluginID) -> None:
+
+def disablePlugin(pluginID: XPLMPluginID) -> None:
     """
     Disables plugin
     """
     ...
+
 
 def reloadPlugins() -> None:
     """
@@ -103,51 +117,56 @@ def reloadPlugins() -> None:
     """
     ...
 
-def reloadThisPlugin(forReplacement:int=0) -> None:
+
+def reloadThisPlugin(forReplacement: int = 0) -> None:
     """
     Reload *this* (the calling) plugin.
 
     Once you return from the current callback, this plugin receives its
-    XPluginDisable / XPluginStop callbacks, is unloaded, then started again
-    as if the sim were starting up. If 'forReplacement' is true, a dialog is
-    shown after the .xpl is unloaded so you can swap in a newer one manually.
+    XPluginDisable / XPluginStop callbacks, is unloaded, then started again as if
+    the sim were starting up. If 'forReplacement' is true, a dialog is shown after
+    the .xpl is unloaded so you can swap in a newer one manually.
 
-    New in XPLM440. NOT thread-safe: call only from the main thread, in a callback.
+    New in XPLM440.
     """
     ...
 
-def sendMessageToPlugin(pluginID:XPLMPluginID, message:int, param:Optional[Any]) -> None:
+
+def sendMessageToPlugin(pluginID: XPLMPluginID, message: int, param: Optional[Any]) -> None:
     """
     Send message to plugin
-    
+
     Messages sent to XPPython3 plugin will be forwarded to all
     python plugins.
     """
     ...
 
-def hasFeature(feature:str) -> int:
+
+def hasFeature(feature: str) -> int:
     """
     Return 1 if X-Plane supports feature.
     """
     ...
 
-def isFeatureEnabled(feature:str) -> int:
+
+def isFeatureEnabled(feature: str) -> int:
     """
     Returns 1 if feature is currently enabled for your plugin.
     """
     ...
 
-def enableFeature(feature:str, enable:int=1) -> None:
+
+def enableFeature(feature: str, enable: int = 1) -> None:
     """
     Enables / disables indicated feature for this plugin.
     """
     ...
 
-def enumerateFeatures(enumerator:Callable[[str, Any], None], refCon:Any=None) -> None:
+
+def enumerateFeatures(enumerator: Callable[[str, Any], None], refCon: Any = None) -> None:
     """
     Enumerate supported features
-    
+
     You callback takes (name, refCon) as parameters
     """
     ...
-

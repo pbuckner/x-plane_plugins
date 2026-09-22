@@ -45,7 +45,7 @@ XPLMPluginID
     12.0     400
     12.3     421
     12.4     430
-    12.5     440
+    12.4.4   440
     =======  ===
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMDefs/#kXPLM_Version>`__: :index:`kXPLM_Version`
@@ -55,6 +55,8 @@ XPLMPluginID
 
 XPLMKeyFlags
 ------------
+
+.. py:type:: XPLMKeyFlags
 
 These bitfields define modifier keys in a platform independent way. When a
 key is pressed, a series of messages are sent to your plugin.  The down
@@ -70,7 +72,7 @@ yet a way for plugins to access the Macintosh control keys without using
 #ifdefed code.
 
 These modifier keys (except UpFlag and DownFlag) can be directly queried
-using :func:`getModifierKeys`, available since X-Plane 12.5 (SDK 440). They
+using :func:`getModifierKeys`, available since X-Plane 12.4.4 (SDK 440). They
 are also provided as flags in window :func:`key` callback.
 
 For ``xp.py``, these are defined without the leading ``xplm_`` e.g., ``xp.ShiftFlag``
@@ -103,7 +105,7 @@ For ``xp.py``, these are defined without the leading ``xplm_`` e.g., ``xp.ShiftF
  .. py:data:: CapsLockFlag
    :value: 32
 
-   The caps-lock key is engaged. New with X-Plane 12.4 (SDK 440).
+   The caps-lock key is engaged. New with X-Plane 12.4.4 (SDK 440).
    `Official SDK <https://developer.x-plane.com/sdk/XPLMDefs/#xplm_CapsLockFlag>`__: :index:`xplm_CapsLockFlag`
 
 

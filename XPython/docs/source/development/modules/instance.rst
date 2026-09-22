@@ -1,3 +1,5 @@
+.. index:: Object Instances, Tasks; Object Instances
+
 XPLMInstance
 ============
 .. py:module:: XPLMInstance
@@ -36,11 +38,11 @@ match the ordering of the datarefs when you created your instance.)
 Functions
 ---------
 
-.. py:function:: createInstance(obj, dataRefs=None)
+.. py:function:: createInstance(obj, dataRefs=None) -> XPLMInstanceRef
 
     :param XPLMObjectRef obj: object reference, a description of instance to be created
     :param List[str] dataRefs: List of dataRef strings to be passed to the instances (or None)
-    :return: XPLMInstanceRef capsule                               
+    :return: :class:`XPLMInstanceRef`
 
     Registers an instance of an X-Plane object, with an optional list of *dataRefs*.
 
@@ -77,7 +79,7 @@ Functions
     
     `Official SDK <https://developer.x-plane.com/sdk/XPLMInstance/#XPLMCreateInstance>`__ :index:`XPLMCreateInstance`
 
-.. py:function:: destroyInstance(instance)
+.. py:function:: destroyInstance(instance) -> None
 
     :param XPLMInstanceRef instance: Instance to be destroyed.
 
@@ -88,7 +90,7 @@ Functions
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMInstance/#XPLMDestroyInstance>`__ :index:`XPLMDestroyInstance`
 
-.. py:function:: instanceSetPosition(instance, position, data=None)
+.. py:function:: instanceSetPosition(instance, position, data=None) -> None
 
     :param XPLMInstanceRef instance: Instance to be positioned
     :param Tuple position: Six-float tuple (x, y, z, pitch, heading, roll)                                 
@@ -107,6 +109,10 @@ Functions
     Otherwise *data* should be a list of floats in the same order as
     the dataRefs provided during instance creation. (If you don't provide *data*, it effectively
     sets each registered dataRef to 0.0.)
+
+    *Floats*, even if your dataref takes integers. If you dataref is a vector, you need to explicitly
+    list the elements in :func:`createInstance` (e.g., ``dataRefs=["mydataref[0]", "mydataref[1]", "mydataref[2]"]``)
+    and pass each value as a float (e.g., ``(0.0, 1.0, 1.0)``)
 
     The following example builds on the example in :py:func:`createInstance`, and sets the position
     of the instance, and sets values for each of the (two) datarefs.
@@ -130,7 +136,7 @@ Functions
                
     `Official SDK <https://developer.x-plane.com/sdk/XPLMInstance/#XPLMInstanceSetPosition>`__ :index:`XPLMInstanceSetPosition`
 
-.. py:function:: instanceSetPositionDouble(instance, position, data=None)
+.. py:function:: instanceSetPositionDouble(instance, position, data=None) -> None
 
     :param XPLMInstanceRef instance: Instance to be positioned
     :param Tuple position: Six-float tuple (x, y, z, pitch, heading, roll)                                 
@@ -146,7 +152,7 @@ Functions
     
     `Official SDK <https://developer.x-plane.com/sdk/XPLMInstance/#XPLMInstanceSetPositionDouble>`__ :index:`XPLMInstanceSetPositionDouble`
 
-.. py:function:: instanceSetAutoShift(instance)
+.. py:function:: instanceSetAutoShift(instance) -> None
 
     :param XPLMInstanceRef instance: Instance to be positioned
 
@@ -166,4 +172,144 @@ Functions
     call.
 
     `Official SDK <https://developer.x-plane.com/sdk/XPLMInstance/#XPLMInstanceSetPositionAutoShift>`__ :index:`XPLMInstanceSetPositionAutoShift`
+
+.. py:function:: createInstanceEx(objects, dataRefs=None, coordinateSpace=CoordSpace_World, aircraftIndex=0, autoShift=0) -> XPLMInstanceRef
+
+    :param objects: Sequence of objects making up the instance (see below)
+    :param List[str] dataRefs: List of dataRef strings shared by every object (or None)
+    :param XPLMCoordinateSpace_t coordinateSpace: One of the :data:`CoordSpace_World`, :data:`CoordSpace_AircraftInterior`, :data:`CoordSpace_AircraftExterior`, :data:`CoordSpace_Camera` constants
+    :param int aircraftIndex: Aircraft index (0 = user aircraft), used only for the two aircraft coordinate spaces
+    :param int autoShift: If non-zero, enable auto-shift (world space only); see :func:`instanceSetAutoShift`
+    :return: :class:`XPLMInstanceRef` representing the *set* of objects
+
+    A superset of :func:`createInstance` (new with X-Plane 12.4.4 / SDK 440). It
+    builds a single instance out of **one or more** objects that draw and move
+    together as one rigid group, lets you choose the *coordinate space* in which
+    positions are interpreted, and lets you enable auto-shift --- all in one call.
+
+    *objects* is a sequence where each element is either:
+
+    * an :class:`XPLMObjectRef` capsule (as returned by :func:`loadObject` or :func:`getObjects`), placed at the
+      instance origin with no offset; or
+    * a tuple ``(obj, x, y, z, pitch, heading, roll)`` giving a fixed local offset
+      for that object relative to the shared instance origin. Trailing offset
+      values default to ``0``. That is ``[obj, (obj, 5)])`` is equivalent to ``[obj, (obj, 5, 0, 0, 0, 0, 0)]``.
+
+    All objects share the single *dataRefs* list (exactly as in
+    :func:`createInstance`); the data you later pass to :func:`instanceSetPosition`
+    fills one shared block used by every object. The set of objects is fixed at
+    creation --- you cannot add or remove objects later. Destroy the instance with
+    :func:`destroyInstance`.
+
+    The *coordinateSpace* selects how the positions you pass to
+    :func:`instanceSetPosition` are interpreted: world space (the classic
+    behavior), relative to an aircraft's CG and body axes (interior or exterior),
+    or relative to the camera. You can also change it later with
+    :func:`instanceSetCoordinateSpace`.
+
+    In the following example, we load a single pole object, then combine three
+    copies into a single *instance* which we'll then place at the current aircraft position.
+    Because ``coordinateSpace`` is World, the instances are stationary.
     
+    >>> objs = xp.getObjects('lib/airport/Common_Elements/Markers/Poles/Thin_Red_White.obj')
+    >>> obj = objs[0]
+    >>> instance = xp.createInstanceEx([obj, (obj, 5.0, 0, 0, 0, 0, 0), (obj, -5.0, 0, 0, 0, 0, 0)],
+    ...                                coordinateSpace=xp.CoordSpace_World)
+    ...
+    >>> x = xp.getDatad(xp.findDataRef('sim/flightmodel/position/local_x'))
+    >>> y = xp.getDatad(xp.findDataRef('sim/flightmodel/position/local_y'))
+    >>> z = xp.getDatad(xp.findDataRef('sim/flightmodel/position/local_z'))
+    >>> position = (x, y, z, 0, 0, 0)
+    >>> xp.instanceSetPosition(instance, position)
+
+    `Official SDK <https://developer.x-plane.com/sdk/XPLMInstance/#XPLMCreateInstanceEx>`__ :index:`XPLMCreateInstanceEx`
+
+.. py:function:: instanceSetCoordinateSpace(instance, space, aircraftIndex=0) -> None
+
+    :param XPLMInstanceRef instance: Instance to modify
+    :param XPLMCoordinateSpace_t space: One of the :data:`CoordSpace_World`, :data:`CoordSpace_AircraftInterior`, :data:`CoordSpace_AircraftExterior`, :data:`CoordSpace_Camera` constants
+    :param int aircraftIndex: Aircraft index (0 = user aircraft), used only for the two aircraft coordinate spaces
+
+    Change the coordinate space used to interpret the positions you pass to
+    :func:`instanceSetPosition`. You can set this once up front with
+    :func:`createInstanceEx`, or change it on the fly here (new with SDK 440).
+
+    Changing the space does **not** make the instance jump: X-Plane re-expresses
+    the instance's current world location in the new space, so the object stays
+    exactly where it is and then begins tracking the new parent. After the change
+    it is up to you to feed positions that are correct for the new space.
+
+    Auto-shift (:func:`instanceSetAutoShift`) is independent of the coordinate
+    space, but only has an effect while the instance is in world space.
+
+    Assume the example provided with :func:`createInstanceEx` above, with three objects
+    set in World coordinates. Now, change the coordinate space to AircraftExterior and
+    set position (x, y, z) to (0, 0, 0) and the set of objects will be tied to the
+    user aircraft's center of gravity, moving as the aircraft moves.
+
+    >>> xp.instanceSetCoordinateSpace(instance, xp.CoordSpace_AircraftExterior)
+    >>> xp.instanceSetPosition(instance, (0, 0, 0, 0, 0, 0))
+
+    Finally, change the coordinate space to Camera, using the same position,
+    and the set of objects will hover in front of your view... no matter where you look!
+
+    >>> xp.instanceSetCoordinateSpace(instance, xp.CoordSpace_Camera)
+
+
+    `Official SDK <https://developer.x-plane.com/sdk/XPLMInstance/#XPLMInstanceSetCoordinateSpace>`__ :index:`XPLMInstanceSetCoordinateSpace`
+
+Constants
+---------
+
+.. _XPLMCoordinateSpace_t:
+
+XPLMCoordinateSpace_t
+*********************
+
+.. py:type:: XPLMCoordinateSpace_t
+
+The coordinate space in which an instance's positions are interpreted, passed to
+:func:`createInstanceEx` and :func:`instanceSetCoordinateSpace` (new with SDK 440).
+Interior and exterior aircraft spaces use the same transform today; the
+distinction lets X-Plane light the objects correctly in a future release.
+
+For ``xp.py``, these are defined without the leading ``xplm_`` e.g., ``xp.CoordSpace_World``.
+
+.. py:data:: CoordSpace_World
+   :value: 0
+
+   Position is in global OpenGL / tangent-plane ("local") coordinates (the default). |BR|
+   `Official SDK <https://developer.x-plane.com/sdk/XPLMInstance/#xplm_CoordSpace_World>`__: :index:`xplm_CoordSpace_World`
+
+.. py:data:: CoordSpace_AircraftInterior
+   :value: 1
+
+   Position is relative to an aircraft's CG and body axes (+X right wing, +Y up,
+   +Z tail), for objects inside the cockpit/cabin. |BR|
+   `Official SDK <https://developer.x-plane.com/sdk/XPLMInstance/#xplm_CoordSpace_AircraftInterior>`__: :index:`xplm_CoordSpace_AircraftInterior`
+
+.. py:data:: CoordSpace_AircraftExterior
+   :value: 2
+
+   Position is relative to an aircraft's CG and body axes (+X right wing, +Y up,
+   +Z tail), for objects mounted on the exterior. |BR|
+   `Official SDK <https://developer.x-plane.com/sdk/XPLMInstance/#xplm_CoordSpace_AircraftExterior>`__: :index:`xplm_CoordSpace_AircraftExterior`
+
+.. py:data:: CoordSpace_Camera
+   :value: 3
+
+   Position is relative to the camera / view position and orientation. |BR|
+   `Official SDK <https://developer.x-plane.com/sdk/XPLMInstance/#xplm_CoordSpace_Camera>`__: :index:`xplm_CoordSpace_Camera`
+
+.. note:: The difference between :data:`CoordSpace_AircraftExterior` and :data:`CoordSpace_AircraftInterior`
+  seems to how the object reacts to ambient light, using exterior or interior lights. Objects will be placed in the same
+  location regardless of which value is used.
+
+Types
+-----
+
+.. py:class:: XPLMInstanceRef
+
+    Opaque capsule representing a drawable instance of an object, as returned by
+    :func:`createInstance` and :func:`createInstanceEx`. Release it with
+    :func:`destroyInstance`.

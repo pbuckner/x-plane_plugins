@@ -1,6 +1,6 @@
-from dataclasses import dataclass
-from typing import Any, Callable, Generic, Optional, Type, TypeVar, NewType, Literal, Sequence
-from XPPython3.xp_typing import *    
+# pylint: disable=unused-argument
+# (a stub's parameters are never used -- there is no body)
+from XPPython3.xp_typing import XPWidgetClass
 WidgetClass_MainWindow: XPWidgetClass
 MainWindowStyle_MainWindow: int
 MainWindowStyle_Translucent: int

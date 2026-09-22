@@ -20,14 +20,16 @@ one widget proc on a window for all of the push buttons in the window. Most
 of these messages contain the original widget ID as a parameter so you can
 know which widget is messaging no matter who it is sent to.
 
- * :py:data:`WidgetClass_MainWindow`
- * :py:data:`WidgetClass_SubWindow`
- * :py:data:`WidgetClass_Button`
- * :py:data:`WidgetClass_TextField`
- * :py:data:`WidgetClass_ScrollBar`
- * :py:data:`WidgetClass_Caption`
- * :py:data:`WidgetClass_GeneralGraphics`
- * :py:data:`WidgetClass_Progress`
+.. rst-class:: compact
+
+* :py:data:`WidgetClass_MainWindow`
+* :py:data:`WidgetClass_SubWindow`
+* :py:data:`WidgetClass_Button`
+* :py:data:`WidgetClass_TextField`
+* :py:data:`WidgetClass_ScrollBar`
+* :py:data:`WidgetClass_Caption`
+* :py:data:`WidgetClass_GeneralGraphics`
+* :py:data:`WidgetClass_Progress`
 
 Widgets have properties which can be accessed using :py:func:`getWidgetProperty` and
 :py:func:`setWidgetProperty`. Common properties (applicable to all most widgets are

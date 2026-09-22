@@ -21,7 +21,7 @@
 struct TouchHandlerInfo {
   const char *module_name;
   PyObject *callback;
-  PyObject *refcon;
+  PyObject *refCon;
 };
 static std::unordered_map<void *, TouchHandlerInfo *> touchHandlerDict;
 
@@ -41,7 +41,7 @@ static void touchEventCallback(int identifier, XPLMMouseStatus status, int x, in
     PyLong_FromLong(dx),
     PyLong_FromLong(dy),
     PyLong_FromLong(button),
-    info->refcon
+    info->refCon
   };
   PyObject *pRes = PyObject_Vectorcall(info->callback, args, 8, nullptr);
   for(int i = 0; i < 7; i++){
@@ -59,13 +59,13 @@ static void touchEventCallback(int identifier, XPLMMouseStatus status, int x, in
 /* Drop any existing handler registered on `handle`; if `handler` is not None,
    store a new TouchHandlerInfo and return it (to hand to the SDK as `ref`),
    otherwise return nullptr (meaning: unregister). */
-static TouchHandlerInfo *prepareTouchHandler(void *handle, PyObject *handler, PyObject *refcon)
+static TouchHandlerInfo *prepareTouchHandler(void *handle, PyObject *handler, PyObject *refCon)
 {
   auto it = touchHandlerDict.find(handle);
   if(it != touchHandlerDict.end()){
     TouchHandlerInfo *old = it->second;
     Py_XDECREF(old->callback);
-    Py_XDECREF(old->refcon);
+    Py_XDECREF(old->refCon);
     free(old);
     touchHandlerDict.erase(it);
   }
@@ -76,8 +76,8 @@ static TouchHandlerInfo *prepareTouchHandler(void *handle, PyObject *handler, Py
   info->module_name = CurrentPythonModuleName;
   Py_INCREF(handler);
   info->callback = handler;
-  Py_INCREF(refcon);
-  info->refcon = refcon;
+  Py_INCREF(refCon);
+  info->refCon = refCon;
   touchHandlerDict[handle] = info;
   return info;
 }
@@ -130,62 +130,70 @@ static PyObject *XPLMAccumulateTouchZoneFun(PyObject *self, PyObject *args, PyOb
 }
 
 My_DOCSTR(_avionicsSetTouchEventHandler__doc__, "avionicsSetTouchEventHandler",
-          "avionic, handler, refcon=None",
-          "avionic:XPLMAvionicsID, handler:Optional[Callable], refcon:Any",
+          "avionic, handler, refCon=None",
+          "avionic:XPLMAvionicsID, handler:Optional[Callable], refCon:Any",
           "None",
           "Register handler to receive touch events for TouchZone_Identifier zones on\n"
           "the given avionics device. handler is called as handler(identifier, status,\n"
-          "x, y, dx, dy, button, refcon). Pass handler=None to remove the current\n"
-          "handler.");
+          "x, y, dx, dy, button, refCon). Pass handler=None to remove the current\n"
+          "handler.\n"
+          "\n"
+          "button is 0 for the left mouse button, 1 for the right. Touch zones respond\n"
+          "only to those two: middle-click and scroll-wheel input deliver no event at\n"
+          "all, so there is no third button value to test for.");
 static PyObject *XPLMAvionicsSetTouchEventHandlerFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {CHAR("avionic"), CHAR("handler"), CHAR("refcon"), nullptr};
+  static char *keywords[] = {CHAR("avionic"), CHAR("handler"), CHAR("refCon"), nullptr};
   (void) self;
   PyObject *avionicCapsule;
   PyObject *handler;
-  PyObject *refcon = Py_None;
+  PyObject *refCon = Py_None;
   if(!XPLMAvionicsSetTouchEventHandler_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMAvionicsSetTouchEventHandler is available only in XPLM440 and up.");
     return nullptr;
   }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|O", keywords, &avionicCapsule, &handler, &refcon)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|O", keywords, &avionicCapsule, &handler, &refCon)){
     return nullptr;
   }
   XPLMAvionicsID avionic = getVoidPtr(avionicCapsule, AVIONICS_CAPSULE);
   if(!avionic && PyErr_Occurred()){
     return nullptr;
   }
-  TouchHandlerInfo *info = prepareTouchHandler(avionic, handler, refcon);
+  TouchHandlerInfo *info = prepareTouchHandler(avionic, handler, refCon);
   XPLMAvionicsSetTouchEventHandler_ptr(avionic, info ? touchEventCallback : nullptr, info);
   Py_RETURN_NONE;
 }
 
 My_DOCSTR(_windowSetTouchEventHandler__doc__, "windowSetTouchEventHandler",
-          "window, handler, refcon=None",
-          "window:XPLMWindowID, handler:Optional[Callable], refcon:Any",
+          "window, handler, refCon=None",
+          "window:XPLMWindowID, handler:Optional[Callable], refCon:Any",
           "None",
           "Register handler to receive touch events for TouchZone_Identifier zones on\n"
           "the given window. handler is called as handler(identifier, status, x, y, dx,\n"
-          "dy, button, refcon). Pass handler=None to remove the current handler.");
+          "dy, button, refCon). Pass handler=None to remove the current handler.\n"
+          "\n"
+          "button is 0 for the left mouse button, 1 for the right. Touch zones respond\n"
+          "only to those two: middle-click and scroll-wheel input deliver no event at\n"
+          "all, so there is no third button value to test for.");
 static PyObject *XPLMWindowSetTouchEventHandlerFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  static char *keywords[] = {CHAR("window"), CHAR("handler"), CHAR("refcon"), nullptr};
+  static char *keywords[] = {CHAR("window"), CHAR("handler"), CHAR("refCon"), nullptr};
   (void) self;
   PyObject *windowCapsule;
   PyObject *handler;
-  PyObject *refcon = Py_None;
+  PyObject *refCon = Py_None;
   if(!XPLMWindowSetTouchEventHandler_ptr){
     PyErr_SetString(PyExc_RuntimeError , "XPLMWindowSetTouchEventHandler is available only in XPLM440 and up.");
     return nullptr;
   }
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|O", keywords, &windowCapsule, &handler, &refcon)){
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|O", keywords, &windowCapsule, &handler, &refCon)){
     return nullptr;
   }
   XPLMWindowID window = getVoidPtr(windowCapsule, WINDOW_CAPSULE);
   if(!window && PyErr_Occurred()){
     return nullptr;
   }
-  TouchHandlerInfo *info = prepareTouchHandler(window, handler, refcon);
+  TouchHandlerInfo *info = prepareTouchHandler(window, handler, refCon);
   XPLMWindowSetTouchEventHandler_ptr(window, info ? touchEventCallback : nullptr, info);
   Py_RETURN_NONE;
 }

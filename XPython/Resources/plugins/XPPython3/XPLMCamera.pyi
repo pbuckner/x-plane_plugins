@@ -1,11 +1,14 @@
-from dataclasses import dataclass
-from typing import Any, Callable, Generic, Optional, Type, TypeVar, NewType, Literal, Sequence
-from XPPython3.xp_typing import *    
-ControlCameraUntilViewChanges: XPLMCameraControlDuration
-ControlCameraForever: XPLMCameraControlDuration
-def controlCamera(howLong:int=ControlCameraUntilViewChanges,
-          controlFunc:Optional[Callable[[list[float], int, Any], int]]=None,
-          refCon:Any=None) -> None:
+# pylint: disable=unused-argument
+# (a stub's parameters are never used -- there is no body)
+from typing import Any, Callable, Optional
+from XPPython3.xp_typing import XPLMCameraControlDuration
+ControlCameraUntilViewChanges: XPLMCameraControlDuration = XPLMCameraControlDuration(1)
+ControlCameraForever: XPLMCameraControlDuration = XPLMCameraControlDuration(2)
+
+
+def controlCamera(howLong: XPLMCameraControlDuration = ControlCameraUntilViewChanges,
+                  controlFunc: Optional[Callable[[Optional[list[float]], int, Any], int]] = None,
+                  refCon: Any = None) -> None:
     """
     Reposition camera on next drawing cycle.
       howLong: 1 = until view changes
@@ -20,16 +23,18 @@ def controlCamera(howLong:int=ControlCameraUntilViewChanges,
     """
     ...
 
+
 def dontControlCamera() -> None:
     """
     Release control of camera.
     """
     ...
 
+
 def isCameraBeingControlled() -> tuple[int, int]:
     """
     Returns two integer tuple. (isBeingControlled, howLong).
-    
+
     isBeingControlled is 1 when camera is being controlled, 0 otherwise.
     howLong is
       1: Until View Changes
@@ -37,6 +42,7 @@ def isCameraBeingControlled() -> tuple[int, int]:
       value is undefined when isBeingControlled is 0.
     """
     ...
+
 
 def readCameraPosition() -> tuple[float, float, float, float, float, float, float]:
     """
@@ -49,4 +55,3 @@ def readCameraPosition() -> tuple[float, float, float, float, float, float, floa
      6      zoom     1.0 is normal, 2.0 is 2x zoom (objects appear larger)
     """
     ...
-

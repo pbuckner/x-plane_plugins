@@ -4,6 +4,11 @@ Using PIP
 PIP is a Python Package Installer. Python, from python.org, includes a large number
 of libraries to support most activities.
 
+.. note:: If you're just trying to use this plugin don't worry about
+          this feature: it is useful for developers looking to install non-standard
+          libraries for more advanced functionality. You *may* be instructed
+          to use **pip** once, if you install such an advanced plugin.
+
 When you run third-party python plugins, those plugins may require libraries
 not included with the base python installation. If that's the case, you
 can install them using PIP. [#F1]_

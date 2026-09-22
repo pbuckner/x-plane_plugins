@@ -22,6 +22,10 @@ from imgui.integrations.opengl import FixedPipelineRenderer  # type: ignore
 from XPPython3 import xp
 from XPPython3.imgui_typing import IMGUIDrawData
 from typing import Self
+from .profiling import makeProfiler
+
+# Set True to log per-frame CPU timings for this path. See profiling.py.
+PROFILE = False
 
 
 class XPRenderer(FixedPipelineRenderer):
@@ -29,6 +33,7 @@ class XPRenderer(FixedPipelineRenderer):
 
     def __init__(self, window):
         self.window = window
+        self._prof = makeProfiler(PROFILE, "opengl")
         super().__init__()
 
     def refresh_font_texture(self: Self):
@@ -54,6 +59,22 @@ class XPRenderer(FixedPipelineRenderer):
         self.io.fonts.texture_id = self._font_texture
         self.io.fonts.clear_tex_data()
 
+    def shutdown(self: Self) -> None:
+        """Release the font texture. Must be called while the imgui context is
+        still alive (we touch self.io.fonts) and from a live GL context.
+
+        Overrides the base only to be None-safe: the inherited
+        _invalidate_device_objects() tests `self._font_texture > -1`, which raises
+        TypeError when refresh_font_texture() bailed out and left it None.
+        """
+        if self._font_texture:
+            GL.glDeleteTextures(1, [self._font_texture])
+        self._font_texture = None
+        try:
+            self.io.fonts.texture_id = 0
+        except Exception:  # pylint: disable=broad-except
+            pass   # context already gone; nothing left to detach the texture from
+
     def render(self: Self, draw_data: IMGUIDrawData) -> None:  # pylint: disable=arguments-differ
         window = self.window
         geom = xp.getWindowGeometry(window.windowID)
@@ -69,6 +90,10 @@ class XPRenderer(FixedPipelineRenderer):
 
         if fb_width == 0 or fb_height == 0:
             return
+
+        prof = self._prof
+        frameStart = prof.now() if prof else 0.0
+        clipElapsed = 0.0
 
         draw_data.scale_clip_rects(*io.display_fb_scale)
 
@@ -100,10 +125,13 @@ class XPRenderer(FixedPipelineRenderer):
                 GL.glBindTexture(GL.GL_TEXTURE_2D, command.texture_id)
                 x, y, z, w = command.clip_rect
 
+                clipStart = prof.now() if prof else 0.0
                 bLeft, bTop = window.translateImguiToBoxel(x, y)
                 bRight, bBottom = window.translateImguiToBoxel(z, w)
                 nLeft, nTop = window.boxelsToNative(bLeft, bTop)
                 nRight, nBottom = window.boxelsToNative(bRight, bBottom)
+                if prof:
+                    clipElapsed += prof.now() - clipStart
 
                 GL.glScissor(int(nLeft), int(nBottom), int(nRight - nLeft), int(nTop - nBottom))
 
@@ -122,3 +150,10 @@ class XPRenderer(FixedPipelineRenderer):
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
         GL.glPopAttrib()
         GL.glPopClientAttrib()
+
+        if prof:
+            # 'clip' is the per-command Python matrix math (translateImguiToBoxel +
+            # boxelsToNative); the panel-graphics path has no equivalent.
+            prof.addElapsed('clip', clipElapsed)
+            prof.add('total', frameStart)
+            prof.frame(draw_data.total_vtx_count, draw_data.total_idx_count)

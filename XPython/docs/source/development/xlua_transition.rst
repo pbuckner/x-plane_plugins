@@ -62,15 +62,8 @@ SDK API (and XPPython3) if/when you want it.
 
 The easiest way to see this is by examining a :doc:`xlua_typical`.
 
-
 .. toctree::
-   :titlesonly:
    :hidden:
 
    xlua_typical
-   /development/modules/datarefs
-   /development/modules/commands
-   /development/modules/timers
-   /development/modules/easy_python
-   /development/modules/xlua_variables
-
+   

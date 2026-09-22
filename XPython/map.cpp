@@ -447,7 +447,7 @@ My_DOCSTR(_createMapLayer__doc__, "createMapLayer",
           "icon:Optional[Callable[[XPLMMapLayerID, float, float, float, XPLMMapStyle, XPLMMapProjectionID, Any], None]]=None, "
           "label:Optional[Callable[[XPLMMapLayerID, float, float, float, XPLMMapStyle, XPLMMapProjectionID, Any], None]]=None, "
           "showToggle:int=1, "
-          "name:str=<module_name>', "
+          "name:str='<module_name>', "
           "refCon:Any=None",
           "XPLMMapLayerID",
           "Returns layerID of newly created map layer, setting callbacks.\n"
@@ -842,6 +842,13 @@ static PyObject *XPLMMapGetNorthHeadingFun(PyObject *self, PyObject *args, PyObj
   return PyFloat_FromDouble(res);
 }
 
+My_DOCSTR(_getMapCallbackDict__doc__, "getMapCallbackDict",
+          "",
+          "",
+          "dict",
+          "Returns copy of internal MapCallbackInfo dictionary.\n"
+          "\n"
+          "Internal debugging aid: contents and structure may change between releases.");
 PyObject* buildMapCallbackDict(void)
 {
   PyObject *mapCallbacksDict = PyDict_New();
@@ -936,7 +943,7 @@ static PyMethodDef XPLMMapMethods[] = {
   {"XPLMMapScaleMeter", (PyCFunction)XPLMMapScaleMeterFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"mapGetNorthHeading", (PyCFunction)XPLMMapGetNorthHeadingFun, METH_VARARGS | METH_KEYWORDS, _mapGetNorthHeading__doc__},
   {"XPLMMapGetNorthHeading", (PyCFunction)XPLMMapGetNorthHeadingFun, METH_VARARGS | METH_KEYWORDS, ""},
-  {"getMapCallbackDict", (PyCFunction)buildMapCallbackDict, METH_VARARGS, "Copy of internal MapCallbackInfo"},
+  {"getMapCallbackDict", (PyCFunction)buildMapCallbackDict, METH_VARARGS, _getMapCallbackDict__doc__},
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {nullptr, nullptr, 0, nullptr}
 };

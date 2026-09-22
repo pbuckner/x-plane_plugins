@@ -7,24 +7,27 @@ Simple `Hello Widget` program which creates and displays widgets in a window.
 a plugin to interact with the user. Laminar support a very basic UI construction
 SDK and this example will show you how to use it.
 
-:Note:
+.. note::
 
   The Widget library is old. It looks old. Laminar Research knows it's old and while
   there may be a desire to open the newer internal GUI framework via the SDK,
   there are no plans to actually do it -- or the plans have lower priority than
   everything else people want.
 
-The modern Windows API (See :doc:`helloworld` ) allows you to draw text and listen
+  However, with X-Plane 12.4.4+ Laminar has provide alternative interfaces using
+  :doc:`Dear ImGui </development/imgui>` , and :doc:`Chromium Embedded Framework (CEF) </development/modules/display_window_browser>`. 
+
+The modern Windows API (See :doc:`helloworld`) allows you to draw text and listen
 for mouse clicks, so conceivably you could build your own custom UI (or use :doc:`Dear Imgui <imgui>`),
-but if you want something relatively easy to use and already implemented, use the existing
-Widgets.
+but if you want something relatively easy to use, already implemented, and usable with older versions
+of X-Plane, use the existing Widgets.
 
 An overview of Widgets is provided in :doc:`modules/widgets`: You'll create a hierarchy of widgets,
 with one or more callback functions. Messages are passed to widgets as they occur and
 (may) bubble up to parent widgets. These messages are different from plugin- or window-level
 messages as they are received by the widgets.
 
-For our example here, we'll create Widget window, add some labeled, editable, text fields and
+For our example here, we'll create Widget window, add some labeled and editable text fields and
 end with a button widget.
 
 .. image:: /images/widget_window_demo.png
@@ -127,7 +130,7 @@ self.widgetCallback()
 *********************
 
 Our widget callback handles the message for all of our widgets, and prints out the message.
-To avoid being overwhelmed by thousand of messages in XPPython.log, we implement a simple
+To avoid being overwhelmed by thousand of messages in XPPython3Log.txt, we implement a simple
 counter: We'll actually print out only the first 10 occurances of any message type.
 
 A python note: Because our callback is a member function, its first parameter is ``self``. That
@@ -170,3 +173,5 @@ understand widgets.
 
 Next you could look at a collection of :doc:`samples`, or you can dive into the actual
 :doc:`modules/index` provided by XPPython3.
+
+Or, more to the next topic where we cover a variety of basic plugin tasks: :doc:`plugin_tasks`.

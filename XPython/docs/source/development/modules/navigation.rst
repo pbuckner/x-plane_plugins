@@ -1,3 +1,5 @@
+.. index:: Navaid Database, Tasks; Navaid Database
+
 XPLMNavigation
 ==============
 .. py:module:: XPLMNavigation
@@ -22,6 +24,8 @@ is powered internally by X-Plane's navigation database. See :ref:`fms_flightplan
 Navaid Functions
 ----------------
 
+.. rst-class:: compact
+               
 * Iterate through the navaid database:
 
   * :py:func:`getFirstNavAid`, :py:func:`getNextNavAid`
@@ -47,7 +51,7 @@ Navaid Functions
     To add to the confusion, whereas the document indicate heights are in feet, it
     appears the values returned via the API are in meters.
 
-.. py:function:: getFirstNavAid()
+.. py:function:: getFirstNavAid() -> XPLMNavRef
 
  :return: :ref:`XPLMNavRef` or :py:data:`NAV_NOT_FOUND`
 
@@ -62,7 +66,7 @@ Navaid Functions
  `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMGetFirstNavAid>`__ :index:`XPLMGetFirstNavAid`
 
 
-.. py:function:: getNextNavAid(navRef)
+.. py:function:: getNextNavAid(navRef) -> XPLMNavRef
 
  :param: :ref:`XPLMNavRef` navRef
  :return: Next :ref:`XPLMNavRef` navRef or :py:data:`NAV_NOT_FOUND`
@@ -88,9 +92,9 @@ Navaid Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMGetNextNavAid>`__ :index:`XPLMGetNextNavAid`
 
-.. py:function:: findFirstNavAidOfType(navType)
+.. py:function:: findFirstNavAidOfType(navType) -> XPLMNavRef
 
- :param: :ref:`XPLMNavType` navType for search
+ :param XPLMNavType navType: navaidType for search
  :return: First :ref:`XPLMNavRef` navRef or :py:data:`NAV_NOT_FOUND`
 
  Given a *navType* (See :ref:`XPLMNavType` below),
@@ -106,7 +110,7 @@ Navaid Functions
  
  `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMFindFirstNavAidOfType>`__ :index:`XPLMFindFirstNavAidOfType`
 
-.. py:function:: findLastNavAidOfType(navType)
+.. py:function:: findLastNavAidOfType(navType) -> XPLMNavRef
 
  :param: :ref:`XPLMNavType` navType for search
  :return: Last :ref:`XPLMNavRef` navRef or :py:data:`NAV_NOT_FOUND`
@@ -126,7 +130,7 @@ Navaid Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMFindLastNavAidOfType>`__ :index:`XPLMFindLastNavAidOfType`
 
-.. py:function:: findNavAid(name=None, navAidID=None, lat=None, lon=None, freq=None, navType=-1)
+.. py:function:: findNavAid(name=None, navAidID=None, lat=None, lon=None, freq=None, navType=-1) -> XPLMNavRef
 
  :param str name: case-sensitive fragment to search
  :param str navAidID: case-sensitive fragment to search
@@ -178,12 +182,12 @@ Navaid Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMFindNavAid>`__ :index:`XPLMFindNavAid`
  
-.. py:function:: getNavAidInfo(navRef)
+.. py:function:: getNavAidInfo(navRef) -> NavAidInfo
 
  :param: :ref:`XPLMNavRef` integer retrieved from e.g., :py:func:`findNavAid`             
- :return: :ref:`NavAidInfo` or None
+ :return: :class:`NavAidInfo` or None
 
- See information about returned :ref:`NavAidInfo` data structure below.
+ See information about returned :class:`NavAidInfo` data structure below.
  
  This routine returns information about a navaid indicated by its *navRef*.  Fields are
  filled out with information if it is available. For example, Airports have neither
@@ -226,6 +230,8 @@ The FMS must be programmed with contiguous entries, so clearing an entry at
 the end shortens the effective flight plan.  There is a max of 100
 waypoints in the flight plan.
 
+.. rst-class:: compact
+               
 * Manipulate entry status in FMS
 
   * :py:func:`countFMSFlightPlanEntries`
@@ -256,11 +262,10 @@ We'll input that same route programmatically.
 Functions
 *********
 
-.. py:function:: loadFMSFlightPlan(device, plan)
+.. py:function:: loadFMSFlightPlan(device, plan) -> None
 
   :param int device: 0= pilot side, 1= co-pilot side
   :param str plan: X-Plane 11+ formatted flight plan                   
-  :return:
 
   Loads specially formatted string as the flight plan for the selected device
 
@@ -303,7 +308,7 @@ Functions
   
   `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMLoadFMSFlightPlan>`__ :index:`XPLMLoadFMSFlightPlan`
 
-.. py:function:: saveFMSFlightPlan(device)
+.. py:function:: saveFMSFlightPlan(device) -> str
 
   :param int device: 0= pilot side, 1= co-pilot side
   :return str: X-Plane 11+ formatted flight plan                   
@@ -336,7 +341,7 @@ Functions
   
   `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMSaveFMSFlightPlan>`__ :index:`XPLMSaveFMSFlightPlan`
 
-.. py:function:: countFMSFlightPlanEntries(flightPlan)
+.. py:function:: countFMSFlightPlanEntries(flightPlan) -> int
 
   :param XPLMNavFlightPlan flightPlan: selected flight plan
   :return int: number of entries in flight plan.
@@ -354,13 +359,13 @@ Functions
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMCountFMSFlightPlanEntries>`__ :index:`XPLMCountFMSFlightPlanEntries`
 
-.. py:function:: getFMSFlightPlanEntryInfo(flightPlan, index)
+.. py:function:: getFMSFlightPlanEntryInfo(flightPlan, index) -> FMSEntryInfo
 
   Returns information about a single entry in the given flight plan.
 
   :param XPLMNavFlightPlan flightPlan: selected flight plan
   :param int index: existing 0-based index to retrieve
-  :return FMSEntryInfo: Instance of :ref:`FMSEntryInfo`
+  :return FMSEntryInfo: Instance of :class:`FMSEntryInfo`
 
   >>> for i in range(xp.countFMSFlightPlanEntries(xp.Fpl_Pilot_Primary)):
   ...    print(str(xp.getFMSFlightPlanEntryInfo(xp.Fpl_Pilot_Primary, i)))
@@ -443,9 +448,9 @@ Functions
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMGetFMSFlightPlanEntryInfo>`__ :index:`XPLMGetFMSFlightPlanEntryInfo`
 
-.. py:function:: setFMSFlightPlanEntryInfo(flightPlan, index, navRef, altitude=0)
-                 setFMSFlightPlanEntryLatLon(flightPlan, index, lat, lon, altitude=0)
-                 setFMSFlightPlanEntryLatLonWithId(flightPlan, index, lat, lon, altitude=0, ID=None)
+.. py:function:: setFMSFlightPlanEntryInfo(flightPlan, index, navRef, altitude=0) -> None
+                 setFMSFlightPlanEntryLatLon(flightPlan, index, lat, lon, altitude=0) -> None
+                 setFMSFlightPlanEntryLatLonWithId(flightPlan, index, lat, lon, altitude=0, ID=None) -> None
 
   Sets entry in FMS at the given index.
 
@@ -456,7 +461,6 @@ Functions
   :param float lon: Latitude / Longitude. To be used when navRef is not appropriate   
   :param int altitude: Altitude of fix in feet.                 
   :param str ID: Optional string used (with LatLon) to be displayed with entry
-  :return: None
 
   These three functions all do the same thing, but using slightly different data as input. If a *navRef* is
   provided, its latitude, longitude and display name will used. If no navRef is provided, latitude and longitude
@@ -541,13 +545,12 @@ Functions
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMSetFMSFlightPlanEntryLatLonWithId>`__ :index:`XPLMSetFMSFlightPlanEntryLatLonWithId`
 
-.. py:function:: clearFMSFlightPlanEntry(flightPlan, index)
+.. py:function:: clearFMSFlightPlanEntry(flightPlan, index) -> None
 
   Removes indicated flight plan entry
 
   :param XPLMNavFlightPlan flightPlan: selected flight plan
   :param int index: 0-based index entry to be removed
-  :return: None
 
   The entry will be removed and the result flight plan with either be shortened,
   or a discontinuity may result. Attempting to clear an index which does not exist is ignored.
@@ -591,7 +594,7 @@ Functions
   `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMClearFMSFlightPlanEntry>`__ :index:`XPLMClearFMSFlightPlanEntry`
 
 
-.. py:function:: getDestinationFMSFlightPlanEntry(flightPlan)
+.. py:function:: getDestinationFMSFlightPlanEntry(flightPlan) -> int
 
   :param XPLMNavFlightPlan flightPlan: selected flight plan
   :return int: Return 0-based index number of the entry the FMS is flying to.
@@ -604,11 +607,10 @@ Functions
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMGetDestinationFMSFlightPlanEntry>`__ :index:`XPLMGetDestinationFMSFlightPlanEntry`
 
-.. py:function:: setDestinationFMSFlightPlanEntry(flightPlan, index)
+.. py:function:: setDestinationFMSFlightPlanEntry(flightPlan, index) -> None
 
   :param XPLMNavFlightPlan flightPlan: selected flight plan
   :param int index: existing 0-based index to become new destination
-  :return: None
 
   The flight track is from the location immediately before the index to the index entry.
   (Compare with :py:func:`setDirectToFMSFlightPlanEntry`.) If the index is not valid, the command is ignored.
@@ -621,11 +623,10 @@ Functions
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMSetDestinationFMSFlightPlanEntry>`__ :index:`XPLMSetDestinationFMSFlightPlanEntry`
 
-.. py:function:: setDirectToFMSFlightPlanEntry(flightPlan, index)
+.. py:function:: setDirectToFMSFlightPlanEntry(flightPlan, index) -> None
 
   :param XPLMNavFlightPlan flightPlan: selected flight plan
   :param int index: existing 0-based index to become new direct-to destination
-  :return: Return
 
   The flight track is changed to be the *current aircraft position* to the indicated destination, ignoring
   flight plan entries before the index value.
@@ -637,7 +638,7 @@ Functions
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMSetDirectToFMSFlightPlanEntry>`__ :index:`XPLMSetDirectToFMSFlightPlanEntry`
 
-.. py:function:: getDisplayedFMSFlightPlanEntry(flightPlan)
+.. py:function:: getDisplayedFMSFlightPlanEntry(flightPlan) -> int
 
   :param XPLMNavFlightPlan flightPlan: selected flight plan
   :return int: Return 0-based index number of the currently displayed flight plan entry
@@ -649,11 +650,10 @@ Functions
   
   `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMGetDisplayedFMSFlightPlanEntry>`__ :index:`XPLMGetDisplayedFMSFlightPlanEntry`
 
-.. py:function:: setDisplayedFMSFlightPlanEntry(flightPlan, index)
+.. py:function:: setDisplayedFMSFlightPlanEntry(flightPlan, index) -> None
 
   :param XPLMNavFlightPlan flightPlan: selected flight plan
   :param int index: existing 0-based index to be displayed                                      
-  :return: None
 
   Change the entry being displayed on ND (Navigation Display), where applicable.
 
@@ -699,6 +699,8 @@ The FMS must be programmed with contiguous entries, so clearing an entry at
 the end shortens the effective flight plan.  There is a max of 100
 waypoints in the flight plan.
 
+.. rst-class:: compact
+
 * Manipulate entry status in FMS
 
   * :py:func:`countFMSEntries`
@@ -718,7 +720,7 @@ waypoints in the flight plan.
 Functions
 *********
 
-.. py:function:: countFMSEntries()
+.. py:function:: countFMSEntries() -> int
 
  Returns the number of entries in the FMS.
 
@@ -727,7 +729,7 @@ Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMCountFMSEntries>`__ :index:`XPLMCountFMSEntries`
 
-.. py:function:: getDisplayedFMSEntry()
+.. py:function:: getDisplayedFMSEntry() -> int
 
  Return the index of the entry the pilot is viewing. (For XP 11.55, this appears to always return 0.
  This has been acknowledged by Laminar Research as bug XPD-11386. The X-Plane 10 737 works correctly,
@@ -740,7 +742,7 @@ Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMGetDisplayedFMSEntry>`__ :index:`XPLMGetDisplayedFMSEntry`
 
-.. py:function:: getDestinationFMSEntry()
+.. py:function:: getDestinationFMSEntry() -> int
 
  Return the index of the entry the FMS is flying to. (The "destination" refers to the active leg.)
  This is an index into the FMS, not into the navaid database.
@@ -750,7 +752,9 @@ Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMGetDestinationFMSEntry>`__ :index:`XPLMGetDestinationFMSEntry`
 
-.. py:function:: setDisplayedFMSEntry(index)
+.. py:function:: setDisplayedFMSEntry(index) -> None
+
+ :param int index: 0-based index of entry
 
  Change which entry the FMS is showing to the integer index specified.
  (For X-Plane 11.55, this does not appear to do anything.  This has been acknowledged by Laminar Research as bug XPD-11386. Like :py:func:`getDisplayedFMSEntry`, this appears to work in X-Plane 11 only for older X-Plane 10 version
@@ -760,7 +764,9 @@ Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMSetDisplayedFMSEntry>`__ :index:`XPLMSetDisplayedFMSEntry`
 
-.. py:function:: setDestinationFMSEntry(index)
+.. py:function:: setDestinationFMSEntry(index) -> None
+
+ :param int index: 0-based index of entry
 
  Change which entry the FMS is flying the aircraft toward.
 
@@ -772,7 +778,9 @@ Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMSetDestinationFMSEntry>`__ :index:`XPLMSetDestinationFMSEntry`
 
-.. py:function:: getFMSEntryInfo(index)
+.. py:function:: getFMSEntryInfo(index) -> FMSEntryInfo
+
+ :param int index: 0-based index of entry
 
  Returns information about the zero-based *index* entry in the FMS.
  Value returned is an object (see below).
@@ -793,7 +801,11 @@ Functions
  information about an entry. It has the following attributes:
 
  
-.. py:function::  setFMSEntryInfo(index, navRef, altitude=0)
+.. py:function::  setFMSEntryInfo(index, navRef, altitude=0) -> None
+
+ :param int index: 0-based index of entry
+ :param XPLMNavRef navRef: data of navaid to be set into FMS
+ :param int altitude: in feet                          
 
  This routine changes an entry at *index* in the FMS to have the
  destination navaid specified by *navRef* (as returned by :py:func:`findNavAid`)
@@ -811,7 +823,12 @@ Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMSetFMSEntryInfo>`__ :index:`XPLMSetFMSEntryInfo`
 
-.. py:function:: setFMSEntryLatLon(index, lat, lon, altitude=0)
+.. py:function:: setFMSEntryLatLon(index, lat, lon, altitude=0) -> None
+
+ :param int index: 0-based index of entry
+ :param float lat:
+ :param float lon: location to be set
+ :param int altitude: in feet
 
  This routine changes an entry at *index* in the FMS to have the
  destination specified by *lat*, *lon* at *altitude* (in feet) specified.
@@ -822,7 +839,9 @@ Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMSetFMSEntryLatLon>`__ :index:`XPLMSetFMSEntryLatLon`
  
-.. py:function::  clearFMSEntry(index)
+.. py:function::  clearFMSEntry(index) -> None
+
+ :param int index: 0-based index of entry
 
  Clears the given entry, potentially shortening the flight plan.
 
@@ -831,11 +850,9 @@ Functions
 GPS Receiver
 ------------
 
-.. py:function::  getGPSDestinationType()
+.. py:function::  getGPSDestinationType() -> XPLMNavType
 
  Return the :ref:`XPLMNavType` of the current GPS destination.
-
- :return: XPLMNavType
 
  >>> xp.getGPSDestinationType()
  512
@@ -843,11 +860,9 @@ GPS Receiver
  `Official SDK <https://developer.x-plane.com/sdk/XPLMNavigation/#XPLMGetGPSDestinationType>`__ :index:`XPLMGetGPSDestinationType`
 
 
-.. py:function:: getGPSDestination()
+.. py:function:: getGPSDestination() -> XPLMNavRef
 
  Return the :ref:`XPLMNavRef` of current GPS destination.
-
- : return: XPLMNavRef
 
  >>> xp.getGPSDestination()
  33706498
@@ -863,6 +878,9 @@ Constants
 
 :index:`XPLMNavFlightPlan`
 **************************
+
+.. py:type:: XPLMNavFlightPlan
+
 These enumerations define the type of flight plan used with
 :ref:`fms_flightplan` routines. Not all are available on all
 aircraft. For convenience, I've included at least one aircraft
@@ -886,6 +904,9 @@ aircraft.
 
 :index:`XPLMNavType`
 ********************
+
+.. py:type:: XPLMNavType
+
 These enumerations define the different types of navaids.  They are each
 defined with a separate bit so that they may be bit-wise added together to
 form sets of nav-aid types.
@@ -922,6 +943,8 @@ form sets of nav-aid types.
 :index:`XPLMNavRef`
 *******************
 
+.. py:type:: XPLMNavRef
+
 XPLMNavRef is an iterator into the navigation database.  The navigation
 database is essentially an array, but it is not necessarily densely
 populated. The only assumption you can safely make is that like-typed
@@ -944,15 +967,37 @@ Use XPLMNavRef to refer to a nav-aid.
 
 Data structure returned by :py:func:`getFMSFlightPlanEntryInfo` and py:func:`getFMSEntryInfo`.
 
-============ ===================================================
-type         :ref:`XPLMNavType` or :py:data:`XPLM_NAV_NOT_FOUND`
-             if this is a lat/lon entry
-navAidID     str or None if this is a lat/lon entry
-ref          :ref:`XPLMNavRef` or None
-altitude     int (in feet)
-lat          float latitude
-lon          float longitude
-============ ===================================================
+.. py:class:: FMSEntryInfo
+
+    Data structure returned by :py:func:`getFMSFlightPlanEntryInfo` and
+    :py:func:`getFMSEntryInfo`.
+
+    .. py:attribute:: type
+        :type: int
+
+        Navaid type, see :ref:`XPLMNavType`, or :py:data:`XPLM_NAV_NOT_FOUND`
+        if this is a lat/lon entry.
+
+    .. py:attribute:: navAidID
+        :type: str
+
+        Navaid ID, or None if this is a lat/lon entry.
+
+    .. py:attribute:: ref
+        :type: int
+
+        :class:`XPLMNavRef`, or None.
+
+    .. py:attribute:: altitude
+        :type: int
+
+        Altitude, in feet.
+
+    .. py:attribute:: lat
+                      lon
+        :type: float
+
+        Latitude and longitude of the entry.
 
 Conveniently, it also has a ``str()`` representation
 
@@ -977,18 +1022,52 @@ LUCOS (LUCOS) Fix (41.638, -70.768) ---
 
 Data structure returned by :py:func:`getNavAidInfo`.
 
-============ ===========================================================
-type         :ref:`XPLMNavType`
-latitude     float
-longitude    float
-height       float (in meters)
-frequency    int. For NDB, frequency is exact. Otherwise,
-             divide by 100 to get actual.
-heading      float
-name         str
-navAidID     str
-reg          int 1= navaid is within the local "region" of loaded DSFs.
-============ ===========================================================
+.. py:class:: NavAidInfo
+
+    Data structure returned by :py:func:`getNavAidInfo`.
+
+    .. py:attribute:: type
+        :type: int
+
+        Navaid type, see :ref:`XPLMNavType`. A bitfield, OR'd together.
+
+    .. py:attribute:: latitude
+                      longitude
+        :type: float
+
+        Location of the navaid.
+
+    .. py:attribute:: height
+        :type: float
+
+        Height, in meters.
+
+    .. py:attribute:: frequency
+        :type: int
+
+        For NDB, frequency is exact. Otherwise, divide by 100 to get actual.
+
+    .. py:attribute:: heading
+        :type: float
+
+        Heading. For a GlideSlope, the value is localizer bearing (true) + GS angle
+        x 100,000: e.g., a GS of 3.00 degrees on heading 122.53125 becomes
+        300122.53125.
+
+    .. py:attribute:: name
+        :type: str
+
+        Navaid name.
+
+    .. py:attribute:: navAidID
+        :type: str
+
+        Navaid ID.
+
+    .. py:attribute:: reg
+        :type: int
+
+        1 if the navaid is within the local "region" of loaded DSFs, 0 otherwise.
 
 Conveniently, it also has a ``str()`` representation
 

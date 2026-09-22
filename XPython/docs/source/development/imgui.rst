@@ -51,6 +51,7 @@ ImGui related pages:
 .. toctree::
 
    imgui_plugin
+   imgui_avionics
    imgui_coding
    imgui_advanced
 

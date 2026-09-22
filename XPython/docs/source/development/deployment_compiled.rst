@@ -60,9 +60,3 @@ The ``-b`` option causes the compiled files to *not* be placed in the ``__pycach
 option causes all comments to be stripped from the resulting files.
 
 Be sure to compile using Python 3.12, as this will create \*.pyc files compatible with XPPython3 for X-Plane 12.
-
-.. toctree::
-   :hidden:
-   :maxdepth: 1
-
-   xpyce_compile

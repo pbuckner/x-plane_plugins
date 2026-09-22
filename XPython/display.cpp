@@ -670,7 +670,7 @@ static int genericWindowMouseWheel(XPLMWindowID  inWindowID,
 
 
 My_DOCSTR(_createWindowEx__doc__, "createWindowEx",
-          "left=100, top=200, right=200, bottom=100, visible=0, draw=None, click=None, key=None, cursor=None, wheel=None, refCon=None, decoration=WindowDecorationRoundRectangle, layer=WindowLayerFloatingWindows, rightClick=None, windowContentType=WindowContentTypeOpenGL, browserLoadFinished=None, browserLoadError=None",
+          "left=100, top=200, right=200, bottom=100, visible=0, draw=None, click=None, key=None, cursor=None, wheel=None, refCon=None, decoration=WindowDecorationRoundRectangle, layer=WindowLayerFloatingWindows, rightClick=None, contentType=WindowContentTypeOpenGL, browserLoadFinished=None, browserLoadError=None",
           "left:int=100, top:int=200, right:int=200, bottom:int=100,"
           "visible:int=0, "
           "draw:Optional[Callable[[XPLMWindowID, Any], None]]=None,"
@@ -681,7 +681,7 @@ My_DOCSTR(_createWindowEx__doc__, "createWindowEx",
           "refCon:Any=None, decoration:XPLMWindowDecoration=WindowDecorationRoundRectangle, "
           "layer:XPLMWindowLayer=WindowLayerFloatingWindows, "
           "rightClick:Optional[Callable[[XPLMWindowID, int, int, XPLMMouseStatus, Any], int]]=None, "
-          "windowContentType:XPLMWindowContentType=WindowContentTypeOpenGL, browserLoadFinished:Optional[Callable[[XPLMWindowID, str, Any], None]]=None, browserLoadError:Optional[Callable[[XPLMWindowID, str, str, Any], None]]=None",
+          "contentType:XPLMWindowContentType=WindowContentTypeOpenGL, browserLoadFinished:Optional[Callable[[XPLMWindowID, str, Any], None]]=None, browserLoadError:Optional[Callable[[XPLMWindowID, str, str, Any], None]]=None",
           "XPLMWindowID",
           "Creates modern window\n"
           "\n"
@@ -703,14 +703,14 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
   errCheck("prior CreateWindowEx");
   static char *keywords[] = {CHAR("left"), CHAR("top"), CHAR("right"), CHAR("bottom"), CHAR("visible"), CHAR("draw"), CHAR("click"), CHAR("key"), CHAR("cursor"),
                              CHAR("wheel"), CHAR("refCon"), CHAR("decoration"), CHAR("layer"), CHAR("rightClick"),
-                             CHAR("windowContentType"), CHAR("browserLoadFinished"), CHAR("browserLoadError"), nullptr};
+                             CHAR("contentType"), CHAR("browserLoadFinished"), CHAR("browserLoadError"), nullptr};
   (void) self;
   PyObject *firstObj=Py_None;
   int left=100, right=200, top=200, bottom=100;
   int visible=0;
   int decoration=xplm_WindowDecorationRoundRectangle;
   int layer=xplm_WindowLayerFloatingWindows;
-  int windowContentType=xplm_WindowContentTypeOpenGL;
+  int contentType=xplm_WindowContentTypeOpenGL;
   PyObject *draw=Py_None, *click=Py_None, *key=Py_None, *cursor=Py_None, *wheel=Py_None, *rightClick=Py_None, *refCon=Py_None;
   PyObject *browserLoadFinished=Py_None, *browserLoadError=Py_None;
   PyObject *paramsObj=Py_None;
@@ -718,7 +718,7 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
                                   &firstObj, &top, &right, &bottom, &visible,
                                   &draw, &click, &key, &cursor, &wheel, &refCon,
                                   &decoration, &layer, &rightClick,
-                                  &windowContentType, &browserLoadFinished, &browserLoadError)){
+                                  &contentType, &browserLoadFinished, &browserLoadError)){
     return nullptr;
   }
 
@@ -731,7 +731,7 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
 #if defined(XPLM440)
   window_params.structSize = (xplm_ver >= 440)
     ? sizeof(XPLMCreateWindow_t)
-    : offsetof(XPLMCreateWindow_t, windowContentType);
+    : offsetof(XPLMCreateWindow_t, contentType);
 #else
   window_params.structSize = sizeof(window_params);
 #endif
@@ -774,7 +774,7 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
     wheel = PyTuple_GetItem(paramsTuple, 9);
     rightClick = PyTuple_GetItem(paramsTuple, 13);
     if (numValues == 17) {
-      windowContentType = PyLong_AsLong(PyTuple_GetItem(paramsTuple, 14));
+      contentType = PyLong_AsLong(PyTuple_GetItem(paramsTuple, 14));
       browserLoadFinished = PyTuple_GetItem(paramsTuple, 15);
       browserLoadError = PyTuple_GetItem(paramsTuple, 16);
     }
@@ -824,8 +824,8 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
   }
 
 #if defined(XPLM440)
-  if ((xplm_ver < 440) && (windowContentType != xplm_WindowContentTypeOpenGL || browserLoadFinished != Py_None || browserLoadError != Py_None)) {
-    PyErr_SetString(PyExc_RuntimeError ,"createWindowEx windowContentType and browser callbacks require X-Plane with XPLM440 or later.\n");
+  if ((xplm_ver < 440) && (contentType != xplm_WindowContentTypeOpenGL || browserLoadFinished != Py_None || browserLoadError != Py_None)) {
+    PyErr_SetString(PyExc_RuntimeError ,"createWindowEx contentType and browser callbacks require X-Plane with XPLM440 or later.\n");
     return nullptr;
   }
 #endif
@@ -850,7 +850,7 @@ static PyObject *XPLMCreateWindowExFun(PyObject *self, PyObject *args, PyObject 
 
 #if defined(XPLM440)
   if (xplm_ver >= 440 || xp_ver >= 12440) {
-    window_params.windowContentType = windowContentType;
+    window_params.contentType = contentType;
     window_params.browserLoadFinishedFunc = browserLoadFinished != Py_None ? genericBrowserLoadFinished : nullptr;
     window_params.browserLoadErrorFunc = browserLoadError != Py_None ? genericBrowserLoadError : nullptr;
   }
@@ -1796,10 +1796,12 @@ static PyObject *XPLMHasKeyboardFocusFun(PyObject *self, PyObject *args, PyObjec
 }
 
 My_DOCSTR(_getModifierKeys__doc__, "getModifierKeys",
-          "", "", "XPLMKeyFlags",
+          "",
+          "",
+          "XPLMKeyFlags",
           "Returns the modifier keys currently held down, as an XPLMKeyFlags bitfield.\n"
-          "Only modifier bits are ever set (ShiftFlag, OptionAltFlag, ControlFlag,\n"
-          "CapsLockFlag); the DownFlag/UpFlag key-event bits are never returned.");
+          "Only modifier bits are ever set --ShiftFlag, OptionAltFlag, ControlFlag,\n"
+          "CapsLockFlag; the DownFlag/UpFlag key-event bits are never returned.");
 static PyObject *XPLMGetModifierKeysFun(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   (void) self; (void) args; (void) kwargs;
@@ -1920,6 +1922,48 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
 
 
 
+/* Docstrings for the introspection helpers. These must precede the method
+   table; the functions themselves are defined further down this file. */
+My_DOCSTR(_getDrawCallbackDict__doc__, "getDrawCallbackDict",
+          "",
+          "",
+          "dict",
+          "Returns copy of internal DrawCallbackInfo dictionary.\n"
+          "\n"
+          "Internal debugging aid: contents and structure may change between releases.");
+
+My_DOCSTR(_getWindowCallbackDict__doc__, "getWindowCallbackDict",
+          "",
+          "",
+          "dict",
+          "Returns copy of internal WindowCallbackInfo dictionary.\n"
+          "\n"
+          "Internal debugging aid: contents and structure may change between releases.");
+
+My_DOCSTR(_getAvionicsCallbackDict__doc__, "getAvionicsCallbackDict",
+          "",
+          "",
+          "dict",
+          "Returns copy of internal AvionicsCallbackInfo dictionary.\n"
+          "\n"
+          "Internal debugging aid: contents and structure may change between releases.");
+
+My_DOCSTR(_getKeySnifferCallbackDict__doc__, "getKeySnifferCallbackDict",
+          "",
+          "",
+          "dict",
+          "Returns copy of internal KeySnifferCallbackInfo dictionary.\n"
+          "\n"
+          "Internal debugging aid: contents and structure may change between releases.");
+
+My_DOCSTR(_getHotKeyCallbackDict__doc__, "getHotKeyCallbackDict",
+          "",
+          "",
+          "dict",
+          "Returns copy of internal HotKeyCallbackInfo dictionary.\n"
+          "\n"
+          "Internal debugging aid: contents and structure may change between releases.");
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-function-type"
 static PyMethodDef XPLMDisplayMethods[] = {
@@ -2006,11 +2050,11 @@ static PyMethodDef XPLMDisplayMethods[] = {
   {"windowIsInVR", (PyCFunction)XPLMWindowIsInVRFun, METH_VARARGS | METH_KEYWORDS, _windowIsInVR__doc__},
   {"XPLMWindowIsInVR", (PyCFunction)XPLMWindowIsInVRFun, METH_VARARGS | METH_KEYWORDS, ""},
 
-  {"getDrawCallbackDict", (PyCFunction)buildDrawCallbackDict, METH_VARARGS, "Copy of internal DrawCallbackInfo"},
-  {"getWindowCallbackDict", (PyCFunction)buildWindowCallbackDict, METH_VARARGS, "Copy of internal WindowCallbackInfo"},
-  {"getAvionicsCallbackDict", (PyCFunction)buildAvionicsCallbackDict, METH_VARARGS, "Copy of internal AvionicsCallbackInfo"},
-  {"getKeySnifferCallbackDict", (PyCFunction)buildKeySnifferCallbackDict, METH_VARARGS, "Copy of internal KeySnifferCallbackInfo"},
-  {"getHotKeyCallbackDict", (PyCFunction)buildHotKeyCallbackDict, METH_VARARGS, "Copy of internal HotKeyCallbackInfo"},
+  {"getDrawCallbackDict", (PyCFunction)buildDrawCallbackDict, METH_VARARGS, _getDrawCallbackDict__doc__},
+  {"getWindowCallbackDict", (PyCFunction)buildWindowCallbackDict, METH_VARARGS, _getWindowCallbackDict__doc__},
+  {"getAvionicsCallbackDict", (PyCFunction)buildAvionicsCallbackDict, METH_VARARGS, _getAvionicsCallbackDict__doc__},
+  {"getKeySnifferCallbackDict", (PyCFunction)buildKeySnifferCallbackDict, METH_VARARGS, _getKeySnifferCallbackDict__doc__},
+  {"getHotKeyCallbackDict", (PyCFunction)buildHotKeyCallbackDict, METH_VARARGS, _getHotKeyCallbackDict__doc__},
   {"_cleanup", cleanup, METH_VARARGS, "cleanup"},
   {nullptr, nullptr, 0, nullptr}
 };

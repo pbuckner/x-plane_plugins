@@ -188,6 +188,15 @@ static int extractTempLayersFromPyList(PyObject *tempLayersList, float *temp_lay
 static int setWeather(PyObject *infoObj, XPLMWeatherInfo_t *infop) {
   /* we KNOW this is SDK420 (at least)  */
   infop->structSize = sizeof(XPLMWeatherInfo_t);
+  int xp_ver, xplm_ver;
+  XPLMHostApplicationID hostID;
+  XPLMGetVersions(&xp_ver, &xplm_ver, &hostID);
+  (void)xp_ver; (void)hostID;
+  if (xplm_ver < 440) {
+    /* Don't claim a struct larger than the running sim knows: snow_coverage_pct
+       is the XPLM440 addition and is the final field. */
+    infop->structSize = offsetof(XPLMWeatherInfo_t, snow_coverage_pct);
+  }
 
   if (PyObject_GetAttrString(infoObj, "temperature_alt") == Py_None) {
     infop->temperature_alt = IGNORE_TEMPERATURE_LAYER;
@@ -277,6 +286,7 @@ static int setWeather(PyObject *infoObj, XPLMWeatherInfo_t *infop) {
   if (!extractFloatAttr(infoObj, "age", &infop->age)) return 0;
   if (!extractFloatAttr(infoObj, "radius_nm", &infop->radius_nm)) return 0;
   if (!extractFloatAttr(infoObj, "max_altitude_msl_ft", &infop->max_altitude_msl_ft)) return 0;
+  if (!extractFloatAttr(infoObj, "snow_coverage_pct", &infop->snow_coverage_pct)) return 0;
 
   return 1;
 }
@@ -336,6 +346,10 @@ static PyObject *XPLMGetWeatherAtLocationFun(PyObject *self, PyObject *args, PyO
   XPLMGetVersions(&xp, &xplm, &hostID);
   (void)xp; (void)hostID;
   out_info.structSize = sizeof(XPLMWeatherInfo_t);
+  if (xplm < 440) {
+    /* snow_coverage_pct is the XPLM440 addition and is the final field */
+    out_info.structSize = offsetof(XPLMWeatherInfo_t, snow_coverage_pct);
+  }
   if (xplm < 420) {
     out_info.structSize = offsetof(XPLMWeatherInfo_t, temp_layers);
   }
@@ -383,7 +397,8 @@ static PyObject *XPLMGetWeatherAtLocationFun(PyObject *self, PyObject *args, PyO
                            out_info.wave_length, out_info.wave_dir, out_info.wave_speed, out_info.visibility, out_info.precip_rate,
                            out_info.thermal_climb, out_info.pressure_sl, wind_layers, cloud_layers,
                            temp_layers, dewp_layers, out_info.troposphere_alt, out_info.troposphere_temp,
-                           out_info.age, out_info.radius_nm, out_info.max_altitude_msl_ft);
+                           out_info.age, out_info.radius_nm, out_info.max_altitude_msl_ft,
+                           out_info.snow_coverage_pct);
 }
 
 My_DOCSTR(_beginWeatherUpdate__doc__, "beginWeatherUpdate",
@@ -598,6 +613,7 @@ PyInit_XPLMWeather(void)
     PyModule_AddIntConstant(mod, "NumCloudLayers", XPLM_NUM_CLOUD_LAYERS);
     PyModule_AddIntConstant(mod, "NumTemperatureLayers", XPLM_NUM_TEMPERATURE_LAYERS);
     PyModule_AddIntConstant(mod, "WindUndefinedLayer", XPLM_WIND_UNDEFINED_LAYER);
+    PyModule_AddIntConstant(mod, "TempUndefinedLayer", XPLM_TEMP_UNDEFINED_LAYER);
     PyModule_AddIntConstant(mod, "DefaultWxrRadiusNm", XPLM_DEFAULT_WXR_RADIUS_NM);
     PyModule_AddIntConstant(mod, "DefaultWxrLimitMslFt", XPLM_DEFAULT_WXR_LIMIT_MSL_FT);
   }

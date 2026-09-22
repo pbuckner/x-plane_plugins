@@ -8,10 +8,12 @@ To use::
   import xp
 
 Widgets are persistent view 'objects' for X-Plane. A widget is an object
-referenced by its opaque handle (:ref:`XPWidgetID`).. You
+referenced by its opaque handle (:class:`XPWidgetID`). You
 cannot access the widget's guts directly. Every Widget has the following
 intrinsic data:
 
+.. rst-class:: compact
+               
 - A bounding box defined in global screen coordinates with 0,0 in the
   bottom left and +y = up, +x = right.
 
@@ -84,7 +86,7 @@ which they bear a striking resemblance to) in the following ways:
   as :py:mod:`XPLMDisplay` windows.
 
 
-.. py:function:: createWidget(left, top, right, bottom, visible, descriptor, isRoot, container, widgetClass)
+.. py:function:: createWidget(left, top, right, bottom, visible, descriptor, isRoot, container, widgetClass) -> XPWidgetID
 
     :param int left:                 
     :param int top:                 
@@ -93,9 +95,9 @@ which they bear a striking resemblance to) in the following ways:
     :param int visible: 1=visible                   
     :param str descriptor: Widget's initial descriptor
     :param int isRoot: 1=is root element
-    :param XPWidgetID container: :ref:`XPWidgetID` capsule if not root element
+    :param XPWidgetID container: :class:`XPWidgetID` capsule if not root element
     :param XPWidgetClass widgetClass: :ref:`XPWidgetClass` type of widget.
-    :return: :ref:`XPWidgetID`
+    :return: :class:`XPWidgetID`
 
     This function creates a new widget and returns the new widget's ``widgetID`` to you.
     If the widget creation fails for some reason, it returns None. Widget
@@ -132,7 +134,7 @@ which they bear a striking resemblance to) in the following ways:
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPCreateWidget>`__ :index:`XPCreateWidget`
 
 
-.. py:function:: createCustomWidget(left, top, right, bottom, visible, descriptor, isRoot, container, callback)
+.. py:function:: createCustomWidget(left, top, right, bottom, visible, descriptor, isRoot, container, callback) -> XPWidgetID
 
     :param int left:                 
     :param int top:                 
@@ -141,9 +143,9 @@ which they bear a striking resemblance to) in the following ways:
     :param int visible: 1=visible                   
     :param str descriptor: Widget's initial descriptor
     :param int isRoot: 1=is root element
-    :param XPWidgetID container: :ref:`XPWidgetID` capsule if not root element
+    :param XPWidgetID container: :class:`XPWidgetID` capsule if not root element
     :param Callable callback: custom widgetCallback
-    :return: :ref:`XPWidgetID`
+    :return: :class:`XPWidgetID`
 
     This function is the same as :py:func:`createWidget` except that instead of passing
     a predefined widget *class*, you pass your widget *callback* function pointer defining the
@@ -151,10 +153,10 @@ which they bear a striking resemblance to) in the following ways:
     same as :py:func:`createWidget`, except that the widget *class* has been replaced with
     the widget *callback*:
 
-    .. py:function:: widgetCallback(message, widget, param1, param2)
+    .. py:function:: widgetCallback(message, widget, param1, param2) -> int
     
       :param message: :ref:`XPWidgetMessage` (may be custom)
-      :param widgetID: Your XPWidgetID capsule
+      :param widgetID: Your :class:`XPWidgetID`
       :param param1:
       :param param2: param1 and param2 are dependent on the particular message sent   
       :return: 1= you have handled the message, 0 otherwise.
@@ -164,7 +166,7 @@ which they bear a striking resemblance to) in the following ways:
       ID are passed in, as well as two pointer-width signed parameters whose meaning
       varies with the message.
 
-      Note you'll need to implement (or perposefully ignore) all standard widget messages
+      Note you'll need to implement (or purposefully ignore) all standard widget messages
       described in :ref:`XPWidgetMessage`.
     
       Return 1 to indicate that you have processed the
@@ -173,12 +175,12 @@ which they bear a striking resemblance to) in the following ways:
     
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPCreateCustomWidget>`__ :index:`XPCreateCustomWidget`
 
-.. py:function:: destroyWidget(widgetID, destroyChildren=1)
+.. py:function:: destroyWidget(widgetID, destroyChildren=1) -> None
 
     :param XPWidgetID widgetID: widget to be destroyed.
     :param int destroyChildren: 1= also destroy this widget's children
 
-    This class destroys a widget. Pass in the :ref:`XPWidgetID` of the widget to kill. If you
+    This class destroys a widget. Pass in the :class:`XPWidgetID` of the widget to kill. If you
     pass 1 for *destroyChildren*, the widget's children will be destroyed first,
     then this widget will be destroyed. (Furthermore, the widget's children
     will be destroyed with the flag set to 1, so the
@@ -189,7 +191,7 @@ which they bear a striking resemblance to) in the following ways:
 
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPDestroyWidget>`__ :index:`XPDestroyWidget`
 
-.. py:function:: sendMessageToWidget(widgetID, message, dispatchMode=xp.Mode_UpChain, param1=0, param2=0)
+.. py:function:: sendMessageToWidget(widgetID, message, dispatchMode=xp.Mode_UpChain, param1=0, param2=0) -> int
 
     :param XPWidgetID widgetID: receiving widget
     :param XPWidgetMessage message: existing XPWidgetMessage, or custom integer message
@@ -230,7 +232,7 @@ which they bear a striking resemblance to) in the following ways:
 
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPSendMessageToWidget>`__ :index:`XPSendMessageToWidget`
 
-.. py:function:: placeWidgetWithin(widgetID, container=0)
+.. py:function:: placeWidgetWithin(widgetID, container=0) -> None
 
     :param XPWidgetID widgetID: widget to be placed
     :param XPWidgetID container: new parent widget, or 0 to remove it
@@ -264,7 +266,7 @@ which they bear a striking resemblance to) in the following ways:
     
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPPlaceWidgetWithin>`__ :index:`XPPlaceWidgetWithin`
 
-.. py:function:: countChildWidgets(widgetID)
+.. py:function:: countChildWidgets(widgetID) -> int
 
     :param XPWidgetID widgetID: parent widget
     :return: int number of child widgets
@@ -285,11 +287,11 @@ which they bear a striking resemblance to) in the following ways:
 
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPCountChildWidgets>`__ :index:`XPCountChildWidgets`
 
-.. py:function:: getNthChildWidget(widgetID, index)
+.. py:function:: getNthChildWidget(widgetID, index) -> XPWidgetID
 
     :param XPWidgetID widgetID: parent widget
     :param int index: 0-based index of the child to be retrieved
-    :return: XPWidgetID or None
+    :return: :class:`XPWidgetID` or None
 
     Return the ``widgetID`` of a child widget by *index*. Indexes are
     0 based. If the index is invalid, None is returned.
@@ -303,10 +305,10 @@ which they bear a striking resemblance to) in the following ways:
 
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPGetNthChildWidget>`__ :index:`XPGetNthChildWidget`
 
-.. py:function:: getParentWidget(widgetID)
+.. py:function:: getParentWidget(widgetID) -> XPWidgetID
 
     :param XPWidgetID widgetID: child widget
-    :return: XPWidgetID of parent or None
+    :return: :class:`XPWidgetID` of parent or None
 
     Return the ``widgetID`` of the parent (containing) widget of this *widgetID*, or None if the widget has no
     parent. Root widgets never have parents and therefore always return None.
@@ -318,7 +320,7 @@ which they bear a striking resemblance to) in the following ways:
 
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPGetParentWidget>`__ :index:`XPGetParentWidget`
 
-.. py:function:: showWidget(widgetID)
+.. py:function:: showWidget(widgetID) -> None
 
     :param XPWidgetID widgetID: widget to show
 
@@ -329,7 +331,7 @@ which they bear a striking resemblance to) in the following ways:
 
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPShowWidget>`__ :index:`XPShowWidget`
 
-.. py:function:: hideWidget(widgetID)
+.. py:function:: hideWidget(widgetID) -> None
 
     :param XPWidgetID widgetID: widget to hide
 
@@ -343,7 +345,7 @@ which they bear a striking resemblance to) in the following ways:
 
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPHideWidget>`__ :index:`XPHideWidget`
 
-.. py:function:: isWidgetVisible(widgetID)
+.. py:function:: isWidgetVisible(widgetID) -> int
 
     :param XPWidgetID widgetID: widget to query
     :return: 1=visible, 0 otherwise
@@ -366,12 +368,12 @@ which they bear a striking resemblance to) in the following ways:
 
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPIsWidgetVisible>`__ :index:`XPIsWidgetVisible`
 
-.. py:function:: findRootWidget(widgetID):
+.. py:function:: findRootWidget(widgetID) -> XPWidgetID
 
     :param XPWidgetID widgetID: widget to query
-    :return: XPWidgetID of this widget's root (which may be itself or None)
+    :return: :class:`XPWidgetID` of this widget's root (which may be itself or None)
 
-    Return the :ref:`XPWidgetID` of the root widget that contains the
+    Return the :class:`XPWidgetID` of the root widget that contains the
     passed in *widgetID* or None if the passed in widget is not in a rooted
     hierarchy.
 
@@ -387,7 +389,7 @@ which they bear a striking resemblance to) in the following ways:
 
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPFindRootWidget>`__ :index:`XPFindRootWidget`
 
-.. py:function:: bringRootWidgetToFront(widgetID)
+.. py:function:: bringRootWidgetToFront(widgetID) -> None
 
     :param XPWidgetID widgetID: widget to query
 
@@ -399,7 +401,7 @@ which they bear a striking resemblance to) in the following ways:
 
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPBringRootWidgetToFront>`__ :index:`XPBringRootWidgetToFront`
 
-.. py:function:: isWidgetInFront(widgetID)
+.. py:function:: isWidgetInFront(widgetID) -> int
 
     :param XPWidgetID widgetID: widget to query
     :return: 1= widget's hierarchy is front-most                            
@@ -412,7 +414,7 @@ which they bear a striking resemblance to) in the following ways:
 
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPIsWidgetInFront>`__ :index:`XPIsWidgetInFront`
 
-.. py:function:: getWidgetGeometry(widgetID)
+.. py:function:: getWidgetGeometry(widgetID) -> Tuple[int, int, int, int]
 
     :param XPWidgetID widgetID: widget to query
     :return: Tuple four ints [left, top, right, bottom]
@@ -429,7 +431,7 @@ which they bear a striking resemblance to) in the following ways:
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPGetWidgetGeometry>`__ :index:`XPGetWidgetGeometry`
 
     
-.. py:function:: setWidgetGeometry(widgetID, left, top, right, bottom)
+.. py:function:: setWidgetGeometry(widgetID, left, top, right, bottom) -> None
 
     :param XPWidgetID widgetID: widget to move
     :param int left:                            
@@ -448,17 +450,17 @@ which they bear a striking resemblance to) in the following ways:
 
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPSetWidgetGeometry>`__ :index:`XPSetWidgetGeometry`
 
-.. py:function::  getWidgetForLocation(container, xOffset, yOffset, recursive=1, visibleOnly=1)
+.. py:function::  getWidgetForLocation(container, xOffset, yOffset, recursive=1, visibleOnly=1) -> XPWidgetID
 
     :param XPWidgetID container: containing widget
     :param int xOffset:
     :param int yOffset: position to query in global coordinates
     :param int recursive: 1=check container's child widgets also
     :param int visibleOnly: 1= check only visible widgets
-    :return: XPWidgetID of container (or any of its children) if location is within bounds, or None
+    :return: :class:`XPWidgetID` of container (or any of its children) if location is within bounds, or None
  
-    Given a *container* :ref:`XPWidgetID` and a location,
-    this routine returns the :ref:`XPWidgetID` of the
+    Given a *container* :class:`XPWidgetID` and a location,
+    this routine returns the :class:`XPWidgetID` of the
     child of that container widget that owns that location. If *recursive* is 1 then
     this will return a child of a child of a widget as it tries to find the
     deepest widget at that location. If *visibleOnly* is 1, then only
@@ -482,7 +484,7 @@ which they bear a striking resemblance to) in the following ways:
 
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPGetWidgetForLocation>`__ :index:`XPGetWidgetForLocation`
 
-.. py:function:: getWidgetExposedGeometry(widgetID)
+.. py:function:: getWidgetExposedGeometry(widgetID) -> Tuple[int, int, int, int]
 
     :param XPWidgetID widgetID: widget to query
     :return: Tuple of four ints [left, top, right, bottom]
@@ -506,7 +508,7 @@ which they bear a striking resemblance to) in the following ways:
 
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPGetWidgetExposedGeometry>`__ :index:`XPGetWidgetExposedGeometry`
 
-.. py:function:: setWidgetDescriptor(widgetID, descriptor)
+.. py:function:: setWidgetDescriptor(widgetID, descriptor) -> None
 
     :param XPWidgetID widgetID: widget to set
     :param descriptor str: text to be used
@@ -524,10 +526,9 @@ which they bear a striking resemblance to) in the following ways:
 
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPSetWidgetDescriptor>`__ :index:`XPSetWidgetDescriptor`
 
-.. py:function:: getWidgetDescriptor(widgetID)
+.. py:function:: getWidgetDescriptor(widgetID) -> str
 
     :param XPWidgetID widgetID: widget to query
-    :return: str
 
     Return the widget's descriptor. If the length of the
     descriptor exceeds the internal buffer an error will be printed to
@@ -544,10 +545,10 @@ which they bear a striking resemblance to) in the following ways:
               
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPGetWidgetDescriptor>`__ :index:`XPGetWidgetDescriptor`
 
-.. py:function:: getWidgetUnderlyingWindow(widgetID)
+.. py:function:: getWidgetUnderlyingWindow(widgetID) -> XPLMWindowID
 
     :param XPWidgetID widgetID: widget to query
-    :return: :data:`XPLMWindowID` of backing window object.
+    :return: :class:`XPLMWindowID` of backing window object.
 
     Returns the ``windowID`` (from the :py:mod:`XPLMDisplay` API) that backs your widget
     window. You can use the
@@ -560,7 +561,7 @@ which they bear a striking resemblance to) in the following ways:
 
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPGetWidgetUnderlyingWindow>`__ :index:`XPGetWidgetUnderlyingWindow`
     
-.. py:function:: setWidgetProperty(widgetID, propertyID, value=0)
+.. py:function:: setWidgetProperty(widgetID, propertyID, value=0) -> None
 
     :param XPWidgetID widgetID: widget to set
     :param int propertyID: property id of the widget to set
@@ -589,7 +590,7 @@ which they bear a striking resemblance to) in the following ways:
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPSetWidgetProperty>`__ :index:`XPSetWidgetProperty`
 
 
-.. py:function:: getWidgetProperty(widgetID, propertyID, exists=-1)
+.. py:function:: getWidgetProperty(widgetID, propertyID, exists=-1) -> Any
 
     :param XPWidgetID widgetID: widget to query
     :param int propertyID: property to retrieve
@@ -634,10 +635,10 @@ which they bear a striking resemblance to) in the following ways:
 
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPGetWidgetProperty>`__ :index:`XPGetWidgetProperty`
 
-.. py:function:: setKeyboardFocus(widgetID)
+.. py:function:: setKeyboardFocus(widgetID) -> XPWidgetID
 
     :param XPWidgetID widgetID: widget to receive keystrokes
-    :return: XPWidgetID of widget which actually receives keystrokes or 0
+    :return: :class:`XPWidgetID` of widget which actually receives keystrokes or 0
 
     Controls which widget will receive keystrokes. Pass the
     Widget ID of the widget to get the keys. Note that if the widget does not
@@ -663,7 +664,7 @@ which they bear a striking resemblance to) in the following ways:
 
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPSetKeyboardFocus>`__ :index:`XPSetKeyboardFocus`
 
-.. py:function:: loseKeyboardFocus(widgetID)
+.. py:function:: loseKeyboardFocus(widgetID) -> None
 
     :param XPWidgetID widgetID: widget to relinquish keystrokes
 
@@ -673,9 +674,9 @@ which they bear a striking resemblance to) in the following ways:
 
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPLoseKeyboardFocus>`__ :index:`XPLoseKeyboardFocus`
 
-.. py:function:: getWidgetWithFocus()
+.. py:function:: getWidgetWithFocus() -> XPWidgetID
 
-    :return: XPWidgetID widgetID with current focus or 0
+    :return: :class:`XPWidgetID` widgetID with current focus or 0
 
     This routine returns the widget that has keyboard focus, or 0 if X-Plane
     has keyboard focus or some other plugin window that does not have widgets
@@ -689,7 +690,7 @@ which they bear a striking resemblance to) in the following ways:
 
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPGetWidgetWithFocus>`__ :index:`XPGetWidgetWithFocus`
 
-.. py:function::  addWidgetCallback(widgetID, callback)
+.. py:function::  addWidgetCallback(widgetID, callback) -> None
 
     :param XPWidgetID widgetID: widget to get new callback
     :param Callable callback: new callback function
@@ -713,7 +714,7 @@ which they bear a striking resemblance to) in the following ways:
 
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPAddWidgetCallback>`__ :index:`XPAddWidgetCallback`
 
-.. py:function::  getWidgetClassFunc(widgetClass)
+.. py:function::  getWidgetClassFunc(widgetClass) -> Callable
 
     Given a *widgetClass* (:ref:`XPWidgetClass`), this function returns the callback that power that
     widget class.
@@ -737,14 +738,10 @@ which they bear a striking resemblance to) in the following ways:
 
     `Official SDK <https://developer.x-plane.com/sdk/XPWidgets/#XPGetWidgetClassFunc>`__ :index:`XPGetWidgetClassFunc`
     
-Constants
----------
+Types
+-----
 
-.. _XPWidgetID:
+.. py:class:: XPWidgetID
 
-XPWidgetID
-**********
-
-Unique handle to a widget
-
-
+    Opaque capsule representing a widget, as returned by :func:`createWidget`
+    and :func:`createCustomWidget`. Release it with :func:`destroyWidget`.

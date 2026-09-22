@@ -175,6 +175,14 @@ table p, table li {
     text-align: left !important;
 }
 
+/* Parameter/return descriptions are short lines carrying long xref links, and
+   classic.css justifies every div.body dd.  Justification without hyphenation
+   stretches the spaces badly, so keep field lists ragged-right. */
+dl.field-list > dd,
+dl.field-list > dd p {
+    text-align: left;
+}
+
 table.docutils th {
     background-color: #eee;
     padding: 0.3em 0.5em;
@@ -250,9 +258,27 @@ div.sphinxsidebarwrapper>ul>li>ul>li {
     font-weight: bold;
     text-decoration: underline;
 }
+
+.sphinxsidebarwrapper>ul>li>ul>li::before,
 .sphinxsidebarwrapper>ul>li>ul>li>ul>li::before,
-.sphinxsidebarwrapper>ul>li>ul>li>ul>li>ul>li::before {
-    content: "";
+.sphinxsidebarwrapper>ul>li>ul>li>ul>li>ul>li::before,
+.sphinxsidebarwrapper>ul>li>ul>li>ul>li>ul>li>ul>li::before{
+    display:none;
+    /* margin-left: -1.25rem; */
+    /* content: "- "; */
+}
+
+div.sphinxsidebar ul ul {
+    list-style-type: disc;
+}
+div.sphinxsidebar ul ul ul {
+    list-style-type: circle;
+}
+
+.sphinxsidebarwrapper>ul>li>ul>li,
+.sphinxsidebarwrapper>ul>li>ul>li>ul>li,
+.sphinxsidebarwrapper>ul>li>ul>li>ul>li>ul>li,
+.sphinxsidebarwrapper>ul>li>ul>li>ul>li>ul>li>ul>li{
 }
 
 div.footer {

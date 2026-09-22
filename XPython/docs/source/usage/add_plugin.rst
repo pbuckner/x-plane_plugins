@@ -1,7 +1,14 @@
 Adding a Python Plugin
 ======================
 
-XPPython3's power is to enable plugins written in Python, so where do these python programs go?
+By itself, this XPPython3 plugin does very little. The power is that it allows you to
+create, install, and execute X-Plane plugins which are written in Python.
+
+We provide lots of simple :doc:`/development/samples`, you can find more XPPython3 plugins on
+the internet and at the `X-Plane.org forum <https://forums.x-plane.org>`_, and you can write some
+for yourself!
+
+So, once you've installed XPPython3, where do these python plugins go?
 
 
 
@@ -10,7 +17,7 @@ File System Layout
 
 XPPython3 is an X-Plane plugin, so it needs to be in the ``Resources/plugins`` folder.
 In turn, XPPython3 loads PI\_\*.py plugin files, so *they* need to be in ``Resources/plugins/PythonPlugins`` folder.
-Python plugins in the ``samples`` folder won't get loaded on X-Plane startup.
+Python plugins automatically downloaded to the ``PythonPlugins/samples`` folder won't get loaded on X-Plane startup.
 
 The structure is:
 
@@ -39,7 +46,7 @@ The structure is:
 Add a Python Plugin
 -------------------
 
-Third-party Python plugins themselves go to:
+Third-party Python plugins (and those *you* create) themselves go to:
 
 * **Resources/plugins/PythonPlugins/** folder
 

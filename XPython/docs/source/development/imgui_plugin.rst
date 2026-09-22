@@ -1,10 +1,12 @@
-ImGui and Plugins
-=================
+ImGui in Windows
+================
 
 Similar to using X-Plane Widgets, you'll make ImGui calls within an X-Plane window:
 
- * Create an ``xp_imgui.Window()``
- * Add ImGui code to the window's draw callback
+.. rst-class:: compact
+   
+* Create an ``xp_imgui.Window()``
+* Add ImGui code to the window's draw callback
    
 ImGui works within a window. To create an imgui-capable window, we provide::
 
@@ -44,6 +46,26 @@ and other operations as described in :doc:`modules/display`.
 >>> xp.setWindowPositioningMode(instance.windowID, 4)
 
 
+OpenGL / Panel Graphics
+-----------------------
+
+Previously we executed ImGui within an OpenGL window (:data:`xp.WindowContentTypeOpenGL`).
+With X-Plane 12.4.4 you can set ``contentType =`` :data:`xp.WindowContentTypePanelGraphics`. (That is, with 12.4.4, you can use either WindowContentType.)
+With the former **OpenGL** setup, you're able to augment your ImGui drawing with graphics using OpenGL (:doc:`/development/modules/xpgl`).
+With the new **Panel Graphics** option, you're able to augment your ImGui drawing with all the
+functionality in :doc:`/development/modules/panelgraphics`. Panel Graphics
+is also much faster as it bypasses X-Plane's OpenGL bridge layer and directly works with the GPU.
+
+.. note:: By default, we use OpenGL to maintain backward compatibility, but **you should transition to PanelGraphics**: it
+    is much, much faster at rendering even the basic ImGui calls. So use it even if you're not looking to do any
+    custom graphics (OpenGL or PanelGraphics) in your display.
+
+See ``samples/PI_ImguiBoth.py`` for a working example: it opens the same ImGui
+drawing twice side by side, once with each ``contentType``, so the two render
+paths can be compared directly. Note that translucent colors are *expected* to
+differ between them --- panel graphics blends in linear space --- so a
+low-alpha fill reads brighter on the right-hand window.
+
 Imports
 .......
 To use imgui, you'll need to add two imports::
@@ -66,7 +88,7 @@ You can copy & paste this directly into the :doc:`/development/debugger`:
 >>> def drawWindow(windowID, refCon):
 ...     imgui.button(refCon)
 ...
->>> window = xp_imgui.Window(draw=drawWindow, refCon="Click Me!")
+>>> window = xp_imgui.Window(draw=drawWindow, refCon="Click Me!", contentType=xp.WindowContentTypePanelGraphics)
 >>> xp.setWindowIsVisible(window.windowID)
 
 .. image:: /images/imgui_click.png
@@ -89,4 +111,4 @@ life, this might point to datarefs to set or other internal data.
 Note that :code:`drawWindow` does the imgui work and everything else is nearly identical to
 a non-imgui example. Also check out the ``PI_imguiBarometer.py`` example under :doc:`samples`.
 
-Next, :doc:`imgui_coding`
+Next, :doc:`imgui_avionics`

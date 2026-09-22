@@ -11,6 +11,8 @@ To use:
 X-Plane already defines a larger number of commands. To use or modify an existing
 command:
 
+.. rst-class:: compact
+               
 * :py:func:`find_command`: return command object for existing command
 
 * :py:func:`replace_command`: overwrite existing command to execute your code
@@ -55,14 +57,17 @@ Each of these functions return a ``Command`` object, which allows you to execute
 
   Stops execution of this command. No error if command is not executing.
 
+.. index:: Commands, Tasks; Commands
+.. _task-commands:           
+
 Functions
 ---------
 
-.. py:function:: create_command(name, description, callback)
+.. py:function:: create_command(name, description, callback) -> Command
                  
-  :param name str: name of command to be created
-  :param description str: User-visible description of command (in sim, with listing of all commands)
-  :param callback Callable: function to be called on execution
+  :param str name: name of command to be created
+  :param str description: User-visible description of command (in sim, with listing of all commands)
+  :param Callable callback: function to be called on execution
   :return: :py:class:`Command` instance for newly created command
            
   Callback function takes two parameters, ``phase`` and ``duration``. `Phase` is the value 0, 1, or 2
@@ -89,9 +94,9 @@ Functions
   use this command with :py:func:`appendMenuWithCommand`, use the ``.commandRef`` attribut of
   the returned Command instance.
 
-.. py:function:: find_command(name)
+.. py:function:: find_command(name) -> Command
 
-  :param name str: name of existing command to be retrieved
+  :param str name: name of existing command to be retrieved
   :return: :py:class:`Command` instance for newly created command
 
   Raises ``ValueError`` exception if command does not exist::
@@ -108,10 +113,10 @@ Functions
   use this command with :py:func:`appendMenuWithCommand`, use the ``.commandRef`` attribute of the
   returned Command instance.
 
-.. py:function:: replace_command(name, callback)
+.. py:function:: replace_command(name, callback) -> Command
 
-  :param name str: Name of command to be replaced
-  :param callback Callable: Function to be called *instead of* whatever may defined for existing command                 
+  :param str name: Name of command to be replaced
+  :param Callable callback: Function to be called *instead of* whatever may defined for existing command                 
   :return: :py:class:`Command` instance for replaced command
 
   Building on the :py:func:`create_command` example above, say we want to change the callback::
@@ -129,11 +134,11 @@ Functions
     >>> id(my_cmd) == id(my_replaced_cmd)
     True
 
-.. py:function:: wrap_command(name, before, after)
+.. py:function:: wrap_command(name, before, after) -> Command
 
-  :param name str: Name of command to be replaced
-  :param before Callable: Function to be called *before* whatever may defined for existing command                 
-  :param after Callable: Function to be called *after* whatever may defined for existing command                 
+  :param str name: Name of command to be replaced
+  :param Callable before: Function to be called *before* whatever may defined for existing command                 
+  :param Callable after: Function to be called *after* whatever may defined for existing command                 
   :return: :py:class:`Command` instance for wrapped command
 
   Similar to :py:func:`replace_command`, this function returns a :py:class:`Command` object
@@ -146,10 +151,10 @@ Functions
   Because callbacks are computationally expensive, if you don't need a callback, set it
   to ``None``.
 
-.. py:function:: filter_command(name, filter)
+.. py:function:: filter_command(name, filter) -> Command
 
-  :param name str: Name of command to be filtered
-  :param filter Callable: Function to be called prior to existing command
+  :param str name: Name of command to be filtered
+  :param Callable filter: Function to be called prior to existing command
   :return: :py:class:`Command` instance for command
 
   This returns a :py:class:`Command` object for existing command with string ``name``.

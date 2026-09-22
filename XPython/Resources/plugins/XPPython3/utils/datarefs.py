@@ -28,7 +28,8 @@ class DataRef:
         self.name: str = name
         self._ours: bool = False
         self._our_value: Any = None
-        self._isarray: bool = self.name.endswith(']')
+        self._subscripted: bool = self.name.endswith(']')
+        self._isarray: bool = self._subscripted
         self._dref_name: str = self.name.split('[')[0] if self._isarray else name  # provided "name", but without [] if present
         self._count: int = 1
         self._notify: Optional[Callable[[Optional[DataRef]], None]] = None
@@ -52,6 +53,8 @@ class DataRef:
 
         # we didn't find an existing dataref, so we try to create one
         if make and self.dref is None:
+            if self._subscripted:
+                raise ValueError(f"Cannot create dataref with a subscripted name: {name}")
             self._owning_plugin = getSelfModuleName()
             if callable(callback):
                 self._notify = callback
@@ -96,21 +99,21 @@ class DataRef:
             self.types.append('double')
         if _types & xp.Type_FloatArray:
             self._isarray = True
-            if self._index == 0:
+            if not self._subscripted:
                 self._count = -1
             self.types.append('float_array')
             if not self._ours:
                 self._dim = xp.getDatavf(self.dref)
         if _types & xp.Type_IntArray:
             self._isarray = True
-            if self._index == 0:
+            if not self._subscripted:
                 self._count = -1
             self.types.append('int_array')
             if not self._ours:
                 self._dim = xp.getDatavi(self.dref)
         if _types & xp.Type_Data:
             self._isarray = True
-            if self._index == 0:
+            if not self._subscripted:
                 self._count = -1
             self.types.append('data')
             if not self._ours:

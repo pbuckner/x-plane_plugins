@@ -371,6 +371,7 @@ typeof(XPLMAccumulateTouchZone) *XPLMAccumulateTouchZone_ptr = nullptr;
 typeof(XPLMAvionicsSetTouchEventHandler) *XPLMAvionicsSetTouchEventHandler_ptr = nullptr;
 typeof(XPLMWindowSetTouchEventHandler) *XPLMWindowSetTouchEventHandler_ptr = nullptr;
 typeof(XPLMReloadThisPlugin) *XPLMReloadThisPlugin_ptr = nullptr;
+typeof(XPLMGetProLicenseStatus) *XPLMGetProLicenseStatus_ptr = nullptr;
 t_fcn_info funcs440[] = {
   {"XPLMGetModifierKeys", (void **) &XPLMGetModifierKeys_ptr},
   {"XPLMReturnString", (void **) &XPLMReturnString_ptr},
@@ -472,6 +473,7 @@ t_fcn_info funcs440[] = {
   {"XPLMAvionicsSetTouchEventHandler", (void **) &XPLMAvionicsSetTouchEventHandler_ptr},
   {"XPLMWindowSetTouchEventHandler", (void **) &XPLMWindowSetTouchEventHandler_ptr},
   {"XPLMReloadThisPlugin", (void **) &XPLMReloadThisPlugin_ptr},
+  {"XPLMGetProLicenseStatus", (void **) &XPLMGetProLicenseStatus_ptr},
   {nullptr, nullptr}
 };
 

@@ -609,8 +609,11 @@ texture (textures...) are loaded into the GPU for fast execution.
   
       .. rst-class:: compact
                      
-      * ``x, y`` are in panel (window) coordinates with ``(0, 0)``
-        at the *upper-left* of the panel.
+      * ``x, y`` are in panel coordinates under the *current transform*, like every other
+        panel-graphics primitive. Nothing is translated or flipped for you: with no transform,
+        ``(0, 0)`` is the panel's *lower-left* and Y increases upward. To work in ImGui's
+        convention (``(0, 0)`` at the *upper-left*, Y increasing downward), see
+        :ref:`drawCalls coordinates <pg-drawcalls-coordinates>` below.
   
       * ``u, v`` are [0.0 .. 1.0] offsets into the texture to be drawn, with ``(0, 0)``
         also at the *upper-left* of the texture.
@@ -667,7 +670,9 @@ texture (textures...) are loaded into the GPU for fast execution.
                      
       * *tex*: a :func:`createTexture` handle, or None. If None, then only colored vertices are
         drawn.
-      * *scissors*: ``(left, top, right, bottom)`` in window-local top-left coordinates. Always required,
+      * *scissors*: two opposite corners ``(x1, y1, x2, y2)``, in the same space as the vertices (ImGui's
+        ``ClipRect``, as-is). It is intersected with any scissor already in force (for example one set with
+        :func:`scissorSet`), so a draw call can narrow the clip but never escape it. Always required,
         think of it as the bounding-box for what you're drawing.
       * *idx_offset*: Commonly 0, but this allows you so re-use ``vertices`` and ``indices``, specifying
         a starting idx other than 0 for drawing.
@@ -677,7 +682,27 @@ texture (textures...) are loaded into the GPU for fast execution.
       See more detailed example below covering potential use of ``idx_offset`` and ``vtx_offset``.
 
     The mesh is uploaded once and one GPU dispatch is issued per call. Call only
-    from a panel-graphics window draw callback; the host flips Y for you.
+    while drawing: from a panel-graphics draw callback, or while recording a
+    :doc:`retained drawing <panelgraphics_retained>`.
+
+    .. _pg-drawcalls-coordinates:
+
+    **Coordinates.** Vertices and scissors are in panel coordinates under the current transform.
+    *Nothing is translated or flipped for you.* (Earlier X-Plane releases did both; since
+    SDK440 beta 4 they do not.) Dear ImGui works in window-local pixels with a top-left origin
+    and Y increasing downward. To draw a mesh built that way, set that space up with the transform
+    stack first --- the same conversion your mouse handler does in reverse:
+
+    >>> left, top, right, bottom = xp.getWindowGeometry(windowID)   # on an avionics screen, use (0, screenHeight)
+    >>> with xp.transformContext():
+    ...     xp.transformTranslate(left, top)
+    ...     xp.transformScale(1.0, -1.0)       # Y down, as ImGui expects
+    ...     xp.drawCalls(vertices, indices, drawCalls)
+
+    Because the transform is yours, a :doc:`retained drawing <panelgraphics_retained>` of such a frame
+    captures the frame itself, not where the window was: replay it under the translate for the window's
+    current position and it follows the window. :ref:`xp_imgui <imgui-avionics-drawcalls>` does exactly
+    this for you.
 
     For Python PIL drawing, note that the drawing origin (0, 0) is the *upper-left* of
     the image.
@@ -688,10 +713,11 @@ texture (textures...) are loaded into the GPU for fast execution.
     >>> def myScreenDraw(refCon):
     ...     vertices = [(0, 0, 0, 0), (0, 200, 0, 1), (200, 0, 1, 0), (200, 200, 1, 1)]
     ...     indices = [0, 1, 3,  0, 2, 3]     # two triangles
-    ...     clip = [0, 0, 200, 200]           # (left, top, right, bottom)
+    ...     clip = [0, 0, 200, 200]           # opposite corners, same space as the vertices
     ...     drawCalls = [(texture, clip, 0, 6, 0), ]
     ...     with xp.transformContext():
-    ...         xp.transformTranslate(50, 100)
+    ...         xp.transformTranslate(0, 200)     # to the screen's upper-left (screenHeight = 200)
+    ...         xp.transformScale(1.0, -1.0)      # Y down, as the vertices above assume
     ...         xp.drawCalls(vertices, indices, drawCalls)
     ...
     >>> def myBezelDraw(r, g, b, refCon):
@@ -707,12 +733,14 @@ texture (textures...) are loaded into the GPU for fast execution.
     .. image:: /images/panel_pil.png
                :width: 300px
     
-    Reminder: the *panel* (*window*) is still drawn with (0, 0) in the lower left corner. Your textures, and the function
-    :func:`drawCalls` (with (0, 0) in the upper left) handle the y-shift properly. But, if you're looking to do a translation transform, the
-    translation still works on panel coordinates, so::
+    Reminder: the *panel* (*window*) is drawn with (0, 0) in the lower left corner, and :func:`drawCalls` does not change that:
+    the ``transformScale(1.0, -1.0)`` above is what lets the vertices be written with (0, 0) in the upper left. Any additional
+    translation works on panel coordinates, so to shift the drawing right 50 and up 100, translate by ``(50, 200 + 100)``
+    (the screen's upper-left, plus the shift) before scaling::
 
       >>> with xp.transformContext():
-      ...     xp.transformTranslate(50, 100)
+      ...     xp.transformTranslate(50, 200 + 100)
+      ...     xp.transformScale(1.0, -1.0)
       ...     xp.drawCalls(vertices, indices, drawCalls)
 
     Yields a shift right and up:

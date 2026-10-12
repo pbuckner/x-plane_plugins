@@ -292,6 +292,27 @@ static PyObject *XPLMGetLanguageFun(PyObject *self, PyObject *args)
   return PyLong_FromLong(res);
 }
 
+My_DOCSTR(_getProLicenseStatus__doc__, "getProLicenseStatus",
+          "",
+          "",
+          "int",
+          "Return whether X-Plane is running under a Professional-use license.\n"
+          "\n"
+          "Returns ProLicense_Unknown, ProLicense_NotLicensed, or ProLicense_Licensed.\n"
+          "Global plugins see ProLicense_Unknown in XPluginStart() and XPluginEnable(),\n"
+          "because X-Plane completes its license check afterwards: listen for\n"
+          "MSG_PRO_LICENSE_CHANGED. New in XPLM440.");
+static PyObject *XPLMGetProLicenseStatusFun(PyObject *self, PyObject *args)
+{
+  (void) self;
+  (void) args;
+  if(!XPLMGetProLicenseStatus_ptr){
+    PyErr_SetString(PyExc_RuntimeError , "XPLMGetProLicenseStatus is available only in XPLM440 and up.");
+    return nullptr;
+  }
+  return PyLong_FromLong(XPLMGetProLicenseStatus_ptr());
+}
+
 My_DOCSTR(_debugString__doc__, "debugString",
           "string",
           "string:str",
@@ -863,6 +884,8 @@ static PyMethodDef XPLMUtilitiesMethods[] = {
   {"XPLMGetVersions", (PyCFunction)XPLMGetVersionsFun, METH_VARARGS, ""},
   {"getLanguage", (PyCFunction)XPLMGetLanguageFun, METH_VARARGS, _getLanguage__doc__},
   {"XPLMGetLanguage", (PyCFunction)XPLMGetLanguageFun, METH_VARARGS, ""},
+  {"getProLicenseStatus", (PyCFunction)XPLMGetProLicenseStatusFun, METH_VARARGS, _getProLicenseStatus__doc__},
+  {"XPLMGetProLicenseStatus", (PyCFunction)XPLMGetProLicenseStatusFun, METH_VARARGS, ""},
   {"debugString", (PyCFunction)XPLMDebugStringFun, METH_VARARGS | METH_KEYWORDS, _debugString__doc__},
   {"XPLMDebugString", (PyCFunction)XPLMDebugStringFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"setErrorCallback", (PyCFunction)XPLMSetErrorCallbackFun, METH_VARARGS | METH_KEYWORDS, _setErrorCallback__doc__},
@@ -945,6 +968,22 @@ PyInit_XPLMUtilities(void)
     PyModule_AddIntConstant(mod, "Language_Chinese", xplm_Language_Chinese); // XPLMLanguageCode
     PyModule_AddIntConstant(mod, "xplm_Language_Ukrainian", xplm_Language_Ukrainian); // XPLMLanguageCode
     PyModule_AddIntConstant(mod, "Language_Ukrainian", xplm_Language_Ukrainian); // XPLMLanguageCode
+
+#if defined(XPLM440)
+    PyModule_AddIntConstant(mod, "xplm_ProLicense_Unknown", xplm_ProLicense_Unknown); // XPLMProLicenseStatus
+    PyModule_AddIntConstant(mod, "xplm_ProLicense_NotLicensed", xplm_ProLicense_NotLicensed); // XPLMProLicenseStatus
+    PyModule_AddIntConstant(mod, "xplm_ProLicense_Licensed", xplm_ProLicense_Licensed); // XPLMProLicenseStatus
+    PyModule_AddIntConstant(mod, "ProLicense_Unknown", xplm_ProLicense_Unknown); // XPLMProLicenseStatus
+    PyModule_AddIntConstant(mod, "ProLicense_NotLicensed", xplm_ProLicense_NotLicensed); // XPLMProLicenseStatus
+    PyModule_AddIntConstant(mod, "ProLicense_Licensed", xplm_ProLicense_Licensed); // XPLMProLicenseStatus
+#else
+    PyModule_AddIntConstant(mod, "xplm_ProLicense_Unknown", 0);
+    PyModule_AddIntConstant(mod, "xplm_ProLicense_NotLicensed", 1);
+    PyModule_AddIntConstant(mod, "xplm_ProLicense_Licensed", 2);
+    PyModule_AddIntConstant(mod, "ProLicense_Unknown", 0);
+    PyModule_AddIntConstant(mod, "ProLicense_NotLicensed", 1);
+    PyModule_AddIntConstant(mod, "ProLicense_Licensed", 2);
+#endif
 
     PyModule_AddIntConstant(mod, "xplm_DataFile_Situation", xplm_DataFile_Situation); // XPLMDataFileType
     PyModule_AddIntConstant(mod, "xplm_DataFile_ReplayMovie", xplm_DataFile_ReplayMovie); // XPLMDataFileType

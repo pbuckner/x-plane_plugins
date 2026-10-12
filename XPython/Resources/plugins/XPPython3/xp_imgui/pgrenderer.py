@@ -11,11 +11,20 @@
 # It touches NO OpenGL. A panel-graphics imgui window does not need PyOpenGL.
 #
 # Why this is so much shorter than xprenderer.py: XPLMDrawCalls consumes
-# ImDrawData's own layout and coordinate space directly. Positions and scissors
-# are window-LOCAL pixels with a TOP-LEFT origin -- exactly ImGui's convention --
-# so the whole modelview/projection/boxel/native conversion chain the OpenGL path
-# needs (updateMatrices, boxelsToNative, translateImguiToBoxel) is not used here.
-# The host flips Y for us.
+# ImDrawData's own layout directly, so the whole modelview/projection/boxel/native
+# conversion chain the OpenGL path needs (updateMatrices, boxelsToNative,
+# translateImguiToBoxel) is not used here.
+#
+# Coordinates (SDK440_b4+): XPLMDrawCalls positions and scissors are in PANEL
+# coordinates under the CURRENT TRANSFORM, exactly like every other panel-graphics
+# primitive. Nothing is translated or flipped for us. ImGui is window-local, origin
+# TOP-LEFT, Y down, so render() sets that space up with the transform stack:
+#     transformPush(); transformTranslate(ox, oy); transformScale(1, -1)
+#     drawCalls(...)    # once per ImDrawList
+#     transformPop()
+# where (ox, oy) is the host's panelOrigin(): (left, top) for a window,
+# (0, height) for an avionics screen. SDK440 / SDK440_d4 did this for us; the
+# result against those binaries is a doubled transform.
 
 from typing import Any, Optional, Self
 import ctypes
@@ -115,6 +124,15 @@ class XPPanelGraphicsRenderer:
     def shutdown(self: Self) -> None:
         """Release every texture. Called from Window.delete() while the imgui
         context is still alive (we touch self.io.fonts).
+
+        NOTE -- RETAINED DRAWINGS (SDK440_b4+): destroying a texture that a retained
+        drawing still uses is undefined behavior and may crash X-Plane. Today this
+        renderer only submits immediate-mode xp.drawCalls() and creates no retained
+        drawings, so freeing every texture here is safe. If a retained-ImGui feature
+        is ever added (xp.beginRetainedDrawing() around the drawCalls), it MUST
+        destroy its retained drawings BEFORE the textures below -- including the font
+        atlas texture and anything handed out by registerTexture() -- or shutdown
+        will free textures a retained drawing still references.
         """
         for key in list(self._textures):
             self.destroyTexture(key)
@@ -150,6 +168,22 @@ class XPPanelGraphicsRenderer:
         self._skippedThisFrame = 0
         frameStart = prof.now() if prof else 0.0
 
+        originX, originY = self.window.panelOrigin()
+        xp.transformPush()
+        try:
+            xp.transformTranslate(originX, originY)
+            xp.transformScale(1.0, -1.0)          # Y down, as ImGui expects
+            self._drawLists(draw_data, display_width, display_height, prof)
+        finally:
+            xp.transformPop()
+
+        if prof:
+            prof.add('total', frameStart)
+            prof.frame(draw_data.total_vtx_count, draw_data.total_idx_count,
+                       self._skippedThisFrame)
+
+    def _drawLists(self: Self, draw_data: IMGUIDrawData, display_width: float,
+                   display_height: float, prof: Any) -> None:
         for commands in draw_data.commands_lists:
             if not commands.vtx_buffer_size or not commands.idx_buffer_size:
                 continue
@@ -193,11 +227,6 @@ class XPPanelGraphicsRenderer:
                 if prof:
                     prof.add('submit', started)
 
-        if prof:
-            prof.add('total', frameStart)
-            prof.frame(draw_data.total_vtx_count, draw_data.total_idx_count,
-                       self._skippedThisFrame)
-
     def _warnIndexRange(self: Self) -> None:
         if not self._warnedIndexRange:
             xp.log("[xp_imgui] draw list has an index above 65535; XPLMDrawCalls is "
@@ -209,7 +238,8 @@ class XPPanelGraphicsRenderer:
     def _clipRect(clip_rect: Any, display_width: float, display_height: float):
         """ImGui clip rect -> XPLMDrawCall_t scissor, or None if it clips everything.
 
-        Both are (left, top, right, bottom) with a top-left origin, so this is only
+        The SDK takes two opposite corners in the same space as the vertices (ImGui's
+        ClipRect as-is), intersected with any scissor already in force. So this is only
         a clamp: ImGui uses very large values to mean 'no clipping', and the SDK
         expects a real rect. Zero-area rects produce no output, so skip them.
         """

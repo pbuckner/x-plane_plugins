@@ -371,6 +371,14 @@ On startup, you'll see::
   A new weather moment has bee delivered for display. The parameter is 0 for a normal
   async update, 1 for a sync update.
 
+.. py:data:: MSG_PRO_LICENSE_CHANGED
+  :value: 116
+
+  Sent to all plugins when the value :py:func:`getProLicenseStatus` returns changes, including the
+  first transition away from :data:`ProLicense_Unknown` when X-Plane's license check completes.
+  The parameter is the new status (:data:`ProLicense_Unknown`, :data:`ProLicense_NotLicensed`, or
+  :data:`ProLicense_Licensed`). New with X-Plane 12.4.4 (SDK 440).
+
 .. py:function:: sendMessageToPlugin(pluginID, message, param=None) -> None
 
  :param int pluginID: plugin to which the message should be sent

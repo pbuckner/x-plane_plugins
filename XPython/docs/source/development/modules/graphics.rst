@@ -334,6 +334,8 @@ be called within a draw callback: they *will not* work otherwise.
  occurs, (*x*, *y*) represent the lower-left of the *first* character written and the wrap
  extends downward from there.
 
+ Usable only in OpenGL contexts: cannot be used with :doc:`PanelGraphics` (``WindowContentTypePanelGraphics``).
+
  >>> def MyDraw(phase, after, refCon):
  ...     xp.drawString((0, 1.0, 0), 10, 10, "Lower left")
  ...
@@ -395,6 +397,8 @@ be called within a draw callback: they *will not* work otherwise.
 
  .. image:: /images/drawNumber.png
             
+ Usable only in OpenGL contexts: cannot be used with :doc:`PanelGraphics` (``WindowContentTypePanelGraphics``).
+
 .. py:function::  getFontDimensions(fontID) -> Tuple[int, int, int]
 
  :param XPLMFontID fontID: one of :ref:`XPLMFontID`

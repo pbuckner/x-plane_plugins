@@ -144,11 +144,14 @@ Use any of these device IDs with :py:func:`registerAvionicsCallbacksEx` or :py:f
  |  :value: 24                            |                                                           |
  +----------------------------------------+-----------------------------------------------------------+
  
-.. py:function:: registerAvionicsCallbacksEx(deviceID, before, after, refCon, bezelClick, bezelRightClick, bezelScroll, bezelCursor, screenTouch, screenRightTouch, screenScroll, screenCursor, keyboard) -> XPLMAvionicsID
+.. py:function:: registerAvionicsCallbacksEx(deviceID, before, after, refCon, bezelClick, bezelRightClick, bezelScroll, bezelCursor, screenTouch, screenRightTouch, screenScroll, screenCursor, keyboard, contentType=WindowContentTypeOpenGL) -> XPLMAvionicsID
 
   :param int deviceID: One of built-in integer devices as listed above
   :param Any refCon: reference constant to be passed to your callbacks
   :param callbacks: ... default to None. See below for specific callbacks
+  :param XPLMWindowContentType contentType: (XPLM440) How the device screen is drawn:
+                      :data:`WindowContentTypeOpenGL` (default) or :data:`WindowContentTypePanelGraphics`.
+                      :data:`WindowContentTypeBrowser` is not valid for avionics.
   :return: :class:`XPLMAvionicsID` or None on error.                 
  
   If not specified, any callback (and the refCon) will be set to None.

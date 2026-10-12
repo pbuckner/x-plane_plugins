@@ -364,14 +364,19 @@ static void genericBrowserLoadError(XPLMWindowID inWindow, const char *inURL, co
 static const char *genericBrowserCallback(XPLMWindowID inWindowID, const char *inJSON, void *inRefcon)
 {
   errCheck("prior genericBrowserCallback");
-  /* The only sanctioned way to return a string is via XPLMReturnString, which copies
-     into the host-managed slot. Return an empty string on any error. */
-  const char *result = XPLMReturnString_ptr ? XPLMReturnString_ptr("") : "";
+  /* The only sanctioned way to return a string is XPLMReturnString, which copies into the
+     host-managed slot, and it must be called EXACTLY ONCE per invocation, with valid JSON:
+     NULL, a non-XPLMReturnString pointer, or invalid JSON is a plugin error. So decide the
+     reply first -- "null" (resolve the page's Promise to null) on any error or a None
+     return -- and hand it over once, at the end, while its backing string is still alive. */
+  const char *reply = "null";
   auto it = browserFunctionDict.find((intptr_t)inRefcon);
   if(it == browserFunctionDict.end()){
     pythonLog("Unknown refcon passed to genericBrowserCallback (%p).", inRefcon);
-    return result;
+    return XPLMReturnString_ptr(reply);
   }
+
+  PyObject *str = nullptr;
   PyObject *func = it->second.callback;
   PyObject *pID = makeCapsule(inWindowID, "XPLMWindowID");
   PyObject *pJSON = inJSON ? PyUnicode_FromString(inJSON) : (Py_INCREF(Py_None), Py_None);
@@ -385,18 +390,18 @@ static const char *genericBrowserCallback(XPLMWindowID inWindowID, const char *i
   if(PyErr_Occurred()) {
     pythonLogException();
   } else if (oRes && oRes != Py_None) {
-    PyObject *str = PyObject_Str(oRes);
-    if (str) {
-      const char *tmp = PyUnicode_AsUTF8(str);
-      if (tmp && XPLMReturnString_ptr) {
-        result = XPLMReturnString_ptr(tmp);    // copies tmp into host slot while str is alive
-      }
-      Py_DECREF(str);
+    str = PyObject_Str(oRes);
+    const char *tmp = str ? PyUnicode_AsUTF8(str) : nullptr;
+    if (tmp) {
+      reply = tmp;
     } else {
+      /* reply remains "null" */
       PyErr_Clear();
     }
   }
   Py_XDECREF(oRes);
+  const char *result = XPLMReturnString_ptr ? XPLMReturnString_ptr(reply) : "";
+  Py_XDECREF(str);
   errCheck("end genericBrowserCallback");
   return result;
 }
@@ -1183,7 +1188,11 @@ static PyObject *XPLMGetAvionicsGeometryFun(PyObject *self, PyObject *args, PyOb
     return nullptr;
   }
   int left=0, top=0, right=0, bottom=0;
-  XPLMGetAvionicsGeometry_ptr(getVoidPtr(avionicsID, "XPLMAvionicsID"), &left, &top, &right, &bottom);
+  XPLMAvionicsID sdkId = avionicsSdkId(avionicsID);
+  if (!sdkId) {
+    return nullptr;
+  }
+  XPLMGetAvionicsGeometry_ptr(sdkId, &left, &top, &right, &bottom);
   return Py_BuildValue("(iiii)", left, top, right, bottom);
 }
   
@@ -1225,7 +1234,10 @@ static PyObject *XPLMSetAvionicsGeometryFun(PyObject *self, PyObject *args, PyOb
     return nullptr;
   }
     
-  void *inAvionicsID = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsID inAvionicsID = avionicsSdkId(avionicsID);
+  if (!inAvionicsID) {
+    return nullptr;
+  }
   XPLMSetAvionicsGeometry_ptr(inAvionicsID, inLeft, inTop, inRight, inBottom);
   Py_RETURN_NONE;
 }
@@ -1289,7 +1301,11 @@ static PyObject *XPLMGetAvionicsGeometryOSFun(PyObject *self, PyObject *args, Py
     return nullptr;
   }
   int left=0, top=0, right=0, bottom=0;
-  XPLMGetAvionicsGeometryOS_ptr(getVoidPtr(avionicsID, "XPLMAvionicsID"), &left, &top, &right, &bottom);
+  XPLMAvionicsID sdkId = avionicsSdkId(avionicsID);
+  if (!sdkId) {
+    return nullptr;
+  }
+  XPLMGetAvionicsGeometryOS_ptr(sdkId, &left, &top, &right, &bottom);
   return Py_BuildValue("(iiii)", left, top, right, bottom);
 }
 
@@ -1311,7 +1327,11 @@ static PyObject *XPLMSetAvionicsGeometryOSFun(PyObject *self, PyObject *args, Py
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Oiiii", keywords, &avionicsID, &inLeft, &inTop, &inRight, &inBottom)){
     return nullptr;
   }
-  XPLMSetAvionicsGeometryOS_ptr(getVoidPtr(avionicsID, "XPLMAvionicsID"), inLeft, inTop, inRight, inBottom);
+  XPLMAvionicsID sdkId = avionicsSdkId(avionicsID);
+  if (!sdkId) {
+    return nullptr;
+  }
+  XPLMSetAvionicsGeometryOS_ptr(sdkId, inLeft, inTop, inRight, inBottom);
   Py_RETURN_NONE;
 }
 
@@ -2524,7 +2544,7 @@ PyObject* buildAvionicsCallbackDict(void)
 
     PyObject *module_name_p = PyUnicode_FromString(info.module_name);
     PyObject *device_id = PyLong_FromLong(info.deviceID);
-    PyObject *avionics_id_capsule = makeCapsule(info.avionicsID, "XPLMAvionicsID");
+    PyObject *avionics_id_capsule = avionicsCapsuleForSdk(info.avionicsID);
     PyObject *create = PyLong_FromLong(info.create);
 
     PyTuple_SetItem(value, 0, module_name_p);

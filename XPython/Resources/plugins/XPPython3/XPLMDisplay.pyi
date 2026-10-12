@@ -91,7 +91,8 @@ def registerAvionicsCallbacksEx(deviceId: XPLMDeviceID,
                                 screenRightTouch: Optional[Callable[[int, int, XPLMMouseStatus, Any], int]] = None,
                                 screenScroll: Optional[Callable[[int, int, int, int, Any], int]] = None,
                                 screenCursor: Optional[Callable[[int, int, Any], XPLMCursorStatus]] = None,
-                                keyboard: Optional[Callable[[int, XPLMKeyFlags, int, Any, int], int]] = None) -> XPLMAvionicsID:
+                                keyboard: Optional[Callable[[int, XPLMKeyFlags, int, Any, int], int]] = None,
+                                contentType: XPLMWindowContentType = WindowContentTypeOpenGL) -> XPLMAvionicsID:
     """
     Registers draw callback for particular device.
 
@@ -101,6 +102,16 @@ def registerAvionicsCallbacksEx(deviceId: XPLMDeviceID,
 
     Upon entry, OpenGL context will be correctly set in panel coordinates for 2d drawing.
     OpenGL state (texturing, etc.) will be unknown.
+
+    contentType (XPLM440) selects how the device screen is drawn:
+    WindowContentTypeOpenGL (default, legacy OpenGL bridge) or
+    WindowContentTypePanelGraphics (native panel-graphics rendering).
+    WindowContentTypeBrowser is not valid for avionics.
+
+    Parameters may instead be passed as a single tuple (deviceId, before, after,
+    refCon, bezelClick, bezelRightClick, bezelScroll, bezelCursor, screenTouch,
+    screenRightTouch, screenScroll, screenCursor, keyboard[, contentType]);
+    contentType is optional in the tuple form and defaults to WindowContentTypeOpenGL.
 
     Successful registration returns an AvionicsID.
 

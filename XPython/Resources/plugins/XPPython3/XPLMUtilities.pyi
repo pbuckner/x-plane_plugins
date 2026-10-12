@@ -3,7 +3,8 @@
 #  keyword name for getDirectoryContents and must not be renamed)
 from typing import Any, Callable, Optional
 from XPPython3.xp_typing import (XPLMCommandPhase, XPLMCommandRef, XPLMDataFileType,
-                                 XPLMHostApplicationID, XPLMLanguageCode)
+                                 XPLMHostApplicationID, XPLMLanguageCode,
+                                 XPLMProLicenseStatus)
 Host_Unknown: XPLMHostApplicationID
 Host_XPlane: XPLMHostApplicationID
 Language_Unknown: XPLMLanguageCode
@@ -18,6 +19,9 @@ Language_Greek: XPLMLanguageCode
 Language_Japanese: XPLMLanguageCode
 Language_Chinese: XPLMLanguageCode
 Language_Ukrainian: XPLMLanguageCode
+ProLicense_Unknown: XPLMProLicenseStatus
+ProLicense_NotLicensed: XPLMProLicenseStatus
+ProLicense_Licensed: XPLMProLicenseStatus
 DataFile_Situation: XPLMDataFileType
 DataFile_ReplayMovie: XPLMDataFileType
 CommandBegin: XPLMCommandPhase
@@ -108,6 +112,18 @@ def getVersions() -> tuple[int, int, int]:
 def getLanguage() -> int:
     """
     Return language code the sim is running in.
+    """
+    ...
+
+
+def getProLicenseStatus() -> int:
+    """
+    Return whether X-Plane is running under a Professional-use license.
+
+    Returns ProLicense_Unknown, ProLicense_NotLicensed, or ProLicense_Licensed.
+    Global plugins see ProLicense_Unknown in XPluginStart() and XPluginEnable(),
+    because X-Plane completes its license check afterwards: listen for
+    MSG_PRO_LICENSE_CHANGED. New in XPLM440.
     """
     ...
 

@@ -240,6 +240,7 @@ PLUGIN_DLL(XPLMAccumulateTouchZone);
 PLUGIN_DLL(XPLMAvionicsSetTouchEventHandler);
 PLUGIN_DLL(XPLMWindowSetTouchEventHandler);
 PLUGIN_DLL(XPLMReloadThisPlugin);
+PLUGIN_DLL(XPLMGetProLicenseStatus);
 
 bool loadSDKFunctions(void);
 

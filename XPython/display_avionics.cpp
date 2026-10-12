@@ -12,6 +12,93 @@
 std::unordered_map<intptr_t, AvionicsCallbackInfo> avionicsCallbacksDict;
 static intptr_t avionicsCallbacksCntr;
 
+/* Handle indirection: see display_avionics.h */
+static std::unordered_map<AvionicsHandle *, int> avionicsHandles;           // live handles (validity check)
+static std::unordered_map<XPLMAvionicsID, AvionicsHandle *> avionicsBySdk;  // SDK id -> handle
+
+PyObject *makeAvionicsCapsule(XPLMAvionicsID sdk, int deviceID)
+{
+  /* given a "real" sdk XPLMAvionicsID, return a python-usable XPLMAvionicsID capsule */
+  if (!sdk) Py_RETURN_NONE;
+  AvionicsHandle *h;
+  /* Return the same python Capsule, if I've done this before */
+  auto it = avionicsBySdk.find(sdk);
+  if (it == avionicsBySdk.end()) {
+    h = new AvionicsHandle{sdk, deviceID};
+    avionicsHandles[h] = 1;
+    avionicsBySdk[sdk] = h;
+  } else {
+    h = it->second;
+  }
+  return makeCapsule(h, "XPLMAvionicsID");
+}
+
+PyObject *avionicsCapsuleForSdk(XPLMAvionicsID sdk)
+{
+  /* return a python capsule for a (known) sdk XPLMAvionicsID (unlike makeAvionicsCapsule(), `sdk` must exist */
+  auto it = avionicsBySdk.find(sdk);
+  if (it == avionicsBySdk.end()) Py_RETURN_NONE;
+  return makeCapsule(it->second, "XPLMAvionicsID");
+}
+
+XPLMAvionicsID avionicsSdkId(PyObject *capsule)
+{
+  /* given python-usable XPLMAvionicsID, return the "real" sdk XPLMAvionicsID */
+  if (capsule == Py_None) {
+    PyErr_SetString(PyExc_TypeError, "avionicsID is None.");
+    return nullptr;
+  }
+  AvionicsHandle *h = (AvionicsHandle *) getVoidPtr(capsule, "XPLMAvionicsID");
+  if (!h) {
+    if (!PyErr_Occurred()) {
+      PyErr_SetString(PyExc_ValueError, "Invalid avionicsID.");
+    }
+    return nullptr;
+  }
+  if (avionicsHandles.find(h) == avionicsHandles.end()) {
+    PyErr_SetString(PyExc_ValueError, "avionicsID is no longer valid (it was unregistered or destroyed).");
+    return nullptr;
+  }
+  return h->sdk;
+}
+
+void avionicsRebind(PyObject *capsule, XPLMAvionicsID newSdk)
+{
+  /* for whatever reason (likely re-registration), the python XPLMAvionicsID handle
+     has a new sdk AvionicsID. Python code won't see any change, but we have
+     to update internal map to point to new sdk XPLMAvionicsID.
+  */
+  AvionicsHandle *h = (AvionicsHandle *) getVoidPtr(capsule, "XPLMAvionicsID");
+  if (!h || avionicsHandles.find(h) == avionicsHandles.end() || h->sdk == newSdk) {
+    return;
+  }
+  /* found the old one, update it */
+  XPLMAvionicsID oldSdk = h->sdk;
+  avionicsBySdk.erase(oldSdk);
+  h->sdk = newSdk;
+  avionicsBySdk[newSdk] = h;
+  for (auto& pair : avionicsCallbacksDict) {
+    if (pair.second.avionicsID == oldSdk) {
+      pair.second.avionicsID = newSdk;
+    }
+  }
+}
+
+void releaseAvionicsHandle(XPLMAvionicsID sdk)
+{
+  /* someone has unregistered the sdk AvionicsID: we need
+     to remove it from the map.
+   */
+     
+  auto it = avionicsBySdk.find(sdk);
+  if (it == avionicsBySdk.end()) return;
+  AvionicsHandle *h = it->second;
+  deleteCapsuleByPtr(h, "XPLMAvionicsID");
+  avionicsHandles.erase(h);
+  avionicsBySdk.erase(it);
+  delete h;
+}
+
 #define AVIONICS_MODULE_NAME 0
 #define AVIONICS_DEVICE 1
 #define AVIONICS_BEFORE 2      // only used for customize
@@ -729,8 +816,9 @@ PyObject *XPLMRegisterAvionicsCallbacksExFun(PyObject *self, PyObject *args, PyO
   static char *keywords[] = {CHAR("deviceId"), CHAR("before"), CHAR("after"), CHAR("refCon"),
                              CHAR("bezelClick"), CHAR("bezelRightClick"), CHAR("bezelScroll"), CHAR("bezelCursor"),
                              CHAR("screenTouch"), CHAR("screenRightTouch"), CHAR("screenScroll"), CHAR("screenCursor"),
-                             CHAR("keyboard"), nullptr};
+                             CHAR("keyboard"), CHAR("contentType"), nullptr};
   int deviceId=0;
+  int contentType=xplm_WindowContentTypeOpenGL;
 
   PyObject *firstObj=Py_None, *paramsObj = Py_None;
 
@@ -755,11 +843,11 @@ PyObject *XPLMRegisterAvionicsCallbacksExFun(PyObject *self, PyObject *args, PyO
     return nullptr;
   }
 
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOOOOOOOOOOOO", keywords,
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|OOOOOOOOOOOOi", keywords,
                                   &firstObj, &before, &after, &refcon,
                                   &bezelClick, &bezelRightClick, &bezelScroll, &bezelCursor,
                                   &screenTouch, &screenRightTouch, &screenScroll, &screenCursor,
-                                  &keyboard)){
+                                  &keyboard, &contentType)){
     return nullptr;
   }
 
@@ -770,6 +858,7 @@ PyObject *XPLMRegisterAvionicsCallbacksExFun(PyObject *self, PyObject *args, PyO
 
   if (firstObj == Py_None) {
     /* deviceID is _required_, so if firstObj isn't specified, this is simply an error */
+    PyErr_SetString(PyExc_TypeError, "registerAvionicsCallbacksEx requires deviceId.\n");
     return nullptr;
   }
 
@@ -781,12 +870,16 @@ PyObject *XPLMRegisterAvionicsCallbacksExFun(PyObject *self, PyObject *args, PyO
     avionics_params.deviceId = deviceId;
   } else if (PySequence_Check(firstObj)) {
     paramsObj = firstObj;
-    if (PySequence_Length(paramsObj) != 13) {
-      PyErr_SetString(PyExc_AttributeError ,"registerAvionicsEx tuple did not contain 13 values\n.");
+    Py_ssize_t paramsLen = PySequence_Length(paramsObj);
+    if (paramsLen != 13 && paramsLen != 14) {
+      PyErr_SetString(PyExc_AttributeError ,"registerAvionicsEx tuple did not contain 13 or 14 values\n.");
       return nullptr;
     }
     PyObject *paramsTuple = PySequence_Tuple(paramsObj);
-    // when paramsObj is not None, I know it's a sequence with 13 elements, due to checks above
+    if (!paramsTuple) {
+      return nullptr;
+    }
+    // when paramsObj is not None, I know it's a sequence with 13 or 14 elements, due to checks above
     avionics_params.deviceId = PyLong_AsLong(PyTuple_GetItem(paramsTuple, 0));
     before = PyTuple_GetItem(paramsTuple, 1);
     after = PyTuple_GetItem(paramsTuple, 2);
@@ -800,13 +893,24 @@ PyObject *XPLMRegisterAvionicsCallbacksExFun(PyObject *self, PyObject *args, PyO
     screenScroll = PyTuple_GetItem(paramsTuple, 10);
     screenCursor = PyTuple_GetItem(paramsTuple, 11);
     keyboard = PyTuple_GetItem(paramsTuple, 12);
+    if (paramsLen == 14) {
+      contentType = PyLong_AsLong(PyTuple_GetItem(paramsTuple, 13));
+    }
     Py_DECREF(paramsTuple);
+    if (PyErr_Occurred()) {
+      return nullptr;
+    }
   } else {
     PyErr_SetString(PyExc_AttributeError ,"registerAvionicsEx could not parse arguments.\n");
     return nullptr;
   }
 
   avionics_params.refcon = (void *)++avionicsCallbacksCntr;
+#if defined(XPLM440)
+  avionics_params.contentType = (XPLMWindowContentType) contentType;
+#else
+  (void) contentType;
+#endif
   avionics_params.drawCallbackBefore = before != Py_None ? genericAvionicsCallback : nullptr;
   avionics_params.drawCallbackAfter = after != Py_None ? genericAvionicsCallback : nullptr;
   avionics_params.bezelClickCallback = bezelClick != Py_None ? genericAvionicsBezelClick : nullptr;
@@ -821,24 +925,31 @@ PyObject *XPLMRegisterAvionicsCallbacksExFun(PyObject *self, PyObject *args, PyO
 
   PyObject *callbackList[] = {before, after, bezelDraw, screenDraw, bezelClick, bezelRightClick, bezelScroll,
                               bezelCursor, screenTouch, screenRightTouch, screenScroll, screenCursor, keyboard};
+  /* validate everything before taking any references, so an error leaks nothing */
   for (int i=0; i< 13; i++) {
-    if (callbackList[i] != Py_None) {
-      if (PyCallable_Check(callbackList[i])) {
-        Py_INCREF(callbackList[i]);
-      } else {
-        PyErr_SetString(PyExc_ValueError ,"registerAvionicsEx callback is not callable.\n");
-        return nullptr;
-      }
+    if (callbackList[i] != Py_None && !PyCallable_Check(callbackList[i])) {
+      PyErr_SetString(PyExc_ValueError ,"registerAvionicsEx callback is not callable.\n");
+      return nullptr;
     }
   }
 
-  Py_INCREF(refcon);
-  
   XPLMAvionicsID avionicsId = XPLMRegisterAvionicsCallbacksEx_ptr(&avionics_params);
+  if (avionicsId == nullptr) {
+    /* e.g., this plugin already customized this device. Nothing registered, nothing to clean up. */
+    PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterAvionicsCallbacksEx failed: X-Plane returned NULL (device already customized by this plugin, or bad struct size).\n");
+    return nullptr;
+  }
+
+  for (int i=0; i< 13; i++) {
+    if (callbackList[i] != Py_None) {
+      Py_INCREF(callbackList[i]);
+    }
+  }
+  Py_INCREF(refcon);
 
   avionicsCallbacksDict[(intptr_t)avionics_params.refcon] = {
     .module_name = CurrentPythonModuleName,
-    .deviceID = deviceId,
+    .deviceID = avionics_params.deviceId,
     .avionicsID = avionicsId,
     .before = before,
     .after = after,
@@ -858,7 +969,7 @@ PyObject *XPLMRegisterAvionicsCallbacksExFun(PyObject *self, PyObject *args, PyO
     .create = 0
   };
 
-  PyObject *avIDCapsule = makeCapsule(avionicsId, "XPLMAvionicsID");
+  PyObject *avIDCapsule = makeAvionicsCapsule(avionicsId, avionics_params.deviceId);
   if(!avIDCapsule){
     PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterAvionicsCallbacksEx failed.\n");
     return nullptr;
@@ -884,7 +995,10 @@ PyObject *XPLMUnregisterAvionicsCallbacksFun(PyObject *self, PyObject *args, PyO
     PyErr_SetString(PyExc_RuntimeError, "XPLMUnregisterAvionicsCallback bad avionicsID\n");
     return nullptr;
   }
-  XPLMAvionicsID avionicsId = getVoidPtr(avIDCapsule, "XPLMAvionicsID");
+  XPLMAvionicsID avionicsId = avionicsSdkId(avIDCapsule);
+  if (!avionicsId) {
+    return nullptr;
+  }
 
   int found = 0;
   for (auto it = avionicsCallbacksDict.begin(); it != avionicsCallbacksDict.end(); ){
@@ -912,7 +1026,7 @@ PyObject *XPLMUnregisterAvionicsCallbacksFun(PyObject *self, PyObject *args, PyO
       Py_DECREF(info.keyboard);
       Py_DECREF(info.brightness);
       Py_DECREF(avIDCapsule);
-      deleteCapsule(avIDCapsule);
+      releaseAvionicsHandle(avionicsId);
       it = avionicsCallbacksDict.erase(it);
       break;
     } else {
@@ -950,7 +1064,7 @@ PyObject *XPLMGetAvionicsHandleFun(PyObject *self, PyObject *args, PyObject *kwa
     return nullptr;
   }    
 
-  PyObject *avIDCapsule = makeCapsule(avionicsId, "XPLMAvionicsID");
+  PyObject *avIDCapsule = makeAvionicsCapsule(avionicsId, deviceID);
   if(!avIDCapsule){
     PyErr_SetString(PyExc_RuntimeError ,"XPLMGetAvionicsHandle failed.\n");
     return nullptr;
@@ -995,7 +1109,8 @@ PyObject *XPLMIsAvionicsBoundFun(PyObject *self, PyObject *args, PyObject *kwarg
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
     return nullptr;
   }
-  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsID avionics_id = avionicsSdkId(avionicsID);
+  if (!avionics_id) return nullptr;
   int ret = XPLMIsAvionicsBound_ptr(avionics_id);
   return PyLong_FromLong(ret);
 }
@@ -1013,7 +1128,8 @@ PyObject *XPLMIsCursorOverAvionicsFun(PyObject *self, PyObject *args, PyObject *
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
     return nullptr;
   }
-  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsID avionics_id = avionicsSdkId(avionicsID);
+  if (!avionics_id) return nullptr;
   int x=0, y=0;
   int ret = XPLMIsCursorOverAvionics_ptr(avionics_id, &x, &y);
   if (!ret) {
@@ -1039,7 +1155,8 @@ PyObject *XPLMIsAvionicsPopupVisibleFun(PyObject *self, PyObject *args, PyObject
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
     return nullptr;
   }
-  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsID avionics_id = avionicsSdkId(avionicsID);
+  if (!avionics_id) return nullptr;
   return PyLong_FromLong(XPLMIsAvionicsPopupVisible_ptr(avionics_id));
 }
 
@@ -1056,7 +1173,8 @@ PyObject *XPLMIsAvionicsPoppedOutFun(PyObject *self, PyObject *args, PyObject *k
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
     return nullptr;
   }
-  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsID avionics_id = avionicsSdkId(avionicsID);
+  if (!avionics_id) return nullptr;
   return PyLong_FromLong(XPLMIsAvionicsPoppedOut_ptr(avionics_id));
 }
 PyObject *XPLMHasAvionicsKeyboardFocusFun(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -1072,7 +1190,8 @@ PyObject *XPLMHasAvionicsKeyboardFocusFun(PyObject *self, PyObject *args, PyObje
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
     return nullptr;
   }
-  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsID avionics_id = avionicsSdkId(avionicsID);
+  if (!avionics_id) return nullptr;
   return PyLong_FromLong(XPLMHasAvionicsKeyboardFocus_ptr(avionics_id));
 }
 PyObject *XPLMAvionicsNeedsDrawingFun(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -1088,7 +1207,8 @@ PyObject *XPLMAvionicsNeedsDrawingFun(PyObject *self, PyObject *args, PyObject *
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
     return nullptr;
   }
-  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsID avionics_id = avionicsSdkId(avionicsID);
+  if (!avionics_id) return nullptr;
   XPLMAvionicsNeedsDrawing_ptr(avionics_id);
   Py_RETURN_NONE;
 }
@@ -1105,7 +1225,8 @@ PyObject *XPLMPopOutAvionicsFun(PyObject *self, PyObject *args, PyObject *kwargs
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
     return nullptr;
   }
-  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsID avionics_id = avionicsSdkId(avionicsID);
+  if (!avionics_id) return nullptr;
   XPLMPopOutAvionics_ptr(avionics_id);
   Py_RETURN_NONE;
 }
@@ -1122,7 +1243,8 @@ PyObject *XPLMTakeAvionicsKeyboardFocusFun(PyObject *self, PyObject *args, PyObj
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
     return nullptr;
   }
-  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsID avionics_id = avionicsSdkId(avionicsID);
+  if (!avionics_id) return nullptr;
   XPLMTakeAvionicsKeyboardFocus_ptr(avionics_id);
   Py_RETURN_NONE;
 }
@@ -1139,7 +1261,10 @@ PyObject *XPLMDestroyAvionicsFun(PyObject *self, PyObject *args, PyObject *kwarg
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avIDCapsule)) {
     return nullptr;
   }
-  XPLMAvionicsID avionicsId = getVoidPtr(avIDCapsule, "XPLMAvionicsID");
+  XPLMAvionicsID avionicsId = avionicsSdkId(avIDCapsule);
+  if (!avionicsId) {
+    return nullptr;
+  }
   
   int found = 0;
   for (auto it = avionicsCallbacksDict.begin(); it != avionicsCallbacksDict.end(); ){
@@ -1167,7 +1292,7 @@ PyObject *XPLMDestroyAvionicsFun(PyObject *self, PyObject *args, PyObject *kwarg
       Py_DECREF(info.keyboard);
       Py_DECREF(info.brightness);
       Py_DECREF(avIDCapsule);
-      deleteCapsule(avIDCapsule);
+      releaseAvionicsHandle(avionicsId);
       it = avionicsCallbacksDict.erase(it);
       break;
     } else {
@@ -1193,7 +1318,9 @@ PyObject *XPLMGetAvionicsBusVoltsRatioFun(PyObject *self, PyObject *args, PyObje
     return nullptr;
   }
 
-  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsID avionics_id = avionicsSdkId(avionicsID);
+
+  if (!avionics_id) return nullptr;
   return PyFloat_FromDouble(XPLMGetAvionicsBusVoltsRatio_ptr(avionics_id));
 }
 PyObject *XPLMGetAvionicsBrightnessRheoFun(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -1209,7 +1336,9 @@ PyObject *XPLMGetAvionicsBrightnessRheoFun(PyObject *self, PyObject *args, PyObj
     return nullptr;
   }
 
-  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsID avionics_id = avionicsSdkId(avionicsID);
+
+  if (!avionics_id) return nullptr;
   return PyFloat_FromDouble(XPLMGetAvionicsBrightnessRheo_ptr(avionics_id));
 }
 PyObject *XPLMSetAvionicsBrightnessRheoFun(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -1227,7 +1356,9 @@ PyObject *XPLMSetAvionicsBrightnessRheoFun(PyObject *self, PyObject *args, PyObj
     return nullptr;
   }
 
-  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsID avionics_id = avionicsSdkId(avionicsID);
+
+  if (!avionics_id) return nullptr;
   XPLMSetAvionicsBrightnessRheo_ptr(avionics_id, brightness);
   Py_RETURN_NONE;
 }
@@ -1245,7 +1376,8 @@ PyObject *XPLMSetAvionicsPopupVisibleFun(PyObject *self, PyObject *args, PyObjec
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", keywords, &avionicsID, &visible)) {
     return nullptr;
   }
-  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsID avionics_id = avionicsSdkId(avionicsID);
+  if (!avionics_id) return nullptr;
   XPLMSetAvionicsPopupVisible_ptr(avionics_id, visible);
   Py_RETURN_NONE;
 }
@@ -1263,7 +1395,8 @@ PyObject *XPLMIsAvionicsMappedToVRFun(PyObject *self, PyObject *args, PyObject *
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
     return nullptr;
   }
-  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsID avionics_id = avionicsSdkId(avionicsID);
+  if (!avionics_id) return nullptr;
   return PyLong_FromLong(XPLMIsAvionicsMappedToVR_ptr(avionics_id));
 }
 
@@ -1281,7 +1414,8 @@ PyObject *XPLMSetAvionicsMappedToVRFun(PyObject *self, PyObject *args, PyObject 
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", keywords, &avionicsID, &mapped)) {
     return nullptr;
   }
-  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsID avionics_id = avionicsSdkId(avionicsID);
+  if (!avionics_id) return nullptr;
   XPLMSetAvionicsMappedToVR_ptr(avionics_id, mapped);
   Py_RETURN_NONE;
 }
@@ -1311,7 +1445,7 @@ static void genericAvionicsBrowserLoadFinished(XPLMAvionicsID inAvionics, const 
   }
   AvionicsCallbackInfo& info = it->second;
   if (info.browserLoadFinished != Py_None) {
-    PyObject *pID = makeCapsule(inAvionics, "XPLMAvionicsID");
+    PyObject *pID = avionicsCapsuleForSdk(inAvionics);
     PyObject *pURL = inURL ? PyUnicode_FromString(inURL) : (Py_INCREF(Py_None), Py_None);
     set_moduleName(info.module_name);
 
@@ -1340,7 +1474,7 @@ static void genericAvionicsBrowserLoadError(XPLMAvionicsID inAvionics, const cha
   }
   AvionicsCallbackInfo& info = it->second;
   if (info.browserLoadError != Py_None) {
-    PyObject *pID = makeCapsule(inAvionics, "XPLMAvionicsID");
+    PyObject *pID = avionicsCapsuleForSdk(inAvionics);
     PyObject *pURL = inURL ? PyUnicode_FromString(inURL) : (Py_INCREF(Py_None), Py_None);
     PyObject *pErr = inError ? PyUnicode_FromString(inError) : (Py_INCREF(Py_None), Py_None);
     set_moduleName(info.module_name);
@@ -1364,39 +1498,42 @@ static void genericAvionicsBrowserLoadError(XPLMAvionicsID inAvionics, const cha
 static const char *genericAvionicsBrowserCallback(XPLMAvionicsID inAvionics, const char *inJSON, void *inRefcon)
 {
   errCheck("prior genericAvionicsBrowserCallback");
-  /* The only sanctioned way to return a string is via XPLMReturnString, which copies
-     into the host-managed slot. Return an empty string on any error. */
-  const char *result = XPLMReturnString_ptr ? XPLMReturnString_ptr("") : "";
+  /* The only sanctioned way to return a string is XPLMReturnString, which copies into the
+     host-managed slot, and it must be called EXACTLY ONCE per invocation, with valid JSON:
+     NULL, a non-XPLMReturnString pointer, or invalid JSON is a plugin error. So decide the
+     reply first -- "null" (resolve the page's Promise to null) on any error or a None
+     return -- and hand it over once, at the end, while its backing string is still alive. */
+  const char *reply = "null";
+  PyObject *str = nullptr;
   auto it = avionicsBrowserFunctionDict.find((intptr_t)inRefcon);
   if(it == avionicsBrowserFunctionDict.end()){
     pythonLog("Unknown refcon passed to genericAvionicsBrowserCallback (%p).", inRefcon);
-    return result;
-  }
-  PyObject *func = it->second.callback;
-  PyObject *pID = makeCapsule(inAvionics, "XPLMAvionicsID");
-  PyObject *pJSON = inJSON ? PyUnicode_FromString(inJSON) : (Py_INCREF(Py_None), Py_None);
-  set_moduleName(it->second.module_name);
+  } else {
+    PyObject *func = it->second.callback;
+    PyObject *pID = avionicsCapsuleForSdk(inAvionics);
+    PyObject *pJSON = inJSON ? PyUnicode_FromString(inJSON) : (Py_INCREF(Py_None), Py_None);
+    set_moduleName(it->second.module_name);
 
-  PyObject *args[] = {pID, pJSON, it->second.refCon};
-  PyObject *oRes = PyObject_Vectorcall(func, args, 3, nullptr);
-  Py_DECREF(pID);
-  Py_DECREF(pJSON);
+    PyObject *args[] = {pID, pJSON, it->second.refCon};
+    PyObject *oRes = PyObject_Vectorcall(func, args, 3, nullptr);
+    Py_DECREF(pID);
+    Py_DECREF(pJSON);
 
-  if(PyErr_Occurred()) {
-    pythonLogException();
-  } else if (oRes && oRes != Py_None) {
-    PyObject *str = PyObject_Str(oRes);
-    if (str) {
-      const char *tmp = PyUnicode_AsUTF8(str);
-      if (tmp && XPLMReturnString_ptr) {
-        result = XPLMReturnString_ptr(tmp);    // copies tmp into host slot while str is alive
+    if(PyErr_Occurred()) {
+      pythonLogException();
+    } else if (oRes && oRes != Py_None) {
+      str = PyObject_Str(oRes);
+      const char *tmp = str ? PyUnicode_AsUTF8(str) : nullptr;
+      if (tmp) {
+        reply = tmp;
+      } else {
+        PyErr_Clear();
       }
-      Py_DECREF(str);
-    } else {
-      PyErr_Clear();
     }
+    Py_XDECREF(oRes);
   }
-  Py_XDECREF(oRes);
+  const char *result = XPLMReturnString_ptr ? XPLMReturnString_ptr(reply) : "";
+  Py_XDECREF(str);
   errCheck("end genericAvionicsBrowserCallback");
   return result;
 }
@@ -1620,7 +1757,7 @@ PyObject *XPLMCreateAvionicsExFun(PyObject *self, PyObject *args, PyObject *kwar
     .create = 1
   };
 
-  PyObject *avIDCapsule = makeCapsule(avionicsId, "XPLMAvionicsID");
+  PyObject *avIDCapsule = makeAvionicsCapsule(avionicsId, 0);
   if(!avIDCapsule){
     PyErr_SetString(PyExc_RuntimeError ,"XPLMRegisterAvionicsCallbacksEx failed.\n");
     free((void *)avionics_params.deviceID);
@@ -1648,7 +1785,8 @@ PyObject *XPLMAvionicsSetURLFun(PyObject *self, PyObject *args, PyObject *kwargs
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Os", keywords, &avionicsID, &inURL)){
     return nullptr;
   }
-  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsID avionics_id = avionicsSdkId(avionicsID);
+  if (!avionics_id) return nullptr;
   XPLMAvionicsSetURL_ptr(avionics_id, inURL);
   Py_RETURN_NONE;
 }
@@ -1666,7 +1804,8 @@ PyObject *XPLMAvionicsRefreshFun(PyObject *self, PyObject *args, PyObject *kwarg
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", keywords, &avionicsID, &inIgnoreCache)){
     return nullptr;
   }
-  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsID avionics_id = avionicsSdkId(avionicsID);
+  if (!avionics_id) return nullptr;
   XPLMAvionicsRefresh_ptr(avionics_id, inIgnoreCache);
   Py_RETURN_NONE;
 }
@@ -1684,7 +1823,8 @@ PyObject *XPLMAvionicsInjectScriptFun(PyObject *self, PyObject *args, PyObject *
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Os", keywords, &avionicsID, &inScript)){
     return nullptr;
   }
-  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsID avionics_id = avionicsSdkId(avionicsID);
+  if (!avionics_id) return nullptr;
   XPLMAvionicsInjectScript_ptr(avionics_id, inScript);
   Py_RETURN_NONE;
 }
@@ -1709,7 +1849,8 @@ PyObject *XPLMAvionicsAddBrowserFunctionFun(PyObject *self, PyObject *args, PyOb
     return nullptr;
   }
 #if defined(XPLM440)
-  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsID avionics_id = avionicsSdkId(avionicsID);
+  if (!avionics_id) return nullptr;
   intptr_t idx = ++avionicsBrowserFunctionCntr;
   Py_INCREF(function);
   Py_INCREF(refCon);
@@ -1736,7 +1877,8 @@ PyObject *XPLMSetObjectAvionicsFun(PyObject *self, PyObject *args, PyObject *kwa
     return nullptr;
   }
   XPLMObjectRef inObject = getVoidPtr(object, "XPLMObjectRef");
-  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsID avionics_id = avionicsSdkId(avionicsID);
+  if (!avionics_id) return nullptr;
   int res = XPLMSetObjectAvionics_ptr(inObject, avionics_id);
   return PyLong_FromLong(res);
 }
@@ -1754,7 +1896,8 @@ PyObject *XPLMClearObjectAvionicsFun(PyObject *self, PyObject *args, PyObject *k
     return nullptr;
   }
   XPLMObjectRef inObject = getVoidPtr(object, "XPLMObjectRef");
-  void *avionics_id = getVoidPtr(avionicsID, "XPLMAvionicsID");
+  XPLMAvionicsID avionics_id = avionicsSdkId(avionicsID);
+  if (!avionics_id) return nullptr;
   XPLMClearObjectAvionics_ptr(inObject, avionics_id);
   Py_RETURN_NONE;
 }
@@ -1792,7 +1935,7 @@ void resetAvionicsCallbacks(void) {
       errCheck("after XPLMUnregisterAvionicsCallbacks in reset");
     }
     pythonDebug("     Reset --     %s - (%d)", info.module_name, info.avionicsID);
-    deleteCapsuleByPtr((void*)info.avionicsID, "XPLMAvionicsID");
+    releaseAvionicsHandle(info.avionicsID);
   }
   avionicsCallbacksDict.clear();
 
@@ -1815,7 +1958,7 @@ void resetAvionicsCallbacks(void) {
 My_DOCSTR(_registerAvionicsCallbacksEx__doc__, "registerAvionicsCallbacksEx",
           "deviceId, before=None, after=None, refCon=None, bezelClick=None, bezelRightClick=None, "
           "bezelScroll=None, bezelCursor=None, screenTouch=None, screenRightTouch=None, screenScroll=None, "
-          "screenCursor=None, keyboard=None",
+          "screenCursor=None, keyboard=None, contentType=WindowContentTypeOpenGL",
           "deviceId:XPLMDeviceID, "
           "before:Optional[Callable[[XPLMDeviceID, int, Any], int]]=None, "
           "after:Optional[Callable[[XPLMDeviceID, int, Any], int]]=None, "
@@ -1828,7 +1971,8 @@ My_DOCSTR(_registerAvionicsCallbacksEx__doc__, "registerAvionicsCallbacksEx",
           "screenRightTouch:Optional[Callable[[int, int, XPLMMouseStatus, Any], int]]=None, "
           "screenScroll:Optional[Callable[[int, int, int, int, Any], int]]=None, "
           "screenCursor:Optional[Callable[[int, int, Any], XPLMCursorStatus]]=None, "
-          "keyboard:Optional[Callable[[int, XPLMKeyFlags, int, Any, int], int]]=None",
+          "keyboard:Optional[Callable[[int, XPLMKeyFlags, int, Any, int], int]]=None, "
+          "contentType:XPLMWindowContentType=WindowContentTypeOpenGL",
           "XPLMAvionicsID",
           "Registers draw callback for particular device.\n"
           "\n"
@@ -1838,6 +1982,16 @@ My_DOCSTR(_registerAvionicsCallbacksEx__doc__, "registerAvionicsCallbacksEx",
           "\n"
           "Upon entry, OpenGL context will be correctly set in panel coordinates for 2d drawing.\n"
           "OpenGL state (texturing, etc.) will be unknown.\n"
+          "\n"
+          "contentType (XPLM440) selects how the device screen is drawn:\n"
+          "WindowContentTypeOpenGL (default, legacy OpenGL bridge) or\n"
+          "WindowContentTypePanelGraphics (native panel-graphics rendering).\n"
+          "WindowContentTypeBrowser is not valid for avionics.\n"
+          "\n"
+          "Parameters may instead be passed as a single tuple (deviceId, before, after,\n"
+          "refCon, bezelClick, bezelRightClick, bezelScroll, bezelCursor, screenTouch,\n"
+          "screenRightTouch, screenScroll, screenCursor, keyboard[, contentType]);\n"
+          "contentType is optional in the tuple form and defaults to WindowContentTypeOpenGL.\n"
           "\n"
           "Successful registration returns an AvionicsID."
          );

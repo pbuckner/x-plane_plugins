@@ -605,9 +605,18 @@ def drawCalls(vertices: Union[bytes, Sequence[tuple[float, ...]]],
 
     drawCalls is a sequence of (tex, scissors,
     idx_offset, element_count, vtx_offset): tex is a createTexture() handle or None;
-    scissors is (left, top, right, bottom) floats in window-local top-left coords;
-    element_count must be a multiple of 3. Call only from a panel-graphics window
-    draw callback; the host flips Y for you.
+    scissors is two opposite corners (x1, y1, x2, y2) floats, in the same space as
+    the vertices, and is intersected with any scissor already in force;
+    element_count must be a multiple of 3.
+
+    Positions and scissors are in panel coordinates under the CURRENT TRANSFORM,
+    like every other panel-graphics primitive: nothing is translated or flipped for
+    you. Dear ImGui is window-local with a TOP-LEFT origin and Y down, so to draw an
+    ImGui mesh (or any mesh built that way), first transformPush(),
+    transformTranslate(left, top) -- (0, height) on an avionics screen --
+    transformScale(1.0, -1.0), then drawCalls(), then transformPop(). Call only
+    while drawing: from a panel-graphics draw callback, or while recording a
+    retained drawing.
     """
     ...
 

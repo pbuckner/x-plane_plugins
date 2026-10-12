@@ -506,6 +506,13 @@ PyInit_XPLMPlugin(void)
 #else
     PyModule_AddIntConstant(mod, "MsgWeatherDelivered", -1);
 #endif
+#if defined(XPLM440)
+    PyModule_AddIntConstant(mod, "MSG_PRO_LICENSE_CHANGED", XPLM_MSG_PRO_LICENSE_CHANGED);
+    PyModule_AddIntConstant(mod, "MsgProLicenseChanged", XPLM_MSG_PRO_LICENSE_CHANGED);
+#else
+    PyModule_AddIntConstant(mod, "MSG_PRO_LICENSE_CHANGED", -1);
+    PyModule_AddIntConstant(mod, "MsgProLicenseChanged", -1);
+#endif
 
   }
   return mod;

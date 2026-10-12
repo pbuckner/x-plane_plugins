@@ -18,6 +18,7 @@ MsgPlaneLoaded: int
 MsgAirportLoaded: int
 MsgSceneryLoaded: int
 MsgWeatherDelivered: int
+MsgProLicenseChanged: int
 MsgAirplaneCountChanged: int
 MsgPlaneUnloaded: int
 MsgWillWritePrefs: int
@@ -29,6 +30,7 @@ MSG_FMOD_BANK_LOADED: int
 MSG_FMOD_BANK_UNLOADING: int
 MSG_DATAREFS_ADDED: int
 MSG_WEATHER_DELIVERED: int
+MSG_PRO_LICENSE_CHANGED: int
 MsgFmodBankLoaded: int
 MsgFmodBankUnloading: int
 MsgDatarefs_Added: int

@@ -59,6 +59,7 @@ from XPPython3.xp_typing import (  # noqa: F401 -- re-exports  # pylint: disable
     XPLMNavType as XPLMNavType,
     XPLMObjectRef as XPLMObjectRef,
     XPLMPluginID as XPLMPluginID,
+    XPLMProLicenseStatus as XPLMProLicenseStatus,
     XPLMProbeInfo_t as XPLMProbeInfo_t,
     XPLMProbeRef as XPLMProbeRef,
     XPLMProbeResult as XPLMProbeResult,
@@ -282,6 +283,7 @@ MSG_LIVERY_LOADED: int
 MSG_PLANE_CRASHED: int
 MSG_PLANE_LOADED: int
 MSG_PLANE_UNLOADED: int
+MSG_PRO_LICENSE_CHANGED: int
 MSG_RELEASE_PLANES: int
 MSG_SCENERY_LOADED: int
 MSG_WEATHER_DELIVERED: int
@@ -332,6 +334,7 @@ MsgLiveryLoaded: int
 MsgPlaneCrashed: int
 MsgPlaneLoaded: int
 MsgPlaneUnloaded: int
+MsgProLicenseChanged: int
 MsgReleasePlanes: int
 MsgSceneryLoaded: int
 MsgWeatherDelivered: int
@@ -402,6 +405,9 @@ Phase_Modern3D: XPLMDrawingPhase
 Phase_Panel: XPLMDrawingPhase
 Phase_Window: XPLMDrawingPhase = XPLMDrawingPhase(50)
 PowerLine: int
+ProLicense_Licensed: XPLMProLicenseStatus
+ProLicense_NotLicensed: XPLMProLicenseStatus
+ProLicense_Unknown: XPLMProLicenseStatus
 ProbeError: XPLMProbeResult
 ProbeHitTerrain: XPLMProbeResult
 ProbeMissed: XPLMProbeResult
@@ -1051,7 +1057,7 @@ def registerDrawCallback(draw: Callable[[XPLMDrawingPhase, int, Any], None | int
     ...
 
 
-def registerAvionicsCallbacksEx(deviceId: XPLMDeviceID, before: Optional[Callable[[XPLMDeviceID, int, Any], int]] = None, after: Optional[Callable[[XPLMDeviceID, int, Any], int]] = None, refCon: Any = None, bezelClick: Optional[Callable[[int, int, XPLMMouseStatus, Any], int]] = None, bezelRightClick: Optional[Callable[[int, int, XPLMMouseStatus, Any], int]] = None, bezelScroll: Optional[Callable[[int, int, int, int, Any], int]] = None, bezelCursor: Optional[Callable[[int, int, Any], XPLMCursorStatus]] = None, screenTouch: Optional[Callable[[int, int, XPLMMouseStatus, Any], int]] = None, screenRightTouch: Optional[Callable[[int, int, XPLMMouseStatus, Any], int]] = None, screenScroll: Optional[Callable[[int, int, int, int, Any], int]] = None, screenCursor: Optional[Callable[[int, int, Any], XPLMCursorStatus]] = None, keyboard: Optional[Callable[[int, XPLMKeyFlags, int, Any, int], int]] = None) -> XPLMAvionicsID:
+def registerAvionicsCallbacksEx(deviceId: XPLMDeviceID, before: Optional[Callable[[XPLMDeviceID, int, Any], int]] = None, after: Optional[Callable[[XPLMDeviceID, int, Any], int]] = None, refCon: Any = None, bezelClick: Optional[Callable[[int, int, XPLMMouseStatus, Any], int]] = None, bezelRightClick: Optional[Callable[[int, int, XPLMMouseStatus, Any], int]] = None, bezelScroll: Optional[Callable[[int, int, int, int, Any], int]] = None, bezelCursor: Optional[Callable[[int, int, Any], XPLMCursorStatus]] = None, screenTouch: Optional[Callable[[int, int, XPLMMouseStatus, Any], int]] = None, screenRightTouch: Optional[Callable[[int, int, XPLMMouseStatus, Any], int]] = None, screenScroll: Optional[Callable[[int, int, int, int, Any], int]] = None, screenCursor: Optional[Callable[[int, int, Any], XPLMCursorStatus]] = None, keyboard: Optional[Callable[[int, XPLMKeyFlags, int, Any, int], int]] = None, contentType: XPLMWindowContentType = WindowContentTypeOpenGL) -> XPLMAvionicsID:
     """
         Registers draw callback for particular device.
 
@@ -2941,9 +2947,18 @@ def drawCalls(vertices: Union[bytes, Sequence[tuple[float, ...]]], indices: Unio
 
         drawCalls is a sequence of (tex, scissors,
         idx_offset, element_count, vtx_offset): tex is a createTexture() handle or None;
-        scissors is (left, top, right, bottom) floats in window-local top-left coords;
-        element_count must be a multiple of 3. Call only from a panel-graphics window
-        draw callback; the host flips Y for you.
+        scissors is two opposite corners (x1, y1, x2, y2) floats, in the same space as
+        the vertices, and is intersected with any scissor already in force;
+        element_count must be a multiple of 3.
+
+        Positions and scissors are in panel coordinates under the CURRENT TRANSFORM,
+        like every other panel-graphics primitive: nothing is translated or flipped for
+        you. Dear ImGui is window-local with a TOP-LEFT origin and Y down, so to draw an
+        ImGui mesh (or any mesh built that way), first transformPush(),
+        transformTranslate(left, top) -- (0, height) on an avionics screen --
+        transformScale(1.0, -1.0), then drawCalls(), then transformPop(). Call only
+        while drawing: from a panel-graphics draw callback, or while recording a
+        retained drawing.
     """
     ...
 
@@ -3730,6 +3745,18 @@ def getVersions() -> tuple[int, int, int]:
 def getLanguage() -> int:
     """
         Return language code the sim is running in.
+    """
+    ...
+
+
+def getProLicenseStatus() -> int:
+    """
+        Return whether X-Plane is running under a Professional-use license.
+
+        Returns ProLicense_Unknown, ProLicense_NotLicensed, or ProLicense_Licensed.
+        Global plugins see ProLicense_Unknown in XPluginStart() and XPluginEnable(),
+        because X-Plane completes its license check afterwards: listen for
+        MSG_PRO_LICENSE_CHANGED. New in XPLM440.
     """
     ...
 

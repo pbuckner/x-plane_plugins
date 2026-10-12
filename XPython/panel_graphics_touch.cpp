@@ -11,6 +11,7 @@
 #include "panel_graphics.h"
 #include "plugin_dl.h"
 #include "capsules.h"
+#include "display_avionics.h"
 
 /* ---- touch zones --------------------------------------------------------- */
 
@@ -155,8 +156,8 @@ static PyObject *XPLMAvionicsSetTouchEventHandlerFun(PyObject *self, PyObject *a
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|O", keywords, &avionicCapsule, &handler, &refCon)){
     return nullptr;
   }
-  XPLMAvionicsID avionic = getVoidPtr(avionicCapsule, AVIONICS_CAPSULE);
-  if(!avionic && PyErr_Occurred()){
+  XPLMAvionicsID avionic = avionicsSdkId(avionicCapsule);
+  if(!avionic){
     return nullptr;
   }
   TouchHandlerInfo *info = prepareTouchHandler(avionic, handler, refCon);

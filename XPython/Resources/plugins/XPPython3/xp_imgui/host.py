@@ -108,6 +108,17 @@ class ImguiHost:
     def displaySize(self: Self) -> tuple[float, float]:
         raise NotImplementedError
 
+    def panelOrigin(self: Self) -> tuple[float, float]:
+        """Panel coordinates of ImGui's (0, 0) -- the TOP-LEFT of what we draw into.
+
+        XPLMDrawCalls (SDK440_b4+) takes positions in panel coordinates under the
+        current transform, with Y up; ImGui is top-left, Y down. The panel-graphics
+        renderer therefore translates here and flips Y. Default is an avionics
+        screen, whose panel space is (0, 0) at bottom-left, so ImGui's origin is
+        (0, height). A window overrides this: its top-left is (left, top).
+        """
+        return 0.0, self.displaySize()[1]
+
     def callUserDraw(self: Self) -> None:
         raise NotImplementedError
 

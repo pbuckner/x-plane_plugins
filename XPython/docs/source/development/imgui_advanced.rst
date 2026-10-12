@@ -30,10 +30,12 @@ The host picks one of two renderers from the window's ``contentType``:
    an avionics device.
 
 ``XPPanelGraphicsRenderer`` is markedly shorter than ``XPRenderer`` because
-:func:`xp.drawCalls` consumes ImGui's own ``ImDrawData`` layout and coordinate
-space directly: positions and scissor rectangles are window-local pixels with a
-top-left origin, which is exactly ImGui's convention. The
-modelview / projection / boxel / native conversion chain the OpenGL path needs is
+:func:`xp.drawCalls` consumes ImGui's own ``ImDrawData`` layout directly. Positions
+and scissor rectangles are in panel coordinates under the current transform, like every
+other panel-graphics primitive, so the renderer only has to put ImGui's space (window-local,
+top-left origin, Y down) on the panel: it pushes the transform stack, translates to the
+window's top-left corner (``(0, height)`` on an avionics screen), and scales Y by -1.
+The modelview / projection / boxel / native conversion chain the OpenGL path needs is
 therefore not used at all. It also touches no OpenGL, so a panel-graphics ImGui
 window does not need PyOpenGL.
 

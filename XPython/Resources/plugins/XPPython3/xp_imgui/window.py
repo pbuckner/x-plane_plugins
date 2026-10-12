@@ -114,6 +114,11 @@ class Window(ImguiHost):
     def displaySize(self: Self) -> tuple[float, float]:
         return self.mRight - self.mLeft, self.mTop - self.mBottom
 
+    def panelOrigin(self: Self) -> tuple[float, float]:
+        # mLeft / mTop are refreshed from xp.getWindowGeometry() in imguiDrawWindow,
+        # immediately before drawFrame() -> renderer.render().
+        return float(self.mLeft), float(self.mTop)
+
     def callUserDraw(self: Self) -> None:
         if self.createWindow_t.drawWindowFunc:
             self.createWindow_t.drawWindowFunc(self.windowID, self.createWindow_t.refcon)

@@ -38,11 +38,18 @@ Known Bugs
      * **Additional Avionics device functions**, to add devices to custom objects :func:`xp.setObjectAvionics`
        and support VR :func:`xp.setAvionicsMappedToVR`.
 
+     * **contentType for built-in avionics**: :func:`xp.registerAvionicsCallbacksEx` accepts a new ``contentType``
+       (default :data:`xp.WindowContentTypeOpenGL`), so customized built-in devices can use
+       :data:`xp.WindowContentTypePanelGraphics`. In the tuple form of the call it is an optional 14th element.
+
      * **Object Instance utilities**, wrap multiple objects together :func:`xp.createInstanceEx` with
        settable coordinate space (:func:`xp.instanceSetCoordinateSpace`) for world / aircraft / camera-relative
        placement.
 
      * **Added** :data:`xp.CapsLockFlag` modifier-key flag.
+
+     * **Pro license status**: :func:`xp.getProLicenseStatus` reports whether X-Plane is running
+       under a Professional-use license, and :data:`xp.MSG_PRO_LICENSE_CHANGED` is sent when that changes.
 
      * **Snow coverage data** :attr:`snow_coverage_pct` added to ``XPLMWeatherInfo_t``, and :data:`xp.TempUndefinedLayer` for marking a
        temperature layer undefined when setting.

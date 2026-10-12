@@ -246,6 +246,47 @@ Functions
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMGetLanguage>`__ :index:`XPLMGetLanguage`
 
+.. py:function:: getProLicenseStatus() -> int
+
+ :return: Pro license status constant
+
+ Returns whether X-Plane is currently running under a Professional-use license (a HASP Pro
+ USB key or a valid Pro digital-download product key). Demo and Home installs both report
+ :data:`ProLicense_NotLicensed`. New with X-Plane 12.4.4 (SDK 440). Call only from the main thread.
+
+  .. table::
+   :align: left
+
+   ====================================== ===
+   .. py:data:: ProLicense_Unknown        =0
+   .. py:data:: ProLicense_NotLicensed    =1
+   .. py:data:: ProLicense_Licensed       =2
+   ====================================== ===
+
+ :data:`ProLicense_Unknown`
+   X-Plane has not finished its license check yet. Wait for :data:`MSG_PRO_LICENSE_CHANGED`.
+
+ :data:`ProLicense_NotLicensed`
+   No Pro license is active.
+
+ :data:`ProLicense_Licensed`
+   A Pro license is active.
+
+ X-Plane finishes its license check **after** global plugins have received
+ :py:func:`XPluginStart <PythonInterface.XPluginStart>` and :py:func:`XPluginEnable <PythonInterface.XPluginEnable>`,
+ so from those callbacks a global plugin sees :data:`ProLicense_Unknown`. Listen for
+ :data:`MSG_PRO_LICENSE_CHANGED`: it is broadcast once the check completes, and again whenever the
+ status changes during the session (for example, the user enters a product key, or a key expires).
+ Aircraft plugins load after the check completes and see a settled value immediately. If you see a settled value
+ in ``XPluginStart``, do not wait for the message: the initial transition was broadcast before your plugin loaded.
+
+ >>> xp.getProLicenseStatus() == xp.ProLicense_Licensed
+ False
+
+ On X-Plane releases prior to 12.4.4, this raises ``RuntimeError``.
+
+ `Official SDK <https://developer.x-plane.com/sdk/XPLMUtilities/#XPLMGetProLicenseStatus>`__ :index:`XPLMGetProLicenseStatus`
+
 .. py:function:: debugString(string) -> None
 
     :param string: String to write to Log.txt

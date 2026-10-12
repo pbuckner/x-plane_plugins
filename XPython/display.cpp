@@ -2544,7 +2544,7 @@ PyObject* buildAvionicsCallbackDict(void)
 
     PyObject *module_name_p = PyUnicode_FromString(info.module_name);
     PyObject *device_id = PyLong_FromLong(info.deviceID);
-    PyObject *avionics_id_capsule = avionicsCapsuleForSdk(info.avionicsID);
+    PyObject *avionics_id_capsule = avionicsCapsuleForKey(refcon_id);
     PyObject *create = PyLong_FromLong(info.create);
 
     PyTuple_SetItem(value, 0, module_name_p);

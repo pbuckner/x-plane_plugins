@@ -105,9 +105,12 @@ The result of :py:func:`pythonGetDicts` is a dictionary of these dictionaries.
    For those with ``createFlag == 1``, these were added using :func:`xp.createAvionicsEx`, and are
    expected to be removed using :func:`xp.destroyAvionics`. These are "Custom" avionics devices.
 
-   For those with ``createFlag == 0``, these were adding using :func:`xp.registerAvionicsCallbacksEx`
-   and are expected to be removed using :func:`xp.unregisterAvionicsCallbacks`. There are existing
-   avionics devices. For these, ``bezel_draw``, and ``draw`` are not used.
+   For those with ``createFlag == 0``, these were added using :func:`xp.registerAvionicsCallbacksEx`
+   (or :func:`xp.getAvionicsHandle`) and are expected to be removed using :func:`xp.unregisterAvionicsCallbacks`.
+   There are existing avionics devices. For these, ``bezel_draw``, and ``draw`` are not used.
+
+   There is one entry for each script and device, so several entries (from different scripts) may have the same
+   ``deviceID``. Each has its own capsule. An entry created by :func:`xp.getAvionicsHandle` has no callbacks (all ``None``).
 
    ::
 

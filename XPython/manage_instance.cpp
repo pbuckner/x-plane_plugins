@@ -7,6 +7,7 @@
 #include "manage_instance.h"
 #include "menus.h"
 #include "utilities.h"
+#include "display_avionics.h"
 
 static void updatePluginDict(PluginInfo pluginInfo, PyObject*,PyObject*, PyObject*, PluginType);
 static PyObject *getPluginInstanceBySignature(PyObject *);
@@ -247,6 +248,7 @@ void xpy_cleanUpInstance(PyObject *pluginInstance) {
     pythonLog("[XPPython3] Error after clearing commands for %s", CurrentPythonModuleName);
     return;
   }
+  removeAvionicsRegistrantsForModule(CurrentPythonModuleName);
   pythonDebug("%*s Cleaned instance: %s", 6, " ", CurrentPythonModuleName);
   /* NOTE 'CurrentPythonModuleName' will no longer be valued after erase */
   auto pluginIt = XPY3pluginInfoDict.find(pluginInstance);

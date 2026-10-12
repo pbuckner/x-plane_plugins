@@ -152,11 +152,49 @@ Use any of these device IDs with :py:func:`registerAvionicsCallbacksEx` or :py:f
   :param XPLMWindowContentType contentType: (XPLM440) How the device screen is drawn:
                       :data:`WindowContentTypeOpenGL` (default) or :data:`WindowContentTypePanelGraphics`.
                       :data:`WindowContentTypeBrowser` is not valid for avionics.
-  :return: :class:`XPLMAvionicsID` or None on error.                 
- 
+  :return: :class:`XPLMAvionicsID`, or None if this script has already registered this device.
+  :raises RuntimeError: if X-Plane refuses the registration
+  :raises ValueError: if another script customized this device with a different ``contentType``
+
   If not specified, any callback (and the refCon) will be set to None.
 
   Returns an XPLMAvionicsID which should be passed to :py:func:`unregisterAvionicsCallbacks` when no longer needed.
+
+  **Several scripts may customize the same device.** X-Plane allows XPPython3 only one registration per
+  device, so XPPython3 registers once, on behalf of all scripts, and calls each script's callbacks
+  in the order the scripts registered. Each script gets its *own* XPLMAvionicsID, so one script's
+  :py:func:`unregisterAvionicsCallbacks` never affects another's. X-Plane is told to call only the
+  callbacks that at least one script supplied, so unused callbacks cost nothing.
+
+  Results are combined as follows. Every script's callback is called, even after another has consumed the event:
+
+  .. table::
+    :align: left
+
+    +------------------------------------+----------------------------------------------------------+
+    | Callback                           | Value returned to X-Plane                                |
+    +====================================+==========================================================+
+    | ``before``                         | 0 (suppress X-Plane drawing) if *any* script returned 0, |
+    |                                    | otherwise 1                                              |
+    +------------------------------------+----------------------------------------------------------+
+    | ``after``                          | (ignored)                                                |
+    +------------------------------------+----------------------------------------------------------+
+    | ``bezelClick``, ``bezelRightClick``| 1 (consumed) if *any* script consumed the event,         |
+    | ``bezelScroll``, ``screenTouch``,  | otherwise 0                                              |
+    | ``screenRightTouch``,              |                                                          |
+    | ``screenScroll``, ``keyboard``     |                                                          |
+    +------------------------------------+----------------------------------------------------------+
+    | ``bezelCursor``, ``screenCursor``  | the first non-default :class:`XPLMCursorStatus`          |
+    +------------------------------------+----------------------------------------------------------+
+
+  A callback which raises an exception, or returns the wrong type, is logged and disabled. It does not stop other
+  scripts' callbacks and (for ``before``) does not suppress drawing.
+
+  A script may register a particular device only once. A second call from the same script logs a warning and returns
+  None. A script may register as many *different* devices as it likes. All scripts customizing a device must use the same
+  ``contentType``.
+
+  A script's registrations are removed automatically when the script is stopped.
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMRegisterAvionicsCallbacksEx>`__ :index:`XPLMRegisterAvionicsCallbacksEx`
   and `Callbacks <https://developer.x-plane.com/sdk/XPLMCustomizeAvionics_t>`__ :index:`XPLMCustomizeAvionics_t`
@@ -409,6 +447,9 @@ Use any of these device IDs with :py:func:`registerAvionicsCallbacksEx` or :py:f
   Unregisters specified avionics callbacks.
 
   >>> xp.unregisterAvionicsCallbacks(avionicsID)
+
+  Only the calling script's callbacks are removed. Other scripts customizing the same device continue
+  to work. Afterwards, ``avionicsID`` is no longer valid: passing it to any avionics function raises ``ValueError``.
  
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMUnregisterAvionicsCallbacks>`__ :index:`XPLMUnregisterAvionicsCallbacks`
  
@@ -427,6 +468,9 @@ Use any of these device IDs with :py:func:`registerAvionicsCallbacksEx` or :py:f
     >>> avionicsID = xp.getAvionicsHandle(xp.Device_G1000_PFD_1)
     >>> avionicsID
     <capsule object "XPLMAvionicsID" at 0x2296c7840>
+
+  Each script gets its own handle; asking again for the same device returns the handle you already have. The
+  handle does not register any callbacks, and does not affect other scripts.
  
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMGetAvionicsHandle>`__ :index:`XPLMGetAvionicsHandle`
 

@@ -24,32 +24,36 @@ struct AvionicsCallbackInfo {
   PyObject *browserLoadFinished;
   PyObject *browserLoadError;
   int create;
+  int handleOnly;  /* getAvionicsHandle() stub: no callbacks, never registered with X-Plane */
 };
 extern std::unordered_map<intptr_t, AvionicsCallbackInfo> avionicsCallbacksDict;
 
 /* Avionics handle indirection
    ---------------------------
-   Python never sees the SDK's XPLMAvionicsID. The "XPLMAvionicsID" capsule we hand out wraps a pointer to an
-   AvionicsHandle, which in turn holds the current SDK value. If X-Plane ever gives us a different
-   XPLMAvionicsID for the same logical device (e.g., on re-registering), we update `sdk` via
-   avionicsRebind() and every capsule already held by Python stays valid.
+   Python never sees the SDK's XPLMAvionicsID. The "XPLMAvionicsID" capsule we hand out wraps an opaque,
+   never-reused token which maps to a key in avionicsCallbacksDict; the SDK value lives in that entry's
+   `avionicsID`. There is one dict entry (and so one capsule) per _registrant_: each Python script which calls
+   registerAvionicsCallbacksEx() / getAvionicsHandle() for a device gets its own, even though they all
+   resolve to the same SDK XPLMAvionicsID. If X-Plane hands us a different SDK value (e.g., after we
+   re-register a device), only the dict entries are updated and every capsule held by Python stays valid.
 
    Every function taking a Python XPLMAvionicsID must convert with avionicsSdkId() first. */
-struct AvionicsHandle {
-  XPLMAvionicsID sdk;
-  int deviceID;
-};
-/* New reference to the capsule for this SDK id (creating the AvionicsHandle if needed). None if sdk is NULL. */
-extern PyObject *makeAvionicsCapsule(XPLMAvionicsID sdk, int deviceID);
-/* New reference to the existing capsule for this SDK id, or None if we have none (used from X-Plane callbacks). */
+
+/* New reference to the capsule for this dict key (creating the token on first use). */
+extern PyObject *makeAvionicsCapsule(intptr_t key);
+/* New reference to the existing capsule for this dict key, or None if there is none. */
+extern PyObject *avionicsCapsuleForKey(intptr_t key);
+/* New reference to the capsule of the created device with this SDK id (or, failing that, any entry with it), or None. */
 extern PyObject *avionicsCapsuleForSdk(XPLMAvionicsID sdk);
-/* Python capsule -> SDK id. Returns NULL _with a Python exception set_ if capsule is None, not an
+/* Python capsule -> dict key. Returns 0 _with a Python exception set_ if capsule is None, not an
    XPLMAvionicsID capsule, or refers to a handle which has been released. */
+extern intptr_t avionicsKey(PyObject *capsule);
+/* Python capsule -> SDK id. Returns NULL _with a Python exception set_ on failure (see avionicsKey). */
 extern XPLMAvionicsID avionicsSdkId(PyObject *capsule);
-/* Point an existing handle at a new SDK id; also updates avionicsCallbacksDict entries. */
-extern void avionicsRebind(PyObject *capsule, XPLMAvionicsID newSdk);
-/* Invalidate the handle for this SDK id and delete its capsule. Safe to call if there is none. */
-extern void releaseAvionicsHandle(XPLMAvionicsID sdk);
+/* Invalidate the handle for this dict key and delete its capsule. Safe to call if there is none. */
+extern void releaseAvionicsHandle(intptr_t key);
+/* Drop every built-in-device registration made by this script (called when the script is cleaned up). */
+extern void removeAvionicsRegistrantsForModule(const char *module_name);
 
 extern PyObject* XPLMRegisterAvionicsCallbacksExFun(PyObject*, PyObject*, PyObject*);
 extern PyObject* XPLMUnregisterAvionicsCallbacksFun(PyObject*, PyObject*, PyObject*);

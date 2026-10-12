@@ -113,6 +113,18 @@ def registerAvionicsCallbacksEx(deviceId: XPLMDeviceID,
     screenRightTouch, screenScroll, screenCursor, keyboard[, contentType]);
     contentType is optional in the tuple form and defaults to WindowContentTypeOpenGL.
 
+    Several scripts may customize the same device. Each script which registers a device gets
+    its own AvionicsID, and XPPython3 calls every script's callbacks in registration order,
+    combining the results: drawing is suppressed if any 'before' callback returns 0; a click,
+    touch, scroll or key is consumed if any script consumed it (every script still sees it);
+    for cursors, the first non-default status wins. A callback which raises an exception
+    is logged and disabled; it does not stop the other scripts' callbacks.
+
+    A script may register a given device only once: a second call from the same script
+    logs a warning and returns None. All scripts customizing a device must use the same
+    contentType (ValueError otherwise). If X-Plane refuses the registration, RuntimeError
+    is raised.
+
     Successful registration returns an AvionicsID.
 
     """
@@ -122,6 +134,10 @@ def registerAvionicsCallbacksEx(deviceId: XPLMDeviceID,
 def unregisterAvionicsCallbacks(avionicsId: XPLMAvionicsID) -> None:
     """
     Unregisters avionics draw callback(s) associated with given avionicsId.
+
+    Removes only the calling script's callbacks: other scripts customizing the same device
+    continue to work. The avionicsId is no longer valid afterwards (using it raises ValueError).
+    A script's registrations are also removed automatically when the script is stopped.
 
     Does not return a value.
 
@@ -135,6 +151,9 @@ def getAvionicsHandle(deviceID: int) -> XPLMAvionicsID:
     handle which allows you to interact using other Avionics Device
     API. Use this if you do not wish to intercept drawing, clicks, or
     touches but want to interact with its popup programmatically.
+
+    Each script gets its own handle (asking again returns the same one); it does not
+    affect other scripts' handles or callbacks.
 
     Returns XPLMAvionicsID.
 

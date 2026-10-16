@@ -46,6 +46,18 @@ void xpy_startGlobalPlugins()
   pythonDebug("STARTED Global plugins.");
 }
 
+bool xpy_isModuleDisabled(const char *module_name)
+{
+  /* module names are interned (see set_moduleName), so comparing pointers is enough. This is on the
+     path of per-frame callbacks, so no strcmp / std::string. */
+  for (const auto& pair : XPY3pluginInfoDict) {
+    if (pair.second.module_name == module_name) {
+      return pair.second.disabled;
+    }
+  }
+  return false;
+}
+
 void xpy_enableInternalPlugins()
 {
   pythonDebug("ENABLING Internal plugins");

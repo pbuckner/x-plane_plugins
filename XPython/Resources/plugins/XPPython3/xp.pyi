@@ -1090,6 +1090,8 @@ def registerAvionicsCallbacksEx(deviceId: XPLMDeviceID, before: Optional[Callabl
         contentType (ValueError otherwise). If X-Plane refuses the registration, RuntimeError
         is raised.
 
+        While a script is disabled, its callbacks are skipped (but remain registered).
+
         Successful registration returns an AvionicsID.
     """
     ...

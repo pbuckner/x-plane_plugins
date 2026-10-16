@@ -52,7 +52,8 @@ extern intptr_t avionicsKey(PyObject *capsule);
 extern XPLMAvionicsID avionicsSdkId(PyObject *capsule);
 /* Invalidate the handle for this dict key and delete its capsule. Safe to call if there is none. */
 extern void releaseAvionicsHandle(intptr_t key);
-/* Drop every built-in-device registration made by this script (called when the script is cleaned up). */
+/* Drop every avionics registration made by this script -- built-in device callbacks and any custom devices
+   it created (called when the script is cleaned up). */
 extern void removeAvionicsRegistrantsForModule(const char *module_name);
 
 extern PyObject* XPLMRegisterAvionicsCallbacksExFun(PyObject*, PyObject*, PyObject*);

@@ -7,6 +7,7 @@
 #include "utils.h"
 #include "xppython.h"
 #include "capsules.h"
+#include "manage_instances.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
@@ -342,27 +343,29 @@ static void avionicsScheduleDeferred(void)
   }
 }
 
-/* Marks "we are inside an X-Plane trampoline for this device" for the life of the object. */
+/* Marks "we are inside an X-Plane trampoline for this device" for the life of the object.
+   While it is held, the device's `registrants` vector is only ever appended to or tombstoned (key set to 0),
+   never shifted or erased, and the device is not erased from avionicsDeviceDict -- so the trampolines
+   can walk `registrants` by index, without copying it, even if Python callbacks register/unregister.
+   Tombstones are squeezed out when the outermost guard ends. */
 struct AvionicsDispatchGuard {
   int deviceID;
-  explicit AvionicsDispatchGuard(int d) : deviceID(d) {
+  AvionicsDeviceReg *dev;   /* NULL if the device is not (or no longer) registered */
+  explicit AvionicsDispatchGuard(int d) : deviceID(d), dev(nullptr) {
     auto it = avionicsDeviceDict.find(deviceID);
-    if (it != avionicsDeviceDict.end()) it->second.dispatchDepth++;
+    if (it != avionicsDeviceDict.end()) {
+      dev = &it->second;
+      dev->dispatchDepth++;
+    }
   }
   ~AvionicsDispatchGuard() {
-    auto it = avionicsDeviceDict.find(deviceID);
-    if (it != avionicsDeviceDict.end() && it->second.dispatchDepth > 0) it->second.dispatchDepth--;
+    if (dev && --dev->dispatchDepth == 0) {
+      auto& r = dev->registrants;
+      r.erase(std::remove(r.begin(), r.end(), (intptr_t)0), r.end());
+    }
   }
+  AvionicsDeviceReg *device() const { return dev; }
 };
-
-/* Snapshot of a built-in device's registrants. Python callbacks may register/unregister while we iterate,
-   so callers iterate this copy and skip keys which have gone away. */
-static std::vector<intptr_t> avionicsTargets(void *refcon)
-{
-  auto it = avionicsDeviceDict.find(avionicsDeviceOf(refcon));
-  if (it == avionicsDeviceDict.end()) return {};
-  return it->second.registrants;
-}
 
 /* Remove one built-in registrant: release its Python references and handle, and reconcile the device. */
 static void avionicsDropRegistrant(intptr_t key)
@@ -383,24 +386,57 @@ static void avionicsDropRegistrant(intptr_t key)
   auto dit = avionicsDeviceDict.find(info.deviceID);
   if (dit != avionicsDeviceDict.end()) {
     auto& r = dit->second.registrants;
-    r.erase(std::remove(r.begin(), r.end(), key), r.end());
+    if (dit->second.dispatchDepth > 0) {
+      /* a trampoline is walking this vector by index: leave a tombstone, the guard squeezes it out later */
+      std::replace(r.begin(), r.end(), key, (intptr_t)0);
+    } else {
+      r.erase(std::remove(r.begin(), r.end(), key), r.end());
+    }
   }
   avionicsReconcile(info.deviceID);
 }
+
+/* Destroy one custom (createAvionicsEx) device and release its Python references and handle. */
+static void avionicsDestroyCreated(intptr_t key)
+{
+  auto it = avionicsCallbacksDict.find(key);
+  if (it == avionicsCallbacksDict.end() || it->second.create != 1) return;
+  AvionicsCallbackInfo info = it->second;
+  XPLMDestroyAvionics_ptr(info.avionicsID);
+  avionicsCallbacksDict.erase(it);
+  releaseAvionicsHandle(key);
+  PyObject *objs[] = {info.before, info.after, info.refCon, info.bezel_draw, info.draw, info.bezel_click,
+                      info.bezel_rightclick, info.bezel_scroll, info.bezel_cursor, info.screen_touch,
+                      info.screen_righttouch, info.screen_scroll, info.screen_cursor, info.keyboard,
+                      info.brightness, info.browserLoadFinished, info.browserLoadError};
+  for (PyObject *o : objs) {
+    Py_XDECREF(o);
+  }
+}
+
+static void avionicsRemoveBrowserFunctionsForModule(const char *module_name);
 
 void removeAvionicsRegistrantsForModule(const char *module_name)
 {
   std::vector<intptr_t> keys;
   for (const auto& pair : avionicsCallbacksDict) {
     const AvionicsCallbackInfo& info = pair.second;
-    if (!info.create && info.module_name && module_name && !strcmp(info.module_name, module_name)) {
+    if (info.module_name && module_name && !strcmp(info.module_name, module_name)) {
       keys.push_back(pair.first);
     }
   }
   for (intptr_t key : keys) {
-    pythonDebug("   Removing avionics registration for %s (%ld)", module_name, (long)key);
-    avionicsDropRegistrant(key);
+    auto it = avionicsCallbacksDict.find(key);
+    if (it == avionicsCallbacksDict.end()) continue;
+    if (it->second.create) {
+      pythonDebug("   Destroying custom avionics device for %s (%ld)", module_name, (long)key);
+      avionicsDestroyCreated(key);
+    } else {
+      pythonDebug("   Removing avionics registration for %s (%ld)", module_name, (long)key);
+      avionicsDropRegistrant(key);
+    }
   }
+  avionicsRemoveBrowserFunctionsForModule(module_name);
 }
 
 static int avionicsDrawOne(XPLMDeviceID inDeviceID, int inIsBefore, void *inRefcon)
@@ -424,6 +460,8 @@ static int avionicsDrawOne(XPLMDeviceID inDeviceID, int inIsBefore, void *inRefc
   }
 
   AvionicsCallbackInfo& info = it->second;
+
+  if (xpy_isModuleDisabled(info.module_name)) return inIsBefore ? 1 : 0;  /* script is disabled: skip, but stay registered */
 
   fun = inIsBefore ? info.before : info.after;
   refCon = info.refCon;
@@ -484,6 +522,7 @@ static void genericAvionicsBezelDraw(float inAmbiantR, float inAmbiantG, float i
   } else {
     struct timespec stop, start;
     const AvionicsCallbackInfo& info = it->second;
+    if (xpy_isModuleDisabled(info.module_name)) return;  /* script is disabled: skip, but stay registered */
     set_moduleName(info.module_name);
     if (info.bezel_draw != Py_None) {
       PyObject *ambiantR = PyFloat_FromDouble(inAmbiantR);
@@ -521,6 +560,8 @@ static void genericAvionicsScreenDraw(void *inRefcon)  {
   }
 
   AvionicsCallbackInfo& info  = it->second;
+
+  if (xpy_isModuleDisabled(info.module_name)) return;  /* script is disabled: skip, but stay registered */
   set_moduleName(info.module_name);
   if (info.draw != Py_None) {
     struct timespec stop, start;
@@ -554,6 +595,8 @@ static float genericAvionicsBrightness(float inRheoValue, float inAmbiantBrightn
   }
 
   AvionicsCallbackInfo& info = it->second;
+
+  if (xpy_isModuleDisabled(info.module_name)) return res;  /* script is disabled: skip, but stay registered */
   set_moduleName(info.module_name);
   if (info.brightness != Py_None) {
     struct timespec stop, start;
@@ -604,6 +647,8 @@ static int avionicsBezelClickOne(int x, int y, XPLMMouseStatus inMouse, void *in
   }
 
   AvionicsCallbackInfo& info = it->second;
+
+  if (xpy_isModuleDisabled(info.module_name)) return 0;  /* script is disabled: skip, but stay registered */
   set_moduleName(info.module_name);
   
   if (info.bezel_click != Py_None) {
@@ -658,6 +703,7 @@ static int avionicsBezelRightClickOne(int x, int y, XPLMMouseStatus inMouse, voi
     return res;
   }
   AvionicsCallbackInfo& info = it->second;
+  if (xpy_isModuleDisabled(info.module_name)) return 0;  /* script is disabled: skip, but stay registered */
   set_moduleName(info.module_name);
   
   PyObject *pRes = nullptr;
@@ -712,6 +758,7 @@ static int avionicsBezelScrollOne(int x, int y, int wheel, int clicks, void *inR
   }
   PyObject *pRes = nullptr;
   AvionicsCallbackInfo& info = it->second;
+  if (xpy_isModuleDisabled(info.module_name)) return 0;  /* script is disabled: skip, but stay registered */
   set_moduleName(info.module_name);
 
   if (info.bezel_scroll != Py_None) {
@@ -768,6 +815,7 @@ static XPLMCursorStatus avionicsBezelCursorOne(int x, int y, void *inRefcon) {
     return res;
   }
   AvionicsCallbackInfo& info = it->second;
+  if (xpy_isModuleDisabled(info.module_name)) return xplm_CursorDefault;  /* script is disabled: skip, but stay registered */
   set_moduleName(info.module_name);
 
   if (info.bezel_cursor != Py_None) {
@@ -820,6 +868,7 @@ static int avionicsScreenTouchOne(int x, int y, int inMouse, void *inRefcon) {
   }
   PyObject *pRes = nullptr;
   AvionicsCallbackInfo& info = it->second;
+  if (xpy_isModuleDisabled(info.module_name)) return 0;  /* script is disabled: skip, but stay registered */
   set_moduleName(info.module_name);
 
   if (info.screen_touch != Py_None) {
@@ -874,6 +923,7 @@ static int avionicsScreenRightTouchOne(int x, int y, int inMouse, void *inRefcon
   }
   PyObject *pRes = nullptr;
   AvionicsCallbackInfo& info = it->second;
+  if (xpy_isModuleDisabled(info.module_name)) return 0;  /* script is disabled: skip, but stay registered */
   set_moduleName(info.module_name);
 
   if (info.screen_righttouch != Py_None) {
@@ -929,6 +979,7 @@ static int avionicsScreenScrollOne(int x, int y, int wheel, int clicks, void *in
 
   PyObject *pRes = nullptr;
   AvionicsCallbackInfo& info = it->second;
+  if (xpy_isModuleDisabled(info.module_name)) return 0;  /* script is disabled: skip, but stay registered */
   set_moduleName(info.module_name);
 
   if(info.screen_scroll != Py_None) {
@@ -986,6 +1037,8 @@ static XPLMCursorStatus avionicsScreenCursorOne(int x, int y, void *inRefcon) {
 
   AvionicsCallbackInfo& info = it->second;
 
+  if (xpy_isModuleDisabled(info.module_name)) return xplm_CursorDefault;  /* script is disabled: skip, but stay registered */
+
   PyObject *pRes = nullptr;
   set_moduleName(info.module_name);
 
@@ -1039,6 +1092,8 @@ static int avionicsKeyboardOne(char inKey, XPLMKeyFlags inFlags, char inVirtualK
   }
 
   AvionicsCallbackInfo& info = it->second;
+
+  if (xpy_isModuleDisabled(info.module_name)) return 0;  /* script is disabled: skip, but stay registered */
   set_moduleName(info.module_name);
   
   if (info.keyboard != Py_None) {
@@ -1100,9 +1155,11 @@ static int genericAvionicsCallback(XPLMDeviceID inDeviceID, int inIsBefore, void
     return avionicsDrawOne(inDeviceID, inIsBefore, inRefcon);
   }
   AvionicsDispatchGuard guard(avionicsDeviceOf(inRefcon));
+  AvionicsDeviceReg *dev = guard.device();
   int res = 1;
-  for (intptr_t key : avionicsTargets(inRefcon)) {
-    if (avionicsCallbacksDict.find(key) == avionicsCallbacksDict.end()) continue;
+  for (size_t i = 0; dev && i < dev->registrants.size(); i++) {
+    intptr_t key = dev->registrants[i];
+    if (!key || avionicsCallbacksDict.find(key) == avionicsCallbacksDict.end()) continue;
     if (avionicsDrawOne(inDeviceID, inIsBefore, (void *)key) == 0 && inIsBefore) {
       res = 0;
     }
@@ -1116,9 +1173,11 @@ static int genericAvionicsBezelClick(int x, int y, XPLMMouseStatus inMouse, void
     return avionicsBezelClickOne(x, y, inMouse, inRefcon);
   }
   AvionicsDispatchGuard guard(avionicsDeviceOf(inRefcon));
+  AvionicsDeviceReg *dev = guard.device();
   int res = 0;
-  for (intptr_t key : avionicsTargets(inRefcon)) {
-    if (avionicsCallbacksDict.find(key) == avionicsCallbacksDict.end()) continue;
+  for (size_t i = 0; dev && i < dev->registrants.size(); i++) {
+    intptr_t key = dev->registrants[i];
+    if (!key || avionicsCallbacksDict.find(key) == avionicsCallbacksDict.end()) continue;
     if (avionicsBezelClickOne(x, y, inMouse, (void *)key)) res = 1;
   }
   return res;
@@ -1130,9 +1189,11 @@ static int genericAvionicsBezelRightClick(int x, int y, XPLMMouseStatus inMouse,
     return avionicsBezelRightClickOne(x, y, inMouse, inRefcon);
   }
   AvionicsDispatchGuard guard(avionicsDeviceOf(inRefcon));
+  AvionicsDeviceReg *dev = guard.device();
   int res = 0;
-  for (intptr_t key : avionicsTargets(inRefcon)) {
-    if (avionicsCallbacksDict.find(key) == avionicsCallbacksDict.end()) continue;
+  for (size_t i = 0; dev && i < dev->registrants.size(); i++) {
+    intptr_t key = dev->registrants[i];
+    if (!key || avionicsCallbacksDict.find(key) == avionicsCallbacksDict.end()) continue;
     if (avionicsBezelRightClickOne(x, y, inMouse, (void *)key)) res = 1;
   }
   return res;
@@ -1144,9 +1205,11 @@ static int genericAvionicsBezelScroll(int x, int y, int wheel, int clicks, void 
     return avionicsBezelScrollOne(x, y, wheel, clicks, inRefcon);
   }
   AvionicsDispatchGuard guard(avionicsDeviceOf(inRefcon));
+  AvionicsDeviceReg *dev = guard.device();
   int res = 0;
-  for (intptr_t key : avionicsTargets(inRefcon)) {
-    if (avionicsCallbacksDict.find(key) == avionicsCallbacksDict.end()) continue;
+  for (size_t i = 0; dev && i < dev->registrants.size(); i++) {
+    intptr_t key = dev->registrants[i];
+    if (!key || avionicsCallbacksDict.find(key) == avionicsCallbacksDict.end()) continue;
     if (avionicsBezelScrollOne(x, y, wheel, clicks, (void *)key)) res = 1;
   }
   return res;
@@ -1158,9 +1221,11 @@ static XPLMCursorStatus genericAvionicsBezelCursor(int x, int y, void *inRefcon)
     return avionicsBezelCursorOne(x, y, inRefcon);
   }
   AvionicsDispatchGuard guard(avionicsDeviceOf(inRefcon));
+  AvionicsDeviceReg *dev = guard.device();
   XPLMCursorStatus res = xplm_CursorDefault;
-  for (intptr_t key : avionicsTargets(inRefcon)) {
-    if (avionicsCallbacksDict.find(key) == avionicsCallbacksDict.end()) continue;
+  for (size_t i = 0; dev && i < dev->registrants.size(); i++) {
+    intptr_t key = dev->registrants[i];
+    if (!key || avionicsCallbacksDict.find(key) == avionicsCallbacksDict.end()) continue;
     XPLMCursorStatus status = avionicsBezelCursorOne(x, y, (void *)key);
     if (res == xplm_CursorDefault && status != xplm_CursorDefault) res = status;
   }
@@ -1173,9 +1238,11 @@ static int genericAvionicsScreenTouch(int x, int y, int inMouse, void *inRefcon)
     return avionicsScreenTouchOne(x, y, inMouse, inRefcon);
   }
   AvionicsDispatchGuard guard(avionicsDeviceOf(inRefcon));
+  AvionicsDeviceReg *dev = guard.device();
   int res = 0;
-  for (intptr_t key : avionicsTargets(inRefcon)) {
-    if (avionicsCallbacksDict.find(key) == avionicsCallbacksDict.end()) continue;
+  for (size_t i = 0; dev && i < dev->registrants.size(); i++) {
+    intptr_t key = dev->registrants[i];
+    if (!key || avionicsCallbacksDict.find(key) == avionicsCallbacksDict.end()) continue;
     if (avionicsScreenTouchOne(x, y, inMouse, (void *)key)) res = 1;
   }
   return res;
@@ -1187,9 +1254,11 @@ static int genericAvionicsScreenRightTouch(int x, int y, int inMouse, void *inRe
     return avionicsScreenRightTouchOne(x, y, inMouse, inRefcon);
   }
   AvionicsDispatchGuard guard(avionicsDeviceOf(inRefcon));
+  AvionicsDeviceReg *dev = guard.device();
   int res = 0;
-  for (intptr_t key : avionicsTargets(inRefcon)) {
-    if (avionicsCallbacksDict.find(key) == avionicsCallbacksDict.end()) continue;
+  for (size_t i = 0; dev && i < dev->registrants.size(); i++) {
+    intptr_t key = dev->registrants[i];
+    if (!key || avionicsCallbacksDict.find(key) == avionicsCallbacksDict.end()) continue;
     if (avionicsScreenRightTouchOne(x, y, inMouse, (void *)key)) res = 1;
   }
   return res;
@@ -1201,9 +1270,11 @@ static int genericAvionicsScreenScroll(int x, int y, int wheel, int clicks, void
     return avionicsScreenScrollOne(x, y, wheel, clicks, inRefcon);
   }
   AvionicsDispatchGuard guard(avionicsDeviceOf(inRefcon));
+  AvionicsDeviceReg *dev = guard.device();
   int res = 0;
-  for (intptr_t key : avionicsTargets(inRefcon)) {
-    if (avionicsCallbacksDict.find(key) == avionicsCallbacksDict.end()) continue;
+  for (size_t i = 0; dev && i < dev->registrants.size(); i++) {
+    intptr_t key = dev->registrants[i];
+    if (!key || avionicsCallbacksDict.find(key) == avionicsCallbacksDict.end()) continue;
     if (avionicsScreenScrollOne(x, y, wheel, clicks, (void *)key)) res = 1;
   }
   return res;
@@ -1215,9 +1286,11 @@ static XPLMCursorStatus genericAvionicsScreenCursor(int x, int y, void *inRefcon
     return avionicsScreenCursorOne(x, y, inRefcon);
   }
   AvionicsDispatchGuard guard(avionicsDeviceOf(inRefcon));
+  AvionicsDeviceReg *dev = guard.device();
   XPLMCursorStatus res = xplm_CursorDefault;
-  for (intptr_t key : avionicsTargets(inRefcon)) {
-    if (avionicsCallbacksDict.find(key) == avionicsCallbacksDict.end()) continue;
+  for (size_t i = 0; dev && i < dev->registrants.size(); i++) {
+    intptr_t key = dev->registrants[i];
+    if (!key || avionicsCallbacksDict.find(key) == avionicsCallbacksDict.end()) continue;
     XPLMCursorStatus status = avionicsScreenCursorOne(x, y, (void *)key);
     if (res == xplm_CursorDefault && status != xplm_CursorDefault) res = status;
   }
@@ -1230,9 +1303,11 @@ static int genericAvionicsKeyboard(char inKey, XPLMKeyFlags inFlags, char inVirt
     return avionicsKeyboardOne(inKey, inFlags, inVirtualKey, inRefcon, losingFocus);
   }
   AvionicsDispatchGuard guard(avionicsDeviceOf(inRefcon));
+  AvionicsDeviceReg *dev = guard.device();
   int res = 0;
-  for (intptr_t key : avionicsTargets(inRefcon)) {
-    if (avionicsCallbacksDict.find(key) == avionicsCallbacksDict.end()) continue;
+  for (size_t i = 0; dev && i < dev->registrants.size(); i++) {
+    intptr_t key = dev->registrants[i];
+    if (!key || avionicsCallbacksDict.find(key) == avionicsCallbacksDict.end()) continue;
     /* losingFocus is told to everyone, whatever they return */
     if (avionicsKeyboardOne(inKey, inFlags, inVirtualKey, (void *)key, losingFocus)) res = 1;
   }
@@ -1693,17 +1768,7 @@ PyObject *XPLMDestroyAvionicsFun(PyObject *self, PyObject *args, PyObject *kwarg
     PyErr_SetString(PyExc_RuntimeError, "XPLMDestroyAvionics: this is a built-in avionics device. Use unregisterAvionicsCallbacks() instead.\n");
     return nullptr;
   }
-  AvionicsCallbackInfo info = it->second;
-  XPLMDestroyAvionics_ptr(info.avionicsID);
-  avionicsCallbacksDict.erase(it);
-  releaseAvionicsHandle(key);
-  PyObject *objs[] = {info.before, info.after, info.bezel_draw, info.draw, info.bezel_click,
-                      info.bezel_rightclick, info.bezel_scroll, info.bezel_cursor, info.screen_touch,
-                      info.screen_righttouch, info.screen_scroll, info.screen_cursor, info.keyboard,
-                      info.brightness};
-  for (PyObject *o : objs) {
-    Py_XDECREF(o);
-  }
+  avionicsDestroyCreated(key);
   Py_RETURN_NONE;
 }
 PyObject *XPLMGetAvionicsBusVoltsRatioFun(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -1833,6 +1898,20 @@ struct AvionicsBrowserFunctionInfo {
 std::unordered_map<intptr_t, AvionicsBrowserFunctionInfo> avionicsBrowserFunctionDict;
 static intptr_t avionicsBrowserFunctionCntr;
 
+/* Browser functions belong to a device we've just destroyed (or are about to): release this script's. */
+static void avionicsRemoveBrowserFunctionsForModule(const char *module_name)
+{
+  for (auto it = avionicsBrowserFunctionDict.begin(); it != avionicsBrowserFunctionDict.end(); ) {
+    if (it->second.module_name && module_name && !strcmp(it->second.module_name, module_name)) {
+      Py_DECREF(it->second.callback);
+      Py_DECREF(it->second.refCon);
+      it = avionicsBrowserFunctionDict.erase(it);
+    } else {
+      ++it;
+    }
+  }
+}
+
 /* browserLoadFinished/browserLoadError callbacks: like the generic avionics draw
    callbacks, inRefcon is the avionicsCallbacksDict counter, not a PyObject*. */
 static void genericAvionicsBrowserLoadFinished(XPLMAvionicsID inAvionics, const char *inURL, void *inRefcon)
@@ -1846,6 +1925,7 @@ static void genericAvionicsBrowserLoadFinished(XPLMAvionicsID inAvionics, const 
     return;
   }
   AvionicsCallbackInfo& info = it->second;
+  if (xpy_isModuleDisabled(info.module_name)) return;  /* script is disabled: skip, but stay registered */
   if (info.browserLoadFinished != Py_None) {
     PyObject *pID = avionicsCapsuleForKey((intptr_t)inRefcon);
     PyObject *pURL = inURL ? PyUnicode_FromString(inURL) : (Py_INCREF(Py_None), Py_None);
@@ -1876,6 +1956,7 @@ static void genericAvionicsBrowserLoadError(XPLMAvionicsID inAvionics, const cha
     return;
   }
   AvionicsCallbackInfo& info = it->second;
+  if (xpy_isModuleDisabled(info.module_name)) return;  /* script is disabled: skip, but stay registered */
   if (info.browserLoadError != Py_None) {
     PyObject *pID = avionicsCapsuleForKey((intptr_t)inRefcon);
     PyObject *pURL = inURL ? PyUnicode_FromString(inURL) : (Py_INCREF(Py_None), Py_None);
@@ -1911,6 +1992,8 @@ static const char *genericAvionicsBrowserCallback(XPLMAvionicsID inAvionics, con
   auto it = avionicsBrowserFunctionDict.find((intptr_t)inRefcon);
   if(it == avionicsBrowserFunctionDict.end()){
     pythonLog("Unknown refcon passed to genericAvionicsBrowserCallback (%p).", inRefcon);
+  } else if (xpy_isModuleDisabled(it->second.module_name)) {
+    /* script is disabled: skip it (the page's Promise resolves to null), but stay registered */
   } else {
     PyObject *func = it->second.callback;
     PyObject *pID = avionicsCapsuleForSdk(inAvionics);
@@ -2431,6 +2514,8 @@ My_DOCSTR(_registerAvionicsCallbacksEx__doc__, "registerAvionicsCallbacksEx",
           "logs a warning and returns None. All scripts customizing a device must use the same\n"
           "contentType (ValueError otherwise). If X-Plane refuses the registration, RuntimeError\n"
           "is raised.\n"
+          "\n"
+          "While a script is disabled, its callbacks are skipped (but remain registered).\n"
           "\n"
           "Successful registration returns an AvionicsID."
          );

@@ -6,7 +6,7 @@ Known Bugs
 
   None. *Prove me wrong!*
 
-4.8.0b1 (23-Sep-2026)
+4.8.0b2 (23-Sep-2026)
 ---------------------
 
 :Fixes:
@@ -19,21 +19,6 @@ Known Bugs
      The (could) result in color polygons only being displayed in black. This has been corrected.
      Note that with new Panel Graphics routines, you should be migrating over to this new (faster) feature
      rather than using raw OpenGL.
-
-   * **Avionics callbacks from more than one script**: several PythonPlugins can now customize the *same* built-in
-     avionics device with :func:`xp.registerAvionicsCallbacksEx`. SDK440 allows XPPython3 only one registration per
-     device, so previously the second script's registration failed (returning ``None``, silently) and its callbacks never ran.
-     XPPython3 now registers once, calls every script's callbacks, and combines the results
-     (see :func:`xp.registerAvionicsCallbacksEx`).
-
-   * **registerAvionicsCallbacksEx / unregisterAvionicsCallbacks**: a failed registration now raises ``RuntimeError``
-     rather than returning ``None``, and no longer leaks references. ``unregisterAvionicsCallbacks`` removes only the
-     calling script's callbacks (and releases its ``refCon``), and an unregistered avionicsID raises ``ValueError``
-     if used again. Registrations are removed when a script stops. The tuple form of
-     ``registerAvionicsCallbacksEx`` now passes the correct ``deviceID`` to your callbacks.
-
-   * **Avionics 'before' callbacks**: a ``before`` callback which raised an exception, or returned the wrong type,
-     used to suppress X-Plane's drawing of the device. It is now logged, disabled, and drawing continues.
 
    |
    
@@ -79,6 +64,24 @@ Known Bugs
 :Improvements:
    * Online documentation has been re-ordered a bit for clarity and I've added pages to help you
      understand :doc:`/development/plugin_tasks`, :doc:`/development/graphics`
+
+   * **Avionics callbacks from more than one script**: several PythonPlugins can now customize the *same* built-in
+     avionics device with :func:`xp.registerAvionicsCallbacksEx`. SDK440 allows XPPython3 only one registration per
+     device, so previously the second script's registration failed (returning ``None``, silently) and its callbacks never ran.
+     XPPython3 now registers once, calls every script's callbacks, and combines the results
+     (see :func:`xp.registerAvionicsCallbacksEx`).
+
+   * **registerAvionicsCallbacksEx / unregisterAvionicsCallbacks**: a failed registration now raises ``RuntimeError``
+     rather than returning ``None``, and no longer leaks references. ``unregisterAvionicsCallbacks`` removes only the
+     calling script's callbacks (and releases its ``refCon``), and an unregistered avionicsID raises ``ValueError``
+     if used again. Registrations are removed when a script stops. The tuple form of
+     ``registerAvionicsCallbacksEx`` now passes the correct ``deviceID`` to your callbacks.
+
+   * **Disabled scripts and avionics callbacks**: avionics callbacks (draw, input, brightness, browser) of a disabled script
+     are now skipped rather than called. They remain registered.
+
+   * **Avionics 'before' callbacks**: a ``before`` callback which raised an exception, or returned the wrong type,
+     used to suppress X-Plane's drawing of the device. It is now logged, disabled, and drawing continues.
 
 4.7.1 (12-Jul-2026)
 -------------------

@@ -21,6 +21,8 @@ struct PluginInfo {
 
 extern std::unordered_map<std::string, PyObject*> XPY3moduleInfoDict;  /* moduleName -> instance */
 extern std::unordered_map<PyObject *, PluginInfo> XPY3pluginInfoDict;  /* instance -> info struct */
+/* True if the script with this (interned) module name is disabled. Unknown names are not disabled. */
+extern bool xpy_isModuleDisabled(const char *module_name);
 extern PyObject *XPY3aircraftPlugins; /* [instance, instance, ] */
 extern PyObject *XPY3sceneryPlugins; /* [instance, instance, ] */
 

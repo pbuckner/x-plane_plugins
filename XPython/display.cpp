@@ -1917,25 +1917,9 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
   }
   hotkeyDict.clear();
 
-  for (auto& pair : avionicsCallbacksDict) {
-    AvionicsCallbackInfo& info = pair.second;
-    if(info.before != Py_None) Py_DECREF(info.before);
-    if(info.after != Py_None) Py_DECREF(info.after);
-    if(info.refCon != Py_None) Py_DECREF(info.refCon);
-    if(info.bezel_draw != Py_None) Py_DECREF(info.bezel_draw);
-    if(info.draw != Py_None) Py_DECREF(info.draw);
-    if(info.bezel_click != Py_None) Py_DECREF(info.bezel_click);
-    if(info.bezel_rightclick != Py_None) Py_DECREF(info.bezel_rightclick);
-    if(info.bezel_scroll != Py_None) Py_DECREF(info.bezel_scroll);
-    if(info.bezel_cursor != Py_None) Py_DECREF(info.bezel_cursor);
-    if(info.screen_touch != Py_None) Py_DECREF(info.screen_touch);
-    if(info.screen_righttouch != Py_None) Py_DECREF(info.screen_righttouch);
-    if(info.screen_scroll != Py_None) Py_DECREF(info.screen_scroll);
-    if(info.screen_cursor != Py_None) Py_DECREF(info.screen_cursor);
-    if(info.keyboard != Py_None) Py_DECREF(info.keyboard);
-    if(info.brightness != Py_None) Py_DECREF(info.brightness);
-  }
-  avionicsCallbacksDict.clear();
+  /* Avionics: unregister/destroy with X-Plane and release every Python reference and handle.
+     (Idempotent, so it is harmless if resetAvionicsCallbacks() has already run.) */
+  resetAvionicsCallbacks();
   Py_RETURN_NONE;
 }
 

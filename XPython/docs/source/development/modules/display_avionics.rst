@@ -194,7 +194,9 @@ Use any of these device IDs with :py:func:`registerAvionicsCallbacksEx` or :py:f
   None. A script may register as many *different* devices as it likes. All scripts customizing a device must use the same
   ``contentType``.
 
-  A script's registrations are removed automatically when the script is stopped.
+  A script's registrations are removed automatically when the script is stopped. While a script is *disabled*
+  (e.g., :func:`xp.disablePythonPlugin`, or its ``XPluginEnable`` failed) its avionics callbacks are skipped, but they
+  remain registered; other scripts' callbacks on the same device are unaffected. This applies to custom devices too.
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMRegisterAvionicsCallbacksEx>`__ :index:`XPLMRegisterAvionicsCallbacksEx`
   and `Callbacks <https://developer.x-plane.com/sdk/XPLMCustomizeAvionics_t>`__ :index:`XPLMCustomizeAvionics_t`

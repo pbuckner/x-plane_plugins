@@ -3,6 +3,8 @@
 #include <Python.h>
 #include <dirent.h>
 #include <regex.h>
+#include <string>
+#include <sys/stat.h>
 #include "manage_instance.h"
 #include "load_modules.h"
 
@@ -10,7 +12,7 @@
 
 static PyObject *loadPIClass(const char *fname, PluginType plugin_type);
 
-void xpy_loadModules(const char *path, const char *package, const char *pattern, PyObject* pluginList, PluginType plugin_type)
+void xpy_loadModules(const char *path, const char *package, const char *pattern, PyObject* pluginList, PluginType plugin_type, const char *dirPattern)
 {
   //Scan current directory for the plugin modules, loads and calls XPluginStart()
   set_moduleName(XPPython3ModuleName);
@@ -23,6 +25,24 @@ void xpy_loadModules(const char *path, const char *package, const char *pattern,
   }
   struct dirent *de;
   regex_t rex;
+
+  if (dirPattern && regcomp(&rex, dirPattern, REG_NOSUB | REG_EXTENDED) == 0) {
+    while((de = readdir(dir))) {
+      if(regexec(&rex, de->d_name, 0, nullptr, 0) == 0) {
+        struct stat st;
+        std::string sub_path = std::string(path) + "/" + de->d_name;
+        if (stat(sub_path.c_str(), &st) == 0 && S_ISDIR(st.st_mode)) {
+          pythonDebug("Checking directory %s", sub_path.c_str());
+          std::string new_package = std::string(package) + "." + de->d_name;
+          xpy_loadModules(sub_path.c_str(), new_package.c_str(), pattern, pluginList, plugin_type, nullptr);
+        }
+      }
+    }
+    regfree(&rex);
+  }
+
+  rewinddir(dir);
+
   if(regcomp(&rex, pattern, REG_NOSUB | REG_EXTENDED) == 0){
     while((de = readdir(dir))){
       //pythonDebug("Checking file name %s against pattern %s", de->d_name, pattern);
@@ -61,8 +81,8 @@ void xpy_loadModules(const char *path, const char *package, const char *pattern,
       }
     }
     regfree(&rex);
-    closedir(dir);
   }
+  closedir(dir);
 }
 
 

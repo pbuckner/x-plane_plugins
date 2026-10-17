@@ -35,14 +35,14 @@ std::unordered_map<PyObject *, PluginInfo> XPY3pluginInfoDict;
 void xpy_startInternalPlugins()
 {
   pythonDebug("STARTING Internal plugins...");
-  xpy_loadModules(pythonInternalPluginsPath, "XPPython3", "^I_PI_[^.]*\\.pyc?$", nullptr, PLUGIN_INTERNAL);
+  xpy_loadModules(pythonInternalPluginsPath, "XPPython3", "^I_PI_[^.]*\\.pyc?$", nullptr, PLUGIN_INTERNAL, "^I_PI_[^.]*$");
   pythonDebug("STARTED INTERNAL plugins.");
 }
 
 void xpy_startGlobalPlugins()
 {
   pythonDebug("STARTING Global plugins...");
-  xpy_loadModules(pythonPluginsPath, "PythonPlugins", "^PI_[^.]*\\.pyc?$", nullptr, PLUGIN_GLOBAL);
+  xpy_loadModules(pythonPluginsPath, "PythonPlugins", "^PI_[^.]*\\.pyc?$", nullptr, PLUGIN_GLOBAL, "^PI_[^.]*$");
   pythonDebug("STARTED Global plugins.");
 }
 
@@ -167,7 +167,7 @@ void xpy_startAircraftPlugins()
   char *package_str = objToStr(package);
   Py_DECREF(localsDict);
   /* ... need to know these are 'aircraft' plugins, so I can remove them later!!! */
-  xpy_loadModules(plugins_path, package_str, "^PI_[^.]*\\.pyc?$", XPY3aircraftPlugins, PLUGIN_AIRCRAFT);
+  xpy_loadModules(plugins_path, package_str, "^PI_[^.]*\\.pyc?$", XPY3aircraftPlugins, PLUGIN_AIRCRAFT, "^PI_[^.]*$");
   pythonDebug("STARTED Aircraft plugins.");
   free(package_str);
   free(plugins_path);
@@ -229,7 +229,7 @@ void xpy_startSceneryPlugins()
       const char *path = PyUnicode_AsUTF8(PyList_GetItem(packageInfo, MODULE_PATH));
       const char *package = PyUnicode_AsUTF8(PyList_GetItem(packageInfo, MODULE_PACKAGE));
       // pythonLog("path: %s, package: %s", path, package);
-      xpy_loadModules(path, package, "^PI_[^.]*\\.pyc?$", XPY3sceneryPlugins, PLUGIN_SCENERY);
+      xpy_loadModules(path, package, "^PI_[^.]*\\.pyc?$", XPY3sceneryPlugins, PLUGIN_SCENERY, "^PI_[^.]*$");
       Py_DECREF(packageInfo);
     }
     Py_DECREF(iterator);

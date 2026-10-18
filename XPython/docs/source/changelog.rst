@@ -6,7 +6,7 @@ Known Bugs
 
   None. *Prove me wrong!*
 
-4.8.0b2 (23-Sep-2026)
+4.8.0b2 (18-Oct-2026)
 ---------------------
 
 :Fixes:

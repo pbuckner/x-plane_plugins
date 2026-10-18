@@ -57,3 +57,5 @@ CLAUDE.md
 XPython/.playwright-mcp/
 XPython/Resources/plugins/XPPython3/xp.pyi.sv
 SDK440_migration_report.md
+
+XPython/docs/source/development/udp/reply_enum.txt

@@ -157,6 +157,8 @@ First, you need to create the window setting ``contentType=xp.WindowContentTypeB
     returns (as a JSON string). Your callback is passed the JSON-serialized
     argument string; registering the same *name* again replaces the callback.
 
+    (See :doc:`/development/browser_promise` for how to use the Promise.)
+
     .. caution:: You need to add function(s) *before* you navigate to the window. Once the *initial*
                  SetURL is called, you cannot add functions.
 
@@ -172,8 +174,8 @@ First, you need to create the window setting ``contentType=xp.WindowContentTypeB
          :param XPLMWindowID windowID:
          :param XPLMAvionicsID avionicsID: Window previously created.
          :param str jsonStr: JSON string representation of any parameters provided in javascript invocation.
-         :param Any refCon: refCon as provided with addBrowserFunction (not with :func:`createWindowEx` or :func:`createAvionicsEx`). This is python, not a JSON string. (Javascript never sees this.)
-         :return str: JSON string with results                   
+         :param Any refCon: refCon as provided with *AddBrowserFunction (not with :func:`createWindowEx` or :func:`createAvionicsEx`). This is python, not a JSON string. (Javascript never sees this.)
+         :return str: JSON string with results
 
     The following example provides a javascript function ``xplane.getTailnum(args)``. The ``args`` parameter provided by the
     actually javascript call in the browser will be converted to a JSON string and provided to the callback function. (We
@@ -265,3 +267,7 @@ is no way to register them post-creation.
    TLS failure, file not found). This is the authoritative signal that navigation
    to *url* failed.
 
+.. toctree::
+   :hidden:
+
+   /development/browser_promise

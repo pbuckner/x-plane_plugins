@@ -37,6 +37,10 @@ The structure is:
                  ├─── PI_<plugin1>.py
                  ├─── PI_<plugin2>.py
                  ├─── ....
+                 ├─── PI_<pluginFolder1>/
+                 │    ├─── PI_<main>.py
+                 │    └─── ....
+                 ├─── ....
                  └─── samples/
                       ├─── PI_<sample1>.py
                       ├─── PI_<sample2>.py
@@ -54,10 +58,41 @@ Third-party Python plugins (and those *you* create) themselves go to:
 
     + A third-party plugin may *also* have other files or a folder to go into this PythonPlugins folder. That's okay.
 
-  + Plugins are loaded in order as returned by the OS: that is, do not assume alphabetically!
-  + Python files can then import other python files.
+  -or -
+
+  + Single folder named :code:`PI_<anything>` which contains at least and file named :code:`PI_<anything>.py`
+
+    + The contained main python file does *not* have to match the folder name, though that's a sane thing to do.
+    + Folder *must not* have a period or dash in the name, and must start with the three characters :code:`PI_`.
+    + Folder may contain any number of files, but must have at least one python file also starting with :code:`PI_`.
+    
+* Plugins are loaded in order as returned by the OS: that is, do not assume alphabetically!
+* Python files can then import other python files.
 
 (There are exceptions, but this will cover 99% of your plugins. [#F1]_) 
+
+PI\_ file or PI\_ directory?
+----------------------------
+
+With XPPython3 v4.8 there are two ways to deploy a python plugin:
+
+* Place PI_<name>.py file directly in PythonPlugins folder. (e.g., PI_<plugin1>.py in above example)
+
+  + This is the original method. Any python file starting with ``PI_`` will
+    be loaded as a separate plugin.
+
+* Place plugin files within a folder under PythonPlugins, using separate ``PI_*`` folders for additional plugins. (e.g., PI_pluginFolder1> in above example)
+
+  + Any folder starting with ``PI_`` will be searched for a python file starting
+    with ``PI_``.
+  + Using the ``PI_<folder>/`` method allows you to ship all your files in a single folder (perhaps with subfolders),
+  + This allow an updater like `Skunkcrafts Updater <https://forums.x-plane.org/forums/forum/406-skunkcrafts-updater/>`_
+    to manage your plugin as it requires one-plugin-per folder.
+
+This is strictly a packaging / deployment option: there is zero change in execution.
+
+Example
+-------
 
 So as a quick test, copy the file ``PI_HellowWorld1.py`` from ``PythonPlugins/samples`` up one folder to ``PythonPlugins``.
 
@@ -99,5 +134,5 @@ Internally, we also use:
 
 .. [#F1] *Most* python plugins are "global" and are installed as described above.
          It is possible to write python plugins for specific Aircraft, or related to Scenery.
-         Such plugins are install slightly differently. See :doc:`/development/plugins`.
+         Such plugins are installed slightly differently. See :doc:`/development/plugins`.
 .. [#F2] For Python2, we used "PythonScripts" folder -- same idea, but we need a different folder.

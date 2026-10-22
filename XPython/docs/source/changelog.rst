@@ -59,6 +59,10 @@ Known Bugs
      
    * :func:`xp.getObjects` convenience function to simplify loading of library objects.
 
+   * **Skunkcrafts Updater Support** You can now install a plugin as a separate directory, in addition to placing
+     multiple PI_*.py files all in the same PythonPlugins directory, create a PI_* subdirectory and place all your
+     files with optional ``skunkcrafts_updater.cfg`` file in that directory. See :doc:`/usage/add_plugin`.
+
    |
    
 :Improvements:

@@ -724,6 +724,7 @@ pythonGetDicts = XPPython.pythonGetDicts
 getPluginDict = XPPython.getPluginDict
 getCapsuleDict = XPPython.getCapsuleDict
 getSelfModuleName = XPPython.getSelfModuleName
+isReloading = XPPython.isReloading
 pythonLog = XPPython.log
 getPluginStats = XPPython.getPluginStats
 log = XPPython.log

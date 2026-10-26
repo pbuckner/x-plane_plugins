@@ -34,6 +34,19 @@ extern PyObject *XPY3sceneryPlugins; /* [instance, instance, ] */
 #define PLUGIN_MODULE_NAME 4
 #define PLUGIN_DISABLED 5
 
+/* True while XPPython3 reloads plugins (Reload Scripts command, xp.reloadPlugin()): the
+   XPluginDisable / XPluginStop calls a plugin gets then are part of a reload, not X-Plane
+   shutting down. Exposed to python as xp.isReloading(). */
+extern bool xpy_reloading;
+
+/* Sets xpy_reloading for its lifetime and restores the previous value on any exit,
+   including the early returns in xpy_reloadInstance(). */
+struct XPY3ReloadingScope {
+  bool previous;
+  XPY3ReloadingScope() : previous(xpy_reloading) { xpy_reloading = true; }
+  ~XPY3ReloadingScope() { xpy_reloading = previous; }
+};
+
 extern void xpy_startInstances(int include_aircraft);
 extern void xpy_stopInstances(void);
 extern void xpy_enableInstances(void);

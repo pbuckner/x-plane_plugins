@@ -185,6 +185,20 @@ static PyObject *XPGetSelfModuleNameFun(PyObject *self, PyObject *args)
   return PyUnicode_FromString(CurrentPythonModuleName);
 }
 
+My_DOCSTR(_isReloading__doc__, "isReloading",
+          "",
+          "",
+          "bool",
+          "Return True while XPPython3 is reloading plugins (Reload Scripts,\n"
+          "reloadPlugin()), so XPluginDisable / XPluginStop can tell a reload\n"
+          "from X-Plane shutting down.");
+static PyObject *XPIsReloadingFun(PyObject *self, PyObject *args)
+{
+  (void) self;
+  (void) args;
+  return PyBool_FromLong(xpy_reloading);
+}
+
 My_DOCSTR(_pythonGetDicts__doc__, "pythonGetDicts",
           "",
           "",
@@ -529,6 +543,7 @@ static PyMethodDef XPPythonMethods[] = {
   {"XPGetSelfModuleName", (PyCFunction)XPGetSelfModuleNameFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"getPluginDict", (PyCFunction)buildPluginInfoDict, METH_VARARGS, _getPluginDict__doc__},
   {"disablePythonPlugin", (PyCFunction)disablePythonPlugin, METH_VARARGS | METH_KEYWORDS, _disablePythonPlugin__doc__},
+  {"isReloading", XPIsReloadingFun, METH_VARARGS, _isReloading__doc__},
   {"_cleanup", cleanup, METH_VARARGS, ""},
   {nullptr, nullptr, 0, nullptr}
 };

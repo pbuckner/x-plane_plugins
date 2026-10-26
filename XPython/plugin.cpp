@@ -507,6 +507,7 @@ static int commandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, vo
     }
   }else if(inCommand == reloadScripts){
     if (! xpy3_disabled) {
+      XPY3ReloadingScope reloading;  /* xp.isReloading() is True until this block ends */
       time_t current_time = time(nullptr);
       pythonLog("[XPPython3] Reloading Scripts.======= %.24s", ctime(&current_time));
       pythonLog("[XPPython3] Reload -- 1) Disable existing scripts.=======");

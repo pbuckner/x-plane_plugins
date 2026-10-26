@@ -105,6 +105,7 @@ void xpy_reloadInstance(PyObject *signature) {
      7) "Enable" instance
   */
 
+  XPY3ReloadingScope reloading;  /* xp.isReloading() is True until we return */
   pythonDebug("Reloading instance with signature: %s", objDebug(signature));
   PyObject *pluginInstance = getPluginInstanceBySignature(signature);
   if (!pluginInstance) {

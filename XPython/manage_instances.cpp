@@ -9,6 +9,7 @@
 
 PyObject *XPY3aircraftPlugins; /* [instance, instance, ] */
 PyObject *XPY3sceneryPlugins; /* [instance, instance, ] */
+bool xpy_reloading = false;   /* see manage_instances.h, xp.isReloading() */
 
 static void stopPluginList(PyObject *);
 static void disablePluginList(PyObject *);

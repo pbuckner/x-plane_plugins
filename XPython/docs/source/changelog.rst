@@ -6,6 +6,14 @@ Known Bugs
 
   None. *Prove me wrong!*
 
+4.8.0b3 (not yet released)
+--------------------------
+
+:New Features:
+   * **Added** :func:`xp.isReloading`, ``True`` while XPPython3 reloads plugins (Reload Scripts or
+     ``xp.reloadPlugin()``). A reload calls ``XPluginDisable()`` and ``XPluginStop()`` just as shutting
+     down does; this lets a plugin tell the two apart, e.g., to do work only when X-Plane is really exiting.
+
 4.8.0b2 (18-Oct-2026)
 ---------------------
 

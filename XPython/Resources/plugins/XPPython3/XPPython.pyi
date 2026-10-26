@@ -19,6 +19,15 @@ def reloadPlugin(signature: str) -> None:
     ...
 
 
+def isReloading() -> bool:
+    """
+    Return True while XPPython3 is reloading plugins (Reload Scripts,
+    reloadPlugin()), so XPluginDisable / XPluginStop can tell a reload
+    from X-Plane shutting down.
+    """
+    ...
+
+
 def getPluginStats() -> dict:
     """
     Return dictionary of python plugin performance statistics

@@ -122,6 +122,22 @@ Functions
     primarily the time taken to draw the custom widgets. Non-custom widgets (i.e., standard Laminar widgets)
     are not counted (SDK does not provide access to this timing information.)
 
+.. py:function:: isReloading() -> bool
+
+  :return: bool
+
+  Return ``True`` while XPPython3 is reloading plugins, either all of them (**Reload Scripts**
+  menu item or the ``XPPython3/reloadScripts`` command) or one of them (``xp.reloadPlugin()``).
+  It is ``False`` at all other times, including when X-Plane shuts down.
+
+  A reload calls each affected plugin's ``XPluginDisable()`` and ``XPluginStop()``, exactly as
+  shutting down does. Use this to tell the two apart, for example to do work only when X-Plane
+  is really exiting:
+
+  >>> def XPluginStop(self):
+  ...     if not xp.isReloading():
+  ...         self.save_state_for_next_session()
+
 Constants
 ---------
 

@@ -80,14 +80,17 @@ Three steps:
 
 3. **Start X-Plane**.
 
-  On installation success, we'll popup a window:
+  On installation success, we'll popup a window *after you've loaded an aircraft*:
 
   .. image:: /images/python_samples_popup.png
      :width: 300px
 
+  If you merely load the main X-Plane menu (Resume Last Flight, New Flight, Load Saved Flight...), the
+  installer hasn't had a chance to execute: load an aircraft, *any aircraft,* to complete installation.
+  
   Depending on the version installed, we may popup up other window(s) detailing downloading
   and installation of ancillary software.
-  
+
 .. Note::
    If you have problems with installation
 

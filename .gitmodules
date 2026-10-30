@@ -1,0 +1,3 @@
+[submodule "XPython/xpsdk"]
+	path = XPython/xpsdk
+	url = https://github.com/X-Plane/xpsdk.git

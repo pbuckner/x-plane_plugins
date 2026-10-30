@@ -143,6 +143,7 @@ static PyObject *XPLMSVTDisplayDrawInFun(PyObject *self, PyObject *args, PyObjec
       PyErr_SetString(PyExc_ValueError, "svtDisplayDrawIn: dataOverrides must contain exactly 9 values.");
       return nullptr;
     }
+    data.structSize      = sizeof(data);
     data.pitchDeg        = (float)PyFloat_AsDouble(PyTuple_GetItem(seq, 0));
     data.rollDeg         = (float)PyFloat_AsDouble(PyTuple_GetItem(seq, 1));
     data.headingMagDeg   = (float)PyFloat_AsDouble(PyTuple_GetItem(seq, 2));

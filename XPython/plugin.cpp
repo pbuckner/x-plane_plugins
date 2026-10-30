@@ -196,7 +196,24 @@ int initPython(void){
   }
   /* setenv("PYOPENGL_PLATFORM", "egl", 1);*/
   setenv("PYOPENGL_PLATFORM", "glx", 1); /* to get around Wayland... */
-#endif  
+#endif
+
+#if APL
+  /* The bundled OpenSSL's compiled-in CA path is the python.org framework location, which does not
+     exist on user machines, so https verification fails (CERTIFICATE_VERIFY_FAILED) unless told where
+     to find CA certificates. Point it at the bundled certifi. Don't override a user-provided value. */
+  {
+    char cafile[512];
+    XPLMGetSystemPath(cafile);
+    if (strlcat(cafile, "Resources/plugins/XPPython3/mac_x64/python" PYTHONVERSION "/lib/python" PYTHONVERSION "/site-packages/certifi/cacert.pem", sizeof(cafile)) >= sizeof(cafile)) {
+      pythonLog("certifi cacert.pem path too long, SSL_CERT_FILE not set");
+    } else if (access(cafile, R_OK) != 0) {
+      pythonLog("certifi cacert.pem not found, SSL_CERT_FILE not set: %s", cafile);
+    } else {
+      setenv("SSL_CERT_FILE", cafile, 0);
+    }
+  }
+#endif
 
   if (strlen(executable) > 510) {
     pythonLog("Python executable is really, really long at %d characters. Likely an error: %s", strlen(executable), executable);

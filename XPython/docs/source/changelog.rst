@@ -6,13 +6,28 @@ Known Bugs
 
   None. *Prove me wrong!*
 
-4.8.0b3 (not yet released)
+4.8.0b4 (not yet released)
 --------------------------
 
 :New Features:
    * **Added** :func:`xp.isReloading`, ``True`` while XPPython3 reloads plugins (Reload Scripts or
      ``xp.reloadPlugin()``). A reload calls ``XPluginDisable()`` and ``XPluginStop()`` just as shutting
      down does; this lets a plugin tell the two apart, e.g., to do work only when X-Plane is really exiting.
+
+   * **XP-SDK: github**. XPPython3 now uses a git submodule pointing to official X-Plane SDK in github, rather
+     than a private copy. While this does not change functionality, it should improve version traceability.
+     
+   |
+
+:Fixes:
+   * **macOS: SSL certificate verification**. The Python bundled with XPPython3 uses its own OpenSSL, which
+     looks for CA certificates in a (default) framework location which may not exist. 
+     Plugins using ``https`` (e.g., ``urllib.request.urlopen()`` or ``requests``) could fail with
+     ``CERTIFICATE_VERIFY_FAILED``.  This problem is normally solved by manually running "Install Certificates" on
+     Macs with custom python installations from python.org. We don't do that.
+     XPPython3 now sets the ``SSL_CERT_FILE`` environment variable to the bundled ``certifi`` CA file
+     (``cacert.pem``) at startup, if the file exists. A value you have already set is not overridden.
+
 
 4.8.0b2 (18-Oct-2026)
 ---------------------

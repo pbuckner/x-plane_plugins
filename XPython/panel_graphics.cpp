@@ -11,7 +11,108 @@
 #include "panel_graphics.h"
 #include "plugin_dl.h"
 #include "capsules.h"
+#include <vector>
+#include <string>
+#include <string.h>
 
+
+
+/* ---- Resource ownership ----
+   Fonts, atlases, textures, retained drawings and SVT / map displays are SDK resources owned by the script
+   which created them. Track them so they are released when that script is stopped or reloaded (and all of
+   them at shutdown), instead of leaking for the life of the sim. */
+struct PGEntry {
+  PGKind kind;
+  const char *module_name;
+};
+static std::unordered_map<void *, PGEntry> pgResources;
+
+void pgTrack(void *handle, PGKind kind)
+{
+  if(handle){
+    pgResources[handle] = {kind, CurrentPythonModuleName};
+  }
+}
+
+void pgUntrack(void *handle)
+{
+  pgResources.erase(handle);
+}
+
+static void pgDestroy(void *handle, PGKind kind)
+{
+  const char *capsuleName = "";
+  switch(kind){
+  case PG_RETAINED: if(XPLMDestroyRetainedDrawing_ptr) XPLMDestroyRetainedDrawing_ptr(handle); capsuleName = RETAINED_CAPSULE; break;
+  case PG_SVT:      if(XPLMDestroySVTDisplay_ptr)      XPLMDestroySVTDisplay_ptr(handle);      capsuleName = SVT_CAPSULE; break;
+  case PG_MAP:      if(XPLMDestroyMapDisplay_ptr)      XPLMDestroyMapDisplay_ptr(handle);      capsuleName = MAP_CAPSULE; break;
+  case PG_TEXTURE:  if(XPLMDestroyTexture_ptr)         XPLMDestroyTexture_ptr(handle);         capsuleName = TEXTURE_CAPSULE; break;
+  case PG_ATLAS:    if(XPLMDestroyTextureAtlas_ptr)    XPLMDestroyTextureAtlas_ptr(handle);    capsuleName = ATLAS_CAPSULE; break;
+  case PG_FONT:     if(XPLMDestroyFont_ptr)            XPLMDestroyFont_ptr(handle);            capsuleName = FONT_CAPSULE; break;
+  }
+  deleteCapsuleByPtr(handle, capsuleName);
+}
+
+/* Destroy (module_name == nullptr: every) tracked resource, in an order which never leaves a dependent
+   alive: retained drawings first (they reference fonts and atlases), fonts last. */
+static void pgReleaseMatching(const char *module_name)
+{
+  for(int k = PG_RETAINED; k <= PG_FONT; k++){
+    std::vector<void *> doomed;
+    for(const auto &pair : pgResources){
+      if(pair.second.kind != (PGKind)k) continue;
+      if(module_name && !(pair.second.module_name && !strcmp(pair.second.module_name, module_name))) continue;
+      doomed.push_back(pair.first);
+    }
+    for(void *h : doomed){
+      pythonDebug("   Releasing panel graphics resource %p (%s)", h, module_name ? module_name : "shutdown");
+      pgResources.erase(h);
+      pgDestroy(h, (PGKind)k);
+    }
+  }
+}
+
+static bool retainedDrawingActive = false;
+static const char *retainedOwner = nullptr;   /* script which opened the current recording */
+
+/* Close a recording which its script never ended (it raised, or was stopped part way through), so the SDK
+   is not left recording and other scripts can record. The captured commands are discarded. */
+static void pgAbandonRetainedRecording(void)
+{
+  if(!retainedDrawingActive) return;
+  retainedDrawingActive = false;
+  retainedOwner = nullptr;
+  if(XPLMEndRetainedDrawing_ptr){
+    XPLMRetainedDrawing_t drawing = XPLMEndRetainedDrawing_ptr();
+    if(drawing && XPLMDestroyRetainedDrawing_ptr) XPLMDestroyRetainedDrawing_ptr(drawing);
+  }
+}
+
+void pgReleaseForModule(const char *module_name)
+{
+  if(!module_name) return;
+  touchHandlersRemoveForModule(module_name);
+  if(retainedDrawingActive && retainedOwner && !strcmp(retainedOwner, module_name)){
+    pythonLog("[XPPython3] %s stopped with an unfinished beginRetainedDrawing(); discarding the recording.", module_name);
+    pgAbandonRetainedRecording();
+  }
+  pgReleaseMatching(module_name);
+}
+
+void pgReleaseAll(void)
+{
+  pgAbandonRetainedRecording();
+  pgReleaseMatching(nullptr);
+  touchHandlersReset();
+}
+
+static PyObject *cleanup(PyObject *self, PyObject *args)
+{
+  (void) self;
+  (void) args;
+  pgReleaseAll();
+  Py_RETURN_NONE;
+}
 
 /* ---- Transform stack ---- */
 
@@ -268,12 +369,6 @@ static PyObject *XPLMClearStencilMaskFun(PyObject *self, PyObject *args, PyObjec
 
 /* ---- Retained drawing ---- */
 
-/* Tracks whether a beginRetainedDrawing() recording is currently open, so we can
-   reject nested begins and unbalanced ends from Python before they reach the SDK
-   (the header warns recording sessions must not be nested). Single main thread,
-   so a plain bool is sufficient. */
-static bool retainedDrawingActive = false;
-
 My_DOCSTR(_beginRetainedDrawing__doc__, "beginRetainedDrawing",
           "",
           "",
@@ -294,6 +389,7 @@ static PyObject *XPLMBeginRetainedDrawingFun(PyObject *self, PyObject *args, PyO
   }
   XPLMBeginRetainedDrawing_ptr();
   retainedDrawingActive = true;
+  retainedOwner = CurrentPythonModuleName;
   Py_RETURN_NONE;
 }
 
@@ -319,6 +415,8 @@ static PyObject *XPLMEndRetainedDrawingFun(PyObject *self, PyObject *args, PyObj
   }
   XPLMRetainedDrawing_t drawing = XPLMEndRetainedDrawing_ptr();
   retainedDrawingActive = false;
+  retainedOwner = nullptr;
+  pgTrack(drawing, PG_RETAINED);
   return makeCapsule(drawing, RETAINED_CAPSULE);
 }
 
@@ -342,9 +440,7 @@ static PyObject *XPLMDrawRetainedFun(PyObject *self, PyObject *args, PyObject *k
     return nullptr;
   }
   XPLMRetainedDrawing_t drawing = getVoidPtr(drawingCapsule, RETAINED_CAPSULE);
-  if(!drawing && PyErr_Occurred()){
-    return nullptr;
-  }
+  if(pgHandleInvalid(drawing, "drawing")) return nullptr;
   XPLMDrawRetained_ptr(drawing);
   Py_RETURN_NONE;
 }
@@ -368,9 +464,8 @@ static PyObject *XPLMDestroyRetainedDrawingFun(PyObject *self, PyObject *args, P
     return nullptr;
   }
   XPLMRetainedDrawing_t drawing = getVoidPtr(drawingCapsule, RETAINED_CAPSULE);
-  if(!drawing && PyErr_Occurred()){
-    return nullptr;
-  }
+  if(pgHandleInvalid(drawing, "drawing")) return nullptr;
+  pgUntrack(drawing);
   XPLMDestroyRetainedDrawing_ptr(drawing);
   deleteCapsule(drawingCapsule);
   Py_RETURN_NONE;
@@ -414,6 +509,7 @@ static PyMethodDef XPLMPanelGraphicsMethods[] = {
   {"XPLMDrawRetained", (PyCFunction)XPLMDrawRetainedFun, METH_VARARGS | METH_KEYWORDS, ""},
   {"destroyRetainedDrawing", (PyCFunction)XPLMDestroyRetainedDrawingFun, METH_VARARGS | METH_KEYWORDS, _destroyRetainedDrawing__doc__},
   {"XPLMDestroyRetainedDrawing", (PyCFunction)XPLMDestroyRetainedDrawingFun, METH_VARARGS | METH_KEYWORDS, ""},
+  {"_cleanup", cleanup, METH_VARARGS, ""},
   {nullptr, nullptr, 0, nullptr}
 };
 #pragma GCC diagnostic pop

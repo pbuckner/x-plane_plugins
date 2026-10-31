@@ -37,6 +37,12 @@ extern std::unordered_map<intptr_t, AvionicsCallbackInfo> avionicsCallbacksDict;
    resolve to the same SDK XPLMAvionicsID. If X-Plane hands us a different SDK value (e.g., after we
    re-register a device), only the dict entries are updated and every capsule held by Python stays valid.
 
+   The reason we do this is because the SDK allows any plugin to have a single set of callbacks for a particular
+   avionics device. XPPython3 is a single SDK plugin, but needs to permit multiple *python* plugins to each have
+   a set of callbacks per device (this is assumed to be a very rare occurrence, but we support it.) So,
+   we hand python plugins a "token" instead of the SDK-provide avionics id. We then map from the token to a
+   key INTO the avionicsCallbacksDict... the dict holds the "real" XPLMAvionicsID.
+
    Every function taking a Python XPLMAvionicsID must convert with avionicsSdkId() first. */
 
 /* New reference to the capsule for this dict key (creating the token on first use). */

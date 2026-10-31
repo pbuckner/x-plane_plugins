@@ -1227,7 +1227,8 @@ Window Functions
 
 .. py:function:: takeKeyboardFocus(windowID) -> None
 
- Give a specific window keyboard focus.
+ Give a specific window keyboard focus. (This controls focus of plugin windows *not* avionics. Use
+ :func:`takeAvionicsKeyboardFocus` to control focus of cockpit devices.)
 
  :param windowID: Window to receive focus, or 0 to give focus to X-Plane
  :type windowID: :class:`XPLMWindowID`

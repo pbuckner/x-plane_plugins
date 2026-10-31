@@ -414,7 +414,7 @@ static PyObject *XPLMCreateInstanceExFun(PyObject *self, PyObject *args, PyObjec
         return nullptr;
       }
       PyObject *o = PySequence_GetItem(elem, 0); /* new ref */
-      objRef = getVoidPtr(o, "XPLMObjectRef");
+      objRef = o ? getVoidPtr(o, "XPLMObjectRef") : nullptr;
       Py_XDECREF(o);
       for(Py_ssize_t k = 1; k < elen; ++k){
         PyObject *v = PySequence_GetItem(elem, k); /* new ref */
@@ -430,6 +430,14 @@ static PyObject *XPLMCreateInstanceExFun(PyObject *self, PyObject *args, PyObjec
       objRef = getVoidPtr(elem, "XPLMObjectRef");
     }
     Py_DECREF(elem);
+    if(!objRef){
+      /* None, or not an XPLMObjectRef (getVoidPtr has then set an exception): never hand NULL to the SDK */
+      if(!PyErr_Occurred()){
+        PyErr_Format(PyExc_ValueError, "createInstanceEx: object %zd is None (expected an XPLMObjectRef).", i);
+      }
+      free(objArray);
+      return nullptr;
+    }
     objArray[i].object  = objRef;
     objArray[i].x       = offsets[0];
     objArray[i].y       = offsets[1];
@@ -441,6 +449,11 @@ static PyObject *XPLMCreateInstanceExFun(PyObject *self, PyObject *args, PyObjec
 
   /* Build the shared, NULL-terminated dataref list (same as createInstance). */
   Py_ssize_t len = 0;
+  if(drefList != Py_None && !PySequence_Check(drefList)){
+    PyErr_SetString(PyExc_TypeError, "createInstanceEx: dataRefs must be None or a sequence of strings");
+    free(objArray);
+    return nullptr;
+  }
   if(PySequence_Check(drefList)){
     len = PySequence_Length(drefList);
     if(len < 0){
@@ -503,6 +516,10 @@ static PyObject *XPLMCreateInstanceExFun(PyObject *self, PyObject *args, PyObjec
   free(datarefs);
   free(objArray);
 
+  if(!res){
+    PyErr_SetString(PyExc_RuntimeError, "XPLMCreateInstanceEx failed (returned NULL).");
+    return nullptr;
+  }
   instanceSet.insert((void*)res);
   return makeCapsule(res, "XPLMInstanceRef");
 }

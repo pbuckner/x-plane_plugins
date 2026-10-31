@@ -37,6 +37,7 @@ static PyObject *XPLMCreateFontFun(PyObject *self, PyObject *args, PyObject *kwa
     PyErr_SetString(PyExc_RuntimeError , "XPLMCreateFont failed.");
     return nullptr;
   }
+  pgTrack(font, PG_FONT);
   return makeCapsule(font, FONT_CAPSULE);
 }
 
@@ -58,6 +59,8 @@ static PyObject *XPLMDestroyFontFun(PyObject *self, PyObject *args, PyObject *kw
     return nullptr;
   }
   XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
+  if(pgHandleInvalid(font, "font")) return nullptr;
+  pgUntrack(font);
   XPLMDestroyFont_ptr(font);
   deleteCapsule(fontCapsule);
   Py_RETURN_NONE;
@@ -85,6 +88,7 @@ static PyObject *XPLMFontAddFaceFun(PyObject *self, PyObject *args, PyObject *kw
     return nullptr;
   }
   XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
+  if(pgHandleInvalid(font, "font")) return nullptr;
   int ret = XPLMFontAddFace_ptr(font, ttfPath);
   return PyLong_FromLong(ret);
 }
@@ -109,6 +113,7 @@ static PyObject *XPLMFontGetMetricsFun(PyObject *self, PyObject *args, PyObject 
     return nullptr;
   }
   XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
+  if(pgHandleInvalid(font, "font")) return nullptr;
   XPLMFontMetrics_t metrics;
   metrics.structSize = sizeof(XPLMFontMetrics_t);
   XPLMFontGetMetrics_ptr(font, fontSize, &metrics);
@@ -136,6 +141,7 @@ static PyObject *XPLMFontMeasureStringFun(PyObject *self, PyObject *args, PyObje
     return nullptr;
   }
   XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
+  if(pgHandleInvalid(font, "font")) return nullptr;
   return PyFloat_FromDouble(XPLMFontMeasureString_ptr(font, fontSize, string));
 }
 
@@ -159,6 +165,7 @@ static PyObject *XPLMFontGetLineCountFun(PyObject *self, PyObject *args, PyObjec
     return nullptr;
   }
   XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
+  if(pgHandleInvalid(font, "font")) return nullptr;
   return PyLong_FromLong(XPLMFontGetLineCount_ptr(font, fontSize, string, width));
 }
 
@@ -183,6 +190,7 @@ static PyObject *XPLMFontFitForwardFun(PyObject *self, PyObject *args, PyObject 
     return nullptr;
   }
   XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
+  if(pgHandleInvalid(font, "font")) return nullptr;
   return PyLong_FromLong(XPLMFontFitForward_ptr(font, fontSize, string, width));
 }
 
@@ -210,6 +218,7 @@ static PyObject *XPLMFontFitReverseFun(PyObject *self, PyObject *args, PyObject 
     return nullptr;
   }
   XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
+  if(pgHandleInvalid(font, "font")) return nullptr;
   return PyLong_FromLong(XPLMFontFitReverse_ptr(font, fontSize, string, width));
 }
 
@@ -238,6 +247,7 @@ static PyObject *XPLMFontDrawStringFun(PyObject *self, PyObject *args, PyObject 
     return nullptr;
   }
   XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
+  if(pgHandleInvalid(font, "font")) return nullptr;
   XPLMFontDrawString_ptr(font, (uint32_t)color, fontSize, x, y, string, (XPLMJustification_t)justification);
   Py_RETURN_NONE;
 }
@@ -267,6 +277,7 @@ static PyObject *XPLMFontDrawStringFixedSpacingFun(PyObject *self, PyObject *arg
     return nullptr;
   }
   XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
+  if(pgHandleInvalid(font, "font")) return nullptr;
   XPLMFontDrawStringFixedSpacing_ptr(font, (uint32_t)color, fontSize, x, y, string, fixedSpacing,
                                      (XPLMJustification_t)justification);
   Py_RETURN_NONE;
@@ -297,6 +308,7 @@ static PyObject *XPLMFontDrawStringWordWrappedFun(PyObject *self, PyObject *args
     return nullptr;
   }
   XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
+  if(pgHandleInvalid(font, "font")) return nullptr;
   XPLMFontDrawStringWordWrapped_ptr(font, (uint32_t)color, fontSize, x, y, string, wrapWidth,
                                     (XPLMJustification_t)justification);
   Py_RETURN_NONE;
@@ -327,6 +339,7 @@ static PyObject *XPLMFontDrawStringRotatedFun(PyObject *self, PyObject *args, Py
     return nullptr;
   }
   XPLMFontHandle font = getVoidPtr(fontCapsule, FONT_CAPSULE);
+  if(pgHandleInvalid(font, "font")) return nullptr;
   XPLMFontDrawStringRotated_ptr(font, (uint32_t)color, fontSize, x, y, string, angle,
                                 (XPLMJustification_t)justification);
   Py_RETURN_NONE;

@@ -12,6 +12,9 @@
 #include "plugin_dl.h"
 #include "capsules.h"
 #include "display_avionics.h"
+#include "manage_instances.h"
+#include <string.h>
+#include <vector>
 
 /* ---- touch zones --------------------------------------------------------- */
 
@@ -23,6 +26,8 @@ struct TouchHandlerInfo {
   const char *module_name;
   PyObject *callback;
   PyObject *refCon;
+  void *handle;       /* the window / avionics SDK handle this is registered on */
+  bool avionics;      /* handle is an XPLMAvionicsID (else XPLMWindowID) */
 };
 static std::unordered_map<void *, TouchHandlerInfo *> touchHandlerDict;
 
@@ -32,6 +37,9 @@ static void touchEventCallback(int identifier, XPLMMouseStatus status, int x, in
   TouchHandlerInfo *info = (TouchHandlerInfo *)ref;
   if(!info || !info->callback || info->callback == Py_None){
     return;
+  }
+  if(xpy_isModuleDisabled(info->module_name)){
+    return;   /* script is disabled: skip, but stay registered */
   }
   set_moduleName(info->module_name);
   PyObject *args[] = {
@@ -57,30 +65,108 @@ static void touchEventCallback(int identifier, XPLMMouseStatus status, int x, in
   Py_XDECREF(pRes);
 }
 
+static void freeTouchHandler(TouchHandlerInfo *info)
+{
+  Py_XDECREF(info->callback);
+  Py_XDECREF(info->refCon);
+  free(info);
+}
+
 /* Drop any existing handler registered on `handle`; if `handler` is not None,
    store a new TouchHandlerInfo and return it (to hand to the SDK as `ref`),
    otherwise return nullptr (meaning: unregister). */
-static TouchHandlerInfo *prepareTouchHandler(void *handle, PyObject *handler, PyObject *refCon)
+static TouchHandlerInfo *prepareTouchHandler(void *handle, bool avionics, PyObject *handler, PyObject *refCon)
 {
   auto it = touchHandlerDict.find(handle);
   if(it != touchHandlerDict.end()){
-    TouchHandlerInfo *old = it->second;
-    Py_XDECREF(old->callback);
-    Py_XDECREF(old->refCon);
-    free(old);
+    freeTouchHandler(it->second);
     touchHandlerDict.erase(it);
   }
   if(!handler || handler == Py_None){
     return nullptr;
   }
   TouchHandlerInfo *info = (TouchHandlerInfo *)malloc(sizeof(TouchHandlerInfo));
+  if(!info){
+    PyErr_NoMemory();
+    return nullptr;
+  }
   info->module_name = CurrentPythonModuleName;
   Py_INCREF(handler);
   info->callback = handler;
   Py_INCREF(refCon);
   info->refCon = refCon;
+  info->handle = handle;
+  info->avionics = avionics;
   touchHandlerDict[handle] = info;
   return info;
+}
+
+/* The window / device is gone (the SDK forgot its handler with it): forget ours. No SDK call. */
+void touchHandlerDrop(void *handle)
+{
+  auto it = touchHandlerDict.find(handle);
+  if(it != touchHandlerDict.end()){
+    freeTouchHandler(it->second);
+    touchHandlerDict.erase(it);
+  }
+}
+
+/* A built-in avionics device was re-registered and X-Plane gave it a new handle: the handler was attached to
+   the old registration, so move our record to the new handle and attach it there. */
+void touchHandlerMigrate(void *oldHandle, void *newHandle)
+{
+  if(oldHandle == newHandle || !newHandle){
+    return;
+  }
+  auto it = touchHandlerDict.find(oldHandle);
+  if(it == touchHandlerDict.end()){
+    return;
+  }
+  TouchHandlerInfo *info = it->second;
+  touchHandlerDict.erase(it);
+  if(!info->avionics || !XPLMAvionicsSetTouchEventHandler_ptr){
+    freeTouchHandler(info);
+    return;
+  }
+  info->handle = newHandle;
+  touchHandlerDict[newHandle] = info;
+  XPLMAvionicsSetTouchEventHandler_ptr(newHandle, touchEventCallback, info);
+}
+
+/* The script is going away: take its handlers off the (still living) windows / devices and free them.
+   Called before the script's own devices are destroyed (see xpy_cleanUpInstance). */
+void touchHandlersRemoveForModule(const char *module_name)
+{
+  std::vector<TouchHandlerInfo *> doomed;
+  for(const auto &pair : touchHandlerDict){
+    TouchHandlerInfo *info = pair.second;
+    if(info->module_name && module_name && !strcmp(info->module_name, module_name)){
+      doomed.push_back(info);
+    }
+  }
+  for(TouchHandlerInfo *info : doomed){
+    touchHandlerDict.erase(info->handle);
+    if(info->avionics){
+      if(XPLMAvionicsSetTouchEventHandler_ptr) XPLMAvionicsSetTouchEventHandler_ptr(info->handle, nullptr, nullptr);
+    }else{
+      if(XPLMWindowSetTouchEventHandler_ptr) XPLMWindowSetTouchEventHandler_ptr(info->handle, nullptr, nullptr);
+    }
+    freeTouchHandler(info);
+  }
+}
+
+/* Shutdown. X-Plane may still hold our pointers while it tears windows / devices down, so keep the (tiny)
+   structs but neuter them: the trampoline returns early when callback is NULL. */
+void touchHandlersReset(void)
+{
+  for(const auto &pair : touchHandlerDict){
+    TouchHandlerInfo *info = pair.second;
+    Py_XDECREF(info->callback);
+    Py_XDECREF(info->refCon);
+    info->callback = nullptr;
+    info->refCon = nullptr;
+  }
+  touchHandlerDict.clear();
 }
 
 My_DOCSTR(_accumulateTouchZone__doc__, "accumulateTouchZone",
@@ -160,7 +246,10 @@ static PyObject *XPLMAvionicsSetTouchEventHandlerFun(PyObject *self, PyObject *a
   if(!avionic){
     return nullptr;
   }
-  TouchHandlerInfo *info = prepareTouchHandler(avionic, handler, refCon);
+  TouchHandlerInfo *info = prepareTouchHandler(avionic, true, handler, refCon);
+  if(!info && PyErr_Occurred()){
+    return nullptr;
+  }
   XPLMAvionicsSetTouchEventHandler_ptr(avionic, info ? touchEventCallback : nullptr, info);
   Py_RETURN_NONE;
 }
@@ -191,10 +280,11 @@ static PyObject *XPLMWindowSetTouchEventHandlerFun(PyObject *self, PyObject *arg
     return nullptr;
   }
   XPLMWindowID window = getVoidPtr(windowCapsule, WINDOW_CAPSULE);
-  if(!window && PyErr_Occurred()){
+  if(pgHandleInvalid(window, "window")) return nullptr;
+  TouchHandlerInfo *info = prepareTouchHandler(window, false, handler, refCon);
+  if(!info && PyErr_Occurred()){
     return nullptr;
   }
-  TouchHandlerInfo *info = prepareTouchHandler(window, handler, refCon);
   XPLMWindowSetTouchEventHandler_ptr(window, info ? touchEventCallback : nullptr, info);
   Py_RETURN_NONE;
 }

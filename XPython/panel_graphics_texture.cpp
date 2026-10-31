@@ -253,6 +253,7 @@ static PyObject *XPLMCreateTextureAtlasFun(PyObject *self, PyObject *args, PyObj
     PyErr_SetString(PyExc_RuntimeError , "XPLMCreateTextureAtlas failed.");
     return nullptr;
   }
+  pgTrack(atlas, PG_ATLAS);
   return makeCapsule(atlas, ATLAS_CAPSULE);
 }
 
@@ -275,6 +276,8 @@ static PyObject *XPLMDestroyTextureAtlasFun(PyObject *self, PyObject *args, PyOb
     return nullptr;
   }
   XPLMTextureAtlasRef atlas = getVoidPtr(atlasCapsule, ATLAS_CAPSULE);
+  if(pgHandleInvalid(atlas, "atlas")) return nullptr;
+  pgUntrack(atlas);
   XPLMDestroyTextureAtlas_ptr(atlas);
   deleteCapsule(atlasCapsule);
   Py_RETURN_NONE;
@@ -300,6 +303,7 @@ static PyObject *XPLMTextureAtlasAddImageFileFun(PyObject *self, PyObject *args,
     return nullptr;
   }
   XPLMTextureAtlasRef atlas = getVoidPtr(atlasCapsule, ATLAS_CAPSULE);
+  if(pgHandleInvalid(atlas, "atlas")) return nullptr;
   return PyLong_FromLong(XPLMTextureAtlasAddImageFile_ptr(atlas, imageFilePath));
 }
 
@@ -325,6 +329,7 @@ static PyObject *XPLMTextureAtlasAddImageFileSetFun(PyObject *self, PyObject *ar
     return nullptr;
   }
   XPLMTextureAtlasRef atlas = getVoidPtr(atlasCapsule, ATLAS_CAPSULE);
+  if(pgHandleInvalid(atlas, "atlas")) return nullptr;
   return PyLong_FromLong(XPLMTextureAtlasAddImageFileSet_ptr(atlas, imageFilePath, cellsX, cellsY));
 }
 
@@ -355,6 +360,7 @@ static PyObject *XPLMTextureAtlasAddImageFun(PyObject *self, PyObject *args, PyO
     return nullptr;
   }
   XPLMTextureAtlasRef atlas = getVoidPtr(atlasCapsule, ATLAS_CAPSULE);
+  if(pgHandleInvalid(atlas, "atlas")) return nullptr;
   return PyLong_FromLong(XPLMTextureAtlasAddImage_ptr(atlas, image, width, height));
 }
 
@@ -386,6 +392,7 @@ static PyObject *XPLMTextureAtlasAddImageSetFun(PyObject *self, PyObject *args, 
     return nullptr;
   }
   XPLMTextureAtlasRef atlas = getVoidPtr(atlasCapsule, ATLAS_CAPSULE);
+  if(pgHandleInvalid(atlas, "atlas")) return nullptr;
   return PyLong_FromLong(XPLMTextureAtlasAddImageSet_ptr(atlas, image, width, height, cellsX, cellsY));
 }
 
@@ -409,6 +416,7 @@ static PyObject *XPLMTextureAtlasBakeFun(PyObject *self, PyObject *args, PyObjec
     return nullptr;
   }
   XPLMTextureAtlasRef atlas = getVoidPtr(atlasCapsule, ATLAS_CAPSULE);
+  if(pgHandleInvalid(atlas, "atlas")) return nullptr;
   XPLMTextureAtlasBake_ptr(atlas);
   Py_RETURN_NONE;
 }
@@ -432,6 +440,7 @@ static PyObject *XPLMTextureAtlasGetImageWidthFun(PyObject *self, PyObject *args
     return nullptr;
   }
   XPLMTextureAtlasRef atlas = getVoidPtr(atlasCapsule, ATLAS_CAPSULE);
+  if(pgHandleInvalid(atlas, "atlas")) return nullptr;
   return PyLong_FromLong(XPLMTextureAtlasGetImageWidth_ptr(atlas, imageIndex));
 }
 
@@ -454,6 +463,7 @@ static PyObject *XPLMTextureAtlasGetImageHeightFun(PyObject *self, PyObject *arg
     return nullptr;
   }
   XPLMTextureAtlasRef atlas = getVoidPtr(atlasCapsule, ATLAS_CAPSULE);
+  if(pgHandleInvalid(atlas, "atlas")) return nullptr;
   return PyLong_FromLong(XPLMTextureAtlasGetImageHeight_ptr(atlas, imageIndex));
 }
 
@@ -481,6 +491,7 @@ static PyObject *XPLMTextureAtlasDrawAtFun(PyObject *self, PyObject *args, PyObj
     return nullptr;
   }
   XPLMTextureAtlasRef atlas = getVoidPtr(atlasCapsule, ATLAS_CAPSULE);
+  if(pgHandleInvalid(atlas, "atlas")) return nullptr;
   if (std::isnan(x)) {x = 0;}
   if (std::isnan(y)) {y = (float)XPLMTextureAtlasGetImageHeight_ptr(atlas, imageIndex);}
   XPLMTextureAtlasDrawAt_ptr(atlas, imageIndex, (uint32_t)tintColor, x, y);
@@ -511,6 +522,7 @@ static PyObject *XPLMTextureAtlasDrawInFun(PyObject *self, PyObject *args, PyObj
     return nullptr;
   }
   XPLMTextureAtlasRef atlas = getVoidPtr(atlasCapsule, ATLAS_CAPSULE);
+  if(pgHandleInvalid(atlas, "atlas")) return nullptr;
   if (std::isnan(top)) {top = XPLMTextureAtlasGetImageHeight_ptr(atlas, imageIndex);}
   if (std::isnan(right)) {right = XPLMTextureAtlasGetImageWidth_ptr(atlas, imageIndex);}
   XPLMTextureAtlasDrawIn_ptr(atlas, imageIndex, (uint32_t)tintColor, left, top, right, bottom);
@@ -542,6 +554,7 @@ static PyObject *XPLMTextureAtlasDrawStretchedFun(PyObject *self, PyObject *args
     return nullptr;
   }
   XPLMTextureAtlasRef atlas = getVoidPtr(atlasCapsule, ATLAS_CAPSULE);
+  if(pgHandleInvalid(atlas, "atlas")) return nullptr;
   if (std::isnan(top)) {top = XPLMTextureAtlasGetImageHeight_ptr(atlas, imageIndex);}
   if (std::isnan(right)) {right = XPLMTextureAtlasGetImageWidth_ptr(atlas, imageIndex);}
   XPLMTextureAtlasDrawStretched_ptr(atlas, imageIndex, (uint32_t)tintColor, left, top, right, bottom);
@@ -577,6 +590,7 @@ static PyObject *XPLMTextureAtlasDrawScaledFun(PyObject *self, PyObject *args, P
     return nullptr;
   }
   XPLMTextureAtlasRef atlas = getVoidPtr(atlasCapsule, ATLAS_CAPSULE);
+  if(pgHandleInvalid(atlas, "atlas")) return nullptr;
   if (std::isnan(xPanel)) xPanel = XPLMTextureAtlasGetImageWidth_ptr(atlas, imageIndex) / 2.0;
   if (std::isnan(yPanel)) yPanel = XPLMTextureAtlasGetImageHeight_ptr(atlas, imageIndex) / 2.0;
   if (std::isnan(xAtlas)) xAtlas = XPLMTextureAtlasGetImageWidth_ptr(atlas, imageIndex) / 2.0;
@@ -614,6 +628,7 @@ static PyObject *XPLMTextureAtlasDrawMeshFun(PyObject *self, PyObject *args, PyO
     return nullptr;
   }
   XPLMTextureAtlasRef atlas = getVoidPtr(atlasCapsule, ATLAS_CAPSULE);
+  if(pgHandleInvalid(atlas, "atlas")) return nullptr;
 
   Py_ssize_t count = 0;
   XPLMTextureVertex_t defaultVerts[4];
@@ -749,6 +764,7 @@ static PyObject *XPLMCreateTextureFun(PyObject *self, PyObject *args, PyObject *
     PyErr_SetString(PyExc_RuntimeError , "XPLMCreateTexture failed.");
     return nullptr;
   }
+  pgTrack(tex, PG_TEXTURE);
   return makeCapsule(tex, TEXTURE_CAPSULE);
 }
 
@@ -771,9 +787,8 @@ static PyObject *XPLMDestroyTextureFun(PyObject *self, PyObject *args, PyObject 
     return nullptr;
   }
   void *tex = getVoidPtr(texCapsule, TEXTURE_CAPSULE);
-  if(!tex && PyErr_Occurred()){
-    return nullptr;
-  }
+  if(pgHandleInvalid(tex, "texture")) return nullptr;
+  pgUntrack(tex);
   XPLMDestroyTexture_ptr(tex);
   deleteCapsule(texCapsule);
   Py_RETURN_NONE;
@@ -900,6 +915,43 @@ static PyObject *XPLMDrawCallsFun(PyObject *self, PyObject *args, PyObject *kwar
     }
   }
   Py_DECREF(seq);
+
+  /* The SDK does no bounds checking: a bad offset / count / index reads outside our buffers.
+     Index values are relative to vtx_offset (as in Dear ImGui). */
+  const uint16_t *idx = (const uint16_t *)indices.data;
+  for(Py_ssize_t i = 0; i < nCalls; i++){
+    const XPLMDrawCall_t &c = calls[i];
+    if(c.idx_offset < 0 || c.element_count < 0 || c.vtx_offset < 0){
+      free(calls);
+      PyErr_Format(PyExc_ValueError, "drawCalls: draw call %zd has a negative idx_offset, element_count or vtx_offset.", i);
+      return nullptr;
+    }
+    if(c.element_count % 3 != 0){
+      free(calls);
+      PyErr_Format(PyExc_ValueError, "drawCalls: draw call %zd element_count (%d) is not a multiple of 3.", i, c.element_count);
+      return nullptr;
+    }
+    if((int64_t)c.idx_offset + c.element_count > (int64_t)indices.count){
+      free(calls);
+      PyErr_Format(PyExc_ValueError, "drawCalls: draw call %zd (idx_offset %d + element_count %d) runs past the %zd indices supplied.",
+                   i, c.idx_offset, c.element_count, indices.count);
+      return nullptr;
+    }
+    if(c.element_count > 0 && c.vtx_offset >= vertices.count){
+      free(calls);
+      PyErr_Format(PyExc_ValueError, "drawCalls: draw call %zd vtx_offset (%d) is beyond the %zd vertices supplied.",
+                   i, c.vtx_offset, vertices.count);
+      return nullptr;
+    }
+    for(int k = 0; k < c.element_count; k++){
+      if((int64_t)c.vtx_offset + idx[c.idx_offset + k] >= (int64_t)vertices.count){
+        free(calls);
+        PyErr_Format(PyExc_ValueError, "drawCalls: draw call %zd index %d refers to vertex %lld but only %zd vertices were supplied.",
+                     i, c.idx_offset + k, (long long)c.vtx_offset + idx[c.idx_offset + k], vertices.count);
+        return nullptr;
+      }
+    }
+  }
 
   XPLMMesh_t mesh;
   mesh.vertex_count = (int)vertices.count;

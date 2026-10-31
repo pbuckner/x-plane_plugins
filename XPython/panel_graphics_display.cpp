@@ -69,6 +69,7 @@ static PyObject *XPLMCreateSVTDisplayFun(PyObject *self, PyObject *args, PyObjec
     PyErr_SetString(PyExc_RuntimeError , "XPLMCreateSVTDisplay failed.");
     return nullptr;
   }
+  pgTrack(svt, PG_SVT);
   return makeCapsule(svt, SVT_CAPSULE);
 }
 
@@ -91,9 +92,8 @@ static PyObject *XPLMDestroySVTDisplayFun(PyObject *self, PyObject *args, PyObje
     return nullptr;
   }
   XPLMSVTDisplayRef svt = getVoidPtr(svtCapsule, SVT_CAPSULE);
-  if(!svt && PyErr_Occurred()){
-    return nullptr;
-  }
+  if(pgHandleInvalid(svt, "svt")) return nullptr;
+  pgUntrack(svt);
   XPLMDestroySVTDisplay_ptr(svt);
   deleteCapsule(svtCapsule);
   Py_RETURN_NONE;
@@ -127,9 +127,7 @@ static PyObject *XPLMSVTDisplayDrawInFun(PyObject *self, PyObject *args, PyObjec
     return nullptr;
   }
   XPLMSVTDisplayRef svt = getVoidPtr(svtCapsule, SVT_CAPSULE);
-  if(!svt && PyErr_Occurred()){
-    return nullptr;
-  }
+  if(pgHandleInvalid(svt, "svt")) return nullptr;
   XPLMSVTCustomData_t data;
   XPLMSVTCustomData_t *dataPtr = nullptr;
   if(dataOverrides && dataOverrides != Py_None){
@@ -194,6 +192,7 @@ static PyObject *XPLMCreateMapDisplayFun(PyObject *self, PyObject *args, PyObjec
     PyErr_SetString(PyExc_RuntimeError , "XPLMCreateMapDisplay failed.");
     return nullptr;
   }
+  pgTrack(map, PG_MAP);
   return makeCapsule(map, MAP_CAPSULE);
 }
 
@@ -216,9 +215,8 @@ static PyObject *XPLMDestroyMapDisplayFun(PyObject *self, PyObject *args, PyObje
     return nullptr;
   }
   XPLMMapDisplayRef map = getVoidPtr(mapCapsule, MAP_CAPSULE);
-  if(!map && PyErr_Occurred()){
-    return nullptr;
-  }
+  if(pgHandleInvalid(map, "map")) return nullptr;
+  pgUntrack(map);
   XPLMDestroyMapDisplay_ptr(map);
   deleteCapsule(mapCapsule);
   Py_RETURN_NONE;
@@ -318,9 +316,7 @@ static PyObject *XPLMMapDisplayDrawInFun(PyObject *self, PyObject *args, PyObjec
     return nullptr;
   }
   XPLMMapDisplayRef map = getVoidPtr(mapCapsule, MAP_CAPSULE);
-  if(!map && PyErr_Occurred()){
-    return nullptr;
-  }
+  if(pgHandleInvalid(map, "map")) return nullptr;
   XPLMMapCustomData_t data;
   XPLMMapCustomData_t *dataPtr = nullptr;
   if(!parseMapCustomData(dataOverrides, "mapDisplayDrawIn", &data, &dataPtr)){
@@ -364,9 +360,7 @@ static PyObject *XPLMMapDisplayProjectFun(PyObject *self, PyObject *args, PyObje
     return nullptr;
   }
   XPLMMapDisplayRef map = getVoidPtr(mapCapsule, MAP_CAPSULE);
-  if(!map && PyErr_Occurred()){
-    return nullptr;
-  }
+  if(pgHandleInvalid(map, "map")) return nullptr;
   XPLMMapCustomData_t data;
   XPLMMapCustomData_t *dataPtr = nullptr;
   if(!parseMapCustomData(dataOverrides, "mapDisplayProject", &data, &dataPtr)){
@@ -412,9 +406,7 @@ static PyObject *XPLMMapDisplayUnprojectFun(PyObject *self, PyObject *args, PyOb
     return nullptr;
   }
   XPLMMapDisplayRef map = getVoidPtr(mapCapsule, MAP_CAPSULE);
-  if(!map && PyErr_Occurred()){
-    return nullptr;
-  }
+  if(pgHandleInvalid(map, "map")) return nullptr;
   XPLMMapCustomData_t data;
   XPLMMapCustomData_t *dataPtr = nullptr;
   if(!parseMapCustomData(dataOverrides, "mapDisplayUnproject", &data, &dataPtr)){
@@ -458,9 +450,7 @@ static PyObject *XPLMMapDisplayScaleMeterFun(PyObject *self, PyObject *args, PyO
     return nullptr;
   }
   XPLMMapDisplayRef map = getVoidPtr(mapCapsule, MAP_CAPSULE);
-  if(!map && PyErr_Occurred()){
-    return nullptr;
-  }
+  if(pgHandleInvalid(map, "map")) return nullptr;
   XPLMMapCustomData_t data;
   XPLMMapCustomData_t *dataPtr = nullptr;
   if(!parseMapCustomData(dataOverrides, "mapDisplayScaleMeter", &data, &dataPtr)){
@@ -502,9 +492,7 @@ static PyObject *XPLMMapDisplayGetNorthHeadingFun(PyObject *self, PyObject *args
     return nullptr;
   }
   XPLMMapDisplayRef map = getVoidPtr(mapCapsule, MAP_CAPSULE);
-  if(!map && PyErr_Occurred()){
-    return nullptr;
-  }
+  if(pgHandleInvalid(map, "map")) return nullptr;
   XPLMMapCustomData_t data;
   XPLMMapCustomData_t *dataPtr = nullptr;
   if(!parseMapCustomData(dataOverrides, "mapDisplayGetNorthHeading", &data, &dataPtr)){
@@ -536,9 +524,7 @@ static PyObject *XPLMMapDisplayGetTerrainAltitudesFun(PyObject *self, PyObject *
     return nullptr;
   }
   XPLMMapDisplayRef map = getVoidPtr(mapCapsule, MAP_CAPSULE);
-  if(!map && PyErr_Occurred()){
-    return nullptr;
-  }
+  if(pgHandleInvalid(map, "map")) return nullptr;
   float minAlt = 0.0f, maxAlt = 0.0f;
   if(!XPLMMapDisplayGetTerrainAltitudes_ptr(map, &minAlt, &maxAlt)){
     Py_RETURN_NONE;

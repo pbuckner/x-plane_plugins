@@ -847,14 +847,17 @@ AvionicsID as returned by :py:func:`registerAvionicsCallbacksEx`, :py:func:`crea
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMHasAvionicsKeyboardFocus>`__ :index:`XPLMHasAvionicsKeyboardFocus`
 
-.. py:function:: takeAvionicsKeyboardFocus(avionicsID) -> None
+.. py:function:: takeAvionicsKeyboardFocus(avionicsID = None) -> None
 
-  :param XPLMAvionicsID avionicsID: as from :py:func:`createAvionicsEx`,  :py:func:`getAvionicsHandle`, or :py:func:`registerAvionicsCallbacksEx`
+  :param XPLMAvionicsID avionicsID: as from :py:func:`createAvionicsEx`,  :py:func:`getAvionicsHandle`, or :py:func:`registerAvionicsCallbacksEx` or None
 
-  Transfer keyboard focus to device, if possible
+  Transfer keyboard focus to device, if possible.
   
   If the device is capable of receiving keyboard focus, this function sets focus to that device. Subsequent keystrokes will
   be handled by the device. The avionics device needs to be either in a popup, or popped out.
+
+  If the popup is not visible, the device does not get focus. Pass None to take focus away from the cockpit device (rather
+  than :func:`takeKeyboardFocus` which only controls focus of plugin windows.)
 
   `Official SDK <https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMTakeAvionicsKeyboardFocus>`__ :index:`XPLMTakeAvionicsKeyboardFocus`
 

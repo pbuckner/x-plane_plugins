@@ -8,6 +8,7 @@
 #include "menus.h"
 #include "utilities.h"
 #include "display_avionics.h"
+#include "panel_graphics.h"
 
 static void updatePluginDict(PluginInfo pluginInfo, PyObject*,PyObject*, PyObject*, PluginType);
 static PyObject *getPluginInstanceBySignature(PyObject *);
@@ -249,6 +250,8 @@ void xpy_cleanUpInstance(PyObject *pluginInstance) {
     pythonLog("[XPPython3] Error after clearing commands for %s", CurrentPythonModuleName);
     return;
   }
+  /* panel graphics first: its touch handlers must come off devices before they are destroyed below */
+  pgReleaseForModule(CurrentPythonModuleName);
   removeAvionicsRegistrantsForModule(CurrentPythonModuleName);
   pythonDebug("%*s Cleaned instance: %s", 6, " ", CurrentPythonModuleName);
   /* NOTE 'CurrentPythonModuleName' will no longer be valued after erase */

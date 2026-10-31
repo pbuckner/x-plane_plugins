@@ -380,7 +380,7 @@ static int stopPython(void)
   XPY3pluginInfoDict.clear();
   
   // Invoke cleanup method of all built-in modules
-  std::vector<std::string> mods = {"XPLMDefs", "XPLMDisplay", "XPLMGraphics", "XPLMUtilities", "XPLMScenery", "XPLMMenus",
+  std::vector<std::string> mods = {"XPLMDefs", "XPLMDisplay", "XPLMPanelGraphics", "XPLMGraphics", "XPLMUtilities", "XPLMScenery", "XPLMMenus",
                                    "XPLMNavigation", "XPLMPlugin", "XPLMPlanes", "XPLMProcessing", "XPLMCamera", "XPWidgetDefs",
                                    "XPWidgets", "XPStandardWidgets", "XPUIGraphics", "XPWidgetUtils", "XPLMInstance",
                                    "XPLMMap", "XPLMDataAccess", "XPLMWeather", "XPLMSound", /*"SandyBarbourUtilities", */ "XPCursor", "XPPython"};

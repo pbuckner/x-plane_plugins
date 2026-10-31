@@ -13,6 +13,7 @@
 #include "display_keysniffer.h"
 #include "display_hotkey.h"
 #include "display_avionics.h"
+#include "panel_graphics.h"
 #include "xppythontypes.h"
 #include "xppython.h"
 #include "capsules.h"
@@ -105,6 +106,7 @@ void resetDrawCallbacks(void) {
 void resetWindows(void) {
   for (const auto& pair : windowDict) {
     pythonDebug("     Reset --     (%s)", pair.second.module_name);
+    touchHandlerDrop(pair.first);
     XPLMDestroyWindow((XPLMWindowID)pair.first);
     Py_DECREF(pair.second.draw);
     Py_DECREF(pair.second.click);
@@ -950,6 +952,7 @@ static PyObject *XPLMDestroyWindowFun(PyObject *self, PyObject *args, PyObject *
   XPLMWindowID winID = getVoidPtr(pID, "XPLMWindowID");
   auto it = windowDict.find(winID);
   if(it != windowDict.end()){
+    touchHandlerDrop(winID);
     XPLMDestroyWindow(winID);
     Py_DECREF(it->second.draw);
     Py_DECREF(it->second.click);
@@ -958,6 +961,8 @@ static PyObject *XPLMDestroyWindowFun(PyObject *self, PyObject *args, PyObject *
     Py_DECREF(it->second.wheel);
     Py_DECREF(it->second.rightClick);
     Py_DECREF(it->second.refCon);
+    Py_DECREF(it->second.browserLoadFinished);
+    Py_DECREF(it->second.browserLoadError);
     windowDict.erase(winID);
   }else{
     PyErr_SetString(PyExc_RuntimeError ,"XPLMDestroyWindow couldn't find the window to destroy.\n");
@@ -1892,6 +1897,7 @@ static PyObject *cleanup(PyObject *self, PyObject *args)
     WindowCallbackInfo& info = pair.second;
     PyObject *tmp = (PyObject *)XPLMGetWindowRefCon(winID);
     Py_DECREF(tmp);
+    touchHandlerDrop(winID);
     XPLMDestroyWindow(winID);
     Py_DECREF(info.draw);
     Py_DECREF(info.click);

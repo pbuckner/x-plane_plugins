@@ -66,12 +66,8 @@ void deleteCapsule(PyObject *capsule)
     return;
   }
 
-  if(name) {
-    free((char*)name);
-  }
-  if (context) {
-    free(context);
-  }
+  /* name & context are freed by capsuleDestructor() when the capsule is actually deallocated:
+     python may still hold a reference to it. */
   CapsuleDict.erase(it);
 }
 
@@ -84,28 +80,16 @@ void deleteCapsuleByPtr(void *ptr, const char *name)
     return;
   }
 
-  PyObject *capsule = it->second;
-  void *context = nullptr;
   if (pythonDebugs) {
-    const char *capsule_name = PyCapsule_GetName(capsule);
-
     // Verify the capsule type matches what caller expects
-    if (pythonDebugs) {
-      if (strcmp(capsule_name, name) != 0) {
-        pythonLog("deleteCapsuleByPtr type mismatch: expected %s but found %s for pointer %p",
-                  name, capsule_name, ptr);
-        return;
-      }
-      context = PyCapsule_GetContext(capsule);
-      
-    }
-    if (capsule_name) {
-      free((char*)capsule_name);
-    }
-    if (context) {
-      free(context);
+    const char *capsule_name = PyCapsule_GetName(it->second);
+    if (capsule_name && strcmp(capsule_name, name) != 0) {
+      pythonLog("deleteCapsuleByPtr type mismatch: expected %s but found %s for pointer %p",
+                name, capsule_name, ptr);
     }
   }
+  /* name & context are freed by capsuleDestructor() when the capsule is actually deallocated:
+     python may still hold a reference to it. */
   CapsuleDict.erase(it);
 }
 
@@ -205,6 +189,19 @@ std::vector<std::string> CapsuleTypes = {
   "XPLMSVTDisplayRef", "XPLMMapDisplayRef", "XPLMTexture"
 };
 
+static void capsuleDestructor(PyObject *capsule)
+{
+  /* called by python when the last reference is dropped; frees what makeCapsule() allocated (pythonDebugs only) */
+  const char *name = PyCapsule_GetName(capsule);
+  if (name) {
+    free((char *)name);
+  }
+  void *context = PyCapsule_GetContext(capsule);
+  if (context) {
+    free(context);
+  }
+}
+
 PyObject *makeCapsule(void *ptr, std::string name)
 {
   /* looks in hash table for ptr:
@@ -231,7 +228,7 @@ PyObject *makeCapsule(void *ptr, std::string name)
   auto it = CapsuleDict.find(ptr);
   if (it == CapsuleDict.end()) {
     if (pythonDebugs) {
-      capsule = PyCapsule_New(ptr, strdup(name.c_str()), nullptr); // the 'name' must outlive the capsule
+      capsule = PyCapsule_New(ptr, strdup(name.c_str()), capsuleDestructor); // the 'name' must outlive the capsule
       if (pythonCapsuleRegistration) {
         pythonLog("Capsule: New      %s > %s at: %s", CurrentPythonModuleName, name.c_str(),
                   objToStr(get_pythonline()));

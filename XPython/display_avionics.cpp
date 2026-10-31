@@ -8,6 +8,7 @@
 #include "xppython.h"
 #include "capsules.h"
 #include "manage_instances.h"
+#include "panel_graphics.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
@@ -25,6 +26,8 @@ static std::unordered_map<intptr_t, intptr_t> avionicsTokenByKey;  // avionicsCa
 
 PyObject *makeAvionicsCapsule(intptr_t key)
 {
+  /* return python <capsule object "XPLMAvionicsID"> for given dict key,
+     create if new (and create key->token, token->key mapping */
   intptr_t token;
   auto it = avionicsTokenByKey.find(key);
   if (it == avionicsTokenByKey.end()) {
@@ -39,6 +42,8 @@ PyObject *makeAvionicsCapsule(intptr_t key)
 
 PyObject *avionicsCapsuleForKey(intptr_t key)
 {
+  /* return python <capsule object "XPLMAvionicsID"> for given dict key or None */
+
   auto it = avionicsTokenByKey.find(key);
   if (it == avionicsTokenByKey.end()) Py_RETURN_NONE;
   return makeCapsule((void *)it->second, "XPLMAvionicsID");
@@ -46,6 +51,10 @@ PyObject *avionicsCapsuleForKey(intptr_t key)
 
 PyObject *avionicsCapsuleForSdk(XPLMAvionicsID sdk)
 {
+  /* return python <capsule object "XPLMAvionicsID"> for SDK XPLMAvionicsID
+   * prefer the <capsule> for the key which _created_ the device, if there
+   * is one, otherwise, return the first <capsule> for this SDK XPLMAvionicsID
+   * otherwise None */
   intptr_t found = 0;
   for (const auto& pair : avionicsCallbacksDict) {
     if (pair.second.avionicsID != sdk) continue;
@@ -58,6 +67,7 @@ PyObject *avionicsCapsuleForSdk(XPLMAvionicsID sdk)
 
 intptr_t avionicsKey(PyObject *capsule)
 {
+  /* return dict key for <capsule object "XPLMAvionicsID"> or TypeError|ValueError */
   if (capsule == Py_None) {
     PyErr_SetString(PyExc_TypeError, "avionicsID is None.");
     return 0;
@@ -79,6 +89,7 @@ intptr_t avionicsKey(PyObject *capsule)
 
 XPLMAvionicsID avionicsSdkId(PyObject *capsule)
 {
+  /* return SDK XPLMAvionicsID for provided <capsule object "XPLMAvionicsID"> */
   intptr_t key = avionicsKey(capsule);
   if (!key) return nullptr;
   return avionicsCallbacksDict[key].avionicsID;
@@ -86,6 +97,9 @@ XPLMAvionicsID avionicsSdkId(PyObject *capsule)
 
 void releaseAvionicsHandle(intptr_t key)
 {
+  /* clear key->token, token->key mappings for dict key & decref <capsule>
+     safe to call with bad/old key.
+   */
   auto it = avionicsTokenByKey.find(key);
   if (it == avionicsTokenByKey.end()) return;
   intptr_t token = it->second;
@@ -217,6 +231,9 @@ static uint32_t avionicsDesiredMask(const AvionicsDeviceReg& dev)
    (registrants, and getAvionicsHandle() stubs) */
 static void avionicsSetDeviceSdk(AvionicsDeviceReg& dev, XPLMAvionicsID sdk)
 {
+  if (dev.sdk && dev.sdk != sdk) {
+    touchHandlerMigrate(dev.sdk, sdk);  /* a touch handler lived on the old registration */
+  }
   dev.sdk = sdk;
   for (auto& pair : avionicsCallbacksDict) {
     if (!pair.second.create && pair.second.deviceID == dev.deviceID) {
@@ -402,6 +419,7 @@ static void avionicsDestroyCreated(intptr_t key)
   auto it = avionicsCallbacksDict.find(key);
   if (it == avionicsCallbacksDict.end() || it->second.create != 1) return;
   AvionicsCallbackInfo info = it->second;
+  touchHandlerDrop(info.avionicsID);
   XPLMDestroyAvionics_ptr(info.avionicsID);
   avionicsCallbacksDict.erase(it);
   releaseAvionicsHandle(key);
@@ -1732,18 +1750,22 @@ PyObject *XPLMTakeAvionicsKeyboardFocusFun(PyObject *self, PyObject *args, PyObj
 {
   static char *keywords[] = {CHAR("avionicsID"), nullptr};
   (void) self;
-  PyObject *avionicsID;
+  PyObject *avionicsID = Py_None;
   if (!XPLMTakeAvionicsKeyboardFocus_ptr) {
     PyErr_SetString(PyExc_RuntimeError , "XPLMTakeAvionicsKeyboardFocus is available only in XPLM410 and up.");
     return nullptr;
   }
 
-  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &avionicsID)) {
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", keywords, &avionicsID)) {
     return nullptr;
   }
-  XPLMAvionicsID avionics_id = avionicsSdkId(avionicsID);
-  if (!avionics_id) return nullptr;
-  XPLMTakeAvionicsKeyboardFocus_ptr(avionics_id);
+  if (avionicsID == Py_None) {
+    XPLMTakeAvionicsKeyboardFocus_ptr(nullptr);
+  } else {
+    XPLMAvionicsID avionics_id = avionicsSdkId(avionicsID);
+    if (!avionics_id) return nullptr;
+    XPLMTakeAvionicsKeyboardFocus_ptr(avionics_id);
+  }
   Py_RETURN_NONE;
 }
 PyObject *XPLMDestroyAvionicsFun(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -2441,6 +2463,7 @@ void resetAvionicsCallbacks(void) {
     Py_XDECREF(info.browserLoadFinished);
     Py_XDECREF(info.browserLoadError);
     if (info.create) {
+      touchHandlerDrop(info.avionicsID);
       XPLMDestroyAvionics_ptr(info.avionicsID);
       errCheck("afterXPLMDestroyAvionics in reset");
     }
@@ -2600,11 +2623,11 @@ My_DOCSTR(_popOutAvionics__doc__, "popOutAvionics",
           "Pops out OS window for cockpit device.");
 
 My_DOCSTR(_takeAvionicsKeyboardFocus__doc__, "takeAvionicsKeyboardFocus",
-          "avionicsID",
+          "avionicsID=None",
           "avionicsID:XPLMAvionicsID",
           "None",
           "Sets keyboard focus to the (already) visible popup window of cockpit device.\n"
-          "Does nothing if device is not visible.");
+          "Does nothing if device is not visible. None removes focus from cockpit device");
 
 My_DOCSTR(_destroyAvionics__doc__, "destroyAvionics",
           "avionicsID",

@@ -922,32 +922,32 @@ static PyObject *XPLMDrawCallsFun(PyObject *self, PyObject *args, PyObject *kwar
   for(Py_ssize_t i = 0; i < nCalls; i++){
     const XPLMDrawCall_t &c = calls[i];
     if(c.idx_offset < 0 || c.element_count < 0 || c.vtx_offset < 0){
-      free(calls);
       PyErr_Format(PyExc_ValueError, "drawCalls: draw call %zd has a negative idx_offset, element_count or vtx_offset.", i);
+      free(calls);
       return nullptr;
     }
     if(c.element_count % 3 != 0){
-      free(calls);
       PyErr_Format(PyExc_ValueError, "drawCalls: draw call %zd element_count (%d) is not a multiple of 3.", i, c.element_count);
+      free(calls);
       return nullptr;
     }
     if((int64_t)c.idx_offset + c.element_count > (int64_t)indices.count){
-      free(calls);
       PyErr_Format(PyExc_ValueError, "drawCalls: draw call %zd (idx_offset %d + element_count %d) runs past the %zd indices supplied.",
                    i, c.idx_offset, c.element_count, indices.count);
+      free(calls);
       return nullptr;
     }
     if(c.element_count > 0 && c.vtx_offset >= vertices.count){
-      free(calls);
       PyErr_Format(PyExc_ValueError, "drawCalls: draw call %zd vtx_offset (%d) is beyond the %zd vertices supplied.",
                    i, c.vtx_offset, vertices.count);
+      free(calls);
       return nullptr;
     }
     for(int k = 0; k < c.element_count; k++){
       if((int64_t)c.vtx_offset + idx[c.idx_offset + k] >= (int64_t)vertices.count){
-        free(calls);
         PyErr_Format(PyExc_ValueError, "drawCalls: draw call %zd index %d refers to vertex %lld but only %zd vertices were supplied.",
                      i, c.idx_offset + k, (long long)c.vtx_offset + idx[c.idx_offset + k], vertices.count);
+        free(calls);
         return nullptr;
       }
     }

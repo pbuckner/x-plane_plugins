@@ -260,6 +260,27 @@ install_remote : $(zipfiles)
 	ssh pbuck@av-03.avnwx.com 'cd /var/www/maps/data/x-plane; \
 		./db_updatemd5.py xp3.zip $(SERVER_SDK) "$(XPPYTHONVERSION)"'
 
+# Static analysis (clang analyzer: finds use-after-free, leaks, etc. that -Wall misses).
+# Not part of the normal build; slow. Darwin only.
+#   cd mac && make analyze                              # all plugin sources
+#   cd mac && make analyze ANALYZE_SRC=panel_graphics_texture.cpp
+# (analyzer rejects multiple -arch, so analyze arm64 only)
+ANALYZE_SRC ?= $(filter-out cursor.cpp,$(PLUGIN_OBJ:.o=.cpp))
+ANALYZE_FLAGS = $(filter-out -arch arm64 x86_64,$(CFLAGS312)) -O0
+
+.PHONY: analyze
+analyze:
+ifeq ($(TARGET),Darwin)
+	@for f in $(ANALYZE_SRC); do \
+	  echo "== $$f"; \
+	  $(CC) --analyze -std=gnu++17 -target arm64-apple-macos12 \
+	    -Xclang -analyzer-output=text \
+	    $(ANALYZE_FLAGS) ../$$f -o /dev/null; \
+	done
+else
+	@echo "analyze is only wired up for Darwin"
+endif
+
 SUBDIRS = . mac lin win
 SUBDIRSCLEAN=$(addsuffix .clean,$(SUBDIRS))
 

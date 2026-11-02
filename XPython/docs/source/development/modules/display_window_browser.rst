@@ -174,7 +174,7 @@ First, you need to create the window setting ``contentType=xp.WindowContentTypeB
          :param XPLMWindowID windowID:
          :param XPLMAvionicsID avionicsID: Window previously created.
          :param str jsonStr: JSON string representation of any parameters provided in javascript invocation.
-         :param Any refCon: refCon as provided with *AddBrowserFunction (not with :func:`createWindowEx` or :func:`createAvionicsEx`). This is python, not a JSON string. (Javascript never sees this.)
+         :param Any refCon: refCon as provided with \*AddBrowserFunction (not with :func:`createWindowEx` or :func:`createAvionicsEx`). This is python, not a JSON string. (Javascript never sees this.)
          :return str: JSON string with results
 
     The following example provides a javascript function ``xplane.getTailnum(args)``. The ``args`` parameter provided by the

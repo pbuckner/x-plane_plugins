@@ -6,8 +6,8 @@ Known Bugs
 
   None. *Prove me wrong!*
 
-4.8.0b4 (not yet released)
---------------------------
+4.8.0b4 (2-Nov-2026)
+--------------------
 
 :New Features:
    * **Added** :func:`xp.isReloading`, ``True`` while XPPython3 reloads plugins (Reload Scripts or

@@ -291,7 +291,7 @@ My_DOCSTR(_mapDisplayDrawIn__doc__, "mapDisplayDrawIn",
           "Render the base map into the panel within (left, top, right, bottom). Must\n"
           "be called from an avionics drawing callback; does nothing until terrain\n"
           "tiles finish loading. layers is a bitwise OR of Map_* flags (some are\n"
-          "mutually exclusive -- e.g. Map_Nexrad with Map_EGPWS or Map_IR).\n"
+          "mutually exclusive -- e.g. only one of Map_Nexrad, Map_clouds or Map_color_IR).\n"
           "dataOverrides is None for live sim state, or a sequence of 12 or 15\n"
           "values in order: (datLat, datLon, centerX, centerY, roseRadius, mapRange,\n"
           "orientation, terrainWarn, terrainCaution, acfAlt, gearDown, trueRotation\n"

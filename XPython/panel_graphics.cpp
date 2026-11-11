@@ -588,7 +588,8 @@ PyInit_XPLMPanelGraphics(void)
 
     /* XPLMMapLayers */
     PyModule_AddIntConstant(mod, "xplm_Map_Nexrad", xplm_Map_Nexrad);
-    PyModule_AddIntConstant(mod, "xplm_Map_IR", xplm_Map_IR);
+    PyModule_AddIntConstant(mod, "xplm_Map_clouds", xplm_Map_clouds);
+    PyModule_AddIntConstant(mod, "xplm_Map_color_IR", xplm_Map_color_IR);
     PyModule_AddIntConstant(mod, "xplm_Map_Topo", xplm_Map_Topo);
     PyModule_AddIntConstant(mod, "xplm_Map_Terrain", xplm_Map_Terrain);
     PyModule_AddIntConstant(mod, "xplm_Map_Water", xplm_Map_Water);
@@ -596,7 +597,8 @@ PyInit_XPLMPanelGraphics(void)
     PyModule_AddIntConstant(mod, "xplm_Map_raw_elev", xplm_Map_raw_elev);
     PyModule_AddIntConstant(mod, "xplm_Map_safe_taxi", xplm_Map_safe_taxi);
     PyModule_AddIntConstant(mod, "Map_Nexrad", xplm_Map_Nexrad);
-    PyModule_AddIntConstant(mod, "Map_IR", xplm_Map_IR);
+    PyModule_AddIntConstant(mod, "Map_clouds", xplm_Map_clouds);
+    PyModule_AddIntConstant(mod, "Map_color_IR", xplm_Map_color_IR);
     PyModule_AddIntConstant(mod, "Map_Topo", xplm_Map_Topo);
     PyModule_AddIntConstant(mod, "Map_Terrain", xplm_Map_Terrain);
     PyModule_AddIntConstant(mod, "Map_Water", xplm_Map_Water);

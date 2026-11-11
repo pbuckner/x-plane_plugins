@@ -6,8 +6,8 @@ Known Bugs
 
   None. *Prove me wrong!*
 
-4.8.0b5 (TBD)
--------------
+4.8.0b5 (11-11-2026)
+--------------------
 
 :Improvements:
    * **XP-SDK 4.4.0-r2**. Updated the ``xpsdk`` submodule to ``4.4.0-r2``.

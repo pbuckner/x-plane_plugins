@@ -55,6 +55,9 @@ Functions
 
   Requires at least X-Plane 12.4.
 
+  .. note:: Do not call from a post-flightmodel flight loop callback. Use a
+            :data:`FlightLoop_Phase_BeforeFlightModel` callback. See :doc:`processing`.
+
   Initializes a new flight, ending the users's current flight. The flight config
   is provided as a json string. If parameter is a dict type, we'll convert it to JSON.
   
@@ -86,6 +89,9 @@ Functions
   :return: 0 on success raises FlightInitError exception on error                   
 
   Requires at least X-Plane 12.4.
+
+  .. note:: Do not call from a post-flightmodel flight loop callback. Use a
+            :data:`FlightLoop_Phase_BeforeFlightModel` callback. See :doc:`processing`.
 
   Updates the user's current flight, modifying some flight parameters. The flight config
   is provided as a json string. If parameter is a dict type, we'll convert it to JSON.
@@ -119,6 +125,9 @@ may use these older style initialization functions.
  *path* is either relative to X-Plane root, or fully qualified path, including the .acf
  extension.
 
+ .. note:: Do not call from a post-flightmodel flight loop callback. Use a
+           :data:`FlightLoop_Phase_BeforeFlightModel` callback. See :doc:`processing`.
+
  If the acf file cannot be found the user will be notified and their aircraft
  will be re-initialized.
 
@@ -140,6 +149,9 @@ may use these older style initialization functions.
            been placed (you will crash the sim). You may
            create a flight loop callback and then execute ``placeUserAtAirport()`` within the callback, or in response to a menu or command.
 
+ .. note:: Do not call from a post-flightmodel flight loop callback. Use a
+           :data:`FlightLoop_Phase_BeforeFlightModel` callback. See :doc:`processing`.
+
  >>> xp.placeUserAtAirport('KBOS')
 
  `Official SDK <https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMPlaceUserAtAirport>`__ :index:`XPLMPlaceUserAtAirport`
@@ -155,6 +167,9 @@ may use these older style initialization functions.
                      
  Places the user at a specific location after performing any necessary
  scenery loads.
+
+ .. note:: Do not call from a post-flightmodel flight loop callback. Use a
+           :data:`FlightLoop_Phase_BeforeFlightModel` callback. See :doc:`processing`.
 
  As with in-air starts initiated from the X-Plane user interface, the
  aircraft will always start with **its engines running**, regardless of the

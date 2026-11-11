@@ -10,7 +10,8 @@ To use::
   import xp
 
 A base map display renders an navigation display (ND) or multi-function display (MFD) style background,
-(e.g., terrain, topography, water, NEXRAD weather, EGPWS ground proximity, and taxi layouts) with a
+(e.g., terrain, topography, water, NEXRAD weather, cloud tops, false-color IR satellite imagery, EGPWS ground proximity,
+and taxi layouts) with a
 projection centered near the map's datum.
 Create one, then draw it each frame
 from a panel-graphics drawing context --- see :doc:`panelgraphics`. The *layers*
@@ -42,6 +43,31 @@ In its simplest form, you can create a map with a few lines of code:
            :width: 300px
            :align: center
 
+.. _map_color_stripes:
+
+Color Stripes
+-------------
+
+Three layers get their colors from PNG "color stripes". An aircraft can replace each stripe with a file
+of the same name in its ``cockpit/EFIS/`` folder:
+
+==================  ================
+Layer               Stripe file
+==================  ================
+:data:`Map_Topo`    ``g1000_land.png``
+:data:`Map_EGPWS`   ``EGPWS.png``
+:data:`Map_Nexrad`  ``NEXRAD.png``
+==================  ================
+
+If the aircraft has no such file, X-Plane uses the stock file in ``Resources/bitmaps/world/maps/``.
+Use the stock file as a template, and keep its size. ``NEXRAD.png`` must have alpha: its transparent entries
+let the layers below show through. Only these three layers use color stripes; you cannot replace the colors
+of any other layer, including :data:`Map_color_IR`.
+
+The stripes belong to the aircraft, not to your plugin. X-Plane finds them in the user's aircraft
+folder when you call :func:`createMapDisplay`, and does not look again. To use the stripes of a different
+aircraft, call :func:`destroyMapDisplay` and create the map display again.
+
 Functions
 ---------
 
@@ -56,6 +82,8 @@ Functions
 
     Setting ``pilotIndex`` allows for displaying (potentially) different flight
     paths (e.g. active vs alternate), for aircraft configured with multiple displays.
+
+    The aircraft's layer :ref:`color stripes <map_color_stripes>` are located at this time; see above.
 
     >>> mapRef = xp.createMapDisplay()
 
@@ -85,8 +113,9 @@ Functions
 
     Render the base map into the panel within ``(left, top, right, bottom)``. Must
     be called from an avionics drawing callback; does nothing until terrain tiles
-    finish loading. Some *layers* are mutually exclusive --- e.g. :data:`Map_Nexrad`
-    with :data:`Map_EGPWS` or :data:`Map_IR`.
+    finish loading. Some *layers* cannot be combined: you cannot display
+    :data:`Map_Nexrad` and :data:`Map_EGPWS` together, and only one of :data:`Map_Nexrad`,
+    :data:`Map_clouds` or :data:`Map_color_IR` can be displayed at a time.
 
     Initially (that is, without overrides), map is drawn with aircraft in the center, track up (not North up).
 
@@ -361,16 +390,27 @@ Layers enabled on a map display, combined with bitwise OR.
 
    NEXRAD weather. `Official SDK <https://developer.x-plane.com/sdk/XPLMPanelGraphics/#xplm_Map_Nexrad>`__: :index:`xplm_Map_Nexrad`
 
-.. py:data:: Map_IR
+.. py:data:: Map_clouds
    :value: 2
 
-   .. image:: /images/panel_map_ir.png
+   .. image:: /images/panel_map_clouds.png
               :width: 400px
 
-   Infrared satellite. `Official SDK <https://developer.x-plane.com/sdk/XPLMPanelGraphics/#xplm_Map_IR>`__: :index:`xplm_Map_IR`
+   Grayscale cloud tops. Only one of :data:`Map_Nexrad`, :data:`Map_clouds`, or :data:`Map_color_IR`
+   can be displayed at a time.
+   `Official SDK <https://developer.x-plane.com/sdk/XPLMPanelGraphics/#xplm_Map_clouds>`__: :index:`xplm_Map_clouds`
+
+.. py:data:: Map_color_IR
+   :value: 4
+
+   .. image:: /images/panel_map_color_ir.png
+              :width: 400px
+
+   Infrared false-color cloud tops. Not recolorable using :ref:`color stripes <map_color_stripes>`.
+   `Official SDK <https://developer.x-plane.com/sdk/XPLMPanelGraphics/#xplm_Map_color_IR>`__: :index:`xplm_Map_color_IR`
 
 .. py:data:: Map_Topo
-   :value: 4
+   :value: 8
 
    .. image:: /images/panel_map_topo.png
               :width: 400px
@@ -378,7 +418,7 @@ Layers enabled on a map display, combined with bitwise OR.
    Topography. `Official SDK <https://developer.x-plane.com/sdk/XPLMPanelGraphics/#xplm_Map_Topo>`__: :index:`xplm_Map_Topo`
 
 .. py:data:: Map_Terrain
-   :value: 8
+   :value: 16
 
    .. image:: /images/panel_map_terrain.png
               :width: 400px
@@ -386,7 +426,7 @@ Layers enabled on a map display, combined with bitwise OR.
    Terrain Warning. `Official SDK <https://developer.x-plane.com/sdk/XPLMPanelGraphics/#xplm_Map_Terrain>`__: :index:`xplm_Map_Terrain`
 
 .. py:data:: Map_Water
-   :value: 16
+   :value: 32
 
    .. image:: /images/panel_map_water.png
               :width: 400px
@@ -394,7 +434,7 @@ Layers enabled on a map display, combined with bitwise OR.
    Water. `Official SDK <https://developer.x-plane.com/sdk/XPLMPanelGraphics/#xplm_Map_Water>`__: :index:`xplm_Map_Water`
 
 .. py:data:: Map_EGPWS
-   :value: 32
+   :value: 64
 
    EGPWS terrain-warning overlay. Required for :func:`mapDisplayGetTerrainAltitudes`.
 
@@ -404,7 +444,7 @@ Layers enabled on a map display, combined with bitwise OR.
    `Official SDK <https://developer.x-plane.com/sdk/XPLMPanelGraphics/#xplm_Map_EGPWS>`__: :index:`xplm_Map_EGPWS`
 
 .. py:data:: Map_raw_elev
-   :value: 64
+   :value: 128
 
    .. image:: /images/panel_map_elev.png
               :width: 400px
@@ -412,7 +452,7 @@ Layers enabled on a map display, combined with bitwise OR.
    Raw elevation. `Official SDK <https://developer.x-plane.com/sdk/XPLMPanelGraphics/#xplm_Map_raw_elev>`__: :index:`xplm_Map_raw_elev`
 
 .. py:data:: Map_safe_taxi
-   :value: 128
+   :value: 256
 
    .. image:: /images/panel_map_taxi.png
               :width: 400px

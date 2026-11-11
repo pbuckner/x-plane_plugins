@@ -25,6 +25,11 @@ computed values of the flightmodel using dataref read-writes, and to compute
 custom system values by reading the flightmodel. APIs that create resources or
 initialize the sim may issue warnings, crash the sim, or have unexpected results.
 
+.. warning:: **Do not** start or change the flight from a post-flightmodel callback. This includes
+  :func:`initFlight`, :func:`updateFlight`, :func:`setUsersAircraft`, :func:`placeUserAtAirport`,
+  :func:`placeUserAtLocation`, and :func:`loadDataFile` with a situation or replay file. Call them
+  from a pre-flightmodel callback (:data:`FlightLoop_Phase_BeforeFlightModel`) instead.
+
 
 Timing Functions
 ----------------
@@ -355,6 +360,7 @@ flight model is integrated by X-Plane.
    Your callback runs after X-Plane integrates the flight model. Do not create or initialize resources in *after* callbacks. The only
    recommended use of post-flight model callbacks is to "patch" the computed values of the flightmodel using dataref read-writes, and
    to compute custom system values by reading the flight model. APIs that create resources or initialize the sim may issue warnings, crash
-   the sim, or have unexpected results.
+   the sim, or have unexpected results. In particular, do not start or change the flight from an *after* callback
+   (e.g., :func:`initFlight`, :func:`setUsersAircraft`); use a *before* callback.
 
    `Official SDK <https://developer.x-plane.com/sdk/XPLMProcessing/#xplm_FlightLoop_Phase_AfterFlightModel>`__ :index:`xplm_FlightLoop_Phase_AfterFlightModel`

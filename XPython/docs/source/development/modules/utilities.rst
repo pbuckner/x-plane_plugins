@@ -413,6 +413,9 @@ Functions
    To clear the replay, pass a None *path* (this is only valid with
    replay movies, not sit files).
 
+   .. note:: Loading a situation or replay file starts or changes the flight. Do not call it from a post-flightmodel
+             flight loop callback; use a :data:`FlightLoop_Phase_BeforeFlightModel` callback. See :doc:`processing`.
+
    *fileType*:
     .. py:data:: DataFile_Situation
           :value: 1        

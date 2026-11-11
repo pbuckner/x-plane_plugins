@@ -6,6 +6,27 @@ Known Bugs
 
   None. *Prove me wrong!*
 
+4.8.0b5 (TBD)
+-------------
+
+:Improvements:
+   * **XP-SDK 4.4.0-r2**. Updated the ``xpsdk`` submodule to ``4.4.0-r2``.
+
+   * **Map layers renumbered** (XPLM440). :data:`xp.Map_IR` has been replaced by :data:`xp.Map_color_IR`
+     (false-color IR cloud tops), and :data:`xp.Map_clouds` (grayscale cloud tops) has been added. The values of
+     the other ``Map_*`` layer constants changed, so use the constants rather than literal numbers. Only one of
+     :data:`xp.Map_Nexrad`, :data:`xp.Map_clouds` or :data:`xp.Map_color_IR` can be displayed at a time.
+     This is a change from earlier 4.8 beta (SDK440) releases.
+
+   * **Documentation: map color stripes**. :doc:`/development/modules/panelgraphics_map` now describes how
+     aircraft can replace the colors of the Topo, EGPWS and Nexrad layers with PNG files in ``cockpit/EFIS/``,
+     and that they are read only when :func:`xp.createMapDisplay` is called.
+
+   * **Documentation: flight changes**. Do not start or change the flight from a post-flightmodel flight loop
+     callback. This includes :func:`xp.initFlight`, :func:`xp.updateFlight`, :func:`xp.setUsersAircraft`,
+     :func:`xp.placeUserAtAirport`, :func:`xp.placeUserAtLocation`, and :func:`xp.loadDataFile` with a situation
+     or replay file. Use a :data:`xp.FlightLoop_Phase_BeforeFlightModel` callback instead.
+
 4.8.0b4 (2-Nov-2026)
 --------------------
 

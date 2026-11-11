@@ -16,7 +16,8 @@ SVT_ILSHoops: int
 SVT_HorizonHeading: int
 SVT_All: int
 Map_Nexrad: int
-Map_IR: int
+Map_clouds: int
+Map_color_IR: int
 Map_Topo: int
 Map_Terrain: int
 Map_Water: int
@@ -345,7 +346,7 @@ def mapDisplayDrawIn(map: XPLMMapDisplayRef, layers: int, left: int, top: int, r
     Render the base map into the panel within (left, top, right, bottom). Must be
     called from an avionics drawing callback; does nothing until terrain tiles
     finish loading. layers is a bitwise OR of Map_* flags (some are mutually
-    exclusive -- e.g. Map_Nexrad with Map_EGPWS or Map_IR). dataOverrides is None
+    exclusive -- e.g. only one of Map_Nexrad, Map_clouds or Map_color_IR). dataOverrides is None
     for live sim state, or a sequence of 12 or 15 values: (datLat, datLon, ctrX,
     ctrY, roseRadius, mapRange, orientation, terrainWarn, terrainCaution, acfAlt,
     gearDown, trueRotation[, nearestRwyElev, egpwsBrightness, egpwsStyle]). The last

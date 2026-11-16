@@ -122,7 +122,9 @@ class XPRenderer(FixedPipelineRenderer):
             GL.glColorPointer(4, GL.GL_UNSIGNED_BYTE, imgui.VERTEX_SIZE, ctypes.c_void_p(commands.vtx_buffer_data + imgui.VERTEX_BUFFER_COL_OFFSET))
 
             for command in commands.commands:
-                GL.glBindTexture(GL.GL_TEXTURE_2D, command.texture_id)
+                # ALWAYS bind through XPLM, never glBindTexture (it selects unit 0 and keeps X-Plane's
+                # binding cache in step; a raw bind can leave every glyph sampling the wrong texture).
+                xp.bindTexture2d(command.texture_id, 0)
                 x, y, z, w = command.clip_rect
 
                 clipStart = prof.now() if prof else 0.0
@@ -145,6 +147,7 @@ class XPRenderer(FixedPipelineRenderer):
 
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glPopMatrix()
+        xp.bindTexture2d(0, 0)                      # leave no atlas bound behind us
         GL.glDisableClientState(GL.GL_COLOR_ARRAY)
         GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)

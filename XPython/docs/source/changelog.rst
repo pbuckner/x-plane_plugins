@@ -6,39 +6,8 @@ Known Bugs
 
   None. *Prove me wrong!*
 
-4.8.0b5 (11-11-2026)
---------------------
-
-:Improvements:
-   * **XP-SDK 4.4.0-r2**. Updated the ``xpsdk`` submodule to ``4.4.0-r2``.
-
-   * **Map layers renumbered** (XPLM440). :data:`xp.Map_IR` has been replaced by :data:`xp.Map_color_IR`
-     (false-color IR cloud tops), and :data:`xp.Map_clouds` (grayscale cloud tops) has been added. The values of
-     the other ``Map_*`` layer constants changed, so use the constants rather than literal numbers. Only one of
-     :data:`xp.Map_Nexrad`, :data:`xp.Map_clouds` or :data:`xp.Map_color_IR` can be displayed at a time.
-     This is a change from earlier 4.8 beta (SDK440) releases.
-
-   * **Documentation: map color stripes**. :doc:`/development/modules/panelgraphics_map` now describes how
-     aircraft can replace the colors of the Topo, EGPWS and Nexrad layers with PNG files in ``cockpit/EFIS/``,
-     and that they are read only when :func:`xp.createMapDisplay` is called.
-
-   * **Documentation: flight changes**. Do not start or change the flight from a post-flightmodel flight loop
-     callback. This includes :func:`xp.initFlight`, :func:`xp.updateFlight`, :func:`xp.setUsersAircraft`,
-     :func:`xp.placeUserAtAirport`, :func:`xp.placeUserAtLocation`, and :func:`xp.loadDataFile` with a situation
-     or replay file. Use a :data:`xp.FlightLoop_Phase_BeforeFlightModel` callback instead.
-
-4.8.0b4 (2-Nov-2026)
---------------------
-
-:New Features:
-   * **Added** :func:`xp.isReloading`, ``True`` while XPPython3 reloads plugins (Reload Scripts or
-     ``xp.reloadPlugin()``). A reload calls ``XPluginDisable()`` and ``XPluginStop()`` just as shutting
-     down does; this lets a plugin tell the two apart, e.g., to do work only when X-Plane is really exiting.
-
-   * **XP-SDK: github**. XPPython3 now uses a git submodule pointing to official X-Plane SDK in github, rather
-     than a private copy. While this does not change functionality, it should improve version traceability.
-     
-   |
+4.8.0 (18-Nov-2026)
+-------------------
 
 :Fixes:
    * **macOS: SSL certificate verification**. The Python bundled with XPPython3 uses its own OpenSSL, which
@@ -49,11 +18,6 @@ Known Bugs
      XPPython3 now sets the ``SSL_CERT_FILE`` environment variable to the bundled ``certifi`` CA file
      (``cacert.pem``) at startup, if the file exists. A value you have already set is not overridden.
 
-
-4.8.0b2 (18-Oct-2026)
----------------------
-
-:Fixes:
    * **utils/dataref.py**: ``xp.find_dataref('foo/bar[0]')`` used to return a list of elements, rather
      than the single 'zeroth' element. ``xp.find_dataref('foo/bar[1]')``, correctly returned only
      the single element. ``[0]`` has been fixed.
@@ -65,7 +29,41 @@ Known Bugs
      rather than using raw OpenGL.
 
    |
-   
+
+:Improvements:
+
+   * Online documentation has been re-ordered a bit for clarity and I've added pages to help you
+     understand :doc:`/development/plugin_tasks`, :doc:`/development/graphics`
+
+   * **Documentation: map color stripes**. :doc:`/development/modules/panelgraphics_map` now describes how
+     aircraft can replace the colors of the Topo, EGPWS and Nexrad layers with PNG files in ``cockpit/EFIS/``,
+     and that they are read only when :func:`xp.createMapDisplay` is called.
+
+   * **Documentation: flight changes**. Do not start or change the flight from a post-flightmodel flight loop
+     callback. This includes :func:`xp.initFlight`, :func:`xp.updateFlight`, :func:`xp.setUsersAircraft`,
+     :func:`xp.placeUserAtAirport`, :func:`xp.placeUserAtLocation`, and :func:`xp.loadDataFile` with a situation
+     or replay file. Use a :data:`xp.FlightLoop_Phase_BeforeFlightModel` callback instead.
+
+   * **Avionics callbacks from more than one script**: several PythonPlugins can now customize the *same* built-in
+     avionics device with :func:`xp.registerAvionicsCallbacksEx`. SDK440 allows XPPython3 only one registration per
+     device, so previously the second script's registration failed (returning ``None``, silently) and its callbacks never ran.
+     XPPython3 now registers once, calls every script's callbacks, and combines the results
+     (see :func:`xp.registerAvionicsCallbacksEx`).
+
+   * **registerAvionicsCallbacksEx / unregisterAvionicsCallbacks**: a failed registration now raises ``RuntimeError``
+     rather than returning ``None``, and no longer leaks references. ``unregisterAvionicsCallbacks`` removes only the
+     calling script's callbacks (and releases its ``refCon``), and an unregistered avionicsID raises ``ValueError``
+     if used again. Registrations are removed when a script stops. The tuple form of
+     ``registerAvionicsCallbacksEx`` now passes the correct ``deviceID`` to your callbacks.
+
+   * **Disabled scripts and avionics callbacks**: avionics callbacks (draw, input, brightness, browser) of a disabled script
+     are now skipped rather than called. They remain registered.
+
+   * **Avionics 'before' callbacks**: a ``before`` callback which raised an exception, or returned the wrong type,
+     used to suppress X-Plane's drawing of the device. It is now logged, disabled, and drawing continues.
+
+   |
+     
 :New Features:
    * **Support for SDK440**, valid for X-Plane 12.4.4+. As always, XPPython3 dynamically loads
      these new features where available, so you can continue to run this version on older
@@ -98,38 +96,24 @@ Known Bugs
      * **Snow coverage data** :attr:`snow_coverage_pct` added to ``XPLMWeatherInfo_t``, and :data:`xp.TempUndefinedLayer` for marking a
        temperature layer undefined when setting.
 
+   * **XP-SDK: github**. XPPython3 now uses a git submodule pointing to official X-Plane SDK in github, rather
+     than a private copy. While this does not change functionality, it should improve version traceability.
+     
    * **Demos, Demos, Demos!** Lots more example code in :doc:`/development/samples`, still automatically downloaded
      when you install or upgrade. Examples of most new Panel Graphics routines.
      
    * :func:`xp.getObjects` convenience function to simplify loading of library objects.
+
+   * **Added** :func:`xp.isReloading`, ``True`` while XPPython3 reloads plugins (Reload Scripts or
+     ``xp.reloadPlugin()``). A reload calls ``XPluginDisable()`` and ``XPluginStop()`` just as shutting
+     down does; this lets a plugin tell the two apart, e.g., to do work only when X-Plane is really exiting.
 
    * **Skunkcrafts Updater Support** You can now install a plugin as a separate directory, in addition to placing
      multiple PI_*.py files all in the same PythonPlugins directory, create a PI_* subdirectory and place all your
      files with optional ``skunkcrafts_updater.cfg`` file in that directory. See :doc:`/usage/add_plugin`.
 
    |
-   
-:Improvements:
-   * Online documentation has been re-ordered a bit for clarity and I've added pages to help you
-     understand :doc:`/development/plugin_tasks`, :doc:`/development/graphics`
 
-   * **Avionics callbacks from more than one script**: several PythonPlugins can now customize the *same* built-in
-     avionics device with :func:`xp.registerAvionicsCallbacksEx`. SDK440 allows XPPython3 only one registration per
-     device, so previously the second script's registration failed (returning ``None``, silently) and its callbacks never ran.
-     XPPython3 now registers once, calls every script's callbacks, and combines the results
-     (see :func:`xp.registerAvionicsCallbacksEx`).
-
-   * **registerAvionicsCallbacksEx / unregisterAvionicsCallbacks**: a failed registration now raises ``RuntimeError``
-     rather than returning ``None``, and no longer leaks references. ``unregisterAvionicsCallbacks`` removes only the
-     calling script's callbacks (and releases its ``refCon``), and an unregistered avionicsID raises ``ValueError``
-     if used again. Registrations are removed when a script stops. The tuple form of
-     ``registerAvionicsCallbacksEx`` now passes the correct ``deviceID`` to your callbacks.
-
-   * **Disabled scripts and avionics callbacks**: avionics callbacks (draw, input, brightness, browser) of a disabled script
-     are now skipped rather than called. They remain registered.
-
-   * **Avionics 'before' callbacks**: a ``before`` callback which raised an exception, or returned the wrong type,
-     used to suppress X-Plane's drawing of the device. It is now logged, disabled, and drawing continues.
 
 4.7.1 (12-Jul-2026)
 -------------------
